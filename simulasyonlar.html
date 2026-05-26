@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simülasyonlar — Ben Fizik Yapamıyorum</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Simülasyon kartı için ek araç çubuğu */
+  .sim-toolbar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .sim-toolbar .btn-sm {
+    padding: 8px 14px;
+    font-size: 0.84rem;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+  }
+  .sim-toolbar .btn-sm:hover {
+    background: var(--ink); color: #fff; border-color: var(--ink);
+  }
+  .sim-toolbar .btn-sm.primary {
+    background: var(--ink); color: #fff; border-color: var(--ink);
+  }
+  .sim-toolbar .btn-sm.primary:hover {
+    background: var(--coral); border-color: var(--coral);
+  }
+  /* Fullscreen modunda iframe'i tam doldur */
+  .iframe-16x9:fullscreen, .sim-wrap:fullscreen {
+    width: 100vw; height: 100vh;
+    background: var(--bg);
+    padding: 0;
+  }
+  .iframe-16x9:fullscreen iframe {
+    width: 100%; height: 100%;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display=&quot;none&quot;;this.nextElementSibling.style.display=&quot;grid&quot;;"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text">
+        <span>Ben Fizik Yapamıyorum</span>
+        <small>Yapabilirsin. Söz veriyorum.</small>
+      </span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="dersler.html">Dersler</a></li>
+      <li><a href="yks.html">YKS Hazırlık</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="hizmetler.html">Hizmetler</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / Simülasyonlar</div>
+    <h1>İnteraktif Simülasyonlar</h1>
+    <p>Parametreleri değiştir, fizik yasalarının nasıl çalıştığını gözünle gör. Hem sitenin kendi simülasyonları hem de PhET (Colorado Üni.) simülasyonları gömülü olarak.</p>
+  </div>
+
+  <!-- ============ ÖZEL SİMÜLASYON: EĞİK ATIŞ ============ -->
+  <section class="section">
+    <h2>Eğik Atış Laboratuvarı</h2>
+    <p class="section-sub">Başlangıç hızı, atış açısı ve yerçekimi ivmesini değiştirerek yörüngeyi izle.</p>
+    <div class="sim-wrap" id="sim-egikatis-custom">
+      <canvas id="projCanvas" class="sim-canvas" width="900" height="420"></canvas>
+
+      <div class="sim-controls">
+        <div>
+          <label>Başlangıç hızı: <strong><span id="vVal">40</span> m/s</strong></label>
+          <input id="vRange" type="range" min="10" max="80" value="40">
+        </div>
+        <div>
+          <label>Atış açısı: <strong><span id="aVal">45</span>°</strong></label>
+          <input id="aRange" type="range" min="5" max="85" value="45">
+        </div>
+        <div>
+          <label>Yerçekimi (g): <strong><span id="gVal">9.8</span> m/s²</strong></label>
+          <input id="gRange" type="range" min="1.6" max="24.8" step="0.1" value="9.8">
+        </div>
+      </div>
+
+      <div class="sim-stats">
+        Maksimum yükseklik: <span id="hMax">—</span> m &nbsp;·&nbsp;
+        Menzil: <span id="rMax">—</span> m &nbsp;·&nbsp;
+        Uçuş süresi: <span id="tMax">—</span> s
+      </div>
+
+      <div class="mt-3" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="btnFire" class="btn btn-primary">Atışı Başlat</button>
+        <button id="btnClear" class="btn btn-ghost">Temizle</button>
+        <button class="btn btn-ghost" onclick="goFs('sim-egikatis-custom')">⛶ Tam ekran</button>
+      </div>
+
+      <p class="muted mt-3" style="font-size:0.88rem">
+        Maksimum menzil 45°'de elde edilir (sürtünmesiz). g değerini değiştirip Ay (1.6) veya Jüpiter (24.8) yüzeyini taklit edebilirsin.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ SARKAÇ ============ -->
+  <section class="section">
+    <h2>Basit Sarkaç</h2>
+    <p class="section-sub">İp uzunluğu ve başlangıç açısını değiştir, periyodu gözlemle. Sürtünmesiz.</p>
+    <div class="sim-wrap" id="sim-sarkac-custom">
+      <canvas id="sarkacCanvas" class="sim-canvas" width="900" height="420"></canvas>
+      <div class="sim-controls">
+        <div>
+          <label>İp uzunluğu: <strong><span id="sLval">1.0</span> m</strong></label>
+          <input id="sL" type="range" min="0.3" max="3.0" step="0.1" value="1.0">
+        </div>
+        <div>
+          <label>Kütle (sadece görsel): <strong><span id="sMval">1.0</span> kg</strong></label>
+          <input id="sM" type="range" min="0.2" max="5.0" step="0.1" value="1.0">
+        </div>
+        <div>
+          <label>Başlangıç açısı: <strong><span id="sAval">30</span>°</strong></label>
+          <input id="sA" type="range" min="5" max="60" step="1" value="30">
+        </div>
+      </div>
+      <div class="sim-stats">
+        Periyot (T): <span id="sT">—</span> s &nbsp;·&nbsp;
+        Frekans (f): <span id="sF">—</span> Hz &nbsp;·&nbsp;
+        Açısal hız (ω): <span id="sW">—</span> rad/s
+      </div>
+      <div class="mt-3" style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="sarkacStart" class="btn btn-primary">Başlat / Durdur</button>
+        <button id="sarkacReset" class="btn btn-ghost">Sıfırla</button>
+        <button class="btn btn-ghost" onclick="goFs('sim-sarkac-custom')">⛶ Tam ekran</button>
+      </div>
+      <p class="muted mt-3" style="font-size:0.88rem">
+        Formül: T = 2π√(L/g). Periyot kütleden bağımsız, sadece ip uzunluğu ve g'ye bağlı. (Burada g = 9.8 m/s²)
+      </p>
+    </div>
+  </section>
+
+  <script>
+  (() => {
+    const cnv = document.getElementById('sarkacCanvas');
+    const ctx = cnv.getContext('2d');
+    const $ = id => document.getElementById(id);
+    const sL=$('sL'), sM=$('sM'), sA=$('sA');
+    const g = 9.8;
+    let playing = false, t0 = 0, raf;
+
+    function fit() {
+      const r = window.devicePixelRatio||1;
+      const w = cnv.clientWidth, h = cnv.clientHeight;
+      if (cnv.width !== w*r) { cnv.width=w*r; cnv.height=h*r; ctx.setTransform(r,0,0,r,0,0); }
+    }
+    function stats() {
+      const L=+sL.value, w=Math.sqrt(g/L), T=2*Math.PI/w;
+      $('sLval').textContent=L.toFixed(1);
+      $('sMval').textContent=(+sM.value).toFixed(1);
+      $('sAval').textContent=sA.value;
+      $('sT').textContent=T.toFixed(2);
+      $('sF').textContent=(1/T).toFixed(2);
+      $('sW').textContent=w.toFixed(2);
+    }
+    function draw(elapsed) {
+      fit();
+      const W=cnv.clientWidth, H=cnv.clientHeight;
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#fcfaf5'; ctx.fillRect(0,0,W,H);
+
+      const pivotX=W/2, pivotY=40;
+      const L=+sL.value, m=+sM.value;
+      const a0=+sA.value*Math.PI/180, w=Math.sqrt(g/L);
+      const px=(H-pivotY-60)/3.0;
+      const ipPx=L*px;
+      const theta = playing ? a0*Math.cos(w*elapsed) : a0;
+      const bobX = pivotX + ipPx*Math.sin(theta);
+      const bobY = pivotY + ipPx*Math.cos(theta);
+      const r = 8 + m*3;
+
+      ctx.fillStyle='#0e0c08'; ctx.fillRect(pivotX-30, pivotY-8, 60, 6);
+      ctx.strokeStyle='rgba(14,12,8,0.15)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(pivotX,pivotY+ipPx); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle='#5a544a'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(bobX,bobY); ctx.stroke();
+      ctx.fillStyle='#e26d4f'; ctx.beginPath(); ctx.arc(bobX,bobY,r,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#0e0c08'; ctx.lineWidth=1.5; ctx.stroke();
+
+      ctx.fillStyle='#5a544a'; ctx.font='13px ui-monospace, monospace';
+      ctx.fillText('θ = '+(theta*180/Math.PI).toFixed(1)+'°', 20, H-20);
+    }
+    [sL,sM,sA].forEach(el=>el.addEventListener('input',()=>{stats(); draw(0);}));
+    function animate(now){ draw((now-t0)/1000); if(playing) raf=requestAnimationFrame(animate); }
+    $('sarkacStart').addEventListener('click',()=>{
+      playing=!playing;
+      $('sarkacStart').textContent = playing ? 'Durdur' : 'Başlat / Durdur';
+      if(playing){ t0=performance.now(); raf=requestAnimationFrame(animate); }
+      else cancelAnimationFrame(raf);
+    });
+    $('sarkacReset').addEventListener('click',()=>{
+      playing=false; $('sarkacStart').textContent='Başlat / Durdur';
+      cancelAnimationFrame(raf); draw(0);
+    });
+    window.addEventListener('resize',()=>draw(0));
+    stats(); draw(0);
+  })();
+  </script>
+
+  <!-- ============ OHM YASASI DEVRE ============ -->
+  <section class="section">
+    <h2>Ohm Yasası: Basit Devre</h2>
+    <p class="section-sub">Gerilim (V) ve direnç (R) değişince akım (I) ve ampul parlaklığı nasıl değişiyor?</p>
+    <div class="sim-wrap" id="sim-devre-custom">
+      <canvas id="devreCanvas" class="sim-canvas" width="900" height="380"></canvas>
+      <div class="sim-controls" style="grid-template-columns: 1fr 1fr">
+        <div>
+          <label>Gerilim (V): <strong><span id="dVval">6</span> V</strong></label>
+          <input id="dV" type="range" min="1" max="12" step="0.5" value="6">
+        </div>
+        <div>
+          <label>Direnç (R): <strong><span id="dRval">3</span> Ω</strong></label>
+          <input id="dR" type="range" min="1" max="20" step="0.5" value="3">
+        </div>
+      </div>
+      <div class="sim-stats">
+        Akım (I = V/R): <span id="dI">—</span> A &nbsp;·&nbsp;
+        Güç (P = V·I): <span id="dP">—</span> W &nbsp;·&nbsp;
+        Ampul parlaklığı: <span id="dBri">—</span>
+      </div>
+      <div class="mt-3" style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="goFs('sim-devre-custom')">⛶ Tam ekran</button>
+      </div>
+      <p class="muted mt-3" style="font-size:0.88rem">
+        Ohm yasası: V = I·R, yani I = V/R. Ampul parlaklığı güçle (P = V·I) orantılı. Akım yönü oklar üzerinde animasyonlu.
+      </p>
+    </div>
+  </section>
+
+  <script>
+  (() => {
+    const cnv = document.getElementById('devreCanvas');
+    const ctx = cnv.getContext('2d');
+    const $ = id => document.getElementById(id);
+    const dV=$('dV'), dR=$('dR');
+    let t=0, raf;
+
+    function fit() {
+      const r=window.devicePixelRatio||1;
+      const w=cnv.clientWidth, h=cnv.clientHeight;
+      if (cnv.width !== w*r) { cnv.width=w*r; cnv.height=h*r; ctx.setTransform(r,0,0,r,0,0); }
+    }
+    function update() {
+      const V=+dV.value, R=+dR.value, I=V/R, P=V*I;
+      $('dVval').textContent=V; $('dRval').textContent=R;
+      $('dI').textContent=I.toFixed(2);
+      $('dP').textContent=P.toFixed(1);
+      $('dBri').textContent='%'+Math.min(100,Math.round(P/0.5));
+    }
+    function draw() {
+      fit();
+      const W=cnv.clientWidth, H=cnv.clientHeight;
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#fcfaf5'; ctx.fillRect(0,0,W,H);
+
+      const V=+dV.value, R=+dR.value, I=V/R, P=V*I;
+      const bri = Math.min(1, P/30);
+      const x1=80, x2=W-80, y1=80, y2=H-80;
+
+      // Devre teli (dikdörtgen)
+      ctx.strokeStyle='#0e0c08'; ctx.lineWidth=3;
+      ctx.beginPath();
+      ctx.moveTo(x1+50,y1); ctx.lineTo(x2,y1);
+      ctx.moveTo(x2,y1); ctx.lineTo(x2,y2);
+      ctx.moveTo(x2,y2); ctx.lineTo(x1+50,y2);
+      ctx.moveTo(x1+50,y2); ctx.lineTo(x1+50,y1);
+      ctx.stroke();
+
+      // Pil
+      const bx=x1+50, by=(y1+y2)/2;
+      ctx.lineWidth=4; ctx.beginPath();
+      ctx.moveTo(bx-14,by-14); ctx.lineTo(bx+14,by-14);
+      ctx.moveTo(bx-8,by-6); ctx.lineTo(bx+8,by-6);
+      ctx.moveTo(bx-14,by+2); ctx.lineTo(bx+14,by+2);
+      ctx.moveTo(bx-8,by+10); ctx.lineTo(bx+8,by+10);
+      ctx.stroke();
+      ctx.fillStyle='#0e0c08'; ctx.font='bold 14px ui-monospace, monospace';
+      ctx.fillText(V+'V', bx-18, by+32);
+      ctx.fillText('Pil', bx-12, by-30);
+
+      // Direnç (üst tel)
+      const rx=(x1+x2)/2, ry=y1;
+      ctx.strokeStyle='#0e0c08'; ctx.lineWidth=3;
+      ctx.fillStyle='#fcfaf5'; ctx.fillRect(rx-50,ry-12,100,24);
+      ctx.beginPath();
+      ctx.moveTo(rx-50,ry); ctx.lineTo(rx-40,ry-10);
+      ctx.lineTo(rx-30,ry+10); ctx.lineTo(rx-20,ry-10);
+      ctx.lineTo(rx-10,ry+10); ctx.lineTo(rx,ry-10);
+      ctx.lineTo(rx+10,ry+10); ctx.lineTo(rx+20,ry-10);
+      ctx.lineTo(rx+30,ry+10); ctx.lineTo(rx+40,ry-10);
+      ctx.lineTo(rx+50,ry);
+      ctx.stroke();
+      ctx.fillStyle='#0e0c08'; ctx.fillText(R+'Ω', rx-14, ry-22);
+
+      // Ampul (sağda)
+      const lx=x2, ly=(y1+y2)/2;
+      if (bri>0) {
+        const glow=ctx.createRadialGradient(lx,ly,10,lx,ly,90);
+        glow.addColorStop(0,'rgba(255,220,50,'+bri+')');
+        glow.addColorStop(1,'rgba(255,220,50,0)');
+        ctx.fillStyle=glow; ctx.fillRect(lx-90,ly-90,180,180);
+      }
+      ctx.fillStyle='rgb('+(255-(1-bri)*180)+','+(230-(1-bri)*150)+','+(100-(1-bri)*100)+')';
+      ctx.strokeStyle='#0e0c08'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(lx,ly,24,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      if (bri>0.3) {
+        ctx.strokeStyle='rgba(255,255,255,'+bri+')'; ctx.lineWidth=1.5;
+        for (let i=0;i<6;i++) {
+          const a=i*Math.PI/3;
+          ctx.beginPath();
+          ctx.moveTo(lx+27*Math.cos(a),ly+27*Math.sin(a));
+          ctx.lineTo(lx+38*Math.cos(a),ly+38*Math.sin(a));
+          ctx.stroke();
+        }
+      }
+      ctx.fillStyle='#0e0c08'; ctx.fillText('Ampul', lx-22, ly+45);
+
+      // Akım dotları
+      t += 0.04 * Math.min(I, 6);
+      const sideTop=x2-x1-50, sideRight=y2-y1, sideBottom=x2-x1-50, sideLeft=y2-y1;
+      const pathLen=sideTop+sideRight+sideBottom+sideLeft;
+      const dotCount=25;
+      for (let i=0;i<dotCount;i++) {
+        const d=((i/dotCount)*pathLen + (t*40)%pathLen)%pathLen;
+        let px,py;
+        if (d<sideTop) { px=x1+50+d; py=y1; }
+        else if (d<sideTop+sideRight) { px=x2; py=y1+(d-sideTop); }
+        else if (d<sideTop+sideRight+sideBottom) { px=x2-(d-sideTop-sideRight); py=y2; }
+        else { px=x1+50; py=y2-(d-sideTop-sideRight-sideBottom); }
+        ctx.fillStyle='rgba(226,109,79,'+(0.5+Math.min(0.4,I*0.08))+')';
+        ctx.beginPath(); ctx.arc(px,py,3.5,0,Math.PI*2); ctx.fill();
+      }
+      raf=requestAnimationFrame(draw);
+    }
+    [dV,dR].forEach(el=>el.addEventListener('input',update));
+    update();
+    raf=requestAnimationFrame(draw);
+  })();
+  </script>
+
+  <!-- ============ ÇARPIŞMA ============ -->
+  <section class="section">
+    <h2>Çarpışma: Momentum Korunumu</h2>
+    <p class="section-sub">İki cismin kütle ve hızlarını seç. Çarpışma tipini değiştir, momentum ve enerjinin korunumunu gör.</p>
+    <div class="sim-wrap" id="sim-carpisma-custom">
+      <canvas id="carpCanvas" class="sim-canvas" width="900" height="320"></canvas>
+      <div class="sim-controls">
+        <div>
+          <label>m₁: <strong><span id="cM1val">2</span> kg</strong></label>
+          <input id="cM1" type="range" min="1" max="10" step="0.5" value="2">
+        </div>
+        <div>
+          <label>v₁: <strong><span id="cV1val">5</span> m/s</strong></label>
+          <input id="cV1" type="range" min="-10" max="10" step="0.5" value="5">
+        </div>
+        <div>
+          <label>Tip:</label>
+          <select id="cType" style="width:100%;padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-family:inherit;font-size:0.94rem">
+            <option value="elastic">Esnek (enerji korunur)</option>
+            <option value="inelastic">Esnek olmayan (yapışır)</option>
+          </select>
+        </div>
+      </div>
+      <div class="sim-controls">
+        <div>
+          <label>m₂: <strong><span id="cM2val">3</span> kg</strong></label>
+          <input id="cM2" type="range" min="1" max="10" step="0.5" value="3">
+        </div>
+        <div>
+          <label>v₂: <strong><span id="cV2val">-2</span> m/s</strong></label>
+          <input id="cV2" type="range" min="-10" max="10" step="0.5" value="-2">
+        </div>
+        <div></div>
+      </div>
+      <div class="sim-stats">
+        <strong>Önce:</strong> p = <span id="cPpre">—</span> kg·m/s · KE = <span id="cKEpre">—</span> J<br>
+        <strong>Sonra:</strong> v₁' = <span id="cV1post">—</span> · v₂' = <span id="cV2post">—</span> m/s · p = <span id="cPpost">—</span> · KE = <span id="cKEpost">—</span> J
+      </div>
+      <div class="mt-3" style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="carpStart" class="btn btn-primary">Başlat</button>
+        <button id="carpReset" class="btn btn-ghost">Sıfırla</button>
+        <button class="btn btn-ghost" onclick="goFs('sim-carpisma-custom')">⛶ Tam ekran</button>
+      </div>
+      <p class="muted mt-3" style="font-size:0.88rem">
+        Esnek çarpışma: hem momentum hem kinetik enerji korunur. Esnek olmayan: momentum korunur, enerjinin bir kısmı ısıya dönüşür.
+      </p>
+    </div>
+  </section>
+
+  <script>
+  (() => {
+    const cnv = document.getElementById('carpCanvas');
+    const ctx = cnv.getContext('2d');
+    const $ = id => document.getElementById(id);
+    let state=null, raf;
+
+    function fit() {
+      const r=window.devicePixelRatio||1;
+      const w=cnv.clientWidth, h=cnv.clientHeight;
+      if (cnv.width !== w*r) { cnv.width=w*r; cnv.height=h*r; ctx.setTransform(r,0,0,r,0,0); }
+    }
+    function lbl() {
+      ['cM1','cV1','cM2','cV2'].forEach(id=>$(id+'val').textContent=$(id).value);
+    }
+    function compute() {
+      const m1=+$('cM1').value, v1=+$('cV1').value;
+      const m2=+$('cM2').value, v2=+$('cV2').value;
+      const type=$('cType').value;
+      const pPre=m1*v1+m2*v2, kePre=0.5*m1*v1*v1+0.5*m2*v2*v2;
+      let v1p, v2p;
+      if (type==='elastic') {
+        v1p=((m1-m2)*v1+2*m2*v2)/(m1+m2);
+        v2p=((m2-m1)*v2+2*m1*v1)/(m1+m2);
+      } else {
+        const vc=(m1*v1+m2*v2)/(m1+m2);
+        v1p=vc; v2p=vc;
+      }
+      const pPost=m1*v1p+m2*v2p, kePost=0.5*m1*v1p*v1p+0.5*m2*v2p*v2p;
+      $('cPpre').textContent=pPre.toFixed(1);
+      $('cKEpre').textContent=kePre.toFixed(1);
+      $('cV1post').textContent=v1p.toFixed(2);
+      $('cV2post').textContent=v2p.toFixed(2);
+      $('cPpost').textContent=pPost.toFixed(1);
+      $('cKEpost').textContent=kePost.toFixed(1);
+      return {m1,v1,m2,v2,v1p,v2p,type};
+    }
+    function box(cx, yG, size, mass, vel, color, label) {
+      ctx.fillStyle=color; ctx.strokeStyle='#0e0c08'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.rect(cx-size/2, yG-size, size, size); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#fff'; ctx.font='bold 13px ui-monospace, monospace';
+      ctx.textAlign='center';
+      ctx.fillText('m'+label+'='+mass+'kg', cx, yG-size/2-2);
+      ctx.fillText('v='+vel.toFixed(1), cx, yG-size/2+14);
+      ctx.textAlign='start';
+      if (Math.abs(vel)>0.1) {
+        const dir=vel>0?1:-1, len=Math.min(80, Math.abs(vel)*8);
+        ctx.strokeStyle=color; ctx.lineWidth=3;
+        ctx.beginPath(); ctx.moveTo(cx, yG+18); ctx.lineTo(cx+dir*len, yG+18); ctx.stroke();
+        ctx.fillStyle=color;
+        ctx.beginPath();
+        ctx.moveTo(cx+dir*len, yG+18);
+        ctx.lineTo(cx+dir*(len-10), yG+13);
+        ctx.lineTo(cx+dir*(len-10), yG+23);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+    function drawStatic() {
+      fit();
+      const W=cnv.clientWidth, H=cnv.clientHeight, yG=H-60;
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle='#fcfaf5'; ctx.fillRect(0,0,W,H);
+      ctx.strokeStyle='#0e0c08'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(20,yG); ctx.lineTo(W-20,yG); ctx.stroke();
+      const d=compute();
+      box(W*0.25, yG, 30+d.m1*4, d.m1, d.v1, '#e26d4f', '1');
+      box(W*0.75, yG, 30+d.m2*4, d.m2, d.v2, '#d4a017', '2');
+    }
+    function reset() {
+      cancelAnimationFrame(raf);
+      state=null;
+      drawStatic();
+    }
+    function start() {
+      const d=compute();
+      const W=cnv.clientWidth, H=cnv.clientHeight;
+      state = {
+        m1:d.m1, m2:d.m2,
+        v1:d.v1, v2:d.v2,
+        x1:W*0.25, x2:W*0.75,
+        sz1:30+d.m1*4, sz2:30+d.m2*4,
+        v1p:d.v1p, v2p:d.v2p,
+        type:d.type, collided:false
+      };
+      cancelAnimationFrame(raf);
+      let last=performance.now();
+      function step(now) {
+        const dt=(now-last)/1000; last=now;
+        const W=cnv.clientWidth, H=cnv.clientHeight, yG=H-60;
+        const sc=25; // m/s → px/s
+        if (!state.collided) {
+          state.x1 += state.v1*sc*dt;
+          state.x2 += state.v2*sc*dt;
+          if (state.x1 + state.sz1/2 >= state.x2 - state.sz2/2 && state.v1 > state.v2) {
+            state.collided = true;
+            state.v1 = state.v1p; state.v2 = state.v2p;
+          }
+        } else {
+          state.x1 += state.v1*sc*dt;
+          state.x2 += state.v2*sc*dt;
+          if (state.type==='inelastic') {
+            // Stick together - keep them adjacent
+            const mid = (state.x1*state.m1 + state.x2*state.m2)/(state.m1+state.m2);
+            state.x1 = mid - state.sz2/2 - state.sz1/2 + 1;
+            state.x2 = mid + state.sz1/2 + state.sz2/2 - 1;
+          }
+        }
+        if (state.x1<-100 || state.x1>W+100 || state.x2<-100 || state.x2>W+100) {
+          cancelAnimationFrame(raf);
+          return;
+        }
+        fit();
+        ctx.clearRect(0,0,W,H);
+        ctx.fillStyle='#fcfaf5'; ctx.fillRect(0,0,W,H);
+        ctx.strokeStyle='#0e0c08'; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.moveTo(20,yG); ctx.lineTo(W-20,yG); ctx.stroke();
+        box(state.x1, yG, state.sz1, state.m1, state.v1, '#e26d4f', '1');
+        box(state.x2, yG, state.sz2, state.m2, state.v2, '#d4a017', '2');
+        raf=requestAnimationFrame(step);
+      }
+      raf=requestAnimationFrame(step);
+    }
+    ['cM1','cV1','cM2','cV2','cType'].forEach(id=>$(id).addEventListener('input',()=>{lbl(); compute(); reset();}));
+    $('carpStart').addEventListener('click',start);
+    $('carpReset').addEventListener('click',reset);
+    window.addEventListener('resize',()=>{ if(!state) drawStatic(); });
+    lbl(); compute(); reset();
+  })();
+  </script>
+
+  <!-- ============ PHET GÖMÜLÜ ============ -->
+  <section class="section">
+    <h2>PhET Simülasyonları</h2>
+    <p class="section-sub">Colorado Üniversitesi'nin Türkçe destekli ücretsiz simülasyonlarını siteye gömebiliyoruz.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Sarkaç Laboratuvarı</h3>
+        <p>İp uzunluğu, kütle ve yerçekimini değiştirerek periyodu gözlemle.</p>
+        <div class="iframe-16x9 mt-2" id="sim-sarkac">
+          <iframe src="https://phet.colorado.edu/sims/html/pendulum-lab/latest/pendulum-lab_tr.html"
+                  allowfullscreen loading="lazy"
+                  title="PhET Sarkaç Laboratuvarı"></iframe>
+        </div>
+        <div class="sim-toolbar">
+          <button class="btn-sm primary" onclick="goFs('sim-sarkac')">⛶ Tam ekran</button>
+          <a class="btn-sm" href="https://phet.colorado.edu/sims/html/pendulum-lab/latest/pendulum-lab_tr.html" target="_blank" rel="noopener">↗ PhET'te aç</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Eğik Atış (PhET)</h3>
+        <p>Sürtünmeyi de hesaba katan ileri seviye atış simülasyonu.</p>
+        <div class="iframe-16x9 mt-2" id="sim-egikatis">
+          <iframe src="https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_tr.html"
+                  allowfullscreen loading="lazy"
+                  title="PhET Eğik Atış"></iframe>
+        </div>
+        <div class="sim-toolbar">
+          <button class="btn-sm primary" onclick="goFs('sim-egikatis')">⛶ Tam ekran</button>
+          <a class="btn-sm" href="https://phet.colorado.edu/sims/html/projectile-motion/latest/projectile-motion_tr.html" target="_blank" rel="noopener">↗ PhET'te aç</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Devre Yapım Seti</h3>
+        <p>Pil, ampul, direnç ve telden devre kur; akım ve gerilimi ölç.</p>
+        <div class="iframe-16x9 mt-2" id="sim-devre">
+          <iframe src="https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_tr.html"
+                  allowfullscreen loading="lazy"
+                  title="PhET Devre Yapımı"></iframe>
+        </div>
+        <div class="sim-toolbar">
+          <button class="btn-sm primary" onclick="goFs('sim-devre')">⛶ Tam ekran</button>
+          <a class="btn-sm" href="https://phet.colorado.edu/sims/html/circuit-construction-kit-dc/latest/circuit-construction-kit-dc_tr.html" target="_blank" rel="noopener">↗ PhET'te aç</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Dalgalarla Tanışma</h3>
+        <p>Dalga boyu, frekans ve genliğin etkisini gör; girişim deneyleri yap.</p>
+        <div class="iframe-16x9 mt-2" id="sim-dalga">
+          <iframe src="https://phet.colorado.edu/sims/html/waves-intro/latest/waves-intro_tr.html"
+                  allowfullscreen loading="lazy"
+                  title="PhET Dalgalar"></iframe>
+        </div>
+        <div class="sim-toolbar">
+          <button class="btn-sm primary" onclick="goFs('sim-dalga')">⛶ Tam ekran</button>
+          <a class="btn-sm" href="https://phet.colorado.edu/sims/html/waves-intro/latest/waves-intro_tr.html" target="_blank" rel="noopener">↗ PhET'te aç</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Tam ekran toggle — Fullscreen API
+    function goFs(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        el.requestFullscreen().catch(err => {
+          alert('Tam ekran açılamadı. Tarayıcı izin vermedi: ' + err.message);
+        });
+      }
+    }
+  </script>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="hakkimda.html">Hakkımda</a> ·
+      <a href="hizmetler.html">Hizmetler</a> ·
+      <a href="maarif.html">Maarif Modeli</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ===========================================================
+   Eğik Atış Simülasyonu
+   =========================================================== */
+(() => {
+  const canvas = document.getElementById('projCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Canvas'ı responsive yapalım
+  function fitCanvas() {
+    const ratio = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    if (canvas.width !== cssW * ratio) {
+      canvas.width = cssW * ratio;
+      canvas.height = cssH * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+  }
+
+  const vRange = document.getElementById('vRange');
+  const aRange = document.getElementById('aRange');
+  const gRange = document.getElementById('gRange');
+  const vVal = document.getElementById('vVal');
+  const aVal = document.getElementById('aVal');
+  const gVal = document.getElementById('gVal');
+  const hMaxEl = document.getElementById('hMax');
+  const rMaxEl = document.getElementById('rMax');
+  const tMaxEl = document.getElementById('tMax');
+  const btnFire = document.getElementById('btnFire');
+  const btnClear = document.getElementById('btnClear');
+
+  let trails = [];     // önceki yörüngeler (her biri {pts:[...], color})
+  let active = null;   // aktif animasyon
+
+  function params() {
+    return {
+      v0: +vRange.value,
+      ang: +aRange.value,
+      g: +gRange.value
+    };
+  }
+
+  function updateStats() {
+    const {v0, ang, g} = params();
+    const rad = ang * Math.PI / 180;
+    const vx = v0 * Math.cos(rad);
+    const vy = v0 * Math.sin(rad);
+    const tFlight = 2 * vy / g;
+    const range = vx * tFlight;
+    const hmax = (vy * vy) / (2 * g);
+    vVal.textContent = v0;
+    aVal.textContent = ang;
+    gVal.textContent = g.toFixed(1);
+    hMaxEl.textContent = hmax.toFixed(1);
+    rMaxEl.textContent = range.toFixed(1);
+    tMaxEl.textContent = tFlight.toFixed(2);
+  }
+  [vRange, aRange, gRange].forEach(el => el.addEventListener('input', () => { updateStats(); draw(); }));
+
+  function getScale() {
+    // Sahnede hangi menzili göstereceğiz?
+    fitCanvas();
+    const W = canvas.clientWidth;
+    const H = canvas.clientHeight;
+    // En büyük olası menzili al, biraz pay bırak
+    const {v0, g} = params();
+    const maxRange = (v0 * v0) / g; // 45° menzili
+    const maxHeight = (v0 * v0) / (2 * g);
+    const padL = 50, padR = 30, padT = 30, padB = 50;
+    const sx = (W - padL - padR) / Math.max(maxRange, 10);
+    const sy = (H - padT - padB) / Math.max(maxHeight, 5);
+    return { sx, sy, padL, padR, padT, padB, W, H };
+  }
+
+  function drawAxes(s) {
+    ctx.clearRect(0,0,s.W,s.H);
+    // Zemin
+    ctx.fillStyle = '#fcfaf5';
+    ctx.fillRect(0,0,s.W,s.H);
+
+    // Grid
+    ctx.strokeStyle = 'rgba(14,12,8,0.06)';
+    ctx.lineWidth = 1;
+    const gridX = 50, gridY = 40;
+    for (let x = s.padL; x < s.W - s.padR; x += gridX) {
+      ctx.beginPath(); ctx.moveTo(x, s.padT); ctx.lineTo(x, s.H - s.padB); ctx.stroke();
+    }
+    for (let y = s.padT; y < s.H - s.padB; y += gridY) {
+      ctx.beginPath(); ctx.moveTo(s.padL, y); ctx.lineTo(s.W - s.padR, y); ctx.stroke();
+    }
+
+    // Eksenler
+    ctx.strokeStyle = '#0e0c08';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(s.padL, s.padT);
+    ctx.lineTo(s.padL, s.H - s.padB);
+    ctx.lineTo(s.W - s.padR, s.H - s.padB);
+    ctx.stroke();
+
+    // Etiketler
+    ctx.fillStyle = '#5a544a';
+    ctx.font = '12px ui-monospace, monospace';
+    ctx.fillText('y (m)', 8, s.padT + 10);
+    ctx.fillText('x (m)', s.W - s.padR - 30, s.H - s.padB + 20);
+  }
+
+  function worldToScreen(x, y, s) {
+    return [s.padL + x * s.sx, (s.H - s.padB) - y * s.sy];
+  }
+
+  function drawTrails(s) {
+    for (const tr of trails) {
+      ctx.strokeStyle = tr.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      tr.pts.forEach((p,i) => {
+        const [sx, sy] = worldToScreen(p[0], p[1], s);
+        if (i===0) ctx.moveTo(sx,sy); else ctx.lineTo(sx,sy);
+      });
+      ctx.stroke();
+    }
+  }
+
+  function draw() {
+    const s = getScale();
+    drawAxes(s);
+    drawTrails(s);
+
+    // Topu başlangıçta göster
+    const [sx, sy] = worldToScreen(0, 0, s);
+    ctx.fillStyle = '#d9785c';
+    ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI*2); ctx.fill();
+
+    // Açı çiz
+    const {ang, v0} = params();
+    const rad = ang * Math.PI/180;
+    const len = 50;
+    ctx.strokeStyle = '#d9785c'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + Math.cos(rad)*len, sy - Math.sin(rad)*len);
+    ctx.stroke();
+  }
+
+  const palette = ['#e26d4f', '#0e0c08', '#d4a017', '#9b7510', '#5a544a', '#e26d4f'];
+  let colorIdx = 0;
+
+  function fire() {
+    const {v0, ang, g} = params();
+    const rad = ang * Math.PI/180;
+    const vx = v0 * Math.cos(rad);
+    const vy = v0 * Math.sin(rad);
+    const tFlight = 2 * vy / g;
+    const dt = tFlight / 120; // 120 kare animasyon
+
+    const trail = { pts: [], color: palette[colorIdx++ % palette.length] };
+    trails.push(trail);
+
+    let t = 0;
+    cancelAnimationFrame(active);
+    function step() {
+      const x = vx * t;
+      const y = vy * t - 0.5 * g * t * t;
+      if (y < 0) { draw(); return; }
+      trail.pts.push([x,y]);
+      draw();
+      t += dt;
+      active = requestAnimationFrame(step);
+    }
+    step();
+  }
+
+  function clearAll() {
+    trails = [];
+    cancelAnimationFrame(active);
+    draw();
+  }
+
+  btnFire.addEventListener('click', fire);
+  btnClear.addEventListener('click', clearAll);
+  window.addEventListener('resize', () => { draw(); });
+
+  updateStats();
+  draw();
+})();
+</script>
+
+</body>
+</html>
