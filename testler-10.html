@@ -310,6 +310,7 @@
       <li><a href="deneyler.html">Deneyler</a></li>
       <li><a href="testler.html" class="active">Online Testler</a></li>
       <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="materyaller.html">Materyaller</a></li>
       <li><a href="hizmetler.html">Hizmetler</a></li>
       <li><a href="maarif.html">Maarif</a></li>
       <li><a href="hakkimda.html">Hakkımda</a></li>
@@ -340,7 +341,7 @@
           <div class="lbl">Dakika</div>
         </div>
         <div class="intro-card">
-          <div class="num">331</div>
+          <div class="num">323</div>
           <div class="lbl">Soru Havuzu</div>
         </div>
       </div>
@@ -368,10 +369,10 @@
       <div id="uniteSecici" style="display:none; margin: 18px 0; text-align: left">
         <label style="font-weight:700; display:block; margin-bottom: 8px">Ünite seç:</label>
         <select id="uniteSelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);">
-          <option value="1">1. Ünite — Kuvvet ve Hareket (78 soru)</option>
-          <option value="2">2. Ünite — Enerji (66 soru)</option>
-          <option value="3">3. Ünite — Elektrik (103 soru)</option>
-          <option value="4">4. Ünite — Dalgalar (84 soru)</option>
+          <option value="1">1. Ünite — Fizik Bilimi ve Kariyer Keşfi (70 soru)</option>
+          <option value="2">2. Ünite — Kuvvet ve Hareket (80 soru)</option>
+          <option value="3">3. Ünite — Akışkanlar (70 soru)</option>
+          <option value="4">4. Ünite — Enerji (84 soru)</option>
         </select>
       </div>
 
@@ -505,6 +506,7 @@ async function loadSorular(){
   try{
     const resp=await fetch("sorular-10.json");
     const allQ=await resp.json();
+    // Bozuk parse edilmiş soruları filtrele (grafik etiket text'i karışmış, şık corruption vb.)
     SORULAR=allQ.filter(q=>!q.broken);
     populateKonuSelect();
   }catch(e){
@@ -519,7 +521,7 @@ function populateKonuSelect(){
   const kazList=Object.keys(KAZANIM_AD).filter(k=>!k.includes(".U"));
   sel.innerHTML=kazList.map(k=>{
     const sayi=SORULAR.filter(s=>s.kazanim===k).length;
-    if(sayi===0) return "";
+    if(sayi===0) return ""; // şekil-bağımlı konuları gizle
     return `<option value="${k}">${KAZANIM_AD[k]} (${sayi} soru)</option>`;
   }).filter(Boolean).join("");
 }
@@ -585,7 +587,7 @@ function renderQuestion(){
     const sel=answers[currentIdx]===h?"selected":"";
     return `<div class="option ${sel}" onclick="selectOption('${h}')">
       <div class="letter">${h}</div>
-      <div class="text">${q.siklar[h]||''}</div>
+      <div class="text">${escapeHTML(q.siklar[h]||'')}</div>
     </div>`;
   }).join("");
   const imgHtml = q.svg
@@ -597,7 +599,7 @@ function renderQuestion(){
       <span class="pill">${escapeHTML(konuAd)}</span>
       <span class="pill zor-${q.zorluk}">${q.zorluk}</span>
     </div>
-    <p class="q-text">${q.soru}</p>
+    <p class="q-text">${escapeHTML(q.soru)}</p>
     ${imgHtml}
     <div class="options">${sikSelections}</div>
   `;
@@ -751,21 +753,21 @@ function renderCevapList(){
         </span>
       </summary>
       <div class="cevap-body">
-        <p style="font-size:0.96rem; line-height:1.6">${q.soru}</p>
+        <p style="font-size:0.96rem; line-height:1.6">${escapeHTML(q.soru)}</p>
         ${imgH}
         <div style="margin: 12px 0">
           ${["A","B","C","D","E"].map(h=>{
             let st="background: var(--bg);";
             if(h===q.cevap) st="background:#e8f5e9; color:#2e7d32; font-weight:700; border:1px solid #4caf50;";
             else if(h===verilen) st="background:#fdecea; color:#c62828; font-weight:700; border:1px solid #e53935;";
-            return `<span style="display:inline-block; padding:6px 12px; margin:3px 4px 3px 0; border-radius:6px; font-size:0.92rem; ${st}"><strong>${h})</strong> ${q.siklar[h]||''}</span>`;
+            return `<span style="display:inline-block; padding:6px 12px; margin:3px 4px 3px 0; border-radius:6px; font-size:0.92rem; ${st}"><strong>${h})</strong> ${escapeHTML(q.siklar[h]||'')}</span>`;
           }).join("")}
         </div>
         <p style="font-size:0.9rem; color:var(--ink-2)">
           <strong>Doğru cevap:</strong> ${q.cevap}
           ${verilen?` · <strong>Senin cevabın:</strong> ${verilen}`:""}
         </p>
-        <div class="cozum-text"><strong>Çözüm:</strong> ${q.cozum}</div>
+        <div class="cozum-text"><strong>Çözüm:</strong> ${escapeHTML(q.cozum)}</div>
       </div>
     </details>`;
   }).join("");
