@@ -340,7 +340,7 @@
           <div class="lbl">Dakika</div>
         </div>
         <div class="intro-card">
-          <div class="num">283</div>
+          <div class="num">304</div>
           <div class="lbl">Soru Havuzu</div>
         </div>
       </div>
@@ -388,7 +388,6 @@
     </div>
   </section>
 
-  <!-- SORU EKRANI -->
   <section class="quiz-screen" id="screen-quiz">
     <div class="quiz-bar">
       <div class="progress-info">Soru <span id="qNum">1</span> / <span id="qTotal">15</span></div>
@@ -397,42 +396,31 @@
         <div class="progress-fill" id="progressFill" style="width: 0%"></div>
       </div>
     </div>
-
     <div class="question-card" id="questionCard"></div>
-
     <div class="quiz-nav">
       <button class="btn btn-ghost" onclick="prevQuestion()" id="prevBtn">← Önceki</button>
       <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Sonraki →</button>
     </div>
   </section>
 
-  <!-- SONUÇ EKRANI -->
   <section class="quiz-screen" id="screen-result">
     <div class="result-hero">
       <h2>Test sonucun</h2>
       <div class="score-big"><span id="scorePct">0</span>%</div>
-      <div class="score-meta">
-        <span id="scoreDetay">0/15 doğru · 0 yanlış · 0 boş</span>
-      </div>
-      <div class="pred">
-        <strong>Tahmini TYT Fizik Net:</strong> <span id="netTahmin">0</span> / 7
-      </div>
+      <div class="score-meta"><span id="scoreDetay">0/15 doğru · 0 yanlış · 0 boş</span></div>
+      <div class="pred"><strong>Tahmini TYT Fizik Net:</strong> <span id="netTahmin">0</span> / 7</div>
     </div>
-
     <div class="konu-analiz">
       <h3>Konu konu analiz</h3>
       <p class="muted">Bu testte hangi konularda kuvvetliydin, hangileri eksik kaldı.</p>
       <div id="konuList"></div>
     </div>
-
     <div id="offerBox"></div>
-
     <div class="konu-analiz" style="margin-top: 24px">
       <h3>Soru çözümleri</h3>
       <p class="muted">Her sorunun cevabını ve detaylı çözümünü gör.</p>
       <div class="cevap-list" id="cevapList"></div>
     </div>
-
     <div style="text-align:center; margin-top: 32px">
       <button class="btn btn-ghost" onclick="restartQuiz()">Tekrar test çöz</button>
     </div>
@@ -454,7 +442,6 @@
 </footer>
 
 <script>
-// 9. SINIF FİZİK · DIAGNOSTİK TEST MOTORU
 const KAZANIM_AD = {
   "FİZ.9.1.1":"Fizik Bilimi","FİZ.9.1.2":"Fizik Biliminin Alt Dalları",
   "FİZ.9.1.3":"Fizik Bilimine Yön Verenler","FİZ.9.1.4":"Fizik ile Kariyer Keşfi",
@@ -482,44 +469,35 @@ const MOD_CONFIG = {
   tam:{soruSay:40,dakika:60,label:"Tam Deneme"},
   konu:{soruSay:10,dakika:15,label:"Konu Testi"}
 };
-
 let SORULAR=[],currentMode="mini",activeQuestions=[],currentIdx=0,answers=[],timerInterval=null,timeLeft=0;
-
 async function loadSorular(){
   try{
     const resp=await fetch("sorular-9.json");
     const allQ=await resp.json();
-    // Bozuk parse edilmiş soruları filtrele (grafik etiket text'i karışmış, şık corruption vb.)
     SORULAR=allQ.filter(q=>!q.broken);
     populateKonuSelect();
   }catch(e){
-    document.getElementById("questionCard").innerHTML=
-      `<p style="color: var(--coral)">Sorular yüklenemedi. Lütfen sayfayı yenileyin.</p>`;
+    document.getElementById("questionCard").innerHTML=`<p style="color: var(--coral)">Sorular yüklenemedi. Lütfen sayfayı yenileyin.</p>`;
     console.error(e);
   }
 }
-
 function populateKonuSelect(){
   const sel=document.getElementById("konuSelect");
   const kazList=Object.keys(KAZANIM_AD).filter(k=>!k.includes(".U"));
   sel.innerHTML=kazList.map(k=>{
     const sayi=SORULAR.filter(s=>s.kazanim===k).length;
-    if(sayi===0) return ""; // şekil-bağımlı konuları gizle
+    if(sayi===0) return "";
     return `<option value="${k}">${KAZANIM_AD[k]} (${sayi} soru)</option>`;
   }).filter(Boolean).join("");
 }
-
 function selectMode(mode){
   currentMode=mode;
-  document.querySelectorAll(".mode-card").forEach(c=>{
-    c.classList.toggle("selected",c.dataset.mode===mode);
-  });
+  document.querySelectorAll(".mode-card").forEach(c=>c.classList.toggle("selected",c.dataset.mode===mode));
   document.getElementById("uniteSecici").style.display=(mode==="unite")?"block":"none";
   document.getElementById("konuSecici").style.display=(mode==="konu")?"block":"none";
   document.getElementById("introSoru").textContent=MOD_CONFIG[mode].soruSay;
   document.getElementById("introSure").textContent=MOD_CONFIG[mode].dakika;
 }
-
 function pickQuestions(){
   let pool=[...SORULAR];
   const cfg=MOD_CONFIG[currentMode];
@@ -535,17 +513,10 @@ function pickQuestions(){
   pool.sort(()=>Math.random()-0.5);
   return pool.slice(0,Math.min(cfg.soruSay,pool.length));
 }
-
 function startQuiz(){
-  if(!SORULAR.length){
-    alert("Sorular henüz yüklenemedi, biraz bekleyin.");
-    return;
-  }
+  if(!SORULAR.length){alert("Sorular henüz yüklenemedi, biraz bekleyin.");return;}
   activeQuestions=pickQuestions();
-  if(!activeQuestions.length){
-    alert("Seçilen kategoride yeterli soru yok.");
-    return;
-  }
+  if(!activeQuestions.length){alert("Seçilen kategoride yeterli soru yok.");return;}
   currentIdx=0;
   answers=new Array(activeQuestions.length).fill(null);
   timeLeft=MOD_CONFIG[currentMode].dakika*60;
@@ -554,13 +525,11 @@ function startQuiz(){
   document.getElementById("qTotal").textContent=activeQuestions.length;
   renderQuestion();
 }
-
 function showScreen(name){
   document.querySelectorAll(".quiz-screen").forEach(s=>s.classList.remove("active"));
   document.getElementById("screen-"+name).classList.add("active");
   window.scrollTo({top:0,behavior:"smooth"});
 }
-
 function renderQuestion(){
   const q=activeQuestions[currentIdx];
   document.getElementById("qNum").textContent=currentIdx+1;
@@ -568,60 +537,37 @@ function renderQuestion(){
   const konuAd=KAZANIM_AD[q.kazanim]||q.kazanim;
   const sikSelections=["A","B","C","D","E"].map(h=>{
     const sel=answers[currentIdx]===h?"selected":"";
-    return `<div class="option ${sel}" onclick="selectOption('${h}')">
-      <div class="letter">${h}</div>
-      <div class="text">${escapeHTML(q.siklar[h]||'')}</div>
-    </div>`;
+    return `<div class="option ${sel}" onclick="selectOption('${h}')"><div class="letter">${h}</div><div class="text">${escapeHTML(q.siklar[h]||'')}</div></div>`;
   }).join("");
-  const imgHtml = q.image ? `<div style="text-align:center; margin: 8px 0 18px"><img src="${q.image}" alt="Soru şekli" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);"></div>` : "";
+  const imgHtml = q.svg
+    ? `<div style="text-align:center; margin: 8px 0 18px; background:#fff; border-radius:8px; border:1px solid var(--border); padding:12px;">${q.svg}</div>`
+    : (q.image ? `<div style="text-align:center; margin: 8px 0 18px"><img src="${q.image}" alt="Soru şekli" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);"></div>` : "");
   document.getElementById("questionCard").innerHTML=`
-    <div class="q-meta">
-      <span class="pill">${q.kazanim}</span>
-      <span class="pill">${escapeHTML(konuAd)}</span>
-      <span class="pill zor-${q.zorluk}">${q.zorluk}</span>
-    </div>
+    <div class="q-meta"><span class="pill">${q.kazanim}</span><span class="pill">${escapeHTML(konuAd)}</span><span class="pill zor-${q.zorluk}">${q.zorluk}</span></div>
     <p class="q-text">${escapeHTML(q.soru)}</p>
     ${imgHtml}
-    <div class="options">${sikSelections}</div>
-  `;
+    <div class="options">${sikSelections}</div>`;
   document.getElementById("prevBtn").style.visibility=(currentIdx>0)?"visible":"hidden";
-  document.getElementById("nextBtn").textContent=
-    (currentIdx===activeQuestions.length-1)?"Testi Bitir ✓":"Sonraki →";
+  document.getElementById("nextBtn").textContent=(currentIdx===activeQuestions.length-1)?"Testi Bitir ✓":"Sonraki →";
 }
-
-function selectOption(harf){
-  answers[currentIdx]=harf;
-  renderQuestion();
-}
-
+function selectOption(harf){answers[currentIdx]=harf;renderQuestion();}
 function nextQuestion(){
-  if(currentIdx<activeQuestions.length-1){
-    currentIdx++; renderQuestion();
-  }else{
-    if(confirm("Testi bitirmek istediğinden emin misin? Sonuç ekranı açılacak.")) finishQuiz();
-  }
+  if(currentIdx<activeQuestions.length-1){currentIdx++;renderQuestion();}
+  else{if(confirm("Testi bitirmek istediğinden emin misin? Sonuç ekranı açılacak.")) finishQuiz();}
 }
-
-function prevQuestion(){
-  if(currentIdx>0){ currentIdx--; renderQuestion(); }
-}
-
+function prevQuestion(){if(currentIdx>0){currentIdx--;renderQuestion();}}
 function startTimer(){
   updateTimerDisplay();
   timerInterval=setInterval(()=>{
     timeLeft--;
-    if(timeLeft<=0){
-      clearInterval(timerInterval);
-      alert("Süre doldu! Test sonuçların açılıyor.");
-      finishQuiz();
-    } else updateTimerDisplay();
+    if(timeLeft<=0){clearInterval(timerInterval);alert("Süre doldu! Test sonuçların açılıyor.");finishQuiz();}
+    else updateTimerDisplay();
   },1000);
 }
 function updateTimerDisplay(){
   const m=Math.floor(timeLeft/60), s=timeLeft%60;
   document.getElementById("timer").textContent=`${m}:${s.toString().padStart(2,"0")}`;
 }
-
 function finishQuiz(){
   clearInterval(timerInterval);
   const dogru=answers.filter((a,i)=>a===activeQuestions[i].cevap).length;
@@ -633,12 +579,9 @@ function finishQuiz(){
   document.getElementById("scoreDetay").textContent=`${dogru}/${total} doğru · ${yanlis} yanlış · ${bos} boş`;
   const netRaw=Math.max(0,(dogru-yanlis/4)/total*7);
   document.getElementById("netTahmin").textContent=netRaw.toFixed(1);
-  renderKonuAnaliz();
-  renderOffer(pct);
-  renderCevapList();
+  renderKonuAnaliz(); renderOffer(pct); renderCevapList();
   showScreen("result");
 }
-
 function _konuAnalizGetir(){
   const byKaz={};
   activeQuestions.forEach((q,i)=>{
@@ -648,75 +591,31 @@ function _konuAnalizGetir(){
   });
   return byKaz;
 }
-
 function renderKonuAnaliz(){
   const byKaz=_konuAnalizGetir();
   const rows=Object.entries(byKaz).sort((a,b)=>a[0].localeCompare(b[0])).map(([kaz,d])=>{
     const pct=Math.round((d.dogru/d.total)*100);
     const sinif=pct>=70?"iyi":(pct>=40?"orta":"zayif");
-    return `<div class="konu-row">
-      <div>
-        <div class="konu-name">${KAZANIM_AD[kaz]||kaz}</div>
-        <div style="font-size:0.8rem; color: var(--ink-2)">${d.dogru}/${d.total} doğru</div>
-      </div>
-      <div class="konu-bar"><div class="konu-bar-fill ${sinif}" style="width:${pct}%"></div></div>
-      <div class="konu-pct ${sinif}">${pct}%</div>
-    </div>`;
+    return `<div class="konu-row"><div><div class="konu-name">${KAZANIM_AD[kaz]||kaz}</div><div style="font-size:0.8rem; color: var(--ink-2)">${d.dogru}/${d.total} doğru</div></div><div class="konu-bar"><div class="konu-bar-fill ${sinif}" style="width:${pct}%"></div></div><div class="konu-pct ${sinif}">${pct}%</div></div>`;
   }).join("");
   document.getElementById("konuList").innerHTML=rows;
 }
-
 function renderOffer(pct){
   const box=document.getElementById("offerBox");
   let html="";
   const waBase="https://wa.me/905425549386?text=";
   if(pct<35){
-    html=`<div class="offer-banner">
-      <div style="font-size: 2.2rem">🎯</div>
-      <h3>Tam temelden başlayalım</h3>
-      <p>%${pct}'lik skor — endişelenme, herkes bir yerden başlar. 9. Sınıf Maarif Fizik için sıfırdan zirveye doğru bir programa ihtiyacın var. Birebir bir tanışma görüşmesi yapalım.</p>
-      <div class="offer-cta">
-        <a href="hizmetler.html#basvuru" class="btn btn-primary">Ücretsiz demo ders al</a>
-        <a href="${waBase}Merhaba%20Timur%20Hocam%2C%20diagnostik%20testi%20%C3%A7%C3%B6zd%C3%BCm.%20Sonu%C3%A7%20${pct}%25.%20Yard%C4%B1mc%C4%B1%20olur%20musunuz%3F" target="_blank" rel="noopener" class="btn btn-ghost">💬 WhatsApp'tan yaz</a>
-      </div>
-    </div>`;
+    html=`<div class="offer-banner"><div style="font-size: 2.2rem">🎯</div><h3>Tam temelden başlayalım</h3><p>%${pct}'lik skor — endişelenme, herkes bir yerden başlar. 9. Sınıf Maarif Fizik için sıfırdan zirveye doğru bir programa ihtiyacın var.</p><div class="offer-cta"><a href="hizmetler.html#basvuru" class="btn btn-primary">Ücretsiz demo ders al</a><a href="${waBase}Merhaba%20Timur%20Hocam" target="_blank" rel="noopener" class="btn btn-ghost">💬 WhatsApp'tan yaz</a></div></div>`;
   } else if(pct<55){
-    const zayifKazList=Object.entries(_konuAnalizGetir())
-      .filter(([k,d])=>d.dogru/d.total<0.5)
-      .map(([k])=>KAZANIM_AD[k]||k).slice(0,3);
-    html=`<div class="offer-banner">
-      <div style="font-size: 2.2rem">📚</div>
-      <h3>Eksiklerin belli — özel rehber çıkaralım</h3>
-      <p>%${pct} skor fena değil ama bazı konular boşta: <strong>${zayifKazList.join(", ")||"çeşitli konular"}</strong>. Sana özel hazırlanmış bir konu kitapçığı bu eksikleri 2 haftada kapatır.</p>
-      <div class="offer-cta">
-        <a href="hizmetler.html" class="btn btn-primary">9. Sınıf Tam PDF Paketi (yakında)</a>
-        <a href="${waBase}Merhaba%2C%20diagnostik%20sonucum%20${pct}%25.%20Eksik%20konular%20i%C3%A7in%20bana%20%C3%B6zel%20PDF%20haz%C4%B1rlamak%20ister%20misiniz%3F" target="_blank" rel="noopener" class="btn btn-ghost">Bana özel PDF talep et</a>
-      </div>
-    </div>`;
+    const zayifKazList=Object.entries(_konuAnalizGetir()).filter(([k,d])=>d.dogru/d.total<0.5).map(([k])=>KAZANIM_AD[k]||k).slice(0,3);
+    html=`<div class="offer-banner"><div style="font-size: 2.2rem">📚</div><h3>Eksiklerin belli — özel rehber çıkaralım</h3><p>%${pct} skor fena değil ama bazı konular boşta: <strong>${zayifKazList.join(", ")||"çeşitli konular"}</strong>.</p><div class="offer-cta"><a href="hizmetler.html" class="btn btn-primary">9. Sınıf Tam PDF Paketi (yakında)</a><a href="${waBase}" target="_blank" rel="noopener" class="btn btn-ghost">Bana özel PDF talep et</a></div></div>`;
   } else if(pct<75){
-    html=`<div class="offer-banner">
-      <div style="font-size: 2.2rem">✏️</div>
-      <h3>İyi seviyedeyim, daha çok pratik istiyorum</h3>
-      <p>%${pct} ile temellerin sağlam görünüyor. Şimdi bol bol soru çöz, hızını ve doğruluğunu artır. Deneme paketleriyle ilerleyebilirsin.</p>
-      <div class="offer-cta">
-        <a href="hizmetler.html" class="btn btn-primary">9. Sınıf 5'li Deneme Paketi (yakında)</a>
-        <a href="javascript:restartQuiz()" class="btn btn-ghost">Başka bir test daha çöz</a>
-      </div>
-    </div>`;
+    html=`<div class="offer-banner"><div style="font-size: 2.2rem">✏️</div><h3>İyi seviyedeyim, daha çok pratik istiyorum</h3><p>%${pct} ile temellerin sağlam. Deneme paketleriyle ilerleyebilirsin.</p><div class="offer-cta"><a href="hizmetler.html" class="btn btn-primary">9. Sınıf 5'li Deneme (yakında)</a><a href="javascript:restartQuiz()" class="btn btn-ghost">Başka test çöz</a></div></div>`;
   } else {
-    html=`<div class="offer-banner">
-      <div style="font-size: 2.2rem">🏆</div>
-      <h3>Müthişsin — sıradakini düşünelim</h3>
-      <p>%${pct} bir 9. sınıf öğrencisi için harika. Maarif YKS 2028'in ilk kohortundasın — yol haritanı erken kuralım, avantajını koru.</p>
-      <div class="offer-cta">
-        <a href="hizmetler.html#basvuru" class="btn btn-primary">YKS 2028 mentörlük başvurusu</a>
-        <a href="yks.html" class="btn btn-ghost">Maarif YKS sayfası</a>
-      </div>
-    </div>`;
+    html=`<div class="offer-banner"><div style="font-size: 2.2rem">🏆</div><h3>Müthişsin — sıradakini düşünelim</h3><p>%${pct} bir 9. sınıf için harika. Maarif YKS 2028'in ilk kohortundasın.</p><div class="offer-cta"><a href="hizmetler.html#basvuru" class="btn btn-primary">YKS 2028 mentörlük</a><a href="yks.html" class="btn btn-ghost">Maarif YKS sayfası</a></div></div>`;
   }
   box.innerHTML=html;
 }
-
 function renderCevapList(){
   const items=activeQuestions.map((q,i)=>{
     const verilen=answers[i];
@@ -724,45 +623,15 @@ function renderCevapList(){
     const bos=!verilen;
     const sinif=bos?"bos":(dogru?"dogru":"yanlis");
     const durum=bos?"⊘ Boş":(dogru?"✓ Doğru":"✗ Yanlış");
-    const imgH = q.image ? `<div style="text-align:center; margin:10px 0"><img src="${q.image}" alt="Soru şekli" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);"></div>` : "";
-    return `<details class="cevap-item ${sinif}">
-      <summary>Soru ${i+1} — ${durum}
-        <span style="font-weight:400; color:var(--ink-2); font-size:0.85rem">
-          · ${KAZANIM_AD[q.kazanim]||q.kazanim} · ${q.zorluk}
-        </span>
-      </summary>
-      <div class="cevap-body">
-        <p style="font-size:0.96rem; line-height:1.6">${escapeHTML(q.soru)}</p>
-        ${imgH}
-        <div style="margin: 12px 0">
-          ${["A","B","C","D","E"].map(h=>{
-            let st="background: var(--bg);";
-            if(h===q.cevap) st="background:#e8f5e9; color:#2e7d32; font-weight:700; border:1px solid #4caf50;";
-            else if(h===verilen) st="background:#fdecea; color:#c62828; font-weight:700; border:1px solid #e53935;";
-            return `<span style="display:inline-block; padding:6px 12px; margin:3px 4px 3px 0; border-radius:6px; font-size:0.92rem; ${st}"><strong>${h})</strong> ${escapeHTML(q.siklar[h]||'')}</span>`;
-          }).join("")}
-        </div>
-        <p style="font-size:0.9rem; color:var(--ink-2)">
-          <strong>Doğru cevap:</strong> ${q.cevap}
-          ${verilen?` · <strong>Senin cevabın:</strong> ${verilen}`:""}
-        </p>
-        <div class="cozum-text"><strong>Çözüm:</strong> ${escapeHTML(q.cozum)}</div>
-      </div>
-    </details>`;
+    const imgH = q.svg
+      ? `<div style="text-align:center; margin:10px 0; background:#fff; border-radius:8px; border:1px solid var(--border); padding:10px;">${q.svg}</div>`
+      : (q.image ? `<div style="text-align:center; margin:10px 0"><img src="${q.image}" alt="Soru şekli" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);"></div>` : "");
+    return `<details class="cevap-item ${sinif}"><summary>Soru ${i+1} — ${durum}<span style="font-weight:400; color:var(--ink-2); font-size:0.85rem"> · ${KAZANIM_AD[q.kazanim]||q.kazanim} · ${q.zorluk}</span></summary><div class="cevap-body"><p style="font-size:0.96rem; line-height:1.6">${escapeHTML(q.soru)}</p>${imgH}<div style="margin: 12px 0">${["A","B","C","D","E"].map(h=>{let st="background: var(--bg);";if(h===q.cevap) st="background:#e8f5e9; color:#2e7d32; font-weight:700; border:1px solid #4caf50;";else if(h===verilen) st="background:#fdecea; color:#c62828; font-weight:700; border:1px solid #e53935;";return `<span style="display:inline-block; padding:6px 12px; margin:3px 4px 3px 0; border-radius:6px; font-size:0.92rem; ${st}"><strong>${h})</strong> ${escapeHTML(q.siklar[h]||'')}</span>`;}).join("")}</div><p style="font-size:0.9rem; color:var(--ink-2)"><strong>Doğru cevap:</strong> ${q.cevap}${verilen?` · <strong>Senin cevabın:</strong> ${verilen}`:""}</p><div class="cozum-text"><strong>Çözüm:</strong> ${escapeHTML(q.cozum)}</div></div></details>`;
   }).join("");
   document.getElementById("cevapList").innerHTML=items;
 }
-
-function escapeHTML(str){
-  if(!str) return "";
-  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-}
-
-function restartQuiz(){
-  showScreen("intro");
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
+function escapeHTML(str){if(!str) return "";return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+function restartQuiz(){showScreen("intro");window.scrollTo({top:0,behavior:"smooth"});}
 loadSorular();
 </script>
 
