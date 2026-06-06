@@ -507,7 +507,14 @@ async function loadSorular(){
     const resp=await fetch("sorular-10.json");
     const allQ=await resp.json();
     // Bozuk parse edilmiş soruları filtrele (grafik etiket text'i karışmış, şık corruption vb.)
-    SORULAR=allQ.filter(q=>!q.broken);
+    // EK: "şekilde/şekildeki/grafiğinde/tabloda" diye bahsedip görseli OLMAYAN soruları da çıkar
+    const sekilRefRe=/şekilde|şekildeki|aşağıdaki şekil|yukarıdaki şekil|görselde|grafiğinde|tabloda/i;
+    SORULAR=allQ.filter(q=>{
+      if(q.broken)return false;
+      if(q.image)return true;
+      if(sekilRefRe.test(q.soru||""))return false;
+      return true;
+    });
     populateKonuSelect();
   }catch(e){
     document.getElementById("questionCard").innerHTML=
