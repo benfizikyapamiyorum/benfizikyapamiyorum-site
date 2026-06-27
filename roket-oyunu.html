@@ -583,19 +583,23 @@
     return c;
   }
   function downloadCanvas(c){ try{ const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='roket-skor.png'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){} }
+  function isMobile(){ return (navigator.userAgentData&&navigator.userAgentData.mobile) || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
   async function shareImage(){
     const c=drawScoreCard(); const cap=shareText()+' '+GAME_URL;
-    if(navigator.canShare){
+    // Telefon: native paylaş menüsü → Instagram → Hikâye
+    if(isMobile() && navigator.canShare){
       try{
         const blob=await new Promise(res=>c.toBlob(res,'image/png'));
         const file=new File([blob],'roket-skor.png',{type:'image/png'});
         if(navigator.canShare({files:[file]})){ await navigator.share({files:[file], text:cap}); return; }
+        await navigator.share({text:cap, url:GAME_URL}); return;
       }catch(e){ if(e&&e.name==='AbortError') return; }
     }
+    // Bilgisayar: görseli indir + açıklamayı kopyala (Instagram Hikâye masaüstünden yüklenemez)
     downloadCanvas(c);
     try{ await navigator.clipboard.writeText(cap); }catch(e){}
     const enc=encodeURIComponent(cap);
-    document.getElementById('shareMsg').innerHTML="📸 Skor kartı indirildi, açıklama kopyalandı. Instagram'ı aç → Hikâye'ye görseli ekle:";
+    document.getElementById('shareMsg').innerHTML="📸 Skor kartın bilgisayarına indirildi, açıklama kopyalandı. <b>Instagram Hikâye yalnızca telefondan eklenebilir</b> — görseli telefonuna gönder (AirDrop/WhatsApp) ya da oyunu telefonda aç. Linki paylaş:";
     document.getElementById('shareIg').href=IG_URL;
     document.getElementById('shareWa').href='https://wa.me/?text='+enc;
     document.getElementById('shareX').href='https://twitter.com/intent/tweet?text='+enc;
