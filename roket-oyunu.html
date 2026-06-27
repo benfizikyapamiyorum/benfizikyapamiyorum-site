@@ -36,8 +36,8 @@
   .fuel-bar{height:7px;border-radius:6px;background:rgba(255,255,255,.15);margin-top:5px;overflow:hidden}
   .fuel-fill{height:100%;width:100%;background:linear-gradient(90deg,#46d39a,#f2c66a);transition:width .08s linear}
   /* overlays */
-  .ovl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;background:rgba(6,10,28,.72);backdrop-filter:blur(4px);color:var(--ink);padding:24px;z-index:5}
+  .ovl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    text-align:center;background:rgba(6,10,28,.72);backdrop-filter:blur(4px);color:var(--ink);padding:24px;z-index:5;overflow:auto;gap:2px}
   .ovl.hidden{display:none}
   .ovl h2{font-size:clamp(26px,5vw,42px);margin:0 0 6px}
   .ovl p{margin:4px 0;color:#cdd6ea;max-width:440px}
@@ -65,6 +65,11 @@
     color:#cdd6ea;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700}
   .hint{text-align:center;color:#7c7a86;font-size:13px;margin:12px auto;max-width:620px;line-height:1.6}
   .hint kbd{background:#eee;border-radius:5px;padding:1px 7px;font-size:12px;color:#222;border:1px solid #ccc}
+  .bopt{cursor:pointer;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.18);color:#eaf0ff;border-radius:10px;padding:9px 12px;font-size:14px;text-align:left;transition:.12s;font-family:inherit;line-height:1.35}
+  .bopt:hover{border-color:var(--accent)}
+  .bopt:disabled{cursor:default;opacity:.95}
+  .bopt.correct{background:rgba(70,211,154,.22);border-color:#46d39a;color:#d6ffe9}
+  .bopt.wrong{background:rgba(255,93,93,.18);border-color:#ff5d5d;color:#ffd9d9}
   @media (min-width:760px){ .touch{display:none} }
   /* tam ekran (hem gerçek Fullscreen API hem her cihazda çalışan CSS modu) */
   #stage.stage-fs{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;max-width:none;border-radius:0;
@@ -156,15 +161,27 @@
         <h2 id="endTitle">İniş Başarılı!</h2>
         <p id="endMsg"></p>
         <div class="stat" id="endStat"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">
+
+        <!-- bonus soru ödülü -->
+        <div id="bonusBox" style="display:none;margin-top:14px;width:100%;max-width:460px;background:rgba(8,12,34,.55);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 16px;text-align:left">
+          <div style="font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🧠 Bonus Soru · +150 puan</div>
+          <div id="bonusQ" style="font-size:15px;color:#eaf0ff;margin-bottom:10px;line-height:1.45"></div>
+          <div id="bonusOpts" style="display:flex;flex-direction:column;gap:7px"></div>
+          <div id="bonusExp" style="display:none;margin-top:10px;font-size:13px;color:#cdd6ea;line-height:1.5;background:rgba(255,255,255,.05);border-radius:8px;padding:8px 10px"></div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px">
           <button class="btn-play" id="btnAgain">Tekrar Dene</button>
-          <button class="btn-play alt" id="btnShare">📤 Paylaş</button>
+          <button class="btn-play alt" id="btnShare">📸 Skor Kartı</button>
           <button class="btn-play alt" id="btnPick">Gezegen Seç</button>
         </div>
-        <div id="shareMenu" style="display:none;margin-top:12px;font-size:14px;color:#cdd6ea">
-          <span id="shareMsg">Bağlantı kopyalandı! Paylaş:</span>
-          <a id="shareWa" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin-left:6px">WhatsApp</a>
-          <a id="shareX" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin-left:6px">X</a>
+        <div id="shareMenu" style="display:none;margin-top:12px;font-size:14px;color:#cdd6ea;max-width:460px">
+          <span id="shareMsg"></span>
+          <div style="margin-top:6px">
+            <a id="shareIg" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">📸 Instagram'ı aç</a>
+            <a id="shareWa" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">WhatsApp</a>
+            <a id="shareX" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">X</a>
+          </div>
         </div>
       </div>
     </div>
@@ -222,6 +239,7 @@
     {id:'feather',icon:'🪶',name:'Tüy Gibi İniş'},
     {id:'fuel',icon:'⛽',name:'Yakıt Cimrisi'},
     {id:'all',icon:'🏆',name:'Gezegen Fatihi'},
+    {id:'quiz',icon:'🧠',name:'Bilgili Pilot'},
   ];
   let stats={best:0,total:0,badges:[],planets:[]};
   function loadStats(){ try{ const s=JSON.parse(localStorage.getItem('bfy_roket_v1')); if(s){ stats.best=s.best||0; stats.total=s.total||0; stats.badges=s.badges||[]; stats.planets=s.planets||[]; } }catch(e){} }
@@ -261,6 +279,8 @@
     particles=[]; shake=0; state='play';
     document.getElementById('ovlStart').classList.add('hidden');
     document.getElementById('ovlEnd').classList.add('hidden');
+    document.getElementById('bonusBox').style.display='none';
+    document.getElementById('shareMenu').style.display='none';
     syncPlanetHud();
   }
   function syncPlanetHud(){
@@ -337,6 +357,8 @@
     state='end'; thrustSound(false); keys={up:0,left:0,right:0};
     const r=rocket;
     const end=document.getElementById('ovlEnd');
+    document.getElementById('bonusBox').style.display='none';
+    document.getElementById('shareMenu').style.display='none';
     if(ok){
       beep('win'); sparkle(r.x,r.y+20);
       const idx=PLANETS.indexOf(planet); done[idx]=true;
@@ -360,7 +382,7 @@
       if(vy<12) give('feather');
       if(r.fuel>70) give('fuel');
       saveStats();
-      lastShare={ok:true, score:score, planet:planet.name};
+      lastShare={ok:true, score:score, planet:planet.name, record:record};
       // --- ekran ---
       document.getElementById('endTitle').textContent = record?'🏆 YENİ REKOR!':'✅ İniş Başarılı!';
       document.getElementById('endTitle').style.color = record?'var(--accent)':'var(--good)';
@@ -371,6 +393,7 @@
       if(news.length) h+='<div style="margin-top:10px;background:rgba(242,198,106,.15);border:1px solid rgba(242,198,106,.45);border-radius:10px;padding:8px 12px;font-size:14px">🎁 Yeni rozet: '+news.join(' &nbsp;·&nbsp; ')+'</div>';
       h+=badgeShelf();
       document.getElementById('endStat').innerHTML=h;
+      renderBonus();
     } else {
       beep('boom'); explode(r.x,r.y+10); r.alive=false;
       lastShare={ok:false, score:0, planet:planet.name};
@@ -483,22 +506,102 @@
   };
   document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement){ stage.classList.remove('stage-fs'); document.getElementById('btnFs').textContent='⛶ Tam ekran'; } });
 
-  // ---- paylaş ----
+  // ---- soru bankası (bonus ödül) ----
+  const QBANK=[
+    {q:"Bir gezegende yerçekimi ivmesi (g) büyüdükçe roketi indirmek neden zorlaşır?",opts:["Roket daha hızlı aşağı çekilir, frenlemek için daha çok itki gerekir","Roketin kütlesi artar","Yakıt daha çabuk biter çünkü hava yoğunlaşır","Roket yukarı itilir"],a:0,exp:"g büyükse aşağı yönlü ivme büyüktür; roket hızlı hızlanır, yumuşak inmek için daha fazla ters itki gerekir."},
+    {q:"Ay'da g≈1,6 m/s², Dünya'da≈9,8 m/s². Aynı cisim nerede daha az ağırlık hisseder?",opts:["Ay'da","Dünya'da","İkisinde de aynı","Kütlesi sıfır olur"],a:0,exp:"Ağırlık G=m·g. Kütle aynı kalır; g küçük olduğu için Ay'da ağırlık daha azdır."},
+    {q:"Hava direnci yokken ağır ve hafif iki cisim aynı yükseklikten bırakılırsa ne olur?",opts:["Aynı anda yere ulaşır","Ağır olan önce ulaşır","Hafif olan önce ulaşır","Hiçbiri düşmez"],a:0,exp:"Serbest düşmede tüm cisimler aynı g ile ivmelenir; kütleden bağımsız aynı anda inerler."},
+    {q:"Roket, gazı aşağı püskürterek nasıl yukarı itilir?",opts:["Etki-tepki (Newton 3. yasa)","Yerçekimi sayesinde","Hava direnciyle","Manyetik kuvvetle"],a:0,exp:"Gaz aşağı itilir (etki), roket yukarı itilir (tepki). Newton'ın 3. yasası."},
+    {q:"Kütle ile ağırlık arasındaki fark nedir?",opts:["Kütle madde miktarıdır; ağırlık ona etki eden yerçekimi kuvvetidir","Aynı şeydir","Ağırlık kg, kütle N ile ölçülür","Kütle gezegene göre değişir"],a:0,exp:"Kütle (kg) her yerde sabittir; ağırlık (N)=m·g gezegene göre değişir."},
+    {q:"Hız-zaman grafiğinde eğrinin altında kalan alan neyi verir?",opts:["Yer değiştirmeyi (alınan yolu)","İvmeyi","Kütleyi","Kuvveti"],a:0,exp:"v-t grafiğinde alan = yer değiştirme; eğim ise ivmeyi verir."},
+    {q:"Bir cisim sabit hızla gidiyorsa ona etki eden net kuvvet nedir?",opts:["Sıfır","İleri yönde sabit","Yerçekimine eşit","Sürekli artar"],a:0,exp:"Sabit hız → ivme sıfır. Newton 1. yasası: net kuvvet sıfırdır."},
+    {q:"İvme (a) neyi ifade eder?",opts:["Hızın zamanla değişimini","Alınan yolu","Konumu","Kütleyi"],a:0,exp:"a=Δv/Δt; hızın birim zamandaki değişimidir, birimi m/s²."},
+    {q:"Atmosferi olan gezegende düşen cismin hızı neden bir süre sonra sabitlenir (limit hız)?",opts:["Hava direnci ağırlığa eşitlenip net kuvvet sıfırlandığı için","Yerçekimi kaybolduğu için","Kütle azaldığı için","Cisim yukarı çıktığı için"],a:0,exp:"Hız arttıkça hava direnci büyür; ağırlığa eşit olunca net kuvvet sıfırlanır, hız sabitlenir."},
+    {q:"Güvenli iniş için roketin yatay hızını da küçük tutmak neden gerekir?",opts:["Pistten kaymadan dik inmek için","Yakıt üretmek için","Yerçekimini artırmak için","Ses çıkarmamak için"],a:0,exp:"Yatay hız büyükse roket pistten kayar; güvenli iniş için hem dikey hem yatay hız küçük olmalı."},
+    {q:"Jüpiter'de g, Dünya'nınkinin ~2,5 katıdır. Serbest düşen cismi nasıl etkiler?",opts:["Daha hızlı ivmelenir","Daha yavaş ivmelenir","Etkilemez","Havada durur"],a:0,exp:"g büyük → ivme büyük → her saniye daha çok hızlanır. Bu yüzden Jüpiter'e inmek zordur."},
+    {q:"SI birim sisteminde kuvvetin birimi nedir?",opts:["Newton (N)","Joule (J)","Watt (W)","Pascal (Pa)"],a:0,exp:"Kuvvet birimi Newton'dur: 1 N = 1 kg·m/s²."}
+  ];
+  let bonusUsed=false;
+  function renderBonus(){
+    bonusUsed=false;
+    const q=QBANK[Math.floor(Math.random()*QBANK.length)];
+    const order=q.opts.map((_,i)=>i);
+    for(let i=order.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=order[i]; order[i]=order[j]; order[j]=t; }
+    const correctPos=order.indexOf(q.a);
+    document.getElementById('bonusQ').textContent=q.q;
+    const wrap=document.getElementById('bonusOpts'); wrap.innerHTML='';
+    const exp=document.getElementById('bonusExp'); exp.style.display='none';
+    order.forEach((k,pos)=>{
+      const btn=document.createElement('button'); btn.className='bopt'; btn.type='button'; btn.textContent=q.opts[k];
+      btn.onclick=function(){
+        if(bonusUsed) return; bonusUsed=true;
+        wrap.querySelectorAll('.bopt').forEach((b,p)=>{ b.disabled=true; if(p===correctPos)b.classList.add('correct'); else if(p===pos)b.classList.add('wrong'); });
+        if(pos===correctPos){
+          beep('win'); stats.total+=150; let gb=false;
+          if(!stats.badges.includes('quiz')){ stats.badges.push('quiz'); gb=true; }
+          saveStats();
+          exp.innerHTML='✅ Doğru! <b>+150 puan</b>'+(gb?' &nbsp;·&nbsp; 🎁 Yeni rozet: 🧠 Bilgili Pilot':'')+'<br>'+q.exp;
+        } else {
+          exp.innerHTML='❌ Doğru cevap: <b>'+q.opts[q.a]+'</b><br>'+q.exp;
+        }
+        exp.style.display='block';
+      };
+      wrap.appendChild(btn);
+    });
+    document.getElementById('bonusBox').style.display='block';
+  }
+
+  // ---- paylaş (skor kartı görseli + Instagram) ----
   const GAME_URL='https://benfizikyapamiyorum.com/roket-oyunu.html';
-  let lastShare={ok:false,score:0,planet:''};
+  const IG_URL='https://www.instagram.com/';
+  let lastShare={ok:false,score:0,planet:'',record:false};
   function shareText(){ return lastShare.ok
-    ? '🚀 Roket İnişi oyununda '+lastShare.planet+"'e indim, +"+lastShare.score+' puan topladım! Rekorum '+stats.best+', rütbem '+rankFor(stats.total)+'. Sen de fizikle dene 👇'
+    ? '🚀 Roket İnişi oyununda '+lastShare.planet+"'e indim, +"+lastShare.score+' puan! Rekorum '+stats.best+', rütbem '+rankFor(stats.total)+'. Sen de fizikle dene 👇'
     : '🚀 Roket İnişi — yerçekimi fizik oyunu! Rekorum '+stats.best+'. Sen de dene 👇'; }
-  document.getElementById('btnShare').onclick=async function(){
-    const full=shareText()+' '+GAME_URL;
-    if(navigator.share){ try{ await navigator.share({title:'Roket İnişi — Fizik Oyunu', text:shareText(), url:GAME_URL}); return; }catch(e){ if(e&&e.name==='AbortError') return; } }
-    try{ await navigator.clipboard.writeText(full); document.getElementById('shareMsg').textContent='Bağlantı kopyalandı! Paylaş:'; }
-    catch(e){ document.getElementById('shareMsg').textContent='Paylaş:'; }
-    const enc=encodeURIComponent(full);
+  function drawScoreCard(){
+    const c=document.createElement('canvas'); c.width=1080; c.height=1920; const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,0,1920); g.addColorStop(0,'#0a1030'); g.addColorStop(1,'#241a4a'); x.fillStyle=g; x.fillRect(0,0,1080,1920);
+    for(let i=0;i<160;i++){ x.globalAlpha=Math.random()*0.8+0.15; x.fillStyle='#fff'; x.beginPath(); x.arc(Math.random()*1080,Math.random()*1520,Math.random()*2.4+0.4,0,6.28); x.fill(); }
+    x.globalAlpha=1;
+    const cx=540, cy=1140, R=300;
+    const pg=x.createRadialGradient(cx-90,cy-90,40,cx,cy,R); pg.addColorStop(0,planet.accent); pg.addColorStop(1,planet.ground);
+    x.fillStyle=pg; x.beginPath(); x.arc(cx,cy,R,0,6.28); x.fill();
+    x.strokeStyle='rgba(255,255,255,.10)'; x.lineWidth=10; x.beginPath(); x.arc(cx,cy,R+26,0,6.28); x.stroke();
+    x.textAlign='center';
+    x.fillStyle='#f2c66a'; x.font='800 54px Arial, sans-serif'; x.fillText('BEN FİZİK YAPAMIYORUM', 540, 150);
+    x.fillStyle='#cdd6ea'; x.font='500 36px Arial, sans-serif'; x.fillText('ROKET İNİŞİ · Yerçekimi Oyunu', 540, 210);
+    x.fillStyle=lastShare.ok?'#46d39a':'#ff5d5d'; x.font='800 64px Arial, sans-serif';
+    x.fillText(lastShare.ok?(lastShare.record?'YENİ REKOR!':'İNİŞ BAŞARILI'):'ÇAKILDIN', 540, 340);
+    x.fillStyle='#10142b'; x.font='800 66px Arial, sans-serif'; x.fillText(planet.name, cx, cy-140);
+    x.fillStyle='rgba(16,20,43,.8)'; x.font='600 36px Arial, sans-serif'; x.fillText('g = '+planet.g+' m/s²', cx, cy-90);
+    const sc=String(lastShare.ok?lastShare.score:0); x.fillStyle='#ffffff'; x.font='900 '+(sc.length>=5?170:210)+'px Arial, sans-serif'; x.fillText(sc, cx, cy+70);
+    x.fillStyle='rgba(16,20,43,.85)'; x.font='700 50px Arial, sans-serif'; x.fillText('PUAN', cx, cy+150);
+    x.fillStyle='#cdd6ea'; x.font='600 42px Arial, sans-serif'; x.fillText('Rütbe: '+rankFor(stats.total), 540, 1600);
+    x.fillText('Rekor: '+stats.best+'    ·    Rozet: '+stats.badges.length+'/'+BADGES.length, 540, 1662);
+    x.fillStyle='#f2c66a'; x.font='800 48px Arial, sans-serif'; x.fillText('Sen de dene!', 540, 1772);
+    x.fillStyle='#9fb0d8'; x.font='600 38px Arial, sans-serif'; x.fillText('benfizikyapamiyorum.com/oyunlar.html', 540, 1828);
+    return c;
+  }
+  function downloadCanvas(c){ try{ const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='roket-skor.png'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){} }
+  async function shareImage(){
+    const c=drawScoreCard(); const cap=shareText()+' '+GAME_URL;
+    if(navigator.canShare){
+      try{
+        const blob=await new Promise(res=>c.toBlob(res,'image/png'));
+        const file=new File([blob],'roket-skor.png',{type:'image/png'});
+        if(navigator.canShare({files:[file]})){ await navigator.share({files:[file], text:cap}); return; }
+      }catch(e){ if(e&&e.name==='AbortError') return; }
+    }
+    downloadCanvas(c);
+    try{ await navigator.clipboard.writeText(cap); }catch(e){}
+    const enc=encodeURIComponent(cap);
+    document.getElementById('shareMsg').innerHTML="📸 Skor kartı indirildi, açıklama kopyalandı. Instagram'ı aç → Hikâye'ye görseli ekle:";
+    document.getElementById('shareIg').href=IG_URL;
     document.getElementById('shareWa').href='https://wa.me/?text='+enc;
     document.getElementById('shareX').href='https://twitter.com/intent/tweet?text='+enc;
     document.getElementById('shareMenu').style.display='block';
-  };
+  }
+  document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
 </body>
