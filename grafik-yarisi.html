@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Grafik Yarışı — Hız-Zaman Grafiği Fizik Oyunu | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Bas-gaz, bırak-fren! Hız çizgini ekrandaki hedef hız-zaman grafiğine oturt. Senkron kal, combo yap. Hareket grafikleri (TYT-AYT) oynayarak öğren. Global skor tablosu. Ben Fizik Yapamıyorum.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/grafik-yarisi.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="Grafik Yarışı — Hız-Zaman Grafiği Oyunu">
+<meta property="og:description" content="Hız çizgini hedef grafiğe oturt; senkron kal, combo yap. Hareket grafiklerini oynayarak öğren.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/grafik-yarisi.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root{ --bg0:#0b0a1f; --neon:#27e7ff; --pink:#ff3df0; --accent:#ffe14d; --good:#46ffa0; --bad:#ff5d77; --ink:#eaf2ff; }
+  .game-shell{max-width:980px;margin:0 auto;padding:0 14px;}
+  .game-head{text-align:center;margin:18px 0 10px}
+  .game-head h1{font-size:clamp(24px,4vw,36px);margin:0 0 6px}
+  .game-head p{color:#7c7a86;margin:0;font-size:15px}
+  .stage-wrap{position:relative;width:100%;max-width:880px;margin:0 auto;border-radius:18px;overflow:hidden;
+    box-shadow:0 24px 70px rgba(20,10,50,.6);border:1px solid rgba(39,231,255,.25);background:#070617;}
+  canvas#game{display:block;width:100%;height:auto;touch-action:none;cursor:pointer;}
+  .hud{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;justify-content:space-between;
+    padding:12px 14px;pointer-events:none;font-family:'Helvetica Neue',Arial,sans-serif;color:var(--ink)}
+  .hud .panel{background:rgba(10,8,30,.55);backdrop-filter:blur(6px);border:1px solid rgba(39,231,255,.2);
+    border-radius:12px;padding:7px 12px;font-size:13px;line-height:1.4;min-width:72px}
+  .hud .panel b{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7fc7ff;font-weight:700}
+  .hud .big{font-size:18px;font-weight:800}
+  .ovl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    text-align:center;background:rgba(7,6,23,.84);backdrop-filter:blur(4px);color:var(--ink);padding:24px;z-index:5;overflow:auto;gap:2px}
+  .ovl.hidden{display:none}
+  .ovl h2{font-size:clamp(26px,5vw,42px);margin:0 0 6px}
+  .ovl p{margin:4px 0;color:#c3cdf0;max-width:470px}
+  .btn-play{margin-top:8px;background:linear-gradient(90deg,var(--neon),var(--pink));color:#0a0a1f;border:none;border-radius:12px;
+    padding:14px 30px;font-weight:800;font-size:17px;cursor:pointer;box-shadow:0 0 22px rgba(39,231,255,.4)}
+  .btn-play:active{transform:translateY(2px)}
+  .btn-play.alt{background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,.28);box-shadow:none}
+  .topbtns{position:absolute;top:62px;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:8px}
+  .mini{pointer-events:auto;cursor:pointer;background:rgba(10,8,30,.55);border:1px solid rgba(39,231,255,.22);
+    color:#c3cdf0;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700}
+  .bopt{cursor:pointer;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.22);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:14px;text-align:left;transition:.12s;font-family:inherit;line-height:1.35}
+  .bopt:hover{border-color:var(--neon)}
+  .bopt:disabled{cursor:default;opacity:.95}
+  .bopt.correct{background:rgba(70,255,160,.2);border-color:#46ffa0;color:#d6ffe9}
+  .bopt.wrong{background:rgba(255,93,119,.18);border-color:#ff5d77;color:#ffd9e1}
+  .lbinp{padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;font-size:15px;font-family:inherit;text-align:center}
+  #stage.stage-fs{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;max-width:none;border-radius:0;display:flex;align-items:center;justify-content:center;background:#04030f;}
+  #stage.stage-fs canvas{width:auto;height:auto;max-width:100%;max-height:100%;}
+  #stage:fullscreen canvas,#stage:-webkit-full-screen canvas{width:auto;height:auto;max-width:100%;max-height:100%;}
+  @media (max-width:520px){
+    .hud{padding:8px 8px;gap:5px} .hud .panel{min-width:0;padding:5px 7px;font-size:10px;border-radius:9px}
+    .hud .big{font-size:13px} .topbtns{top:56px} .topbtns .mini{padding:5px 8px;font-size:11px}
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAeX9tk4zgoa5c5y2pVH3V4r9ip2mrlMvg",
+    authDomain: "benfizikyapamiyorum-oyun.firebaseapp.com",
+    projectId: "benfizikyapamiyorum-oyun",
+    storageBucket: "benfizikyapamiyorum-oyun.firebasestorage.app",
+    messagingSenderId: "942775741325",
+    appId: "1:942775741325:web:85dca63d6a17e2822cebc4"
+  };
+  window.BFY_DB = null;
+  try { firebase.initializeApp(firebaseConfig); window.BFY_DB = firebase.firestore(); } catch (e) { console.warn('Firebase yok:', e); }
+</script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text"><span>Ben Fizik Yapamıyorum</span><small>Yapabilirsin. Söz veriyorum.</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html" class="active">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+  <div class="game-head">
+    <h1>📈 Grafik Yarışı</h1>
+    <p>Bas = gaz, bırak = fren. Hız çizgini ekrandaki hedef hız-zaman grafiğine oturt, senkron kal!</p>
+  </div>
+
+  <div class="game-shell">
+    <div class="stage-wrap" id="stage">
+      <canvas id="game" width="880" height="620"></canvas>
+      <div class="hud" id="hud">
+        <div class="panel"><b>Tur</b><span class="big" id="hRound">1</span></div>
+        <div class="panel"><b>Can</b><span class="big" id="hLives">♥♥♥</span></div>
+        <div class="panel"><b>Skor</b><span class="big" id="hScore">0</span></div>
+        <div class="panel"><b>Senkron</b><span class="big" id="hSync">x1</span></div>
+      </div>
+      <div class="topbtns">
+        <button class="mini" id="btnSound">🔊 Ses</button>
+        <button class="mini" id="btnFs">⛶ Tam ekran</button>
+        <button class="mini" id="btnMenu">↺ Menü</button>
+      </div>
+
+      <div class="ovl" id="ovlStart">
+        <h2>📈 Grafik Yarışı</h2>
+        <p>Adını yaz. Ekrandaki <b>hedef hız-zaman eğrisini</b> takip et: <b>bas = hızlan</b>, <b>bırak = yavaşla</b>. Çizgin eğriye oturdukça senkron çarpanın büyür ve puan yağar!</p>
+        <div style="display:flex;flex-direction:column;gap:7px;width:100%;max-width:320px;margin:6px auto 2px">
+          <input id="plName" class="lbinp" maxlength="20" placeholder="Adın (tabloda görünecek)" autocomplete="nickname">
+          <input id="plMail" class="lbinp" type="email" maxlength="60" placeholder="E-posta (isteğe bağlı)" autocomplete="email" style="font-size:14px">
+        </div>
+        <button class="btn-play" id="btnStart">Başla</button>
+        <div style="width:100%;max-width:340px;margin:14px auto 0;text-align:left">
+          <div style="font-size:13px;font-weight:800;color:var(--neon);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;text-align:center">🏆 En Yüksek Skorlar</div>
+          <ol id="lbList" style="margin:0;padding:0;list-style:none;font-size:14px;color:#c3cdf0"></ol>
+        </div>
+        <p style="font-size:13px;margin-top:12px;color:#8aa0cf">Fizik: hız-zaman grafiğinde eğim = ivme, eğri altındaki alan = yol. Çizginin eğimini sen kontrol ediyorsun!</p>
+      </div>
+
+      <div class="ovl hidden" id="ovlEnd">
+        <h2 id="endTitle">Yarış Bitti</h2>
+        <p id="endMsg"></p>
+        <div id="endStat" style="font-size:15px;margin:8px 0"></div>
+        <div id="bonusBox" style="display:none;margin-top:12px;width:100%;max-width:460px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:14px 16px;text-align:left">
+          <div style="font-size:12px;font-weight:800;color:var(--neon);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🧠 Bonus Soru · +200 puan</div>
+          <div id="bonusQ" style="font-size:15px;color:var(--ink);margin-bottom:10px;line-height:1.45"></div>
+          <div id="bonusOpts" style="display:flex;flex-direction:column;gap:7px"></div>
+          <div id="bonusExp" style="display:none;margin-top:10px;font-size:13px;color:#c3cdf0;line-height:1.5;background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px">
+          <button class="btn-play" id="btnAgain">Tekrar Yarış</button>
+          <button class="btn-play alt" id="btnShare">📸 Skor Kartı</button>
+          <button class="btn-play alt" id="btnMenu2">Menü</button>
+        </div>
+        <div id="shareMenu" style="display:none;margin-top:12px;font-size:14px;color:#c3cdf0;max-width:460px">
+          <span id="shareMsg"></span>
+          <div style="margin-top:6px">
+            <a id="shareIg" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">📸 Instagram'ı aç</a>
+            <a id="shareWa" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">WhatsApp</a>
+            <a id="shareX" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">X</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="hint">
+      <b>Nasıl oynanır:</b> Ekrana <b>basılı tut</b> → araç hızlanır; <b>bırak</b> → yavaşlar. Hız çizgini (parlak) hedef eğriye (mavi-pembe) oturt.
+      Yeşil bantta kaldıkça <b>senkron çarpanı</b> ve puan artar. <b>Fizik:</b> eğim = ivme, alan = yol.
+    </p>
+  </div>
+
+  <div class="game-shell" style="margin-top:18px;margin-bottom:40px;text-align:center">
+    <a href="oyunlar.html" class="btn btn-ghost">← Tüm oyunlar</a>
+    <a href="10-sinif-fizik-konulari.html" class="btn btn-primary">Hareket konusu →</a>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="oyunlar.html">Oyunlar</a> ·
+      <a href="simulasyonlar.html">Simülasyonlar</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  const GX0=66, GX1=W-26, GY0=86, GY1=H-150;      // grafik alanı
+  const VMAX=100, ACC=88, BRK=74;
+  let state='start';                                // start, count, play, between, end
+  let round=1, lives=3, score=0, mult=1;
+  let track=[], TLEN=14, tol=0.10, tnow=0, vP=40, holding=false;
+  let trail=[], inZone=false, timeInZone=0, syncTimer=0, countT=0, gradeShow=null, betweenT=0;
+  let particles=[], pops=[], stars=[], scroll=0, shake=0, edge=0, soundOn=true;
+
+  const RANKS=[[0,'Acemi Sürücü'],[1000,'Sürücü'],[3000,'Pilot'],[7000,'Yarış Pilotu'],[13000,'Efsane Pilot 🏆']];
+  const BADGES=[
+    {id:'ilk',icon:'🏁',name:'İlk Tur'},
+    {id:'s3',icon:'🔗',name:'x3 Senkron'},
+    {id:'s5',icon:'⚡',name:'x5 Senkron'},
+    {id:'perfectA',icon:'🅰️',name:'A Notu'},
+    {id:'perfectS',icon:'🏆',name:'S Notu'},
+    {id:'r5',icon:'🏅',name:'5. Tur'},
+    {id:'r10',icon:'👑',name:'10. Tur'},
+    {id:'quiz',icon:'🧠',name:'Grafik Uzmanı'},
+  ];
+  let stats={best:0,total:0,badges:[]};
+  function loadStats(){ try{const s=JSON.parse(localStorage.getItem('bfy_grafik_v1'));if(s){stats.best=s.best||0;stats.total=s.total||0;stats.badges=s.badges||[];}}catch(e){} }
+  function saveStats(){ try{localStorage.setItem('bfy_grafik_v1',JSON.stringify(stats));}catch(e){} }
+  function rankFor(t){ let r=RANKS[0][1]; for(const x of RANKS){ if(t>=x[0]) r=x[1]; } return r; }
+  function give(id){ if(!stats.badges.includes(id)){ stats.badges.push(id); saveStats(); const b=BADGES.find(x=>x.id===id); if(b) addPop('🎁 '+b.name,W/2,150,'#ffe14d',1.1);} }
+  function badgeShelf(){ let h='<div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:10px">';
+    for(const b of BADGES){ const g=stats.badges.includes(b.id); h+='<span title="'+b.name+'" style="font-size:20px;opacity:'+(g?1:.25)+';filter:'+(g?'none':'grayscale(1)')+'">'+b.icon+'</span>'; }
+    return h+'</div><div style="font-size:11px;color:#8aa0cf;margin-top:3px">'+stats.badges.length+' / '+BADGES.length+' rozet</div>'; }
+  loadStats();
+
+  let actx=null;
+  function tone(f,f2,d,t,v){ if(!soundOn)return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain(); o.type=t||'sine'; o.connect(g); g.connect(actx.destination);
+    o.frequency.setValueAtTime(f,actx.currentTime); if(f2)o.frequency.exponentialRampToValueAtTime(f2,actx.currentTime+d);
+    g.gain.setValueAtTime(v||0.14,actx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+d); o.start(); o.stop(actx.currentTime+d+0.02);}catch(e){} }
+  const sBeep=(f)=>tone(f,f,0.12,'sine',0.16);
+  const sGrade=()=>{ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>tone(f,f,0.13,'sine',0.16),i*90)); };
+  const sFail=()=>tone(300,80,0.4,'sawtooth',0.18);
+  let engOsc=null,engGain=null;
+  function engine(on,v){ if(!soundOn){ if(engOsc){try{engOsc.stop();}catch(e){}engOsc=null;} return; } try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    if(on&&!engOsc){ engOsc=actx.createOscillator(); engGain=actx.createGain(); engOsc.type='sawtooth'; engGain.gain.value=0.04; engOsc.connect(engGain); engGain.connect(actx.destination); engOsc.start(); }
+    if(engOsc) engOsc.frequency.setValueAtTime(70+v*2.2,actx.currentTime);
+    if(!on&&engOsc){ try{engOsc.stop();}catch(e){} engOsc=null; } }catch(e){} }
+
+  function rnd(a,b){return a+Math.random()*(b-a);}
+  function addPop(text,x,y,c,s){ pops.push({text,x,y,age:0,life:1.1,color:c||'#fff',scale:s||1,vy:-42}); }
+  function burst(x,y,cols,n){ for(let i=0;i<(n||24);i++){ const a=Math.random()*6.28,sp=rnd(60,340); particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-40,age:0,life:rnd(0.5,1.1),r:rnd(2,5),col:cols[Math.floor(Math.random()*cols.length)]}); } }
+  for(let i=0;i<70;i++) stars.push({x:rnd(0,W),y:rnd(0,GY1),r:rnd(0.4,1.6),t:rnd(0,6.28),s:rnd(0.5,2)});
+
+  function yFor(v){ return GY1-(v/VMAX)*(GY1-GY0); }
+  function buildTrack(){ const n=4+Math.min(round,6); track=[]; let v=rnd(25,65);
+    for(let i=0;i<=n;i++){ track.push({t:i/n,v:v});
+      if(Math.random()<0.28){ /* düz: sabit hız */ } else { v += (Math.random()<0.5?-1:1)*rnd(22,52); }
+      v=Math.max(12,Math.min(VMAX-6,v)); }
+    TLEN=Math.max(9,14-round*0.6); tol=Math.max(0.06,0.115-round*0.006);
+  }
+  function tv(p){ p=Math.max(0,Math.min(1,p));
+    for(let i=0;i<track.length-1;i++){ if(p<=track[i+1].t){ const a=track[i],b=track[i+1],f=(p-a.t)/((b.t-a.t)||1); return a.v+(b.v-a.v)*f; } }
+    return track[track.length-1].v; }
+
+  function lifeStr(){ return '♥'.repeat(Math.max(0,lives))+'<span style="opacity:.3">'+'♥'.repeat(Math.max(0,3-lives))+'</span>'; }
+  function syncHUD(){ document.getElementById('hRound').textContent=round; document.getElementById('hLives').innerHTML=lifeStr();
+    document.getElementById('hScore').textContent=score; document.getElementById('hSync').textContent='x'+mult.toFixed(1); }
+
+  function startTrack(){ buildTrack(); tnow=0; vP=tv(0); trail=[]; timeInZone=0; mult=1; syncTimer=0; gradeShow=null; state='count'; countT=3.0; syncHUD(); }
+  function endTrack(){
+    const acc=timeInZone/TLEN;             // 0..1
+    let grade='D'; if(acc>=0.9)grade='S'; else if(acc>=0.78)grade='A'; else if(acc>=0.62)grade='B'; else if(acc>=0.45)grade='C';
+    const passed=acc>=0.45;
+    const bonus=Math.round(acc*120*round);
+    score+=bonus; stats.total+=bonus;
+    gradeShow={grade,acc,bonus,passed};
+    burst(W/2,GY0+90,['#27e7ff','#ff3df0','#ffe14d','#46ffa0'],46); shake=8; sGrade();
+    if(grade==='A'||grade==='S')give('perfectA'); if(grade==='S')give('perfectS');
+    if(!passed){ lives--; sFail(); }
+    if(round+1===5)give('r5'); if(round+1===10)give('r10');
+    saveStats();
+    if(lives<=0){ state='between'; betweenT=2.0; setTimeout(gameOver,2000); }
+    else { round++; state='between'; betweenT=2.0; }
+  }
+
+  // input
+  function gasOn(e){ if(e&&e.cancelable)e.preventDefault(); if(state==='count'||state==='play') holding=true; }
+  function gasOff(e){ if(e&&e.cancelable)e.preventDefault(); holding=false; }
+  cv.addEventListener('mousedown',gasOn); window.addEventListener('mouseup',gasOff);
+  cv.addEventListener('touchstart',gasOn,{passive:false}); cv.addEventListener('touchend',gasOff,{passive:false}); cv.addEventListener('touchcancel',gasOff,{passive:false});
+  document.addEventListener('keydown',e=>{ if(e.code==='Space'){ e.preventDefault(); if(!e.repeat) gasOn(e); } });
+  document.addEventListener('keyup',e=>{ if(e.code==='Space') gasOff(e); });
+
+  function update(dt){
+    scroll+=vP*dt*3.2; if(shake>0)shake=Math.max(0,shake-dt*26); if(edge>0)edge=Math.max(0,edge-dt*2.2);
+    for(const p of particles){ p.age+=dt; p.vy+=480*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; } particles=particles.filter(p=>p.age<p.life);
+    for(const p of pops){ p.age+=dt; p.y+=p.vy*dt; p.vy*=0.92; } pops=pops.filter(p=>p.age<p.life);
+    if(state==='count'){ countT-=dt; engine(holding, vP); if(holding){vP=Math.min(VMAX,vP+ACC*dt);} else {vP=Math.max(0,vP-BRK*dt);} if(countT<=0){ state='play'; } return; }
+    if(state==='between'){ betweenT-=dt; engine(false,0); if(betweenT<=0 && lives>0 && state==='between'){ startTrack(); } return; }
+    if(state!=='play'){ engine(false,0); return; }
+    // hız güncelle
+    if(holding) vP=Math.min(VMAX, vP+ACC*dt); else vP=Math.max(0, vP-BRK*dt);
+    engine(true, vP);
+    tnow+=dt; const p=tnow/TLEN;
+    const tgt=tv(p); const err=Math.abs(vP-tgt)/VMAX;
+    inZone = err<=tol;
+    const sx=GX0+(GX1-GX0)*Math.min(1,p);
+    trail.push({x:sx,y:yFor(vP),z:inZone});
+    if(inZone){ timeInZone+=dt; syncTimer+=dt; mult=Math.min(5, 1+Math.floor(syncTimer/1.2)*0.5+ (syncTimer>0?0.5:0));
+      score+=Math.round(9*mult*dt*6); stats.total+=Math.round(9*mult*dt*6);
+      if(syncTimer>0.05) edge=Math.min(1,edge+dt*1.5);
+      if(mult>=3) give('s3'); if(mult>=5) give('s5');
+      if(Math.random()<dt*3){ particles.push({x:sx,y:yFor(vP),vx:rnd(-30,30),vy:rnd(-60,-10),age:0,life:rnd(0.4,0.8),r:rnd(1.5,3),col:'#46ffa0'}); }
+    } else { if(syncTimer>1.5) addPop('SENKRON BİTTİ', sx, yFor(vP)-26, '#ff5d77', 1); syncTimer=0; mult=1; }
+    if(mult>=3 && Math.random()<dt*1.2) addPop('SENKRON x'+mult.toFixed(1)+'!', W/2, 100, '#46ffa0', 1+mult*0.05);
+    if(p>=1){ give('ilk'); endTrack(); }
+    syncHUD();
+  }
+
+  // ---- render ----
+  function bg(){
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0c0a24'); g.addColorStop(0.6,'#140a2e'); g.addColorStop(1,'#1a0b2a');
+    ctx.fillStyle=g; ctx.fillRect(-40,-40,W+80,H+80);
+    const tnw=Date.now()/1000;
+    for(const s of stars){ ctx.globalAlpha=0.25+0.5*(0.5+0.5*Math.sin(tnw*s.s+s.t)); ctx.fillStyle='#9fb6ff'; ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,6.28); ctx.fill(); } ctx.globalAlpha=1;
+  }
+  function grid(){
+    ctx.strokeStyle='rgba(39,231,255,.10)'; ctx.lineWidth=1;
+    for(let i=0;i<=5;i++){ const y=GY0+(GY1-GY0)*i/5; ctx.beginPath(); ctx.moveTo(GX0,y); ctx.lineTo(GX1,y); ctx.stroke(); }
+    for(let i=0;i<=7;i++){ const x=GX0+(GX1-GX0)*i/7; ctx.beginPath(); ctx.moveTo(x,GY0); ctx.lineTo(x,GY1); ctx.stroke(); }
+    ctx.strokeStyle='rgba(150,170,255,.45)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(GX0,GY0); ctx.lineTo(GX0,GY1); ctx.lineTo(GX1,GY1); ctx.stroke();
+    ctx.fillStyle='#7fc7ff'; ctx.font='bold 12px Arial'; ctx.textAlign='left';
+    ctx.save(); ctx.translate(GX0-46,(GY0+GY1)/2); ctx.rotate(-1.5708); ctx.textAlign='center'; ctx.fillText('HIZ (v)',0,0); ctx.restore();
+    ctx.textAlign='right'; ctx.fillText('ZAMAN (t) →',GX1,GY1+22);
+  }
+  function targetCurve(){
+    if(!track.length) return;
+    // alan dolgusu
+    ctx.beginPath(); ctx.moveTo(GX0,GY1);
+    for(let i=0;i<=60;i++){ const p=i/60; ctx.lineTo(GX0+(GX1-GX0)*p, yFor(tv(p))); }
+    ctx.lineTo(GX1,GY1); ctx.closePath();
+    const fg=ctx.createLinearGradient(0,GY0,0,GY1); fg.addColorStop(0,'rgba(255,61,240,.16)'); fg.addColorStop(1,'rgba(39,231,255,.04)'); ctx.fillStyle=fg; ctx.fill();
+    // hedef bant (tolerans)
+    ctx.fillStyle='rgba(70,255,160,.10)';
+    ctx.beginPath();
+    for(let i=0;i<=60;i++){ const p=i/60; ctx.lineTo(GX0+(GX1-GX0)*p, yFor(Math.min(VMAX,tv(p)+tol*VMAX))); }
+    for(let i=60;i>=0;i--){ const p=i/60; ctx.lineTo(GX0+(GX1-GX0)*p, yFor(Math.max(0,tv(p)-tol*VMAX))); }
+    ctx.closePath(); ctx.fill();
+    // hedef çizgi (neon gradient + glow)
+    const lg=ctx.createLinearGradient(GX0,0,GX1,0); lg.addColorStop(0,'#27e7ff'); lg.addColorStop(1,'#ff3df0');
+    ctx.strokeStyle=lg; ctx.lineWidth=4; ctx.shadowColor='#27e7ff'; ctx.shadowBlur=14; ctx.lineJoin='round';
+    ctx.beginPath(); for(let i=0;i<=80;i++){ const p=i/80; const x=GX0+(GX1-GX0)*p,y=yFor(tv(p)); i?ctx.lineTo(x,y):ctx.moveTo(x,y); } ctx.stroke(); ctx.shadowBlur=0;
+  }
+  function playerTrail(){
+    if(trail.length<2) return;
+    ctx.strokeStyle='#eafff4'; ctx.lineWidth=3.5; ctx.shadowColor='#46ffa0'; ctx.shadowBlur=12; ctx.lineJoin='round';
+    ctx.beginPath(); for(let i=0;i<trail.length;i++){ const t=trail[i]; i?ctx.lineTo(t.x,t.y):ctx.moveTo(t.x,t.y); } ctx.stroke(); ctx.shadowBlur=0;
+    const h=trail[trail.length-1];
+    ctx.fillStyle=inZone?'#46ffa0':'#ff5d77'; ctx.shadowColor=inZone?'#46ffa0':'#ff5d77'; ctx.shadowBlur=18;
+    ctx.beginPath(); ctx.arc(h.x,h.y,7,0,6.28); ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle=inZone?'rgba(70,255,160,.5)':'rgba(255,93,119,.4)'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(h.x,h.y,13+Math.sin(Date.now()/120)*2,0,6.28); ctx.stroke();
+  }
+  function car(){
+    const laneY=H-92, cx=W/2;
+    // yol
+    ctx.fillStyle='#0a0820'; ctx.fillRect(0,laneY+24,W,H-(laneY+24));
+    ctx.strokeStyle='rgba(120,140,220,.5)'; ctx.lineWidth=3; ctx.setLineDash([26,22]); ctx.lineDashOffset=-scroll%48;
+    ctx.beginPath(); ctx.moveTo(0,laneY+46); ctx.lineTo(W,laneY+46); ctx.stroke(); ctx.setLineDash([]);
+    // hız çizgileri
+    const sl=Math.round(vP/8);
+    ctx.strokeStyle='rgba(39,231,255,.5)'; ctx.lineWidth=2;
+    for(let i=0;i<sl;i++){ const y=laneY-6+rnd(-14,14), x=cx-60-((scroll*2+i*70)%(W)); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-vP*0.4,y); ctx.stroke(); }
+    // araç
+    ctx.save(); ctx.translate(cx,laneY);
+    ctx.fillStyle='#16d0ff'; roundRect(-34,-14,68,22,8); ctx.fill();
+    ctx.fillStyle='#0a2540'; roundRect(-12,-24,30,14,5); ctx.fill();         // kokpit
+    ctx.fillStyle='#ff3df0'; ctx.fillRect(28,-16,6,12);                       // spoiler ucu
+    ctx.fillStyle='#ffe14d'; ctx.beginPath(); ctx.arc(-34,-2,3,0,6.28); ctx.fill();
+    // tekerlek
+    ctx.fillStyle='#111'; const wr=(scroll*0.3)%6.28;
+    [[-20,10],[20,10]].forEach(p=>{ ctx.save(); ctx.translate(p[0],p[1]); ctx.beginPath(); ctx.arc(0,0,10,0,6.28); ctx.fill(); ctx.strokeStyle='#444'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(wr)*8,Math.sin(wr)*8); ctx.stroke(); ctx.restore(); });
+    // egzoz alevi (gaz varken)
+    if(holding){ ctx.fillStyle='rgba(255,160,60,'+rnd(0.5,0.9)+')'; ctx.beginPath(); ctx.moveTo(-34,2); ctx.lineTo(-34-rnd(14,26),-2); ctx.lineTo(-34,-6); ctx.fill(); }
+    ctx.restore();
+    // hız göstergesi
+    ctx.fillStyle='#7fc7ff'; ctx.font='bold 13px Arial'; ctx.textAlign='center'; ctx.fillText('HIZ: '+Math.round(vP), cx, H-18);
+  }
+  function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function render(){
+    ctx.save(); if(shake>0)ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
+    bg(); grid();
+    if(state==='play'||state==='between'||state==='count'){ targetCurve(); if(trail.length) playerTrail(); car(); }
+    // senkron kenar parıltısı
+    if(edge>0){ ctx.strokeStyle='rgba(70,255,160,'+(edge*0.6)+')'; ctx.lineWidth=10; ctx.strokeRect(5,5,W-10,H-10); }
+    // geri sayım
+    if(state==='count'){ ctx.fillStyle='rgba(7,6,23,.4)'; ctx.fillRect(0,0,W,H); ctx.fillStyle='#27e7ff'; ctx.font='900 120px Arial'; ctx.textAlign='center'; ctx.shadowColor='#ff3df0'; ctx.shadowBlur=24;
+      const c=Math.ceil(countT); ctx.fillText(c>0?c:'SÜR!', W/2, H/2+30); ctx.shadowBlur=0;
+      ctx.fillStyle='#c3cdf0'; ctx.font='bold 18px Arial'; ctx.fillText('Bas = gaz, bırak = fren', W/2, H/2+80); }
+    // not gösterimi
+    if(gradeShow && (state==='between')){ const gc={S:'#ffe14d',A:'#46ffa0',B:'#27e7ff',C:'#ff9a3c',D:'#ff5d77'}[gradeShow.grade];
+      ctx.fillStyle='rgba(7,6,23,.55)'; ctx.fillRect(0,0,W,H);
+      ctx.fillStyle=gc; ctx.font='900 150px Arial'; ctx.textAlign='center'; ctx.shadowColor=gc; ctx.shadowBlur=30; ctx.fillText(gradeShow.grade,W/2,H/2+20); ctx.shadowBlur=0;
+      ctx.fillStyle='#fff'; ctx.font='bold 26px Arial'; ctx.fillText('Senkron: %'+Math.round(gradeShow.acc*100)+'  ·  +'+gradeShow.bonus+' puan',W/2,H/2+70);
+      ctx.fillStyle=gradeShow.passed?'#46ffa0':'#ff5d77'; ctx.font='bold 18px Arial'; ctx.fillText(gradeShow.passed?'Geçtin! Sıradaki tur...':'Az kaldı! Can −1',W/2,H/2+104); }
+    for(const p of particles){ ctx.globalAlpha=Math.max(0,1-p.age/p.life); ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.28); ctx.fill(); } ctx.globalAlpha=1;
+    for(const p of pops){ ctx.globalAlpha=Math.max(0,1-p.age/p.life); ctx.fillStyle=p.color; ctx.font='bold '+Math.round(18*p.scale)+'px Arial'; ctx.textAlign='center'; ctx.fillText(p.text,p.x,p.y); } ctx.globalAlpha=1;
+    ctx.restore();
+  }
+  let last=0; function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(); requestAnimationFrame(loop); } requestAnimationFrame(loop);
+
+  // akış
+  function startGame(){ round=1; lives=3; score=0; state='play'; document.getElementById('ovlStart').classList.add('hidden'); document.getElementById('ovlEnd').classList.add('hidden'); startTrack(); }
+  function gameOver(){ state='end'; engine(false,0);
+    const record=score>stats.best; if(record)stats.best=score; saveStats(); submitScore(score);
+    document.getElementById('endTitle').textContent=record?'🏆 YENİ REKOR!':'Yarış Bitti';
+    document.getElementById('endTitle').style.color=record?'var(--accent)':'var(--ink)';
+    document.getElementById('endMsg').textContent= round>=6?'Süper sürüş! '+(round-1)+'. tura kadar geldin.':'Eğimi takip ettikçe senkronun artacak!';
+    let h='<div style="font-size:30px;font-weight:900;color:var(--accent)">'+score+' puan</div>';
+    h+='<div style="font-size:13px;color:#8aa0cf;margin:3px 0 8px">'+(round-1)+' tur tamamlandı</div>';
+    h+='<div style="display:flex;gap:16px;justify-content:center;font-size:14px"><span>🏅 Rekor <b>'+stats.best+'</b></span><span>Rütbe <b style="color:var(--accent)">'+rankFor(stats.total)+'</b></span></div>';
+    if(window.BFY_DB) h+='<div style="font-size:12px;color:#46ffa0;margin-top:8px">🏆 Skorun tabloya gönderildi!</div>';
+    h+=badgeShelf(); document.getElementById('endStat').innerHTML=h;
+    lastShare={score:score,record:record};
+    document.getElementById('bonusBox').style.display='none'; document.getElementById('shareMenu').style.display='none';
+    renderBonus(); document.getElementById('ovlEnd').classList.remove('hidden');
+  }
+  document.getElementById('btnStart').onclick=()=>{ if(actx&&actx.state==='suspended')actx.resume(); capturePlayer(); startGame(); };
+  document.getElementById('btnAgain').onclick=()=>{ document.getElementById('ovlEnd').classList.add('hidden'); startGame(); };
+  function toMenu(){ state='start'; engine(false,0); document.getElementById('ovlEnd').classList.add('hidden'); loadLeaderboard(); document.getElementById('ovlStart').classList.remove('hidden'); }
+  document.getElementById('btnMenu').onclick=toMenu; document.getElementById('btnMenu2').onclick=toMenu;
+  document.getElementById('btnSound').onclick=function(){ soundOn=!soundOn; this.textContent=soundOn?'🔊 Ses':'🔇 Ses'; if(!soundOn)engine(false,0); };
+
+  const stage=document.getElementById('stage');
+  function inFs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||stage.classList.contains('stage-fs'); }
+  document.getElementById('btnFs').onclick=function(){
+    if(inFs()){ stage.classList.remove('stage-fs'); if(document.exitFullscreen)document.exitFullscreen().catch(()=>{}); else if(document.webkitExitFullscreen)document.webkitExitFullscreen(); this.textContent='⛶ Tam ekran'; }
+    else { stage.classList.add('stage-fs'); const rf=stage.requestFullscreen||stage.webkitRequestFullscreen; if(rf){try{rf.call(stage);}catch(e){}} this.textContent='✕ Çık'; }
+  };
+  document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement){ stage.classList.remove('stage-fs'); document.getElementById('btnFs').textContent='⛶ Tam ekran'; } });
+
+  // bonus
+  const QBANK=[
+    {q:"Hız-zaman grafiğinde çizginin eğimi neyi verir?",opts:["İvmeyi","Alınan yolu","Kütleyi","Kuvveti"],a:0,exp:"v-t grafiğinde eğim = Δv/Δt = ivme."},
+    {q:"Hız-zaman grafiğinde eğri ile zaman ekseni arasındaki alan neyi verir?",opts:["Yer değiştirmeyi (yolu)","İvmeyi","Hızı","Gücü"],a:0,exp:"v-t grafiğinde alan = yer değiştirme (alınan yol)."},
+    {q:"Hız-zaman grafiğinde yatay (sabit) bir doğru ne anlama gelir?",opts:["Sabit hız (ivme sıfır)","Duruyor","Hızlanıyor","Yavaşlıyor"],a:0,exp:"Hız değişmiyorsa ivme sıfırdır; sabit hızlı harekettir."},
+    {q:"Konum-zaman grafiğinde eğim neyi verir?",opts:["Hızı","İvmeyi","Yolu","Kuvveti"],a:0,exp:"x-t grafiğinde eğim = Δx/Δt = hız."},
+    {q:"Hız-zaman grafiğinde eğim negatifse cisim ne yapıyordur?",opts:["Yavaşlıyor (negatif ivme)","Hızlanıyor","Duruyor","Geri gidiyor"],a:0,exp:"Negatif eğim, hızın azaldığını (yavaşlama/negatif ivme) gösterir."},
+    {q:"Sabit ivmeli harekette hız-zaman grafiği nasıldır?",opts:["Eğik düz çizgi","Yatay çizgi","Parabol","Çember"],a:0,exp:"Sabit ivmede hız zamanla doğrusal artar; grafik eğik bir doğrudur."},
+    {q:"Hız-zaman grafiğinde çizgi zaman ekseninin altındaysa ne anlama gelir?",opts:["Ters yönde hareket (negatif hız)","Durma","Hızlanma","Serbest düşme"],a:0,exp:"Negatif hız, cismin seçilen yönün tersine hareket ettiğini gösterir."},
+    {q:"İvme-zaman grafiğinde alan neyi verir?",opts:["Hız değişimini","Yolu","Konumu","Kuvveti"],a:0,exp:"a-t grafiğinde alan = Δv (hız değişimi)."},
+    {q:"Konum-zaman grafiğinde yatay bir doğru ne anlama gelir?",opts:["Cisim duruyor (hız sıfır)","Sabit hız","Hızlanıyor","Geri dönüyor"],a:0,exp:"Konum değişmiyorsa hız sıfırdır; cisim duruyordur."},
+    {q:"Düzgün hızlanan bir cismin konum-zaman grafiği nasıldır?",opts:["Parabol (eğrisel)","Düz çizgi","Yatay çizgi","Basamaklı"],a:0,exp:"Sabit ivmede konum zamanın karesiyle değişir; grafik paraboldür."}
+  ];
+  let bonusUsed=false;
+  function renderBonus(){ bonusUsed=false; const q=QBANK[Math.floor(Math.random()*QBANK.length)];
+    const order=q.opts.map((_,i)=>i); for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=order[i];order[i]=order[j];order[j]=t;}
+    const cp=order.indexOf(q.a);
+    document.getElementById('bonusQ').textContent=q.q;
+    const wrap=document.getElementById('bonusOpts'); wrap.innerHTML=''; const exp=document.getElementById('bonusExp'); exp.style.display='none';
+    order.forEach((k,pos)=>{ const b=document.createElement('button'); b.className='bopt'; b.type='button'; b.textContent=q.opts[k];
+      b.onclick=function(){ if(bonusUsed)return; bonusUsed=true;
+        wrap.querySelectorAll('.bopt').forEach((x,pp)=>{x.disabled=true; if(pp===cp)x.classList.add('correct'); else if(pp===pos)x.classList.add('wrong');});
+        if(pos===cp){ sBeep(880); stats.total+=200; let gb=false; if(!stats.badges.includes('quiz')){stats.badges.push('quiz');gb=true;} saveStats();
+          exp.innerHTML='✅ Doğru! <b>+200 puan</b>'+(gb?' &nbsp;·&nbsp; 🎁 🧠 Grafik Uzmanı':'')+'<br>'+q.exp; }
+        else exp.innerHTML='❌ Doğru cevap: <b>'+q.opts[q.a]+'</b><br>'+q.exp;
+        exp.style.display='block'; };
+      wrap.appendChild(b); });
+    document.getElementById('bonusBox').style.display='block';
+  }
+
+  // skor tablosu
+  const DB=window.BFY_DB||null, FORM_ENDPOINT='https://formspree.io/f/xykqweby';
+  let playerName=(localStorage.getItem('bfy_grafik_name')||localStorage.getItem('bfy_roket_name')||'').slice(0,20);
+  let playerMail=(localStorage.getItem('bfy_grafik_mail')||localStorage.getItem('bfy_roket_mail')||'');
+  let mailSent=false;
+  function initInputs(){ const n=document.getElementById('plName'),m=document.getElementById('plMail'); if(n)n.value=playerName; if(m)m.value=playerMail; }
+  function capturePlayer(){ const n=document.getElementById('plName'),m=document.getElementById('plMail');
+    playerName=((n&&n.value)||'').trim().slice(0,20)||'Misafir'; playerMail=((m&&m.value)||'').trim().slice(0,60);
+    try{ localStorage.setItem('bfy_grafik_name',playerName); localStorage.setItem('bfy_grafik_mail',playerMail); }catch(e){}
+    if(playerMail&&!mailSent&&/.+@.+\..+/.test(playerMail)){ mailSent=true; try{ fetch(FORM_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({ad:playerName,email:playerMail,_subject:'Grafik Yarışı — yeni oyuncu 📈',kaynak:'Grafik Yarisi'})}); }catch(e){} } }
+  function submitScore(sc){ if(!DB)return; try{ DB.collection('grafik_skorlar').add({ad:(playerName||'Misafir').slice(0,20),skor:Math.round(sc),ts:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>loadLeaderboard()).catch(e=>console.warn(e)); }catch(e){} }
+  function esc(s){ return (s||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+  function loadLeaderboard(){ const list=document.getElementById('lbList'); if(!list)return;
+    if(!DB){ list.innerHTML='<li style="color:#8aa0cf;text-align:center;padding:6px">Tablo yakında.</li>'; return; }
+    DB.collection('grafik_skorlar').orderBy('skor','desc').limit(10).get().then(snap=>{ let h='',i=0;
+      snap.forEach(d=>{ i++; const v=d.data(); const m=i===1?'🥇':i===2?'🥈':i===3?'🥉':(i+'.');
+        h+='<li style="display:flex;justify-content:space-between;gap:10px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.08)"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+m+' '+esc(v.ad)+'</span><b style="color:var(--neon)">'+v.skor+'</b></li>'; });
+      list.innerHTML=h||'<li style="color:#8aa0cf;text-align:center;padding:6px">Henüz skor yok — ilk sen ol!</li>';
+    }).catch(e=>{ list.innerHTML='<li style="color:#8aa0cf;text-align:center;padding:6px">Tablo yüklenemedi.</li>'; }); }
+  initInputs(); loadLeaderboard();
+
+  // paylaş
+  const GAME_URL='https://benfizikyapamiyorum.com/grafik-yarisi.html', IG_URL='https://www.instagram.com/';
+  let lastShare={score:0,record:false};
+  function shareText(){ return '📈 Grafik Yarışı oyununda '+lastShare.score+' puan yaptım! Rekorum '+stats.best+', rütbem '+rankFor(stats.total)+'. Sen de hız-zaman grafiğiyle dene 👇'; }
+  function drawCard(){ const c=document.createElement('canvas'); c.width=1080; c.height=1920; const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,0,1920); g.addColorStop(0,'#0c0a24'); g.addColorStop(1,'#1a0b2a'); x.fillStyle=g; x.fillRect(0,0,1080,1920);
+    for(let i=60;i<1080;i+=60){x.strokeStyle='rgba(39,231,255,.08)';x.beginPath();x.moveTo(i,0);x.lineTo(i,1920);x.stroke();}
+    // örnek neon eğri
+    const lg=x.createLinearGradient(120,0,960,0); lg.addColorStop(0,'#27e7ff'); lg.addColorStop(1,'#ff3df0'); x.strokeStyle=lg; x.lineWidth=10; x.shadowColor='#27e7ff'; x.shadowBlur=24;
+    x.beginPath(); x.moveTo(120,1180); x.bezierCurveTo(360,820,520,1320,720,900); x.bezierCurveTo(840,720,900,1000,960,860); x.stroke(); x.shadowBlur=0;
+    x.textAlign='center';
+    x.fillStyle='#27e7ff'; x.font='800 54px Arial'; x.fillText('BEN FİZİK YAPAMIYORUM',540,150);
+    x.fillStyle='#ff8ff4'; x.font='500 38px Arial'; x.fillText('📈 GRAFİK YARIŞI',540,214);
+    x.fillStyle=lastShare.record?'#ffe14d':'#eaf2ff'; x.font='800 70px Arial'; x.fillText(lastShare.record?'YENİ REKOR!':'SKORUM',540,470);
+    x.fillStyle='#ffffff'; x.font='900 230px Arial'; x.fillText(String(lastShare.score),540,1480);
+    x.fillStyle='#7fc7ff'; x.font='700 54px Arial'; x.fillText('PUAN',540,1570);
+    x.fillStyle='#eaf2ff'; x.font='600 44px Arial'; x.fillText('Rütbe: '+rankFor(stats.total),540,1670);
+    x.fillText('Rekor: '+stats.best+'   ·   Rozet: '+stats.badges.length+'/'+BADGES.length,540,1730);
+    x.fillStyle='#ffe14d'; x.font='800 48px Arial'; x.fillText('Sen de dene!',540,1818);
+    x.fillStyle='#8aa0cf'; x.font='600 34px Arial'; x.fillText('benfizikyapamiyorum.com/grafik-yarisi.html',540,1868);
+    return c; }
+  function dl(c){ try{ const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='grafik-yarisi-skor.png'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){} }
+  function isMobile(){ return (navigator.userAgentData&&navigator.userAgentData.mobile)||/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent); }
+  async function shareImage(){ const c=drawCard(), cap=shareText()+' '+GAME_URL;
+    if(isMobile()&&navigator.canShare){ try{ const blob=await new Promise(r=>c.toBlob(r,'image/png')); const f=new File([blob],'grafik-yarisi-skor.png',{type:'image/png'});
+      if(navigator.canShare({files:[f]})){ await navigator.share({files:[f],text:cap}); return; } await navigator.share({text:cap,url:GAME_URL}); return; }catch(e){ if(e&&e.name==='AbortError')return; } }
+    dl(c); try{ await navigator.clipboard.writeText(cap); }catch(e){}
+    const enc=encodeURIComponent(cap);
+    document.getElementById('shareMsg').innerHTML="📸 Skor kartın indirildi, açıklama kopyalandı. <b>Instagram Hikâye yalnızca telefondan eklenir.</b> Linki paylaş:";
+    document.getElementById('shareIg').href=IG_URL; document.getElementById('shareWa').href='https://wa.me/?text='+enc; document.getElementById('shareX').href='https://twitter.com/intent/tweet?text='+enc;
+    document.getElementById('shareMenu').style.display='block';
+  }
+  document.getElementById('btnShare').onclick=shareImage;
+})();
+</script>
+</body>
+</html>
