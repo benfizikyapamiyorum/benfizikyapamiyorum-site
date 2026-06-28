@@ -145,8 +145,8 @@
 
       <div class="hud" id="hud">
         <div class="panel"><b>Gezegen</b><span class="big" id="hPlanet">Ay</span><span id="hG">g = 1.6 m/s²</span></div>
-        <div class="panel"><b>Dikey hız</b><span class="big" id="hVy">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 40</span></div>
-        <div class="panel"><b>Yatay hız</b><span class="big" id="hVx">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 25</span></div>
+        <div class="panel"><b>Dikey hız</b><span class="big" id="hVy">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 55</span></div>
+        <div class="panel"><b>Yatay hız</b><span class="big" id="hVx">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 35</span></div>
         <div class="panel"><b>Yakıt</b><span class="big" id="hFuel">100%</span><div class="fuel-bar"><div class="fuel-fill" id="fuelFill"></div></div></div>
       </div>
 
@@ -252,8 +252,8 @@
     {name:'Jüpiter', g:24.8, sky:['#2a1a06','#3c2a10'], ground:'#caa46a', accent:'#f0d49a'},
   ];
   const SCALE=7;            // m/s² -> px/s²
-  const THRUST=200, SIDE=95, ROT=0;
-  const SAFE_VY=40, SAFE_VX=25;
+  const THRUST=255, SIDE=115, ROT=0;
+  const SAFE_VY=55, SAFE_VX=35;
   const FUEL_MAIN=20, FUEL_SIDE=11; // birim/sn
   let planet=PLANETS[0], done=[false,false,false,false];
   let state='start';        // start, play, end
@@ -286,7 +286,7 @@
   // ---- stars ----
   function makeStars(){ stars=[]; for(let i=0;i<130;i++){ stars.push({x:Math.random()*W,y:Math.random()*H*0.82,r:Math.random()*1.6+0.3,t:Math.random()*6.28,s:Math.random()*2+0.5}); } }
   makeStars();
-  particles=[]; pad={x:(W-130)/2, w:130};   // başlangıç ekranı için varsayılanlar
+  particles=[]; pad={x:(W-160)/2, w:160};   // başlangıç ekranı için varsayılanlar
 
   // ---- audio ----
   let actx=null;
@@ -303,7 +303,7 @@
 
   // ---- reset ----
   function reset(){
-    pad={x: 120+Math.random()*(W-340), w:130};
+    pad={x: 120+Math.random()*(W-340), w:160};
     rocket={x:W/2, y:90, vx:(Math.random()*40-20), vy:0, angle:0, fuel:100, alive:true};
     particles=[]; shake=0; state='play';
     document.getElementById('ovlStart').classList.add('hidden');
@@ -369,6 +369,7 @@
     r.vx+=ax*dt; r.vy+=ay*dt;
     r.x+=r.vx*dt; r.y+=r.vy*dt;
     if(r.x<18){r.x=18;r.vx*=-0.4;} if(r.x>W-18){r.x=W-18;r.vx*=-0.4;}
+    if(r.y<30){ r.y=30; if(r.vy<0) r.vy=0; }   // üstten çıkmasın
     // particles
     for(const p of particles){ p.age+=dt; p.vy+=140*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; }
     particles=particles.filter(p=>p.age<p.life);
@@ -377,7 +378,7 @@
     const groundY=H-70, footY=r.y+30;
     if(footY>=groundY){
       const onPad = (r.x>pad.x && r.x<pad.x+pad.w);
-      const soft = Math.abs(r.vy)<SAFE_VY && Math.abs(r.vx)<SAFE_VX && Math.abs(r.angle)<0.22;
+      const soft = Math.abs(r.vy)<SAFE_VY && Math.abs(r.vx)<SAFE_VX && Math.abs(r.angle)<0.28;
       r.y=groundY-30;
       if(onPad && soft){ landed(true); } else { landed(false); }
     }
@@ -430,7 +431,7 @@
       lastShare={ok:false, score:0, planet:planet.name};
       document.getElementById('endTitle').textContent='💥 Çakıldın!';
       document.getElementById('endTitle').style.color='var(--bad)';
-      let why = (r.x<pad.x||r.x>pad.x+pad.w)?'Piste isabet etmedin.':(Math.abs(r.vy)>=SAFE_VY?'Çok hızlı indin (dikey hız 40 üstü).':(Math.abs(r.vx)>=SAFE_VX?'Yana çok kayıyordun (yatay hız 25 üstü).':'Roket çok eğikti.'));
+      let why = (r.x<pad.x||r.x>pad.x+pad.w)?'Piste isabet etmedin.':(Math.abs(r.vy)>=SAFE_VY?'Çok hızlı indin (dikey hız 55 üstü).':(Math.abs(r.vx)>=SAFE_VX?'Yana çok kayıyordun (yatay hız 35 üstü).':'Roket çok eğikti.'));
       document.getElementById('endMsg').textContent=why+' İpucu: son anda kısa kısa itki verip hızı düşür.';
       document.getElementById('endStat').innerHTML='<div style="font-size:14px">🏅 Rekor: <b>'+stats.best+'</b> · Σ Toplam: <b>'+stats.total+'</b> · Rütbe: <b>'+rankFor(stats.total)+'</b></div>'+badgeShelf();
     }
