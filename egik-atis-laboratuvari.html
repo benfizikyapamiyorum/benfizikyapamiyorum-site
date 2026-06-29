@@ -176,7 +176,8 @@
         <button class="tb on" id="tgGhost">👻 İz karşılaştır</button>
         <button class="tb" id="tgEnergy">🔋 Enerji barları</button>
         <button class="tb" id="tgSw">⏱ Kronometre</button>
-        <button class="tb" id="tgMeasure">📏 Ölç</button>
+        <button class="tb" id="tgRuler">📏 Cetvel</button>
+        <button class="tb" id="tgProt">📐 Açıölçer</button>
         <button class="tb" id="tgTarget">⚑ Hedef</button>
       </div>
 
@@ -338,6 +339,7 @@
   </div>
 </footer>
 
+<script src="lab-tools.js"></script>
 <script>
 (() => {
   "use strict";
@@ -358,7 +360,7 @@
   const PB = { v0:28, ang:35, h0:0, m:1, g:9.8, drag:false, k:0.02 };   // Atış B
   let compare = false;
   let targetX = 60, showTarget = false;
-  const tog = { vec:true, comp:true, grid:true, ghost:true, energy:false, sw:false, measure:false };
+  const tog = { vec:true, comp:true, grid:true, ghost:true, energy:false, sw:false };
   let graphMode = 'yx';
 
   let path = null;        // Atış A {pts, max, stats}
@@ -368,7 +370,6 @@
   const palette = ['#e26d4f','#2d7dd2','#d4a017','#7a8a3a','#9b59b6','#127a6b'];
   let ghostColor = 0;
 
-  let measure = { p1:null, p2:null };
   let drag = { kind:null };
 
   // ---------- Canvas fit ----------
@@ -444,6 +445,14 @@
   const w2sy = y => V.oy - y*V.scale;
   const s2wx = px => (px - V.ox)/V.scale;
   const s2wy = py => (V.oy - py)/V.scale;
+
+  // ölçüm araçları (paylaşılan modül)
+  const MT = makeMeasureTools({
+    ctx: sx,
+    w2s: p => ({x:w2sx(p.x), y:w2sy(p.y)}),
+    s2w: (px,py) => ({x:s2wx(px), y:s2wy(py)}),
+    pxPerMeter: () => V.scale
+  });
 
   function niceStep(span){
     const raw = span/8, p = Math.pow(10, Math.floor(Math.log10(raw)));
@@ -530,20 +539,7 @@
       }
     }
 
-    if (tog.measure && measure.p1 && measure.p2){
-      const a=measure.p1,b=measure.p2;
-      sx.strokeStyle=C.gold2; sx.lineWidth=2; sx.setLineDash([6,4]);
-      sx.beginPath(); sx.moveTo(w2sx(a.x),w2sy(a.y)); sx.lineTo(w2sx(b.x),w2sy(b.y)); sx.stroke();
-      sx.setLineDash([]);
-      [a,b].forEach(pp=>{ sx.fillStyle=C.gold2; sx.beginPath(); sx.arc(w2sx(pp.x),w2sy(pp.y),4,0,7); sx.fill(); });
-      const d=Math.hypot(b.x-a.x,b.y-a.y);
-      const mx=(w2sx(a.x)+w2sx(b.x))/2, my=(w2sy(a.y)+w2sy(b.y))/2;
-      const txt=d.toFixed(1)+' m';
-      sx.font='bold 13px ui-monospace, monospace';
-      const tw=sx.measureText(txt).width;
-      sx.fillStyle='rgba(255,255,255,.9)'; sx.fillRect(mx-tw/2-5,my-22,tw+10,18);
-      sx.fillStyle=C.ink; sx.fillText(txt, mx-tw/2, my-9);
-    }
+    MT.draw();
   }
 
   function drawCannonBase(h0){
@@ -805,7 +801,8 @@
   bindTog('tgVec','vec'); bindTog('tgComp','comp'); bindTog('tgGrid','grid'); bindTog('tgGhost','ghost');
   bindTog('tgEnergy','energy',()=>{ $('energyBox').classList.toggle('on',tog.energy); });
   bindTog('tgSw','sw',()=>{ $('stopwatch').classList.toggle('on',tog.sw); });
-  bindTog('tgMeasure','measure',()=>{ if(!tog.measure){measure.p1=measure.p2=null;} $('hudHint').textContent = tog.measure?'İki noktaya tıkla/sürükle 📏':'İpucu: topu sürükle 🎯'; });
+  $('tgRuler').addEventListener('click',()=>{ const on=MT.toggleTape(); $('tgRuler').classList.toggle('on',on); drawScene(); });
+  $('tgProt').addEventListener('click',()=>{ const on=MT.toggleProt(); $('tgProt').classList.toggle('on',on); drawScene(); });
   $('tgTarget').addEventListener('click',()=>{ showTarget=!showTarget; $('tgTarget').classList.toggle('on',showTarget); refresh(); });
 
   document.querySelectorAll('.graph-tabs .tb').forEach(b=>{
@@ -817,19 +814,19 @@
   function nearTargetPx(px,py){ if(!showTarget)return false; return Math.abs(px-w2sx(targetX))<16 && py>w2sy(0)-44; }
   function pointerDown(e){
     const {px,py}=evtPos(e);
-    if (tog.measure){ drag.kind='measure'; const w={x:Math.max(0,s2wx(px)),y:Math.max(0,s2wy(py))}; measure.p1=w; measure.p2=w; drawScene(); e.preventDefault(); return; }
+    if (MT.onDown(px,py)){ drag.kind='tool'; drawScene(); e.preventDefault(); return; }
     if (nearTargetPx(px,py)){ drag.kind='target'; e.preventDefault(); return; }
     if (anim.mode!=='running'){ drag.kind='aim'; aimTo(px,py); e.preventDefault(); }
   }
   function pointerMove(e){
     if (!drag.kind) return;
     const {px,py}=evtPos(e);
-    if (drag.kind==='measure'){ measure.p2={x:Math.max(0,s2wx(px)),y:Math.max(0,s2wy(py))}; drawScene(); }
+    if (drag.kind==='tool'){ MT.onMove(px,py); drawScene(); }
     else if (drag.kind==='target'){ targetX=Math.max(2, Math.round(s2wx(px))); refresh(); }
     else if (drag.kind==='aim'){ aimTo(px,py); }
     e.preventDefault();
   }
-  function pointerUp(){ drag.kind=null; }
+  function pointerUp(){ if(drag.kind==='tool') MT.onUp(); drag.kind=null; }
   function aimTo(px,py){
     const cx=w2sx(0), cy=w2sy(P.h0);
     const dx=px-cx, dy=cy-py;
