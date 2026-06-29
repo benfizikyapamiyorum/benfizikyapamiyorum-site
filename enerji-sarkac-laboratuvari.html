@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enerji & Sarkaç Laboratuvarı — İnteraktif Fizik Simülasyonu | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Basit sarkacı kendin keşfet: bobu sürükle, ip uzunluğunu ve açıyı değiştir, gezegeni seç, sürtünmeyi aç. Kinetik ve potansiyel enerjinin canlı barlarını ve enerji-zaman grafiğini izle. Enerjinin korunumu konusuyla birebir. Ücretsiz interaktif fizik laboratuvarı.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/enerji-sarkac-laboratuvari.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="Enerji & Sarkaç Laboratuvarı — İnteraktif Fizik Simülasyonu">
+<meta property="og:description" content="Bobu sürükle, enerjinin kinetik ve potansiyel arasında gidişini canlı barlarla ve grafikle gör. Enerjinin korunumu.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/enerji-sarkac-laboratuvari.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Enerji & Sarkaç Laboratuvarı — İnteraktif Fizik Simülasyonu">
+<meta name="twitter:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root{
+    --lab-ink:#0e0c08; --lab-coral:#e26d4f; --lab-gold:#d4a017; --lab-gold2:#b8902f;
+    --lab-muted:#5a544a; --lab-blue:#2d7dd2; --lab-line:#e7dcc6; --lab-surface:#fff;
+  }
+  .lab-head h1{margin:.2em 0 .15em;}
+  .lab-head .sub{color:var(--lab-muted);font-size:1.02rem;line-height:1.6;max-width:760px;}
+  .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:18px;align-items:start;}
+  @media(max-width:980px){.lab-grid{grid-template-columns:1fr;}}
+
+  .stage-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#eef2f7;border:1px solid var(--lab-line);
+    border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);touch-action:none;}
+  .stage-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;}
+  .stage-wrap:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;}
+  .hud{position:absolute;top:10px;left:12px;display:flex;gap:8px;flex-wrap:wrap;z-index:3;pointer-events:none;}
+  .hud .pill{background:rgba(255,255,255,.86);border:1px solid var(--lab-line);border-radius:9px;
+    padding:5px 10px;font-size:.8rem;font-weight:700;color:var(--lab-ink);backdrop-filter:blur(3px);}
+  .stopwatch{position:absolute;top:48px;left:12px;z-index:4;background:rgba(14,12,8,.86);color:#fff;border-radius:12px;
+    padding:8px 12px;font-family:ui-monospace,Menlo,monospace;font-size:1.05rem;font-weight:700;cursor:grab;
+    box-shadow:0 6px 16px rgba(0,0,0,.25);user-select:none;display:none;}
+  .stopwatch.on{display:block;}
+  .stopwatch small{display:block;font-size:.6rem;font-weight:600;color:#cdd6ea;letter-spacing:.08em;}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .tb{padding:9px 14px;font-size:.86rem;border-radius:10px;border:1.5px solid var(--lab-line);background:#fff;
+    color:var(--lab-ink);font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    font-family:inherit;transition:all .14s;}
+  .tb:hover{background:#faf6ec;}
+  .tb.primary{background:var(--lab-ink);color:#fff;border-color:var(--lab-ink);}
+  .tb.primary:hover{background:var(--lab-coral);border-color:var(--lab-coral);}
+  .tb.on{background:var(--lab-gold);border-color:var(--lab-gold);color:#1c1403;}
+  .tb:disabled{opacity:.4;cursor:not-allowed;}
+  .tb-sep{width:1px;align-self:stretch;background:var(--lab-line);margin:2px 2px;}
+
+  .toggles{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .toggles .tb{padding:7px 11px;font-size:.8rem;}
+
+  .panel{background:var(--lab-surface);border:1px solid var(--lab-line);border-radius:16px;padding:16px 16px 18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.05);}
+  .panel h3{margin:0 0 4px;font-size:1rem;}
+  .panel .hint{font-size:.78rem;color:var(--lab-muted);margin:0 0 12px;}
+  .ctrl{margin-bottom:13px;}
+  .ctrl label{display:flex;justify-content:space-between;font-size:.86rem;font-weight:600;margin-bottom:5px;}
+  .ctrl label b{color:var(--lab-gold2);font-variant-numeric:tabular-nums;}
+  .ctrl input[type=range]{width:100%;accent-color:var(--lab-coral);}
+  .ctrl select{width:100%;padding:8px 10px;border:1.5px solid var(--lab-line);border-radius:9px;font-family:inherit;
+    font-size:.9rem;background:#fff;}
+  .ctrl.row{display:flex;align-items:center;gap:8px;}
+  .ctrl.row label{margin:0;}
+  .switch{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;cursor:pointer;}
+  .switch input{width:18px;height:18px;accent-color:var(--lab-coral);}
+
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:4px;}
+  .readout .r{background:#faf6ec;border:1px solid var(--lab-line);border-radius:9px;padding:7px 10px;}
+  .readout .r .k{font-size:.68rem;color:var(--lab-muted);text-transform:uppercase;letter-spacing:.05em;}
+  .readout .r .v{font-size:1.02rem;font-weight:800;font-variant-numeric:tabular-nums;}
+  .readout .r.wide{grid-column:1 / -1;}
+
+  .energy{margin-top:14px;}
+  .ebar{height:18px;border-radius:6px;background:#f0e9da;overflow:hidden;margin:4px 0 9px;border:1px solid var(--lab-line);}
+  .ebar i{display:block;height:100%;width:0;}
+  .ebar-lab{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;color:var(--lab-muted);}
+  .ebar-lab .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+
+  .graph-card{margin-top:18px;}
+  .graph-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .graph-tabs .tb{padding:6px 12px;font-size:.8rem;}
+  .graph-wrap{width:100%;height:250px;background:#fff;border:1px solid var(--lab-line);border-radius:12px;overflow:hidden;}
+  .graph-wrap canvas{width:100%;height:100%;display:block;}
+
+  .lab-note{margin-top:22px;background:#1c2336;color:#e9edf6;border-radius:16px;padding:22px 24px;}
+  .lab-note h3{color:#fff;margin:0 0 8px;}
+  .lab-note p{margin:0 0 12px;color:#cdd6ea;line-height:1.6;}
+  .lab-note a.btn{margin-right:8px;}
+  .feat{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px;}
+  .feat span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:20px;
+    padding:5px 12px;font-size:.8rem;color:#e9edf6;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text">
+        <span>Ben Fizik Yapamıyorum</span>
+        <small>Yapabilirsin. Söz veriyorum.</small>
+      </span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head lab-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / Enerji &amp; Sarkaç Laboratuvarı</div>
+    <h1>🔋 Enerji &amp; Sarkaç Laboratuvarı</h1>
+    <p class="sub">Bobu <strong>sürükleyip bırak</strong> (ip uzunluğunu ve açıyı seç), salınımı izle. Kinetik ve potansiyel enerjinin <strong>canlı barlarını</strong> ve <strong>enerji-zaman grafiğini</strong> gör — sürtünmeyi aç, enerjinin nasıl "kaybolduğunu" izle. <strong>Enerjinin korunumu</strong> konusuyla birebir.</p>
+  </div>
+
+  <div class="lab-grid">
+    <!-- ===== SOL: SAHNE ===== -->
+    <div>
+      <div class="stage-wrap" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="hud">
+          <span class="pill" id="hudHint">İpucu: bobu tutup bırak 🎈</span>
+        </div>
+        <div class="stopwatch" id="stopwatch"><small>KRONOMETRE</small><span id="swTime">0.00 s</span></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="tb primary" id="btnPlay">▶ Başlat</button>
+        <button class="tb" id="btnStep">⏭ Adım</button>
+        <button class="tb" id="btnReset">↺ Sıfırla</button>
+        <div class="tb-sep"></div>
+        <label class="tb" style="cursor:default;gap:8px;">Hız
+          <select id="speed" style="border:none;background:transparent;font-weight:700;font-family:inherit;cursor:pointer;">
+            <option value="0.25">0.25×</option>
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+          </select>
+        </label>
+        <button class="tb" id="btnFs">⛶ Tam ekran</button>
+      </div>
+
+      <div class="toggles">
+        <button class="tb on" id="tgEnergy">🔋 Enerji barları</button>
+        <button class="tb on" id="tgVec">➶ Hız vektörü</button>
+        <button class="tb" id="tgForce">⬇ Kuvvetler (mg, teğet)</button>
+        <button class="tb on" id="tgTrace">〰 Salınım yayı</button>
+        <button class="tb" id="tgSw">⏱ Kronometre</button>
+      </div>
+
+      <!-- ===== GRAFİK ===== -->
+      <div class="panel graph-card">
+        <div class="graph-tabs">
+          <button class="tb on" data-g="energy">Enerji – t</button>
+          <button class="tb" data-g="theta">Açı θ – t</button>
+          <button class="tb" data-g="omega">Açısal hız ω – t</button>
+        </div>
+        <div class="graph-wrap"><canvas id="graph"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ===== SAĞ: KONTROL PANELİ ===== -->
+    <aside>
+      <div class="panel">
+        <h3>Sarkaç ayarları</h3>
+        <p class="hint">Bobu sürükleyebilir veya buradan değiştirebilirsin.</p>
+
+        <div class="ctrl">
+          <label>İp uzunluğu L <b><span id="LVal">1.0</span> m</b></label>
+          <input id="L" type="range" min="0.3" max="3" step="0.05" value="1.0">
+        </div>
+        <div class="ctrl">
+          <label>Başlangıç açısı θ₀ <b><span id="thVal">30</span>°</b></label>
+          <input id="th" type="range" min="5" max="80" step="1" value="30">
+        </div>
+        <div class="ctrl">
+          <label>Kütle m <b><span id="mVal">1.0</span> kg</b></label>
+          <input id="m" type="range" min="0.5" max="10" step="0.5" value="1">
+        </div>
+        <div class="ctrl">
+          <label for="planet">Gezegen / yerçekimi g</label>
+          <select id="planet">
+            <option value="1.6">Ay — 1.6 m/s²</option>
+            <option value="3.7">Mars — 3.7 m/s²</option>
+            <option value="9.8" selected>Dünya — 9.8 m/s²</option>
+            <option value="24.8">Jüpiter — 24.8 m/s²</option>
+          </select>
+        </div>
+        <div class="ctrl row">
+          <label class="switch"><input type="checkbox" id="dampOn"> Sürtünme (sönüm)</label>
+        </div>
+        <div class="ctrl" id="dampWrap" style="display:none;">
+          <label>Sönüm katsayısı <b><span id="dampVal">0.40</span></b></label>
+          <input id="damp" type="range" min="0.05" max="2" step="0.05" value="0.4">
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <h3>Anlık değerler</h3>
+        <div class="readout">
+          <div class="r"><div class="k">Süre t</div><div class="v"><span id="oT">0.00</span> s</div></div>
+          <div class="r"><div class="k">Periyot T</div><div class="v"><span id="oTper">2.01</span> s</div></div>
+          <div class="r"><div class="k">Açı θ</div><div class="v"><span id="oTheta">30.0</span>°</div></div>
+          <div class="r"><div class="k">Açısal hız ω</div><div class="v"><span id="oOmega">0.00</span></div></div>
+          <div class="r wide"><div class="k">Bob hızı |v|</div><div class="v"><span id="oV">0.00</span> m/s</div></div>
+        </div>
+
+        <div class="energy" id="energyBox">
+          <div class="ebar-lab"><span><span class="dot" style="background:var(--lab-coral)"></span>Kinetik (KE)</span><span id="eKE">0 J</span></div>
+          <div class="ebar"><i id="barKE" style="background:var(--lab-coral)"></i></div>
+          <div class="ebar-lab"><span><span class="dot" style="background:var(--lab-blue)"></span>Potansiyel (PE)</span><span id="ePE">0 J</span></div>
+          <div class="ebar"><i id="barPE" style="background:var(--lab-blue)"></i></div>
+          <div class="ebar-lab"><span><span class="dot" style="background:var(--lab-gold)"></span>Toplam (KE+PE)</span><span id="eTot">0 J</span></div>
+          <div class="ebar"><i id="barTot" style="background:var(--lab-gold)"></i></div>
+          <p class="hint" style="margin-top:2px;">Sürtünmesizken toplam enerji sabit kalır; PE tepe noktada, KE en alttadır. Sürtünme açıksa toplam yavaşça azalır (ısıya dönüşür).</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="lab-note">
+    <h3>Bu laboratuvarda neler var?</h3>
+    <div class="feat">
+      <span>Sürükle-bırak bob</span><span>Canlı KE/PE/Toplam barları</span><span>Enerji-zaman grafiği</span>
+      <span>Hız vektörü</span><span>Kuvvet ayrıştırması</span><span>Sürtünme/sönüm</span>
+      <span>4 gezegen yerçekimi</span><span>Periyot T = 2π√(L/g)</span><span>Ağır çekim / adım adım</span>
+    </div>
+    <p style="margin-top:14px;">Periyot kütleden bağımsızdır; sadece ip uzunluğu ve g'ye bağlıdır. Gezegeni değiştirip aynı sarkacın Ay'da neden daha yavaş salındığını görebilirsin. Bu lab zamanla daha da gelişecek. Bir fikrin olursa <a href="https://wa.me/905425549386" target="_blank" rel="noopener" style="color:#ffd98a;font-weight:700;">WhatsApp'tan yaz</a>.</p>
+    <a href="egik-atis-laboratuvari.html" class="btn btn-primary">🎯 Eğik Atış Laboratuvarı</a>
+    <a href="simulasyonlar.html" class="btn btn-ghost">Tüm simülasyonlar</a>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="hakkimda.html">Hakkımda</a> ·
+      <a href="simulasyonlar.html">Simülasyonlar</a> ·
+      <a href="oyunlar.html">Oyunlar</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const C = {
+    ink:'#0e0c08', coral:'#e26d4f', gold:'#d4a017', gold2:'#b8902f', muted:'#5a544a',
+    blue:'#2d7dd2', grid:'rgba(14,12,8,.08)', rod:'#5a544a', wall:'#cdbb97'
+  };
+
+  const scene = $('scene'), sx = scene.getContext('2d');
+  const graph = $('graph'), gx = graph.getContext('2d');
+  const stage = $('stage');
+
+  // ---------- Parametreler ----------
+  const P = { L:1.0, th0:30*Math.PI/180, m:1, g:9.8, damp:false, b:0.4 };
+  // ---------- Durum ----------
+  let st = { theta:30*Math.PI/180, omega:0, t:0 };
+  let playing = false, speed = 1, raf = null, lastNow = 0, leftover = 0;
+  const tog = { energy:true, vec:true, force:false, trace:true, sw:false };
+  let graphMode = 'energy';
+  let hist = [];           // {t, KE, PE, E, thetaDeg, omega}
+  let E0 = 1;
+  let dragging = false;
+
+  // ---------- Canvas fit ----------
+  function fit(cnv, ctx){
+    const r = window.devicePixelRatio || 1;
+    const w = cnv.clientWidth, h = cnv.clientHeight;
+    if (cnv.width !== Math.round(w*r) || cnv.height !== Math.round(h*r)) {
+      cnv.width = Math.round(w*r); cnv.height = Math.round(h*r);
+      ctx.setTransform(r,0,0,r,0,0);
+    }
+  }
+
+  // ---------- Fizik yardımcıları ----------
+  const periodT = () => 2*Math.PI*Math.sqrt(P.L/P.g);          // küçük açı
+  function energy(){
+    const v = P.L*st.omega;                                    // bob hızı (m/s)
+    const KE = 0.5*P.m*v*v;
+    const h = P.L*(1-Math.cos(st.theta));                      // en alt noktadan yükseklik
+    const PE = P.m*P.g*h;
+    return {KE, PE, E:KE+PE, v};
+  }
+  function initialEnergy(){ return P.m*P.g*P.L*(1-Math.cos(P.th0)); }
+
+  // ---------- Görünüm ----------
+  let view = { pivotX:0, pivotY:46, pxm:120, W:0, H:0 };
+  function computeView(){
+    fit(scene, sx);
+    const W=scene.clientWidth, H=scene.clientHeight;
+    view.W=W; view.H=H;
+    view.pivotX=W/2; view.pivotY=Math.max(40,H*0.10);
+    const avail = H - view.pivotY - 46;
+    view.pxm = avail/3.15;                                      // 3 m tam sığsın
+  }
+  function bobScreen(theta, L){
+    const Lpx = L*view.pxm;
+    return [ view.pivotX + Lpx*Math.sin(theta), view.pivotY + Lpx*Math.cos(theta) ];
+  }
+
+  // ---------- Sahne çizimi ----------
+  function drawScene(){
+    computeView();
+    const W=view.W, H=view.H;
+    const g = sx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#eef2f7'); g.addColorStop(1,'#f6f2ea');
+    sx.fillStyle=g; sx.fillRect(0,0,W,H);
+
+    // tavan
+    sx.fillStyle=C.wall; sx.fillRect(view.pivotX-60, view.pivotY-16, 120, 12);
+    sx.fillStyle='#0e0c08'; for(let i=-54;i<54;i+=12){ sx.beginPath(); sx.moveTo(view.pivotX+i,view.pivotY-4); sx.lineTo(view.pivotX+i+8,view.pivotY-12); sx.lineWidth=1.4; sx.strokeStyle='rgba(14,12,8,.4)'; sx.stroke(); }
+
+    // denge çizgisi
+    const Lpx=P.L*view.pxm;
+    sx.setLineDash([4,5]); sx.strokeStyle='rgba(14,12,8,.25)'; sx.lineWidth=1;
+    sx.beginPath(); sx.moveTo(view.pivotX,view.pivotY); sx.lineTo(view.pivotX,view.pivotY+Lpx+30); sx.stroke();
+    sx.setLineDash([]);
+
+    // salınım yayı
+    if (tog.trace){
+      sx.strokeStyle='rgba(226,109,79,.30)'; sx.lineWidth=2; sx.setLineDash([3,4]);
+      sx.beginPath();
+      sx.arc(view.pivotX, view.pivotY, Lpx, Math.PI/2 - P.th0, Math.PI/2 + P.th0);
+      sx.stroke(); sx.setLineDash([]);
+      // uç işaretleri (max açı)
+      [-P.th0,P.th0].forEach(a=>{ const [bx,by]=bobScreen(a,P.L); sx.fillStyle='rgba(226,109,79,.5)'; sx.beginPath(); sx.arc(bx,by,3,0,7); sx.fill(); });
+    }
+
+    // açı yayı (anlık)
+    sx.strokeStyle='rgba(45,125,210,.5)'; sx.lineWidth=2;
+    sx.beginPath();
+    const a0=Math.PI/2, a1=Math.PI/2 - st.theta;
+    sx.arc(view.pivotX, view.pivotY, 34, Math.min(a0,a1), Math.max(a0,a1)); sx.stroke();
+    sx.fillStyle=C.muted; sx.font='12px ui-monospace, monospace';
+    sx.fillText((st.theta*180/Math.PI).toFixed(0)+'°', view.pivotX+ (st.theta>=0?40:-58), view.pivotY+ Lpx*0.16+6);
+
+    // çubuk + bob
+    const [bx,by]=bobScreen(st.theta,P.L);
+    sx.strokeStyle=C.rod; sx.lineWidth=3;
+    sx.beginPath(); sx.moveTo(view.pivotX,view.pivotY); sx.lineTo(bx,by); sx.stroke();
+    // pivot
+    sx.fillStyle=C.ink; sx.beginPath(); sx.arc(view.pivotX,view.pivotY,5,0,7); sx.fill();
+
+    // vektörler / kuvvetler bob'tan önce (altında kalsın)
+    const e=energy();
+    if (tog.force) drawForces(bx,by);
+    if (tog.vec)   drawVel(bx,by,e.v);
+
+    // bob
+    const r = 11 + P.m*1.4;
+    const grd = sx.createRadialGradient(bx-r*0.3,by-r*0.3,2,bx,by,r);
+    grd.addColorStop(0,'#f0a085'); grd.addColorStop(1,C.coral);
+    sx.fillStyle=grd; sx.strokeStyle=C.ink; sx.lineWidth=1.8;
+    sx.beginPath(); sx.arc(bx,by,r,0,7); sx.fill(); sx.stroke();
+
+    if (dragging){ sx.fillStyle=C.muted; sx.font='12px ui-monospace, monospace'; sx.fillText('L='+P.L.toFixed(2)+'m  θ='+(st.theta*180/Math.PI).toFixed(0)+'°', bx+r+6, by); }
+  }
+
+  function arrow(x1,y1,x2,y2,color,w){
+    if (Math.hypot(x2-x1,y2-y1)<3) return;
+    sx.strokeStyle=color; sx.fillStyle=color; sx.lineWidth=w;
+    sx.beginPath(); sx.moveTo(x1,y1); sx.lineTo(x2,y2); sx.stroke();
+    const ang=Math.atan2(y2-y1,x2-x1), s=8;
+    sx.beginPath(); sx.moveTo(x2,y2);
+    sx.lineTo(x2-s*Math.cos(ang-.4), y2-s*Math.sin(ang-.4));
+    sx.lineTo(x2-s*Math.cos(ang+.4), y2-s*Math.sin(ang+.4));
+    sx.closePath(); sx.fill();
+  }
+  function drawVel(bx,by,v){
+    // teğet yön: (cosθ, -sinθ) * sign(ω)
+    const dirx=Math.cos(st.theta), diry=-Math.sin(st.theta);
+    const s=Math.sign(st.omega)||0;
+    const sc=14; // px per (m/s)
+    arrow(bx,by, bx + dirx*v*sc*s, by + diry*v*sc*s, C.ink, 3);
+  }
+  function drawForces(bx,by){
+    const W=P.m*P.g;                 // ağırlık (N)
+    const sc=Math.min(5, 90/Math.max(W,1)); // px/N (ölçekli)
+    // ağırlık (aşağı)
+    arrow(bx,by, bx, by + W*sc, '#7a7368', 3);
+    sx.fillStyle='#7a7368'; sx.font='11px ui-monospace, monospace'; sx.fillText('mg', bx+4, by+W*sc);
+    // teğet bileşen mg·sinθ (geri çağırıcı) — hareketi azaltır, denge yönünde
+    const Ft=W*Math.sin(st.theta);
+    const tx=Math.cos(st.theta), ty=-Math.sin(st.theta);   // teğet yön (+θ tarafına)
+    arrow(bx,by, bx - tx*Ft*sc, by - ty*Ft*sc, C.coral, 3); // -θ yönüne (geri)
+    // radyal bileşen mg·cosθ (çubuk boyunca)
+    const Fr=W*Math.cos(st.theta);
+    const rx=Math.sin(st.theta), ry=Math.cos(st.theta);    // bob'tan dışa (pivottan uzağa)
+    arrow(bx,by, bx + rx*Fr*sc, by + ry*Fr*sc, C.blue, 2);
+  }
+
+  // ---------- Enerji barları / readout ----------
+  function updateReadouts(){
+    const e=energy();
+    $('oT').textContent=st.t.toFixed(2);
+    $('oTper').textContent=periodT().toFixed(2);
+    $('oTheta').textContent=(st.theta*180/Math.PI).toFixed(1);
+    $('oOmega').textContent=st.omega.toFixed(2);
+    $('oV').textContent=Math.abs(e.v).toFixed(2);
+    if (tog.energy){
+      const denom=Math.max(E0,1e-6);
+      $('eKE').textContent=e.KE.toFixed(1)+' J';
+      $('ePE').textContent=e.PE.toFixed(1)+' J';
+      $('eTot').textContent=e.E.toFixed(1)+' J';
+      $('barKE').style.width=Math.min(100,100*e.KE/denom)+'%';
+      $('barPE').style.width=Math.min(100,100*e.PE/denom)+'%';
+      $('barTot').style.width=Math.min(100,100*e.E/denom)+'%';
+    }
+  }
+
+  // ---------- Grafik ----------
+  function drawGraph(){
+    fit(graph, gx);
+    const W=graph.clientWidth, H=graph.clientHeight, padL=46, padR=14, padT=16, padB=28;
+    gx.fillStyle='#fff'; gx.fillRect(0,0,W,H);
+    const T0=periodT();
+    const win = Math.min(18, Math.max(4, 2.6*T0));
+    const tMax = Math.max(win, st.t), tMin = tMax-win;
+    const X = t => padL + ((t-tMin)/win)*(W-padL-padR);
+
+    let yMax, yMin, lab, series;
+    if (graphMode==='energy'){ yMax=E0*1.12; yMin=0; lab='E (J)'; }
+    else if (graphMode==='theta'){ yMax=P.th0*180/Math.PI*1.1; yMin=-yMax; lab='θ (°)'; }
+    else { const wm=P.th0*Math.sqrt(P.g/P.L)*1.25+1e-6; yMax=wm; yMin=-wm; lab='ω (rad/s)'; }
+    const Y = v => (H-padB) - ((v-yMin)/(yMax-yMin))*(H-padT-padB);
+
+    // ızgara + eksen
+    gx.strokeStyle='rgba(14,12,8,.08)'; gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace'; gx.lineWidth=1;
+    for (let k=0;k<=4;k++){ const tt=tMin+win*k/4; const px=X(tt); gx.beginPath(); gx.moveTo(px,padT); gx.lineTo(px,H-padB); gx.stroke(); gx.fillText(tt.toFixed(1), px-8, H-padB+12); }
+    if (yMin<0){ const z=Y(0); gx.strokeStyle='rgba(14,12,8,.2)'; gx.beginPath(); gx.moveTo(padL,z); gx.lineTo(W-padR,z); gx.stroke(); }
+    gx.strokeStyle=C.ink; gx.lineWidth=1.4; gx.beginPath(); gx.moveTo(padL,padT); gx.lineTo(padL,H-padB); gx.lineTo(W-padR,H-padB); gx.stroke();
+    gx.fillStyle=C.muted; gx.font='11px ui-monospace, monospace'; gx.fillText(lab,6,12); gx.fillText('t (s)', W-padR-34, H-6);
+
+    const pts = hist.filter(p=>p.t>=tMin-0.1);
+    function line(getY,color){
+      gx.strokeStyle=color; gx.lineWidth=2.2; gx.beginPath(); let started=false;
+      for (const p of pts){ const px=X(p.t), py=Y(getY(p)); if(!started){gx.moveTo(px,py);started=true;} else gx.lineTo(px,py); }
+      gx.stroke();
+    }
+    if (graphMode==='energy'){
+      line(p=>p.KE, C.coral); line(p=>p.PE, C.blue); line(p=>p.E, C.gold);
+      // lejant
+      const items=[['KE',C.coral],['PE',C.blue],['Toplam',C.gold]]; let lx=W-padR-150;
+      gx.font='bold 11px ui-monospace, monospace';
+      items.forEach(([t,c],i)=>{ gx.fillStyle=c; gx.fillRect(lx+i*52,14,9,9); gx.fillStyle=C.muted; gx.fillText(t,lx+i*52+12,22); });
+    } else if (graphMode==='theta'){
+      line(p=>p.thetaDeg, C.coral);
+    } else {
+      line(p=>p.omega, C.coral);
+    }
+  }
+
+  // ---------- Tarihçe ----------
+  function pushHist(){
+    const e=energy();
+    hist.push({t:st.t, KE:e.KE, PE:e.PE, E:e.E, thetaDeg:st.theta*180/Math.PI, omega:st.omega});
+    if (hist.length>5000) hist.splice(0, hist.length-5000);
+  }
+
+  // ---------- Animasyon ----------
+  function physics(dtReal){
+    let acc = dtReal*speed + leftover;
+    const h = 0.0015;
+    const b = P.damp ? P.b : 0;
+    let n=0;
+    while (acc>=h && n<2000){
+      const alpha = -(P.g/P.L)*Math.sin(st.theta) - b*st.omega;
+      st.omega += alpha*h; st.theta += st.omega*h; st.t += h;
+      acc-=h; n++;
+    }
+    leftover=acc;
+  }
+  function frame(now){
+    const dt = Math.min(0.05,(now-lastNow)/1000); lastNow=now;
+    physics(dt);
+    pushHist();
+    render();
+    if (tog.sw) $('swTime').textContent=st.t.toFixed(2)+' s';
+    if (playing) raf=requestAnimationFrame(frame);
+  }
+  function render(){ drawScene(); drawGraph(); updateReadouts(); }
+
+  function play(){
+    if (playing) return;
+    playing=true; lastNow=performance.now(); leftover=0;
+    $('btnPlay').textContent='⏸ Duraklat'; $('btnPlay').classList.remove('primary');
+    $('hudHint').textContent='Salınıyor…';
+    raf=requestAnimationFrame(frame);
+  }
+  function pause(){
+    playing=false; if(raf)cancelAnimationFrame(raf); raf=null;
+    $('btnPlay').textContent='▶ Başlat'; $('btnPlay').classList.add('primary');
+  }
+  function togglePlay(){ playing?pause():play(); }
+  function step(){
+    pause();
+    physics(0.05); pushHist(); render();
+    if (tog.sw) $('swTime').textContent=st.t.toFixed(2)+' s';
+  }
+  function reset(){
+    pause();
+    st = { theta:P.th0, omega:0, t:0 };
+    E0 = Math.max(initialEnergy(), 1e-6);
+    hist=[]; leftover=0; pushHist();
+    $('swTime').textContent='0.00 s';
+    $('hudHint').textContent='İpucu: bobu tutup bırak 🎈';
+    render();
+  }
+
+  // ---------- Kontroller ----------
+  function syncLabels(){
+    $('LVal').textContent=P.L.toFixed(2); $('thVal').textContent=Math.round(P.th0*180/Math.PI);
+    $('mVal').textContent=P.m.toFixed(1); $('dampVal').textContent=P.b.toFixed(2);
+    $('L').value=P.L; $('th').value=Math.round(P.th0*180/Math.PI); $('m').value=P.m; $('damp').value=P.b;
+  }
+  $('L').addEventListener('input',e=>{P.L=+e.target.value; syncLabels(); reset();});
+  $('th').addEventListener('input',e=>{P.th0=(+e.target.value)*Math.PI/180; syncLabels(); reset();});
+  $('m').addEventListener('input',e=>{P.m=+e.target.value; syncLabels(); reset();});
+  $('planet').addEventListener('change',e=>{P.g=+e.target.value; reset();});
+  $('dampOn').addEventListener('change',e=>{P.damp=e.target.checked; $('dampWrap').style.display=P.damp?'':'none'; reset();});
+  $('damp').addEventListener('input',e=>{P.b=+e.target.value; syncLabels(); if(!playing)render();});
+  $('speed').addEventListener('change',e=>{speed=+e.target.value;});
+
+  $('btnPlay').addEventListener('click',togglePlay);
+  $('btnStep').addEventListener('click',step);
+  $('btnReset').addEventListener('click',reset);
+  $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
+
+  function bindTog(btnId,key,after){ $(btnId).addEventListener('click',()=>{ tog[key]=!tog[key]; $(btnId).classList.toggle('on',tog[key]); if(after)after(); render(); }); }
+  bindTog('tgEnergy','energy',()=>{ $('energyBox').style.display=tog.energy?'':'none'; });
+  bindTog('tgVec','vec'); bindTog('tgForce','force'); bindTog('tgTrace','trace');
+  bindTog('tgSw','sw',()=>{ $('stopwatch').classList.toggle('on',tog.sw); });
+
+  document.querySelectorAll('.graph-tabs .tb').forEach(b=>{
+    b.addEventListener('click',()=>{ graphMode=b.dataset.g; document.querySelectorAll('.graph-tabs .tb').forEach(x=>x.classList.toggle('on',x===b)); drawGraph(); });
+  });
+
+  // ---------- Bobu sürükle ----------
+  function evtPos(e){ const r=scene.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {px:t.clientX-r.left, py:t.clientY-r.top}; }
+  function pointerDown(e){
+    dragging=true; pause(); applyDrag(e); e.preventDefault();
+  }
+  function pointerMove(e){ if(!dragging)return; applyDrag(e); e.preventDefault(); }
+  function pointerUp(){ if(!dragging)return; dragging=false; P.th0=Math.abs(st.theta); st.omega=0; st.t=0; E0=Math.max(initialEnergy(),1e-6); hist=[]; pushHist(); syncLabels(); play(); }
+  function applyDrag(e){
+    const {px,py}=evtPos(e);
+    const dx=px-view.pivotX, dy=py-view.pivotY;
+    let theta=Math.atan2(dx, Math.max(dy,1));      // dikeyden açı
+    theta=Math.max(-80*Math.PI/180, Math.min(80*Math.PI/180, theta));
+    let L=Math.hypot(dx,dy)/view.pxm;
+    L=Math.max(0.3, Math.min(3, L));
+    P.L=L; st.theta=theta; st.omega=0;
+    syncLabels(); render();
+  }
+  scene.addEventListener('mousedown',pointerDown);
+  window.addEventListener('mousemove',pointerMove);
+  window.addEventListener('mouseup',pointerUp);
+  scene.addEventListener('touchstart',pointerDown,{passive:false});
+  scene.addEventListener('touchmove',pointerMove,{passive:false});
+  window.addEventListener('touchend',pointerUp);
+
+  // sürüklenebilir kronometre
+  (function(){
+    const sw=$('stopwatch'); let d=false,ox=0,oy=0;
+    sw.addEventListener('mousedown',e=>{d=true;ox=e.offsetX;oy=e.offsetY;sw.style.cursor='grabbing';e.stopPropagation();});
+    window.addEventListener('mousemove',e=>{ if(!d)return; const r=stage.getBoundingClientRect(); sw.style.left=(e.clientX-r.left-ox)+'px'; sw.style.top=(e.clientY-r.top-oy)+'px'; });
+    window.addEventListener('mouseup',()=>{d=false;sw.style.cursor='grab';});
+  })();
+
+  // ---------- Resize / init ----------
+  let rT; window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(render,120); });
+  document.addEventListener('fullscreenchange',()=>setTimeout(render,80));
+
+  syncLabels();
+  E0=Math.max(initialEnergy(),1e-6);
+  st={theta:P.th0,omega:0,t:0}; pushHist();
+  requestAnimationFrame(()=>{ render(); });
+})();
+</script>
+
+</body>
+</html>
