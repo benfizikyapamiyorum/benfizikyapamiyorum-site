@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eğik Atış Laboratuvarı — İnteraktif Fizik Simülasyonu | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Eğik atışı kendin keşfet: hızı ve açıyı sürükle, hava direncini aç, gezegeni değiştir, hız vektörlerini ve canlı grafikleri (x-t, y-t, v-t) gör. 2026 Maarif (TYMM) 11. sınıf atışlar konusuyla birebir. Ücretsiz interaktif fizik laboratuvarı.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/egik-atis-laboratuvari.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="Eğik Atış Laboratuvarı — İnteraktif Fizik Simülasyonu">
+<meta property="og:description" content="Hızı ve açıyı sürükle, hava direncini aç, vektörleri ve canlı grafikleri gör. Maarif 11. sınıf atışlar konusuyla birebir.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/egik-atis-laboratuvari.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Eğik Atış Laboratuvarı — İnteraktif Fizik Simülasyonu">
+<meta name="twitter:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root{
+    --lab-ink:#0e0c08; --lab-coral:#e26d4f; --lab-gold:#d4a017; --lab-gold2:#b8902f;
+    --lab-muted:#5a544a; --lab-blue:#2d7dd2; --lab-line:#e7dcc6; --lab-surface:#fff;
+  }
+  .lab-head h1{margin:.2em 0 .15em;}
+  .lab-head .sub{color:var(--lab-muted);font-size:1.02rem;line-height:1.6;max-width:760px;}
+  .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:18px;align-items:start;}
+  @media(max-width:980px){.lab-grid{grid-template-columns:1fr;}}
+
+  .stage-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#dcebf8;border:1px solid var(--lab-line);
+    border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);touch-action:none;}
+  .stage-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;}
+  .stage-wrap:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;}
+  .hud{position:absolute;top:10px;left:12px;display:flex;gap:8px;flex-wrap:wrap;z-index:3;pointer-events:none;}
+  .hud .pill{background:rgba(255,255,255,.86);border:1px solid var(--lab-line);border-radius:9px;
+    padding:5px 10px;font-size:.8rem;font-weight:700;color:var(--lab-ink);backdrop-filter:blur(3px);}
+  .stopwatch{position:absolute;top:48px;left:12px;z-index:4;background:rgba(14,12,8,.86);color:#fff;border-radius:12px;
+    padding:8px 12px;font-family:ui-monospace,Menlo,monospace;font-size:1.05rem;font-weight:700;cursor:grab;
+    box-shadow:0 6px 16px rgba(0,0,0,.25);user-select:none;display:none;}
+  .stopwatch.on{display:block;}
+  .stopwatch small{display:block;font-size:.6rem;font-weight:600;color:#cdd6ea;letter-spacing:.08em;}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .tb{padding:9px 14px;font-size:.86rem;border-radius:10px;border:1.5px solid var(--lab-line);background:#fff;
+    color:var(--lab-ink);font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    font-family:inherit;transition:all .14s;}
+  .tb:hover{background:#faf6ec;}
+  .tb.primary{background:var(--lab-ink);color:#fff;border-color:var(--lab-ink);}
+  .tb.primary:hover{background:var(--lab-coral);border-color:var(--lab-coral);}
+  .tb.on{background:var(--lab-gold);border-color:var(--lab-gold);color:#1c1403;}
+  .tb:disabled{opacity:.4;cursor:not-allowed;}
+  .tb-sep{width:1px;align-self:stretch;background:var(--lab-line);margin:2px 2px;}
+
+  .toggles{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .toggles .tb{padding:7px 11px;font-size:.8rem;}
+
+  .panel{background:var(--lab-surface);border:1px solid var(--lab-line);border-radius:16px;padding:16px 16px 18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.05);}
+  .panel h3{margin:0 0 4px;font-size:1rem;}
+  .panel .hint{font-size:.78rem;color:var(--lab-muted);margin:0 0 12px;}
+  .ctrl{margin-bottom:13px;}
+  .ctrl label{display:flex;justify-content:space-between;font-size:.86rem;font-weight:600;margin-bottom:5px;}
+  .ctrl label b{color:var(--lab-gold2);font-variant-numeric:tabular-nums;}
+  .ctrl input[type=range]{width:100%;accent-color:var(--lab-coral);}
+  .ctrl select{width:100%;padding:8px 10px;border:1.5px solid var(--lab-line);border-radius:9px;font-family:inherit;
+    font-size:.9rem;background:#fff;}
+  .ctrl.row{display:flex;align-items:center;gap:8px;}
+  .ctrl.row label{margin:0;}
+  .switch{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;cursor:pointer;}
+  .switch input{width:18px;height:18px;accent-color:var(--lab-coral);}
+
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:4px;}
+  .readout .r{background:#faf6ec;border:1px solid var(--lab-line);border-radius:9px;padding:7px 10px;}
+  .readout .r .k{font-size:.68rem;color:var(--lab-muted);text-transform:uppercase;letter-spacing:.05em;}
+  .readout .r .v{font-size:1.02rem;font-weight:800;font-variant-numeric:tabular-nums;}
+  .readout .r.wide{grid-column:1 / -1;}
+
+  .energy{margin-top:14px;display:none;}
+  .energy.on{display:block;}
+  .ebar{height:16px;border-radius:6px;background:#f0e9da;overflow:hidden;margin:4px 0 9px;border:1px solid var(--lab-line);}
+  .ebar i{display:block;height:100%;width:0;transition:width .05s linear;}
+  .ebar-lab{display:flex;justify-content:space-between;font-size:.76rem;font-weight:700;color:var(--lab-muted);}
+
+  .graph-card{margin-top:18px;}
+  .graph-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .graph-tabs .tb{padding:6px 12px;font-size:.8rem;}
+  .graph-wrap{width:100%;height:250px;background:#fff;border:1px solid var(--lab-line);border-radius:12px;overflow:hidden;}
+  .graph-wrap canvas{width:100%;height:100%;display:block;}
+
+  .lab-note{margin-top:22px;background:#1c2336;color:#e9edf6;border-radius:16px;padding:22px 24px;}
+  .lab-note h3{color:#fff;margin:0 0 8px;}
+  .lab-note p{margin:0 0 12px;color:#cdd6ea;line-height:1.6;}
+  .lab-note a.btn{margin-right:8px;}
+  .feat{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px;}
+  .feat span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:20px;
+    padding:5px 12px;font-size:.8rem;color:#e9edf6;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text">
+        <span>Ben Fizik Yapamıyorum</span>
+        <small>Yapabilirsin. Söz veriyorum.</small>
+      </span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head lab-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / Eğik Atış Laboratuvarı</div>
+    <h1>🎯 Eğik Atış Laboratuvarı</h1>
+    <p class="sub">Topu fareyle (veya parmağınla) <strong>sürükleyerek</strong> hızı ve açıyı ayarla — ya da kaydırıcıları kullan. Hava direncini aç, gezegeni değiştir, hız vektörlerini ve canlı grafikleri izle. 2026 Maarif (TYMM) <strong>11. sınıf "atışlar"</strong> konusuyla birebir.</p>
+  </div>
+
+  <div class="lab-grid">
+    <!-- ===== SOL: SAHNE ===== -->
+    <div>
+      <div class="stage-wrap" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="hud">
+          <span class="pill" id="hudHint">İpucu: topu sürükle 🎯</span>
+        </div>
+        <div class="stopwatch" id="stopwatch"><small>KRONOMETRE</small><span id="swTime">0.00 s</span></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="tb primary" id="btnFire">🔥 Ateşle</button>
+        <button class="tb" id="btnPlay" disabled>⏸ Duraklat</button>
+        <button class="tb" id="btnStep">⏭ Adım</button>
+        <button class="tb" id="btnReset">↺ Sıfırla</button>
+        <div class="tb-sep"></div>
+        <button class="tb" id="btnClear">🧹 İzleri temizle</button>
+        <button class="tb" id="btnFs">⛶ Tam ekran</button>
+      </div>
+
+      <div class="toggles">
+        <button class="tb on" id="tgVec">➶ Hız vektörü</button>
+        <button class="tb on" id="tgComp">⊹ Bileşenler (vx, vy)</button>
+        <button class="tb on" id="tgGrid">▦ Izgara</button>
+        <button class="tb on" id="tgGhost">👻 İz karşılaştır</button>
+        <button class="tb" id="tgEnergy">🔋 Enerji barları</button>
+        <button class="tb" id="tgSw">⏱ Kronometre</button>
+        <button class="tb" id="tgMeasure">📏 Ölç</button>
+        <button class="tb" id="tgTarget">⚑ Hedef</button>
+      </div>
+
+      <!-- ===== GRAFİK ===== -->
+      <div class="panel graph-card">
+        <div class="graph-tabs">
+          <button class="tb on" data-g="yx">Yörünge (y–x)</button>
+          <button class="tb" data-g="xt">x – t</button>
+          <button class="tb" data-g="yt">y – t</button>
+          <button class="tb" data-g="vt">|v| – t</button>
+        </div>
+        <div class="graph-wrap"><canvas id="graph"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ===== SAĞ: KONTROL PANELİ ===== -->
+    <aside>
+      <div class="panel">
+        <h3>Atış ayarları</h3>
+        <p class="hint">Topu sürükleyebilir veya buradan değiştirebilirsin.</p>
+
+        <div class="ctrl">
+          <label>Başlangıç hızı v₀ <b><span id="vVal">28</span> m/s</b></label>
+          <input id="v" type="range" min="5" max="100" step="1" value="28">
+        </div>
+        <div class="ctrl">
+          <label>Atış açısı θ <b><span id="aVal">55</span>°</b></label>
+          <input id="a" type="range" min="5" max="85" step="1" value="55">
+        </div>
+        <div class="ctrl">
+          <label>Başlangıç yüksekliği h₀ <b><span id="hVal">0</span> m</b></label>
+          <input id="h" type="range" min="0" max="30" step="0.5" value="0">
+        </div>
+        <div class="ctrl">
+          <label>Kütle m <b><span id="mVal">1.0</span> kg</b></label>
+          <input id="m" type="range" min="0.5" max="10" step="0.5" value="1">
+        </div>
+        <div class="ctrl">
+          <label for="planet">Gezegen / yerçekimi g</label>
+          <select id="planet">
+            <option value="1.6">Ay — 1.6 m/s²</option>
+            <option value="3.7">Mars — 3.7 m/s²</option>
+            <option value="9.8" selected>Dünya — 9.8 m/s²</option>
+            <option value="24.8">Jüpiter — 24.8 m/s²</option>
+          </select>
+        </div>
+        <div class="ctrl row">
+          <label class="switch"><input type="checkbox" id="dragOn"> Hava direnci</label>
+        </div>
+        <div class="ctrl" id="dragKwrap" style="display:none;">
+          <label>Direnç katsayısı <b><span id="kVal">0.02</span></b></label>
+          <input id="k" type="range" min="0.002" max="0.08" step="0.002" value="0.02">
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <h3>Anlık değerler</h3>
+        <div class="readout">
+          <div class="r"><div class="k">Süre t</div><div class="v"><span id="oT">0.00</span> s</div></div>
+          <div class="r"><div class="k">|v|</div><div class="v"><span id="oV">28.0</span> m/s</div></div>
+          <div class="r"><div class="k">x</div><div class="v"><span id="oX">0.0</span> m</div></div>
+          <div class="r"><div class="k">y</div><div class="v"><span id="oY">0.0</span> m</div></div>
+          <div class="r"><div class="k">vx</div><div class="v"><span id="oVx">0.0</span></div></div>
+          <div class="r"><div class="k">vy</div><div class="v"><span id="oVy">0.0</span></div></div>
+        </div>
+
+        <div class="readout" style="margin-top:9px;">
+          <div class="r"><div class="k">Tepe yük.</div><div class="v"><span id="oApex">—</span> m</div></div>
+          <div class="r"><div class="k">Uçuş süresi</div><div class="v"><span id="oFlight">—</span> s</div></div>
+          <div class="r wide"><div class="k">Menzil (yatay)</div><div class="v"><span id="oRange">—</span> m</div></div>
+          <div class="r wide" id="targetBox" style="display:none;"><div class="k">Hedefe uzaklık</div><div class="v"><span id="oTarget">—</span></div></div>
+        </div>
+
+        <div class="energy" id="energyBox">
+          <div class="ebar-lab"><span>Kinetik (KE)</span><span id="eKE">—</span></div>
+          <div class="ebar"><i id="barKE" style="background:var(--lab-coral)"></i></div>
+          <div class="ebar-lab"><span>Potansiyel (PE)</span><span id="ePE">—</span></div>
+          <div class="ebar"><i id="barPE" style="background:var(--lab-blue)"></i></div>
+          <div class="ebar-lab"><span>Toplam</span><span id="eTot">—</span></div>
+          <div class="ebar"><i id="barTot" style="background:var(--lab-gold)"></i></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="lab-note">
+    <h3>Bu laboratuvarda neler var?</h3>
+    <div class="feat">
+      <span>Sürükle-bırak atış</span><span>Hız vektörü + bileşenleri</span><span>Hava direnci</span>
+      <span>4 gezegen yerçekimi</span><span>Canlı grafikler</span><span>Enerji barları</span>
+      <span>Kronometre & cetvel</span><span>Hedef vur</span><span>Ağır çekim / adım adım</span>
+    </div>
+    <p style="margin-top:14px;">Bu lab zamanla daha da gelişecek (yeni ölçüm araçları, karşılaştırma modu, daha çok grafik). Bir fikrin olursa <a href="https://wa.me/905425549386" target="_blank" rel="noopener" style="color:#ffd98a;font-weight:700;">WhatsApp'tan yaz</a>.</p>
+    <a href="egik-atis.html" class="btn btn-primary">🎯 Eğik Atış oyununu oyna</a>
+    <a href="fizik-yillik-plani-indir.html" class="btn btn-ghost">📅 Ücretsiz yıllık plan</a>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="hakkimda.html">Hakkımda</a> ·
+      <a href="simulasyonlar.html">Simülasyonlar</a> ·
+      <a href="oyunlar.html">Oyunlar</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const C = {
+    ink:'#0e0c08', coral:'#e26d4f', gold:'#d4a017', gold2:'#b8902f', muted:'#5a544a',
+    blue:'#2d7dd2', grid:'rgba(14,12,8,.08)', ghost:'rgba(90,84,74,.30)', trail:'#e26d4f',
+    grass:'#86ab63', ground:'#cdbb97', aim:'rgba(226,109,79,.55)'
+  };
+
+  // ---------- DOM ----------
+  const scene = $('scene'), sx = scene.getContext('2d');
+  const graph = $('graph'), gx = graph.getContext('2d');
+  const stage = $('stage');
+
+  // ---------- State ----------
+  const P = { v0:28, ang:55, h0:0, m:1, g:9.8, drag:false, k:0.02 };
+  let targetX = 60, showTarget = false;
+  const tog = { vec:true, comp:true, grid:true, ghost:true, energy:false, sw:false, measure:false };
+  let graphMode = 'yx';
+
+  let path = null;        // {pts, max, stats}
+  let ghosts = [];        // [{pts,color}]
+  let anim = { mode:'idle', simT:0, speed:1, raf:null, last:0 };
+  const palette = ['#e26d4f','#2d7dd2','#d4a017','#7a8a3a','#9b59b6','#127a6b'];
+  let ghostColor = 0;
+
+  // measure tool
+  let measure = { p1:null, p2:null };
+  // drag interactions
+  let drag = { kind:null };   // 'aim' | 'target' | 'measure' | 'sw'
+
+  // ---------- Canvas fit ----------
+  function fit(cnv, ctx){
+    const r = window.devicePixelRatio || 1;
+    const w = cnv.clientWidth, h = cnv.clientHeight;
+    if (cnv.width !== Math.round(w*r) || cnv.height !== Math.round(h*r)) {
+      cnv.width = Math.round(w*r); cnv.height = Math.round(h*r);
+      ctx.setTransform(r,0,0,r,0,0);
+    }
+  }
+
+  // ---------- Physics ----------
+  function computePath(p){
+    const rad = p.ang * Math.PI/180;
+    let x=0, y=p.h0, vx=p.v0*Math.cos(rad), vy=p.v0*Math.sin(rad), t=0;
+    const dt = 0.004;
+    const pts = [{t,x,y,vx,vy,v:Math.hypot(vx,vy)}];
+    let apex = p.h0, guard = 0;
+    while (guard++ < 300000){
+      let ax=0, ay=-p.g;
+      if (p.drag){ const sp=Math.hypot(vx,vy), kk=p.k/p.m; ax-=kk*sp*vx; ay-=kk*sp*vy; }
+      vx+=ax*dt; vy+=ay*dt; x+=vx*dt; y+=vy*dt; t+=dt;
+      if (y>apex) apex=y;
+      if (y<=0){
+        const prev = pts[pts.length-1];
+        const frac = prev.y/(prev.y - y);
+        const lx = prev.x + (x-prev.x)*frac;
+        const lt = prev.t + (t-prev.t)*frac;
+        pts.push({t:lt,x:lx,y:0,vx,vy,v:Math.hypot(vx,vy)});
+        break;
+      }
+      pts.push({t,x,y,vx,vy,v:Math.hypot(vx,vy)});
+    }
+    const last = pts[pts.length-1];
+    let maxX=0,maxY=0,maxV=0;
+    for (const q of pts){ if(q.x>maxX)maxX=q.x; if(q.y>maxY)maxY=q.y; if(q.v>maxV)maxV=q.v; }
+    return { pts, max:{x:maxX,y:maxY,t:last.t,v:maxV}, stats:{range:last.x, flight:last.t, apex} };
+  }
+
+  function pointAt(p, T){
+    const pts = p.pts;
+    if (T<=0) return pts[0];
+    if (T>=p.max.t) return pts[pts.length-1];
+    // linear search (paths are short)
+    let lo=0, hi=pts.length-1;
+    while (lo<hi-1){ const mid=(lo+hi)>>1; if(pts[mid].t<T) lo=mid; else hi=mid; }
+    const a=pts[lo], b=pts[hi], f=(T-a.t)/((b.t-a.t)||1);
+    return {
+      t:T, x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f,
+      vx:a.vx+(b.vx-a.vx)*f, vy:a.vy+(b.vy-a.vy)*f,
+      v:a.v+(b.v-a.v)*f
+    };
+  }
+  function indexAt(p, T){
+    const pts=p.pts; if(T>=p.max.t) return pts.length;
+    let i=0; while(i<pts.length && pts[i].t<=T) i++; return i;
+  }
+
+  // ---------- View (world -> screen) ----------
+  let V = { scale:1, ox:0, oy:0, W:0, H:0 };
+  function computeView(){
+    const W = scene.clientWidth, H = scene.clientHeight;
+    V.W=W; V.H=H;
+    const padL=46, padR=26, padT=26, padB=40;
+    const ref = path || computePath(P);
+    let wx = Math.max(ref.stats.range, P.h0+2, 12);
+    if (showTarget) wx = Math.max(wx, targetX+4);
+    let wy = Math.max(ref.stats.apex, P.h0+2, 7);
+    const sX = (W-padL-padR)/wx, sY = (H-padT-padB)/wy;
+    V.scale = Math.min(sX, sY);
+    V.ox = padL;
+    V.oy = H - padB;
+  }
+  const w2sx = x => V.ox + x*V.scale;
+  const w2sy = y => V.oy - y*V.scale;
+  const s2wx = px => (px - V.ox)/V.scale;
+  const s2wy = py => (V.oy - py)/V.scale;
+
+  function niceStep(span){
+    const raw = span/8, p = Math.pow(10, Math.floor(Math.log10(raw)));
+    const n = raw/p;
+    return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p;
+  }
+
+  // ---------- Draw scene ----------
+  function drawScene(){
+    fit(scene, sx);
+    computeView();
+    const W=V.W, H=V.H;
+    // sky
+    const sky = sx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,'#cfe4f7'); sky.addColorStop(1,'#eef4f0');
+    sx.fillStyle=sky; sx.fillRect(0,0,W,H);
+
+    const groundY = w2sy(0);
+    // grid
+    if (tog.grid){
+      const stepX = niceStep(s2wx(W)-s2wx(V.ox));
+      sx.strokeStyle=C.grid; sx.fillStyle=C.muted; sx.lineWidth=1;
+      sx.font='11px ui-monospace, monospace';
+      for (let xm=0; w2sx(xm)<W-4; xm+=stepX){
+        const px=w2sx(xm); sx.beginPath(); sx.moveTo(px,26); sx.lineTo(px,groundY); sx.stroke();
+        if (xm>0) sx.fillText(xm.toFixed(stepX<1?1:0), px-7, groundY+15);
+      }
+      const stepY = niceStep(s2wy(26));
+      for (let ym=stepY; w2sy(ym)>20; ym+=stepY){
+        const py=w2sy(ym); sx.beginPath(); sx.moveTo(V.ox,py); sx.lineTo(W-6,py); sx.stroke();
+        sx.fillText(ym.toFixed(stepY<1?1:0), 6, py+4);
+      }
+    }
+    // ground
+    sx.fillStyle=C.ground; sx.fillRect(0,groundY,W,H-groundY);
+    sx.fillStyle=C.grass; sx.fillRect(0,groundY,W,4);
+    // axes
+    sx.strokeStyle=C.ink; sx.lineWidth=1.5;
+    sx.beginPath(); sx.moveTo(V.ox,26); sx.lineTo(V.ox,groundY); sx.lineTo(W-6,groundY); sx.stroke();
+    sx.fillStyle=C.muted; sx.font='12px ui-monospace, monospace';
+    sx.fillText('y (m)', 8, 22); sx.fillText('x (m)', W-44, groundY-8);
+
+    // target
+    if (showTarget){
+      const tx=w2sx(targetX), ty=groundY;
+      sx.strokeStyle=C.ink; sx.lineWidth=2;
+      sx.beginPath(); sx.moveTo(tx,ty); sx.lineTo(tx,ty-34); sx.stroke();
+      sx.fillStyle=C.coral; sx.beginPath();
+      sx.moveTo(tx,ty-34); sx.lineTo(tx+22,ty-28); sx.lineTo(tx,ty-22); sx.closePath(); sx.fill();
+      sx.fillStyle='rgba(226,109,79,.18)';
+      sx.beginPath(); sx.arc(tx,ty,Math.max(7,1.2*V.scale),0,7); sx.fill();
+    }
+
+    // ghost trails
+    if (tog.ghost){
+      for (const g of ghosts){
+        sx.strokeStyle=g.color; sx.globalAlpha=.45; sx.lineWidth=2; sx.setLineDash([5,5]);
+        sx.beginPath();
+        g.pts.forEach((q,i)=>{ const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); });
+        sx.stroke(); sx.globalAlpha=1; sx.setLineDash([]);
+      }
+    }
+
+    // cannon base
+    const cx=w2sx(0), cy=w2sy(P.h0);
+    if (P.h0>0){ sx.fillStyle='#7a6f59'; sx.fillRect(cx-7, cy, 14, groundY-cy); }
+
+    // current path + projectile
+    const live = (anim.mode==='running'||anim.mode==='done') && path;
+    const previewPath = path || computePath(P);
+    if (!live){
+      // idle: faint preview of predicted arc + aim
+      sx.strokeStyle='rgba(14,12,8,.22)'; sx.lineWidth=2; sx.setLineDash([2,5]);
+      sx.beginPath();
+      previewPath.pts.forEach((q,i)=>{ const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); });
+      sx.stroke(); sx.setLineDash([]);
+      drawBall(cx,cy, P.v0*Math.cos(P.ang*Math.PI/180), P.v0*Math.sin(P.ang*Math.PI/180), true);
+      drawApexRange(previewPath);
+    } else {
+      const idx = indexAt(path, anim.simT);
+      // trail
+      sx.strokeStyle=C.trail; sx.lineWidth=3;
+      sx.beginPath();
+      for (let i=0;i<Math.min(idx,path.pts.length);i++){ const q=path.pts[i]; const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); }
+      sx.stroke();
+      drawApexRange(path);
+      const cur = pointAt(path, anim.simT);
+      drawBall(w2sx(cur.x), w2sy(cur.y), cur.vx, cur.vy, false);
+    }
+
+    // measure overlay
+    if (tog.measure && measure.p1 && measure.p2){
+      const a=measure.p1,b=measure.p2;
+      sx.strokeStyle=C.gold2; sx.lineWidth=2; sx.setLineDash([6,4]);
+      sx.beginPath(); sx.moveTo(w2sx(a.x),w2sy(a.y)); sx.lineTo(w2sx(b.x),w2sy(b.y)); sx.stroke();
+      sx.setLineDash([]);
+      [a,b].forEach(pp=>{ sx.fillStyle=C.gold2; sx.beginPath(); sx.arc(w2sx(pp.x),w2sy(pp.y),4,0,7); sx.fill(); });
+      const d=Math.hypot(b.x-a.x,b.y-a.y);
+      const mx=(w2sx(a.x)+w2sx(b.x))/2, my=(w2sy(a.y)+w2sy(b.y))/2;
+      const txt=d.toFixed(1)+' m';
+      sx.font='bold 13px ui-monospace, monospace';
+      const tw=sx.measureText(txt).width;
+      sx.fillStyle='rgba(255,255,255,.9)'; sx.fillRect(mx-tw/2-5,my-22,tw+10,18);
+      sx.fillStyle=C.ink; sx.fillText(txt, mx-tw/2, my-9);
+    }
+  }
+
+  function drawBall(px,py,vx,vy,faint){
+    // velocity vectors
+    if (tog.vec || tog.comp){
+      const VS = 3.2; // px per (m/s)
+      if (tog.comp){
+        arrow(px,py, px+vx*VS, py, C.blue, 2);             // vx
+        arrow(px,py, px, py-vy*VS, C.coral, 2);            // vy
+        sx.setLineDash([3,3]); sx.strokeStyle='rgba(14,12,8,.3)'; sx.lineWidth=1;
+        sx.beginPath(); sx.moveTo(px+vx*VS,py); sx.lineTo(px+vx*VS,py-vy*VS);
+        sx.moveTo(px,py-vy*VS); sx.lineTo(px+vx*VS,py-vy*VS); sx.stroke(); sx.setLineDash([]);
+      }
+      if (tog.vec) arrow(px,py, px+vx*VS, py-vy*VS, C.ink, 3);
+    }
+    // ball
+    sx.fillStyle = faint ? 'rgba(217,120,92,.85)' : C.coral;
+    sx.strokeStyle=C.ink; sx.lineWidth=1.6;
+    sx.beginPath(); sx.arc(px,py,7,0,7); sx.fill(); sx.stroke();
+  }
+  function arrow(x1,y1,x2,y2,color,w){
+    if (Math.hypot(x2-x1,y2-y1)<2) return;
+    sx.strokeStyle=color; sx.fillStyle=color; sx.lineWidth=w;
+    sx.beginPath(); sx.moveTo(x1,y1); sx.lineTo(x2,y2); sx.stroke();
+    const ang=Math.atan2(y2-y1,x2-x1), s=7;
+    sx.beginPath(); sx.moveTo(x2,y2);
+    sx.lineTo(x2-s*Math.cos(ang-.4), y2-s*Math.sin(ang-.4));
+    sx.lineTo(x2-s*Math.cos(ang+.4), y2-s*Math.sin(ang+.4));
+    sx.closePath(); sx.fill();
+  }
+  function drawApexRange(p){
+    const apexPt = p.pts.reduce((a,b)=>b.y>a.y?b:a, p.pts[0]);
+    sx.fillStyle=C.muted; sx.font='11px ui-monospace, monospace';
+    const ax=w2sx(apexPt.x), ay=w2sy(apexPt.y);
+    sx.setLineDash([2,3]); sx.strokeStyle='rgba(45,125,210,.5)'; sx.lineWidth=1;
+    sx.beginPath(); sx.moveTo(ax,ay); sx.lineTo(ax,w2sy(0)); sx.stroke(); sx.setLineDash([]);
+    sx.fillStyle=C.blue; sx.beginPath(); sx.arc(ax,ay,3,0,7); sx.fill();
+    sx.fillStyle=C.muted; sx.fillText('tepe '+apexPt.y.toFixed(1)+'m', ax+5, ay-3);
+  }
+
+  // ---------- Graph ----------
+  function drawGraph(){
+    fit(graph, gx);
+    const W=graph.clientWidth, H=graph.clientHeight;
+    gx.fillStyle='#fff'; gx.fillRect(0,0,W,H);
+    const p = path || computePath(P);
+    const pts = p.pts;
+    const padL=44, padR=14, padT=16, padB=30;
+    let getX,getY,xMax,yMax,xLab,yLab,yMin=0;
+    if (graphMode==='yx'){ getX=q=>q.x; getY=q=>q.y; xMax=p.max.x; yMax=p.max.y; xLab='x (m)'; yLab='y (m)'; }
+    else if (graphMode==='xt'){ getX=q=>q.t; getY=q=>q.x; xMax=p.max.t; yMax=p.max.x; xLab='t (s)'; yLab='x (m)'; }
+    else if (graphMode==='yt'){ getX=q=>q.t; getY=q=>q.y; xMax=p.max.t; yMax=p.max.y; xLab='t (s)'; yLab='y (m)'; }
+    else { getX=q=>q.t; getY=q=>q.v; xMax=p.max.t; yMax=p.max.v; xLab='t (s)'; yLab='|v| (m/s)'; }
+    xMax=Math.max(xMax,1e-3); yMax=Math.max(yMax*1.08,1e-3);
+    const X = vx => padL + (vx/xMax)*(W-padL-padR);
+    const Y = vy => (H-padB) - ((vy-yMin)/(yMax-yMin))*(H-padT-padB);
+
+    // axes + grid
+    gx.strokeStyle='rgba(14,12,8,.08)'; gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace'; gx.lineWidth=1;
+    const sxStep=niceStep(xMax), syStep=niceStep(yMax);
+    for (let v=0; v<=xMax+1e-9; v+=sxStep){ const px=X(v); gx.beginPath(); gx.moveTo(px,padT); gx.lineTo(px,H-padB); gx.stroke(); gx.fillText(v.toFixed(sxStep<1?1:0), px-6, H-padB+13); }
+    for (let v=0; v<=yMax+1e-9; v+=syStep){ const py=Y(v); gx.beginPath(); gx.moveTo(padL,py); gx.lineTo(W-padR,py); gx.stroke(); gx.fillText(v.toFixed(syStep<1?1:0), 6, py+3); }
+    gx.strokeStyle=C.ink; gx.lineWidth=1.4;
+    gx.beginPath(); gx.moveTo(padL,padT); gx.lineTo(padL,H-padB); gx.lineTo(W-padR,H-padB); gx.stroke();
+    gx.fillStyle=C.muted; gx.font='11px ui-monospace, monospace';
+    gx.fillText(yLab, 6, 12); gx.fillText(xLab, W-padR-44, H-6);
+
+    // curve (up to progress)
+    const live=(anim.mode==='running'||anim.mode==='done')&&path;
+    const upTo = live ? indexAt(path, anim.simT) : pts.length;
+    gx.strokeStyle=C.coral; gx.lineWidth=2.4;
+    gx.beginPath();
+    for (let i=0;i<Math.min(upTo,pts.length);i++){ const q=pts[i]; const px=X(getX(q)),py=Y(getY(q)); i?gx.lineTo(px,py):gx.moveTo(px,py); }
+    gx.stroke();
+    // current dot
+    if (live){ const cur=pointAt(path,anim.simT); gx.fillStyle=C.ink; gx.beginPath(); gx.arc(X(getX(cur)),Y(getY(cur)),4,0,7); gx.fill(); }
+  }
+
+  // ---------- Readouts ----------
+  function setReadouts(pt, stats){
+    $('oT').textContent = pt.t.toFixed(2);
+    $('oV').textContent = pt.v.toFixed(1);
+    $('oX').textContent = pt.x.toFixed(1);
+    $('oY').textContent = pt.y.toFixed(1);
+    $('oVx').textContent = pt.vx.toFixed(1);
+    $('oVy').textContent = pt.vy.toFixed(1);
+    if (stats){
+      $('oApex').textContent = stats.apex.toFixed(1);
+      $('oFlight').textContent = stats.flight.toFixed(2);
+      $('oRange').textContent = stats.range.toFixed(1);
+      if (showTarget){
+        $('targetBox').style.display='';
+        const d = stats.range - targetX;
+        $('oTarget').textContent = (Math.abs(d)<1.2 ? '🎯 İSABET!' : (d>0?('+'+d.toFixed(1)+' m uzak'):(d.toFixed(1)+' m kısa')));
+      } else $('targetBox').style.display='none';
+    }
+    // energy
+    if (tog.energy){
+      const KE=0.5*P.m*pt.v*pt.v, PE=P.m*P.g*pt.y, Tot=KE+PE;
+      const E0 = 0.5*P.m*P.v0*P.v0 + P.m*P.g*P.h0;
+      $('eKE').textContent=KE.toFixed(0)+' J'; $('ePE').textContent=PE.toFixed(0)+' J'; $('eTot').textContent=Tot.toFixed(0)+' J';
+      $('barKE').style.width=Math.min(100,100*KE/E0)+'%';
+      $('barPE').style.width=Math.min(100,100*PE/E0)+'%';
+      $('barTot').style.width=Math.min(100,100*Tot/E0)+'%';
+    }
+  }
+
+  // ---------- Recompute (idle) ----------
+  function refresh(){
+    path = null;
+    const pv = computePath(P);
+    drawScene(); drawGraph();
+    const start = pv.pts[0];
+    setReadouts(start, pv.stats);
+  }
+
+  // ---------- Animation ----------
+  function stopLoop(){ if(anim.raf) cancelAnimationFrame(anim.raf); anim.raf=null; }
+  function loop(now){
+    const dt = Math.min(0.05,(now-anim.last)/1000); anim.last=now;
+    anim.simT += dt*anim.speed;
+    if (anim.simT>=path.max.t){ anim.simT=path.max.t; finishShot(); return; }
+    renderFrame();
+    anim.raf=requestAnimationFrame(loop);
+  }
+  function renderFrame(){
+    drawScene(); drawGraph();
+    const cur=pointAt(path,anim.simT);
+    setReadouts(cur, path.stats);
+    if (tog.sw){ $('swTime').textContent = anim.simT.toFixed(2)+' s'; }
+  }
+  function fire(){
+    path = computePath(P);
+    anim.mode='running'; anim.simT=0; anim.last=performance.now();
+    $('btnPlay').disabled=false; $('btnPlay').textContent='⏸ Duraklat';
+    $('hudHint').textContent='Uçuşta…';
+    stopLoop(); anim.raf=requestAnimationFrame(loop);
+  }
+  function finishShot(){
+    stopLoop(); anim.mode='done';
+    renderFrame();
+    $('btnPlay').textContent='▶ Oynat'; $('btnPlay').disabled=false;
+    $('hudHint').textContent='İniş! Tekrar ateşle 🔁';
+    // store ghost for comparison
+    if (path){ ghosts.push({pts:path.pts, color:palette[ghostColor++ % palette.length]}); if(ghosts.length>6) ghosts.shift(); }
+  }
+  function togglePlay(){
+    if (anim.mode==='idle'){ fire(); return; }
+    if (anim.raf){ stopLoop(); $('btnPlay').textContent='▶ Oynat'; }
+    else {
+      if (anim.mode==='done'){ anim.simT=0; anim.mode='running'; }
+      anim.last=performance.now(); $('btnPlay').textContent='⏸ Duraklat';
+      anim.raf=requestAnimationFrame(loop);
+    }
+  }
+  function step(){
+    if (!path || anim.mode==='idle'){ path=computePath(P); anim.mode='running'; anim.simT=0; }
+    stopLoop();
+    anim.simT=Math.min(path.max.t, anim.simT+0.08*anim.speed);
+    if (anim.simT>=path.max.t) finishShot(); else { renderFrame(); $('btnPlay').textContent='▶ Oynat'; $('btnPlay').disabled=false; }
+  }
+  function reset(){
+    stopLoop(); anim.mode='idle'; anim.simT=0;
+    $('btnPlay').textContent='⏸ Duraklat'; $('btnPlay').disabled=true;
+    $('hudHint').textContent='İpucu: topu sürükle 🎯';
+    $('swTime').textContent='0.00 s';
+    refresh();
+  }
+
+  // ---------- Controls ----------
+  function syncLabels(){
+    $('vVal').textContent=P.v0; $('aVal').textContent=P.ang; $('hVal').textContent=P.h0.toFixed(P.h0%1?1:0);
+    $('mVal').textContent=P.m.toFixed(1); $('kVal').textContent=P.k.toFixed(3);
+    $('v').value=P.v0; $('a').value=P.ang; $('h').value=P.h0; $('m').value=P.m; $('k').value=P.k;
+  }
+  $('v').addEventListener('input',e=>{P.v0=+e.target.value; syncLabels(); reset();});
+  $('a').addEventListener('input',e=>{P.ang=+e.target.value; syncLabels(); reset();});
+  $('h').addEventListener('input',e=>{P.h0=+e.target.value; syncLabels(); reset();});
+  $('m').addEventListener('input',e=>{P.m=+e.target.value; syncLabels(); reset();});
+  $('k').addEventListener('input',e=>{P.k=+e.target.value; syncLabels(); reset();});
+  $('planet').addEventListener('change',e=>{P.g=+e.target.value; reset();});
+  $('dragOn').addEventListener('change',e=>{P.drag=e.target.checked; $('dragKwrap').style.display=P.drag?'':'none'; reset();});
+
+  $('btnFire').addEventListener('click',fire);
+  $('btnPlay').addEventListener('click',togglePlay);
+  $('btnStep').addEventListener('click',step);
+  $('btnReset').addEventListener('click',reset);
+  $('btnClear').addEventListener('click',()=>{ ghosts=[]; drawScene(); });
+  $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
+
+  // toggle buttons
+  function bindTog(btnId, key, after){
+    $(btnId).addEventListener('click',()=>{ tog[key]=!tog[key]; $(btnId).classList.toggle('on',tog[key]); if(after)after(); drawScene(); drawGraph(); });
+  }
+  bindTog('tgVec','vec'); bindTog('tgComp','comp'); bindTog('tgGrid','grid'); bindTog('tgGhost','ghost');
+  bindTog('tgEnergy','energy',()=>{ $('energyBox').classList.toggle('on',tog.energy); });
+  bindTog('tgSw','sw',()=>{ $('stopwatch').classList.toggle('on',tog.sw); });
+  bindTog('tgMeasure','measure',()=>{ if(!tog.measure){measure.p1=measure.p2=null;} $('hudHint').textContent = tog.measure?'İki noktaya tıkla/sürükle 📏':'İpucu: topu sürükle 🎯'; });
+  $('tgTarget').addEventListener('click',()=>{ showTarget=!showTarget; $('tgTarget').classList.toggle('on',showTarget); $('targetBox').style.display=showTarget?'':'none'; refresh(); });
+
+  // graph tabs
+  document.querySelectorAll('.graph-tabs .tb').forEach(b=>{
+    b.addEventListener('click',()=>{ graphMode=b.dataset.g; document.querySelectorAll('.graph-tabs .tb').forEach(x=>x.classList.toggle('on',x===b)); drawGraph(); });
+  });
+
+  // ---------- Pointer interaction on scene ----------
+  function evtPos(e){ const r=scene.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {px:t.clientX-r.left, py:t.clientY-r.top}; }
+  function nearTargetPx(px,py){ if(!showTarget)return false; return Math.abs(px-w2sx(targetX))<16 && py>w2sy(0)-44; }
+
+  function pointerDown(e){
+    const {px,py}=evtPos(e);
+    if (tog.measure){ drag.kind='measure'; const w={x:Math.max(0,s2wx(px)),y:Math.max(0,s2wy(py))}; measure.p1=w; measure.p2=w; drawScene(); e.preventDefault(); return; }
+    if (nearTargetPx(px,py)){ drag.kind='target'; e.preventDefault(); return; }
+    // aim (only when idle/done)
+    if (anim.mode!=='running'){ drag.kind='aim'; aimTo(px,py); e.preventDefault(); }
+  }
+  function pointerMove(e){
+    if (!drag.kind) return;
+    const {px,py}=evtPos(e);
+    if (drag.kind==='measure'){ measure.p2={x:Math.max(0,s2wx(px)),y:Math.max(0,s2wy(py))}; drawScene(); }
+    else if (drag.kind==='target'){ targetX=Math.max(2, Math.round(s2wx(px))); refresh(); }
+    else if (drag.kind==='aim'){ aimTo(px,py); }
+    e.preventDefault();
+  }
+  function pointerUp(){ drag.kind=null; }
+  function aimTo(px,py){
+    const cx=w2sx(0), cy=w2sy(P.h0);
+    const dx=px-cx, dy=cy-py;            // up positive
+    let ang=Math.atan2(dy,dx)*180/Math.PI;
+    ang=Math.max(5,Math.min(85,ang));
+    const dist=Math.hypot(px-cx,py-cy);
+    let v0=Math.round(dist/4);
+    v0=Math.max(5,Math.min(100,v0));
+    P.ang=Math.round(ang); P.v0=v0; syncLabels();
+    if (anim.mode==='done'){ anim.mode='idle'; $('btnPlay').disabled=true; }
+    refresh();
+  }
+  scene.addEventListener('mousedown',pointerDown);
+  window.addEventListener('mousemove',pointerMove);
+  window.addEventListener('mouseup',pointerUp);
+  scene.addEventListener('touchstart',pointerDown,{passive:false});
+  scene.addEventListener('touchmove',pointerMove,{passive:false});
+  window.addEventListener('touchend',pointerUp);
+
+  // draggable stopwatch
+  (function(){
+    const sw=$('stopwatch'); let d=false,ox=0,oy=0;
+    sw.addEventListener('mousedown',e=>{d=true;ox=e.offsetX;oy=e.offsetY;sw.style.cursor='grabbing';e.stopPropagation();});
+    window.addEventListener('mousemove',e=>{ if(!d)return; const r=stage.getBoundingClientRect(); sw.style.left=(e.clientX-r.left-ox)+'px'; sw.style.top=(e.clientY-r.top-oy)+'px'; });
+    window.addEventListener('mouseup',()=>{d=false;sw.style.cursor='grab';});
+  })();
+
+  // ---------- Resize / init ----------
+  let rT; window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(()=>{ if(anim.mode==='running')renderFrame(); else refresh(); },120); });
+  document.addEventListener('fullscreenchange',()=>setTimeout(()=>{ if(anim.mode==='running')renderFrame(); else refresh(); },80));
+
+  syncLabels();
+  requestAnimationFrame(()=>{ refresh(); });
+})();
+</script>
+
+</body>
+</html>
