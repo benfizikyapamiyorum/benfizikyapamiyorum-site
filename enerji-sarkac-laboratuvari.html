@@ -167,6 +167,8 @@
         <button class="tb" id="tgForce">⬇ Kuvvetler (mg, teğet)</button>
         <button class="tb on" id="tgTrace">〰 Salınım yayı</button>
         <button class="tb" id="tgSw">⏱ Kronometre</button>
+        <button class="tb" id="tgRuler">📏 Cetvel</button>
+        <button class="tb" id="tgProt">📐 Açıölçer</button>
       </div>
 
       <!-- ===== GRAFİK ===== -->
@@ -265,6 +267,7 @@
   </div>
 </footer>
 
+<script src="lab-tools.js"></script>
 <script>
 (() => {
   "use strict";
@@ -325,6 +328,15 @@
     return [ view.pivotX + Lpx*Math.sin(theta), view.pivotY + Lpx*Math.cos(theta) ];
   }
 
+  // ölçüm araçları (paylaşılan modül) — dünya çerçevesi pivot merkezli, metre
+  const MT = makeMeasureTools({
+    ctx: sx,
+    w2s: p => ({x: view.pivotX + p.x*view.pxm, y: view.pivotY + p.y*view.pxm}),
+    s2w: (px,py) => ({x:(px-view.pivotX)/view.pxm, y:(py-view.pivotY)/view.pxm}),
+    pxPerMeter: () => view.pxm
+  });
+  let toolDrag = false;
+
   // ---------- Sahne çizimi ----------
   function drawScene(){
     computeView();
@@ -381,6 +393,8 @@
     sx.beginPath(); sx.arc(bx,by,r,0,7); sx.fill(); sx.stroke();
 
     if (dragging){ sx.fillStyle=C.muted; sx.font='12px ui-monospace, monospace'; sx.fillText('L='+P.L.toFixed(2)+'m  θ='+(st.theta*180/Math.PI).toFixed(0)+'°', bx+r+6, by); }
+
+    MT.draw();
   }
 
   function arrow(x1,y1,x2,y2,color,w){
@@ -557,6 +571,8 @@
   bindTog('tgEnergy','energy',()=>{ $('energyBox').style.display=tog.energy?'':'none'; });
   bindTog('tgVec','vec'); bindTog('tgForce','force'); bindTog('tgTrace','trace');
   bindTog('tgSw','sw',()=>{ $('stopwatch').classList.toggle('on',tog.sw); });
+  $('tgRuler').addEventListener('click',()=>{ const on=MT.toggleTape(); $('tgRuler').classList.toggle('on',on); drawScene(); });
+  $('tgProt').addEventListener('click',()=>{ const on=MT.toggleProt(); $('tgProt').classList.toggle('on',on); drawScene(); });
 
   document.querySelectorAll('.graph-tabs .tb').forEach(b=>{
     b.addEventListener('click',()=>{ graphMode=b.dataset.g; document.querySelectorAll('.graph-tabs .tb').forEach(x=>x.classList.toggle('on',x===b)); drawGraph(); });
@@ -565,10 +581,18 @@
   // ---------- Bobu sürükle ----------
   function evtPos(e){ const r=scene.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {px:t.clientX-r.left, py:t.clientY-r.top}; }
   function pointerDown(e){
+    const {px,py}=evtPos(e);
+    if (MT.onDown(px,py)){ toolDrag=true; drawScene(); e.preventDefault(); return; }
     dragging=true; pause(); applyDrag(e); e.preventDefault();
   }
-  function pointerMove(e){ if(!dragging)return; applyDrag(e); e.preventDefault(); }
-  function pointerUp(){ if(!dragging)return; dragging=false; P.th0=Math.abs(st.theta); st.omega=0; st.t=0; E0=Math.max(initialEnergy(),1e-6); hist=[]; pushHist(); syncLabels(); play(); }
+  function pointerMove(e){
+    if (toolDrag){ const {px,py}=evtPos(e); MT.onMove(px,py); drawScene(); e.preventDefault(); return; }
+    if(!dragging)return; applyDrag(e); e.preventDefault();
+  }
+  function pointerUp(){
+    if (toolDrag){ MT.onUp(); toolDrag=false; return; }
+    if(!dragging)return; dragging=false; P.th0=Math.abs(st.theta); st.omega=0; st.t=0; E0=Math.max(initialEnergy(),1e-6); hist=[]; pushHist(); syncLabels(); play();
+  }
   function applyDrag(e){
     const {px,py}=evtPos(e);
     const dx=px-view.pivotX, dy=py-view.pivotY;
