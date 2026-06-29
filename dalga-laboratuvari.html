@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dalga Laboratuvarı — İnteraktif Fizik Simülasyonu | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Dalgayı kendin keşfet: genlik, dalga boyu ve frekansı değiştir, v = λ·f bağıntısını canlı gör. İkinci dalga ekleyip girişim ve duran dalgaları incele. Sürüklenebilir sensör + y-t grafiği, cetvel ve açıölçer. Ücretsiz interaktif fizik laboratuvarı.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/dalga-laboratuvari.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="Dalga Laboratuvarı — İnteraktif Fizik Simülasyonu">
+<meta property="og:description" content="Genlik, dalga boyu ve frekansı değiştir, v = λ·f'yi canlı gör. Girişim ve duran dalgalar.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/dalga-laboratuvari.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dalga Laboratuvarı — İnteraktif Fizik Simülasyonu">
+<meta name="twitter:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root{
+    --lab-ink:#0e0c08; --lab-coral:#e26d4f; --lab-gold:#d4a017; --lab-gold2:#b8902f;
+    --lab-muted:#5a544a; --lab-blue:#2d7dd2; --lab-line:#e7dcc6; --lab-surface:#fff;
+  }
+  .lab-head h1{margin:.2em 0 .15em;}
+  .lab-head .sub{color:var(--lab-muted);font-size:1.02rem;line-height:1.6;max-width:760px;}
+  .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:18px;align-items:start;}
+  @media(max-width:980px){.lab-grid{grid-template-columns:1fr;}}
+
+  .stage-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#eef4f8;border:1px solid var(--lab-line);
+    border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);touch-action:none;}
+  .stage-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;}
+  .stage-wrap:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;}
+  .hud{position:absolute;top:10px;left:12px;display:flex;gap:8px;flex-wrap:wrap;z-index:3;pointer-events:none;}
+  .hud .pill{background:rgba(255,255,255,.86);border:1px solid var(--lab-line);border-radius:9px;
+    padding:5px 10px;font-size:.8rem;font-weight:700;color:var(--lab-ink);backdrop-filter:blur(3px);}
+  .stopwatch{position:absolute;top:48px;left:12px;z-index:4;background:rgba(14,12,8,.86);color:#fff;border-radius:12px;
+    padding:8px 12px;font-family:ui-monospace,Menlo,monospace;font-size:1.05rem;font-weight:700;cursor:grab;
+    box-shadow:0 6px 16px rgba(0,0,0,.25);user-select:none;display:none;}
+  .stopwatch.on{display:block;}
+  .stopwatch small{display:block;font-size:.6rem;font-weight:600;color:#cdd6ea;letter-spacing:.08em;}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .tb{padding:9px 14px;font-size:.86rem;border-radius:10px;border:1.5px solid var(--lab-line);background:#fff;
+    color:var(--lab-ink);font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+    font-family:inherit;transition:all .14s;}
+  .tb:hover{background:#faf6ec;}
+  .tb.primary{background:var(--lab-ink);color:#fff;border-color:var(--lab-ink);}
+  .tb.primary:hover{background:var(--lab-coral);border-color:var(--lab-coral);}
+  .tb.on{background:var(--lab-gold);border-color:var(--lab-gold);color:#1c1403;}
+  .tb:disabled{opacity:.4;cursor:not-allowed;}
+  .tb-sep{width:1px;align-self:stretch;background:var(--lab-line);margin:2px 2px;}
+
+  .toggles{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .toggles .tb{padding:7px 11px;font-size:.8rem;}
+
+  .panel{background:var(--lab-surface);border:1px solid var(--lab-line);border-radius:16px;padding:16px 16px 18px;
+    box-shadow:0 6px 18px rgba(0,0,0,.05);}
+  .panel h3{margin:0 0 4px;font-size:1rem;}
+  .panel .hint{font-size:.78rem;color:var(--lab-muted);margin:0 0 12px;}
+  .ctrl{margin-bottom:13px;}
+  .ctrl label{display:flex;justify-content:space-between;font-size:.86rem;font-weight:600;margin-bottom:5px;}
+  .ctrl label b{color:var(--lab-gold2);font-variant-numeric:tabular-nums;}
+  .ctrl input[type=range]{width:100%;accent-color:var(--lab-coral);}
+  .ctrl select{width:100%;padding:8px 10px;border:1.5px solid var(--lab-line);border-radius:9px;font-family:inherit;
+    font-size:.9rem;background:#fff;}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:4px;}
+  #panelW2{border-color:#bcd6f0;}
+  #panelW2 .ctrl input[type=range]{accent-color:var(--lab-blue);}
+  #panelW2 .ctrl label b{color:var(--lab-blue);}
+
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:4px;}
+  .readout .r{background:#faf6ec;border:1px solid var(--lab-line);border-radius:9px;padding:7px 10px;}
+  .readout .r .k{font-size:.68rem;color:var(--lab-muted);text-transform:uppercase;letter-spacing:.05em;}
+  .readout .r .v{font-size:1.02rem;font-weight:800;font-variant-numeric:tabular-nums;}
+  .readout .r.wide{grid-column:1 / -1;}
+  .readout .r.hero{grid-column:1 / -1;background:#1c2336;border-color:#1c2336;}
+  .readout .r.hero .k{color:#9fb0d6;} .readout .r.hero .v{color:#fff;font-size:1.15rem;}
+
+  .graph-card{margin-top:18px;}
+  .graph-wrap{width:100%;height:210px;background:#fff;border:1px solid var(--lab-line);border-radius:12px;overflow:hidden;}
+  .graph-wrap canvas{width:100%;height:100%;display:block;}
+  .graph-card .cap{font-size:.85rem;font-weight:700;color:var(--lab-muted);margin-bottom:8px;}
+
+  .lab-note{margin-top:22px;background:#1c2336;color:#e9edf6;border-radius:16px;padding:22px 24px;}
+  .lab-note h3{color:#fff;margin:0 0 8px;}
+  .lab-note p{margin:0 0 12px;color:#cdd6ea;line-height:1.6;}
+  .lab-note a.btn{margin-right:8px;}
+  .feat{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 2px;}
+  .feat span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:20px;
+    padding:5px 12px;font-size:.8rem;color:#e9edf6;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text">
+        <span>Ben Fizik Yapamıyorum</span>
+        <small>Yapabilirsin. Söz veriyorum.</small>
+      </span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head lab-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / Dalga Laboratuvarı</div>
+    <h1>🌊 Dalga Laboratuvarı</h1>
+    <p class="sub">Genlik, dalga boyu ve frekansı değiştir; <strong>v = λ·f</strong> bağıntısını canlı gör. İkinci bir dalga ekleyip <strong>girişim</strong> ve <strong>duran dalgaları</strong> incele. Sensörü sürükle, bir noktanın hareketini (y–t) izle; cetvel ve açıölçerle ölç.</p>
+  </div>
+
+  <div class="lab-grid">
+    <!-- ===== SOL: SAHNE ===== -->
+    <div>
+      <div class="stage-wrap" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="hud">
+          <span class="pill" id="hudHint">İpucu: sensör çizgisini sürükle 📍</span>
+        </div>
+        <div class="stopwatch" id="stopwatch"><small>KRONOMETRE</small><span id="swTime">0.00 s</span></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="tb primary" id="btnPlay">⏸ Duraklat</button>
+        <button class="tb" id="btnStep">⏭ Adım</button>
+        <button class="tb" id="btnReset">↺ Sıfırla</button>
+        <div class="tb-sep"></div>
+        <label class="tb" style="cursor:default;gap:8px;">Hız
+          <select id="speed" style="border:none;background:transparent;font-weight:700;font-family:inherit;cursor:pointer;">
+            <option value="0.25">0.25×</option>
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+          </select>
+        </label>
+        <button class="tb" id="btnFs">⛶ Tam ekran</button>
+      </div>
+
+      <div class="toggles">
+        <button class="tb" id="tgTwo">➕ İkinci dalga</button>
+        <button class="tb on" id="tgComp">〰 Bileşen dalgalar</button>
+        <button class="tb on" id="tgLabels">🏷 λ ve A etiketleri</button>
+        <button class="tb" id="tgSw">⏱ Kronometre</button>
+        <button class="tb" id="tgRuler">📏 Cetvel</button>
+        <button class="tb" id="tgProt">📐 Açıölçer</button>
+      </div>
+
+      <!-- ===== GRAFİK ===== -->
+      <div class="panel graph-card">
+        <div class="cap">📍 Seçili noktanın hareketi (y – t) — <span id="probeX">x = 3.0 m</span></div>
+        <div class="graph-wrap"><canvas id="graph"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ===== SAĞ: KONTROL PANELİ ===== -->
+    <aside>
+      <div class="panel">
+        <h3>Dalga 1 <span style="font-size:.8rem;"><span class="dot" style="background:#e26d4f"></span></span></h3>
+        <p class="hint">Kaydırıcılarla dalgayı şekillendir.</p>
+        <div class="ctrl">
+          <label>Genlik A₁ <b><span id="A1Val">1.0</span> m</b></label>
+          <input id="A1" type="range" min="0.2" max="2" step="0.1" value="1.0">
+        </div>
+        <div class="ctrl">
+          <label>Dalga boyu λ₁ <b><span id="L1Val">3.0</span> m</b></label>
+          <input id="L1" type="range" min="1" max="6" step="0.1" value="3.0">
+        </div>
+        <div class="ctrl">
+          <label>Frekans f₁ <b><span id="f1Val">0.60</span> Hz</b></label>
+          <input id="f1" type="range" min="0.2" max="2" step="0.05" value="0.6">
+        </div>
+        <div class="ctrl">
+          <label for="dir1">Yön</label>
+          <select id="dir1"><option value="1" selected>→ sağa</option><option value="-1">← sola</option></select>
+        </div>
+      </div>
+
+      <div class="panel" id="panelW2" style="display:none;margin-top:16px;">
+        <h3>Dalga 2 <span style="font-size:.8rem;"><span class="dot" style="background:#2d7dd2"></span> (mavi)</span></h3>
+        <p class="hint">İki dalga toplanır (süperpozisyon). Aynı λ, f ve zıt yön → <b>duran dalga</b>.</p>
+        <div class="ctrl">
+          <label>Genlik A₂ <b><span id="A2Val">1.0</span> m</b></label>
+          <input id="A2" type="range" min="0.2" max="2" step="0.1" value="1.0">
+        </div>
+        <div class="ctrl">
+          <label>Dalga boyu λ₂ <b><span id="L2Val">3.0</span> m</b></label>
+          <input id="L2" type="range" min="1" max="6" step="0.1" value="3.0">
+        </div>
+        <div class="ctrl">
+          <label>Frekans f₂ <b><span id="f2Val">0.60</span> Hz</b></label>
+          <input id="f2" type="range" min="0.2" max="2" step="0.05" value="0.6">
+        </div>
+        <div class="ctrl">
+          <label for="dir2">Yön</label>
+          <select id="dir2"><option value="1">→ sağa</option><option value="-1" selected>← sola</option></select>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <h3>Hesaplanan değerler</h3>
+        <div class="readout">
+          <div class="r hero"><div class="k">Dalga hızı  v₁ = λ₁ · f₁</div><div class="v"><span id="oV1">1.80</span> m/s</div></div>
+          <div class="r"><div class="k">Periyot T₁ = 1/f₁</div><div class="v"><span id="oT1">1.67</span> s</div></div>
+          <div class="r"><div class="k">Dalga sayısı k₁</div><div class="v"><span id="oK1">2.09</span></div></div>
+          <div class="r"><div class="k">Açısal frek. ω₁</div><div class="v"><span id="oW1">3.77</span></div></div>
+          <div class="r"><div class="k">Genlik A₁</div><div class="v"><span id="oA1">1.0</span> m</div></div>
+          <div class="r wide" id="w2box" style="display:none;"><div class="k">Dalga 2:  v₂ = λ₂·f₂</div><div class="v"><span id="oV2">—</span> m/s · T₂ = <span id="oT2">—</span> s</div></div>
+        </div>
+        <p class="hint" style="margin-top:10px;">v = λ·f: dalga boyu veya frekans arttıkça hız artar. Periyot T, bir tam salınımın süresidir (sağdaki y–t grafiğinde bir tepe-tepe arası).</p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="lab-note">
+    <h3>Bu laboratuvarda neler var?</h3>
+    <div class="feat">
+      <span>Hareketli enine dalga</span><span>v = λ·f canlı</span><span>İkinci dalga & girişim</span>
+      <span>Duran dalga</span><span>Sürüklenebilir sensör + y-t</span><span>λ ve A etiketleri</span>
+      <span>Cetvel & açıölçer</span><span>Ağır çekim / adım adım</span>
+    </div>
+    <p style="margin-top:14px;"><strong style="color:#fff;">Dene:</strong> "➕ İkinci dalga"yı aç, her iki dalgada da λ ve f'yi eşit tut, yönleri zıt yap → ekranda <b>duran dalga</b> (düğüm ve karın noktaları) oluşur. Bu lab zamanla daha da gelişecek. Bir fikrin olursa <a href="https://wa.me/905425549386" target="_blank" rel="noopener" style="color:#ffd98a;font-weight:700;">WhatsApp'tan yaz</a>.</p>
+    <a href="enerji-sarkac-laboratuvari.html" class="btn btn-primary">🔋 Enerji & Sarkaç Laboratuvarı</a>
+    <a href="simulasyonlar.html" class="btn btn-ghost">Tüm simülasyonlar</a>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="hakkimda.html">Hakkımda</a> ·
+      <a href="simulasyonlar.html">Simülasyonlar</a> ·
+      <a href="oyunlar.html">Oyunlar</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script src="lab-tools.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const C = { ink:'#0e0c08', coral:'#e26d4f', gold:'#d4a017', muted:'#5a544a', blue:'#2d7dd2', grid:'rgba(14,12,8,.07)' };
+
+  const scene=$('scene'), sx=scene.getContext('2d');
+  const graph=$('graph'), gx=graph.getContext('2d');
+  const stage=$('stage');
+
+  const Lx = 12;                       // görünür uzunluk (m)
+  const W1 = { A:1.0, lam:3.0, f:0.6, dir:1 };
+  const W2 = { A:1.0, lam:3.0, f:0.6, dir:-1 };
+  let two=false;
+  const tog = { comp:true, labels:true, sw:false };
+  let playing=true, speed=1, raf=null, lastNow=0;
+  let t=0, probeX=3;
+  let hist=[];                          // {t, y} seçili noktada
+  let drag={kind:null};
+
+  const k = lam => 2*Math.PI/lam;
+  const om = f => 2*Math.PI*f;
+
+  function fit(cnv,ctx){
+    const r=window.devicePixelRatio||1, w=cnv.clientWidth, h=cnv.clientHeight;
+    if(cnv.width!==Math.round(w*r)||cnv.height!==Math.round(h*r)){ cnv.width=Math.round(w*r); cnv.height=Math.round(h*r); ctx.setTransform(r,0,0,r,0,0); }
+  }
+
+  // ---- dalga değeri ----
+  function y1(x,tt){ return W1.A*Math.sin(k(W1.lam)*x - W1.dir*om(W1.f)*tt); }
+  function y2(x,tt){ return W2.A*Math.sin(k(W2.lam)*x - W2.dir*om(W2.f)*tt); }
+  function yTot(x,tt){ return two ? y1(x,tt)+y2(x,tt) : y1(x,tt); }
+
+  // ---- görünüm ----
+  let V={ox:0,oy:0,scale:1,W:0,H:0};
+  function computeView(){
+    fit(scene,sx);
+    const W=scene.clientWidth, H=scene.clientHeight; V.W=W; V.H=H;
+    const padL=44,padR=16,padT=18,padB=26;
+    const Ymax=(W1.A + (two?W2.A:0))*1.15 + 0.1;
+    const sX=(W-padL-padR)/Lx, sY=(H-padT-padB)/(2*Ymax);
+    V.scale=Math.min(sX,sY); V.ox=padL; V.oy=H/2;
+  }
+  const w2sx=x=>V.ox + x*V.scale;
+  const w2sy=y=>V.oy - y*V.scale;
+  const s2wx=px=>(px-V.ox)/V.scale;
+  const s2wy=py=>(V.oy-py)/V.scale;
+
+  // ölçüm araçları
+  const MT = makeMeasureTools({ ctx:sx, w2s:p=>({x:w2sx(p.x),y:w2sy(p.y)}), s2w:(px,py)=>({x:s2wx(px),y:s2wy(py)}), pxPerMeter:()=>V.scale });
+
+  function niceStep(span){ const raw=span/8,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p; return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p; }
+
+  // ---- sahne ----
+  function drawWave(fn,color,width){
+    sx.strokeStyle=color; sx.lineWidth=width; sx.beginPath();
+    const N=600;
+    for(let i=0;i<=N;i++){ const x=Lx*i/N; const X=w2sx(x), Y=w2sy(fn(x,t)); i?sx.lineTo(X,Y):sx.moveTo(X,Y); }
+    sx.stroke();
+  }
+  function drawScene(){
+    computeView();
+    const W=V.W,H=V.H;
+    const g=sx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#eef4f8'); g.addColorStop(1,'#f6f2ea');
+    sx.fillStyle=g; sx.fillRect(0,0,W,H);
+
+    // ızgara + eksen
+    const stepX=niceStep(Lx);
+    sx.strokeStyle=C.grid; sx.fillStyle=C.muted; sx.font='11px ui-monospace, monospace'; sx.lineWidth=1;
+    for(let xm=0;xm<=Lx+1e-9;xm+=stepX){ const px=w2sx(xm); sx.beginPath(); sx.moveTo(px,18); sx.lineTo(px,H-22); sx.stroke(); sx.fillText(xm.toFixed(0), px-4, H-8); }
+    sx.strokeStyle='rgba(14,12,8,.35)'; sx.lineWidth=1.4; sx.beginPath(); sx.moveTo(V.ox,V.oy); sx.lineTo(W-10,V.oy); sx.stroke();
+    sx.fillStyle=C.muted; sx.fillText('x (m)', W-44, V.oy-7);
+
+    // bileşen dalgalar
+    if(two && tog.comp){ drawWave(y1,'rgba(226,109,79,.40)',2); drawWave(y2,'rgba(45,125,210,.55)',2); }
+    // toplam (ana) dalga
+    drawWave(yTot, two?C.ink:C.coral, 3.2);
+
+    // etiketler λ, A (Dalga 1'e göre)
+    if(tog.labels) drawLabels();
+
+    // sensör
+    const pxp=w2sx(probeX);
+    sx.strokeStyle='rgba(184,144,47,.8)'; sx.lineWidth=1.5; sx.setLineDash([4,4]);
+    sx.beginPath(); sx.moveTo(pxp,18); sx.lineTo(pxp,H-22); sx.stroke(); sx.setLineDash([]);
+    const yp=yTot(probeX,t);
+    sx.fillStyle=C.gold; sx.strokeStyle=C.ink; sx.lineWidth=1.6;
+    sx.beginPath(); sx.arc(pxp,w2sy(yp),7,0,7); sx.fill(); sx.stroke();
+
+    MT.draw();
+  }
+  function drawLabels(){
+    // genlik A: x=0.5 m'de dikey çift ok 0..A1
+    const xa=0.6, X=w2sx(xa);
+    sx.strokeStyle=C.coral; sx.fillStyle=C.coral; sx.lineWidth=2;
+    arrow(X, w2sy(0), X, w2sy(W1.A)); arrow(X, w2sy(0), X, w2sy(-W1.A));
+    sx.fillStyle=C.muted; sx.font='bold 13px ui-monospace, monospace'; sx.fillText('A', X+6, w2sy(W1.A)+4);
+    // dalga boyu λ: ardışık iki tepe arası (Dalga 1)
+    const phase=W1.dir*om(W1.f)*t;
+    let xc=(Math.PI/2 + phase)/k(W1.lam);
+    xc = xc - W1.lam*Math.floor(xc/W1.lam);          // [0,λ)
+    if(xc+W1.lam<=Lx){
+      const yTop=w2sy(W1.A)-14;
+      sx.strokeStyle=C.gold2||'#b8902f'; sx.fillStyle='#b8902f'; sx.lineWidth=2;
+      arrow(w2sx(xc),yTop, w2sx(xc+W1.lam),yTop); arrow(w2sx(xc+W1.lam),yTop, w2sx(xc),yTop);
+      sx.strokeStyle='rgba(184,144,47,.5)'; sx.setLineDash([3,3]); sx.lineWidth=1;
+      sx.beginPath(); sx.moveTo(w2sx(xc),yTop); sx.lineTo(w2sx(xc),w2sy(0)); sx.moveTo(w2sx(xc+W1.lam),yTop); sx.lineTo(w2sx(xc+W1.lam),w2sy(0)); sx.stroke(); sx.setLineDash([]);
+      sx.fillStyle='#b8902f'; sx.font='bold 13px ui-monospace, monospace'; sx.fillText('λ', (w2sx(xc)+w2sx(xc+W1.lam))/2-4, yTop-5);
+    }
+  }
+  function arrow(x1,y1,x2,y2){
+    if(Math.hypot(x2-x1,y2-y1)<2) return;
+    sx.beginPath(); sx.moveTo(x1,y1); sx.lineTo(x2,y2); sx.stroke();
+    const a=Math.atan2(y2-y1,x2-x1),s=6;
+    sx.beginPath(); sx.moveTo(x2,y2); sx.lineTo(x2-s*Math.cos(a-.5),y2-s*Math.sin(a-.5)); sx.lineTo(x2-s*Math.cos(a+.5),y2-s*Math.sin(a+.5)); sx.closePath(); sx.fill();
+  }
+
+  // ---- y-t grafiği ----
+  function drawGraph(){
+    fit(graph,gx);
+    const W=graph.clientWidth,H=graph.clientHeight,padL=40,padR=12,padT=14,padB=24;
+    gx.fillStyle='#fff'; gx.fillRect(0,0,W,H);
+    const win=Math.min(12, Math.max(3, 3/Math.max(W1.f,0.2)));
+    const tMax=Math.max(win,t), tMin=tMax-win;
+    const yMax=(W1.A+(two?W2.A:0))*1.1+1e-6;
+    const X=tt=>padL+((tt-tMin)/win)*(W-padL-padR);
+    const Y=v=>(H-padB)/2+padT/2 - (v/yMax)*((H-padT-padB)/2);
+    // eksen
+    gx.strokeStyle='rgba(14,12,8,.08)'; gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace'; gx.lineWidth=1;
+    for(let kk=0;kk<=4;kk++){ const tt=tMin+win*kk/4,px=X(tt); gx.beginPath(); gx.moveTo(px,padT); gx.lineTo(px,H-padB); gx.stroke(); gx.fillText(tt.toFixed(1),px-8,H-padB+12); }
+    const zy=Y(0); gx.strokeStyle='rgba(14,12,8,.25)'; gx.beginPath(); gx.moveTo(padL,zy); gx.lineTo(W-padR,zy); gx.stroke();
+    gx.strokeStyle=C.ink; gx.lineWidth=1.3; gx.beginPath(); gx.moveTo(padL,padT); gx.lineTo(padL,H-padB); gx.stroke();
+    gx.fillStyle=C.muted; gx.font='11px ui-monospace, monospace'; gx.fillText('y (m)',6,12); gx.fillText('t (s)',W-padR-30,H-6);
+    // eğri
+    const pts=hist.filter(p=>p.t>=tMin-0.05);
+    gx.strokeStyle=C.gold; gx.lineWidth=2.2; gx.beginPath(); let s=false;
+    for(const p of pts){ const px=X(p.t),py=Y(p.y); if(!s){gx.moveTo(px,py);s=true;}else gx.lineTo(px,py); }
+    gx.stroke();
+    // anlık nokta
+    const cy=Y(yTot(probeX,t)); gx.fillStyle=C.ink; gx.beginPath(); gx.arc(X(t),cy,4,0,7); gx.fill();
+  }
+
+  // ---- readout ----
+  function updateReadouts(){
+    $('oV1').textContent=(W1.lam*W1.f).toFixed(2);
+    $('oT1').textContent=(1/W1.f).toFixed(2);
+    $('oK1').textContent=k(W1.lam).toFixed(2);
+    $('oW1').textContent=om(W1.f).toFixed(2);
+    $('oA1').textContent=W1.A.toFixed(1);
+    if(two){ $('w2box').style.display=''; $('oV2').textContent=(W2.lam*W2.f).toFixed(2); $('oT2').textContent=(1/W2.f).toFixed(2); }
+    else $('w2box').style.display='none';
+    $('probeX').textContent='x = '+probeX.toFixed(1)+' m';
+  }
+
+  // ---- animasyon ----
+  function frame(now){
+    const dt=Math.min(0.05,(now-lastNow)/1000); lastNow=now;
+    t+=dt*speed;
+    hist.push({t, y:yTot(probeX,t)}); if(hist.length>4000) hist.splice(0,hist.length-4000);
+    render();
+    if(tog.sw) $('swTime').textContent=t.toFixed(2)+' s';
+    if(playing) raf=requestAnimationFrame(frame);
+  }
+  function render(){ drawScene(); drawGraph(); updateReadouts(); }
+  function play(){ if(playing)return; playing=true; lastNow=performance.now(); $('btnPlay').textContent='⏸ Duraklat'; $('btnPlay').classList.remove('primary'); raf=requestAnimationFrame(frame); }
+  function pause(){ playing=false; if(raf)cancelAnimationFrame(raf); raf=null; $('btnPlay').textContent='▶ Başlat'; $('btnPlay').classList.add('primary'); }
+  function togglePlay(){ playing?pause():play(); }
+  function step(){ pause(); t+=0.05; hist.push({t,y:yTot(probeX,t)}); render(); if(tog.sw)$('swTime').textContent=t.toFixed(2)+' s'; }
+  function reset(){ t=0; hist=[]; hist.push({t:0,y:yTot(probeX,0)}); $('swTime').textContent='0.00 s'; render(); }
+
+  // ---- kontroller ----
+  function syncLabels(){
+    $('A1Val').textContent=W1.A.toFixed(1); $('L1Val').textContent=W1.lam.toFixed(1); $('f1Val').textContent=W1.f.toFixed(2);
+    $('A2Val').textContent=W2.A.toFixed(1); $('L2Val').textContent=W2.lam.toFixed(1); $('f2Val').textContent=W2.f.toFixed(2);
+  }
+  $('A1').addEventListener('input',e=>{W1.A=+e.target.value; syncLabels(); reset();});
+  $('L1').addEventListener('input',e=>{W1.lam=+e.target.value; syncLabels(); reset();});
+  $('f1').addEventListener('input',e=>{W1.f=+e.target.value; syncLabels(); reset();});
+  $('dir1').addEventListener('change',e=>{W1.dir=+e.target.value; reset();});
+  $('A2').addEventListener('input',e=>{W2.A=+e.target.value; syncLabels(); reset();});
+  $('L2').addEventListener('input',e=>{W2.lam=+e.target.value; syncLabels(); reset();});
+  $('f2').addEventListener('input',e=>{W2.f=+e.target.value; syncLabels(); reset();});
+  $('dir2').addEventListener('change',e=>{W2.dir=+e.target.value; reset();});
+  $('speed').addEventListener('change',e=>{speed=+e.target.value;});
+
+  $('btnPlay').addEventListener('click',togglePlay);
+  $('btnStep').addEventListener('click',step);
+  $('btnReset').addEventListener('click',reset);
+  $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
+
+  function bindTog(id,key,after){ $(id).addEventListener('click',()=>{ tog[key]=!tog[key]; $(id).classList.toggle('on',tog[key]); if(after)after(); render(); }); }
+  bindTog('tgComp','comp'); bindTog('tgLabels','labels');
+  bindTog('tgSw','sw',()=>{ $('stopwatch').classList.toggle('on',tog.sw); });
+  $('tgTwo').addEventListener('click',()=>{ two=!two; $('tgTwo').classList.toggle('on',two); $('panelW2').style.display=two?'':'none'; reset(); });
+  $('tgRuler').addEventListener('click',()=>{ const on=MT.toggleTape(); $('tgRuler').classList.toggle('on',on); drawScene(); });
+  $('tgProt').addEventListener('click',()=>{ const on=MT.toggleProt(); $('tgProt').classList.toggle('on',on); drawScene(); });
+
+  // ---- sensör / araç sürükleme ----
+  function evtPos(e){ const r=scene.getBoundingClientRect(); const tch=e.touches?e.touches[0]:e; return {px:tch.clientX-r.left, py:tch.clientY-r.top}; }
+  function pointerDown(e){
+    const {px,py}=evtPos(e);
+    if(MT.onDown(px,py)){ drag.kind='tool'; drawScene(); e.preventDefault(); return; }
+    drag.kind='probe'; probeX=Math.max(0,Math.min(Lx, s2wx(px))); hist=[]; render(); e.preventDefault();
+  }
+  function pointerMove(e){
+    if(!drag.kind) return;
+    const {px,py}=evtPos(e);
+    if(drag.kind==='tool'){ MT.onMove(px,py); drawScene(); }
+    else if(drag.kind==='probe'){ probeX=Math.max(0,Math.min(Lx, s2wx(px))); if(!playing) render(); else { updateReadouts(); } }
+    e.preventDefault();
+  }
+  function pointerUp(){ if(drag.kind==='tool') MT.onUp(); drag.kind=null; }
+  scene.addEventListener('mousedown',pointerDown);
+  window.addEventListener('mousemove',pointerMove);
+  window.addEventListener('mouseup',pointerUp);
+  scene.addEventListener('touchstart',pointerDown,{passive:false});
+  scene.addEventListener('touchmove',pointerMove,{passive:false});
+  window.addEventListener('touchend',pointerUp);
+
+  // sürüklenebilir kronometre
+  (function(){
+    const sw=$('stopwatch'); let d=false,ox=0,oy=0;
+    sw.addEventListener('mousedown',e=>{d=true;ox=e.offsetX;oy=e.offsetY;sw.style.cursor='grabbing';e.stopPropagation();});
+    window.addEventListener('mousemove',e=>{ if(!d)return; const r=stage.getBoundingClientRect(); sw.style.left=(e.clientX-r.left-ox)+'px'; sw.style.top=(e.clientY-r.top-oy)+'px'; });
+    window.addEventListener('mouseup',()=>{d=false;sw.style.cursor='grab';});
+  })();
+
+  let rT; window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(render,120); });
+  document.addEventListener('fullscreenchange',()=>setTimeout(render,80));
+
+  syncLabels(); hist.push({t:0,y:yTot(probeX,0)});
+  lastNow=performance.now();
+  requestAnimationFrame(()=>{ render(); raf=requestAnimationFrame(frame); });
+})();
+</script>
+
+</body>
+</html>
