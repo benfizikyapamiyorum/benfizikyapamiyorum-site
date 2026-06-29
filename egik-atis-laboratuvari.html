@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eğik Atış Laboratuvarı — İnteraktif Fizik Simülasyonu | Ben Fizik Yapamıyorum</title>
-<meta name="description" content="Eğik atışı kendin keşfet: hızı ve açıyı sürükle, hava direncini aç, gezegeni değiştir, hız vektörlerini ve canlı grafikleri (x-t, y-t, v-t) gör. 2026 Maarif (TYMM) 11. sınıf atışlar konusuyla birebir. Ücretsiz interaktif fizik laboratuvarı.">
+<meta name="description" content="Eğik atışı kendin keşfet: hızı ve açıyı sürükle, hava direncini aç, gezegeni değiştir, hız vektörlerini ve canlı grafikleri (x-t, y-t, v-t) gör. İki atışı yan yana karşılaştır. 2026 Maarif (TYMM) 11. sınıf atışlar konusuyla birebir. Ücretsiz interaktif fizik laboratuvarı.">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
@@ -15,7 +15,7 @@
 <meta property="og:locale" content="tr_TR">
 <meta property="og:site_name" content="Ben Fizik Yapamıyorum">
 <meta property="og:title" content="Eğik Atış Laboratuvarı — İnteraktif Fizik Simülasyonu">
-<meta property="og:description" content="Hızı ve açıyı sürükle, hava direncini aç, vektörleri ve canlı grafikleri gör. Maarif 11. sınıf atışlar konusuyla birebir.">
+<meta property="og:description" content="Hızı ve açıyı sürükle, hava direncini aç, vektörleri ve canlı grafikleri gör. İki atışı karşılaştır. Maarif 11. sınıf atışlar konusuyla birebir.">
 <meta property="og:url" content="https://benfizikyapamiyorum.com/egik-atis-laboratuvari.html">
 <meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
@@ -53,6 +53,7 @@
   .tb.primary{background:var(--lab-ink);color:#fff;border-color:var(--lab-ink);}
   .tb.primary:hover{background:var(--lab-coral);border-color:var(--lab-coral);}
   .tb.on{background:var(--lab-gold);border-color:var(--lab-gold);color:#1c1403;}
+  .tb.on.blue{background:var(--lab-blue);border-color:var(--lab-blue);color:#fff;}
   .tb:disabled{opacity:.4;cursor:not-allowed;}
   .tb-sep{width:1px;align-self:stretch;background:var(--lab-line);margin:2px 2px;}
 
@@ -73,12 +74,23 @@
   .ctrl.row label{margin:0;}
   .switch{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;font-weight:600;cursor:pointer;}
   .switch input{width:18px;height:18px;accent-color:var(--lab-coral);}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle;margin-right:3px;}
+  /* Atış B paneli mavi tonlu */
+  #panelB{border-color:#bcd6f0;}
+  #panelB .ctrl input[type=range]{accent-color:var(--lab-blue);}
+  #panelB .ctrl label b{color:var(--lab-blue);}
+  #panelB .switch input{accent-color:var(--lab-blue);}
 
   .readout{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:4px;}
   .readout .r{background:#faf6ec;border:1px solid var(--lab-line);border-radius:9px;padding:7px 10px;}
   .readout .r .k{font-size:.68rem;color:var(--lab-muted);text-transform:uppercase;letter-spacing:.05em;}
   .readout .r .v{font-size:1.02rem;font-weight:800;font-variant-numeric:tabular-nums;}
   .readout .r.wide{grid-column:1 / -1;}
+
+  .cmp{width:100%;border-collapse:collapse;font-size:.86rem;margin-top:6px;}
+  .cmp th,.cmp td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--lab-line);font-variant-numeric:tabular-nums;}
+  .cmp th{font-size:.8rem;}
+  .cmp td:first-child,.cmp th:first-child{color:var(--lab-muted);font-weight:700;}
 
   .energy{margin-top:14px;display:none;}
   .energy.on{display:block;}
@@ -132,7 +144,7 @@
   <div class="page-head lab-head">
     <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / Eğik Atış Laboratuvarı</div>
     <h1>🎯 Eğik Atış Laboratuvarı</h1>
-    <p class="sub">Topu fareyle (veya parmağınla) <strong>sürükleyerek</strong> hızı ve açıyı ayarla — ya da kaydırıcıları kullan. Hava direncini aç, gezegeni değiştir, hız vektörlerini ve canlı grafikleri izle. 2026 Maarif (TYMM) <strong>11. sınıf "atışlar"</strong> konusuyla birebir.</p>
+    <p class="sub">Topu fareyle (veya parmağınla) <strong>sürükleyerek</strong> hızı ve açıyı ayarla — ya da kaydırıcıları kullan. Hava direncini aç, gezegeni değiştir, hız vektörlerini ve canlı grafikleri izle. <strong>İki atışı yan yana karşılaştır.</strong> 2026 Maarif (TYMM) <strong>11. sınıf "atışlar"</strong> konusuyla birebir.</p>
   </div>
 
   <div class="lab-grid">
@@ -157,6 +169,7 @@
       </div>
 
       <div class="toggles">
+        <button class="tb" id="tgCompare">⚖️ Karşılaştır (A/B)</button>
         <button class="tb on" id="tgVec">➶ Hız vektörü</button>
         <button class="tb on" id="tgComp">⊹ Bileşenler (vx, vy)</button>
         <button class="tb on" id="tgGrid">▦ Izgara</button>
@@ -182,7 +195,7 @@
     <!-- ===== SAĞ: KONTROL PANELİ ===== -->
     <aside>
       <div class="panel">
-        <h3>Atış ayarları</h3>
+        <h3>Atış ayarları <span id="aTag" style="display:none;font-size:.8rem;"><span class="dot" style="background:#e26d4f"></span>Atış A</span></h3>
         <p class="hint">Topu sürükleyebilir veya buradan değiştirebilirsin.</p>
 
         <div class="ctrl">
@@ -219,6 +232,44 @@
         </div>
       </div>
 
+      <!-- ATIŞ B (karşılaştırma) -->
+      <div class="panel" id="panelB" style="display:none;margin-top:16px;">
+        <h3><span class="dot" style="background:#2d7dd2"></span>Atış B (mavi)</h3>
+        <p class="hint">İkinci atışın ayarları — A ile aynı anda fırlatılır.</p>
+        <div class="ctrl">
+          <label>Başlangıç hızı v₀ <b><span id="vBVal">28</span> m/s</b></label>
+          <input id="vB" type="range" min="5" max="100" step="1" value="28">
+        </div>
+        <div class="ctrl">
+          <label>Atış açısı θ <b><span id="aBVal">35</span>°</b></label>
+          <input id="aB" type="range" min="5" max="85" step="1" value="35">
+        </div>
+        <div class="ctrl">
+          <label>Başlangıç yüksekliği h₀ <b><span id="hBVal">0</span> m</b></label>
+          <input id="hB" type="range" min="0" max="30" step="0.5" value="0">
+        </div>
+        <div class="ctrl">
+          <label>Kütle m <b><span id="mBVal">1.0</span> kg</b></label>
+          <input id="mB" type="range" min="0.5" max="10" step="0.5" value="1">
+        </div>
+        <div class="ctrl">
+          <label for="planetB">Gezegen / yerçekimi g</label>
+          <select id="planetB">
+            <option value="1.6">Ay — 1.6 m/s²</option>
+            <option value="3.7">Mars — 3.7 m/s²</option>
+            <option value="9.8" selected>Dünya — 9.8 m/s²</option>
+            <option value="24.8">Jüpiter — 24.8 m/s²</option>
+          </select>
+        </div>
+        <div class="ctrl row">
+          <label class="switch"><input type="checkbox" id="dragOnB"> Hava direnci</label>
+        </div>
+        <div class="ctrl" id="dragKBwrap" style="display:none;">
+          <label>Direnç katsayısı <b><span id="kBVal">0.02</span></b></label>
+          <input id="kB" type="range" min="0.002" max="0.08" step="0.002" value="0.02">
+        </div>
+      </div>
+
       <div class="panel" style="margin-top:16px;">
         <h3>Anlık değerler</h3>
         <div class="readout">
@@ -230,11 +281,22 @@
           <div class="r"><div class="k">vy</div><div class="v"><span id="oVy">0.0</span></div></div>
         </div>
 
-        <div class="readout" style="margin-top:9px;">
+        <div class="readout" style="margin-top:9px;" id="singleStats">
           <div class="r"><div class="k">Tepe yük.</div><div class="v"><span id="oApex">—</span> m</div></div>
           <div class="r"><div class="k">Uçuş süresi</div><div class="v"><span id="oFlight">—</span> s</div></div>
           <div class="r wide"><div class="k">Menzil (yatay)</div><div class="v"><span id="oRange">—</span> m</div></div>
           <div class="r wide" id="targetBox" style="display:none;"><div class="k">Hedefe uzaklık</div><div class="v"><span id="oTarget">—</span></div></div>
+        </div>
+
+        <!-- A / B karşılaştırma tablosu -->
+        <div id="cmpBox" style="display:none;margin-top:10px;">
+          <div style="font-size:.82rem;font-weight:800;color:var(--lab-muted);">Karşılaştırma</div>
+          <table class="cmp">
+            <tr><th></th><th><span class="dot" style="background:#e26d4f"></span>A</th><th><span class="dot" style="background:#2d7dd2"></span>B</th></tr>
+            <tr><td>Menzil</td><td id="cmpRA">—</td><td id="cmpRB">—</td></tr>
+            <tr><td>Tepe yük.</td><td id="cmpHA">—</td><td id="cmpHB">—</td></tr>
+            <tr><td>Uçuş süresi</td><td id="cmpFA">—</td><td id="cmpFB">—</td></tr>
+          </table>
         </div>
 
         <div class="energy" id="energyBox">
@@ -244,6 +306,7 @@
           <div class="ebar"><i id="barPE" style="background:var(--lab-blue)"></i></div>
           <div class="ebar-lab"><span>Toplam</span><span id="eTot">—</span></div>
           <div class="ebar"><i id="barTot" style="background:var(--lab-gold)"></i></div>
+          <p class="hint" style="margin-top:4px;">Enerji barları Atış A içindir.</p>
         </div>
       </div>
     </aside>
@@ -254,9 +317,9 @@
     <div class="feat">
       <span>Sürükle-bırak atış</span><span>Hız vektörü + bileşenleri</span><span>Hava direnci</span>
       <span>4 gezegen yerçekimi</span><span>Canlı grafikler</span><span>Enerji barları</span>
-      <span>Kronometre & cetvel</span><span>Hedef vur</span><span>Ağır çekim / adım adım</span>
+      <span>A/B karşılaştırma</span><span>Kronometre & cetvel</span><span>Hedef vur</span><span>Ağır çekim / adım adım</span>
     </div>
-    <p style="margin-top:14px;">Bu lab zamanla daha da gelişecek (yeni ölçüm araçları, karşılaştırma modu, daha çok grafik). Bir fikrin olursa <a href="https://wa.me/905425549386" target="_blank" rel="noopener" style="color:#ffd98a;font-weight:700;">WhatsApp'tan yaz</a>.</p>
+    <p style="margin-top:14px;"><strong style="color:#fff;">Yeni:</strong> "⚖️ Karşılaştır (A/B)" ile iki atışı aynı anda fırlatıp menzil, tepe ve uçuş sürelerini yan yana görebilirsin (ör. 35° ve 55°'nin menzili neden eşit?). Bu lab zamanla daha da gelişecek. Bir fikrin olursa <a href="https://wa.me/905425549386" target="_blank" rel="noopener" style="color:#ffd98a;font-weight:700;">WhatsApp'tan yaz</a>.</p>
     <a href="egik-atis.html" class="btn btn-primary">🎯 Eğik Atış oyununu oyna</a>
     <a href="fizik-yillik-plani-indir.html" class="btn btn-ghost">📅 Ücretsiz yıllık plan</a>
   </div>
@@ -291,21 +354,22 @@
   const stage = $('stage');
 
   // ---------- State ----------
-  const P = { v0:28, ang:55, h0:0, m:1, g:9.8, drag:false, k:0.02 };
+  const P  = { v0:28, ang:55, h0:0, m:1, g:9.8, drag:false, k:0.02 };   // Atış A
+  const PB = { v0:28, ang:35, h0:0, m:1, g:9.8, drag:false, k:0.02 };   // Atış B
+  let compare = false;
   let targetX = 60, showTarget = false;
   const tog = { vec:true, comp:true, grid:true, ghost:true, energy:false, sw:false, measure:false };
   let graphMode = 'yx';
 
-  let path = null;        // {pts, max, stats}
+  let path = null;        // Atış A {pts, max, stats}
+  let pathB = null;       // Atış B
   let ghosts = [];        // [{pts,color}]
   let anim = { mode:'idle', simT:0, speed:1, raf:null, last:0 };
   const palette = ['#e26d4f','#2d7dd2','#d4a017','#7a8a3a','#9b59b6','#127a6b'];
   let ghostColor = 0;
 
-  // measure tool
   let measure = { p1:null, p2:null };
-  // drag interactions
-  let drag = { kind:null };   // 'aim' | 'target' | 'measure' | 'sw'
+  let drag = { kind:null };
 
   // ---------- Canvas fit ----------
   function fit(cnv, ctx){
@@ -349,35 +413,32 @@
     const pts = p.pts;
     if (T<=0) return pts[0];
     if (T>=p.max.t) return pts[pts.length-1];
-    // linear search (paths are short)
     let lo=0, hi=pts.length-1;
     while (lo<hi-1){ const mid=(lo+hi)>>1; if(pts[mid].t<T) lo=mid; else hi=mid; }
     const a=pts[lo], b=pts[hi], f=(T-a.t)/((b.t-a.t)||1);
-    return {
-      t:T, x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f,
-      vx:a.vx+(b.vx-a.vx)*f, vy:a.vy+(b.vy-a.vy)*f,
-      v:a.v+(b.v-a.v)*f
-    };
+    return { t:T, x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f, vx:a.vx+(b.vx-a.vx)*f, vy:a.vy+(b.vy-a.vy)*f, v:a.v+(b.v-a.v)*f };
   }
   function indexAt(p, T){
     const pts=p.pts; if(T>=p.max.t) return pts.length;
     let i=0; while(i<pts.length && pts[i].t<=T) i++; return i;
   }
 
-  // ---------- View (world -> screen) ----------
+  // ---------- View ----------
   let V = { scale:1, ox:0, oy:0, W:0, H:0 };
   function computeView(){
     const W = scene.clientWidth, H = scene.clientHeight;
     V.W=W; V.H=H;
     const padL=46, padR=26, padT=26, padB=40;
-    const ref = path || computePath(P);
-    let wx = Math.max(ref.stats.range, P.h0+2, 12);
+    const refs = [ path || computePath(P) ];
+    if (compare) refs.push(pathB || computePath(PB));
+    let wx = Math.max(12, P.h0+2);
+    let wy = Math.max(7, P.h0+2);
+    if (compare){ wx=Math.max(wx, PB.h0+2); wy=Math.max(wy, PB.h0+2); }
+    for (const r of refs){ wx=Math.max(wx, r.stats.range); wy=Math.max(wy, r.stats.apex); }
     if (showTarget) wx = Math.max(wx, targetX+4);
-    let wy = Math.max(ref.stats.apex, P.h0+2, 7);
     const sX = (W-padL-padR)/wx, sY = (H-padT-padB)/wy;
     V.scale = Math.min(sX, sY);
-    V.ox = padL;
-    V.oy = H - padB;
+    V.ox = padL; V.oy = H - padB;
   }
   const w2sx = x => V.ox + x*V.scale;
   const w2sy = y => V.oy - y*V.scale;
@@ -395,13 +456,11 @@
     fit(scene, sx);
     computeView();
     const W=V.W, H=V.H;
-    // sky
     const sky = sx.createLinearGradient(0,0,0,H);
     sky.addColorStop(0,'#cfe4f7'); sky.addColorStop(1,'#eef4f0');
     sx.fillStyle=sky; sx.fillRect(0,0,W,H);
 
     const groundY = w2sy(0);
-    // grid
     if (tog.grid){
       const stepX = niceStep(s2wx(W)-s2wx(V.ox));
       sx.strokeStyle=C.grid; sx.fillStyle=C.muted; sx.lineWidth=1;
@@ -416,16 +475,13 @@
         sx.fillText(ym.toFixed(stepY<1?1:0), 6, py+4);
       }
     }
-    // ground
     sx.fillStyle=C.ground; sx.fillRect(0,groundY,W,H-groundY);
     sx.fillStyle=C.grass; sx.fillRect(0,groundY,W,4);
-    // axes
     sx.strokeStyle=C.ink; sx.lineWidth=1.5;
     sx.beginPath(); sx.moveTo(V.ox,26); sx.lineTo(V.ox,groundY); sx.lineTo(W-6,groundY); sx.stroke();
     sx.fillStyle=C.muted; sx.font='12px ui-monospace, monospace';
     sx.fillText('y (m)', 8, 22); sx.fillText('x (m)', W-44, groundY-8);
 
-    // target
     if (showTarget){
       const tx=w2sx(targetX), ty=groundY;
       sx.strokeStyle=C.ink; sx.lineWidth=2;
@@ -436,44 +492,44 @@
       sx.beginPath(); sx.arc(tx,ty,Math.max(7,1.2*V.scale),0,7); sx.fill();
     }
 
-    // ghost trails
     if (tog.ghost){
       for (const g of ghosts){
-        sx.strokeStyle=g.color; sx.globalAlpha=.45; sx.lineWidth=2; sx.setLineDash([5,5]);
+        sx.strokeStyle=g.color; sx.globalAlpha=.4; sx.lineWidth=2; sx.setLineDash([5,5]);
         sx.beginPath();
         g.pts.forEach((q,i)=>{ const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); });
         sx.stroke(); sx.globalAlpha=1; sx.setLineDash([]);
       }
     }
 
-    // cannon base
-    const cx=w2sx(0), cy=w2sy(P.h0);
-    if (P.h0>0){ sx.fillStyle='#7a6f59'; sx.fillRect(cx-7, cy, 14, groundY-cy); }
+    // cannon bases
+    drawCannonBase(P.h0);
+    if (compare) drawCannonBase(PB.h0);
 
-    // current path + projectile
     const live = (anim.mode==='running'||anim.mode==='done') && path;
-    const previewPath = path || computePath(P);
     if (!live){
-      // idle: faint preview of predicted arc + aim
-      sx.strokeStyle='rgba(14,12,8,.22)'; sx.lineWidth=2; sx.setLineDash([2,5]);
-      sx.beginPath();
-      previewPath.pts.forEach((q,i)=>{ const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); });
-      sx.stroke(); sx.setLineDash([]);
-      drawBall(cx,cy, P.v0*Math.cos(P.ang*Math.PI/180), P.v0*Math.sin(P.ang*Math.PI/180), true);
-      drawApexRange(previewPath);
+      const pa = path || computePath(P);
+      drawPreview(pa, 'rgba(14,12,8,.22)');
+      const aR=P.ang*Math.PI/180;
+      drawBall(w2sx(0), w2sy(P.h0), P.v0*Math.cos(aR), P.v0*Math.sin(aR), {faint:true, ballColor:C.coral, resColor:C.ink, comps:(tog.comp&&!compare)});
+      drawApex(pa, C.blue);
+      if (compare){
+        const pb = pathB || computePath(PB);
+        drawPreview(pb, 'rgba(45,125,210,.32)');
+        const bR=PB.ang*Math.PI/180;
+        drawBall(w2sx(0), w2sy(PB.h0), PB.v0*Math.cos(bR), PB.v0*Math.sin(bR), {faint:true, ballColor:C.blue, resColor:C.blue, comps:false});
+      }
     } else {
-      const idx = indexAt(path, anim.simT);
-      // trail
-      sx.strokeStyle=C.trail; sx.lineWidth=3;
-      sx.beginPath();
-      for (let i=0;i<Math.min(idx,path.pts.length);i++){ const q=path.pts[i]; const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); }
-      sx.stroke();
-      drawApexRange(path);
+      drawTrail(path, anim.simT, C.trail, 3);
+      drawApex(path, C.blue);
       const cur = pointAt(path, anim.simT);
-      drawBall(w2sx(cur.x), w2sy(cur.y), cur.vx, cur.vy, false);
+      drawBall(w2sx(cur.x), w2sy(cur.y), cur.vx, cur.vy, {ballColor:C.coral, resColor:C.ink, comps:(tog.comp&&!compare)});
+      if (compare && pathB){
+        drawTrail(pathB, anim.simT, C.blue, 3);
+        const curB = pointAt(pathB, anim.simT);
+        drawBall(w2sx(curB.x), w2sy(curB.y), curB.vx, curB.vy, {ballColor:C.blue, resColor:C.blue, comps:false});
+      }
     }
 
-    // measure overlay
     if (tog.measure && measure.p1 && measure.p2){
       const a=measure.p1,b=measure.p2;
       sx.strokeStyle=C.gold2; sx.lineWidth=2; sx.setLineDash([6,4]);
@@ -490,22 +546,42 @@
     }
   }
 
-  function drawBall(px,py,vx,vy,faint){
-    // velocity vectors
-    if (tog.vec || tog.comp){
-      const VS = 3.2; // px per (m/s)
-      if (tog.comp){
-        arrow(px,py, px+vx*VS, py, C.blue, 2);             // vx
-        arrow(px,py, px, py-vy*VS, C.coral, 2);            // vy
+  function drawCannonBase(h0){
+    if (h0<=0) return;
+    const cx=w2sx(0), cy=w2sy(h0), groundY=w2sy(0);
+    sx.fillStyle='#7a6f59'; sx.fillRect(cx-7, cy, 14, groundY-cy);
+  }
+  function drawPreview(p,color){
+    sx.strokeStyle=color; sx.lineWidth=2; sx.setLineDash([2,5]);
+    sx.beginPath();
+    p.pts.forEach((q,i)=>{ const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); });
+    sx.stroke(); sx.setLineDash([]);
+  }
+  function drawTrail(p, simT, color, width){
+    const idx=indexAt(p, simT);
+    sx.strokeStyle=color; sx.lineWidth=width;
+    sx.beginPath();
+    for (let i=0;i<Math.min(idx,p.pts.length);i++){ const q=p.pts[i]; const X=w2sx(q.x),Y=w2sy(q.y); i?sx.lineTo(X,Y):sx.moveTo(X,Y); }
+    sx.stroke();
+  }
+  function drawBall(px,py,vx,vy,opts){
+    opts = opts||{};
+    const faint=!!opts.faint, resColor=opts.resColor||C.ink, ballColor=opts.ballColor||C.coral;
+    const comps = opts.comps!==undefined ? opts.comps : tog.comp;
+    const VS = 3.2;
+    if (tog.vec || comps){
+      if (comps){
+        arrow(px,py, px+vx*VS, py, C.blue, 2);
+        arrow(px,py, px, py-vy*VS, C.coral, 2);
         sx.setLineDash([3,3]); sx.strokeStyle='rgba(14,12,8,.3)'; sx.lineWidth=1;
         sx.beginPath(); sx.moveTo(px+vx*VS,py); sx.lineTo(px+vx*VS,py-vy*VS);
         sx.moveTo(px,py-vy*VS); sx.lineTo(px+vx*VS,py-vy*VS); sx.stroke(); sx.setLineDash([]);
       }
-      if (tog.vec) arrow(px,py, px+vx*VS, py-vy*VS, C.ink, 3);
+      if (tog.vec) arrow(px,py, px+vx*VS, py-vy*VS, resColor, 3);
     }
-    // ball
-    sx.fillStyle = faint ? 'rgba(217,120,92,.85)' : C.coral;
-    sx.strokeStyle=C.ink; sx.lineWidth=1.6;
+    let fill = ballColor;
+    if (faint) fill = (ballColor===C.blue) ? 'rgba(45,125,210,.7)' : 'rgba(217,120,92,.85)';
+    sx.fillStyle=fill; sx.strokeStyle=C.ink; sx.lineWidth=1.6;
     sx.beginPath(); sx.arc(px,py,7,0,7); sx.fill(); sx.stroke();
   }
   function arrow(x1,y1,x2,y2,color,w){
@@ -518,14 +594,15 @@
     sx.lineTo(x2-s*Math.cos(ang+.4), y2-s*Math.sin(ang+.4));
     sx.closePath(); sx.fill();
   }
-  function drawApexRange(p){
+  function drawApex(p,color){
+    color=color||C.blue;
     const apexPt = p.pts.reduce((a,b)=>b.y>a.y?b:a, p.pts[0]);
-    sx.fillStyle=C.muted; sx.font='11px ui-monospace, monospace';
     const ax=w2sx(apexPt.x), ay=w2sy(apexPt.y);
     sx.setLineDash([2,3]); sx.strokeStyle='rgba(45,125,210,.5)'; sx.lineWidth=1;
     sx.beginPath(); sx.moveTo(ax,ay); sx.lineTo(ax,w2sy(0)); sx.stroke(); sx.setLineDash([]);
-    sx.fillStyle=C.blue; sx.beginPath(); sx.arc(ax,ay,3,0,7); sx.fill();
-    sx.fillStyle=C.muted; sx.fillText('tepe '+apexPt.y.toFixed(1)+'m', ax+5, ay-3);
+    sx.fillStyle=color; sx.beginPath(); sx.arc(ax,ay,3,0,7); sx.fill();
+    sx.fillStyle=C.muted; sx.font='11px ui-monospace, monospace';
+    sx.fillText('tepe '+apexPt.y.toFixed(1)+'m', ax+5, ay-3);
   }
 
   // ---------- Graph ----------
@@ -533,19 +610,26 @@
     fit(graph, gx);
     const W=graph.clientWidth, H=graph.clientHeight;
     gx.fillStyle='#fff'; gx.fillRect(0,0,W,H);
-    const p = path || computePath(P);
-    const pts = p.pts;
+    const pA = path || computePath(P);
+    const pB = compare ? (pathB || computePath(PB)) : null;
     const padL=44, padR=14, padT=16, padB=30;
-    let getX,getY,xMax,yMax,xLab,yLab,yMin=0;
-    if (graphMode==='yx'){ getX=q=>q.x; getY=q=>q.y; xMax=p.max.x; yMax=p.max.y; xLab='x (m)'; yLab='y (m)'; }
-    else if (graphMode==='xt'){ getX=q=>q.t; getY=q=>q.x; xMax=p.max.t; yMax=p.max.x; xLab='t (s)'; yLab='x (m)'; }
-    else if (graphMode==='yt'){ getX=q=>q.t; getY=q=>q.y; xMax=p.max.t; yMax=p.max.y; xLab='t (s)'; yLab='y (m)'; }
-    else { getX=q=>q.t; getY=q=>q.v; xMax=p.max.t; yMax=p.max.v; xLab='t (s)'; yLab='|v| (m/s)'; }
+    let getX,getY,xLab,yLab;
+    function axisMax(p){
+      if (graphMode==='yx') return {x:p.max.x, y:p.max.y};
+      if (graphMode==='xt') return {x:p.max.t, y:p.max.x};
+      if (graphMode==='yt') return {x:p.max.t, y:p.max.y};
+      return {x:p.max.t, y:p.max.v};
+    }
+    if (graphMode==='yx'){ getX=q=>q.x; getY=q=>q.y; xLab='x (m)'; yLab='y (m)'; }
+    else if (graphMode==='xt'){ getX=q=>q.t; getY=q=>q.x; xLab='t (s)'; yLab='x (m)'; }
+    else if (graphMode==='yt'){ getX=q=>q.t; getY=q=>q.y; xLab='t (s)'; yLab='y (m)'; }
+    else { getX=q=>q.t; getY=q=>q.v; xLab='t (s)'; yLab='|v| (m/s)'; }
+    let am=axisMax(pA), xMax=am.x, yMax=am.y;
+    if (pB){ const bm=axisMax(pB); xMax=Math.max(xMax,bm.x); yMax=Math.max(yMax,bm.y); }
     xMax=Math.max(xMax,1e-3); yMax=Math.max(yMax*1.08,1e-3);
     const X = vx => padL + (vx/xMax)*(W-padL-padR);
-    const Y = vy => (H-padB) - ((vy-yMin)/(yMax-yMin))*(H-padT-padB);
+    const Y = vy => (H-padB) - (vy/yMax)*(H-padT-padB);
 
-    // axes + grid
     gx.strokeStyle='rgba(14,12,8,.08)'; gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace'; gx.lineWidth=1;
     const sxStep=niceStep(xMax), syStep=niceStep(yMax);
     for (let v=0; v<=xMax+1e-9; v+=sxStep){ const px=X(v); gx.beginPath(); gx.moveTo(px,padT); gx.lineTo(px,H-padB); gx.stroke(); gx.fillText(v.toFixed(sxStep<1?1:0), px-6, H-padB+13); }
@@ -555,15 +639,22 @@
     gx.fillStyle=C.muted; gx.font='11px ui-monospace, monospace';
     gx.fillText(yLab, 6, 12); gx.fillText(xLab, W-padR-44, H-6);
 
-    // curve (up to progress)
     const live=(anim.mode==='running'||anim.mode==='done')&&path;
-    const upTo = live ? indexAt(path, anim.simT) : pts.length;
-    gx.strokeStyle=C.coral; gx.lineWidth=2.4;
-    gx.beginPath();
-    for (let i=0;i<Math.min(upTo,pts.length);i++){ const q=pts[i]; const px=X(getX(q)),py=Y(getY(q)); i?gx.lineTo(px,py):gx.moveTo(px,py); }
-    gx.stroke();
-    // current dot
-    if (live){ const cur=pointAt(path,anim.simT); gx.fillStyle=C.ink; gx.beginPath(); gx.arc(X(getX(cur)),Y(getY(cur)),4,0,7); gx.fill(); }
+    function curve(p,color){
+      const upTo = live ? indexAt(p, anim.simT) : p.pts.length;
+      gx.strokeStyle=color; gx.lineWidth=2.4; gx.beginPath();
+      for (let i=0;i<Math.min(upTo,p.pts.length);i++){ const q=p.pts[i]; const px=X(getX(q)),py=Y(getY(q)); i?gx.lineTo(px,py):gx.moveTo(px,py); }
+      gx.stroke();
+      if (live){ const cur=pointAt(p,anim.simT); gx.fillStyle=color; gx.beginPath(); gx.arc(X(getX(cur)),Y(getY(cur)),4,0,7); gx.fill(); }
+    }
+    curve(pA, C.coral);
+    if (pB) curve(pB, C.blue);
+
+    if (compare){
+      gx.font='bold 11px ui-monospace, monospace';
+      gx.fillStyle=C.coral; gx.fillRect(W-86,14,10,10); gx.fillStyle=C.muted; gx.fillText('A', W-72,23);
+      gx.fillStyle=C.blue;  gx.fillRect(W-52,14,10,10); gx.fillStyle=C.muted; gx.fillText('B', W-38,23);
+    }
   }
 
   // ---------- Readouts ----------
@@ -584,7 +675,6 @@
         $('oTarget').textContent = (Math.abs(d)<1.2 ? '🎯 İSABET!' : (d>0?('+'+d.toFixed(1)+' m uzak'):(d.toFixed(1)+' m kısa')));
       } else $('targetBox').style.display='none';
     }
-    // energy
     if (tog.energy){
       const KE=0.5*P.m*pt.v*pt.v, PE=P.m*P.g*pt.y, Tot=KE+PE;
       const E0 = 0.5*P.m*P.v0*P.v0 + P.m*P.g*P.h0;
@@ -594,22 +684,31 @@
       $('barTot').style.width=Math.min(100,100*Tot/E0)+'%';
     }
   }
+  function updateCompare(){
+    if (!compare){ $('cmpBox').style.display='none'; $('singleStats').style.display=''; return; }
+    $('cmpBox').style.display=''; $('singleStats').style.display='none';
+    const a = path || computePath(P), b = pathB || computePath(PB);
+    $('cmpRA').textContent=a.stats.range.toFixed(1)+' m'; $('cmpRB').textContent=b.stats.range.toFixed(1)+' m';
+    $('cmpHA').textContent=a.stats.apex.toFixed(1)+' m';  $('cmpHB').textContent=b.stats.apex.toFixed(1)+' m';
+    $('cmpFA').textContent=a.stats.flight.toFixed(2)+' s'; $('cmpFB').textContent=b.stats.flight.toFixed(2)+' s';
+  }
 
   // ---------- Recompute (idle) ----------
   function refresh(){
-    path = null;
+    path = null; pathB = null;
     const pv = computePath(P);
     drawScene(); drawGraph();
-    const start = pv.pts[0];
-    setReadouts(start, pv.stats);
+    setReadouts(pv.pts[0], pv.stats);
+    updateCompare();
   }
 
   // ---------- Animation ----------
+  function totalT(){ return (compare && pathB) ? Math.max(path.max.t, pathB.max.t) : path.max.t; }
   function stopLoop(){ if(anim.raf) cancelAnimationFrame(anim.raf); anim.raf=null; }
   function loop(now){
     const dt = Math.min(0.05,(now-anim.last)/1000); anim.last=now;
     anim.simT += dt*anim.speed;
-    if (anim.simT>=path.max.t){ anim.simT=path.max.t; finishShot(); return; }
+    if (anim.simT>=totalT()){ anim.simT=totalT(); finishShot(); return; }
     renderFrame();
     anim.raf=requestAnimationFrame(loop);
   }
@@ -617,10 +716,12 @@
     drawScene(); drawGraph();
     const cur=pointAt(path,anim.simT);
     setReadouts(cur, path.stats);
+    updateCompare();
     if (tog.sw){ $('swTime').textContent = anim.simT.toFixed(2)+' s'; }
   }
   function fire(){
     path = computePath(P);
+    pathB = compare ? computePath(PB) : null;
     anim.mode='running'; anim.simT=0; anim.last=performance.now();
     $('btnPlay').disabled=false; $('btnPlay').textContent='⏸ Duraklat';
     $('hudHint').textContent='Uçuşta…';
@@ -631,7 +732,6 @@
     renderFrame();
     $('btnPlay').textContent='▶ Oynat'; $('btnPlay').disabled=false;
     $('hudHint').textContent='İniş! Tekrar ateşle 🔁';
-    // store ghost for comparison
     if (path){ ghosts.push({pts:path.pts, color:palette[ghostColor++ % palette.length]}); if(ghosts.length>6) ghosts.shift(); }
   }
   function togglePlay(){
@@ -644,10 +744,10 @@
     }
   }
   function step(){
-    if (!path || anim.mode==='idle'){ path=computePath(P); anim.mode='running'; anim.simT=0; }
+    if (!path || anim.mode==='idle'){ path=computePath(P); pathB=compare?computePath(PB):null; anim.mode='running'; anim.simT=0; }
     stopLoop();
-    anim.simT=Math.min(path.max.t, anim.simT+0.08*anim.speed);
-    if (anim.simT>=path.max.t) finishShot(); else { renderFrame(); $('btnPlay').textContent='▶ Oynat'; $('btnPlay').disabled=false; }
+    anim.simT=Math.min(totalT(), anim.simT+0.08*anim.speed);
+    if (anim.simT>=totalT()) finishShot(); else { renderFrame(); $('btnPlay').textContent='▶ Oynat'; $('btnPlay').disabled=false; }
   }
   function reset(){
     stopLoop(); anim.mode='idle'; anim.simT=0;
@@ -662,7 +762,11 @@
     $('vVal').textContent=P.v0; $('aVal').textContent=P.ang; $('hVal').textContent=P.h0.toFixed(P.h0%1?1:0);
     $('mVal').textContent=P.m.toFixed(1); $('kVal').textContent=P.k.toFixed(3);
     $('v').value=P.v0; $('a').value=P.ang; $('h').value=P.h0; $('m').value=P.m; $('k').value=P.k;
+    $('vBVal').textContent=PB.v0; $('aBVal').textContent=PB.ang; $('hBVal').textContent=PB.h0.toFixed(PB.h0%1?1:0);
+    $('mBVal').textContent=PB.m.toFixed(1); $('kBVal').textContent=PB.k.toFixed(3);
+    $('vB').value=PB.v0; $('aB').value=PB.ang; $('hB').value=PB.h0; $('mB').value=PB.m; $('kB').value=PB.k;
   }
+  // Atış A
   $('v').addEventListener('input',e=>{P.v0=+e.target.value; syncLabels(); reset();});
   $('a').addEventListener('input',e=>{P.ang=+e.target.value; syncLabels(); reset();});
   $('h').addEventListener('input',e=>{P.h0=+e.target.value; syncLabels(); reset();});
@@ -670,6 +774,14 @@
   $('k').addEventListener('input',e=>{P.k=+e.target.value; syncLabels(); reset();});
   $('planet').addEventListener('change',e=>{P.g=+e.target.value; reset();});
   $('dragOn').addEventListener('change',e=>{P.drag=e.target.checked; $('dragKwrap').style.display=P.drag?'':'none'; reset();});
+  // Atış B
+  $('vB').addEventListener('input',e=>{PB.v0=+e.target.value; syncLabels(); reset();});
+  $('aB').addEventListener('input',e=>{PB.ang=+e.target.value; syncLabels(); reset();});
+  $('hB').addEventListener('input',e=>{PB.h0=+e.target.value; syncLabels(); reset();});
+  $('mB').addEventListener('input',e=>{PB.m=+e.target.value; syncLabels(); reset();});
+  $('kB').addEventListener('input',e=>{PB.k=+e.target.value; syncLabels(); reset();});
+  $('planetB').addEventListener('change',e=>{PB.g=+e.target.value; reset();});
+  $('dragOnB').addEventListener('change',e=>{PB.drag=e.target.checked; $('dragKBwrap').style.display=PB.drag?'':'none'; reset();});
 
   $('btnFire').addEventListener('click',fire);
   $('btnPlay').addEventListener('click',togglePlay);
@@ -678,7 +790,15 @@
   $('btnClear').addEventListener('click',()=>{ ghosts=[]; drawScene(); });
   $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
 
-  // toggle buttons
+  $('tgCompare').addEventListener('click',()=>{
+    compare=!compare;
+    $('tgCompare').classList.toggle('on',compare);
+    $('tgCompare').classList.toggle('blue',compare);
+    $('panelB').style.display=compare?'':'none';
+    $('aTag').style.display=compare?'':'none';
+    reset();
+  });
+
   function bindTog(btnId, key, after){
     $(btnId).addEventListener('click',()=>{ tog[key]=!tog[key]; $(btnId).classList.toggle('on',tog[key]); if(after)after(); drawScene(); drawGraph(); });
   }
@@ -686,22 +806,19 @@
   bindTog('tgEnergy','energy',()=>{ $('energyBox').classList.toggle('on',tog.energy); });
   bindTog('tgSw','sw',()=>{ $('stopwatch').classList.toggle('on',tog.sw); });
   bindTog('tgMeasure','measure',()=>{ if(!tog.measure){measure.p1=measure.p2=null;} $('hudHint').textContent = tog.measure?'İki noktaya tıkla/sürükle 📏':'İpucu: topu sürükle 🎯'; });
-  $('tgTarget').addEventListener('click',()=>{ showTarget=!showTarget; $('tgTarget').classList.toggle('on',showTarget); $('targetBox').style.display=showTarget?'':'none'; refresh(); });
+  $('tgTarget').addEventListener('click',()=>{ showTarget=!showTarget; $('tgTarget').classList.toggle('on',showTarget); refresh(); });
 
-  // graph tabs
   document.querySelectorAll('.graph-tabs .tb').forEach(b=>{
     b.addEventListener('click',()=>{ graphMode=b.dataset.g; document.querySelectorAll('.graph-tabs .tb').forEach(x=>x.classList.toggle('on',x===b)); drawGraph(); });
   });
 
-  // ---------- Pointer interaction on scene ----------
+  // ---------- Pointer interaction ----------
   function evtPos(e){ const r=scene.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {px:t.clientX-r.left, py:t.clientY-r.top}; }
   function nearTargetPx(px,py){ if(!showTarget)return false; return Math.abs(px-w2sx(targetX))<16 && py>w2sy(0)-44; }
-
   function pointerDown(e){
     const {px,py}=evtPos(e);
     if (tog.measure){ drag.kind='measure'; const w={x:Math.max(0,s2wx(px)),y:Math.max(0,s2wy(py))}; measure.p1=w; measure.p2=w; drawScene(); e.preventDefault(); return; }
     if (nearTargetPx(px,py)){ drag.kind='target'; e.preventDefault(); return; }
-    // aim (only when idle/done)
     if (anim.mode!=='running'){ drag.kind='aim'; aimTo(px,py); e.preventDefault(); }
   }
   function pointerMove(e){
@@ -715,12 +832,11 @@
   function pointerUp(){ drag.kind=null; }
   function aimTo(px,py){
     const cx=w2sx(0), cy=w2sy(P.h0);
-    const dx=px-cx, dy=cy-py;            // up positive
+    const dx=px-cx, dy=cy-py;
     let ang=Math.atan2(dy,dx)*180/Math.PI;
     ang=Math.max(5,Math.min(85,ang));
     const dist=Math.hypot(px-cx,py-cy);
-    let v0=Math.round(dist/4);
-    v0=Math.max(5,Math.min(100,v0));
+    let v0=Math.max(5,Math.min(100,Math.round(dist/4)));
     P.ang=Math.round(ang); P.v0=v0; syncLabels();
     if (anim.mode==='done'){ anim.mode='idle'; $('btnPlay').disabled=true; }
     refresh();
