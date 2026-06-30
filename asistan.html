@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fizo — Canlı Fizik Asistanı | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Fizo, benfizikyapamiyorum.com'un canlı fizik asistanı. Konu sorar, anlatım ve test alırsın; sesli konuşur, sorularını adım adım çözer. Maarif (TYMM) uyumlu, ücretsiz.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/asistan.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="Fizo — Canlı Fizik Asistanı">
+<meta property="og:description" content="Konu anlatımı, test önerisi ve adım adım soru çözümü — sesli, canlı fizik asistanı.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/asistan.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Fizo — Canlı Fizik Asistanı">
+<meta name="twitter:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root{ --as-ink:#0e0c08; --as-coral:#e26d4f; --as-gold:#d4a017; --as-muted:#5a544a;
+    --as-blue:#2d7dd2; --as-line:#e7dcc6; --as-navy:#1c2336; }
+  .as-head h1{margin:.2em 0 .15em;}
+  .as-head .sub{color:var(--as-muted);font-size:1.02rem;line-height:1.6;max-width:720px;}
+  .badge-demo{display:inline-block;background:#fff3d6;color:#8a6500;border:1px solid #ecd9a3;
+    font-weight:800;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:20px;}
+
+  .as-grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;margin-top:18px;align-items:stretch;}
+  @media(max-width:860px){.as-grid{grid-template-columns:1fr;}}
+
+  .mascot-card{background:linear-gradient(160deg,#1c2336,#2a3450);border-radius:20px;padding:18px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;overflow:hidden;
+    box-shadow:0 12px 30px rgba(0,0,0,.16);}
+  .mascot-card .stagebg{position:absolute;inset:0;background:
+    radial-gradient(120px 120px at 50% 30%, rgba(226,109,79,.20), transparent 70%);}
+  #fizo{width:230px;max-width:80%;height:auto;position:relative;z-index:2;}
+  .mascot-name{color:#fff;font-weight:800;margin-top:6px;z-index:2;}
+  .mascot-state{color:#9fb0d6;font-size:.82rem;z-index:2;min-height:18px;}
+  .mascot-card .ctrls{display:flex;gap:8px;margin-top:10px;z-index:2;}
+  .icbtn{width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);
+    color:#fff;font-size:1.05rem;cursor:pointer;display:grid;place-items:center;transition:.15s;}
+  .icbtn:hover{background:rgba(255,255,255,.18);}
+  .icbtn.on{background:var(--as-coral);border-color:var(--as-coral);}
+  .voiceSel{margin-top:11px;max-width:92%;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);
+    border-radius:9px;padding:7px 9px;font-family:inherit;font-size:.8rem;z-index:2;cursor:pointer;}
+  .voiceSel option{color:#111;}
+  .voicehint{margin-top:8px;background:none;border:none;color:#9fb0d6;font-size:.78rem;text-decoration:underline;cursor:pointer;z-index:2;}
+  .voicetip{display:none;margin-top:8px;background:rgba(255,255,255,.96);color:#26303f;border-radius:10px;padding:11px 13px;
+    font-size:.78rem;line-height:1.55;z-index:2;text-align:left;}
+  .voicetip.on{display:block;}
+
+  .chat-card{background:#fff;border:1px solid var(--as-line);border-radius:20px;display:flex;flex-direction:column;
+    min-height:520px;box-shadow:0 8px 22px rgba(0,0,0,.06);overflow:hidden;}
+  .chat-feed{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:62vh;}
+  .msg{max-width:86%;padding:11px 15px;border-radius:16px;line-height:1.55;font-size:.96rem;}
+  .msg a{color:var(--as-coral);font-weight:700;}
+  .msg.bot{background:#f6efe0;border:1px solid var(--as-line);align-self:flex-start;border-bottom-left-radius:5px;}
+  .msg.me{background:var(--as-navy);color:#fff;align-self:flex-end;border-bottom-right-radius:5px;}
+  .msg .frm{display:block;background:#fff;border:1px dashed #d8cba6;border-radius:8px;padding:6px 10px;margin:7px 0;
+    font-family:ui-monospace,Menlo,monospace;font-size:.9rem;color:#1c2336;}
+  .msg.bot .chips{margin-top:9px;display:flex;flex-wrap:wrap;gap:7px;}
+  .chip{background:#fff;border:1.5px solid var(--as-line);border-radius:18px;padding:6px 12px;font-size:.82rem;
+    font-weight:700;color:var(--as-ink);cursor:pointer;transition:.15s;}
+  .chip:hover{background:var(--as-gold);border-color:var(--as-gold);color:#1c1403;}
+  .typing{align-self:flex-start;background:#f6efe0;border:1px solid var(--as-line);border-radius:16px;padding:12px 16px;display:none;}
+  .typing.on{display:flex;gap:4px;}
+  .typing i{width:7px;height:7px;border-radius:50%;background:#b6a988;display:inline-block;animation:bd 1s infinite;}
+  .typing i:nth-child(2){animation-delay:.15s;} .typing i:nth-child(3){animation-delay:.3s;}
+  @keyframes bd{0%,60%,100%{transform:translateY(0);opacity:.5;}30%{transform:translateY(-5px);opacity:1;}}
+
+  .chat-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--as-line);background:#faf7f0;}
+  .chat-input input{flex:1;padding:12px 14px;border:1.5px solid var(--as-line);border-radius:12px;font-family:inherit;font-size:1rem;background:#fff;}
+  .chat-input button{border:none;border-radius:12px;padding:0 16px;font-weight:800;cursor:pointer;font-family:inherit;}
+  .send-btn{background:var(--as-coral);color:#fff;}
+  .mic-btn{background:#fff;border:1.5px solid var(--as-line)!important;color:var(--as-ink);width:48px;}
+  .mic-btn.on{background:var(--as-coral);color:#fff;}
+  .quick{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 12px;background:#faf7f0;}
+  .quick .chip{background:#fff;}
+
+  .as-note{margin-top:18px;background:#1c2336;color:#cdd6ea;border-radius:14px;padding:16px 20px;font-size:.9rem;line-height:1.6;}
+  .as-note b{color:#fff;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text">
+        <span>Ben Fizik Yapamıyorum</span>
+        <small>Yapabilirsin. Söz veriyorum.</small>
+      </span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="asistan.html" class="active">Asistan</a></li>
+      <li><a href="simulasyonlar.html">Simülasyonlar</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head as-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / Asistan</div>
+    <h1>🤖 Fizo — Canlı Fizik Asistanı <span class="badge-demo">Demo</span></h1>
+    <p class="sub">Konu sor, anlatım ve test al; sesli konuşur, sorularını adım adım çözer. Konuşurken dudağı ve kolları oynar 🙂. <strong>Şu an demo modunda</strong> — formül, mini örnek ve site içeriğiyle yardımcı olur; tam AI beyni bağlanınca her soruyu çözer.</p>
+  </div>
+
+  <div class="as-grid">
+    <!-- MASCOT -->
+    <div class="mascot-card">
+      <div class="stagebg"></div>
+      <svg id="fizo" viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg" aria-label="Fizo">
+        <defs>
+          <radialGradient id="headg" cx="42%" cy="36%" r="70%">
+            <stop offset="0%" stop-color="#ffd9a8"/><stop offset="100%" stop-color="#f0a878"/>
+          </radialGradient>
+        </defs>
+        <g id="electrons">
+          <ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="rgba(226,109,79,.35)" stroke-width="2"/>
+          <ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="rgba(45,125,210,.30)" stroke-width="2" transform="rotate(60 150 120)"/>
+          <ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="rgba(212,160,23,.30)" stroke-width="2" transform="rotate(120 150 120)"/>
+          <circle id="el1" cx="268" cy="120" r="7" fill="#e26d4f"/>
+          <circle id="el2" cx="32" cy="120" r="6" fill="#2d7dd2"/>
+          <circle id="el3" cx="150" cy="120" r="6" fill="#d4a017"/>
+        </g>
+        <g id="bodyG">
+          <g id="armL"><rect x="74" y="232" width="20" height="58" rx="10" fill="#2a3450"/><circle cx="84" cy="294" r="13" fill="#f0a878" stroke="#d98a5c" stroke-width="2"/></g>
+          <g id="armR"><rect x="206" y="232" width="20" height="58" rx="10" fill="#2a3450"/><circle cx="216" cy="294" r="13" fill="#f0a878" stroke="#d98a5c" stroke-width="2"/></g>
+          <rect x="96" y="222" width="108" height="86" rx="26" fill="#2a3450"/>
+          <text x="150" y="276" font-size="34" font-weight="800" text-anchor="middle" fill="#ffd98a" font-family="Georgia,serif">φ</text>
+        </g>
+        <g id="headG">
+          <circle cx="150" cy="120" r="78" fill="url(#headg)" stroke="#d98a5c" stroke-width="2"/>
+          <rect id="browL" x="104" y="86" width="32" height="7" rx="3.5" fill="#7a4a2c"/>
+          <rect id="browR" x="164" y="86" width="32" height="7" rx="3.5" fill="#7a4a2c"/>
+          <g id="eyeL"><ellipse cx="120" cy="112" rx="15" ry="17" fill="#fff"/><circle cx="123" cy="114" r="7.5" fill="#22303f"/><circle cx="126" cy="111" r="2.4" fill="#fff"/></g>
+          <g id="eyeR"><ellipse cx="180" cy="112" rx="15" ry="17" fill="#fff"/><circle cx="183" cy="114" r="7.5" fill="#22303f"/><circle cx="186" cy="111" r="2.4" fill="#fff"/></g>
+          <circle cx="106" cy="142" r="10" fill="rgba(226,109,79,.30)"/>
+          <circle cx="194" cy="142" r="10" fill="rgba(226,109,79,.30)"/>
+          <path id="smile" d="M128 150 Q150 168 172 150" fill="none" stroke="#7a4a2c" stroke-width="5" stroke-linecap="round"/>
+          <ellipse id="mouth" cx="150" cy="154" rx="16" ry="0" fill="#5a2d1c" opacity="0"/>
+        </g>
+      </svg>
+      <div class="mascot-name">Fizo</div>
+      <div class="mascot-state" id="state">Merhaba! Bir şey sor 👇</div>
+      <div class="ctrls">
+        <button class="icbtn on" id="btnVoice" title="Sesi aç/kapat">🔊</button>
+        <button class="icbtn" id="btnWave" title="Selam ver">👋</button>
+      </div>
+      <select id="voiceSel" class="voiceSel" title="Ses seç"></select>
+      <button class="voicehint" id="voiceHint" type="button">🔧 Daha doğal ses nasıl olur?</button>
+      <div class="voicetip" id="voiceTip">
+        <b>Daha doğal Türkçe ses için:</b><br>
+        • <b>Chrome</b>'da aç → ses menüsünden <b>“Google Türkçe”</b>yi seç (en doğalı, internetten gelir).<br>
+        • <b>Mac</b>: Sistem Ayarları → Erişilebilirlik → Sözlü İçerik → Sistem Sesi → Türkçe <b>“Yelda (Gelişmiş/Premium)”</b> sesini indir.<br>
+        • <b>iPhone/iPad</b>: Ayarlar → Erişilebilirlik → Sözlü İçerik → Sesler → Türkçe → geliştirilmiş ses.<br>
+        En kalıcı çözüm (stüdyo kalitesi yapay zekâ sesi) AI beyni bağlanınca eklenebilir.
+      </div>
+    </div>
+
+    <!-- SOHBET -->
+    <div class="chat-card">
+      <div class="chat-feed" id="feed">
+        <div class="typing" id="typing"><i></i><i></i><i></i></div>
+      </div>
+      <div class="quick" id="quick">
+        <button class="chip" data-q="Eğik atışı anlatır mısın?">🎯 Eğik atış</button>
+        <button class="chip" data-q="Enerjinin korunumu nedir?">🔋 Enerji</button>
+        <button class="chip" data-q="Dalgalarda v = λf nedir?">🌊 Dalga</button>
+        <button class="chip" data-q="Ohm yasası nedir?">⚡ Ohm yasası</button>
+        <button class="chip" data-q="Momentum nedir?">🎱 Momentum</button>
+        <button class="chip" data-q="Nasıl fizik çalışmalıyım?">💡 Çalışma taktiği</button>
+      </div>
+      <div class="chat-input">
+        <button class="mic-btn" id="btnMic" title="Konuşarak sor">🎤</button>
+        <input id="inp" type="text" placeholder="Fizo'ya bir şey sor… (ör. 'sarkacın periyodu')" autocomplete="off">
+        <button class="send-btn" id="btnSend">Gönder</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="as-note">
+    <b>Nasıl çalışır?</b> Şu an Fizo <b>demo modunda</b>: konuyu anlar, formül + kısa örnekle açıklar ve sitedeki doğru simülasyon/test/konu sayfasına yönlendirir. Gerçek AI beyni (bir Cloudflare Worker üzerinden) bağlanınca her fizik sorusunu adım adım çözer. Sesli yanıt için tarayıcının Türkçe konuşma motoru, mikrofon için konuşma tanıma kullanılır (Chrome'da en iyi çalışır).
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="hakkimda.html">Hakkımda</a> ·
+      <a href="simulasyonlar.html">Simülasyonlar</a> ·
+      <a href="oyunlar.html">Oyunlar</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+
+  // ====== gerçek AI'yı bağlamak için Worker adresini buraya yaz ======
+  const CONFIG = { apiUrl: "", voiceOn: true };
+
+  const feed=$('feed'), typing=$('typing'), inp=$('inp'), stateEl=$('state');
+
+  // ---------- Mascot animasyonu ----------
+  const headG=$('headG'), bodyG=$('bodyG'), electrons=$('electrons');
+  const mouth=$('mouth'), smile=$('smile'), eyeL=$('eyeL'), eyeR=$('eyeR');
+  const browL=$('browL'), browR=$('browR'), armL=$('armL'), armR=$('armR');
+  let speaking=false, mouthOpen=0, t0=performance.now();
+  let blinkAt=1.5, gesture=null, gestureEnd=0;
+
+  function setMouth(o){
+    if(o>0.06){ mouth.setAttribute('ry',(2+o*13).toFixed(1)); mouth.setAttribute('opacity','1'); smile.setAttribute('opacity','0'); }
+    else { mouth.setAttribute('opacity','0'); smile.setAttribute('opacity','1'); }
+  }
+  function loop(now){
+    const t=(now-t0)/1000;
+    const bob=Math.sin(t*2)*3;
+    headG.setAttribute('transform',`translate(0 ${bob})`);
+    bodyG.setAttribute('transform',`translate(0 ${bob*0.4})`);
+    electrons.setAttribute('transform',`rotate(${(t*55)%360} 150 120)`);
+    posEl('el1',t*1.6, 118,44, 0); posEl('el2',t*1.6+2.1, 118,44, 60); posEl('el3',t*1.6+4.2, 118,44, 120);
+    let target=0;
+    if(speaking) target=0.3+0.55*Math.abs(Math.sin(t*20))*(0.6+0.4*Math.random());
+    mouthOpen+=(target-mouthOpen)*0.4; setMouth(mouthOpen);
+    const bup = speaking? -3:0; browL.setAttribute('y',86+bup); browR.setAttribute('y',86+bup);
+    if(t>blinkAt){ blink(); blinkAt=t+2+Math.random()*3; }
+    let aL=8*Math.sin(t*1.3), aR=-8*Math.sin(t*1.3);
+    if(gesture && now<gestureEnd){
+      if(gesture==='wave') aR=-35+Math.sin(now/55)*22;
+      if(gesture==='point') aR=-48;
+    } else gesture=null;
+    armL.setAttribute('transform',`rotate(${aL} 84 232)`);
+    armR.setAttribute('transform',`rotate(${aR} 216 232)`);
+    requestAnimationFrame(loop);
+  }
+  function posEl(id,ang,rx,ry,rot){
+    const el=$(id); if(!el)return;
+    const x=Math.cos(ang)*rx, y=Math.sin(ang)*ry, r=rot*Math.PI/180, cx=150, cy=120;
+    el.setAttribute('cx',(cx + x*Math.cos(r) - y*Math.sin(r)).toFixed(1));
+    el.setAttribute('cy',(cy + x*Math.sin(r) + y*Math.cos(r)).toFixed(1));
+  }
+  let blinking=false;
+  function blink(){
+    if(blinking)return; blinking=true;
+    eyeL.setAttribute('transform','translate(0 112) scale(1 0.1) translate(0 -112)');
+    eyeR.setAttribute('transform','translate(0 112) scale(1 0.1) translate(0 -112)');
+    setTimeout(()=>{ eyeL.removeAttribute('transform'); eyeR.removeAttribute('transform'); blinking=false; },120);
+  }
+  function doGesture(name){ gesture=name; gestureEnd=performance.now()+(name==='wave'?1400:900); }
+  requestAnimationFrame(loop);
+
+  // ---------- Ses (TTS) — en doğal Türkçe sesi seç ----------
+  let voices=[], chosenVoice=null;
+  const voiceSel=$('voiceSel');
+  function rankVoice(v){
+    const n=(v.name||'').toLowerCase(), l=(v.lang||'').toLowerCase(); let s=0;
+    if(l.startsWith('tr')) s+=100;
+    if(/google/.test(n)) s+=45;
+    if(/(enhanced|premium|natural|neural|gelişmiş|gelismis)/.test(n)) s+=35;
+    if(/(yelda|filiz|tolga|seda|aylin|cem)/.test(n)) s+=22;
+    if(/microsoft/.test(n)) s+=10;
+    return s;
+  }
+  function populateVoices(){
+    if(!window.speechSynthesis) return;
+    const all=speechSynthesis.getVoices()||[];
+    voices = all.filter(v=>(v.lang||'').toLowerCase().startsWith('tr'));
+    if(!voices.length) voices = all.slice();
+    voices.sort((a,b)=>rankVoice(b)-rankVoice(a));
+    if(voiceSel){
+      voiceSel.innerHTML='';
+      voices.forEach((v,i)=>{ const o=document.createElement('option'); o.value=i;
+        o.textContent=v.name+(/^tr/i.test(v.lang)?'':' ('+v.lang+')'); voiceSel.appendChild(o); });
+    }
+    chosenVoice = voices[0]||null;
+    if(voiceSel && chosenVoice) voiceSel.value='0';
+  }
+  if(window.speechSynthesis){ populateVoices(); speechSynthesis.onvoiceschanged=populateVoices; }
+  if(voiceSel) voiceSel.addEventListener('change',()=>{ chosenVoice=voices[+voiceSel.value]||null; if(chosenVoice) speak('Merhaba, sesim böyle nasıl?'); });
+  function speak(text){
+    if(!CONFIG.voiceOn || !window.speechSynthesis || !text) return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='tr-TR'; if(chosenVoice)u.voice=chosenVoice; u.rate=1.0; u.pitch=1.05;
+    u.onstart=()=>{ speaking=true; stateEl.textContent='Konuşuyor… 🗣️'; };
+    u.onend=()=>{ speaking=false; stateEl.textContent='Dinliyorum 🙂'; };
+    u.onboundary=()=>{ mouthOpen=Math.min(1,mouthOpen+0.5); };
+    speechSynthesis.speak(u);
+  }
+
+  // ---------- Sohbet ----------
+  function addMsg(who, html, chips){
+    const d=document.createElement('div'); d.className='msg '+who; d.innerHTML=html;
+    if(chips&&chips.length){
+      const c=document.createElement('div'); c.className='chips';
+      chips.forEach(q=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=q; b.onclick=()=>ask(q); c.appendChild(b); });
+      d.appendChild(c);
+    }
+    feed.insertBefore(d, typing); feed.scrollTop=feed.scrollHeight; return d;
+  }
+  const strip = h => h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+
+  async function ask(q){
+    q=(q||'').trim(); if(!q) return;
+    addMsg('me', escapeHtml(q)); inp.value='';
+    typing.classList.add('on'); stateEl.textContent='Düşünüyor… 🤔'; feed.scrollTop=feed.scrollHeight;
+    let res;
+    try{
+      if(CONFIG.apiUrl){ res={html: escapeHtml(await callAI(q))}; }
+      else { await wait(420+Math.random()*340); res=localBrain(q); }
+    }catch(e){ res={html:"Şu an cevabı getiremedim 😅. Birazdan tekrar dener misin?"}; }
+    typing.classList.remove('on');
+    doGesture(res.link?'point':'wave');
+    addMsg('bot', res.html, res.chips);
+    speak(res.speak || strip(res.html));
+  }
+  async function callAI(q){
+    const r=await fetch(CONFIG.apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:[{role:'user',content:q}]})});
+    if(!r.ok) throw new Error('worker');
+    const d=await r.json(); return d.reply || "…";
+  }
+
+  // ---------- Demo beyin (zenginleştirilmiş) ----------
+  const L = (t,href)=>`<a href="${href}">${t}</a>`;
+  const F = s => `<span class="frm">${s}</span>`;
+  const KB = [
+    { k:['eğik','egik','atış','atis','parabol','menzil','yatay atış'], link:1,
+      html:`<b>Eğik atış</b> = yatayda sabit hız + düşeyde yerçekimiyle ivmeli hareket.${F('vₓ = v₀·cosθ (sabit) , v_y = v₀·sinθ − g·t')}${F('Menzil R = v₀²·sin(2θ) / g  → en büyük menzil 45°de')}<b>Mini örnek:</b> v₀=20 m/s, θ=30° → R = 400·sin60°/9.8 ≈ 35,3 m. Kendin denemek için ${L('Eğik Atış Laboratuvarı','egik-atis-laboratuvari.html')}.`,
+      speak:`Eğik atış, yatayda sabit hız ve düşeyde yerçekimiyle ivmeli hareketin birleşimidir. Menzil 45 derecede en büyüktür. Laboratuvarda kendin deneyebilirsin.`,
+      chips:['Menzil neden 45°de en büyük?','Eğik Atış Laboratuvarı','Bana test öner'] },
+    { k:['enerji korunum','korunum','mekanik enerji'], link:1,
+      html:`<b>Enerjinin korunumu:</b> sürtünme yoksa kinetik + potansiyel enerji toplamı sabittir.${F('KE = ½·m·v²   ,   PE = m·g·h   ,   KE+PE = sabit')}h yükseklikten serbest düşen cismin yere çarpma hızı: ${F('v = √(2·g·h)')}Canlı barlarla görmek için ${L('Enerji &amp; Sarkaç Laboratuvarı','enerji-sarkac-laboratuvari.html')}.`,
+      speak:`Sürtünme yoksa kinetik ve potansiyel enerjinin toplamı sabit kalır. Tepe noktada potansiyel, en altta kinetik enerji en büyüktür. Laboratuvarda barlarla görebilirsin.`,
+      chips:['İş ve güç nedir?','Sarkaçta periyot','Bana test öner'] },
+    { k:['iş','güç','is','guc','watt','joule'], link:0,
+      html:`<b>İş, Güç, Enerji:</b>${F('İş: W = F·x·cosθ   (birim: Joule)')}${F('Güç: P = W / t   (birim: Watt)')}<b>Örnek:</b> 50 N kuvvetle 4 m → W = 200 J; bunu 5 s'de yaparsan P = 40 W.`,
+      speak:`İş, kuvvet çarpı yol çarpı kosinüs theta'dır ve birimi Jouldür. Güç ise işin zamana bölümüdür, birimi Wattır.`,
+      chips:['Enerjinin korunumu','Kinetik enerji nedir?'] },
+    { k:['kinetik','potansiyel'], link:0,
+      html:`<b>Kinetik enerji</b> hareketin enerjisidir: ${F('KE = ½·m·v²')} <b>Potansiyel enerji</b> yükseklikten gelir: ${F('PE = m·g·h')} Hız iki katına çıkarsa kinetik enerji <b>dört katına</b> çıkar (v² yüzünden).`,
+      speak:`Kinetik enerji yarım m v karedir; hız iki katına çıkarsa enerji dört katına çıkar. Potansiyel enerji ise m g h'dir.`,
+      chips:['Enerjinin korunumu','İş ve güç'] },
+    { k:['sarkaç','sarkac','periyot','salınım','salinim'], link:1,
+      html:`<b>Basit sarkaçta periyot:</b> ${F('T = 2π·√(L/g)')} Sadece <b>ip uzunluğu</b> ve <b>g</b>'ye bağlıdır — kütleden bağımsız! <b>Örnek:</b> L=1 m, g=9,8 → T ≈ 2,0 s. ${L('Enerji &amp; Sarkaç Laboratuvarı','enerji-sarkac-laboratuvari.html')}'nda gezegeni değiştir, farkı gör.`,
+      speak:`Basit sarkacın periyodu iki pi kök L bölü g'dir. Sadece ip uzunluğu ve yerçekimine bağlıdır, kütleden bağımsızdır. Bir metrelik sarkacın periyodu yaklaşık iki saniyedir.`,
+      chips:['Neden kütleden bağımsız?','Enerjinin korunumu','Test öner'] },
+    { k:['dalga','frekans','dalga boyu','periyot dalga','λ','lamda','lambda'], link:1,
+      html:`<b>Dalgalarda hız:</b> ${F('v = λ·f   (dalga boyu × frekans)')} Ayrıca ${F('f = 1/T   ,   k = 2π/λ   ,   ω = 2π·f')}Ses havada ≈ 340 m/s, ışık ≈ 3×10⁸ m/s. <b>Örnek:</b> λ=2 m, f=5 Hz → v = 10 m/s. ${L('Dalga Laboratuvarı','dalga-laboratuvari.html')}.`,
+      speak:`Dalgalarda hız, dalga boyu çarpı frekanstır. Frekans arttıkça ya da dalga boyu büyüdükçe hız artar. Laboratuvarda canlı görebilirsin.`,
+      chips:['Duran dalga nedir?','Girişim nedir?','Bana test öner'] },
+    { k:['duran dalga','girişim','girisim','süperpozisyon','superpozisyon','düğüm','karın'], link:1,
+      html:`İki dalga üst üste binince genlikler toplanır (<b>süperpozisyon</b>). Aynı dalga boyu ve frekanslı, <b>zıt yönde</b> iki dalga → <b>duran dalga</b>: hiç hareket etmeyen <b>düğüm</b> ve en çok salınan <b>karın</b> noktaları oluşur. ${L('Dalga Laboratuvarı','dalga-laboratuvari.html')}'nda "İkinci dalga"yı aç, dene!`,
+      speak:`İki dalga üst üste binince genlikleri toplanır. Aynı dalga boyu ve frekansta zıt yönlü iki dalga duran dalga oluşturur; sabit düğüm ve karın noktaları görürsün.`,
+      chips:['Dalgada v = λf','Bana test öner'] },
+    { k:['ohm','elektrik','devre','akım','akim','gerilim','direnç','direnc','voltaj','güç elektrik'], link:1,
+      html:`<b>Ohm yasası:</b> ${F('V = I·R   →   I = V/R')} <b>Elektriksel güç:</b> ${F('P = V·I = I²·R')}Gerilim artarsa akım artar, direnç artarsa akım azalır. <b>Örnek:</b> 12 V, 4 Ω → I = 3 A, P = 36 W. Oyunla pekiştir: ${L('Devre Ustası','devre-ustasi.html')}.`,
+      speak:`Ohm yasasına göre gerilim, akım çarpı dirençtir. Güç ise gerilim çarpı akımdır. On iki volt ve dört ohm için akım üç amper, güç otuz altı watt olur.`,
+      chips:['Seri/paralel direnç farkı','Devre Ustası oyunu','Test öner'] },
+    { k:['hız','hiz','sürat','surat','ivme','hareket','kinematik','grafik','konum','serbest düş'], link:1,
+      html:`<b>Hareket (kinematik):</b>${F('ortalama hız: v = Δx / Δt   ,   ivme: a = Δv / Δt')}${F('sabit ivme: x = v₀·t + ½·a·t²   ,   v = v₀ + a·t')}Hız-zaman grafiğinde <b>eğim = ivme</b>, <b>altındaki alan = yol</b>. ${L('Grafik Yarışı oyunu','grafik-yarisi.html')} ile pekiştir.`,
+      speak:`Ortalama hız yer değiştirmenin zamana bölümüdür, ivme ise hız değişiminin zamana bölümüdür. Hız zaman grafiğinde eğim ivmeyi, altındaki alan yolu verir.`,
+      chips:['İvme nedir?','Serbest düşme','9. sınıf konuları'] },
+    { k:['kuvvet','newton','dinamik','denge'], link:0,
+      html:`<b>Newton'ın yasaları:</b> ①Kuvvet yoksa cisim hızını korur (eylemsizlik). ②${F('F_net = m·a')} ③Her etkiye eşit-zıt bir tepki vardır. <b>Örnek:</b> 2 kg'lık cisme 10 N net kuvvet → a = 5 m/s².`,
+      speak:`Newton'ın ikinci yasasına göre net kuvvet, kütle çarpı ivmedir. İki kilogramlık cisme on Newton kuvvet uygulanırsa ivmesi beş metre bölü saniye kare olur.`,
+      chips:['Sürtünme kuvveti','Eğik atışı anlat'] },
+    { k:['momentum','impuls','çarpış','carpis','itme'], link:0,
+      html:`<b>Momentum:</b> ${F('p = m·v   (birim: kg·m/s)')} Dışarıdan kuvvet yoksa <b>toplam momentum korunur</b> — çarpışmalarda çok işe yarar. <b>İtme:</b> ${F('J = F·Δt = Δp')} Esnek çarpışmada kinetik enerji de korunur; esnek olmayanda bir kısmı ısıya gider.`,
+      speak:`Momentum, kütle çarpı hızdır. Dış kuvvet yoksa toplam momentum korunur. İtme ise kuvvet çarpı zamandır ve momentum değişimine eşittir.`,
+      chips:['Esnek çarpışma nedir?','Enerjinin korunumu'] },
+    { k:['basınç','basinc','pascal','sıvı basıncı','kaldırma','arşimet','arsimet'], link:0,
+      html:`<b>Basınç:</b> ${F('P = F / A   (birim: Pascal)')} <b>Sıvı basıncı:</b> ${F('P = h·ρ·g')} (derinlik arttıkça artar). <b>Arşimet:</b> kaldırma kuvveti = taşan sıvının ağırlığı, ${F('F_kaldırma = ρ_sıvı·V·g')}`,
+      speak:`Basınç, kuvvetin yüzey alanına bölümüdür ve birimi Pascaldır. Sıvı basıncı derinlik çarpı yoğunluk çarpı yerçekimidir.`,
+      chips:['Arşimet ilkesi','Test öner'] },
+    { k:['ısı','isi','sıcaklık','sicaklik','kalori','genleşme'], link:0,
+      html:`<b>Isı ve sıcaklık farklıdır:</b> sıcaklık moleküllerin ortalama hareketi, ısı ise aktarılan enerjidir.${F('Q = m·c·ΔT   (c: öz ısı)')}<b>Örnek:</b> 2 kg su (c=4200) 10°C ısınır → Q = 2·4200·10 = 84.000 J.`,
+      speak:`Sıcaklık moleküllerin ortalama hareketidir, ısı ise aktarılan enerjidir. Alınan ısı, kütle çarpı öz ısı çarpı sıcaklık değişimidir.`,
+      chips:['Öz ısı nedir?','Enerjinin korunumu'] },
+    { k:['optik','mercek','ışık','isik','kırılma','kirilma','ayna','yansıma','yansima','snell'], link:0,
+      html:`<b>Optik temelleri:</b> Yansımada gelme açısı = yansıma açısı. Kırılmada ışık ortam değiştirince yön değiştirir (Snell). <b>İnce kenarlı mercek</b> ışığı toplar, <b>kalın kenarlı</b> dağıtır.${F('Mercek/ayna denklemi: 1/f = 1/dᵒ + 1/dᵢ')}Optik laboratuvarı çok yakında geliyor 🔍.`,
+      speak:`Yansımada gelme açısı yansıma açısına eşittir. Kırılmada ışık ortam değiştirince yön değiştirir. İnce kenarlı mercek ışığı toplar, kalın kenarlı dağıtır.`,
+      chips:['Dalga konusunu anlat','11. sınıf konuları'] },
+    { k:['nasıl çalış','nasil calis','çalışma','calisma','tüyo','taktik','motivasyon','verim'], link:1,
+      html:`<b>Fizik çalışma taktiği 💡:</b> ①Önce <b>kavramı</b> anla, formülü ezberleme — ${L('simülasyonlarla','simulasyonlar.html')} görerek öğren. ②Her konudan sonra ${L('test çöz','testler.html')}, hatanı not al. ③Formül kartı çıkar. ④Az ama <b>düzenli</b> çalış. ⑤Sıkılınca ${L('oyunlarla','oyunlar.html')} tekrar et. Yapabilirsin, söz! 💪`,
+      speak:`Önce kavramı anla, formülü ezberleme; simülasyonlarla görerek öğren. Her konudan sonra test çöz ve hatalarını not al. Az ama düzenli çalış. Yapabilirsin!`,
+      chips:['Bana test öner','Eğik atışı anlat','Simülasyonları göster'] },
+    { k:['yıllık plan','yillik plan','öğretmen','ogretmen','zümre','zumre','ders planı','materyal'], link:1,
+      html:`Öğretmenler için 🎁 2026 Maarif uyumlu <b>ücretsiz yıllık planlar (9-12)</b>: ${L('buradan indir','fizik-yillik-plani-indir.html')}. Hazır ders planı, çalışma kâğıdı, test ve slaytlar ${L('BFY Hoca Kiti','materyaller.html')}'nde.`,
+      speak:`Öğretmenler için iki bin yirmi altı Maarif uyumlu ücretsiz yıllık planlar hazır. İndirme sayfasından alabilirsin.`,
+      chips:['Simülasyonları göster','Test öner'] },
+    { k:['test','deneme','quiz','soru bankası'], link:1,
+      html:`Seviyene uygun ${L('online testler','testler.html')} hazır 📝. Bir konu söyle (ör. "dalga"), oraya yönlendireyim. <i>AI beynim bağlanınca her soruyu adım adım da çözeceğim!</i>`,
+      speak:`Online testler hazır. Hangi konuda test istediğini söyle, seni yönlendireyim.`,
+      chips:['Eğik atış','Enerji','Dalga','Ohm yasası'] },
+    { k:['simülasyon','simulasyon','laboratuvar','lab'], link:1,
+      html:`Tüm ${L('interaktif simülasyonlar','simulasyonlar.html')} burada 🔬: ${L('Eğik Atış','egik-atis-laboratuvari.html')}, ${L('Enerji &amp; Sarkaç','enerji-sarkac-laboratuvari.html')}, ${L('Dalga','dalga-laboratuvari.html')} laboratuvarları + PhET.`,
+      speak:`Tüm interaktif simülasyonlar hazır: eğik atış, enerji-sarkaç ve dalga laboratuvarları.`,
+      chips:['Eğik Atış Laboratuvarı','Dalga Laboratuvarı'] },
+    { k:['oyun','oyna'], link:1,
+      html:`4 ücretsiz fizik oyunu 🎮: ${L('oyunlar sayfası','oyunlar.html')} — Roket İnişi, Eğik Atış, Devre Ustası, Grafik Yarışı.`,
+      speak:`Dört ücretsiz fizik oyunu var: roket inişi, eğik atış, devre ustası ve grafik yarışı.`,
+      chips:['Eğik atışı anlat','Ohm yasası nedir?'] }
+  ];
+  const GRADE = {
+    '9':'9-sinif-fizik-konulari.html','10':'10-sinif-fizik-konulari.html',
+    '11':'11-sinif-fizik-konulari.html','12':'12-sinif-fizik-konulari.html'
+  };
+  const CHIP_LINK={
+    'Eğik Atış Laboratuvarı':'egik-atis-laboratuvari.html','Dalga Laboratuvarı':'dalga-laboratuvari.html',
+    'Enerji & Sarkaç Laboratuvarı':'enerji-sarkac-laboratuvari.html','Devre Ustası oyunu':'devre-ustasi.html',
+    'Simülasyonları göster':'simulasyonlar.html','9. sınıf konuları':'9-sinif-fizik-konulari.html',
+    '11. sınıf konuları':'11-sinif-fizik-konulari.html'
+  };
+
+  function localBrain(q){
+    const s=q.toLocaleLowerCase('tr');
+    if(/(merhaba|selam|sa\b|naber|hey|hello|günaydın|gunaydin)/.test(s))
+      return {html:`Merhaba! 👋 Ben <b>Fizo</b>, fizik asistanın. Bir konu sor (ör. "enerji", "eğik atış", "momentum"), formül ve örnekle anlatayım, doğru simülasyon/testi vereyim. İstersen 🎤 ile konuşarak da sorabilirsin!`,
+        speak:`Merhaba! Ben Fizo, fizik asistanın. Bir konu sor, sana formül ve örnekle anlatayım.`, chips:['🎯 Eğik atış','🔋 Enerji','🌊 Dalga','💡 Çalışma taktiği']};
+    if(/(teşekkür|tesekkur|sağ ?ol|sagol|eyvallah|harika|süper|super)/.test(s))
+      return {html:`Rica ederim! 😊 Başka neyi merak ediyorsun?`, speak:`Rica ederim! Başka neyi merak ediyorsun?`, chips:['Test öner','Simülasyonları göster']};
+    // sınıf bazlı
+    const gm=s.match(/\b(9|10|11|12)\s*\.?\s*sınıf/);
+    if(gm) return {html:`<b>${gm[1]}. sınıf fizik konuları</b> ve müfredatı için ${L('konu listesi sayfası',GRADE[gm[1]])} 📚. Hangi konuyu açayım?`, speak:`${gm[1]}inci sınıf fizik konularını listeledim. Hangi konuyu açmamı istersin?`, link:1, chips:['Hareket','Enerji','Dalga','Elektrik']};
+    // bilgi tabanı
+    for(const e of KB){ if(e.k.some(w=>s.includes(w))) return {html:e.html, speak:e.speak, chips:e.chips, link:e.link}; }
+    // soru gibi mi?
+    if(/[0-9]/.test(s) && /(kaç|kac|bul|hesapla|=|\bm\/s\b|\bn\b|\bj\b|saniye|metre|hız|hiz|ivme|kuvvet)/.test(s))
+      return {html:`Güzel soru! 🤓 <b>Tam AI beynim bağlanınca</b> bunu adım adım çözeceğim: verilenleri yazar, doğru formülü seçer, işlemi gösterir ve sonucu birimiyle veririm. Şu an demo modundayım — istersen konuyu anlatayım ya da ilgili ${L('simülasyona','simulasyonlar.html')} bakalım.`,
+        speak:`Güzel soru! Tam beynim bağlanınca bunu adım adım çözeceğim. Şimdilik konuyu anlatabilirim.`, chips:['Eğik atışı anlat','Enerji','Dalga']};
+    return {html:`Bu konuyu tam çözmek için birazdan AI beynim bağlanacak 🙂. Şu an şu başlıklarda formül + örnekle yardımcı olabilirim: <b>hareket, kuvvet, iş-enerji, momentum, basınç, ısı, sarkaç, eğik atış, dalga, elektrik, optik</b>. Hangisini anlatayım?`,
+      speak:`Bu konuyu tam çözmek için birazdan beynim bağlanacak. Şimdilik hareket, enerji, momentum, dalga, elektrik gibi konularda yardımcı olabilirim. Hangisini anlatayım?`,
+      chips:['🎯 Eğik atış','🔋 Enerji','🎱 Momentum','🌊 Dalga','⚡ Ohm yasası']};
+  }
+
+  feed.addEventListener('click',e=>{
+    const b=e.target.closest('.chip'); if(!b||!feed.contains(b))return;
+    const txt=b.textContent.trim();
+    if(CHIP_LINK[txt]){ window.location.href=CHIP_LINK[txt]; return; }
+    if(/oyna/i.test(txt)){ window.location.href='egik-atis.html'; return; }
+  });
+
+  function escapeHtml(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+  // ---------- Mikrofon (STT) ----------
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let rec=null, listening=false;
+  if(SR){
+    rec=new SR(); rec.lang='tr-TR'; rec.interimResults=false; rec.maxAlternatives=1;
+    rec.onresult=e=>{ const txt=e.results[0][0].transcript; inp.value=txt; ask(txt); };
+    rec.onend=()=>{ listening=false; $('btnMic').classList.remove('on'); };
+    rec.onerror=()=>{ listening=false; $('btnMic').classList.remove('on'); };
+  } else { $('btnMic').style.opacity=.4; $('btnMic').title='Tarayıcın konuşma tanımayı desteklemiyor (Chrome öner)'; }
+  $('btnMic').addEventListener('click',()=>{
+    if(!rec) return;
+    if(listening){ rec.stop(); return; }
+    try{ rec.start(); listening=true; $('btnMic').classList.add('on'); stateEl.textContent='Seni dinliyorum… 🎤'; }catch(e){}
+  });
+
+  // ---------- olaylar ----------
+  $('btnSend').addEventListener('click',()=>ask(inp.value));
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') ask(inp.value); });
+  document.querySelectorAll('.quick .chip').forEach(b=> b.addEventListener('click',()=>ask(b.dataset.q)) );
+  $('btnVoice').addEventListener('click',()=>{
+    CONFIG.voiceOn=!CONFIG.voiceOn; $('btnVoice').classList.toggle('on',CONFIG.voiceOn);
+    $('btnVoice').textContent=CONFIG.voiceOn?'🔊':'🔇';
+    if(!CONFIG.voiceOn&&window.speechSynthesis) speechSynthesis.cancel();
+  });
+  $('btnWave').addEventListener('click',()=>{ doGesture('wave'); speak('Merhaba! Ben Fizo. Hadi fizik çalışalım!'); });
+  $('voiceHint').addEventListener('click',()=>$('voiceTip').classList.toggle('on'));
+
+  addMsg('bot', `Merhaba! 👋 Ben <b>Fizo</b>, senin fizik asistanın. Aşağıdan bir konu seç ya da bana yaz — formül ve mini örnekle anlatırım. Sorunu <b>🎤 sesli</b> de sorabilirsin!`, ['🎯 Eğik atış','🔋 Enerji','🌊 Dalga','💡 Çalışma taktiği']);
+  doGesture('wave');
+})();
+</script>
+
+</body>
+</html>
