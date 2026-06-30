@@ -10,7 +10,7 @@
    şimdiden tüm sayfalara bağlamak güvenlidir.
    =========================================================== */
 (function () {
-  var CF_TOKEN = ""; // <-- Cloudflare Web Analytics "token" değerini buraya yaz
+  var CF_TOKEN = "ad11ad4c9c7844e8a52aa51384c804fa"; // Cloudflare Web Analytics token
 
   if (!CF_TOKEN) return; // token yoksa hiçbir şey yapma
   var s = document.createElement("script");
