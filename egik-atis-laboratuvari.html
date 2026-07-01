@@ -31,6 +31,9 @@
   .lab-head .sub{color:var(--lab-muted);font-size:1.02rem;line-height:1.6;max-width:760px;}
   .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:18px;align-items:start;}
   @media(max-width:980px){.lab-grid{grid-template-columns:1fr;}}
+  .lab-grid.maximized{position:fixed;inset:0;z-index:99990;margin:0;max-width:none;width:100vw;height:100vh;background:#f4f4f0;padding:14px 18px 18px;overflow:auto;box-sizing:border-box;}
+  .lab-grid.maximized .stage-wrap{aspect-ratio:auto;height:min(64vh,54vw);}
+  @media(max-width:980px){ .lab-grid.maximized{grid-template-columns:1fr;} .lab-grid.maximized .stage-wrap{height:46vh;} }
 
   .stage-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#dcebf8;border:1px solid var(--lab-line);
     border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);touch-action:none;}
@@ -112,6 +115,8 @@
   .feat span{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:20px;
     padding:5px 12px;font-size:.8rem;color:#e9edf6;}
 </style>
+  <script defer src="analytics.js"></script>
+<link rel="stylesheet" href="lab-ui.css">
 </head>
 <body>
 
@@ -146,6 +151,20 @@
     <h1>🎯 Eğik Atış Laboratuvarı</h1>
     <p class="sub">Topu fareyle (veya parmağınla) <strong>sürükleyerek</strong> hızı ve açıyı ayarla — ya da kaydırıcıları kullan. Hava direncini aç, gezegeni değiştir, hız vektörlerini ve canlı grafikleri izle. <strong>İki atışı yan yana karşılaştır.</strong> 2026 Maarif (TYMM) <strong>11. sınıf "atışlar"</strong> konusuyla birebir.</p>
   </div>
+
+  <div style="background:#fff;border:1px solid #e7dcc6;border-left:5px solid #e26d4f;border-radius:14px;padding:16px 20px;margin-top:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);">
+    <div style="font-weight:800;color:#1c2336;margin-bottom:8px;font-size:1.05rem;">🔍 Bu labda ne keşfedeceksin?</div>
+    <ul style="margin:0;padding-left:20px;color:#5a544a;line-height:1.7;">
+      <li>Atış açısı ve hız değişince yörüngenin nasıl değiştiğini görürsün.</li>
+      <li>En uzak menzilin hangi açıda olduğunu deneyerek bulursun.</li>
+      <li>Yatay ve düşey hareketin birbirinden <b>bağımsız</b> olduğunu keşfedersin.</li>
+      <li>Hava direnci açınca yörüngenin nasıl bozulduğunu izlersin.</li>
+      <li>Farklı gezegenlerde atışın nasıl değiştiğini görür, iki atışı yan yana karşılaştırırsın.</li>
+    </ul>
+    <p style="margin:10px 0 0;font-size:.9rem;color:#8b8273;">💡 Tek bir işlem yapmadan, <b>görerek</b> anlarsın — formüller sonra kendiliğinden oturur.</p>
+  </div>
+
+  <div class="lab-help"><span class="ic">👉</span><span><b>Nasıl kullanılır:</b> Sahnede topu <b>sürükleyerek</b> hız ve açıyı ayarla (ya da sağdaki kaydırıcıları kullan). <b>🔥 Ateşle</b> ile at, <b>⏸</b> ile duraklat. <b>⚖️ Karşılaştır (A/B)</b> ile iki atışı yan yana gör; <b>⛶ Tam ekran</b> ile büyüt.</span></div>
 
   <div class="lab-grid">
     <!-- ===== SOL: SAHNE ===== -->
@@ -784,7 +803,8 @@
   $('btnStep').addEventListener('click',step);
   $('btnReset').addEventListener('click',reset);
   $('btnClear').addEventListener('click',()=>{ ghosts=[]; drawScene(); });
-  $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
+  $('btnFs').addEventListener('click',()=>{ const lg=document.querySelector('.lab-grid'); const on=lg.classList.toggle('maximized'); document.body.style.overflow=on?'hidden':''; $('btnFs').textContent=on?'✕ Kapat':'⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const lg=document.querySelector('.lab-grid'); if(lg&&lg.classList.contains('maximized')){ lg.classList.remove('maximized'); document.body.style.overflow=''; $('btnFs').textContent='⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); } } });
 
   $('tgCompare').addEventListener('click',()=>{
     compare=!compare;
