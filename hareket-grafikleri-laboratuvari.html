@@ -43,6 +43,9 @@
   .maarif-tags span{background:#f6efe0;border:1px solid var(--lab-line);border-radius:20px;padding:4px 11px;font-size:.78rem;font-weight:700;color:var(--lab-gold2);}
   .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:18px;align-items:start;}
   @media(max-width:980px){.lab-grid{grid-template-columns:1fr;}}
+  .lab-grid.maximized{position:fixed;inset:0;z-index:99990;margin:0;max-width:none;width:100vw;height:100vh;background:#f4f4f0;padding:14px 18px 18px;overflow:auto;box-sizing:border-box;}
+  .lab-grid.maximized .stage-wrap{aspect-ratio:auto;height:min(64vh,54vw);}
+  @media(max-width:980px){ .lab-grid.maximized{grid-template-columns:1fr;} .lab-grid.maximized .stage-wrap{height:46vh;} }
   .stage-wrap{position:relative;width:100%;aspect-ratio:16/6;background:#f2f6fa;border:1px solid var(--lab-line);
     border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);touch-action:none;}
   .stage-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;}
@@ -115,6 +118,18 @@
     <h1>🚗 Hareket ve Grafikler Laboratuvarı</h1>
     <p class="sub">Başlangıç konumu, hız ve ivmeyi ayarla; aracın hareketini izlerken <strong>konum-zaman (x-t)</strong>, <strong>hız-zaman (v-t)</strong> ve <strong>ivme-zaman (a-t)</strong> grafikleri <strong>aynı anda</strong> çizilsin. Yol ile yer değiştirmenin farkını gör.</p>
     <div class="maarif-tags"><span>9. & 10. Sınıf</span><span>TYT</span><span>Kuvvet ve Hareket · FİZ.9.2 / FİZ.10.1</span><span>Maarif (TYMM)</span></div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #e7dcc6;border-left:5px solid #e26d4f;border-radius:14px;padding:16px 20px;margin-top:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);">
+    <div style="font-weight:800;color:#1c2336;margin-bottom:8px;font-size:1.05rem;">🔍 Bu labda ne keşfedeceksin?</div>
+    <ul style="margin:0;padding-left:20px;color:#5a544a;line-height:1.7;">
+      <li>Hız ve ivmeyi değiştirince aracın hareketinin nasıl değiştiğini görürsün.</li>
+      <li>x-t, v-t ve a-t grafiklerinin birbirine nasıl bağlı olduğunu (biri değişince ötekiler) keşfedersin.</li>
+      <li>Grafik eğiminin ne anlattığını (dik eğim = hızlı değişim) sezersin.</li>
+      <li>v-t grafiğinin altındaki alanın <b>yer değiştirme</b> olduğunu görerek anlarsın.</li>
+      <li>Yol ile yer değiştirmenin farkını, geri dönen araçla fark edersin.</li>
+    </ul>
+    <p style="margin:10px 0 0;font-size:.9rem;color:#8b8273;">💡 Tek bir işlem yapmadan, <b>görerek</b> anlarsın — formüller sonra kendiliğinden oturur.</p>
   </div>
 
   <div class="lab-grid">
@@ -419,7 +434,8 @@
   $('btnStep').addEventListener('click',step);
   $('btnReset').addEventListener('click',reset);
   $('speed').addEventListener('change',e=>{ speed=+e.target.value; });
-  $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
+  $('btnFs').addEventListener('click',()=>{ const lg=document.querySelector('.lab-grid'); const on=lg.classList.toggle('maximized'); document.body.style.overflow=on?'hidden':''; $('btnFs').textContent=on?'✕ Kapat':'⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const lg=document.querySelector('.lab-grid'); if(lg&&lg.classList.contains('maximized')){ lg.classList.remove('maximized'); document.body.style.overflow=''; $('btnFs').textContent='⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); } } });
 
   // ---- ölçüm araçları (cetvel) ----
   const MT = makeMeasureTools({ ctx:sx, w2s:p=>({x:tx(p.x),y:track.y - p.y*track.pxm}), s2w:(px,py)=>({x:(px-track.ox)/track.pxm, y:(track.y-py)/track.pxm}), pxPerMeter:()=>track.pxm });
