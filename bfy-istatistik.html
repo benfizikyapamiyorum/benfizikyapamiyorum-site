@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>BFY — Ziyaret İstatistikleri (özel)</title>
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#eef1f8;color:#1c2336;padding:22px;}
+  .wrap{max-width:840px;margin:0 auto;}
+  h1{font-size:1.5rem;margin:.2em 0 .1em;}
+  .sub{color:#697089;font-size:.95rem;margin:0 0 18px;}
+  .lock{display:inline-block;background:#fff7ec;border:1px solid #f0dcae;color:#7a5a10;border-radius:20px;padding:4px 12px;font-size:.78rem;font-weight:700;margin-bottom:16px;}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media(max-width:640px){.cards{grid-template-columns:1fr;}}
+  .card{background:#fff;border:1px solid #e7e9f1;border-radius:16px;padding:18px 20px;box-shadow:0 6px 18px rgba(28,35,54,.06);}
+  .card .lbl{font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#8a93a8;}
+  .card .val{font-size:2.3rem;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;color:#1c2336;}
+  .card.accent{background:linear-gradient(160deg,#1c2336,#28304b);border:none;color:#eaedf6;}
+  .card.accent .lbl{color:#aeb7d0;} .card.accent .val{color:#ffd98a;}
+  .panel{background:#fff;border:1px solid #e7e9f1;border-radius:16px;padding:18px 20px;margin-top:16px;box-shadow:0 6px 18px rgba(28,35,54,.05);}
+  .panel h2{font-size:1.05rem;margin:0 0 14px;}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:6px;}
+  .bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .bar .b{width:100%;max-width:34px;background:linear-gradient(180deg,#e8623f,#f0906f);border-radius:6px 6px 0 0;min-height:2px;transition:height .3s;}
+  .bar .n{font-size:.66rem;color:#8a93a8;margin-top:5px;font-variant-numeric:tabular-nums;}
+  .bar .v{font-size:.66rem;color:#54607a;font-weight:700;margin-bottom:3px;font-variant-numeric:tabular-nums;}
+  table{width:100%;border-collapse:collapse;font-size:.92rem;}
+  td,th{text-align:left;padding:8px 6px;border-bottom:1px solid #eef1f6;}
+  th{font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:#8a93a8;}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:#1c2336;}
+  td a{color:#2d7dd2;text-decoration:none;} td a:hover{text-decoration:underline;}
+  .foot{color:#8a93a8;font-size:.82rem;margin-top:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+  .btn{border:1px solid #e2e6f0;background:#fff;border-radius:11px;padding:9px 16px;font-weight:700;font-size:.86rem;cursor:pointer;font-family:inherit;color:#1c2336;}
+  .btn:hover{background:#eef2fb;}
+  .muted{color:#8a93a8;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="lock">🔒 Özel sayfa — menüde yok, aramaya kapalı</span>
+  <h1>📊 Ziyaret İstatistikleri</h1>
+  <p class="sub">benfizikyapamiyorum.com · kendi Firebase sayacın (reklam engelleyiciden etkilenmez)</p>
+
+  <div class="cards">
+    <div class="card accent"><div class="lbl">Toplam Ziyaret</div><div class="val" id="tZiyaret">—</div></div>
+    <div class="card"><div class="lbl">Toplam Görüntüleme</div><div class="val" id="tGoruntuleme">—</div></div>
+    <div class="card"><div class="lbl">Bugün (ziyaret)</div><div class="val" id="tBugun">—</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>Son 14 gün — günlük ziyaret</h2>
+    <div class="bars" id="bars"><span class="muted">Yükleniyor…</span></div>
+  </div>
+
+  <div class="panel">
+    <h2>En çok gezilen sayfalar</h2>
+    <table>
+      <thead><tr><th>Sayfa</th><th style="text-align:right;">Görüntüleme</th></tr></thead>
+      <tbody id="pages"><tr><td colspan="2" class="muted">Yükleniyor…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="foot">
+    <span id="durum" class="muted">Firebase'e bağlanılıyor…</span>
+    <button class="btn" onclick="location.reload()">↻ Yenile</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  var CFG = {
+    apiKey: "AIzaSyAeX9tk4zgoa5c5y2pVH3V4r9ip2mrlMvg",
+    authDomain: "benfizikyapamiyorum-oyun.firebaseapp.com",
+    projectId: "benfizikyapamiyorum-oyun",
+    storageBucket: "benfizikyapamiyorum-oyun.firebasestorage.app",
+    messagingSenderId: "942775741325",
+    appId: "1:942775741325:web:85dca63d6a17e2822cebc4"
+  };
+  var $ = function(id){ return document.getElementById(id); };
+  var nf = function(n){ return (n||0).toLocaleString('tr-TR'); };
+  var durum = $('durum');
+
+  try { if(!firebase.apps.length) firebase.initializeApp(CFG); } catch(e){}
+  var db;
+  try { db = firebase.firestore(); } catch(e){ durum.textContent = "Firebase başlatılamadı."; return; }
+
+  var today = new Date().toISOString().slice(0,10);
+
+  // 1) Özet
+  db.collection("istatistik").doc("ozet").get().then(function(d){
+    var o = d.exists ? d.data() : {};
+    $('tZiyaret').textContent = nf(o.ziyaret);
+    $('tGoruntuleme').textContent = nf(o.goruntuleme);
+  }).catch(function(){ $('tZiyaret').textContent='0'; $('tGoruntuleme').textContent='0'; });
+
+  // 2) Son 14 gün
+  db.collection("istatistik_gun").orderBy(firebase.firestore.FieldPath.documentId(),'desc').limit(14).get()
+  .then(function(snap){
+    var days = [];
+    snap.forEach(function(doc){ days.push({ gun: doc.id, z: (doc.data().ziyaret||0), g:(doc.data().goruntuleme||0) }); });
+    days.reverse(); // eskiden yeniye
+    var todayRow = days.filter(function(x){ return x.gun===today; })[0];
+    $('tBugun').textContent = nf(todayRow ? todayRow.z : 0);
+
+    var box = $('bars'); box.innerHTML='';
+    if(!days.length){ box.innerHTML='<span class="muted">Henüz veri yok — siteyi birkaç kez ziyaret et, sonra yenile.</span>'; return; }
+    var max = Math.max.apply(null, days.map(function(x){ return x.z; }).concat([1]));
+    days.forEach(function(x){
+      var pct = Math.round((x.z/max)*100);
+      var el = document.createElement('div'); el.className='bar';
+      el.innerHTML = '<div class="v">'+(x.z||0)+'</div><div class="b" style="height:'+pct+'%"></div><div class="n">'+x.gun.slice(5)+'</div>';
+      box.appendChild(el);
+    });
+  }).catch(function(e){ $('bars').innerHTML='<span class="muted">Grafik yüklenemedi.</span>'; });
+
+  // 3) En çok gezilen sayfalar
+  db.collection("istatistik_sayfa").orderBy("goruntuleme","desc").limit(15).get()
+  .then(function(snap){
+    var tb = $('pages'); tb.innerHTML='';
+    if(snap.empty){ tb.innerHTML='<tr><td colspan="2" class="muted">Henüz veri yok.</td></tr>'; }
+    snap.forEach(function(doc){
+      var d = doc.data(); var yol = d.yol || ('/'+doc.id);
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><a href="'+yol+'" target="_blank" rel="noopener">'+yol+'</a></td><td class="num">'+nf(d.goruntuleme)+'</td>';
+      tb.appendChild(tr);
+    });
+    durum.textContent = "Güncel · " + new Date().toLocaleString('tr-TR');
+  }).catch(function(e){
+    $('pages').innerHTML='<tr><td colspan="2" class="muted">Liste yüklenemedi (kurallar?).</td></tr>';
+    durum.textContent = "Okuma hatası — Firestore kurallarını kontrol et.";
+  });
+})();
+</script>
+</body>
+</html>
