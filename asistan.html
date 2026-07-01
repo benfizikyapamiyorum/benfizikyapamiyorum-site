@@ -85,6 +85,7 @@
   .as-note{margin-top:18px;background:#1c2336;color:#cdd6ea;border-radius:14px;padding:16px 20px;font-size:.9rem;line-height:1.6;}
   .as-note b{color:#fff;}
 </style>
+  <script defer src="analytics.js"></script>
 </head>
 <body>
 
@@ -220,7 +221,9 @@
   "use strict";
   const $ = id => document.getElementById(id);
 
-  // ====== gerçek AI'yı bağlamak için Worker adresini buraya yaz ======
+  // ====== gerçek AI'yı bağlamak için Worker adresini buraya yapıştır ======
+  //   ör. apiUrl: "https://bfy-asistan.HESABIN.workers.dev"
+  //   Boş bırakılırsa Fizo çevrimdışı "demo beyin" ile çalışır.
   const CONFIG = { apiUrl: "", voiceOn: true };
 
   const feed=$('feed'), typing=$('typing'), inp=$('inp'), stateEl=$('state');
@@ -324,25 +327,48 @@
   }
   const strip = h => h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 
+  // AI cevabındaki sayfa adlarını güvenle tıklanır linke çevir (önce escapeHtml çalışmış olmalı)
+  const KNOWN = new Set(['simulasyonlar.html','vektor-laboratuvari.html','hareket-grafikleri-laboratuvari.html','basinc-kaldirma-laboratuvari.html','egik-atis-laboratuvari.html','enerji-sarkac-laboratuvari.html','dalga-laboratuvari.html','optik-laboratuvari.html','manyetik-alan-laboratuvari.html','oyunlar.html','testler.html','materyaller.html','fizik-yillik-plani-indir.html','9-sinif-fizik-konulari.html','10-sinif-fizik-konulari.html','11-sinif-fizik-konulari.html']);
+  function linkify(safe){
+    return safe.replace(/(?:https?:\/\/)?(?:www\.)?(?:benfizikyapamiyorum\.com\/)?([a-z0-9][a-z0-9\-]*\.html)/gi,
+      (m,f)=> KNOWN.has(f.toLowerCase()) ? '<a href="'+f.toLowerCase()+'">'+f.toLowerCase()+'</a>' : m);
+  }
+  const aiChips = ()=>['🔍 Optik Lab','🧲 Manyetik alan','📝 Bana soru sor','💡 Çalışma taktiği'];
+  let history=[];   // AI'a gönderilecek son mesajlar (çok turlu hafıza)
+
   async function ask(q){
     q=(q||'').trim(); if(!q) return;
     addMsg('me', escapeHtml(q)); inp.value='';
     typing.classList.add('on'); stateEl.textContent='Düşünüyor… 🤔'; feed.scrollTop=feed.scrollHeight;
     let res;
-    try{
-      if(CONFIG.apiUrl){ res={html: escapeHtml(await callAI(q))}; }
-      else { await wait(420+Math.random()*340); res=localBrain(q); }
-    }catch(e){ res={html:"Şu an cevabı getiremedim 😅. Birazdan tekrar dener misin?"}; }
+    if(CONFIG.apiUrl){
+      try{
+        const reply=await callAI(q);
+        history.push({role:'user',content:q},{role:'assistant',content:reply});
+        if(history.length>10) history=history.slice(-10);
+        res={ html:linkify(escapeHtml(reply)), speak:strip(reply), chips:aiChips() };
+      }catch(e){
+        await wait(150); res=localBrain(q);   // API yoksa/çökerse çevrimdışı beyne düş
+        if(!res||!res.html) res={ html:"Şu an bağlanamadım 😅, birazdan tekrar dene. Bu arada "+L('simülasyonlara','simulasyonlar.html')+" göz atabilirsin." };
+      }
+    } else {
+      await wait(420+Math.random()*340); res=localBrain(q);
+    }
     typing.classList.remove('on');
     doGesture(res.link?'point':'wave');
     addMsg('bot', res.html, res.chips);
     speak(res.speak || strip(res.html));
   }
   async function callAI(q){
-    const r=await fetch(CONFIG.apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:[{role:'user',content:q}]})});
-    if(!r.ok) throw new Error('worker');
-    const d=await r.json(); return d.reply || "…";
+    const msgs=history.concat([{role:'user',content:q}]).slice(-8);
+    const ctrl=new AbortController(), to=setTimeout(()=>ctrl.abort(),20000);
+    try{
+      const r=await fetch(CONFIG.apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({messages:msgs}),signal:ctrl.signal});
+      if(!r.ok) throw new Error('worker '+r.status);
+      const d=await r.json(); if(!d.reply) throw new Error('empty');
+      return d.reply;
+    } finally { clearTimeout(to); }
   }
 
   // ---------- Demo beyin (zenginleştirilmiş) ----------
@@ -353,6 +379,44 @@
       html:`<b>Eğik atış</b> = yatayda sabit hız + düşeyde yerçekimiyle ivmeli hareket.${F('vₓ = v₀·cosθ (sabit) , v_y = v₀·sinθ − g·t')}${F('Menzil R = v₀²·sin(2θ) / g  → en büyük menzil 45°de')}<b>Mini örnek:</b> v₀=20 m/s, θ=30° → R = 400·sin60°/9.8 ≈ 35,3 m. Kendin denemek için ${L('Eğik Atış Laboratuvarı','egik-atis-laboratuvari.html')}.`,
       speak:`Eğik atış, yatayda sabit hız ve düşeyde yerçekimiyle ivmeli hareketin birleşimidir. Menzil 45 derecede en büyüktür. Laboratuvarda kendin deneyebilirsin.`,
       chips:['Menzil neden 45°de en büyük?','Eğik Atış Laboratuvarı','Bana test öner'] },
+
+    /* ===== 9–11. sınıf mekanik & elektrik-manyetizma ===== */
+    { k:['vektör','vektor','bileşke','bileske','bileşen','bileşenler','bilesen','skaler','uç uca','uc uca','paralelkenar'], link:1,
+      html:`<b>Vektörler:</b> yönü olan niceliklerdir (kuvvet, hız, yer değiştirme). <b>Skaler</b> niceliklerde ise sadece büyüklük vardır (kütle, zaman).${F('Bileşke: R = √(Rₓ² + R_y²)   ,   yön: tanθ = R_y / Rₓ')}Dik iki vektör (3 ve 4 birim) → bileşke = √(9+16) = <b>5 birim</b>. Sürükleyerek topla: ${L('Vektör Laboratuvarı','vektor-laboratuvari.html')}.`,
+      speak:`Vektörlerin yönü ve büyüklüğü vardır; skalerlerin ise sadece büyüklüğü. Dik iki vektörün bileşkesi, karelerinin toplamının köküdür. Üç ve dört birim dik vektörün bileşkesi beş birimdir.`,
+      chips:['Bileşenlerine ayırma','Vektör Laboratuvarı','Kuvvet nedir?'] },
+    { k:['serbest düş','serbest dus','düşey atış','dusey atis','yukarı atış','yukari atis','düşme'], link:0,
+      html:`<b>Serbest düşme:</b> yalnız yerçekimi etkisinde (g ≈ 9,8 m/s²), ilk hız sıfır.${F('v = g·t   ,   h = ½·g·t²')}<b>Düşey atış (yukarı):</b> tepe noktada hız sıfırdır, çıkış süresi t = v₀/g. <b>Örnek:</b> 20 m'den düşen cisim: t = √(2·20/9,8) ≈ 2,0 s, çarpma hızı v ≈ 19,8 m/s.`,
+      speak:`Serbest düşmede ilk hız sıfırdır ve cisim sadece yerçekimiyle hızlanır. Hız g çarpı t, yükseklik yarım g t karedir. Yirmi metreden düşen cisim yaklaşık iki saniyede yere çarpar.`,
+      chips:['Hareket ve Grafikler Laboratuvarı','Enerjinin korunumu'] },
+    { k:['çembersel','cembersel','merkezcil','dairesel hareket','düzgün çembersel','duzgun cembersel','merkezcil kuvvet'], link:0,
+      html:`<b>Düzgün çembersel hareket:</b> sabit süratle ama sürekli yön değiştirerek dönme.${F('çizgisel hız: v = 2π·r / T   ,   merkezcil ivme: a = v² / r')}${F('merkezcil kuvvet: F = m·v² / r   (hep merkeze doğru)')}<b>Örnek:</b> r = 2 m, v = 4 m/s → a = 16/2 = 8 m/s². Merkezcil kuvvet olmasa cisim teğet doğrultuda savrulur.`,
+      speak:`Düzgün çembersel harekette sürat sabittir ama yön sürekli değişir. Merkezcil ivme v kare bölü r, merkezcil kuvvet m v kare bölü r'dir ve hep merkeze doğrudur.`,
+      chips:['Merkezcil kuvvet örnekleri','Newton yasaları'] },
+    { k:['sürtünme','surtunme','sürtünme kuvvet','statik sürtünme','kinetik sürtünme'], link:0,
+      html:`<b>Sürtünme kuvveti:</b> yüzeyler arasında harekete karşı koyar.${F('F_sürtünme = μ·N   (μ: sürtünme katsayısı, N: normal kuvvet)')}<b>Statik</b> sürtünme (durgunken) genelde <b>kinetik</b> sürtünmeden (hareket hâlinde) büyüktür. <b>Örnek:</b> μ = 0,4, N = 50 N → F = 20 N. Sürtünme mekanik enerjiyi ısıya çevirir (verim düşer).`,
+      speak:`Sürtünme kuvveti harekete karşı koyar ve sürtünme katsayısı çarpı normal kuvvete eşittir. Statik sürtünme genelde kinetikten büyüktür. Sürtünme enerjiyi ısıya çevirir.`,
+      chips:['Newton yasaları','Mekanik verim'] },
+    { k:['evrensel çekim','evrensel cekim','kütle çekim','kutle cekim','gravitasyon','çekim kuvveti','cekim kuvveti','newton çekim'], link:0,
+      html:`<b>Newton'ın evrensel çekim yasası:</b> her iki kütle birbirini çeker.${F('F = G·m₁·m₂ / r²   (G = 6,67×10⁻¹¹)')}Bir gezegenin yüzeyindeki çekim ivmesi: ${F('g = G·M / R²')}Bu yüzden g gezegene göre değişir: Ay'da ≈ 1,6; Mars'ta ≈ 3,7; Dünya'da ≈ 9,8 m/s². Uzaklık 2 katına çıkınca kuvvet <b>4 kat</b> azalır.`,
+      speak:`Evrensel çekim yasasına göre iki kütle birbirini çeker; kuvvet G çarpı kütlelerin çarpımı bölü uzaklığın karesidir. Gezegen yüzeyindeki g, G çarpı kütle bölü yarıçap karesidir; bu yüzden Ay'da daha küçüktür.`,
+      chips:['Serbest düşme','Enerjinin korunumu'] },
+    { k:['özkütle','ozkutle','yoğunluk','yogunluk','öz kütle'], link:0,
+      html:`<b>Özkütle (yoğunluk):</b> birim hacmin kütlesi.${F('d = m / V   (birim: kg/m³ veya g/cm³)')}Suyun özkütlesi 1000 kg/m³ = 1 g/cm³. Özkütlesi sıvıdan <b>küçük</b> cisim yüzer, <b>büyük</b> olan batar. <b>Örnek:</b> m = 200 g, V = 100 cm³ → d = 2 g/cm³ (sudan yoğun → batar).`,
+      speak:`Özkütle, birim hacmin kütlesidir; kütle bölü hacim. Suyun özkütlesi bir gram bölü santimetre küptür. Sudan hafif cisim yüzer, ağır cisim batar.`,
+      chips:['Kaldırma kuvveti','Basınç nedir?'] },
+    { k:['coulomb','kulon','elektrik yük','elektriksel','elektrik alan','elektrostatik','elektriklenme','iki yük'], link:0,
+      html:`<b>Coulomb yasası (11. sınıf):</b> iki nokta yük arasındaki kuvvet.${F('F = k·q₁·q₂ / r²   (k = 9×10⁹)')}Aynı işaretli yükler iter, zıt işaretli çeker. <b>Elektrik alan:</b> ${F('E = F / q = k·q / r²   (birim: N/C)')}Uzaklık 2 katına çıkınca kuvvet <b>4 kat</b> azalır (Coulomb ve çekim yasası aynı 1/r² yapısındadır).`,
+      speak:`Coulomb yasasına göre iki yük arasındaki kuvvet, k çarpı yüklerin çarpımı bölü uzaklığın karesidir. Aynı işaretli yükler iter, zıt işaretli çeker. Elektrik alan, kuvvetin yüke bölümüdür.`,
+      chips:['Elektrik alan nedir?','Ohm yasası','Manyetik alan'] },
+    { k:['manyetik kuvvet','tele etki','iki tel','paralel tel','lorentz','akıma etki'], link:0,
+      html:`<b>Manyetik kuvvet (11. sınıf):</b> manyetik alandaki akım taşıyan tele kuvvet etki eder.${F('F = B·I·L·sinθ   (θ: akım–alan açısı)')}Yön <b>sağ el kuralıyla</b> bulunur. <b>İki paralel tel:</b> akımlar <b>aynı yönde</b> ise çeker, <b>zıt yönde</b> ise iter. <b>Örnek:</b> B = 0,5 T, I = 2 A, L = 0,1 m, θ = 90° → F = 0,1 N.`,
+      speak:`Manyetik alandaki akım taşıyan tele kuvvet etkir: F eşittir B I L sinüs teta. İki paralel telde akımlar aynı yönlü ise çeker, zıt yönlü ise iter.`,
+      chips:['Manyetik alan nasıl oluşur?','Sağ el kuralı nedir?'] },
+    { k:['manyetik alan','manyetizma','sağ el','sag el','selenoit','selenoid','bobin','makara','pusula','düz telin','duz telin','mıknatıs'], link:1,
+      html:`<b>Manyetik alan (11. sınıf):</b> akım geçen tel çevresinde manyetik alan oluşturur.${F('Düz tel: B = μ₀·I / (2π·r)')}${F('Halka merkezi: B = μ₀·I / (2R)   ·   Selenoit içi: B = μ₀·n·I')}Yönü <b>sağ el kuralıyla</b> bulunur (başparmak akım, kıvrılan parmaklar alan). Selenoit bir <b>çubuk mıknatıs</b> gibi N-S kutbu oluşturur. Pusulayı sürükleyerek keşfet: ${L('Manyetik Alan Laboratuvarı','manyetik-alan-laboratuvari.html')}.`,
+      speak:`Akım geçen tel çevresinde manyetik alan oluşur. Düz telde alan mü sıfır I bölü iki pi r'dir, yönü sağ el kuralıyla bulunur. Selenoit çubuk mıknatıs gibi davranır. Laboratuvarda pusulayla keşfedebilirsin.`,
+      chips:['Sağ el kuralı nedir?','Manyetik Alan Laboratuvarı','Manyetik kuvvet'] },
 
     /* ===== 12. SINIF — 2026 Maarif (TYMM) ===== */
     { k:['tork','kaldıraç','kaldirac','atalet momenti','eylemsizlik momenti','açısal momentum','acisal momentum','açısal hız','dönme hareketi'], link:0,
@@ -429,10 +493,10 @@
       html:`<b>Ohm yasası:</b> ${F('V = I·R   →   I = V/R')} <b>Elektriksel güç:</b> ${F('P = V·I = I²·R')}Gerilim artarsa akım artar, direnç artarsa akım azalır. <b>Örnek:</b> 12 V, 4 Ω → I = 3 A, P = 36 W. Oyunla pekiştir: ${L('Devre Ustası','devre-ustasi.html')}.`,
       speak:`Ohm yasasına göre gerilim, akım çarpı dirençtir. Güç ise gerilim çarpı akımdır. On iki volt ve dört ohm için akım üç amper, güç otuz altı watt olur.`,
       chips:['Seri/paralel direnç farkı','Devre Ustası oyunu','Test öner'] },
-    { k:['hız','hiz','sürat','surat','ivme','hareket','kinematik','grafik','konum','serbest düş'], link:1,
-      html:`<b>Hareket (kinematik):</b>${F('ortalama hız: v = Δx / Δt   ,   ivme: a = Δv / Δt')}${F('sabit ivme: x = v₀·t + ½·a·t²   ,   v = v₀ + a·t')}Hız-zaman grafiğinde <b>eğim = ivme</b>, <b>altındaki alan = yol</b>. ${L('Grafik Yarışı oyunu','grafik-yarisi.html')} ile pekiştir.`,
-      speak:`Ortalama hız yer değiştirmenin zamana bölümüdür, ivme ise hız değişiminin zamana bölümüdür. Hız zaman grafiğinde eğim ivmeyi, altındaki alan yolu verir.`,
-      chips:['İvme nedir?','Serbest düşme','9. sınıf konuları'] },
+    { k:['hız','hiz','sürat','surat','ivme','hareket','kinematik','grafik','konum','yer değiştirme','yer degistirme'], link:1,
+      html:`<b>Hareket (kinematik):</b>${F('ortalama hız: v = Δx / Δt   ,   ivme: a = Δv / Δt')}${F('sabit ivme: x = v₀·t + ½·a·t²   ,   v = v₀ + a·t')}Hız-zaman grafiğinde <b>eğim = ivme</b>, <b>altındaki alan = yol</b>. Üç grafiği canlı gör: ${L('Hareket ve Grafikler Laboratuvarı','hareket-grafikleri-laboratuvari.html')} · oyunla pekiştir: ${L('Grafik Yarışı','grafik-yarisi.html')}.`,
+      speak:`Ortalama hız yer değiştirmenin zamana bölümüdür, ivme ise hız değişiminin zamana bölümüdür. Hız zaman grafiğinde eğim ivmeyi, altındaki alan yolu verir. Laboratuvarda üç grafiği aynı anda görebilirsin.`,
+      chips:['İvme nedir?','Hareket ve Grafikler Laboratuvarı','9. sınıf konuları'] },
     { k:['kuvvet','newton','dinamik','denge'], link:0,
       html:`<b>Newton'ın yasaları:</b> ①Kuvvet yoksa cisim hızını korur (eylemsizlik). ②${F('F_net = m·a')} ③Her etkiye eşit-zıt bir tepki vardır. <b>Örnek:</b> 2 kg'lık cisme 10 N net kuvvet → a = 5 m/s².`,
       speak:`Newton'ın ikinci yasasına göre net kuvvet, kütle çarpı ivmedir. İki kilogramlık cisme on Newton kuvvet uygulanırsa ivmesi beş metre bölü saniye kare olur.`,
@@ -441,18 +505,18 @@
       html:`<b>Momentum:</b> ${F('p = m·v   (birim: kg·m/s)')} Dışarıdan kuvvet yoksa <b>toplam momentum korunur</b> — çarpışmalarda çok işe yarar. <b>İtme:</b> ${F('J = F·Δt = Δp')} Esnek çarpışmada kinetik enerji de korunur; esnek olmayanda bir kısmı ısıya gider.`,
       speak:`Momentum, kütle çarpı hızdır. Dış kuvvet yoksa toplam momentum korunur. İtme ise kuvvet çarpı zamandır ve momentum değişimine eşittir.`,
       chips:['Esnek çarpışma nedir?','Enerjinin korunumu'] },
-    { k:['basınç','basinc','pascal','sıvı basıncı','kaldırma','arşimet','arsimet'], link:0,
-      html:`<b>Basınç:</b> ${F('P = F / A   (birim: Pascal)')} <b>Sıvı basıncı:</b> ${F('P = h·ρ·g')} (derinlik arttıkça artar). <b>Arşimet:</b> kaldırma kuvveti = taşan sıvının ağırlığı, ${F('F_kaldırma = ρ_sıvı·V·g')}`,
-      speak:`Basınç, kuvvetin yüzey alanına bölümüdür ve birimi Pascaldır. Sıvı basıncı derinlik çarpı yoğunluk çarpı yerçekimidir.`,
-      chips:['Arşimet ilkesi','Test öner'] },
+    { k:['basınç','basinc','pascal','sıvı basıncı','kaldırma','arşimet','arsimet'], link:1,
+      html:`<b>Basınç:</b> ${F('P = F / A   (birim: Pascal)')} <b>Sıvı basıncı:</b> ${F('P = h·ρ·g')} (derinlik arttıkça artar). <b>Arşimet:</b> kaldırma kuvveti = taşan sıvının ağırlığı, ${F('F_kaldırma = ρ_sıvı·V·g')}Cismi sıvıya bırakıp dene: ${L('Basınç &amp; Kaldırma Laboratuvarı','basinc-kaldirma-laboratuvari.html')}.`,
+      speak:`Basınç, kuvvetin yüzey alanına bölümüdür ve birimi Pascaldır. Sıvı basıncı derinlik çarpı yoğunluk çarpı yerçekimidir. Kaldırma kuvveti taşan sıvının ağırlığına eşittir.`,
+      chips:['Arşimet ilkesi','Basınç Laboratuvarı','Özkütle nedir?'] },
     { k:['ısı','isi','sıcaklık','sicaklik','kalori','genleşme'], link:0,
       html:`<b>Isı ve sıcaklık farklıdır:</b> sıcaklık moleküllerin ortalama hareketi, ısı ise aktarılan enerjidir.${F('Q = m·c·ΔT   (c: öz ısı)')}<b>Örnek:</b> 2 kg su (c=4200) 10°C ısınır → Q = 2·4200·10 = 84.000 J.`,
       speak:`Sıcaklık moleküllerin ortalama hareketidir, ısı ise aktarılan enerjidir. Alınan ısı, kütle çarpı öz ısı çarpı sıcaklık değişimidir.`,
       chips:['Öz ısı nedir?','Enerjinin korunumu'] },
-    { k:['optik','mercek','ışık','isik','kırılma','kirilma','ayna','yansıma','yansima','snell'], link:0,
-      html:`<b>Optik temelleri:</b> Yansımada gelme açısı = yansıma açısı. Kırılmada ışık ortam değiştirince yön değiştirir (Snell). <b>İnce kenarlı mercek</b> ışığı toplar, <b>kalın kenarlı</b> dağıtır.${F('Mercek/ayna denklemi: 1/f = 1/dᵒ + 1/dᵢ')}Optik laboratuvarı çok yakında geliyor 🔍.`,
-      speak:`Yansımada gelme açısı yansıma açısına eşittir. Kırılmada ışık ortam değiştirince yön değiştirir. İnce kenarlı mercek ışığı toplar, kalın kenarlı dağıtır.`,
-      chips:['Dalga konusunu anlat','11. sınıf konuları'] },
+    { k:['optik','mercek','ışık','isik','kırılma','kirilma','ayna','yansıma','yansima','snell','görüntü','goruntu','büyüteç','buyutec','odak'], link:1,
+      html:`<b>Optik — görüntü oluşumu (11. sınıf):</b> Yansımada gelme açısı = yansıma açısı; kırılmada ışık ortam değişince yön değiştirir (Snell). <b>İnce kenarlı (yakınsak) mercek</b> ışığı toplar, <b>kalın kenarlı (ıraksak)</b> dağıtır.${F('Mercek/ayna denklemi: 1/f = 1/dₒ + 1/dᵢ')}${F('Büyütme: m = −dᵢ/dₒ = görüntü boyu / cisim boyu')}Cisim odaktan uzaksa <b>gerçek-ters</b>, odak içindeyse <b>sanal-düz-büyük</b> (büyüteç) görüntü oluşur. Cismi sürükleyerek gör: ${L('Optik Laboratuvarı','optik-laboratuvari.html')}.`,
+      speak:`Optikte ince kenarlı mercek ışığı toplar, kalın kenarlı dağıtır. Mercek denklemi bir bölü f eşittir bir bölü cisim uzaklığı artı bir bölü görüntü uzaklığı. Cisim odak içindeyse büyüteç gibi sanal düz büyük görüntü oluşur. Laboratuvarda sürükleyerek görebilirsin.`,
+      chips:['Gerçek/sanal görüntü farkı','Optik Laboratuvarı','11. sınıf konuları'] },
     { k:['nasıl çalış','nasil calis','çalışma','calisma','tüyo','taktik','motivasyon','verim'], link:1,
       html:`<b>Fizik çalışma taktiği 💡:</b> ①Önce <b>kavramı</b> anla, formülü ezberleme — ${L('simülasyonlarla','simulasyonlar.html')} görerek öğren. ②Her konudan sonra ${L('test çöz','testler.html')}, hatanı not al. ③Formül kartı çıkar. ④Az ama <b>düzenli</b> çalış. ⑤Sıkılınca ${L('oyunlarla','oyunlar.html')} tekrar et. Yapabilirsin, söz! 💪`,
       speak:`Önce kavramı anla, formülü ezberleme; simülasyonlarla görerek öğren. Her konudan sonra test çöz ve hatalarını not al. Az ama düzenli çalış. Yapabilirsin!`,
@@ -462,13 +526,13 @@
       speak:`Öğretmenler için iki bin yirmi altı Maarif uyumlu ücretsiz yıllık planlar hazır. İndirme sayfasından alabilirsin.`,
       chips:['Simülasyonları göster','Test öner'] },
     { k:['test','deneme','quiz','soru bankası'], link:1,
-      html:`Seviyene uygun ${L('online testler','testler.html')} hazır 📝. Bir konu söyle (ör. "dalga"), oraya yönlendireyim. <i>AI beynim bağlanınca her soruyu adım adım da çözeceğim!</i>`,
+      html:`Seviyene uygun ${L('online testler','testler.html')} hazır 📝. Bir konu söyle (ör. "dalga"), oraya yönlendireyim. <i>Bir konuyu "anlat" dersen formül + örnek çözümle de gösteririm.</i>`,
       speak:`Online testler hazır. Hangi konuda test istediğini söyle, seni yönlendireyim.`,
       chips:['Eğik atış','Enerji','Dalga','Ohm yasası'] },
     { k:['simülasyon','simulasyon','laboratuvar','lab'], link:1,
-      html:`Tüm ${L('interaktif simülasyonlar','simulasyonlar.html')} burada 🔬: ${L('Eğik Atış','egik-atis-laboratuvari.html')}, ${L('Enerji &amp; Sarkaç','enerji-sarkac-laboratuvari.html')}, ${L('Dalga','dalga-laboratuvari.html')} laboratuvarları + PhET.`,
-      speak:`Tüm interaktif simülasyonlar hazır: eğik atış, enerji-sarkaç ve dalga laboratuvarları.`,
-      chips:['Eğik Atış Laboratuvarı','Dalga Laboratuvarı'] },
+      html:`8 ücretsiz ${L('interaktif simülasyon','simulasyonlar.html')} 🔬: ${L('Vektör','vektor-laboratuvari.html')}, ${L('Hareket &amp; Grafikler','hareket-grafikleri-laboratuvari.html')}, ${L('Basınç &amp; Kaldırma','basinc-kaldirma-laboratuvari.html')}, ${L('Optik','optik-laboratuvari.html')}, ${L('Manyetik Alan','manyetik-alan-laboratuvari.html')}, ${L('Eğik Atış','egik-atis-laboratuvari.html')}, ${L('Enerji &amp; Sarkaç','enerji-sarkac-laboratuvari.html')}, ${L('Dalga','dalga-laboratuvari.html')} + PhET. Hangi konu?`,
+      speak:`Sekiz ücretsiz interaktif simülasyon var: vektör, hareket, basınç, optik, manyetik alan, eğik atış, enerji-sarkaç ve dalga laboratuvarları.`,
+      chips:['Optik Laboratuvarı','Manyetik Alan Laboratuvarı','Eğik Atış Laboratuvarı'] },
     { k:['oyun','oyna'], link:1,
       html:`4 ücretsiz fizik oyunu 🎮: ${L('oyunlar sayfası','oyunlar.html')} — Roket İnişi, Eğik Atış, Devre Ustası, Grafik Yarışı.`,
       speak:`Dört ücretsiz fizik oyunu var: roket inişi, eğik atış, devre ustası ve grafik yarışı.`,
@@ -481,18 +545,32 @@
   const CHIP_LINK={
     'Eğik Atış Laboratuvarı':'egik-atis-laboratuvari.html','Dalga Laboratuvarı':'dalga-laboratuvari.html',
     'Enerji & Sarkaç Laboratuvarı':'enerji-sarkac-laboratuvari.html','Devre Ustası oyunu':'devre-ustasi.html',
+    'Vektör Laboratuvarı':'vektor-laboratuvari.html','Optik Laboratuvarı':'optik-laboratuvari.html',
+    'Manyetik Alan Laboratuvarı':'manyetik-alan-laboratuvari.html','Basınç Laboratuvarı':'basinc-kaldirma-laboratuvari.html',
+    'Hareket ve Grafikler Laboratuvarı':'hareket-grafikleri-laboratuvari.html',
     'Simülasyonları göster':'simulasyonlar.html','9. sınıf konuları':'9-sinif-fizik-konulari.html',
     '11. sınıf konuları':'11-sinif-fizik-konulari.html','12. sınıf konuları':'12-sinif-fizik-konulari.html',
     'Yıllık planı indir':'fizik-yillik-plani-indir.html'
   };
 
+  const JOKES=[
+    {h:`Fizikçi sevgilisine ne demiş? "Aramızda <b>çekim</b> var ama sen sürekli <b>direnç</b> gösteriyorsun." ⚡😄`, s:`Fizikçi sevgilisine demiş ki: aramızda çekim var ama sen sürekli direnç gösteriyorsun.`},
+    {h:`Newton'ın kafasına elma düşünce ne demiş? "İyi ki inek uçmuyor." 🍎😅`, s:`Newton'ın kafasına elma düşünce, iyi ki inek uçmuyor demiş.`},
+    {h:`Elektronlara neden güvenilmez? Çünkü her şeyi <b>negatif</b> algılıyorlar. 🔋😄`, s:`Elektronlara neden güvenilmez? Çünkü her şeyi negatif algılıyorlar.`},
+    {h:`Sürtünme olmasaydı bu espriyi anlatamazdım — <b>tutturamazdım</b> çünkü. 😆`, s:`Sürtünme olmasaydı bu espriyi tutturamazdım.`},
+    {h:`Foton otele girmiş, "valiziniz?" demişler. "Yok, ben <b>ışık</b> seyahat ederim." 🌌😄`, s:`Foton otele girmiş, valiziniz demişler. Yok, ben ışık seyahat ederim demiş.`}
+  ];
   function localBrain(q){
     const s=q.toLocaleLowerCase('tr');
+    if(/(espri|şaka|saka|fıkra|fikra|komik|güldür|guldur|eğlen|eglen|gülelim)/.test(s)){
+      const j=JOKES[Math.floor(Math.random()*JOKES.length)];
+      return {html:j.h+`<br><br>😄 Hazırsan bir fizik konusu da sorabilirsin!`, speak:j.s, chips:['Başka espri 😄','Eğik atış','Enerji']};
+    }
     if(/(merhaba|selam|sa\b|naber|hey|hello|günaydın|gunaydin)/.test(s))
-      return {html:`Merhaba! 👋 Ben <b>Fizo</b>, fizik asistanın. Bir konu sor (ör. "enerji", "eğik atış", "momentum"), formül ve örnekle anlatayım, doğru simülasyon/testi vereyim. İstersen 🎤 ile konuşarak da sorabilirsin!`,
-        speak:`Merhaba! Ben Fizo, fizik asistanın. Bir konu sor, sana formül ve örnekle anlatayım.`, chips:['🎯 Eğik atış','🔋 Enerji','🌊 Dalga','💡 Çalışma taktiği']};
+      return {html:`Merhaba! 👋 Ben <b>Fizo</b>, fizik asistanın. Bir konu sor (ör. "enerji", "eğik atış", "manyetik alan"), formül ve örnekle anlatayım, doğru simülasyon/testi vereyim. Canım sıkılırsa <b>espri</b> bile yaparım 😄 İstersen 🎤 ile konuşarak da sorabilirsin!`,
+        speak:`Merhaba! Ben Fizo, fizik asistanın. Bir konu sor, sana formül ve örnekle anlatayım. İstersen espri bile yaparım.`, chips:['🎯 Eğik atış','🧲 Manyetik alan','🌊 Dalga','😄 Espri yap']};
     if(/(teşekkür|tesekkur|sağ ?ol|sagol|eyvallah|harika|süper|super)/.test(s))
-      return {html:`Rica ederim! 😊 Başka neyi merak ediyorsun?`, speak:`Rica ederim! Başka neyi merak ediyorsun?`, chips:['Test öner','Simülasyonları göster']};
+      return {html:`Rica ederim! 😊 Başka neyi merak ediyorsun?`, speak:`Rica ederim! Başka neyi merak ediyorsun?`, chips:['Test öner','Simülasyonları göster','😄 Espri yap']};
     // sınıf bazlı
     const gm=s.match(/\b(9|10|11|12)\s*\.?\s*sınıf/);
     if(gm){ const gc = gm[1]==='12' ? ['Tork ve denge','Fotoelektrik etki','Nükleer enerji','Modern Atom Teorisi']
@@ -502,11 +580,11 @@
     for(const e of KB){ if(e.k.some(w=>s.includes(w))) return {html:e.html, speak:e.speak, chips:e.chips, link:e.link}; }
     // soru gibi mi?
     if(/[0-9]/.test(s) && /(kaç|kac|bul|hesapla|=|\bm\/s\b|\bn\b|\bj\b|saniye|metre|hız|hiz|ivme|kuvvet)/.test(s))
-      return {html:`Güzel soru! 🤓 <b>Tam AI beynim bağlanınca</b> bunu adım adım çözeceğim: verilenleri yazar, doğru formülü seçer, işlemi gösterir ve sonucu birimiyle veririm. Şu an demo modundayım — istersen konuyu anlatayım ya da ilgili ${L('simülasyona','simulasyonlar.html')} bakalım.`,
-        speak:`Güzel soru! Tam beynim bağlanınca bunu adım adım çözeceğim. Şimdilik konuyu anlatabilirim.`, chips:['Eğik atışı anlat','Enerji','Dalga']};
-    return {html:`Bu konuyu tam çözmek için birazdan AI beynim bağlanacak 🙂. Şu an şu başlıklarda formül + örnekle yardımcı olabilirim: <b>hareket, kuvvet, iş-enerji, momentum, basınç, ısı, sarkaç, eğik atış, dalga, elektrik, optik</b> ve <b>12. sınıf:</b> tork & açısal momentum, yay/Hooke, EM dalgalar, <b>modern fizik</b> (fotoelektrik, atom teorisi, nükleer enerji, Büyük Patlama). Ayrıca <b>Maarif Modeli nedir</b> ve <b>fizikte ne değişti</b> sorularını da yanıtlarım. Hangisini anlatayım?`,
-      speak:`Bu konuyu tam çözmek için birazdan beynim bağlanacak. Şimdilik hareket, enerji, momentum, dalga, elektrik ve on ikinci sınıf modern fizik konularında yardımcı olabilirim. Hangisini anlatayım?`,
-      chips:['🌀 Tork','🔬 Fotoelektrik','☢️ Nükleer enerji','🌌 Büyük Patlama','🌊 Dalga']};
+      return {html:`Güzel soru! 🤓 Sayısal problemleri şöyle çözeriz: <b>verilenleri yaz → doğru formülü seç → işlemi yap → sonucu birimiyle ver.</b> Hangi konu olduğunu söyle (ör. "eğik atış", "Ohm", "manyetik alan"); formülü ve örnek çözümü göstereyim, ilgili ${L('simülasyonda','simulasyonlar.html')} sayıları değiştirip sonucu da görebilirsin.`,
+        speak:`Güzel soru! Sayısal problemlerde önce verilenleri yazarız, doğru formülü seçeriz, işlemi yapıp sonucu birimiyle veririz. Hangi konu olduğunu söyle, formül ve örnekle göstereyim.`, chips:['Eğik atışı anlat','Ohm yasası','Manyetik alan']};
+    return {html:`Bunu birlikte çözelim 🙂. Şu başlıklarda <b>formül + örnekle</b> güçlüyüm: <b>vektör, hareket, serbest düşme, kuvvet & Newton, sürtünme, çembersel hareket, iş-enerji, momentum, basınç & kaldırma, evrensel çekim, özkütle, ısı, sarkaç, eğik atış, dalga, elektrik & Ohm, Coulomb, optik, manyetik alan</b> ve <b>12. sınıf:</b> tork, yay/Hooke, EM dalgalar, <b>modern fizik</b> (fotoelektrik, atom, nükleer, Büyük Patlama). <b>Maarif nedir / fizikte ne değişti</b> de sorabilirsin — ya da "espri yap" de 😄 Hangisini açayım?`,
+      speak:`Şu an vektör, hareket, kuvvet, enerji, momentum, basınç, optik, manyetik alan ve on ikinci sınıf modern fizik konularında formül ve örnekle yardımcı olabilirim. Hangisini açayım?`,
+      chips:['🧲 Manyetik alan','🔍 Optik','🌀 Çembersel hareket','😄 Espri yap','🌊 Dalga']};
   }
 
   feed.addEventListener('click',e=>{
@@ -546,7 +624,7 @@
   $('btnWave').addEventListener('click',()=>{ doGesture('wave'); speak('Merhaba! Ben Fizo. Hadi fizik çalışalım!'); });
   $('voiceHint').addEventListener('click',()=>$('voiceTip').classList.toggle('on'));
 
-  addMsg('bot', `Merhaba! 👋 Ben <b>Fizo</b>, senin fizik asistanın. Aşağıdan bir konu seç ya da bana yaz — formül ve mini örnekle anlatırım. Sorunu <b>🎤 sesli</b> de sorabilirsin!`, ['🎯 Eğik atış','🔋 Enerji','🌊 Dalga','💡 Çalışma taktiği']);
+  addMsg('bot', `Merhaba! 👋 Ben <b>Fizo</b>, senin fizik asistanın. Aşağıdan bir konu seç ya da bana yaz — formül ve mini örnekle anlatırım, doğru simülasyona yönlendiririm. Sorunu <b>🎤 sesli</b> de sorabilir, canın sıkılırsa <b>espri</b> bile isteyebilirsin 😄`, ['🎯 Eğik atış','🧲 Manyetik alan','🔍 Optik','😄 Espri yap']);
   doGesture('wave');
 })();
 </script>
