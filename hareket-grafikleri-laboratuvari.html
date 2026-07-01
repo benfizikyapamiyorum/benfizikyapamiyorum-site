@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hareket ve Grafikler Laboratuvarı — Konum-Hız-İvme Simülasyonu (9-10. Sınıf) | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Başlangıç konumu, hız ve ivmeyi değiştir; aracın hareketini izlerken konum-zaman (x-t), hız-zaman (v-t) ve ivme-zaman (a-t) grafiklerini eş zamanlı gör. Yol ile yer değiştirme farkını keşfet. 9-10. sınıf / TYT — Maarif (TYMM) uyumlu, ücretsiz interaktif fizik simülasyonu.">
+<meta name="keywords" content="hareket simülasyonu, hareket grafikleri, konum zaman grafiği, hız zaman grafiği, ivme zaman grafiği, x-t v-t a-t grafiği, sabit ivmeli hareket, düzgün hareket, yol ve yer değiştirme, alınan yol, 9. sınıf hareket, 10. sınıf hareket, TYT hareket, kinematik simülasyonu, fizik simülasyonu">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/hareket-grafikleri-laboratuvari.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="Hareket ve Grafikler Laboratuvarı — x-t, v-t, a-t Simülasyonu">
+<meta property="og:description" content="Konum, hız ve ivmeyi değiştir; x-t, v-t, a-t grafiklerini eş zamanlı izle. Yol ve yer değiştirme farkı. 9-10. sınıf / TYT, Maarif uyumlu.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/hareket-grafikleri-laboratuvari.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hareket ve Grafikler Laboratuvarı">
+<meta name="twitter:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"Konum-zaman (x-t) grafiğinin eğimi neyi verir?","acceptedAnswer":{"@type":"Answer","text":"Konum-zaman grafiğinin eğimi hızı verir. Eğim sabitse hız sabittir (düzgün hareket); grafik eğri (parabol) ise ivmeli hareket vardır."}},
+    {"@type":"Question","name":"Hız-zaman (v-t) grafiğinde eğim ve alan ne anlama gelir?","acceptedAnswer":{"@type":"Answer","text":"v-t grafiğinin eğimi ivmeyi verir. Grafiğin altında kalan alan ise yer değiştirmeyi verir. Alan zaman ekseninin altındaysa yer değiştirme terstir (negatif)."}},
+    {"@type":"Question","name":"Yol ile yer değiştirme arasındaki fark nedir?","acceptedAnswer":{"@type":"Answer","text":"Alınan yol, cismin gittiği toplam mesafedir ve skalerdir (hep pozitif). Yer değiştirme ise başlangıç ile bitiş arasındaki vektörel farktır. Cisim geri dönerse alınan yol, yer değiştirmeden büyük olur."}},
+    {"@type":"Question","name":"Sabit ivmeli harekette konum nasıl hesaplanır?","acceptedAnswer":{"@type":"Answer","text":"x = x₀ + v₀·t + ½·a·t² bağıntısıyla; hız ise v = v₀ + a·t ile hesaplanır."}}
+  ]
+}
+</script>
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root{ --lab-ink:#0e0c08; --lab-coral:#e26d4f; --lab-gold:#d4a017; --lab-gold2:#b8902f;
+    --lab-muted:#5a544a; --lab-blue:#2d7dd2; --lab-green:#3a8f5b; --lab-line:#e7dcc6; --lab-surface:#fff; }
+  .lab-head h1{margin:.2em 0 .15em;}
+  .lab-head .sub{color:var(--lab-muted);font-size:1.02rem;line-height:1.6;max-width:770px;}
+  .maarif-tags{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 0;}
+  .maarif-tags span{background:#f6efe0;border:1px solid var(--lab-line);border-radius:20px;padding:4px 11px;font-size:.78rem;font-weight:700;color:var(--lab-gold2);}
+  .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:18px;align-items:start;}
+  @media(max-width:980px){.lab-grid{grid-template-columns:1fr;}}
+  .stage-wrap{position:relative;width:100%;aspect-ratio:16/6;background:#f2f6fa;border:1px solid var(--lab-line);
+    border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);touch-action:none;}
+  .stage-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;}
+  .stage-wrap:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;}
+  .hud{position:absolute;top:10px;left:12px;z-index:3;pointer-events:none;display:flex;gap:8px;flex-wrap:wrap;}
+  .hud .pill{background:rgba(255,255,255,.9);border:1px solid var(--lab-line);border-radius:9px;padding:5px 10px;font-size:.8rem;font-weight:700;color:var(--lab-ink);}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .tb{padding:9px 14px;font-size:.86rem;border-radius:10px;border:1.5px solid var(--lab-line);background:#fff;color:var(--lab-ink);
+    font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .14s;}
+  .tb:hover{background:#faf6ec;}
+  .tb.primary{background:var(--lab-ink);color:#fff;border-color:var(--lab-ink);}
+  .tb.on{background:var(--lab-gold);border-color:var(--lab-gold);color:#1c1403;}
+  .tb-sep{width:1px;align-self:stretch;background:var(--lab-line);margin:2px 2px;}
+  .toggles{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .toggles .tb{padding:7px 11px;font-size:.8rem;}
+  .panel{background:var(--lab-surface);border:1px solid var(--lab-line);border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(0,0,0,.05);}
+  .panel h3{margin:0 0 4px;font-size:1rem;}
+  .panel .hint{font-size:.78rem;color:var(--lab-muted);margin:0 0 12px;}
+  .preset{display:flex;gap:7px;flex-wrap:wrap;margin:2px 0 12px;}
+  .preset button{border:1.5px solid var(--lab-line);background:#fff;border-radius:9px;padding:7px 10px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--lab-muted);}
+  .preset button:hover{background:#faf6ec;color:var(--lab-ink);}
+  .ctrl{margin-bottom:12px;}
+  .ctrl label{display:flex;justify-content:space-between;font-size:.85rem;font-weight:600;margin-bottom:4px;}
+  .ctrl label b{color:var(--lab-gold2);font-variant-numeric:tabular-nums;}
+  .ctrl input[type=range]{width:100%;accent-color:var(--lab-coral);}
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:7px 12px;margin-top:6px;}
+  .readout .r{background:#faf6ec;border:1px solid var(--lab-line);border-radius:9px;padding:7px 10px;}
+  .readout .r .k{font-size:.66rem;color:var(--lab-muted);text-transform:uppercase;letter-spacing:.04em;}
+  .readout .r .v{font-size:1.0rem;font-weight:800;font-variant-numeric:tabular-nums;}
+  .readout .r.wide{grid-column:1 / -1;}
+  .graph-card{margin-top:18px;}
+  .graph-wrap{width:100%;height:360px;background:#fff;border:1px solid var(--lab-line);border-radius:12px;overflow:hidden;}
+  .graph-wrap canvas{width:100%;height:100%;display:block;}
+  .lab-note{margin-top:22px;background:#1c2336;color:#e9edf6;border-radius:16px;padding:22px 24px;}
+  .lab-note h3{color:#fff;margin:0 0 8px;} .lab-note p{margin:0 0 12px;color:#cdd6ea;line-height:1.6;}
+  .example{background:#faf6ec;border:1px solid var(--lab-line);border-radius:12px;padding:14px 16px;margin-top:14px;font-size:.94rem;line-height:1.6;}
+  .example b{color:var(--lab-gold2);}
+  .faq{max-width:820px;margin-top:26px;} .faq h2{font-size:1.3rem;}
+  .faq details{border:1px solid var(--lab-line);border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#fff;}
+  .faq summary{font-weight:700;cursor:pointer;} .faq p{color:var(--lab-muted);line-height:1.6;margin:8px 0 0;}
+  .fizo-ask{display:inline-flex;align-items:center;gap:8px;background:#e26d4f;color:#fff;font-weight:800;padding:11px 20px;border-radius:12px;text-decoration:none;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text"><span>Ben Fizik Yapamıyorum</span><small>Yapabilirsin. Söz veriyorum.</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="asistan.html">Asistan</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head lab-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / Hareket ve Grafikler</div>
+    <h1>🚗 Hareket ve Grafikler Laboratuvarı</h1>
+    <p class="sub">Başlangıç konumu, hız ve ivmeyi ayarla; aracın hareketini izlerken <strong>konum-zaman (x-t)</strong>, <strong>hız-zaman (v-t)</strong> ve <strong>ivme-zaman (a-t)</strong> grafikleri <strong>aynı anda</strong> çizilsin. Yol ile yer değiştirmenin farkını gör.</p>
+    <div class="maarif-tags"><span>9. & 10. Sınıf</span><span>TYT</span><span>Kuvvet ve Hareket · FİZ.9.2 / FİZ.10.1</span><span>Maarif (TYMM)</span></div>
+  </div>
+
+  <div class="lab-grid">
+    <div>
+      <div class="stage-wrap" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="hud"><span class="pill" id="hudType">Sabit ivmeli hareket</span></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="tb primary" id="btnPlay">▶ Başlat</button>
+        <button class="tb" id="btnStep">⏭ Adım</button>
+        <button class="tb" id="btnReset">↺ Sıfırla</button>
+        <div class="tb-sep"></div>
+        <label class="tb" style="cursor:default;gap:8px;">Hız
+          <select id="speed" style="border:none;background:transparent;font-weight:700;font-family:inherit;cursor:pointer;">
+            <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option>
+          </select>
+        </label>
+        <button class="tb" id="btnFs">⛶ Tam ekran</button>
+      </div>
+
+      <div class="toggles">
+        <button class="tb on" id="tgVel">➶ Hız vektörü</button>
+        <button class="tb" id="tgAcc">⇾ İvme vektörü</button>
+        <button class="tb on" id="tgStrobe">📸 Eşit-zaman fotoğrafları</button>
+        <button class="tb on" id="tgArea">▨ Grafik altındaki alanlar</button>
+        <button class="tb" id="tgRuler">📏 Cetvel</button>
+      </div>
+
+      <div class="panel graph-card">
+        <div class="hint" style="margin:0 0 8px;">Kırmızı imleç üç grafikte de anlık ânı gösterir. <b>x-t eğimi = hız</b> · <b>v-t eğimi = ivme</b> · <b>v-t altındaki alan = yer değiştirme</b>.</div>
+        <div class="graph-wrap"><canvas id="graph"></canvas></div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="panel">
+        <h3>Hareket ayarları</h3>
+        <div class="preset">
+          <button data-p="const">Sabit hız</button>
+          <button data-p="accel">Hızlanan</button>
+          <button data-p="decel">Yavaşlayıp geri dönen</button>
+        </div>
+        <div class="ctrl"><label>Başlangıç konumu x₀ <b><span id="x0v">0</span> m</b></label><input id="x0" type="range" min="-20" max="20" step="1" value="0"></div>
+        <div class="ctrl"><label>Başlangıç hızı v₀ <b><span id="v0v">4</span> m/s</b></label><input id="v0" type="range" min="-20" max="20" step="0.5" value="4"></div>
+        <div class="ctrl"><label>İvme a <b><span id="av">2.0</span> m/s²</b></label><input id="a" type="range" min="-6" max="6" step="0.5" value="2"></div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <h3>Anlık değerler</h3>
+        <div class="readout">
+          <div class="r"><div class="k">Süre t</div><div class="v"><span id="oT">0.0</span> s</div></div>
+          <div class="r"><div class="k">Konum x</div><div class="v"><span id="oX">0.0</span> m</div></div>
+          <div class="r"><div class="k">Hız v</div><div class="v"><span id="oV">4.0</span> m/s</div></div>
+          <div class="r"><div class="k">İvme a</div><div class="v"><span id="oA">2.0</span> m/s²</div></div>
+          <div class="r wide"><div class="k">Yer değiştirme Δx</div><div class="v"><span id="oDisp">0.0</span> m</div></div>
+          <div class="r wide"><div class="k">Alınan yol</div><div class="v"><span id="oDist">0.0</span> m</div></div>
+        </div>
+        <p class="hint" style="margin-top:10px;">Cisim yön değiştirirse <b>alınan yol</b>, yer değiştirmeden büyük olur — "Yavaşlayıp geri dönen"i dene.</p>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <h3>📐 Grafik altındaki alan</h3>
+        <p class="hint" style="margin-bottom:8px;">Bir grafiğin altında kalan alan, o eksenin "biriktirdiği" büyüklüğü verir.</p>
+        <div class="readout">
+          <div class="r wide"><div class="k">v-t altındaki alan → Yer değiştirme</div><div class="v" style="color:#2d7dd2"><span id="oAreaV">0.0</span> m</div></div>
+          <div class="r wide"><div class="k">a-t altındaki alan → Hız değişimi</div><div class="v" style="color:#3a8f5b"><span id="oAreaA">0.0</span> m/s</div></div>
+        </div>
+        <p class="hint" style="margin-top:10px;"><b>v-t alanı = Δx</b> (yer değiştirme) · <b>a-t alanı = Δv</b> (hız değişimi). Bu alanlar grafiklerde boyalı gösterilir; eksenin altında kalan alan negatiftir.</p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="example">
+    <b>Mini örnek:</b> x₀ = 0, v₀ = 4 m/s, a = 2 m/s² için 3. saniyede:
+    x = 0 + 4·3 + ½·2·3² = <b>21 m</b>, hız v = 4 + 2·3 = <b>10 m/s</b>. v-t grafiğinin eğimi ivmeyi (2), altındaki alan yer değiştirmeyi verir.
+  </div>
+
+  <div class="lab-note">
+    <h3>Bu laboratuvarda neler var?</h3>
+    <p>Eş zamanlı x-t / v-t / a-t grafikleri · hareketli araç + eşit-zaman fotoğrafları · hız & ivme vektörleri · v-t altındaki alan (yer değiştirme) · yol ve yer değiştirme ayrımı · hazır senaryolar · cetvel. Ücretsiz, reklamsız, mobil uyumlu.</p>
+    <a href="asistan.html" class="fizo-ask">🤖 Bu konuyu Fizo'ya sor</a>
+    <div style="margin-top:14px;">
+      <a href="grafik-yarisi.html" class="btn btn-ghost">🎮 Grafik Yarışı oyunu</a>
+      <a href="9-sinif-fizik-konulari.html" class="btn btn-ghost">9. sınıf konuları</a>
+      <a href="simulasyonlar.html" class="btn btn-ghost">Tüm simülasyonlar</a>
+    </div>
+  </div>
+
+  <section class="faq">
+    <h2>Sıkça Sorulan Sorular</h2>
+    <details open><summary>Konum-zaman (x-t) grafiğinin eğimi neyi verir?</summary><p>x-t grafiğinin eğimi <b>hızı</b> verir. Eğim sabitse hız sabittir (düzgün hareket); grafik parabol ise ivmeli hareket vardır.</p></details>
+    <details><summary>Hız-zaman (v-t) grafiğinde eğim ve alan ne anlama gelir?</summary><p>v-t grafiğinin <b>eğimi ivmeyi</b>, altında kalan <b>alan yer değiştirmeyi</b> verir. Alan zaman ekseninin altındaysa yer değiştirme negatiftir.</p></details>
+    <details><summary>Yol ile yer değiştirme arasındaki fark nedir?</summary><p><b>Alınan yol</b> gidilen toplam mesafedir (skaler, hep pozitif). <b>Yer değiştirme</b> başlangıç ile bitiş arasındaki vektörel farktır. Cisim geri dönerse alınan yol yer değiştirmeden büyük olur.</p></details>
+    <details><summary>Sabit ivmeli harekette konum nasıl bulunur?</summary><p>x = x₀ + v₀·t + ½·a·t² ile; hız ise v = v₀ + a·t ile hesaplanır.</p></details>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div><a href="hakkimda.html">Hakkımda</a> · <a href="simulasyonlar.html">Simülasyonlar</a> · <a href="asistan.html">Fizo Asistan</a> · <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a></div>
+  </div>
+</footer>
+
+<script defer src="analytics.js"></script>
+<script src="lab-tools.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const C = { ink:'#0e0c08', coral:'#e26d4f', blue:'#2d7dd2', gold:'#d4a017', green:'#3a8f5b', muted:'#5a544a', grid:'rgba(14,12,8,.08)' };
+
+  const scene=$('scene'), sx=scene.getContext('2d');
+  const graph=$('graph'), gx=graph.getContext('2d');
+  const stage=$('stage');
+
+  const P = { x0:0, v0:4, a:2 };
+  const T = 10;                 // toplam süre (s)
+  const DT = 0.02;
+  let path=null;                // {pts:[{t,x,v,a,d}], xmin,xmax,vmin,vmax}
+  let playing=false, speed=1, raf=null, lastNow=0, simT=0;
+  const tog = { vel:true, acc:false, strobe:true, area:true };
+
+  function fit(cnv,ctx){ const r=window.devicePixelRatio||1, w=cnv.clientWidth, h=cnv.clientHeight;
+    if(cnv.width!==Math.round(w*r)||cnv.height!==Math.round(h*r)){ cnv.width=Math.round(w*r); cnv.height=Math.round(h*r); ctx.setTransform(r,0,0,r,0,0);} }
+
+  // ---- fizik: hareketi önceden hesapla ----
+  function compute(){
+    const pts=[]; let d=0, prevx=null;
+    for(let t=0;t<=T+1e-9;t+=DT){
+      const x=P.x0+P.v0*t+0.5*P.a*t*t;
+      const v=P.v0+P.a*t;
+      if(prevx!==null) d+=Math.abs(x-prevx);
+      pts.push({t,x,v,a:P.a,d}); prevx=x;
+    }
+    let xmin=Infinity,xmax=-Infinity,vmin=Infinity,vmax=-Infinity;
+    for(const p of pts){ xmin=Math.min(xmin,p.x); xmax=Math.max(xmax,p.x); vmin=Math.min(vmin,p.v); vmax=Math.max(vmax,p.v); }
+    path={pts,xmin,xmax,vmin,vmax};
+  }
+  function at(t){ const i=Math.max(0,Math.min(path.pts.length-1,Math.round(t/DT))); return path.pts[i]; }
+
+  // ---- sahne (track + araç) ----
+  let track={ ox:0, pxm:10, y:0 };
+  function trackView(){
+    fit(scene,sx); const W=scene.clientWidth, H=scene.clientHeight;
+    const pad=48;
+    let lo=Math.min(path.xmin,0), hi=Math.max(path.xmax,0);
+    if(hi-lo<8){ const c=(hi+lo)/2; lo=c-4; hi=c+4; }
+    const span=hi-lo; track.pxm=(W-2*pad)/span; track.ox=pad-lo*track.pxm; track.y=H*0.60;
+    return {W,H,lo,hi,pad};
+  }
+  const tx = x => track.ox + x*track.pxm;
+  function niceStep(span){ const raw=span/8,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p; return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p; }
+
+  function drawCar(px,py,color,alpha){
+    sx.globalAlpha=alpha;
+    sx.fillStyle=color; sx.strokeStyle='#0e0c08'; sx.lineWidth=1.5;
+    sx.beginPath(); sx.roundRect(px-20,py-14,40,18,5); sx.fill(); sx.stroke();
+    sx.fillStyle='#cfe0f0'; sx.beginPath(); sx.roundRect(px-9,py-12,18,9,3); sx.fill();
+    sx.fillStyle='#22303f'; sx.beginPath(); sx.arc(px-11,py+4,5,0,7); sx.arc(px+11,py+4,5,0,7); sx.fill();
+    sx.globalAlpha=1;
+  }
+  function arrow(x1,y1,x2,y2,color,w){ if(Math.abs(x2-x1)+Math.abs(y2-y1)<3)return;
+    sx.strokeStyle=color; sx.fillStyle=color; sx.lineWidth=w;
+    sx.beginPath(); sx.moveTo(x1,y1); sx.lineTo(x2,y2); sx.stroke();
+    const a=Math.atan2(y2-y1,x2-x1),s=8; sx.beginPath(); sx.moveTo(x2,y2);
+    sx.lineTo(x2-s*Math.cos(a-.4),y2-s*Math.sin(a-.4)); sx.lineTo(x2-s*Math.cos(a+.4),y2-s*Math.sin(a+.4)); sx.closePath(); sx.fill();
+  }
+  function drawScene(){
+    const v=trackView(), W=v.W, H=v.H;
+    sx.fillStyle='#f2f6fa'; sx.fillRect(0,0,W,H);
+    // yol şeridi
+    sx.fillStyle='#e4ebf2'; sx.fillRect(0,track.y+8,W,26);
+    sx.strokeStyle='rgba(14,12,8,.5)'; sx.lineWidth=2; sx.beginPath(); sx.moveTo(0,track.y+8); sx.lineTo(W,track.y+8); sx.stroke();
+    // konum cetveli (m)
+    const step=niceStep(v.hi-v.lo);
+    sx.fillStyle=C.muted; sx.font='11px ui-monospace, monospace'; sx.strokeStyle='rgba(14,12,8,.18)'; sx.lineWidth=1;
+    for(let xm=Math.ceil(v.lo/step)*step; xm<=v.hi+1e-9; xm+=step){ const X=tx(xm);
+      sx.beginPath(); sx.moveTo(X,track.y+8); sx.lineTo(X,track.y+16); sx.stroke();
+      sx.fillText(xm.toFixed(step<1?1:0), X-6, track.y+48); }
+    // başlangıç işareti
+    sx.strokeStyle='rgba(226,109,79,.6)'; sx.setLineDash([4,4]); sx.lineWidth=1.5;
+    sx.beginPath(); sx.moveTo(tx(P.x0),20); sx.lineTo(tx(P.x0),track.y+8); sx.stroke(); sx.setLineDash([]);
+    sx.fillStyle='rgba(226,109,79,.9)'; sx.fillText('başlangıç', tx(P.x0)-24, 16);
+
+    const cur = playing||simT>0 ? at(simT) : path.pts[0];
+    // eşit-zaman fotoğrafları (strobe)
+    if(tog.strobe){ for(let k=1;k<=Math.floor(simT);k++){ const p=at(k); drawCar(tx(p.x),track.y,'#9fb4c6',0.5); } }
+    // araç
+    drawCar(tx(cur.x),track.y,C.coral,1);
+    // vektörler
+    if(tog.vel) arrow(tx(cur.x),track.y-22, tx(cur.x)+cur.v*4, track.y-22, C.ink, 3);
+    if(tog.acc) arrow(tx(cur.x),track.y-36, tx(cur.x)+cur.a*8, track.y-36, C.blue, 2.5);
+    if(tog.vel){ sx.fillStyle=C.ink; sx.font='11px ui-monospace, monospace'; sx.fillText('v', tx(cur.x)+cur.v*4+ (cur.v>=0?4:-12), track.y-25); }
+    MT.draw();
+  }
+
+  // ---- grafikler: 3 alt grafik (x-t, v-t, a-t) ----
+  function sub(rect, key, color, label, unit){
+    const {x,y,w,h}=rect, padL=44, padB=18, padT=6;
+    gx.fillStyle='#fff'; gx.fillRect(x,y,w,h);
+    // y aralığı
+    let lo, hi;
+    if(key==='x'){ lo=path.xmin; hi=path.xmax; }
+    else if(key==='v'){ lo=path.vmin; hi=path.vmax; }
+    else { lo=Math.min(0,P.a); hi=Math.max(0,P.a); }
+    if(hi-lo<1){ const c=(hi+lo)/2; lo=c-1; hi=c+1; }
+    const pad=(hi-lo)*0.12; lo-=pad; hi+=pad;
+    const gx0=x+padL, gy0=y+padT, gw=w-padL-10, gh=h-padT-padB;
+    const X=t=> gx0 + (t/T)*gw;
+    const Y=val=> gy0 + gh - ((val-lo)/(hi-lo))*gh;
+    // sıfır çizgisi
+    if(lo<0&&hi>0){ const zy=Y(0); gx.strokeStyle='rgba(14,12,8,.18)'; gx.lineWidth=1; gx.beginPath(); gx.moveTo(gx0,zy); gx.lineTo(gx0+gw,zy); gx.stroke(); }
+    // eksenler
+    gx.strokeStyle=C.ink; gx.lineWidth=1.2; gx.beginPath(); gx.moveTo(gx0,gy0); gx.lineTo(gx0,gy0+gh); gx.lineTo(gx0+gw,gy0+gh); gx.stroke();
+    gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace';
+    gx.fillText(hi.toFixed(0), x+6, gy0+8); gx.fillText(lo.toFixed(0), x+6, gy0+gh);
+    gx.fillStyle=color; gx.font='bold 11px ui-monospace, monospace'; gx.fillText(label, gx0+4, gy0+11);
+    const idx=Math.max(0,Math.min(path.pts.length-1,Math.round(simT/DT)));
+    const val=p=> key==='x'?p.x : key==='v'?p.v : p.a;
+    // grafik altındaki alan (v-t → yer değiştirme Δx, a-t → hız değişimi Δv)
+    if(tog.area && (key==='v'||key==='a')){
+      const zy = (lo<0&&hi>0)?Y(0):Y(Math.max(lo,0));
+      gx.fillStyle = key==='v'?'rgba(45,125,210,.16)':'rgba(58,143,91,.18)';
+      gx.beginPath(); gx.moveTo(X(0),zy);
+      for(let i=0;i<=idx;i++){ const p=path.pts[i]; gx.lineTo(X(p.t),Y(val(p))); }
+      gx.lineTo(X(path.pts[idx].t),zy); gx.closePath(); gx.fill();
+      if(simT>0.4){ const c=at(simT);
+        const txt = key==='v' ? ('alan = Δx = '+(c.x-P.x0).toFixed(1)+' m') : ('alan = Δv = '+(c.v-P.v0).toFixed(1)+' m/s');
+        gx.fillStyle = key==='v'?C.blue:C.green; gx.font='bold 10px ui-monospace, monospace';
+        gx.fillText(txt, Math.max(X(0)+4, X(simT*0.5)-32), zy-4);
+      }
+    }
+    // tam eğri (açık) + geçilen kısım (koyu)
+    gx.strokeStyle='rgba(14,12,8,.18)'; gx.lineWidth=1.6; gx.beginPath();
+    path.pts.forEach((p,i)=>{ const px=X(p.t),py=Y(val(p)); i?gx.lineTo(px,py):gx.moveTo(px,py); }); gx.stroke();
+    gx.strokeStyle=color; gx.lineWidth=2.6; gx.beginPath();
+    for(let i=0;i<=idx;i++){ const p=path.pts[i]; const px=X(p.t),py=Y(val(p)); i?gx.lineTo(px,py):gx.moveTo(px,py); } gx.stroke();
+    // imleç
+    const cx=X(simT); gx.strokeStyle='rgba(226,109,79,.8)'; gx.lineWidth=1.5; gx.setLineDash([3,3]);
+    gx.beginPath(); gx.moveTo(cx,gy0); gx.lineTo(cx,gy0+gh); gx.stroke(); gx.setLineDash([]);
+    const cur=at(simT); gx.fillStyle=color; gx.beginPath(); gx.arc(X(simT),Y(val(cur)),4,0,7); gx.fill();
+    // t ekseni etiketi
+    gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace'; gx.fillText('t (s)', gx0+gw-30, gy0+gh+14);
+  }
+  function drawGraph(){
+    fit(graph,gx); const W=graph.clientWidth, H=graph.clientHeight;
+    gx.clearRect(0,0,W,H);
+    const gap=8, h=(H-2*gap)/3;
+    sub({x:0,y:0,w:W,h}, 'x', C.coral, 'x-t  (konum)', 'm');
+    sub({x:0,y:h+gap,w:W,h}, 'v', C.blue, 'v-t  (hız)', 'm/s');
+    sub({x:0,y:2*(h+gap),w:W,h}, 'a', C.green, 'a-t  (ivme)', 'm/s²');
+  }
+
+  // ---- readout ----
+  function hareketTuru(){
+    if(Math.abs(P.a)<1e-9) return (Math.abs(P.v0)<1e-9?'Duruyor':'Düzgün (sabit hızlı) hareket');
+    const cur=at(simT); const hizlanan = cur.v*P.a>0;
+    return 'Sabit ivmeli — '+(Math.abs(cur.v)<0.05?'anlık duruş':(hizlanan?'hızlanıyor':'yavaşlıyor'));
+  }
+  function updateReadout(){
+    const cur=at(simT);
+    $('oT').textContent=simT.toFixed(1); $('oX').textContent=cur.x.toFixed(1);
+    $('oV').textContent=cur.v.toFixed(1); $('oA').textContent=P.a.toFixed(1);
+    $('oDisp').textContent=(cur.x-P.x0).toFixed(1); $('oDist').textContent=cur.d.toFixed(1);
+    $('oAreaV').textContent=(cur.x-P.x0).toFixed(1);
+    $('oAreaA').textContent=(cur.v-P.v0).toFixed(1);
+    $('hudType').textContent=hareketTuru();
+  }
+  function render(){ drawScene(); drawGraph(); updateReadout(); }
+
+  // ---- animasyon ----
+  function frame(now){ const dt=Math.min(0.05,(now-lastNow)/1000); lastNow=now;
+    simT+=dt*speed;
+    if(simT>=T){ simT=T; render(); pause(); return; }
+    render(); if(playing) raf=requestAnimationFrame(frame);
+  }
+  function play(){ if(playing)return; if(simT>=T)simT=0; playing=true; lastNow=performance.now();
+    $('btnPlay').textContent='⏸ Duraklat'; $('btnPlay').classList.remove('primary'); raf=requestAnimationFrame(frame); }
+  function pause(){ playing=false; if(raf)cancelAnimationFrame(raf); raf=null; $('btnPlay').textContent='▶ Başlat'; $('btnPlay').classList.add('primary'); }
+  function togglePlay(){ playing?pause():play(); }
+  function step(){ pause(); simT=Math.min(T,simT+0.2); render(); }
+  function reset(){ pause(); simT=0; compute(); render(); }
+
+  // ---- kontroller ----
+  function syncLabels(){ $('x0v').textContent=P.x0; $('v0v').textContent=P.v0; $('av').textContent=P.a.toFixed(1);
+    $('x0').value=P.x0; $('v0').value=P.v0; $('a').value=P.a; }
+  function onParam(){ P.x0=+$('x0').value; P.v0=+$('v0').value; P.a=+$('a').value; syncLabels(); simT=0; compute(); pause(); render(); }
+  $('x0').addEventListener('input',onParam); $('v0').addEventListener('input',onParam); $('a').addEventListener('input',onParam);
+  document.querySelectorAll('.preset button').forEach(b=>b.addEventListener('click',()=>{
+    const p=b.dataset.p;
+    if(p==='const'){ P.x0=-10; P.v0=6; P.a=0; }
+    else if(p==='accel'){ P.x0=0; P.v0=2; P.a=2; }
+    else { P.x0=0; P.v0=12; P.a=-2; }   // yavaşlayıp geri döner (t=6'da durur)
+    syncLabels(); simT=0; compute(); pause(); render();
+  }));
+  function bindTog(id,key){ $(id).addEventListener('click',()=>{ tog[key]=!tog[key]; $(id).classList.toggle('on',tog[key]); render(); }); }
+  bindTog('tgVel','vel'); bindTog('tgAcc','acc'); bindTog('tgStrobe','strobe'); bindTog('tgArea','area');
+  $('btnPlay').addEventListener('click',togglePlay);
+  $('btnStep').addEventListener('click',step);
+  $('btnReset').addEventListener('click',reset);
+  $('speed').addEventListener('change',e=>{ speed=+e.target.value; });
+  $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
+
+  // ---- ölçüm araçları (cetvel) ----
+  const MT = makeMeasureTools({ ctx:sx, w2s:p=>({x:tx(p.x),y:track.y - p.y*track.pxm}), s2w:(px,py)=>({x:(px-track.ox)/track.pxm, y:(track.y-py)/track.pxm}), pxPerMeter:()=>track.pxm });
+  function evtPos(e){ const r=scene.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {px:t.clientX-r.left, py:t.clientY-r.top}; }
+  let toolDrag=false;
+  scene.addEventListener('mousedown',e=>{ const{px,py}=evtPos(e); if(MT.onDown(px,py)){ toolDrag=true; drawScene(); e.preventDefault(); } });
+  window.addEventListener('mousemove',e=>{ if(!toolDrag)return; const{px,py}=evtPos(e); MT.onMove(px,py); drawScene(); });
+  window.addEventListener('mouseup',()=>{ if(toolDrag){ MT.onUp(); toolDrag=false; } });
+  scene.addEventListener('touchstart',e=>{ const{px,py}=evtPos(e); if(MT.onDown(px,py)){ toolDrag=true; drawScene(); e.preventDefault(); } },{passive:false});
+  scene.addEventListener('touchmove',e=>{ if(!toolDrag)return; const{px,py}=evtPos(e); MT.onMove(px,py); drawScene(); e.preventDefault(); },{passive:false});
+  window.addEventListener('touchend',()=>{ if(toolDrag){ MT.onUp(); toolDrag=false; } });
+  $('tgRuler').addEventListener('click',()=>{ const on=MT.toggleTape(); $('tgRuler').classList.toggle('on',on); drawScene(); });
+
+  let rT; window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(render,120); });
+  document.addEventListener('fullscreenchange',()=>setTimeout(render,80));
+
+  syncLabels(); compute(); requestAnimationFrame(render);
+})();
+</script>
+
+</body>
+</html>
