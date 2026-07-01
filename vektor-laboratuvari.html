@@ -23,73 +23,86 @@
 <meta name="twitter:title" content="Vektör Laboratuvarı — Vektör Toplama Simülasyonu">
 <meta name="twitter:image" content="https://benfizikyapamiyorum.com/og-image.png">
 <script type="application/ld+json">
-{
-  "@context":"https://schema.org","@type":"FAQPage",
-  "mainEntity":[
-    {"@type":"Question","name":"Vektör nedir, skaler nicelikten farkı nedir?","acceptedAnswer":{"@type":"Answer","text":"Vektör hem büyüklüğü hem de yönü olan niceliktir (kuvvet, hız, yer değiştirme). Skaler nicelik ise yalnızca büyüklükten oluşur (kütle, sıcaklık, zaman)."}},
-    {"@type":"Question","name":"Vektörler nasıl toplanır?","acceptedAnswer":{"@type":"Answer","text":"İki yöntem vardır: Uç uca ekleme (birinci vektörün ucuna ikincinin kuyruğu eklenir, bileşke baştan uca çizilir) ve paralelkenar yöntemi (vektörler ortak başlangıçtan çizilir, bileşke köşegendir). Sonuç ikisinde de aynıdır."}},
-    {"@type":"Question","name":"Vektör bileşenlerine nasıl ayrılır?","acceptedAnswer":{"@type":"Answer","text":"Bir vektör yatay (x) ve düşey (y) bileşenlerine ayrılır: Vx = V·cosθ, Vy = V·sinθ. Bileşke vektörün bileşenleri, tüm vektörlerin aynı eksendeki bileşenlerinin toplamıdır: Rx = ΣVx, Ry = ΣVy."}},
-    {"@type":"Question","name":"Bileşke vektörün büyüklüğü ve açısı nasıl bulunur?","acceptedAnswer":{"@type":"Answer","text":"Büyüklük Pisagor ile |R| = √(Rx² + Ry²), yön ise θ = arctan(Ry / Rx) ile bulunur."}}
-  ]
-}
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Vektör nedir, skaler nicelikten farkı nedir?","acceptedAnswer":{"@type":"Answer","text":"Vektör hem büyüklüğü hem de yönü olan niceliktir (kuvvet, hız, yer değiştirme). Skaler nicelik ise yalnızca büyüklükten oluşur (kütle, sıcaklık, zaman)."}},
+{"@type":"Question","name":"Vektörler nasıl toplanır?","acceptedAnswer":{"@type":"Answer","text":"İki yöntem vardır: Uç uca ekleme ve paralelkenar yöntemi. Sonuç ikisinde de aynıdır."}},
+{"@type":"Question","name":"Vektör bileşenlerine nasıl ayrılır?","acceptedAnswer":{"@type":"Answer","text":"Yatay ve düşey bileşenlere ayrılır: Vx = V·cosθ, Vy = V·sinθ. Bileşke için Rx = ΣVx, Ry = ΣVy."}},
+{"@type":"Question","name":"Bileşke vektörün büyüklüğü ve açısı nasıl bulunur?","acceptedAnswer":{"@type":"Answer","text":"Büyüklük |R| = √(Rx² + Ry²), yön θ = arctan(Ry / Rx) ile bulunur."}}]}
 </script>
 <link rel="stylesheet" href="styles.css">
 <style>
-  :root{ --lab-ink:#0e0c08; --lab-coral:#e26d4f; --lab-gold:#d4a017; --lab-gold2:#b8902f;
-    --lab-muted:#5a544a; --lab-blue:#2d7dd2; --lab-line:#e7dcc6; --lab-surface:#fff; }
-  .lab-head h1{margin:.2em 0 .15em;}
-  .lab-head .sub{color:var(--lab-muted);font-size:1.02rem;line-height:1.6;max-width:760px;}
-  .maarif-tags{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 0;}
-  .maarif-tags span{background:#f6efe0;border:1px solid var(--lab-line);border-radius:20px;padding:4px 11px;font-size:.78rem;font-weight:700;color:var(--lab-gold2);}
-  .lab-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;margin-top:18px;align-items:start;}
-  @media(max-width:980px){.lab-grid{grid-template-columns:1fr;}}
-  .stage-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#f7f9fc;border:1px solid var(--lab-line);
-    border-radius:16px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.08);touch-action:none;}
-  .stage-wrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;}
-  .stage-wrap:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;}
-  .hud{position:absolute;top:10px;left:12px;z-index:3;pointer-events:none;}
-  .hud .pill{background:rgba(255,255,255,.88);border:1px solid var(--lab-line);border-radius:9px;padding:5px 10px;font-size:.8rem;font-weight:700;color:var(--lab-ink);}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
-  .tb{padding:9px 14px;font-size:.86rem;border-radius:10px;border:1.5px solid var(--lab-line);background:#fff;color:var(--lab-ink);
-    font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .14s;}
-  .tb:hover{background:#faf6ec;}
-  .tb.primary{background:var(--lab-ink);color:#fff;border-color:var(--lab-ink);}
-  .tb.on{background:var(--lab-gold);border-color:var(--lab-gold);color:#1c1403;}
-  .tb-sep{width:1px;align-self:stretch;background:var(--lab-line);margin:2px 2px;}
-  .toggles{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
-  .toggles .tb{padding:7px 11px;font-size:.8rem;}
-  .seg{display:inline-flex;border:1.5px solid var(--lab-line);border-radius:10px;overflow:hidden;}
-  .seg button{border:none;background:#fff;padding:8px 13px;font-weight:700;font-size:.84rem;cursor:pointer;font-family:inherit;color:var(--lab-muted);}
-  .seg button.on{background:var(--lab-ink);color:#fff;}
-  .panel{background:var(--lab-surface);border:1px solid var(--lab-line);border-radius:16px;padding:16px;box-shadow:0 6px 18px rgba(0,0,0,.05);}
-  .panel h3{margin:0 0 4px;font-size:1rem;}
-  .panel .hint{font-size:.78rem;color:var(--lab-muted);margin:0 0 12px;}
-  .vrow{border-top:1px solid var(--lab-line);padding-top:11px;margin-top:11px;}
-  .vrow:first-of-type{border-top:none;padding-top:0;margin-top:6px;}
-  .vrow .vh{display:flex;align-items:center;gap:7px;font-weight:800;margin-bottom:6px;}
-  .vrow .vh .dot{width:12px;height:12px;border-radius:50%;}
-  .vrow .vh .comp{margin-left:auto;font-size:.8rem;font-weight:600;color:var(--lab-muted);font-variant-numeric:tabular-nums;}
-  .ctrl{margin-bottom:8px;}
-  .ctrl label{display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;margin-bottom:3px;}
-  .ctrl label b{color:var(--lab-gold2);font-variant-numeric:tabular-nums;}
-  .ctrl input[type=range]{width:100%;accent-color:var(--lab-coral);}
-  .rbox{margin-top:6px;background:#1c2336;border-radius:14px;padding:15px 16px;color:#e9edf6;}
-  .rbox h3{color:#fff;margin:0 0 8px;font-size:1rem;}
-  .rrow{display:flex;justify-content:space-between;font-size:.92rem;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.1);}
-  .rrow b{font-variant-numeric:tabular-nums;color:#ffd98a;}
-  .rformula{font-family:ui-monospace,Menlo,monospace;font-size:.82rem;color:#cdd6ea;margin-top:9px;line-height:1.6;}
-  .lab-note{margin-top:22px;background:#1c2336;color:#e9edf6;border-radius:16px;padding:22px 24px;}
-  .lab-note h3{color:#fff;margin:0 0 8px;}
-  .lab-note p{margin:0 0 12px;color:#cdd6ea;line-height:1.6;}
-  .lab-note a.btn{margin-right:8px;}
-  .example{background:#faf6ec;border:1px solid var(--lab-line);border-radius:12px;padding:14px 16px;margin-top:14px;font-size:.94rem;line-height:1.6;}
-  .example b{color:var(--lab-gold2);}
-  .faq{max-width:820px;margin-top:26px;}
-  .faq h2{font-size:1.3rem;}
-  .faq details{border:1px solid var(--lab-line);border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#fff;}
-  .faq summary{font-weight:700;cursor:pointer;}
-  .faq p{color:var(--lab-muted);line-height:1.6;margin:8px 0 0;}
-  .fizo-ask{display:inline-flex;align-items:center;gap:8px;background:#e26d4f;color:#fff;font-weight:800;padding:11px 20px;border-radius:12px;text-decoration:none;}
+  :root{ --i:#1c2336; --mut:#697089; --line:#e7e9f1; --surf:#fff; --bg:#eef1f8;
+         --A:#e8623f; --B:#2d7dd2; --R:#1c2336; --gold:#c98a12; --ok:#2fa96b; }
+  .vl-head h1{margin:.15em 0 .12em;font-size:1.7rem;}
+  .vl-head .sub{color:var(--mut);font-size:1.02rem;line-height:1.6;max-width:760px;}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 0;}
+  .tags span{background:#eef1f8;border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:.77rem;font-weight:700;color:#4d5680;}
+
+  .help{display:flex;align-items:center;gap:12px;background:#fff7ec;border:1px solid #f0dcae;border-radius:14px;
+    padding:12px 16px;margin-top:16px;color:#7a5a10;font-size:.95rem;line-height:1.5;}
+  .help .ic{font-size:1.3rem;}
+
+  .lab{display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:18px;margin-top:16px;align-items:start;}
+  @media(max-width:960px){.lab{grid-template-columns:1fr;}}
+  .lab.maximized{position:fixed;inset:0;z-index:99990;margin:0;max-width:none;width:100vw;height:100vh;
+    background:var(--bg);padding:14px 18px 18px;overflow:auto;box-sizing:border-box;}
+  .lab.maximized .stage{aspect-ratio:auto;height:min(66vh,56vw);}
+  @media(max-width:960px){.lab.maximized{grid-template-columns:1fr;} .lab.maximized .stage{height:48vh;}}
+
+  .stage{position:relative;width:100%;aspect-ratio:16/10;background:#fbfcfe;border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;box-shadow:0 12px 30px rgba(28,35,54,.10);touch-action:none;}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;}
+
+  .bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;}
+  .seg{display:inline-flex;background:#eef1f8;border:1px solid var(--line);border-radius:12px;padding:3px;}
+  .seg button{border:none;background:transparent;padding:9px 15px;font-weight:700;font-size:.86rem;cursor:pointer;
+    font-family:inherit;color:var(--mut);border-radius:9px;transition:.14s;}
+  .seg button.on{background:var(--i);color:#fff;box-shadow:0 2px 6px rgba(28,35,54,.25);}
+  .btn2{border:1px solid var(--line);background:#fff;border-radius:11px;padding:9px 15px;font-weight:700;font-size:.86rem;
+    cursor:pointer;font-family:inherit;color:var(--i);display:inline-flex;align-items:center;gap:6px;transition:.14s;}
+  .btn2:hover{background:#f6f8fc;border-color:#d3d8e6;}
+  .spacer{flex:1;}
+
+  .viewbar{margin-top:12px;}
+  .viewbar .lbl{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:7px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 13px;font-size:.82rem;font-weight:700;
+    cursor:pointer;font-family:inherit;color:var(--mut);display:inline-flex;align-items:center;gap:6px;transition:.14s;}
+  .chip .sw{width:9px;height:9px;border-radius:50%;background:#c7ccdb;}
+  .chip.on{background:var(--i);color:#fff;border-color:var(--i);} .chip.on .sw{background:#fff;}
+
+  .card{background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;box-shadow:0 6px 18px rgba(28,35,54,.05);}
+  .card + .card{margin-top:14px;}
+  .card h3{margin:0 0 3px;font-size:.98rem;}
+  .card .sub2{font-size:.78rem;color:var(--mut);margin:0 0 12px;}
+  .vg{border-top:1px solid var(--line);padding-top:12px;margin-top:12px;}
+  .vg:first-of-type{border-top:none;padding-top:0;margin-top:4px;}
+  .vg .vh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.92rem;margin-bottom:8px;}
+  .vg .vh .sw{width:13px;height:13px;border-radius:4px;}
+  .vg .vh .comp{margin-left:auto;font-size:.8rem;font-weight:700;color:var(--mut);font-variant-numeric:tabular-nums;background:#f2f4fa;border-radius:6px;padding:2px 7px;}
+  .row{margin-bottom:9px;}
+  .row label{display:flex;justify-content:space-between;font-size:.82rem;font-weight:600;margin-bottom:4px;color:#3c445f;}
+  .row label b{color:var(--gold);font-variant-numeric:tabular-nums;}
+  .row input[type=range]{width:100%;accent-color:var(--A);height:22px;}
+
+  .rcard{background:linear-gradient(160deg,#1c2336,#28304b);border-radius:16px;padding:17px 18px;color:#eaedf6;margin-top:14px;box-shadow:0 10px 26px rgba(28,35,54,.22);}
+  .rcard h3{color:#fff;margin:0 0 10px;font-size:1rem;display:flex;align-items:center;gap:8px;}
+  .rrow{display:flex;justify-content:space-between;align-items:baseline;font-size:.94rem;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.10);}
+  .rrow:last-of-type{border-bottom:none;}
+  .rrow b{font-variant-numeric:tabular-nums;color:#ffd98a;font-size:1.05rem;}
+  .rform{font-family:ui-monospace,Menlo,monospace;font-size:.82rem;color:#b9c2dc;margin-top:10px;line-height:1.7;background:rgba(255,255,255,.05);border-radius:9px;padding:9px 11px;}
+
+  .discover{background:#fff;border:1px solid var(--line);border-left:5px solid var(--A);border-radius:14px;padding:16px 20px;margin-top:16px;box-shadow:0 4px 14px rgba(28,35,54,.05);}
+  .discover .t{font-weight:800;color:var(--i);margin-bottom:8px;font-size:1.05rem;}
+  .discover ul{margin:0;padding-left:20px;color:#54607a;line-height:1.7;} .discover .tip{margin:10px 0 0;font-size:.9rem;color:#8b93a8;}
+
+  .example{background:#f5f7fc;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:16px;font-size:.94rem;line-height:1.6;color:#3c445f;} .example b{color:var(--gold);}
+  .note{margin-top:22px;background:#1c2336;color:#e9edf6;border-radius:16px;padding:22px 24px;}
+  .note p{margin:0 0 12px;color:#cdd6ea;line-height:1.6;} .note a.btn{margin-right:8px;}
+  .fizo{display:inline-flex;align-items:center;gap:8px;background:var(--A);color:#fff;font-weight:800;padding:11px 20px;border-radius:12px;text-decoration:none;}
+  .faq{max-width:820px;margin-top:26px;} .faq h2{font-size:1.3rem;}
+  .faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#fff;}
+  .faq summary{font-weight:700;cursor:pointer;} .faq p{color:var(--mut);line-height:1.6;margin:8px 0 0;}
 </style>
 </head>
 <body>
@@ -116,108 +129,115 @@
 </header>
 
 <main class="container">
-  <div class="page-head lab-head">
+  <div class="page-head vl-head">
     <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / Vektör Laboratuvarı</div>
     <h1>➶ Vektör Laboratuvarı</h1>
-    <p class="sub">Vektörleri <strong>sürükle</strong>, topla ve bileşenlerine ayır. <strong>Uç uca</strong> ve <strong>paralelkenar</strong> yöntemini karşılaştır; bileşke vektörün büyüklüğü, açısı ve x-y bileşenleri anında hesaplansın.</p>
-    <div class="maarif-tags"><span>9. Sınıf</span><span>TYT</span><span>Kuvvet ve Hareket · FİZ.9.2</span><span>Maarif (TYMM)</span></div>
+    <p class="sub">İki vektörü topla, bileşenlerine ayır ve bileşke vektörü canlı gör.</p>
+    <div class="tags"><span>9. Sınıf</span><span>TYT</span><span>Kuvvet ve Hareket · FİZ.9.2</span><span>Maarif</span></div>
   </div>
 
-  <div class="lab-grid">
-    <!-- SAHNE -->
-    <div>
-      <div class="stage-wrap" id="stage">
-        <canvas id="scene"></canvas>
-        <div class="hud"><span class="pill" id="hudHint">Ok uçlarını sürükle ✥</span></div>
-      </div>
+  <div class="help">
+    <span class="ic">👉</span>
+    <span><b>Nasıl kullanılır:</b> Grafikteki renkli <b>ok uçlarını sürükle</b> (ya da sağdaki kaydırıcıları kullan). Aşağıdan toplama yöntemini seç: <b>Ortak başlangıç</b> (paralelkenar) veya <b>Uç uca</b>. Siyah <b>R</b> oku bileşkedir.</span>
+  </div>
 
-      <div class="toolbar">
+  <div class="lab" id="lab">
+    <!-- SOL: SAHNE + KONTROL ÇUBUĞU -->
+    <div>
+      <div class="stage" id="stage"><canvas id="scene"></canvas></div>
+
+      <div class="bar">
         <div class="seg" id="modeSeg">
           <button data-mode="common" class="on">Ortak başlangıç</button>
           <button data-mode="tiptotail">Uç uca</button>
         </div>
-        <div class="tb-sep"></div>
-        <button class="tb" id="btnRandom">🎲 Rastgele</button>
-        <button class="tb" id="btnReset">↺ Sıfırla</button>
-        <button class="tb" id="btnFs">⛶ Tam ekran</button>
+        <button class="btn2" id="btnRandom">🎲 Rastgele</button>
+        <button class="btn2" id="btnReset">↺ Sıfırla</button>
+        <span class="spacer"></span>
+        <button class="btn2" id="btnFs">⛶ Tam ekran</button>
       </div>
 
-      <div class="toggles">
-        <button class="tb on" id="tgPara">▱ Paralelkenar</button>
-        <button class="tb on" id="tgComp">⊹ Bileşenler (Rx, Ry)</button>
-        <button class="tb on" id="tgAngle">∡ Açılar</button>
-        <button class="tb on" id="tgGrid">▦ Izgara</button>
-        <button class="tb on" id="tgSnap">🧲 Izgaraya yapış</button>
-        <button class="tb" id="tgC">➕ 3. vektör</button>
-        <button class="tb" id="tgRuler">📏 Cetvel</button>
-        <button class="tb" id="tgProt">📐 Açıölçer</button>
+      <div class="viewbar">
+        <div class="lbl">Görünüm</div>
+        <div class="chips">
+          <button class="chip on" id="tgPara"><span class="sw"></span>Paralelkenar</button>
+          <button class="chip on" id="tgComp"><span class="sw"></span>Bileşenler</button>
+          <button class="chip on" id="tgAngle"><span class="sw"></span>Açılar</button>
+          <button class="chip on" id="tgGrid"><span class="sw"></span>Izgara</button>
+          <button class="chip on" id="tgSnap"><span class="sw"></span>Izgaraya yapış</button>
+          <button class="chip" id="tgC"><span class="sw"></span>3. vektör</button>
+          <button class="chip" id="tgRuler"><span class="sw"></span>Cetvel</button>
+          <button class="chip" id="tgProt"><span class="sw"></span>Açıölçer</button>
+        </div>
       </div>
 
       <div class="example">
-        <b>Mini örnek:</b> A = (4, 0) ve B = (0, 3) ise bileşke R = (4, 3) olur.
-        Büyüklüğü |R| = √(4² + 3²) = <b>5 birim</b>, açısı θ = arctan(3/4) ≈ <b>36,9°</b>. (Klasik 3-4-5!)
+        <b>Örnek:</b> A = (4, 0) ve B = (0, 3) ise bileşke R = (4, 3) olur. |R| = √(4²+3²) = <b>5</b>, açı ≈ <b>36,9°</b> — klasik 3-4-5.
       </div>
     </div>
 
-    <!-- PANEL -->
+    <!-- SAĞ: DEĞERLER -->
     <aside>
-      <div class="panel">
+      <div class="card">
         <h3>Vektörler</h3>
-        <p class="hint">Ok uçlarını sürükle ya da kaydırıcıları kullan.</p>
+        <div class="sub2">Ok uçlarını sürükle ya da kaydırıcıları kullan.</div>
 
-        <div class="vrow" data-v="0">
-          <div class="vh"><span class="dot" style="background:#e26d4f"></span> Vektör A <span class="comp" id="cA">(4, 0)</span></div>
-          <div class="ctrl"><label>Büyüklük |A| <b><span id="mA">4.0</span></b></label><input id="magA" type="range" min="0" max="10" step="0.1" value="4"></div>
-          <div class="ctrl"><label>Açı θ <b><span id="aA">0</span>°</b></label><input id="angA" type="range" min="0" max="359" step="1" value="0"></div>
+        <div class="vg">
+          <div class="vh"><span class="sw" style="background:#e8623f"></span> Vektör A <span class="comp" id="cA">(4, 0)</span></div>
+          <div class="row"><label>Büyüklük |A| <b><span id="mA">4.0</span></b></label><input id="magA" type="range" min="0" max="10" step="0.1" value="4"></div>
+          <div class="row"><label>Açı θ <b><span id="aA">0</span>°</b></label><input id="angA" type="range" min="0" max="359" step="1" value="0"></div>
         </div>
-        <div class="vrow" data-v="1">
-          <div class="vh"><span class="dot" style="background:#2d7dd2"></span> Vektör B <span class="comp" id="cB">(0, 3)</span></div>
-          <div class="ctrl"><label>Büyüklük |B| <b><span id="mB">3.0</span></b></label><input id="magB" type="range" min="0" max="10" step="0.1" value="3"></div>
-          <div class="ctrl"><label>Açı θ <b><span id="aB">90</span>°</b></label><input id="angB" type="range" min="0" max="359" step="1" value="90"></div>
+        <div class="vg">
+          <div class="vh"><span class="sw" style="background:#2d7dd2"></span> Vektör B <span class="comp" id="cB">(0, 3)</span></div>
+          <div class="row"><label>Büyüklük |B| <b><span id="mB">3.0</span></b></label><input id="magB" type="range" min="0" max="10" step="0.1" value="3"></div>
+          <div class="row"><label>Açı θ <b><span id="aB">90</span>°</b></label><input id="angB" type="range" min="0" max="359" step="1" value="90"></div>
         </div>
-        <div class="vrow" data-v="2" id="rowC" style="display:none;">
-          <div class="vh"><span class="dot" style="background:#d4a017"></span> Vektör C <span class="comp" id="cC">(2, 2)</span></div>
-          <div class="ctrl"><label>Büyüklük |C| <b><span id="mC">2.8</span></b></label><input id="magC" type="range" min="0" max="10" step="0.1" value="2.83"></div>
-          <div class="ctrl"><label>Açı θ <b><span id="aC">45</span>°</b></label><input id="angC" type="range" min="0" max="359" step="1" value="45"></div>
+        <div class="vg" id="rowC" style="display:none;">
+          <div class="vh"><span class="sw" style="background:#d4a017"></span> Vektör C <span class="comp" id="cC">(2, 2)</span></div>
+          <div class="row"><label>Büyüklük |C| <b><span id="mC">2.8</span></b></label><input id="magC" type="range" min="0" max="10" step="0.1" value="2.83"></div>
+          <div class="row"><label>Açı θ <b><span id="aC">45</span>°</b></label><input id="angC" type="range" min="0" max="359" step="1" value="45"></div>
         </div>
       </div>
 
-      <div class="rbox">
-        <h3>Bileşke vektör (R)</h3>
-        <div class="rrow"><span>Büyüklük |R|</span><b><span id="oRmag">5.0</span> birim</b></div>
+      <div class="rcard">
+        <h3>◆ Bileşke vektör (R)</h3>
+        <div class="rrow"><span>Büyüklük |R|</span><b><span id="oRmag">5.0</span> br</b></div>
         <div class="rrow"><span>Açı θ</span><b><span id="oRang">36.9</span>°</b></div>
-        <div class="rrow"><span>Bileşenler</span><b>R = (<span id="oRx">4.0</span>, <span id="oRy">3.0</span>)</b></div>
-        <div class="rformula" id="rFormula">Rx = 4.0 + 0.0 = 4.0<br>Ry = 0.0 + 3.0 = 3.0<br>|R| = √(Rx²+Ry²) = 5.0</div>
+        <div class="rrow"><span>Bileşenler</span><b>(<span id="oRx">4.0</span>, <span id="oRy">3.0</span>)</b></div>
+        <div class="rform" id="rFormula">Rx = 4.0 + 0.0 = 4.0<br>Ry = 0.0 + 3.0 = 3.0<br>|R| = √(Rx²+Ry²) = 5.0</div>
       </div>
     </aside>
   </div>
 
-  <div class="lab-note">
-    <h3>Bu laboratuvarda neler var?</h3>
-    <p>Uç uca + paralelkenar yöntemi · sürükle-bırak ok uçları · bileşenlerine ayırma (Rx, Ry) · canlı büyüklük & açı · 3. vektör · ızgaraya yapışma · cetvel & açıölçer. Tamamen ücretsiz, reklamsız, mobil uyumlu.</p>
-    <a href="asistan.html" class="fizo-ask">🤖 Bu konuyu Fizo'ya sor</a>
-    <div style="margin-top:14px;">
-      <a href="9-sinif-fizik-konulari.html" class="btn btn-ghost">9. sınıf konuları</a>
-      <a href="simulasyonlar.html" class="btn btn-ghost">Tüm simülasyonlar</a>
-    </div>
+  <div class="discover">
+    <div class="t">🔍 Bu labda ne keşfedeceksin?</div>
+    <ul>
+      <li>İki vektörü <b>uç uca</b> ya da <b>paralelkenar</b> yöntemiyle toplamanın aynı sonucu verdiğini görürsün.</li>
+      <li>Açı ve büyüklük değişince bileşke vektörün nasıl değiştiğini canlı izlersin.</li>
+      <li>Bir vektörün yatay (x) ve düşey (y) bileşenlerine nasıl ayrıldığını keşfedersin.</li>
+      <li>Aynı, zıt ve dik yönlü vektörlerde bileşkenin ne olacağını sezgiyle kavrarsın.</li>
+    </ul>
+    <div class="tip">💡 Tek bir işlem yapmadan, <b>görerek</b> anlarsın — formüller sonra kendiliğinden oturur.</div>
+  </div>
+
+  <div class="note">
+    <a href="asistan.html" class="fizo">🤖 Bu konuyu Fizo'ya sor</a>
+    <div style="margin-top:14px;"><a href="9-sinif-fizik-konulari.html" class="btn btn-ghost">9. sınıf konuları</a><a href="simulasyonlar.html" class="btn btn-ghost">Tüm simülasyonlar</a></div>
   </div>
 
   <section class="faq">
     <h2>Sıkça Sorulan Sorular</h2>
     <details open><summary>Vektör nedir, skaler nicelikten farkı nedir?</summary><p>Vektör hem büyüklüğü hem de yönü olan niceliktir (kuvvet, hız, yer değiştirme). Skaler nicelik ise yalnızca büyüklükten oluşur (kütle, sıcaklık, zaman).</p></details>
-    <details><summary>Vektörler nasıl toplanır?</summary><p>İki yöntem vardır: <b>uç uca ekleme</b> (birinci vektörün ucuna ikincinin kuyruğu eklenir, bileşke baştan uca çizilir) ve <b>paralelkenar yöntemi</b> (vektörler ortak başlangıçtan çizilir, bileşke köşegendir). Sonuç ikisinde de aynıdır.</p></details>
-    <details><summary>Bir vektör bileşenlerine nasıl ayrılır?</summary><p>Yatay ve düşey bileşenlere ayrılır: Vx = V·cosθ, Vy = V·sinθ. Bileşke vektörün bileşenleri, tüm vektörlerin aynı eksendeki bileşenlerinin toplamıdır: Rx = ΣVx, Ry = ΣVy.</p></details>
-    <details><summary>Bileşkenin büyüklüğü ve açısı nasıl bulunur?</summary><p>Büyüklük Pisagor ile |R| = √(Rx² + Ry²), yön ise θ = arctan(Ry / Rx) ile bulunur.</p></details>
+    <details><summary>Vektörler nasıl toplanır?</summary><p><b>Uç uca ekleme</b> (birinci vektörün ucuna ikincinin kuyruğu eklenir) ve <b>paralelkenar yöntemi</b> (ortak başlangıçtan çizilir, bileşke köşegendir). Sonuç ikisinde de aynıdır.</p></details>
+    <details><summary>Bir vektör bileşenlerine nasıl ayrılır?</summary><p>Yatay ve düşey bileşenlere ayrılır: Vx = V·cosθ, Vy = V·sinθ. Bileşke için Rx = ΣVx, Ry = ΣVy.</p></details>
+    <details><summary>Bileşkenin büyüklüğü ve açısı nasıl bulunur?</summary><p>|R| = √(Rx² + Ry²), yön θ = arctan(Ry / Rx).</p></details>
   </section>
 </main>
 
 <footer class="footer">
   <div class="footer-inner">
     <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
-    <div>
-      <a href="hakkimda.html">Hakkımda</a> · <a href="simulasyonlar.html">Simülasyonlar</a> · <a href="asistan.html">Fizo Asistan</a> ·
-      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a>
-    </div>
+    <div><a href="hakkimda.html">Hakkımda</a> · <a href="simulasyonlar.html">Simülasyonlar</a> · <a href="asistan.html">Fizo Asistan</a> · <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a></div>
   </div>
 </footer>
 
@@ -227,122 +247,114 @@
 (() => {
   "use strict";
   const $ = id => document.getElementById(id);
-  const C = { ink:'#0e0c08', coral:'#e26d4f', blue:'#2d7dd2', gold:'#d4a017', muted:'#5a544a', grid:'rgba(14,12,8,.07)' };
-  const COLORS = ['#e26d4f','#2d7dd2','#d4a017'];
+  const COL = ['#e8623f','#2d7dd2','#d4a017'];   // A, B, C
+  const RCOL = '#1c2336';
   const NAMES = ['A','B','C'];
 
-  const scene=$('scene'), sx=scene.getContext('2d'), stage=$('stage');
-  const MAXU = 10;                       // görünür ±birim
+  const scene=$('scene'), sx=scene.getContext('2d');
+  const MAXU = 10;
   let mode='common', showC=false;
   const tog = { para:true, comp:true, angle:true, grid:true, snap:true };
-  // vektörler (birim cinsinden bileşenler)
   let V = [ {x:4,y:0}, {x:0,y:3}, {x:2,y:2} ];
   let drag = { kind:null, idx:-1 };
+  let hinted=false;
 
   function fit(){ const r=window.devicePixelRatio||1, w=scene.clientWidth, h=scene.clientHeight;
     if(scene.width!==Math.round(w*r)||scene.height!==Math.round(h*r)){ scene.width=Math.round(w*r); scene.height=Math.round(h*r); sx.setTransform(r,0,0,r,0,0);} }
 
-  // görünüm
   let O={x:0,y:0}, pxU=20, W=0, H=0;
-  function computeView(){ fit(); W=scene.clientWidth; H=scene.clientHeight; O.x=W*0.5; O.y=H*0.5; pxU=Math.min(W,H)/(2*MAXU)*0.92; }
-  const w2sx = x => O.x + x*pxU;
-  const w2sy = y => O.y - y*pxU;
-  const s2wx = px => (px-O.x)/pxU;
-  const s2wy = py => (O.y-py)/pxU;
-
+  function computeView(){ fit(); W=scene.clientWidth; H=scene.clientHeight; O.x=W*0.52; O.y=H*0.5; pxU=Math.min(W,H)/(2*MAXU)*0.9; }
+  const w2sx=x=>O.x+x*pxU, w2sy=y=>O.y-y*pxU, s2wx=px=>(px-O.x)/pxU, s2wy=py=>(O.y-py)/pxU;
   const MT = makeMeasureTools({ ctx:sx, w2s:p=>({x:w2sx(p.x),y:w2sy(p.y)}), s2w:(px,py)=>({x:s2wx(px),y:s2wy(py)}), pxPerMeter:()=>pxU });
 
-  const mag = v => Math.hypot(v.x,v.y);
-  const angOf = v => { let a=Math.atan2(v.y,v.x)*180/Math.PI; return (a+360)%360; };
-  const active = () => showC ? [0,1,2] : [0,1];
+  const mag=v=>Math.hypot(v.x,v.y);
+  const angOf=v=>{ let a=Math.atan2(v.y,v.x)*180/Math.PI; return (a+360)%360; };
+  const active=()=> showC?[0,1,2]:[0,1];
   function resultant(){ let x=0,y=0; for(const i of active()){ x+=V[i].x; y+=V[i].y; } return {x,y}; }
+  function niceStep(span){ const raw=span/8,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p; return (n<1.5?1:n<3.5?2:n<7.5?5:10)*p; }
 
-  // ---- çizim ----
-  function arrow(x1,y1,x2,y2,color,w,head){
-    sx.strokeStyle=color; sx.fillStyle=color; sx.lineWidth=w;
+  function arrow(x1,y1,x2,y2,color,w){
+    sx.strokeStyle=color; sx.fillStyle=color; sx.lineWidth=w; sx.lineCap='round'; sx.lineJoin='round';
     sx.beginPath(); sx.moveTo(x1,y1); sx.lineTo(x2,y2); sx.stroke();
-    if(head!==false && Math.hypot(x2-x1,y2-y1)>6){ const a=Math.atan2(y2-y1,x2-x1), s=10+w;
+    if(Math.hypot(x2-x1,y2-y1)>6){ const a=Math.atan2(y2-y1,x2-x1), s=9+w;
       sx.beginPath(); sx.moveTo(x2,y2); sx.lineTo(x2-s*Math.cos(a-.42),y2-s*Math.sin(a-.42)); sx.lineTo(x2-s*Math.cos(a+.42),y2-s*Math.sin(a+.42)); sx.closePath(); sx.fill(); }
+    sx.lineCap='butt';
   }
-  function handle(x,y,color){ sx.fillStyle='#fff'; sx.strokeStyle=color; sx.lineWidth=2.5; sx.beginPath(); sx.arc(x,y,7,0,7); sx.fill(); sx.stroke(); }
+  function handle(x,y,color){
+    sx.save(); sx.shadowColor='rgba(28,35,54,.25)'; sx.shadowBlur=5; sx.shadowOffsetY=1;
+    sx.fillStyle='#fff'; sx.strokeStyle=color; sx.lineWidth=2.5; sx.beginPath(); sx.arc(x,y,8,0,7); sx.fill(); sx.stroke(); sx.restore();
+    sx.fillStyle=color; sx.beginPath(); sx.arc(x,y,3,0,7); sx.fill();
+  }
   function angleArc(deg,radPx,color,label){
-    sx.strokeStyle=color; sx.lineWidth=1.5;
-    sx.beginPath(); sx.arc(O.x,O.y,radPx,0,-deg*Math.PI/180,true); sx.stroke();
-    const mid=-deg/2*Math.PI/180; sx.fillStyle=color; sx.font='11px ui-monospace, monospace';
-    sx.fillText(label, O.x+(radPx+8)*Math.cos(mid)-6, O.y+(radPx+8)*Math.sin(mid)+4);
+    sx.strokeStyle=color; sx.lineWidth=1.5; sx.beginPath(); sx.arc(O.x,O.y,radPx,0,-deg*Math.PI/180,true); sx.stroke();
+    const mid=-deg/2*Math.PI/180; sx.fillStyle=color; sx.font='600 11px system-ui, sans-serif';
+    sx.fillText(label, O.x+(radPx+9)*Math.cos(mid)-6, O.y+(radPx+9)*Math.sin(mid)+4);
   }
-  // her vektörün ekrandaki taban ve uç noktası (mod'a göre)
-  function baseWorld(i){ if(mode==='common') return {x:0,y:0}; let x=0,y=0; const a=active(); for(const k of a){ if(k===i)break; x+=V[k].x; y+=V[k].y; } return {x,y}; }
+  function baseWorld(i){ if(mode==='common')return{x:0,y:0}; let x=0,y=0; for(const k of active()){ if(k===i)break; x+=V[k].x; y+=V[k].y; } return {x,y}; }
   function tipScreen(i){ const b=baseWorld(i); return { x:w2sx(b.x+V[i].x), y:w2sy(b.y+V[i].y) }; }
 
-  function niceStep(){ return 1; }
   function draw(){
     computeView();
-    sx.fillStyle='#f7f9fc'; sx.fillRect(0,0,W,H);
-    // ızgara
+    sx.fillStyle='#fbfcfe'; sx.fillRect(0,0,W,H);
     if(tog.grid){
-      sx.strokeStyle=C.grid; sx.lineWidth=1; sx.fillStyle='rgba(14,12,8,.35)'; sx.font='10px ui-monospace, monospace';
-      const maxX=Math.ceil(s2wx(W)), minX=Math.floor(s2wx(0)), maxY=Math.ceil(s2wy(0)), minY=Math.floor(s2wy(H));
+      sx.strokeStyle='rgba(28,35,54,.06)'; sx.lineWidth=1; sx.fillStyle='rgba(28,35,54,.30)'; sx.font='10px ui-monospace, monospace';
+      const maxX=Math.ceil(s2wx(W)),minX=Math.floor(s2wx(0)),maxY=Math.ceil(s2wy(0)),minY=Math.floor(s2wy(H));
       for(let x=minX;x<=maxX;x++){ const px=w2sx(x); sx.beginPath(); sx.moveTo(px,0); sx.lineTo(px,H); sx.stroke(); }
       for(let y=minY;y<=maxY;y++){ const py=w2sy(y); sx.beginPath(); sx.moveTo(0,py); sx.lineTo(W,py); sx.stroke(); }
     }
     // eksenler
-    sx.strokeStyle='rgba(14,12,8,.5)'; sx.lineWidth=1.6;
+    sx.strokeStyle='rgba(28,35,54,.45)'; sx.lineWidth=1.6;
     sx.beginPath(); sx.moveTo(0,O.y); sx.lineTo(W,O.y); sx.moveTo(O.x,0); sx.lineTo(O.x,H); sx.stroke();
-    sx.fillStyle=C.muted; sx.font='12px ui-monospace, monospace'; sx.fillText('x', W-16, O.y-7); sx.fillText('y', O.x+7, 14);
-    // sayılar (her 2 birimde)
-    sx.fillStyle='rgba(14,12,8,.45)'; sx.font='10px ui-monospace, monospace';
-    for(let x=-MAXU;x<=MAXU;x+=2){ if(x!==0 && w2sx(x)>10 && w2sx(x)<W-10) sx.fillText(x, w2sx(x)-4, O.y+13); }
-    for(let y=-MAXU;y<=MAXU;y+=2){ if(y!==0 && w2sy(y)>10 && w2sy(y)<H-10) sx.fillText(y, O.x+5, w2sy(y)+3); }
+    sx.fillStyle='#697089'; sx.font='600 12px system-ui, sans-serif';
+    sx.fillText('x', W-16, O.y-8); sx.fillText('y', O.x+8, 16);
+    sx.font='10px ui-monospace, monospace'; sx.fillStyle='rgba(28,35,54,.4)';
+    for(let x=-MAXU;x<=MAXU;x+=2){ if(x!==0&&w2sx(x)>10&&w2sx(x)<W-10) sx.fillText(x,w2sx(x)-4,O.y+13); }
+    for(let y=-MAXU;y<=MAXU;y+=2){ if(y!==0&&w2sy(y)>10&&w2sy(y)<H-10) sx.fillText(y,O.x+5,w2sy(y)+3); }
 
-    const R = resultant();
-    // paralelkenar kılavuzu (ortak başlangıç + 2 vektör)
+    const R=resultant();
     if(tog.para && mode==='common' && !showC){
-      const tA=tipScreen(0), tB=tipScreen(1), tR={x:w2sx(R.x),y:w2sy(R.y)};
-      sx.strokeStyle='rgba(14,12,8,.25)'; sx.lineWidth=1.5; sx.setLineDash([5,5]);
+      const tA=tipScreen(0),tB=tipScreen(1),tR={x:w2sx(R.x),y:w2sy(R.y)};
+      sx.strokeStyle='rgba(28,35,54,.22)'; sx.lineWidth=1.5; sx.setLineDash([6,5]);
       sx.beginPath(); sx.moveTo(tA.x,tA.y); sx.lineTo(tR.x,tR.y); sx.moveTo(tB.x,tB.y); sx.lineTo(tR.x,tR.y); sx.stroke(); sx.setLineDash([]);
     }
-    // bileşke bileşenleri (Rx, Ry)
     if(tog.comp){
       const tR={x:w2sx(R.x),y:w2sy(R.y)};
-      sx.setLineDash([4,4]); sx.lineWidth=2;
-      sx.strokeStyle='rgba(45,125,210,.7)'; sx.beginPath(); sx.moveTo(O.x,O.y); sx.lineTo(w2sx(R.x),O.y); sx.stroke(); // Rx
-      sx.strokeStyle='rgba(226,109,79,.7)'; sx.beginPath(); sx.moveTo(w2sx(R.x),O.y); sx.lineTo(tR.x,tR.y); sx.stroke(); // Ry
+      sx.setLineDash([5,4]); sx.lineWidth=2;
+      sx.strokeStyle='rgba(45,125,210,.65)'; sx.beginPath(); sx.moveTo(O.x,O.y); sx.lineTo(w2sx(R.x),O.y); sx.stroke();
+      sx.strokeStyle='rgba(232,98,63,.65)'; sx.beginPath(); sx.moveTo(w2sx(R.x),O.y); sx.lineTo(tR.x,tR.y); sx.stroke();
       sx.setLineDash([]);
-      sx.fillStyle=C.blue; sx.font='bold 11px ui-monospace, monospace'; sx.fillText('Rx', (O.x+w2sx(R.x))/2-8, O.y+(R.y>=0?15:-7));
-      sx.fillStyle=C.coral; sx.fillText('Ry', w2sx(R.x)+(R.x>=0?5:-20), (O.y+tR.y)/2);
+      sx.font='700 11px system-ui, sans-serif';
+      sx.fillStyle='#2d7dd2'; sx.fillText('Rx',(O.x+w2sx(R.x))/2-8,O.y+(R.y>=0?15:-7));
+      sx.fillStyle='#e8623f'; sx.fillText('Ry',w2sx(R.x)+(R.x>=0?5:-20),(O.y+tR.y)/2);
     }
-    // vektörler
-    for(const i of active()){
-      const b=baseWorld(i); const bx=w2sx(b.x), by=w2sy(b.y); const t=tipScreen(i);
-      arrow(bx,by,t.x,t.y, COLORS[i], 3);
-      sx.fillStyle=COLORS[i]; sx.font='bold 13px ui-monospace, monospace';
-      sx.fillText(NAMES[i], (bx+t.x)/2+6, (by+t.y)/2-4);
+    for(const i of active()){ const b=baseWorld(i),bx=w2sx(b.x),by=w2sy(b.y),t=tipScreen(i);
+      arrow(bx,by,t.x,t.y,COL[i],3.5);
+      sx.fillStyle=COL[i]; sx.font='800 14px system-ui, sans-serif'; sx.fillText(NAMES[i],(bx+t.x)/2+7,(by+t.y)/2-5);
     }
-    // bileşke
     const tR={x:w2sx(R.x),y:w2sy(R.y)};
-    arrow(O.x,O.y,tR.x,tR.y, C.ink, 4.5);
-    sx.fillStyle=C.ink; sx.font='bold 14px ui-monospace, monospace'; sx.fillText('R', tR.x+8, tR.y-6);
-    // açılar
-    if(tog.angle){
-      let rad=34;
-      for(const i of active()){ if(mag(V[i])>0.2){ angleArc(angOf(V[i]), rad, COLORS[i], Math.round(angOf(V[i]))+'°'); rad+=16; } }
-      if(mag(R)>0.2) angleArc(angOf(R), rad, C.ink, Math.round(angOf(R))+'°');
+    arrow(O.x,O.y,tR.x,tR.y,RCOL,5);
+    sx.fillStyle=RCOL; sx.font='800 15px system-ui, sans-serif'; sx.fillText('R',tR.x+9,tR.y-6);
+    if(tog.angle){ let rad=32; for(const i of active()){ if(mag(V[i])>0.2){ angleArc(angOf(V[i]),rad,COL[i],Math.round(angOf(V[i]))+'°'); rad+=15; } } if(mag(R)>0.2) angleArc(angOf(R),rad,RCOL,Math.round(angOf(R))+'°'); }
+    for(const i of active()){ const t=tipScreen(i); handle(t.x,t.y,COL[i]); }
+
+    // ilk açılış ipucu
+    if(!hinted){ const t=tipScreen(0);
+      sx.fillStyle='rgba(232,98,63,.95)'; sx.font='700 12px system-ui, sans-serif';
+      sx.fillText('👆 sürükle', t.x+12, t.y-10);
     }
-    // tutamaklar
-    for(const i of active()){ const t=tipScreen(i); handle(t.x,t.y,COLORS[i]); }
+    // lejant
+    sx.font='700 11px system-ui, sans-serif';
+    const items=[['A',COL[0]],['B',COL[1]],['R',RCOL]]; let lx=12,ly=16;
+    items.forEach(([n,c],k)=>{ sx.fillStyle=c; sx.fillRect(lx+k*40,ly-9,11,11); sx.fillStyle='#3c445f'; sx.fillText(n,lx+k*40+15,ly); });
     MT.draw();
   }
 
-  // ---- readout ----
   function fmt(n){ return (Math.abs(n)<0.05?0:n).toFixed(1); }
   function updateReadout(){
-    const lbl=[['A','mA','aA','cA','magA','angA'],['B','mB','aB','cB','magB','angB'],['C','mC','aC','cC','magC','angC']];
-    for(const i of [0,1,2]){ const [,m,a,c,ms,as]=lbl[i];
-      $(m).textContent=mag(V[i]).toFixed(1); $(a).textContent=Math.round(angOf(V[i]));
-      $(c).textContent='('+fmt(V[i].x)+', '+fmt(V[i].y)+')';
-      if(drag.kind!=='slider'){ $(ms).value=mag(V[i]); $(as).value=Math.round(angOf(V[i])); }
-    }
+    const map=[['mA','aA','cA','magA','angA'],['mB','aB','cB','magB','angB'],['mC','aC','cC','magC','angC']];
+    for(const i of [0,1,2]){ const [m,a,c,ms,as]=map[i];
+      $(m).textContent=mag(V[i]).toFixed(1); $(a).textContent=Math.round(angOf(V[i])); $(c).textContent='('+fmt(V[i].x)+', '+fmt(V[i].y)+')';
+      if(drag.kind!=='slider'){ $(ms).value=mag(V[i]); $(as).value=Math.round(angOf(V[i])); } }
     const R=resultant();
     $('oRmag').textContent=mag(R).toFixed(1); $('oRang').textContent=angOf(R).toFixed(1);
     $('oRx').textContent=fmt(R.x); $('oRy').textContent=fmt(R.y);
@@ -351,57 +363,36 @@
   }
   function render(){ draw(); updateReadout(); }
 
-  // ---- kontroller ----
-  document.querySelectorAll('#modeSeg button').forEach(b=>b.addEventListener('click',()=>{
-    mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); render(); }));
+  document.querySelectorAll('#modeSeg button').forEach(b=>b.addEventListener('click',()=>{ mode=b.dataset.mode; document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('on',x===b)); render(); }));
   function bindTog(id,key){ $(id).addEventListener('click',()=>{ tog[key]=!tog[key]; $(id).classList.toggle('on',tog[key]); render(); }); }
   bindTog('tgPara','para'); bindTog('tgComp','comp'); bindTog('tgAngle','angle'); bindTog('tgGrid','grid'); bindTog('tgSnap','snap');
   $('tgC').addEventListener('click',()=>{ showC=!showC; $('tgC').classList.toggle('on',showC); $('rowC').style.display=showC?'':'none'; render(); });
   $('tgRuler').addEventListener('click',()=>{ const on=MT.toggleTape(); $('tgRuler').classList.toggle('on',on); draw(); });
   $('tgProt').addEventListener('click',()=>{ const on=MT.toggleProt(); $('tgProt').classList.toggle('on',on); draw(); });
-  $('btnFs').addEventListener('click',()=>{ if(document.fullscreenElement)document.exitFullscreen(); else stage.requestFullscreen&&stage.requestFullscreen(); });
   $('btnReset').addEventListener('click',()=>{ V=[{x:4,y:0},{x:0,y:3},{x:2,y:2}]; render(); });
-  $('btnRandom').addEventListener('click',()=>{ for(const i of active()){ let x,y; do{ x=Math.round((Math.random()*12-6)); y=Math.round((Math.random()*12-6)); }while(x===0&&y===0); V[i]={x,y}; } render(); });
+  $('btnRandom').addEventListener('click',()=>{ hinted=true; for(const i of active()){ let x,y; do{ x=Math.round(Math.random()*12-6); y=Math.round(Math.random()*12-6); }while(x===0&&y===0); V[i]={x,y}; } render(); });
 
-  // sliderlar (büyüklük + açı)
-  function bindSliders(i,ms,as){
-    function upd(){ const m=+$(ms).value, a=+$(as).value*Math.PI/180; V[i]={x:m*Math.cos(a), y:m*Math.sin(a)}; drag.kind='slider'; render(); drag.kind=null; }
-    $(ms).addEventListener('input',upd); $(as).addEventListener('input',upd);
-  }
+  function bindSliders(i,ms,as){ function upd(){ const m=+$(ms).value,a=+$(as).value*Math.PI/180; V[i]={x:m*Math.cos(a),y:m*Math.sin(a)}; hinted=true; drag.kind='slider'; render(); drag.kind=null; } $(ms).addEventListener('input',upd); $(as).addEventListener('input',upd); }
   bindSliders(0,'magA','angA'); bindSliders(1,'magB','angB'); bindSliders(2,'magC','angC');
 
-  // ---- sürükleme ----
-  function evtPos(e){ const r=scene.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {px:t.clientX-r.left, py:t.clientY-r.top}; }
-  function pointerDown(e){
-    const {px,py}=evtPos(e);
-    if(MT.onDown(px,py)){ drag.kind='tool'; draw(); e.preventDefault(); return; }
-    // en yakın ok ucu
-    let best=-1, bd=18;
-    for(const i of active()){ const t=tipScreen(i); const d=Math.hypot(px-t.x,py-t.y); if(d<bd){ bd=d; best=i; } }
-    if(best>=0){ drag.kind='vec'; drag.idx=best; setVec(best,px,py); e.preventDefault(); }
-  }
-  function pointerMove(e){ if(!drag.kind)return; const {px,py}=evtPos(e);
-    if(drag.kind==='tool'){ MT.onMove(px,py); draw(); }
-    else if(drag.kind==='vec'){ setVec(drag.idx,px,py); }
-    e.preventDefault();
-  }
-  function pointerUp(){ if(drag.kind==='tool')MT.onUp(); drag.kind=null; drag.idx=-1; }
-  function setVec(i,px,py){
-    const b=baseWorld(i);
-    let x=s2wx(px)-b.x, y=s2wy(py)-b.y;
-    if(tog.snap){ x=Math.round(x); y=Math.round(y); }
-    const m=Math.hypot(x,y); if(m>MAXU){ x=x/m*MAXU; y=y/m*MAXU; if(tog.snap){x=Math.round(x);y=Math.round(y);} }
-    V[i]={x,y}; render();
-  }
-  scene.addEventListener('mousedown',pointerDown);
-  window.addEventListener('mousemove',pointerMove);
-  window.addEventListener('mouseup',pointerUp);
-  scene.addEventListener('touchstart',pointerDown,{passive:false});
-  scene.addEventListener('touchmove',pointerMove,{passive:false});
-  window.addEventListener('touchend',pointerUp);
+  // tam ekran (tüm labı kaplar) + ESC
+  $('btnFs').addEventListener('click',()=>{ const lg=$('lab'); const on=lg.classList.toggle('maximized'); document.body.style.overflow=on?'hidden':''; $('btnFs').textContent=on?'✕ Kapat':'⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const lg=$('lab'); if(lg.classList.contains('maximized')){ lg.classList.remove('maximized'); document.body.style.overflow=''; $('btnFs').textContent='⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); } } });
 
-  let rT; window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(render,120); });
-  document.addEventListener('fullscreenchange',()=>setTimeout(render,80));
+  function evtPos(e){ const r=scene.getBoundingClientRect(); const t=e.touches?e.touches[0]:e; return {px:t.clientX-r.left, py:t.clientY-r.top}; }
+  function down(e){ const {px,py}=evtPos(e);
+    if(MT.onDown(px,py)){ drag.kind='tool'; draw(); e.preventDefault(); return; }
+    let best=-1,bd=20; for(const i of active()){ const t=tipScreen(i); const d=Math.hypot(px-t.x,py-t.y); if(d<bd){ bd=d; best=i; } }
+    if(best>=0){ hinted=true; drag.kind='vec'; drag.idx=best; setVec(best,px,py); e.preventDefault(); } }
+  function moveE(e){ if(!drag.kind)return; const {px,py}=evtPos(e);
+    if(drag.kind==='tool'){ MT.onMove(px,py); draw(); } else if(drag.kind==='vec'){ setVec(drag.idx,px,py); } e.preventDefault(); }
+  function up(){ if(drag.kind==='tool')MT.onUp(); drag.kind=null; drag.idx=-1; }
+  function setVec(i,px,py){ const b=baseWorld(i); let x=s2wx(px)-b.x, y=s2wy(py)-b.y;
+    if(tog.snap){ x=Math.round(x); y=Math.round(y); } const m=Math.hypot(x,y); if(m>MAXU){ x=x/m*MAXU; y=y/m*MAXU; if(tog.snap){x=Math.round(x);y=Math.round(y);} } V[i]={x,y}; render(); }
+  scene.addEventListener('mousedown',down); window.addEventListener('mousemove',moveE); window.addEventListener('mouseup',up);
+  scene.addEventListener('touchstart',down,{passive:false}); scene.addEventListener('touchmove',moveE,{passive:false}); window.addEventListener('touchend',up);
+
+  let rT; window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(render,100); });
   requestAnimationFrame(render);
 })();
 </script>
