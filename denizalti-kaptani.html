@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Denizaltı Kaptanı — Kaldırma Kuvveti Fizik Oyunu | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Basılı tut = balast dolar, batarsın; bırak = yüzersin. Arşimet'in kaldırma kuvvetiyle denizaltını kapılardan geçir, mayınlardan kaç, hazine topla. 9. sınıf kaldırma kuvveti konusunu oynayarak öğren. Ben Fizik Yapamıyorum.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/denizalti-kaptani.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="Denizaltı Kaptanı — Kaldırma Kuvveti Oyunu">
+<meta property="og:description" content="Balastı yönet: Fk ile G'yi dengele, kapılardan geç, mayınlardan kaç. Arşimet'i oynayarak öğren.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/denizalti-kaptani.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/og-image.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root{ --bg0:#031828; --tur:#35e0c8; --accent:#ffd34d; --good:#46ffa0; --bad:#ff5d77; --ink:#eaf6ff; }
+  .game-shell{max-width:980px;margin:0 auto;padding:0 14px;}
+  .game-head{text-align:center;margin:18px 0 10px}
+  .game-head h1{font-size:clamp(24px,4vw,36px);margin:0 0 6px}
+  .game-head p{color:#7c7a86;margin:0;font-size:15px}
+  .stage-wrap{position:relative;width:100%;max-width:880px;margin:0 auto;border-radius:18px;overflow:hidden;
+    box-shadow:0 24px 70px rgba(3,30,50,.6);border:1px solid rgba(53,224,200,.28);background:#02101d;}
+  canvas#game{display:block;width:100%;height:auto;touch-action:none;cursor:pointer;}
+  .hud{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;justify-content:space-between;
+    padding:12px 14px;pointer-events:none;font-family:'Helvetica Neue',Arial,sans-serif;color:var(--ink)}
+  .hud .panel{background:rgba(3,24,40,.6);backdrop-filter:blur(6px);border:1px solid rgba(53,224,200,.22);
+    border-radius:12px;padding:7px 12px;font-size:13px;line-height:1.4;min-width:72px}
+  .hud .panel b{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:#7fd8cf;font-weight:700}
+  .hud .big{font-size:18px;font-weight:800}
+  .ovl{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    text-align:center;background:rgba(2,14,26,.86);backdrop-filter:blur(4px);color:var(--ink);padding:24px;z-index:5;overflow:auto;gap:2px}
+  .ovl.hidden{display:none}
+  .ovl h2{font-size:clamp(26px,5vw,42px);margin:0 0 6px}
+  .ovl p{margin:4px 0;color:#bfe2ea;max-width:480px}
+  .btn-play{margin-top:8px;background:linear-gradient(90deg,var(--tur),#4da3ff);color:#03202c;border:none;border-radius:12px;
+    padding:14px 30px;font-weight:800;font-size:17px;cursor:pointer;box-shadow:0 0 22px rgba(53,224,200,.4)}
+  .btn-play:active{transform:translateY(2px)}
+  .btn-play.alt{background:transparent;color:var(--ink);border:1px solid rgba(255,255,255,.28);box-shadow:none}
+  .topbtns{position:absolute;top:62px;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:8px}
+  .mini{pointer-events:auto;cursor:pointer;background:rgba(3,24,40,.6);border:1px solid rgba(53,224,200,.25);
+    color:#bfe2ea;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700}
+  .bopt{cursor:pointer;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.22);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:14px;text-align:left;transition:.12s;font-family:inherit;line-height:1.35}
+  .bopt:hover{border-color:var(--tur)}
+  .bopt:disabled{cursor:default;opacity:.95}
+  .bopt.correct{background:rgba(70,255,160,.2);border-color:#46ffa0;color:#d6ffe9}
+  .bopt.wrong{background:rgba(255,93,119,.18);border-color:#ff5d77;color:#ffd9e1}
+  .lbinp{padding:11px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#fff;font-size:15px;font-family:inherit;text-align:center}
+  #stage.stage-fs{position:fixed;inset:0;z-index:9999;width:100vw;height:100vh;max-width:none;border-radius:0;display:flex;align-items:center;justify-content:center;background:#010a14;}
+  #stage.stage-fs canvas{width:auto;height:auto;max-width:100%;max-height:100%;}
+  #stage:fullscreen canvas,#stage:-webkit-full-screen canvas{width:auto;height:auto;max-width:100%;max-height:100%;}
+  @media (max-width:520px){
+    .hud{padding:8px 8px;gap:5px} .hud .panel{min-width:0;padding:5px 7px;font-size:10px;border-radius:9px}
+    .hud .big{font-size:13px} .topbtns{top:56px} .topbtns .mini{padding:5px 8px;font-size:11px}
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAeX9tk4zgoa5c5y2pVH3V4r9ip2mrlMvg",
+    authDomain: "benfizikyapamiyorum-oyun.firebaseapp.com",
+    projectId: "benfizikyapamiyorum-oyun",
+    storageBucket: "benfizikyapamiyorum-oyun.firebasestorage.app",
+    messagingSenderId: "942775741325",
+    appId: "1:942775741325:web:85dca63d6a17e2822cebc4"
+  };
+  window.BFY_DB = null;
+  try { firebase.initializeApp(firebaseConfig); window.BFY_DB = firebase.firestore(); } catch (e) { console.warn('Firebase yok:', e); }
+</script>
+  <script defer src="analytics.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text"><span>Ben Fizik Yapamıyorum</span><small>Yapabilirsin. Söz veriyorum.</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html" class="active">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+  <div class="game-head">
+    <h1>🌊 Denizaltı Kaptanı</h1>
+    <p>Basılı tut = balast tankı dolar, batarsın. Bırak = tank boşalır, yüzersin. Fk ile G'yi dengele!</p>
+  </div>
+
+  <div class="game-shell">
+    <div class="stage-wrap" id="stage">
+      <canvas id="game" width="880" height="620"></canvas>
+
+      <div class="hud" id="hud">
+        <div class="panel"><b>Derinlik</b><span class="big" id="hDepth">0 m</span></div>
+        <div class="panel"><b>Yoğunluk ρ</b><span class="big" id="hRho">—</span></div>
+        <div class="panel"><b>Skor</b><span class="big" id="hScore">0</span></div>
+        <div class="panel"><b>Can</b><span class="big" id="hLives">♥♥♥</span></div>
+        <div class="panel"><b>Combo</b><span class="big" id="hCombo">x1</span></div>
+      </div>
+
+      <div class="topbtns">
+        <button class="mini" id="btnFs">⛶ Tam ekran</button>
+        <button class="mini" id="btnSound">🔊 Ses</button>
+        <button class="mini" id="btnMenu">↺ Menü</button>
+      </div>
+
+      <!-- START -->
+      <div class="ovl" id="ovlStart">
+        <h2>🌊 Denizaltı Kaptanı</h2>
+        <p><b>Basılı tut</b> → balast tankına su dolar, yoğunluğun artar, <b>batarsın</b>.<br>
+        <b>Bırak</b> → tank boşalır, yoğunluğun azalır, <b>yüzersin</b>.<br>
+        Halkalardan geç, mayınlardan kaç, hazineleri topla!</p>
+        <div style="display:flex;flex-direction:column;gap:7px;width:100%;max-width:320px;margin:6px auto 2px">
+          <input id="plName" class="lbinp" maxlength="20" placeholder="Adın (tabloda görünecek)" autocomplete="nickname">
+          <input id="plMail" class="lbinp" type="email" maxlength="60" placeholder="E-posta (isteğe bağlı)" autocomplete="email" style="font-size:14px">
+        </div>
+        <button class="btn-play" id="btnStart">Dal! 🤿</button>
+        <div style="width:100%;max-width:340px;margin:14px auto 0;text-align:left">
+          <div style="font-size:13px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;text-align:center">🏆 En Yüksek Skorlar</div>
+          <ol id="lbList" style="margin:0;padding:0;list-style:none;font-size:14px;color:#cde8ee"></ol>
+        </div>
+        <p style="font-size:13px;margin-top:12px;color:#8fc3cf">💡 Denizaltının üstündeki oklar gerçek kuvvetler: <b style="color:#ff8fa3">G (ağırlık)</b> aşağı, <b style="color:#7fe6ff">Fk (kaldırma)</b> yukarı. Askıda kalmak = ikisini eşitlemek.</p>
+      </div>
+
+      <!-- END -->
+      <div class="ovl hidden" id="ovlEnd">
+        <h2 id="endTitle">Sefer Bitti</h2>
+        <p id="endMsg"></p>
+        <div id="endStat" style="font-size:15px;margin:8px 0"></div>
+        <div id="bonusBox" style="display:none;margin-top:12px;width:100%;max-width:460px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:14px 16px;text-align:left">
+          <div style="font-size:12px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🧠 Bonus Soru · +200 puan</div>
+          <div id="bonusQ" style="font-size:15px;color:#eaf6ff;margin-bottom:10px;line-height:1.45"></div>
+          <div id="bonusOpts" style="display:flex;flex-direction:column;gap:7px"></div>
+          <div id="bonusExp" style="display:none;margin-top:10px;font-size:13px;color:#cde8ee;line-height:1.5;background:rgba(255,255,255,.06);border-radius:8px;padding:8px 10px"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px">
+          <button class="btn-play" id="btnAgain">Tekrar Dal</button>
+          <button class="btn-play alt" id="btnShare">📸 Skor Kartı</button>
+          <button class="btn-play alt" id="btnMenu2">Menü</button>
+        </div>
+        <div id="shareMenu" style="display:none;margin-top:12px;font-size:14px;color:#cde8ee;max-width:460px">
+          <span id="shareMsg"></span>
+          <div style="margin-top:6px">
+            <a id="shareIg" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">📸 Instagram'ı aç</a>
+            <a id="shareWa" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">WhatsApp</a>
+            <a id="shareX" class="mini" target="_blank" rel="noopener" style="text-decoration:none;margin:0 4px">X</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="hint">
+      <b>Nasıl oynanır:</b> Ekrana (ya da boşluk tuşuna) basılı tut → balast dolar, batarsın; bırak → yüzersin. Halkaların arasından geç, tam ortasından geçersen "askıda" bonusu!
+      <b>Fizik:</b> Kaldırma kuvveti Fk = ρ<sub>sıvı</sub>·V·g sabittir; balast su alınca ağırlık (G) artar. G &gt; Fk → batarsın, G &lt; Fk → yüzersin, G = Fk → askıda kalırsın (Arşimet ilkesi).
+    </p>
+  </div>
+
+  <div class="game-shell" style="margin-top:18px;margin-bottom:40px;text-align:center">
+    <a href="oyunlar.html" class="btn btn-ghost">← Tüm oyunlar</a>
+    <a href="basinc-kaldirma-laboratuvari.html" class="btn btn-primary">Kaldırma kuvveti labı →</a>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="oyunlar.html">Oyunlar</a> ·
+      <a href="simulasyonlar.html">Simülasyonlar</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+  const W=cv.width, H=cv.height;
+  const SURF=64, BED=H-36;
+  const RHO_SU=1000, GPX=720, DRAG=1.3, PXM=6;   // 6 px = 1 m
+
+  let state='start';
+  let score=0, lives=3, combo=0, dist=0, speed=150;
+  let holding=false, ballast=0.5, vy=0, invuln=0, cleanDist=0, treCount=0, gateCount=0;
+  let gates=[], mines=[], treas=[], bubbles=[], particles=[], pops=[], weeds=[], plank=[];
+  let spawnT=1.4, shake=0, t=0, soundOn=true;
+  const sub={x:210, y:H/2, r:22};
+
+  // ---- istatistik / rütbe / rozet ----
+  const RANKS=[[0,'Acemi Tayfa'],[900,'Tayfa'],[2600,'Kaptan'],[6000,'Derin Deniz Kaptanı'],[12000,'Efsane Kaptan 🏆']];
+  const BADGES=[
+    {id:'ilk',icon:'🤿',name:'İlk Dalış'},
+    {id:'gate3',icon:'🔥',name:'3 Kapı Combo'},
+    {id:'gate10',icon:'🎯',name:'10 Kapı'},
+    {id:'m500',icon:'📏',name:'500 m'},
+    {id:'m1500',icon:'🗺️',name:'1500 m'},
+    {id:'tre10',icon:'💎',name:'Hazine Avcısı'},
+    {id:'clean800',icon:'🛡️',name:'Mayın Ustası (800 m hasarsız)'},
+    {id:'quiz',icon:'🧠',name:'Arşimet Bilgini'},
+  ];
+  let stats={best:0,total:0,badges:[]};
+  function loadStats(){ try{const s=JSON.parse(localStorage.getItem('bfy_denizalti_v1')); if(s){stats.best=s.best||0;stats.total=s.total||0;stats.badges=s.badges||[];}}catch(e){} }
+  function saveStats(){ try{localStorage.setItem('bfy_denizalti_v1',JSON.stringify(stats));}catch(e){} }
+  function rankFor(tt){ let r=RANKS[0][1]; for(const x of RANKS){ if(tt>=x[0]) r=x[1]; } return r; }
+  function give(id){ if(!stats.badges.includes(id)){ stats.badges.push(id); saveStats(); const b=BADGES.find(x=>x.id===id); if(b) addPop('🎁 '+b.name, W/2, 130, '#ffd34d', 1.1); } }
+  function badgeShelf(){ let h='<div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-top:10px">';
+    for(const b of BADGES){ const g=stats.badges.includes(b.id); h+='<span title="'+b.name+'" style="font-size:20px;opacity:'+(g?1:.25)+';filter:'+(g?'none':'grayscale(1)')+'">'+b.icon+'</span>'; }
+    return h+'</div><div style="font-size:11px;color:#8fc3cf;margin-top:3px">'+stats.badges.length+' / '+BADGES.length+' rozet</div>'; }
+  loadStats();
+
+  // ---- audio ----
+  let actx=null;
+  function tone(f,f2,d,type,v){ if(!soundOn) return; try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain(); o.type=type||'sine'; o.connect(g); g.connect(actx.destination);
+    o.frequency.setValueAtTime(f,actx.currentTime); if(f2)o.frequency.exponentialRampToValueAtTime(f2,actx.currentTime+d);
+    g.gain.setValueAtTime(v||0.15,actx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+d);
+    o.start(); o.stop(actx.currentTime+d+0.02); }catch(e){} }
+  const sGate=()=>tone(520,900,0.16,'sine',0.16);
+  const sPerfect=()=>{ [660,880,1100].forEach((f,i)=>setTimeout(()=>tone(f,f,0.1,'sine',0.15),i*60)); };
+  const sTre=()=>tone(880,1320,0.12,'square',0.12);
+  const sHit=()=>tone(160,40,0.5,'sawtooth',0.24);
+  let pumpOsc=null,pumpGain=null;
+  function pump(on){ if(!soundOn){ if(pumpOsc){try{pumpOsc.stop();}catch(e){} pumpOsc=null;} return; }
+    try{ actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+      if(on&&!pumpOsc){ pumpOsc=actx.createOscillator(); pumpGain=actx.createGain(); pumpOsc.type='triangle'; pumpGain.gain.value=0.035; pumpOsc.frequency.value=72; pumpOsc.connect(pumpGain); pumpGain.connect(actx.destination); pumpOsc.start(); }
+      if(!on&&pumpOsc){ try{pumpOsc.stop();}catch(e){} pumpOsc=null; } }catch(e){} }
+
+  // ---- helpers ----
+  function rnd(a,b){ return a+Math.random()*(b-a); }
+  function addPop(text,x,y,color,scale){ pops.push({text,x,y,age:0,life:1.15,color:color||'#fff',scale:scale||1,vy:-44}); }
+  function burst(x,y,cols,n){ for(let i=0;i<(n||26);i++){ const a=Math.random()*6.28,sp=rnd(60,320);
+    particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-40,age:0,life:rnd(0.5,1.0),r:rnd(2,5),col:cols[Math.floor(Math.random()*cols.length)]}); } }
+  function lifeStr(){ return '♥'.repeat(Math.max(0,lives))+'<span style="opacity:.3">'+'♥'.repeat(Math.max(0,3-lives))+'</span>'; }
+  function rho(){ return Math.round(760 + ballast*520); }
+  function syncHUD(){
+    document.getElementById('hDepth').textContent=Math.max(0,Math.round((sub.y-SURF)/PXM))+' m';
+    const r=rho(); const el=document.getElementById('hRho'); el.textContent=r;
+    el.style.color = r<960?'#7fe6ff':(r>1040?'#ff8fa3':'#46ffa0');
+    document.getElementById('hScore').textContent=Math.round(score);
+    document.getElementById('hLives').innerHTML=lifeStr();
+    document.getElementById('hCombo').textContent='x'+Math.max(1,combo);
+  }
+
+  // ---- dünya kurulumu ----
+  for(let i=0;i<12;i++) weeds.push({x:rnd(0,W), h:rnd(26,70), ph:rnd(0,6.28)});
+  for(let i=0;i<26;i++) plank.push({x:rnd(0,W), y:rnd(SURF+20,BED-10), r:rnd(0.8,2), v:rnd(6,20)});
+
+  let lastGy=H/2;
+  function spawn(){
+    const roll=Math.random();
+    if(roll<0.55){
+      const gapH=Math.max(112, 156-dist*0.03);
+      const lo=Math.max(SURF+70+gapH/2, lastGy-150), hi=Math.min(BED-56-gapH/2, lastGy+150);
+      const gy=rnd(lo,hi); lastGy=gy;
+      gates.push({x:W+50, gy, gapH, passed:false, hitTop:false, hitBot:false});
+      spawnT=rnd(2.1,2.7);
+    } else if(roll<0.85){
+      const n=1+Math.floor(Math.min(2,dist/400));
+      for(let i=0;i<n;i++){ const my=rnd(SURF+50,BED-40);
+        mines.push({x:W+50+i*rnd(70,120), y:my, r:13, bob:rnd(0,6.28), chained:my>H*0.55}); }
+      spawnT=rnd(1.5,2.1);
+    } else {
+      const by=rnd(SURF+80,BED-100);
+      for(let i=0;i<3;i++) treas.push({x:W+50+i*46, y:by+Math.sin(i*1.1)*34, r:9, tw:rnd(0,6.28)});
+      spawnT=rnd(1.6,2.2);
+    }
+  }
+
+  function damage(neden){
+    lives--; combo=0; invuln=1.6; shake=13; cleanDist=0; sHit();
+    burst(sub.x,sub.y,['#ff5d77','#ff9a3c','#8899aa'],36);
+    addPop('💥 '+neden, W/2, 120, '#ff5d77', 1.15);
+    addPop('💡 Fk = G yapabilirsen askıda kalırsın — ρ göstergesini yeşil tut!', W/2, 158, '#ffd34d', 0.85);
+    syncHUD();
+    if(lives<=0){ setTimeout(gameOver, 700); }
+  }
+
+  // ---- güncelleme ----
+  function update(dt){
+    t+=dt;
+    for(const p of plank){ p.x-=p.v*dt*(speed/150); if(p.x<-5){p.x=W+5; p.y=rnd(SURF+20,BED-10);} }
+    for(const b of bubbles){ b.y-=b.v*dt; b.x+=Math.sin(b.y*0.05)*12*dt; b.age+=dt; }
+    bubbles=bubbles.filter(b=>b.age<b.life && b.y>SURF-6);
+    for(const p of particles){ p.age+=dt; p.vy+=300*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; }
+    particles=particles.filter(p=>p.age<p.life);
+    for(const p of pops){ p.age+=dt; p.y+=p.vy*dt; p.vy*=0.92; }
+    pops=pops.filter(p=>p.age<p.life);
+    if(shake>0) shake=Math.max(0,shake-dt*26);
+    if(state!=='play'){ pump(false); return; }
+
+    // balast & Arşimet
+    ballast=Math.max(0,Math.min(1, ballast+(holding?1.1:-1.1)*dt));
+    pump(holding);
+    if(holding && Math.random()<dt*14) bubbles.push({x:sub.x-26,y:sub.y-6,v:rnd(30,60),age:0,life:2.4,r:rnd(1.5,3.5)});
+    const a=(RHO_SU-rho())/RHO_SU*GPX;       // + yukarı
+    vy += (-a)*dt;                            // ekranda +y aşağı
+    vy -= vy*DRAG*dt;
+    vy=Math.max(-250,Math.min(250,vy));
+    sub.y+=vy*dt;
+    if(sub.y<SURF+18){ sub.y=SURF+18; vy=Math.max(0,vy); }
+    if(sub.y>BED-16){ sub.y=BED-16; vy=Math.min(0,vy); }
+
+    // dünya akışı
+    speed=Math.min(300, 150+dist*0.05);
+    const dx=speed*dt;
+    dist+=dx/PXM; cleanDist+=dx/PXM;
+    score+=dx/PXM*0.5;
+    if(dist>=500) give('m500'); if(dist>=1500) give('m1500');
+    if(cleanDist>=800) give('clean800');
+
+    spawnT-=dt; if(spawnT<=0) spawn();
+
+    for(const g of gates){ g.x-=dx;
+      if(!g.passed && g.x<sub.x-14){
+        g.passed=true;
+        if(sub.y>g.gy-g.gapH/2 && sub.y<g.gy+g.gapH/2){
+          combo++; gateCount++;
+          const merkez=Math.abs(sub.y-g.gy)<20;
+          const pts=150+combo*30+(merkez?60:0);
+          score+=pts; stats.total+=pts;
+          addPop('+'+pts+(merkez?' ASKIDA! 🎯':''), g.x+20, g.gy, merkez?'#ffd34d':'#46ffa0', 1+Math.min(combo*0.05,0.4));
+          if(merkez) sPerfect(); else sGate();
+          if(combo>=3) give('gate3'); if(gateCount>=10) give('gate10');
+          give('ilk'); saveStats();
+        } else combo=0;
+        syncHUD();
+      }
+      // direklere çarpma
+      if(invuln<=0 && Math.abs(g.x-sub.x)<sub.r+9){
+        if(sub.y<g.gy-g.gapH/2 && !g.hitTop){ g.hitTop=true; damage('Halka direğine çarptın!'); }
+        else if(sub.y>g.gy+g.gapH/2 && !g.hitBot){ g.hitBot=true; damage('Halka direğine çarptın!'); }
+      }
+    }
+    gates=gates.filter(g=>g.x>-60);
+
+    for(const m of mines){ m.x-=dx; m.bob+=dt*2;
+      if(invuln<=0 && Math.hypot(m.x-sub.x, m.y+Math.sin(m.bob)*5-sub.y)<m.r+sub.r-4){ m.x=-999; damage('Mayına çarptın!'); }
+    }
+    mines=mines.filter(m=>m.x>-60);
+
+    for(const tr of treas){ tr.x-=dx; tr.tw+=dt*5;
+      if(Math.hypot(tr.x-sub.x,tr.y-sub.y)<tr.r+sub.r){
+        tr.x=-999; treCount++; score+=80; stats.total+=80;
+        sTre(); addPop('+80 💎', sub.x+30, sub.y-24, '#ffd34d', 0.95);
+        if(treCount>=10) give('tre10'); saveStats(); syncHUD();
+      }
+    }
+    treas=treas.filter(x=>x.x>-60);
+    if(invuln>0) invuln-=dt;
+    syncHUD();
+  }
+
+  // ---- çizim ----
+  function sea(){
+    const gr=ctx.createLinearGradient(0,SURF,0,H);
+    gr.addColorStop(0,'#0d4a6e'); gr.addColorStop(.45,'#083352'); gr.addColorStop(1,'#031a2e');
+    ctx.fillStyle=gr; ctx.fillRect(0,SURF,W,H-SURF);
+    // gökyüzü
+    const sk=ctx.createLinearGradient(0,0,0,SURF);
+    sk.addColorStop(0,'#8fd6f0'); sk.addColorStop(1,'#c9ecf7');
+    ctx.fillStyle=sk; ctx.fillRect(0,0,W,SURF);
+    ctx.fillStyle='#ffe9a8'; ctx.beginPath(); ctx.arc(W-90,26,18,0,6.28); ctx.fill();
+    // dalga çizgisi
+    ctx.strokeStyle='rgba(255,255,255,.75)'; ctx.lineWidth=2.5; ctx.beginPath();
+    for(let x=0;x<=W;x+=8){ const y=SURF+Math.sin(x*0.04+t*2.2)*3; x===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+    ctx.stroke();
+    // ışık hüzmeleri
+    ctx.save(); ctx.globalAlpha=0.06; ctx.fillStyle='#bfeaff';
+    for(let i=0;i<4;i++){ const bx=(i*250+ (t*14)%250); ctx.beginPath();
+      ctx.moveTo(bx,SURF); ctx.lineTo(bx+70,SURF); ctx.lineTo(bx+150,H); ctx.lineTo(bx+30,H); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+    // plankton
+    ctx.fillStyle='rgba(200,235,255,.35)';
+    for(const p of plank){ ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.28); ctx.fill(); }
+    // zemin + yosun
+    ctx.fillStyle='#0b2436'; ctx.fillRect(0,BED,W,H-BED);
+    ctx.fillStyle='#123448';
+    for(let x=0;x<W;x+=26){ ctx.beginPath(); ctx.arc(x+13,BED+4,10,3.14,6.28); ctx.fill(); }
+    for(const w of weeds){ ctx.strokeStyle='#1c5a4a'; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(w.x,BED+2);
+      ctx.quadraticCurveTo(w.x+Math.sin(t*1.4+w.ph)*10, BED-w.h*0.55, w.x+Math.sin(t*1.8+w.ph)*16, BED-w.h);
+      ctx.stroke(); }
+  }
+  function drawGate(g){
+    ctx.save();
+    const top=g.gy-g.gapH/2, bot=g.gy+g.gapH/2;
+    ctx.fillStyle='#0f5f56';
+    ctx.fillRect(g.x-8,SURF+8,16,top-SURF-8);
+    ctx.fillRect(g.x-8,bot,16,BED-bot);
+    ctx.fillStyle='#35e0c8';
+    ctx.fillRect(g.x-8,top-8,16,8); ctx.fillRect(g.x-8,bot,16,8);
+    // şamandıra ışıkları
+    const bl=Math.sin(t*5)>0;
+    ctx.fillStyle=bl?'#ffd34d':'#8b7a2c';
+    ctx.beginPath(); ctx.arc(g.x,top-12,4,0,6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(g.x,bot+12,4,0,6.28); ctx.fill();
+    if(!g.passed){ ctx.strokeStyle='rgba(53,224,200,.35)'; ctx.setLineDash([5,6]); ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(g.x,top); ctx.lineTo(g.x,bot); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.restore();
+  }
+  function drawMine(m){
+    const y=m.y+Math.sin(m.bob)*5;
+    if(m.chained){ ctx.strokeStyle='rgba(160,180,190,.4)'; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(m.x,y+10); ctx.lineTo(m.x,BED); ctx.stroke(); }
+    ctx.fillStyle='#2c3a45'; ctx.beginPath(); ctx.arc(m.x,y,m.r,0,6.28); ctx.fill();
+    ctx.strokeStyle='#495e6d'; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle='#5b7382';
+    for(let i=0;i<8;i++){ const a=i*0.785; ctx.beginPath();
+      ctx.moveTo(m.x+Math.cos(a)*m.r, y+Math.sin(a)*m.r);
+      ctx.lineTo(m.x+Math.cos(a)*(m.r+5), y+Math.sin(a)*(m.r+5)); ctx.stroke(); }
+    ctx.fillStyle=Math.sin(t*6)>0?'#ff5d77':'#7a2c3a';
+    ctx.beginPath(); ctx.arc(m.x,y,3.4,0,6.28); ctx.fill();
+  }
+  function drawTre(tr){
+    ctx.save(); ctx.translate(tr.x,tr.y); ctx.rotate(Math.sin(tr.tw)*0.3);
+    ctx.fillStyle='#ffd34d';
+    ctx.beginPath();
+    for(let i=0;i<5;i++){ const a=-1.57+i*1.256, a2=a+0.628;
+      ctx.lineTo(Math.cos(a)*10,Math.sin(a)*10); ctx.lineTo(Math.cos(a2)*4.4,Math.sin(a2)*4.4); }
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+  function drawSub(){
+    const r=rho();
+    ctx.save(); ctx.translate(sub.x,sub.y);
+    if(invuln>0 && Math.sin(t*20)>0) ctx.globalAlpha=0.45;
+    ctx.rotate(Math.max(-0.22,Math.min(0.22,vy*0.0012)));
+    // gövde
+    const bg=ctx.createLinearGradient(0,-16,0,18);
+    bg.addColorStop(0,'#ffe27a'); bg.addColorStop(1,'#e8a723');
+    ctx.fillStyle=bg;
+    ctx.beginPath(); ctx.ellipse(0,0,30,16,0,0,6.28); ctx.fill();
+    ctx.strokeStyle='rgba(90,60,0,.35)'; ctx.lineWidth=2; ctx.stroke();
+    // kule
+    ctx.fillStyle='#e8a723'; ctx.fillRect(-8,-26,16,12);
+    ctx.fillStyle='#c98d15'; ctx.fillRect(-2,-32,4,7);
+    // cam
+    ctx.fillStyle='#7fe6ff'; ctx.beginPath(); ctx.arc(10,-2,7,0,6.28); ctx.fill();
+    ctx.strokeStyle='#046' ; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(12,-4,2.2,0,6.28); ctx.fill();
+    // pervane
+    ctx.save(); ctx.translate(-32,0); ctx.rotate(t*10);
+    ctx.fillStyle='#9fb8c8';
+    ctx.fillRect(-2,-11,4,22); ctx.fillRect(-11,-2,22,4);
+    ctx.restore();
+    // balast göstergesi (gövdede küçük tank)
+    ctx.fillStyle='rgba(0,40,70,.35)'; ctx.fillRect(-16,4,22,7);
+    ctx.fillStyle='#2fa8ff'; ctx.fillRect(-16,4,22*ballast,7);
+    ctx.strokeStyle='rgba(0,30,60,.5)'; ctx.lineWidth=1; ctx.strokeRect(-16,4,22,7);
+    ctx.restore();
+    // kuvvet okları (fizik!)
+    const LG=20+(r/1280)*26, LF=20+(RHO_SU/1280)*26;
+    ctx.lineWidth=3.4; ctx.lineCap='round';
+    ctx.strokeStyle='#ff8fa3';
+    ctx.beginPath(); ctx.moveTo(sub.x,sub.y+18); ctx.lineTo(sub.x,sub.y+18+LG); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sub.x,sub.y+18+LG); ctx.lineTo(sub.x-4,sub.y+12+LG); ctx.moveTo(sub.x,sub.y+18+LG); ctx.lineTo(sub.x+4,sub.y+12+LG); ctx.stroke();
+    ctx.strokeStyle='#7fe6ff';
+    ctx.beginPath(); ctx.moveTo(sub.x,sub.y-26); ctx.lineTo(sub.x,sub.y-26-LF); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sub.x,sub.y-26-LF); ctx.lineTo(sub.x-4,sub.y-20-LF); ctx.moveTo(sub.x,sub.y-26-LF); ctx.lineTo(sub.x+4,sub.y-20-LF); ctx.stroke();
+    ctx.font='bold 11px Arial'; ctx.textAlign='center';
+    ctx.fillStyle='#ff8fa3'; ctx.fillText('G', sub.x+12, sub.y+30+LG);
+    ctx.fillStyle='#7fe6ff'; ctx.fillText('Fk', sub.x+14, sub.y-28-LF);
+  }
+  function drawFx(){
+    ctx.fillStyle='rgba(210,240,255,.5)';
+    for(const b of bubbles){ ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,6.28); ctx.fill(); }
+    for(const p of particles){ ctx.globalAlpha=Math.max(0,1-p.age/p.life);
+      ctx.fillStyle=p.col; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.28); ctx.fill(); }
+    ctx.globalAlpha=1;
+    for(const p of pops){ const a=Math.max(0,1-p.age/p.life);
+      ctx.globalAlpha=a; ctx.fillStyle=p.color; ctx.font='bold '+Math.round(17*p.scale)+'px Arial'; ctx.textAlign='center';
+      ctx.fillText(p.text,p.x,p.y); }
+    ctx.globalAlpha=1;
+  }
+  function render(){
+    ctx.save();
+    if(shake>0) ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
+    ctx.clearRect(-20,-20,W+40,H+40);
+    sea();
+    for(const g of gates) drawGate(g);
+    for(const m of mines) drawMine(m);
+    for(const tr of treas) drawTre(tr);
+    drawSub();
+    drawFx();
+    ctx.restore();
+  }
+  let last=0;
+  function loop(ts){ const dt=Math.min(0.033,(ts-last)/1000||0); last=ts; update(dt); render(); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+
+  // ---- giriş ----
+  function pressOn(e){ if(e&&e.cancelable)e.preventDefault(); if(state==='play') holding=true; }
+  function pressOff(e){ if(e&&e.cancelable)e.preventDefault(); holding=false; }
+  cv.addEventListener('mousedown',pressOn); window.addEventListener('mouseup',pressOff);
+  cv.addEventListener('touchstart',pressOn,{passive:false}); cv.addEventListener('touchend',pressOff,{passive:false}); cv.addEventListener('touchcancel',pressOff,{passive:false});
+  document.addEventListener('keydown',e=>{ if(e.code==='Space'||e.code==='ArrowDown'){ e.preventDefault(); if(!e.repeat) pressOn(); } });
+  document.addEventListener('keyup',e=>{ if(e.code==='Space'||e.code==='ArrowDown') pressOff(); });
+
+  // ---- akış ----
+  function startGame(){
+    score=0; lives=3; combo=0; dist=0; cleanDist=0; treCount=0; gateCount=0;
+    ballast=0.5; vy=0; sub.y=H/2; invuln=1.2; speed=150; spawnT=1.2;
+    gates=[]; mines=[]; treas=[]; bubbles=[]; state='play';
+    document.getElementById('ovlStart').classList.add('hidden'); document.getElementById('ovlEnd').classList.add('hidden');
+    addPop('Basılı tut = BAT · Bırak = YÜZ', W/2, 190, '#ffd34d', 1.05);
+    syncHUD();
+  }
+  function gameOver(){ state='end'; pump(false);
+    const sc=Math.round(score);
+    const record=sc>stats.best; if(record) stats.best=sc; saveStats(); submitScore(sc);
+    document.getElementById('endTitle').textContent=record?'🏆 YENİ REKOR!':'Sefer Bitti';
+    document.getElementById('endTitle').style.color=record?'var(--accent)':'var(--ink)';
+    document.getElementById('endMsg').textContent=(dist>=800?'Derin sulara indin, kaptan: '+Math.round(dist)+' m!':'Balastı ritimle kullan; kısa dokunuşlarla dengede kal.')+' 💡 Fk = ρsıvı·V·g sabittir; balast dolunca G artar → G>Fk batarsın, G=Fk askıda kalırsın.';
+    let h='<div style="font-size:30px;font-weight:900;color:var(--accent)">'+sc+' puan</div>';
+    h+='<div style="font-size:13px;color:#8fc3cf;margin:3px 0 8px">'+Math.round(dist)+' m · '+gateCount+' kapı · '+treCount+' hazine</div>';
+    h+='<div style="display:flex;gap:16px;justify-content:center;font-size:14px"><span>🏅 Rekor <b>'+stats.best+'</b></span><span>Rütbe <b style="color:var(--accent)">'+rankFor(stats.total)+'</b></span></div>';
+    if(window.BFY_DB) h+='<div style="font-size:12px;color:#46d39a;margin-top:8px">🏆 Skorun tabloya gönderildi!</div>';
+    h+=badgeShelf();
+    h+='<div style="margin-top:10px;font-size:13.5px"><a href="basinc-kaldirma-laboratuvari.html" style="color:#46ffa0;font-weight:800;text-decoration:none">🔬 Kaldırma kuvveti labı</a> &nbsp;·&nbsp; <a href="testler-9.html" style="color:#7fe6ff;font-weight:800;text-decoration:none">📝 9. sınıf testi</a></div>';
+    document.getElementById('endStat').innerHTML=h;
+    lastShare={score:sc,record:record};
+    document.getElementById('bonusBox').style.display='none'; document.getElementById('shareMenu').style.display='none';
+    renderBonus();
+    document.getElementById('ovlEnd').classList.remove('hidden');
+  }
+
+  document.getElementById('btnStart').onclick=()=>{ if(actx&&actx.state==='suspended')actx.resume(); capturePlayer(); startGame(); };
+  document.getElementById('btnAgain').onclick=()=>{ document.getElementById('ovlEnd').classList.add('hidden'); startGame(); };
+  function toMenu(){ state='start'; holding=false; document.getElementById('ovlEnd').classList.add('hidden'); loadLeaderboard(); document.getElementById('ovlStart').classList.remove('hidden'); }
+  document.getElementById('btnMenu').onclick=toMenu;
+  document.getElementById('btnMenu2').onclick=toMenu;
+  document.getElementById('btnSound').onclick=function(){ soundOn=!soundOn; this.textContent=soundOn?'🔊 Ses':'🔇 Ses'; if(!soundOn)pump(false); };
+
+  // ---- tam ekran ----
+  const stage=document.getElementById('stage');
+  function inFs(){ return !!(document.fullscreenElement||document.webkitFullscreenElement)||stage.classList.contains('stage-fs'); }
+  document.getElementById('btnFs').onclick=function(){
+    if(inFs()){ stage.classList.remove('stage-fs'); if(document.exitFullscreen)document.exitFullscreen().catch(()=>{}); else if(document.webkitExitFullscreen)document.webkitExitFullscreen(); this.textContent='⛶ Tam ekran'; }
+    else { stage.classList.add('stage-fs'); const rf=stage.requestFullscreen||stage.webkitRequestFullscreen; if(rf){try{rf.call(stage);}catch(e){}}
+      try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); }catch(e){} this.textContent='✕ Çık'; }
+  };
+  document.addEventListener('fullscreenchange',()=>{ if(!document.fullscreenElement){ stage.classList.remove('stage-fs'); document.getElementById('btnFs').textContent='⛶ Tam ekran'; } });
+
+  // ---- bonus soru (Arşimet) ----
+  const QBANK=[
+    {q:"Kaldırma kuvvetinin büyüklüğü neye eşittir?",opts:["Taşan (yer değiştiren) sıvının ağırlığına","Cismin ağırlığına","Cismin hacmine","Sıvının derinliğine"],a:0,exp:"Arşimet ilkesi: Fk = ρsıvı·Vbatan·g — yani cismin taşırdığı sıvının ağırlığı."},
+    {q:"Bir cisim sıvıda askıda kalıyorsa hangisi doğrudur?",opts:["Cismin yoğunluğu sıvınınkine eşittir","Cisim sıvıdan yoğundur","Cisim sıvıdan hafiftir","Hacmi çok küçüktür"],a:0,exp:"Askıda kalma: G = Fk → ρcisim = ρsıvı."},
+    {q:"Denizaltı batmak için ne yapar?",opts:["Balast tanklarına su alır (ağırlığını artırır)","Pervaneyi hızlandırır","Hacmini büyütür","Derine ışık tutar"],a:0,exp:"Balast tankına su alınca toplam ağırlık artar; G > Fk olunca batar. Boşaltınca yüzer."},
+    {q:"Kaldırma kuvveti hangisine BAĞLI DEĞİLDİR?",opts:["Cismin kütlesine","Sıvının yoğunluğuna","Batan hacme","Yerçekimi ivmesine"],a:0,exp:"Fk = ρsıvı·Vbatan·g. Cismin kütlesi formülde yok — kütle sadece G'yi etkiler."},
+    {q:"Aynı cisim tatlı sudan tuzlu suya geçerse ne olur?",opts:["Daha çok yüzeye çıkar (Fk artar)","Daha çok batar","Değişmez","Askıda kalır"],a:0,exp:"Tuzlu suyun yoğunluğu büyük → aynı batan hacim için Fk artar; cisim daha yukarıda dengelenir."},
+    {q:"Yüzen bir cisim için hangisi her zaman doğrudur?",opts:["Fk = G","Fk > G","Fk < G","Fk = 0"],a:0,exp:"Yüzen cisim dengededir: kaldırma kuvveti ağırlığa eşittir. (Batan hacim kendini ayarlar.)"},
+    {q:"Sıvı içindeki basınç derinlikle nasıl değişir?",opts:["P = h·ρ·g ile artar","Azalır","Değişmez","Önce artar sonra azalır"],a:0,exp:"Sıvı basıncı derinlik, yoğunluk ve g ile doğru orantılıdır: P = h·ρ·g."},
+    {q:"Demir gemi neden yüzer?",opts:["İçi boş gövdenin ortalama yoğunluğu sudan küçüktür","Demir sudan hafiftir","Motor iter","Tuzlu su kaldırmaz"],a:0,exp:"Gövde + içindeki hava = büyük hacim, küçük ortalama yoğunluk. ρort < ρsu → yüzer."}
+  ];
+  let bonusUsed=false;
+  function renderBonus(){
+    bonusUsed=false; const q=QBANK[Math.floor(Math.random()*QBANK.length)];
+    const order=q.opts.map((_,i)=>i); for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tt=order[i];order[i]=order[j];order[j]=tt;}
+    const cp=order.indexOf(q.a);
+    document.getElementById('bonusQ').textContent=q.q;
+    const wrap=document.getElementById('bonusOpts'); wrap.innerHTML=''; const exp=document.getElementById('bonusExp'); exp.style.display='none';
+    order.forEach((k,pos)=>{ const b=document.createElement('button'); b.className='bopt'; b.type='button'; b.textContent=q.opts[k];
+      b.onclick=function(){ if(bonusUsed)return; bonusUsed=true;
+        wrap.querySelectorAll('.bopt').forEach((x,p)=>{x.disabled=true; if(p===cp)x.classList.add('correct'); else if(p===pos)x.classList.add('wrong');});
+        if(pos===cp){ sGate(); stats.total+=200; let gb=false; if(!stats.badges.includes('quiz')){stats.badges.push('quiz');gb=true;} saveStats();
+          exp.innerHTML='✅ Doğru! <b>+200 puan</b>'+(gb?' &nbsp;·&nbsp; 🎁 🧠 Arşimet Bilgini':'')+'<br>'+q.exp; }
+        else exp.innerHTML='❌ Doğru cevap: <b>'+q.opts[q.a]+'</b><br>'+q.exp;
+        exp.style.display='block'; };
+      wrap.appendChild(b); });
+    document.getElementById('bonusBox').style.display='block';
+  }
+
+  // ---- oyuncu / skor tablosu ----
+  const DB=window.BFY_DB;
+  const FORM_ENDPOINT='https://formspree.io/f/xykqweby';
+  let playerName='Misafir', playerMail='', mailSent=false;
+  function initInputs(){ try{ const n=localStorage.getItem('bfy_denizalti_name'), m=localStorage.getItem('bfy_denizalti_mail');
+    if(n)document.getElementById('plName').value=n; if(m)document.getElementById('plMail').value=m; }catch(e){} }
+  function capturePlayer(){ const n=document.getElementById('plName'),m=document.getElementById('plMail');
+    playerName=((n&&n.value)||'').trim().slice(0,20)||'Misafir'; playerMail=((m&&m.value)||'').trim().slice(0,60);
+    try{ localStorage.setItem('bfy_denizalti_name',playerName); localStorage.setItem('bfy_denizalti_mail',playerMail); }catch(e){}
+    if(playerMail&&!mailSent&&/.+@.+\..+/.test(playerMail)){ mailSent=true;
+      try{ fetch(FORM_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({ad:playerName,email:playerMail,_subject:'Denizaltı Kaptanı — yeni oyuncu 🌊',kaynak:'Denizalti Oyunu'})}); }catch(e){} }
+  }
+  function submitScore(sc){ if(!DB) return;
+    try{ DB.collection('denizalti_skorlar').add({ad:(playerName||'Misafir').slice(0,20),skor:Math.round(sc),ts:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>loadLeaderboard()).catch(e=>console.warn(e)); }catch(e){} }
+  function esc(s){ return (s||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+  function loadLeaderboard(){ const list=document.getElementById('lbList'); if(!list) return;
+    if(!DB){ list.innerHTML='<li style="color:#8fc3cf;text-align:center;padding:6px">Tablo yakında.</li>'; return; }
+    DB.collection('denizalti_skorlar').orderBy('skor','desc').limit(10).get().then(snap=>{ let h='',i=0;
+      snap.forEach(d=>{ i++; const v=d.data(); const m=i===1?'🥇':i===2?'🥈':i===3?'🥉':(i+'.');
+        h+='<li style="display:flex;justify-content:space-between;gap:10px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.08)"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+m+' '+esc(v.ad)+'</span><b style="color:var(--accent)">'+v.skor+'</b></li>'; });
+      list.innerHTML=h||'<li style="color:#8fc3cf;text-align:center;padding:6px">Henüz skor yok — ilk kaptan sen ol!</li>';
+    }).catch(e=>{ list.innerHTML='<li style="color:#8fc3cf;text-align:center;padding:6px">Tablo yüklenemedi.</li>'; }); }
+  initInputs(); loadLeaderboard();
+
+  // ---- paylaş (skor kartı) ----
+  const GAME_URL='https://benfizikyapamiyorum.com/denizalti-kaptani.html', IG_URL='https://www.instagram.com/';
+  let lastShare={score:0,record:false};
+  function shareText(){ return '🌊 Denizaltı Kaptanı oyununda '+lastShare.score+' puan yaptım! Rekorum '+stats.best+', rütbem '+rankFor(stats.total)+'. Arşimet ilkesiyle sen de dal 👇'; }
+  document.getElementById('btnShare').onclick=function(){
+    const sm=document.getElementById('shareMenu');
+    if(sm.style.display==='none'){ sm.style.display='block';
+      document.getElementById('shareMsg').textContent='Metin panoya kopyalandı — Instagram hikâyene yapıştır ya da arkadaşına gönder:';
+      const txt=shareText()+' '+GAME_URL;
+      try{ navigator.clipboard.writeText(txt); }catch(e){}
+      document.getElementById('shareIg').href=IG_URL;
+      document.getElementById('shareWa').href='https://wa.me/?text='+encodeURIComponent(txt);
+      document.getElementById('shareX').href='https://twitter.com/intent/tweet?text='+encodeURIComponent(shareText())+'&url='+encodeURIComponent(GAME_URL);
+    } else sm.style.display='none';
+  };
+})();
+</script>
+
+</body>
+</html>
