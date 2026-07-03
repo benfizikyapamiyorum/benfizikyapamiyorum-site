@@ -108,6 +108,7 @@
     }
   } catch (e) { console.warn('Firebase baslatilamadi:', e); }
 </script>
+  <script defer src="analytics.js"></script>
 </head>
 <body>
 
@@ -424,6 +425,7 @@
       if(DB) h+='<div style="font-size:12px;color:#46d39a;margin-top:8px">🏆 Skorun "En Yüksek Skorlar" tablosuna gönderildi!</div>';
       if(news.length) h+='<div style="margin-top:10px;background:rgba(242,198,106,.15);border:1px solid rgba(242,198,106,.45);border-radius:10px;padding:8px 12px;font-size:14px">🎁 Yeni rozet: '+news.join(' &nbsp;·&nbsp; ')+'</div>';
       h+=badgeShelf();
+      h+='<div style="margin-top:10px;font-size:13.5px"><a href="enerji-sarkac-laboratuvari.html" style="color:#46d39a;font-weight:800;text-decoration:none">🔬 Gezegenlerde g\'yi labda dene</a> &nbsp;·&nbsp; <a href="testler.html" style="color:#36c6ff;font-weight:800;text-decoration:none">📝 Konu testi</a></div>';
       document.getElementById('endStat').innerHTML=h;
       renderBonus();
     } else {
@@ -431,9 +433,12 @@
       lastShare={ok:false, score:0, planet:planet.name};
       document.getElementById('endTitle').textContent='💥 Çakıldın!';
       document.getElementById('endTitle').style.color='var(--bad)';
-      let why = (r.x<pad.x||r.x>pad.x+pad.w)?'Piste isabet etmedin.':(Math.abs(r.vy)>=SAFE_VY?'Çok hızlı indin (dikey hız 55 üstü).':(Math.abs(r.vx)>=SAFE_VX?'Yana çok kayıyordun (yatay hız 35 üstü).':'Roket çok eğikti.'));
-      document.getElementById('endMsg').textContent=why+' İpucu: son anda kısa kısa itki verip hızı düşür.';
-      document.getElementById('endStat').innerHTML='<div style="font-size:14px">🏅 Rekor: <b>'+stats.best+'</b> · Σ Toplam: <b>'+stats.total+'</b> · Rütbe: <b>'+rankFor(stats.total)+'</b></div>'+badgeShelf();
+      const vyM=(Math.abs(r.vy)/SCALE).toFixed(1), vxM=(Math.abs(r.vx)/SCALE).toFixed(1);
+      const limY=(SAFE_VY/SCALE).toFixed(1), limX=(SAFE_VX/SCALE).toFixed(1);
+      let why = (r.x<pad.x||r.x>pad.x+pad.w)?'Piste isabet etmedin.':(Math.abs(r.vy)>=SAFE_VY?'Çok hızlı indin: dikey hızın '+vyM+' m/s (güvenli sınır '+limY+').':(Math.abs(r.vx)>=SAFE_VX?'Yana kayıyordun: yatay hızın '+vxM+' m/s (sınır '+limX+').':'Roket çok eğikti.'));
+      document.getElementById('endMsg').textContent=why+' 💡 Bu gezegende g = '+planet.g+' m/s² — alçalırken erken ve kısa itkiler, az yakıtla hızı sınırın altına çeker.';
+      document.getElementById('endStat').innerHTML='<div style="font-size:14px">🏅 Rekor: <b>'+stats.best+'</b> · Σ Toplam: <b>'+stats.total+'</b> · Rütbe: <b>'+rankFor(stats.total)+'</b></div>'+badgeShelf()
+        +'<div style="margin-top:10px;font-size:13.5px"><a href="enerji-sarkac-laboratuvari.html" style="color:#46d39a;font-weight:800;text-decoration:none">🔬 Gezegenlerde g\'yi labda dene</a> &nbsp;·&nbsp; <a href="testler.html" style="color:#36c6ff;font-weight:800;text-decoration:none">📝 Konu testi</a></div>';
     }
     setTimeout(()=>end.classList.remove('hidden'), ok?500:700);
   }

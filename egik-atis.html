@@ -136,6 +136,8 @@
           <input id="plMail" class="lbinp" type="email" maxlength="60" placeholder="E-posta (isteğe bağlı)" autocomplete="email" style="font-size:14px">
         </div>
         <button class="btn-play" id="btnStart">Başla</button>
+        <button class="btn-play alt" id="btnDaily" style="margin-top:6px">📅 Günün Denemesi</button>
+        <div id="dailyInfo" style="font-size:12px;color:#9fb3d6;margin-top:5px"></div>
         <div style="width:100%;max-width:340px;margin:14px auto 0;text-align:left">
           <div style="font-size:13px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;text-align:center">🏆 En Yüksek Skorlar</div>
           <ol id="lbList" style="margin:0;padding:0;list-style:none;font-size:14px;color:#cdd9ee"></ol>
@@ -251,17 +253,26 @@
     particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-20,age:0,life:rnd(0.4,0.8),r:rnd(3,7),col:'rgba(220,220,230,'}); } }
   let shake=0;
 
+  // ---- Günün Denemesi (tarih tohumlu — herkese aynı görev) ----
+  let daily=false, srng=null;
+  function bugun(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function xmur3(str){ let h=1779033703^str.length; for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),3432918353); h=h<<13|h>>>19; } return function(){ h=Math.imul(h^(h>>>16),2246822507); h=Math.imul(h^(h>>>13),3266489909); return (h^=h>>>16)>>>0; }; }
+  function mulberry32(a){ return function(){ let t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; }; }
+  function srnd(a,b){ return a+(srng?srng():Math.random())*(b-a); }
+  function dailyKayit(){ try{ return JSON.parse(localStorage.getItem('bfy_egik_gun')||'null'); }catch(e){ return null; } }
+
   function makeClouds(){ clouds=[]; for(let i=0;i<5;i++) clouds.push({x:rnd(0,W),y:rnd(40,200),s:rnd(0.6,1.3),v:rnd(4,12)}); }
   makeClouds();
 
   // ---- bölüm kurulumu ----
   function spawnLevel(){
     targets=[]; proj=null; aiming=false; aim=null; hitsThis=0;
+    const rr = daily ? srnd : rnd;   // günlük modda tohumlu (herkese aynı)
     const n=Math.min(3+Math.floor(level/2),6);
-    wind = level>=3 ? Math.round(rnd(-120,120)) : 0;
+    wind = daily ? Math.round(rr(-120,120)) : (level>=3 ? Math.round(rnd(-120,120)) : 0);
     for(let i=0;i<n;i++){
-      const far = 360 + (i/(n-1||1))*(W-440) + rnd(-30,30);
-      targets.push({ x:Math.max(330,Math.min(W-40,far)), y:rnd(120,GROUND-120), r:Math.max(16,24-level), hit:false,
+      const far = 360 + (i/(n-1||1))*(W-440) + rr(-30,30);
+      targets.push({ x:Math.max(330,Math.min(W-40,far)), y:rr(120,GROUND-120), r:Math.max(16,24-level), hit:false,
         bob:Math.random()*6.28, col:['#ff5d7a','#ffb13d','#46d39a','#9b6dff','#36c6ff'][i%5] });
     }
     shots = n + 1;     // hedef + 1 hak
@@ -316,7 +327,16 @@
       }
       // yer / ekran dışı
       if(proj && (proj.y>GROUND-2 || proj.x>W+40 || proj.x<-40)){
-        if(proj.y>GROUND-2){ puff(proj.x,GROUND-4); }
+        if(proj.y>GROUND-2){ puff(proj.x,GROUND-4);
+          // öğretici an: en yakın hedefe göre kısa mı uzun mu?
+          const kalan=targets.filter(t=>!t.hit);
+          if(kalan.length){
+            const yakin=kalan.reduce((a,b)=>Math.abs(b.x-proj.x)<Math.abs(a.x-proj.x)?b:a);
+            const dxm=(yakin.x-proj.x)/12;
+            if(Math.abs(dxm)>=1) addPop(Math.abs(dxm).toFixed(1)+' m '+(dxm>0?'KISA → hızı ya da açıyı artır':'UZUN → hızı azalt'), Math.min(Math.max(proj.x,150),W-150), GROUND-60, dxm>0?'#ffd36a':'#ff9a9a', 0.95);
+            else addPop('KIL PAYI! 🎯', proj.x, GROUND-60, '#ffd36a', 1);
+          }
+        }
         endShot(false);
       }
     }
@@ -349,6 +369,7 @@
     burst(W/2,H/2,[ '#ff5d7a','#ffb13d','#46d39a','#9b6dff','#36c6ff'],50); sLevel(); shake=10;
     if(level+1===5) give('lvl5'); if(level+1===10) give('lvl10');
     level++; syncHUD();
+    if(daily && level>3){ setTimeout(()=>{ if(state==='play') gameOver(true); }, 900); return; }
     setTimeout(()=>{ if(state==='play') spawnLevel(); }, 1200);
   }
 
@@ -428,28 +449,57 @@
   requestAnimationFrame(loop);
 
   // ---- oyun akışı ----
-  function startGame(){ level=1; score=0; combo=0; shotsFired=0; state='play';
+  function startGame(){ daily=false; level=1; score=0; combo=0; shotsFired=0; state='play';
     document.getElementById('ovlStart').classList.add('hidden'); document.getElementById('ovlEnd').classList.add('hidden');
     spawnLevel(); }
-  function gameOver(){ state='end';
+  function startDaily(){ daily=true; srng=mulberry32(xmur3('BFY-EGIK-'+bugun())());
+    level=1; score=0; combo=0; shotsFired=0; state='play';
+    document.getElementById('ovlStart').classList.add('hidden'); document.getElementById('ovlEnd').classList.add('hidden');
+    spawnLevel();
+    addPop('📅 GÜNÜN DENEMESİ — 3 bölüm, herkese aynı!', W/2, 150, '#ffd36a', 1.05); }
+  function gameOver(finished){ state='end';
     const record=score>stats.best; if(record) stats.best=score; saveStats();
-    submitScore(score);
-    document.getElementById('endTitle').textContent = record?'🏆 YENİ REKOR!':'Oyun Bitti';
+    let gonderiNotu='';
+    if(daily){
+      const k=dailyKayit(), g=bugun();
+      if(k && k.gun===g && k.sent){ gonderiNotu='📅 Bugünün tablosuna ilk denemen ('+k.skor+') gönderilmişti.'; }
+      else { submitScore(score,'gunluk'); gonderiNotu='📅 Skorun bugünün tablosuna gönderildi!';
+        try{ localStorage.setItem('bfy_egik_gun', JSON.stringify({gun:g, skor:score, sent:true})); }catch(e){} }
+    } else if(window.BFY_DB){ submitScore(score); gonderiNotu='🏆 Skorun tabloya gönderildi!'; }
+    else submitScore(score);
+    document.getElementById('endTitle').textContent = daily ? (finished?'📅 Günün Denemesi Tamam!':'📅 Deneme Bitti') : (record?'🏆 YENİ REKOR!':'Oyun Bitti');
     document.getElementById('endTitle').style.color = record?'var(--accent)':'#eaf2ff';
-    document.getElementById('endMsg').textContent = level>=5?'Vay! '+level+'. bölüme kadar geldin.':'Atışların düzeldikçe daha da uzağa gideceksin!';
+    document.getElementById('endMsg').textContent = daily
+      ? ((finished?'3 bölümü de bitirdin! ':'')+'Bugün herkes AYNI görevi oynadı — sıralamaya bak, yarın yeni görev var. 💡 Menzil R = v₀²·sin(2θ)/g.')
+      : ((level>=5?'Vay! '+level+'. bölüme kadar geldin.':'Atışların düzeldikçe daha da uzağa gideceksin!')+' 💡 Menzil R = v₀²·sin(2θ)/g — en uzun atış 45°.');
     let h='<div style="font-size:30px;font-weight:900;color:var(--accent)">'+score+' puan</div>';
     h+='<div style="font-size:13px;color:#9fb3d6;margin:3px 0 8px">Bölüm '+level+' · '+shotsFired+' atış</div>';
     h+='<div style="display:flex;gap:16px;justify-content:center;font-size:14px"><span>🏅 Rekor <b>'+stats.best+'</b></span><span>Rütbe <b style="color:var(--accent)">'+rankFor(stats.total)+'</b></span></div>';
-    if(window.BFY_DB) h+='<div style="font-size:12px;color:#46d39a;margin-top:8px">🏆 Skorun tabloya gönderildi!</div>';
+    if(gonderiNotu) h+='<div style="font-size:12px;color:#46d39a;margin-top:8px">'+gonderiNotu+'</div>';
     h+=badgeShelf();
+    h+='<div style="margin-top:10px;font-size:13.5px"><a href="egik-atis-laboratuvari.html" style="color:#46d39a;font-weight:800;text-decoration:none">🔬 Bu fiziği labda keşfet</a> &nbsp;·&nbsp; <a href="testler.html" style="color:#36c6ff;font-weight:800;text-decoration:none">📝 Konu testi çöz</a></div>';
     document.getElementById('endStat').innerHTML=h;
     lastShare={score:score, record:record};
     document.getElementById('bonusBox').style.display='none'; document.getElementById('shareMenu').style.display='none';
     renderBonus();
+    if(daily) loadDailyBoard();
     document.getElementById('ovlEnd').classList.remove('hidden');
   }
+  function loadDailyBoard(){ if(!DB) return; const g=bugun();
+    DB.collection('egikatis_skorlar').orderBy('skor','desc').limit(100).get().then(snap=>{
+      const rows=[]; snap.forEach(d=>{ const v=d.data(); if(v.mod==='gunluk'&&v.gun===g) rows.push(v); });
+      let h='<div style="margin-top:12px;font-size:12.5px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em">📅 Bugünün İlk 10\'u</div>';
+      h+='<ol style="margin:4px 0 0;padding:0;list-style:none;font-size:13.5px;color:#cdd9ee">';
+      if(rows.length){ rows.slice(0,10).forEach((v,i)=>{ const m=i===0?'🥇':i===1?'🥈':i===2?'🥉':((i+1)+'.');
+        h+='<li style="display:flex;justify-content:space-between;gap:10px;padding:3px 6px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+m+' '+esc(v.ad)+'</span><b>'+v.skor+'</b></li>'; }); }
+      else h+='<li style="padding:3px 6px;color:#9fb3d6">Bugünün ilk skoru senin olabilir!</li>';
+      h+='</ol>';
+      const el=document.createElement('div'); el.innerHTML=h;
+      document.getElementById('endStat').appendChild(el);
+    }).catch(()=>{}); }
 
   document.getElementById('btnStart').onclick=()=>{ if(actx&&actx.state==='suspended')actx.resume(); capturePlayer(); startGame(); };
+  document.getElementById('btnDaily').onclick=()=>{ if(actx&&actx.state==='suspended')actx.resume(); capturePlayer(); startDaily(); };
   document.getElementById('btnAgain').onclick=()=>{ document.getElementById('ovlEnd').classList.add('hidden'); startGame(); };
   function toMenu(){ state='start'; proj=null; aiming=false; document.getElementById('ovlEnd').classList.add('hidden'); loadLeaderboard(); document.getElementById('ovlStart').classList.remove('hidden'); }
   document.getElementById('btnMenu').onclick=toMenu;
@@ -510,8 +560,10 @@
     if(playerMail&&!mailSent&&/.+@.+\..+/.test(playerMail)){ mailSent=true;
       try{ fetch(FORM_ENDPOINT,{method:'POST',headers:{'Accept':'application/json','Content-Type':'application/json'},body:JSON.stringify({ad:playerName,email:playerMail,_subject:'Eğik Atış — yeni oyuncu 🎯',kaynak:'Egik Atis Oyunu'})}); }catch(e){} }
   }
-  function submitScore(sc){ if(!DB) return;
-    try{ DB.collection('egikatis_skorlar').add({ad:(playerName||'Misafir').slice(0,20),skor:Math.round(sc),ts:firebase.firestore.FieldValue.serverTimestamp()}).then(()=>loadLeaderboard()).catch(e=>console.warn(e)); }catch(e){} }
+  function submitScore(sc,mode){ if(!DB) return;
+    try{ const doc={ad:(playerName||'Misafir').slice(0,20),skor:Math.round(sc),ts:firebase.firestore.FieldValue.serverTimestamp()};
+      if(mode==='gunluk'){ doc.mod='gunluk'; doc.gun=bugun(); }
+      DB.collection('egikatis_skorlar').add(doc).then(()=>loadLeaderboard()).catch(e=>console.warn(e)); }catch(e){} }
   function esc(s){ return (s||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
   function loadLeaderboard(){ const list=document.getElementById('lbList'); if(!list) return;
     if(!DB){ list.innerHTML='<li style="color:#9fb3d6;text-align:center;padding:6px">Tablo yakında.</li>'; return; }
@@ -521,6 +573,10 @@
       list.innerHTML=h||'<li style="color:#9fb3d6;text-align:center;padding:6px">Henüz skor yok — ilk sen ol!</li>';
     }).catch(e=>{ list.innerHTML='<li style="color:#9fb3d6;text-align:center;padding:6px">Tablo yüklenemedi.</li>'; }); }
   initInputs(); loadLeaderboard();
+  (function(){ const k=dailyKayit(), el=document.getElementById('dailyInfo');
+    if(el) el.textContent = (k&&k.gun===bugun())
+      ? '📅 Bugün oynadın: '+k.skor+' puan — tekrar oynayabilirsin, skor gönderilmez. Yarın yeni görev!'
+      : '📅 Herkese aynı görev · günlük sıralama · skor hakkı: ilk deneme'; })();
 
   // ---- paylaş (skor kartı) ----
   const GAME_URL='https://benfizikyapamiyorum.com/egik-atis.html', IG_URL='https://www.instagram.com/';

@@ -72,6 +72,7 @@
   window.BFY_DB = null;
   try { firebase.initializeApp(firebaseConfig); window.BFY_DB = firebase.firestore(); } catch (e) { console.warn('Firebase yok:', e); }
 </script>
+  <script defer src="analytics.js"></script>
 </head>
 <body>
 
@@ -259,7 +260,7 @@
     gradeShow={grade,acc,bonus,passed};
     burst(W/2,GY0+90,['#27e7ff','#ff3df0','#ffe14d','#46ffa0'],46); shake=8; sGrade();
     if(grade==='A'||grade==='S')give('perfectA'); if(grade==='S')give('perfectS');
-    if(!passed){ lives--; sFail(); }
+    if(!passed){ lives--; sFail(); addPop('💡 Eğim = ivme! Çizgi kırılmadan ÖNCE gaza hazırlan', W/2, GY0+46, '#ffe14d', 0.95); }
     if(round+1===5)give('r5'); if(round+1===10)give('r10');
     saveStats();
     if(lives<=0){ state='between'; betweenT=2.0; setTimeout(gameOver,2000); }
@@ -397,12 +398,14 @@
     const record=score>stats.best; if(record)stats.best=score; saveStats(); submitScore(score);
     document.getElementById('endTitle').textContent=record?'🏆 YENİ REKOR!':'Yarış Bitti';
     document.getElementById('endTitle').style.color=record?'var(--accent)':'var(--ink)';
-    document.getElementById('endMsg').textContent= round>=6?'Süper sürüş! '+(round-1)+'. tura kadar geldin.':'Eğimi takip ettikçe senkronun artacak!';
+    document.getElementById('endMsg').textContent= (round>=6?'Süper sürüş! '+(round-1)+'. tura kadar geldin.':'Eğimi takip ettikçe senkronun artacak!')+' 💡 v-t grafiğinde eğim = ivme, altındaki alan = yol.';
     let h='<div style="font-size:30px;font-weight:900;color:var(--accent)">'+score+' puan</div>';
     h+='<div style="font-size:13px;color:#8aa0cf;margin:3px 0 8px">'+(round-1)+' tur tamamlandı</div>';
     h+='<div style="display:flex;gap:16px;justify-content:center;font-size:14px"><span>🏅 Rekor <b>'+stats.best+'</b></span><span>Rütbe <b style="color:var(--accent)">'+rankFor(stats.total)+'</b></span></div>';
     if(window.BFY_DB) h+='<div style="font-size:12px;color:#46ffa0;margin-top:8px">🏆 Skorun tabloya gönderildi!</div>';
-    h+=badgeShelf(); document.getElementById('endStat').innerHTML=h;
+    h+=badgeShelf();
+    h+='<div style="margin-top:10px;font-size:13.5px"><a href="hareket-grafikleri-laboratuvari.html" style="color:#46ffa0;font-weight:800;text-decoration:none">🔬 Grafikleri labda keşfet</a> &nbsp;·&nbsp; <a href="testler.html" style="color:#27e7ff;font-weight:800;text-decoration:none">📝 Konu testi çöz</a></div>';
+    document.getElementById('endStat').innerHTML=h;
     lastShare={score:score,record:record};
     document.getElementById('bonusBox').style.display='none'; document.getElementById('shareMenu').style.display='none';
     renderBonus(); document.getElementById('ovlEnd').classList.remove('hidden');
