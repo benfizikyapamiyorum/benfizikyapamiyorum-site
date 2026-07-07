@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deneme Sürümü · Fizik Grup Yarışı · Ben Fizik Yapamıyorum</title>
+<style>
+  :root{--navy:#1B2A4A;--navy2:#24365c;--mustard:#EEB211;--mustard-d:#c9930a;--coral:#E5533C;--coral-l:#E86B52;--ink:#1B2A4A;--muted:#5B6472;--mint:#E9F3E1;--cream:#FCF4DD;--paper:#fff;--line:#e7e3d6;--good:#2f8f5b;--good-bg:#e7f3ea;--bad:#c4392b;--blue:#378add}
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--navy);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 14px 40px}
+  .bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  .bg text{font-family:Georgia,serif;fill:#efcf76;fill-opacity:.10;font-size:20px}
+  .app{position:relative;z-index:1;width:100%;max-width:660px}
+  .brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:14px}
+  .emblem{width:52px;height:52px;flex:0 0 auto}
+  .brand .wm b{display:block;color:#fff;font-weight:800;letter-spacing:.5px;font-size:16px}
+  .brand .wm span{display:block;color:var(--mustard);font-size:11.5px;font-weight:600;letter-spacing:1.5px;margin-top:2px}
+  .card{position:relative;background:var(--paper);border-radius:18px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.33)}
+  .topbar{background:var(--navy);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .topbar h1{font-size:15px;margin:0;font-weight:800}
+  .topbar .sub{font-size:11.5px;color:#b9c4dc;margin-top:3px;font-weight:500}
+  .rightbar{display:flex;align-items:center;gap:8px}
+  .mute{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:5px 7px;display:flex;align-items:center;cursor:pointer}
+  .mute:hover{background:rgba(255,255,255,.2)}
+  .chip{background:var(--mustard);color:var(--navy);font-weight:800;font-size:12px;padding:5px 11px;border-radius:20px;white-space:nowrap}
+  .body{padding:20px}
+  .sboard{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:0 0 14px}
+  .gchip{display:flex;align-items:center;gap:7px;background:#f4f2ea;border:1.5px solid var(--line);border-radius:20px;padding:5px 12px 5px 8px;font-size:13px;font-weight:700}
+  .gchip.cur{border-color:var(--mustard);background:var(--cream);box-shadow:0 0 0 2px #f3e4a3}
+  .gchip .dot{width:16px;height:16px;border-radius:50%;font-size:10px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+  .gchip .sc{color:var(--mustard-d);font-weight:800}
+  .turnbar{text-align:center;font-size:14px;font-weight:700;margin:0 0 12px;color:var(--navy)}
+  .turnbar b{color:var(--coral)}
+  .ptbar{text-align:center;font-size:12.5px;color:var(--muted);margin:0 0 14px;font-weight:700}
+  .ptbar b{color:var(--good);font-size:14px}
+  .bar{height:6px;background:#eee7d6;border-radius:6px;overflow:hidden;margin:0 0 15px}
+  .bar>div{height:100%;background:var(--mustard);border-radius:6px;transition:width .4s ease}
+  .panel-tag{display:inline-block;background:var(--coral);color:#fff;font-size:11px;font-weight:800;letter-spacing:.6px;padding:4px 10px;border-radius:6px;margin-bottom:8px}
+  .panel-topic{font-size:19px;font-weight:800;margin:0 0 10px;color:var(--navy);text-align:center}
+  .fig{display:block;margin:0 auto}
+  .figwrap{background:#f7f6f1;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;margin:0 0 14px}
+  .prompt{font-size:15.5px;font-weight:800;line-height:1.5;margin:0 0 14px;color:var(--navy)}
+  .items{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:8px}
+  .items li{display:flex;align-items:center;gap:11px;background:#f7f6f1;border:1px solid var(--line);border-radius:11px;padding:9px 12px;font-size:14px}
+  .items .tx{flex:1}
+  .items .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;opacity:0;transition:opacity .3s;margin-left:6px}
+  .items.reveal .tag{opacity:1}
+  .inrow{display:flex;gap:9px;align-items:stretch}
+  input.ans{flex:1;font-size:17px;padding:12px 14px;border:2px solid #d8d2c0;border-radius:11px;outline:none;font-weight:700;color:var(--navy);background:#fff;width:100%}
+  input.ans:focus{border-color:var(--mustard)}
+  input.nm{font-size:15px;padding:9px 12px;border:2px solid #d8d2c0;border-radius:10px;outline:none;font-weight:700;color:var(--navy);width:100%}
+  input.nm:focus{border-color:var(--mustard)}
+  button{font-family:inherit;cursor:pointer;border:none}
+  .go{background:var(--navy);color:#fff;font-weight:800;font-size:15px;padding:12px 20px;border-radius:11px;white-space:nowrap}
+  .go:hover{background:var(--navy2)} .go:active{transform:scale(.98)}
+  .row2{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px;min-height:22px}
+  .fb{font-size:13.5px;font-weight:800;flex:1}
+  .fb.good{color:var(--good)} .fb.bad{color:var(--bad)}
+  .hintbtn{background:#ECEAF6;color:#4b3f7a;font-weight:700;font-size:12.5px;padding:6px 12px;border-radius:20px}
+  .hint{font-size:12.5px;color:var(--muted);background:#ECEAF6;border-radius:10px;padding:9px 12px;margin-top:9px;display:none;line-height:1.55}
+  .hint.on{display:block}
+  .teach{font-size:12.5px;color:#2f5a3d;background:var(--good-bg);border-left:4px solid var(--good);border-radius:0 8px 8px 0;padding:9px 12px;margin-top:11px;line-height:1.55;display:none}
+  .teach.on{display:block}
+  .react{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.6);background:#fff;border:2px solid var(--bad);color:var(--bad);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;box-shadow:0 12px 34px rgba(0,0,0,.22);z-index:30;pointer-events:none;opacity:0;max-width:80%}
+  .react.good{border-color:var(--good);color:var(--good)}
+  .react.show{animation:reactAnim 1.15s ease forwards}
+  @keyframes reactAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}16%{opacity:1;transform:translate(-50%,-50%) scale(1.07)}30%{transform:translate(-50%,-50%) scale(1) rotate(-3deg)}42%{transform:translate(-50%,-50%) scale(1) rotate(3deg)}54%{transform:translate(-50%,-50%) rotate(0)}82%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(.95)}}
+  .center{text-align:center;padding:6px 4px 2px}
+  .center .big{font-size:22px;font-weight:800;color:var(--navy);margin:12px 0 6px}
+  .center p{font-size:14px;color:var(--muted);line-height:1.6;margin:0 auto 10px;max-width:470px}
+  .steprow{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0}
+  .stepbtn{width:38px;height:38px;border-radius:10px;background:var(--navy);color:#fff;font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .stepval{font-size:26px;font-weight:800;min-width:40px;color:var(--navy)}
+  .names{display:grid;gap:8px;margin:12px 0;text-align:left}
+  .nmrow{display:flex;align-items:center;gap:9px}
+  .nmrow .d{width:26px;height:26px;border-radius:50%;color:#fff;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .start{background:var(--coral);color:#fff;font-weight:800;font-size:16px;padding:13px 28px;border-radius:12px;margin-top:12px}
+  .start:hover{background:var(--coral-l)}
+  .result{list-style:none;padding:0;margin:14px 0}
+  .result li{display:flex;align-items:center;gap:12px;background:#faf9f4;border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:8px;font-size:15px;font-weight:700}
+  .result li.win{background:var(--cream);border-color:var(--mustard);box-shadow:0 0 0 2px #f3e4a3}
+  .result .rk{font-size:20px;width:30px;text-align:center}
+  .result .nm{flex:1}
+  .result .pt{color:var(--mustard-d);font-weight:800}
+  .replay{background:transparent;color:var(--navy);border:2px solid var(--navy);font-weight:800;font-size:14px;padding:10px 20px;border-radius:11px;margin-top:8px}
+  .credit{text-align:center;color:#9aa3b6;font-size:11.5px;margin-top:14px}
+  .credit b{color:#c3ccdd}
+.bigreact{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:40;pointer-events:none;opacity:0;text-align:center;padding:16px}
+.bigreact.show{animation:brIn 1.5s cubic-bezier(.2,.8,.3,1) forwards}
+.bigreact.bad{background:rgba(196,57,43,.16)}
+.bigreact.good{background:rgba(47,143,91,.15)}
+.br-title{font-size:76px;font-weight:900;letter-spacing:1px;line-height:.95}
+.bigreact.bad .br-title{color:#c4392b;text-shadow:0 5px 0 rgba(140,40,28,.22)}
+.bigreact.good .br-title{color:#2f8f5b;text-shadow:0 5px 0 rgba(35,110,60,.18)}
+.br-sub{font-size:27px;font-weight:800;margin-top:12px;max-width:90%}
+.bigreact.bad .br-sub{color:#8a2f22}
+.bigreact.good .br-sub{color:#237a45}
+@keyframes brIn{0%{opacity:0;transform:scale(.35) rotate(-4deg)}12%{opacity:1;transform:scale(1.14) rotate(0)}24%{transform:scale(1) rotate(-3deg)}34%{transform:scale(1) rotate(3deg)}44%{transform:scale(1) rotate(-2deg)}54%{transform:rotate(0)}82%{opacity:1}100%{opacity:0;transform:scale(1.06)}}
+</style>
+</head>
+<body>
+<svg class="bg" aria-hidden="true"><defs><pattern id="fp" width="230" height="150" patternUnits="userSpaceOnUse" patternTransform="rotate(-12)"><text x="8" y="30">F = V·d·g</text><text x="140" y="80">Arşimet</text><text x="20" y="120">özkütle</text></pattern></defs><rect width="100%" height="100%" fill="url(#fp)"/></svg>
+<div class="app">
+  <div class="brand">
+    <svg class="emblem" viewBox="0 0 100 100" aria-label="Ben Fizik Yapamıyorum logosu"><path d="M27 46 C24 30 40 18 54 20 C71 22 80 33 78 45 C74 40 68 38 62 39 C58 33 47 32 42 38 C36 37 30 40 27 46 Z" fill="#141414"/><circle cx="41" cy="55" r="12" fill="none" stroke="#E5896F" stroke-width="4"/><circle cx="66" cy="55" r="12" fill="none" stroke="#E5896F" stroke-width="4"/><line x1="53" y1="54" x2="54" y2="54" stroke="#E5896F" stroke-width="3"/><circle cx="43" cy="56" r="4" fill="#141414"/><circle cx="64" cy="56" r="4" fill="#141414"/><path d="M29 55 L23 57 M78 55 L84 57" stroke="#E5896F" stroke-width="3" stroke-linecap="round"/></svg>
+    <div class="wm"><b>BEN FİZİK YAPAMIYORUM</b><span>TİMUR HOCA · 9. SINIF FİZİK</span></div>
+  </div>
+  <div class="card">
+    <div class="topbar"><div><h1>Fizik Grup Yarışı · Deneme</h1><div class="sub">Kaldırma Kuvveti ve Arşimet · Örnek Oda</div></div><div class="rightbar"><button id="mute" class="mute" aria-label="Sesi aç/kapat"></button><div class="chip" id="chip">Grup Yarışı</div></div></div>
+    <div class="body" id="stage"></div>
+  </div>
+  <div class="credit">© Timur Hoca · <b>Ben Fizik Yapamıyorum</b> · Çözümler için YouTube kanalına abone ol</div>
+</div>
+<script>
+const D=[
+ {tag:"1. SORU",topic:"Batık Hacim · Kaldırma Kuvveti",type:"word",answer:["EŞİT","EŞİTTİR","AYNI","AYNIDIR"],fig:{t:"two"},prompt:"Aynı hacimli, biri hafif biri ağır iki cisim tamamen suya batırılıp tutuluyor. İkisine etki eden kaldırma kuvvetleri nasıldır?",hint:"Kaldırma = taşırılan sıvının ağırlığı; ikisi de aynı hacim sıvı taşırır.",teach:"Kaldırma kuvveti taşırılan sıvının hacmine bağlıdır (F = d·V·g). İki cisim de aynı hacimde ve tamamen batık olduğundan kaldırma kuvvetleri EŞİTTİR — ağırlıkları farklı olsa bile."},
+ {tag:"2. SORU",topic:"Görünen Ağırlık · Hesap",type:"count",answer:15,prompt:"Havada ağırlığı 40 N ölçülen bir cisim tamamen suya batırılınca dinamometre 25 N gösteriyor. Cisme etki eden kaldırma kuvveti kaç N'dur?",hint:"Kaldırma kuvveti = ağırlık kaybı = havadaki − sudaki ağırlık.",teach:"Kaldırma kuvveti, ağırlıktaki kayba eşittir: 40 − 25 = 15 N. Cisim suda daha hafif görünür."},
+ {tag:"3. SORU",topic:"Sıvıdan Az Yoğun · Kavram",type:"word",answer:["YÜZER","YÜZME"],prompt:"Özkütlesi, içine bırakıldığı sıvının özkütlesinden KÜÇÜK olan cisim ne yapar?",hint:"Hafif cisim…",teach:"Cismin özkütlesi < sıvının özkütlesi → cisim YÜZER."},
+ {tag:"4. SORU",topic:"Özkütle Karşılaştırma · Akıl Yürütme",type:"count",answer:1,fig:{t:"levels"},prompt:"Şekilde K yüzüyor, L askıda kalıyor, M dibe batıyor. Bu cisimlerden kaç tanesinin özkütlesi sıvının özkütlesinden BÜYÜKTÜR?",hint:"Sadece batan cisim.",teach:"Yalnızca M batar → özkütlesi sıvıdan büyüktür. K küçük, L eşittir."},
+ {tag:"5. SORU",topic:"Batan Cisim · Kuvvet İlişkisi",type:"word",answer:["KÜÇÜK","DAHAKÜÇÜK","KÜÇÜKTÜR","AZ"],prompt:"Bir cisim sıvıda BATIYORSA, bunun sebebi kaldırma kuvvetinin cismin ağırlığından … olmasıdır.",hint:"Aşağı çeken ağırlık, yukarı iten kaldırmaya üstün gelmeli.",teach:"Cisim batıyorsa kaldırma kuvveti < ağırlık (net kuvvet aşağı yönlü). Yüzen ya da askıdaki cisimde ise kaldırma kuvveti = ağırlık olur."},
+ {tag:"6. SORU",topic:"Kaldırma Formülü · F = d·V·g",type:"count",answer:40,fig:{t:"submerged"},prompt:"Özkütlesi 1000 kg/m³ olan suya, hacmi 0,004 m³ olan bir cisim tamamen batırılıyor. Yer çekimi ivmesi 10 N/kg alındığında cisme etkiyen kaldırma kuvveti kaç N olur?",hint:"F = sıvının özkütlesi · batan hacim · g.",teach:"F = d·V·g = 1000 · 0,004 · 10 = 40 N."},
+ {tag:"7. SORU",topic:"Özkütle Eşit · Akıl Yürütme",type:"word",answer:["ASKIDA","DENGEDE","ASKIDAKALIR"],prompt:"Özkütlesi, sıvının özkütlesine EŞİT olan cisim ne yapar? (sıvı içinde …)",hint:"Ne batar ne yüzer.",teach:"Cismin özkütlesi = sıvının özkütlesi → cisim sıvı içinde ASKIDA kalır (dengede)."},
+ {tag:"8. SORU",topic:"Kaldırma İlkesini Bulan · Kim?",type:"word",answer:["ARŞİMET","ARŞİMED","ARCHİMEDES"],prompt:"“Kaldırma kuvveti, taşırılan sıvının ağırlığına eşittir” ilkesini bulan bilim insanı kimdir?",hint:"‘Evreka!’ diyen kişi.",teach:"Arşimet: kaldırma kuvveti, cismin taşırdığı sıvının ağırlığına eşittir."},
+ {tag:"9. SORU",topic:"Yüzen Cisim + Tuz · Akıl Yürütme",type:"word",answer:["DEĞİŞMEZ","DEĞİŞMEZKALIR","AYNI","AYNIKALIR","SABİT"],fig:{t:"float"},prompt:"Suda YÜZEN bir cisim var. Suya bir miktar tuz eklenip su yoğunlaştırılırsa, cisme etki eden kaldırma kuvveti nasıl değişir?",hint:"Yüzen cisimde kaldırma = cismin ağırlığı; ağırlık değişti mi?",teach:"Yüzen cisimde kaldırma kuvveti = cismin ağırlığına eşittir. Ağırlık değişmediği için kaldırma kuvveti DEĞİŞMEZ; cisim yalnızca biraz daha az batar."},
+ {tag:"10. SORU",topic:"Kaldırma Kuvvetinin SEBEBİ",type:"word",fig:{t:"cause",fa:50,fu:30},answer:["BASINÇ","SIVIBASINÇ"],prompt:"Kaldırma kuvveti; cismin alt yüzeyine etkiyen yukarı kuvvet ile üst yüzeyine etkiyen aşağı kuvvetin FARKINDAN doğar. Bu kuvvetler hangi büyüklükten kaynaklanır? (sıvı … kuvveti)",hint:"Derinlikle artan bu büyüklüğün kuvveti.",teach:"Kaldırma kuvvetinin sebebi, alt ve üst yüzeydeki sıvı BASINÇ kuvvetlerinin farkıdır. Alt yüzey daha derinde olduğu için basınç kuvveti daha büyüktür."},
+ {tag:"11. SORU",topic:"Ölü Deniz · Akıl Yürütme",type:"word",answer:["BÜYÜK","BÜYÜKTÜR","FAZLA","FAZLADIR","YÜKSEK","DAHABÜYÜK"],prompt:"İnsanlar, tuz oranı çok yüksek olan Ölü Deniz'de tatlı suya göre çok daha kolay yüzer. Bunun nedeni, tuzlu suyun özkütlesinin tatlı suyunkine göre nasıl olmasıdır?",hint:"Özkütle arttıkça kaldırma kuvveti de artar.",teach:"Tuzlu suyun özkütlesi daha büyüktür; kaldırma kuvveti artar, bu yüzden Ölü Deniz'de yüzmek çok kolaydır."},
+ {tag:"12. SORU",topic:"Yüzen/Askıda Cisim · Kavram",type:"word",answer:["AĞIRLIK","AĞIRLIĞI","AĞIRLIĞINA","AĞIRLIĞINAEŞİT"],prompt:"Bir cisim sıvının dibine batıp oturmuyorsa (yüzüyor ya da askıda kalıyorsa), kaldırma kuvveti cismin neyine eşit olur? (cismin …)",hint:"Cisim dengede: yukarı kaldırma = aşağı ağırlık.",teach:"Dibe batıp oturmayan (yüzen veya askıdaki) cisim dengededir: kaldırma kuvveti = cismin AĞIRLIĞINA eşittir."}
+];
+const DOORPT=10,PEN=3,FLOOR=2;
+let groups=[],N=2,stage=0,doorPt=DOORPT;
+const stageEl=document.getElementById('stage'),chipEl=document.getElementById('chip');
+const GC=['#E5533C','#378add','#2f8f5b','#7f77dd','#EEB211','#c96d92'];
+let AC=null,soundOn=true;
+function ac(){if(!soundOn)return null;try{if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC;}catch(e){return null;}}
+function beep(f,dur,ty,vol,when){const c=ac();if(!c)return;const t=(when||0)+c.currentTime;const o=c.createOscillator(),g=c.createGain();o.type=ty||'sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol||0.14,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+0.03);}
+function womp(f,dur,when){const c=ac();if(!c)return;const t=(when||0)+c.currentTime;const o=c.createOscillator(),g=c.createGain();o.type='sawtooth';o.frequency.setValueAtTime(f,t);o.frequency.linearRampToValueAtTime(f*0.8,t+dur);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.16,t+0.03);g.gain.setValueAtTime(0.15,t+dur*0.6);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+0.03);}
+function sfxCorrect(){beep(660,0.12,'sine',0.14,0);beep(990,0.16,'sine',0.12,0.10);}
+function sfxWrong(){womp(311,0.2,0);womp(262,0.2,0.21);womp(196,0.46,0.42);}
+function sfxWin(){const s=[[523,0],[659,0.12],[784,0.24],[1047,0.40],[880,0.54],[1047,0.66]];s.forEach(a=>beep(a[0],0.18,'triangle',0.15,a[1]));beep(1568,0.5,'triangle',0.13,0.86);}
+const spkOn='<svg width="18" height="18" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#fff"/><path d="M16 8.5a4.5 4.5 0 010 7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const spkOff='<svg width="18" height="18" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#fff"/><path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const muteBtn=document.getElementById('mute');
+function updMute(){muteBtn.innerHTML=soundOn?spkOn:spkOff;}
+muteBtn.onclick=()=>{soundOn=!soundOn;if(soundOn)ac();updMute();};updMute();
+function shake(el){try{if(el&&el.animate){el.animate([{transform:'translateX(0)'},{transform:'translateX(-7px)'},{transform:'translateX(7px)'},{transform:'translateX(0)'}],{duration:240});}}catch(e){}}
+function reactPop(icon,text,cls){const c=document.querySelector('.card');if(!c)return;const d=document.createElement('div');d.className='react show'+(cls?' '+cls:'');d.innerHTML=icon+'<span>'+text+'</span>';c.appendChild(d);setTimeout(()=>{if(d&&d.parentNode)d.parentNode.removeChild(d);},1200);}
+const okIcon='<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e7f3ea" stroke="#2f8f5b" stroke-width="2"/><path d="M8 12l3 3 5-6" fill="none" stroke="#2f8f5b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const RIC=['<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fbeae7" stroke="#c4392b" stroke-width="2"/><path d="M8 8l8 8M16 8l-8 8" stroke="#c4392b" stroke-width="2.2" stroke-linecap="round"/></svg>','<svg width="24" height="24" viewBox="0 0 24 24"><path d="M6 16h12l-1.5-2v-4a4.5 4.5 0 00-9 0v4z" fill="#fbeae7" stroke="#c4392b" stroke-width="2" stroke-linejoin="round"/><path d="M10.4 18.5a1.7 1.7 0 003.2 0" stroke="#c4392b" stroke-width="2" fill="none"/></svg>'];
+const WMSG=["Alarm çaldı! Yanlış.","Cızzz! Olmadı.","Yanlış — puan düştü!","Bir daha dene!"];
+let wrongIdx=0;
+const CC={mint:['#e7f3ea','#2f7d3a'],rose:['#fbe9ef','#b04c74'],lav:['#ecebf7','#5a4a94'],cream:['#fcf4dd','#b07d0a']};
+function figCause(fa,fu){return '<svg class="fig" width="230" height="165" viewBox="0 0 230 165">'
+  +'<path d="M45 34 V145 H165 V34" fill="none" stroke="#5F5E5A" stroke-width="2.5"/><rect x="47" y="50" width="116" height="93" fill="#bfe0f2" opacity="0.7"/><path d="M47 50 q10 -5 19 0 t19 0 t19 0 t19 0 t19 0" fill="none" stroke="#378add" stroke-width="2"/>'
+  +'<rect x="83" y="76" width="44" height="42" fill="#c98a5a" stroke="#8a5a1e" stroke-width="2"/>'
+  +'<line x1="105" y1="140" x2="105" y2="122" stroke="#2f8f5b" stroke-width="5"/><path d="M98 126 L105 114 L112 126 Z" fill="#2f8f5b"/>'
+  +'<line x1="105" y1="52" x2="105" y2="66" stroke="#E5533C" stroke-width="4"/><path d="M100 62 L105 72 L110 62 Z" fill="#E5533C"/>'
+  +'<text x="173" y="132" font-size="11.5" font-weight="bold" fill="#2f8f5b" font-family="sans-serif">alt: '+fa+'N ↑</text>'
+  +'<text x="173" y="60" font-size="11.5" font-weight="bold" fill="#E5533C" font-family="sans-serif">üst: '+fu+'N ↓</text></svg>';}
+function figSubmerged(){return '<svg class="fig" width="180" height="150" viewBox="0 0 180 150"><path d="M40 26 V135 H150 V26" fill="none" stroke="#5F5E5A" stroke-width="2.5"/><rect x="42" y="44" width="106" height="91" fill="#bfe0f2" opacity="0.7"/><path d="M42 44 q9 -5 18 0 t18 0 t18 0 t18 0 t18 0" fill="none" stroke="#378add" stroke-width="2"/><rect x="72" y="72" width="46" height="42" fill="#c98a5a" stroke="#8a5a1e" stroke-width="2"/><line x1="95" y1="70" x2="95" y2="46" stroke="#2f8f5b" stroke-width="5"/><path d="M88 50 L95 38 L102 50 Z" fill="#2f8f5b"/><text x="95" y="32" font-size="11.5" font-weight="bold" fill="#2f8f5b" text-anchor="middle" font-family="sans-serif">kaldırma</text></svg>';}
+function figLevels(){return '<svg class="fig" width="190" height="165" viewBox="0 0 190 165"><path d="M38 26 V148 H152 V26" fill="none" stroke="#5F5E5A" stroke-width="2.5"/><rect x="40" y="46" width="110" height="102" fill="#bfe0f2" opacity="0.7"/><path d="M40 46 q9 -5 18 0 t18 0 t18 0 t18 0 t18 0" fill="none" stroke="#378add" stroke-width="2"/>'
+  +'<rect x="56" y="35" width="26" height="22" fill="#e6c185" stroke="#8a5a1e" stroke-width="1.6"/><text x="69" y="31" font-size="12" font-weight="bold" fill="#1B2A4A" text-anchor="middle" font-family="sans-serif">K</text>'
+  +'<rect x="104" y="82" width="26" height="22" fill="#9aa3b2" stroke="#5F5E5A" stroke-width="1.6"/><text x="117" y="78" font-size="12" font-weight="bold" fill="#1B2A4A" text-anchor="middle" font-family="sans-serif">L</text>'
+  +'<rect x="62" y="124" width="26" height="22" fill="#5b5e64" stroke="#3d3d3a" stroke-width="1.6"/><text x="75" y="120" font-size="12" font-weight="bold" fill="#1B2A4A" text-anchor="middle" font-family="sans-serif">M</text></svg>';}
+function figFloat(){return '<svg class="fig" width="190" height="150" viewBox="0 0 190 150"><path d="M40 30 V128 H150 V30" fill="none" stroke="#5F5E5A" stroke-width="2.5"/><rect x="42" y="60" width="106" height="66" fill="#bfe0f2" opacity="0.7"/><path d="M42 60 q9 -5 18 0 t18 0 t18 0 t18 0 t18 0" fill="none" stroke="#378add" stroke-width="2"/><rect x="76" y="48" width="38" height="26" fill="#e6c185" stroke="#8a5a1e" stroke-width="1.8"/><text x="95" y="44" font-size="11" font-weight="bold" fill="#1B2A4A" text-anchor="middle" font-family="sans-serif">yüzen cisim</text><circle cx="60" cy="92" r="1.7" fill="#fff"/><circle cx="122" cy="102" r="1.7" fill="#fff"/><circle cx="92" cy="115" r="1.7" fill="#fff"/><circle cx="132" cy="86" r="1.7" fill="#fff"/><circle cx="70" cy="110" r="1.7" fill="#fff"/><text x="95" y="143" font-size="10.5" fill="#5B6472" text-anchor="middle" font-family="sans-serif">suya tuz eklenince?</text></svg>';}
+function figTwo(){return '<svg class="fig" width="200" height="150" viewBox="0 0 200 150">'+'<text x="100" y="15" font-size="10.5" fill="#5B6472" text-anchor="middle" font-family="sans-serif">aynı hacim · ikisi de tamamen batık</text>'+'<path d="M34 30 V130 H166 V30" fill="none" stroke="#5F5E5A" stroke-width="2.5"/>'+'<rect x="36" y="50" width="128" height="80" fill="#bfe0f2" opacity="0.7"/>'+'<path d="M36 50 q10 -5 20 0 t20 0 t20 0 t20 0 t20 0 t20 0" fill="none" stroke="#378add" stroke-width="2"/>'+'<rect x="58" y="74" width="34" height="34" fill="#e6c185" stroke="#8a5a1e" stroke-width="1.8"/>'+'<rect x="110" y="74" width="34" height="34" fill="#8a9098" stroke="#4a4e54" stroke-width="1.8"/>'+'<text x="75" y="124" font-size="10" fill="#5B6472" text-anchor="middle" font-family="sans-serif">hafif cisim</text>'+'<text x="127" y="124" font-size="10" fill="#5B6472" text-anchor="middle" font-family="sans-serif">ağır cisim</text></svg>';}
+function figHtml(f){if(!f)return '';if(f.t==='cause')return figCause(f.fa,f.fu);if(f.t==='submerged')return figSubmerged();if(f.t==='levels')return figLevels();if(f.t==='float')return figFloat();if(f.t==='two')return figTwo();return '';}
+function renderSetup(){chipEl.textContent="Kurulum";drawSetup();}
+function drawSetup(){
+  let names='';for(let i=0;i<N;i++){names+='<div class="nmrow"><span class="d" style="background:'+GC[i]+'">'+(i+1)+'</span><input class="nm" id="nm'+i+'" value="'+((groups[i]&&groups[i].name)||('Grup '+(i+1)))+'" maxlength="16" /></div>';}
+  stageEl.innerHTML='<div class="center"><div class="big">Kaldırma Kuvveti Turnuvası</div><p>Bu oda, <b>Timur Hoca Grup Yarışı</b> setinin <b>deneme sürümüdür</b> — 13 odadan yalnızca biri. Sınıfı gruplara böl, isimleri gir; 12 soru sırayla gelir — doğru puan kazandırır, yanlış kaybettirir. Bakalım kim <b>şampiyon</b> olacak!</p><div style="font-size:13px;font-weight:700;color:var(--muted);margin-top:6px">Kaç grup?</div><div class="steprow"><button class="stepbtn" id="minus">−</button><div class="stepval" id="cnt">'+N+'</div><button class="stepbtn" id="plus">+</button></div><div class="names" id="names">'+names+'</div><button class="start" id="startBtn">Yarışı Başlat</button></div>';
+  document.getElementById('plus').onclick=()=>{if(N<6){saveNames();N++;drawSetup();}};
+  document.getElementById('minus').onclick=()=>{if(N>2){saveNames();N--;drawSetup();}};
+  document.getElementById('startBtn').onclick=()=>{saveNames();ac();startGame();};
+}
+function saveNames(){for(let i=0;i<N;i++){const el=document.getElementById('nm'+i);if(el)groups[i]={name:el.value.trim()||('Grup '+(i+1)),score:0};}}
+function startGame(){groups=groups.slice(0,N);for(let i=0;i<N;i++){if(!groups[i])groups[i]={name:'Grup '+(i+1),score:0};groups[i].score=0;}stage=0;renderDoor();}
+function sboardHtml(cur){let s='<div class="sboard">';groups.forEach((g,i)=>{s+='<div class="gchip'+(i===cur?' cur':'')+'"><span class="dot" style="background:'+GC[i]+'">'+(i+1)+'</span>'+g.name+' <span class="sc">'+g.score+'</span></div>';});return s+'</div>';}
+function barHtml(){const pct=Math.round(stage/D.length*100);return '<div class="bar"><div style="width:'+pct+'%"></div></div>';}
+function renderDoor(){
+  const q=D[stage],turn=stage%N;doorPt=DOORPT;
+  chipEl.textContent="Soru "+(stage+1)+" / "+D.length;
+  let itemsHtml='';
+  if(q.items){itemsHtml='<ul class="items" id="items">';q.items.forEach(it=>{const cc=CC[it.c]||CC.mint;itemsHtml+='<li><span class="tx">'+it.t+'</span><span class="tag" style="background:'+cc[0]+';color:'+cc[1]+'">'+it.tag+'</span></li>';});itemsHtml+='</ul>';}
+  const inputHtml=q.type==='word'?'<input class="ans" id="ans" type="text" autocomplete="off" placeholder="Cevabın" />':'<input class="ans" id="ans" type="number" inputmode="numeric" placeholder="Cevabın" />';
+  stageEl.innerHTML=sboardHtml(turn)+'<div class="turnbar">Sıra: <b>'+groups[turn].name+'</b></div>'+barHtml()
+    +'<div class="ptbar">Bu soru: <b id="pt">'+doorPt+'</b> puan</div>'
+    +'<div style="text-align:center"><span class="panel-tag">'+q.tag+'</span></div><div class="panel-topic">'+q.topic+'</div>'
+    +(q.fig?'<div class="figwrap">'+figHtml(q.fig)+'</div>':'')
+    +'<div class="prompt">'+q.prompt+'</div>'+itemsHtml
+    +'<div class="inrow">'+inputHtml+'<button class="go" id="go">Cevapla</button></div>'
+    +'<div class="row2"><div class="fb" id="fb"></div><button class="hintbtn" id="hb">İpucu</button></div>'
+    +'<div class="hint" id="hint">'+q.hint+'</div><div class="teach" id="teach">'+q.teach+'</div>';
+  const ans=document.getElementById('ans'),fb=document.getElementById('fb'),go=document.getElementById('go');
+  document.getElementById('hb').onclick=()=>document.getElementById('hint').classList.toggle('on');
+  function submit(){
+    let ok=false;
+    if(q.type==='word'){const nm=s=>(s||'').trim().toLocaleUpperCase('tr').replace(/\s+/g,'').replace(/[İIı]/g,'I').replace(/(KUVVETI|KUVVET|BASINCI|BÜYÜKLÜK)$/,'');const v=nm(ans.value);ok=v.length>0&&q.answer.some(a=>{const A=nm(a);return A===v||(v.length>=4&&A.startsWith(v));});}
+    else{const v=parseInt(ans.value,10);if(isNaN(v)){fb.className='fb bad';fb.textContent='Bir sayı gir.';return;}ok=(v===q.answer);}
+    if(ok){groups[turn].score+=doorPt;fb.className='fb good';fb.textContent='Doğru! +'+doorPt+' puan → '+groups[turn].name;go.disabled=true;ans.disabled=true;const it=document.getElementById('items');if(it)it.classList.add('reveal');reactPop(okIcon,'+'+doorPt+' puan!','good');sfxCorrect();document.getElementById('teach').classList.add('on');setTimeout(()=>{stage++;(stage>=D.length)?renderResult():renderDoor();},1600);}
+    else{doorPt=Math.max(FLOOR,doorPt-PEN);const pe=document.getElementById('pt');if(pe)pe.textContent=doorPt;const mm=WMSG[wrongIdx%WMSG.length];wrongIdx++;fb.className='fb bad';fb.textContent=mm+' ('+groups[turn].name+' hâlâ oynuyor)';reactPop(RIC[wrongIdx%2],'−'+PEN+' puan','');sfxWrong();shake(document.querySelector('.card'));}
+  }
+  go.onclick=submit;ans.addEventListener('keydown',e=>{if(e.key==='Enter')submit();});ans.focus();
+}
+function renderResult(){
+  chipEl.textContent="Sonuç";sfxWin();
+  const sorted=groups.map((g,i)=>({g,i})).sort((a,b)=>b.g.score-a.g.score);
+  const top=sorted[0].g.score,winners=sorted.filter(x=>x.g.score===top),rk=['🥇','🥈','🥉','4.','5.','6.'];
+  let li='';sorted.forEach((x,idx)=>{li+='<li class="'+(x.g.score===top?'win':'')+'"><span class="rk">'+rk[idx]+'</span><span class="dot" style="width:20px;height:20px;border-radius:50%;background:'+GC[x.i]+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">'+(x.i+1)+'</span><span class="nm">'+x.g.name+'</span><span class="pt">'+x.g.score+' puan</span></li>';});
+  const title=winners.length>1?('Beraberlik! '+winners.map(w=>w.g.name).join(' & ')):(sorted[0].g.name+' kazandı!');
+  stageEl.innerHTML='<div class="center"><div style="font-size:44px">🏆</div><div class="big">'+title+'</div><p>Kaldırma kuvveti yarışı bitti. İşte puanlar:</p></div><ul class="result">'+li+'</ul><div style="background:#FCF4DD;border:1.5px solid #EEB211;border-radius:14px;padding:14px;margin:14px 2px;text-align:left"><div style="font-size:15px;font-weight:800;color:#1B2A4A;margin-bottom:6px">🎓 Beğendin mi? Bu yalnızca 1 oda!</div><div style="font-size:13px;color:#5B6472;line-height:1.55;margin-bottom:10px">Tam sette <b>tüm 9. sınıf fizik · 13 oda</b> var — grup yarışı modu, şekilli sorular, pro çizimler ve anlık geri bildirim. Okulunuzun ve kendi adınızla da verilebilir.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a href="https://wa.me/905425549386?text=Merhaba%20Timur%20Hoca%2C%20Grup%20Yar%C4%B1%C5%9F%C4%B1%20setini%20merak%20ediyorum." target="_blank" rel="noopener" style="flex:1;min-width:130px;text-align:center;text-decoration:none;font-weight:800;font-size:13px;padding:11px;border-radius:10px;background:#25D366;color:#fff">WhatsApp ile yaz</a><a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener" style="flex:1;min-width:130px;text-align:center;text-decoration:none;font-weight:800;font-size:13px;padding:11px;border-radius:10px;background:linear-gradient(45deg,#f09433,#dc2743,#bc1888);color:#fff">Instagram</a></div></div><div class="center"><button class="replay" id="rp">Yeni Yarış</button></div>';
+  document.getElementById('rp').onclick=()=>{renderSetup();};
+}
+renderSetup();
+
+/* --- büyük tepki (bigReact) — reactPop override --- */
+var BR_GOOD=["Süper!","Tam isabet!","Bravo!","İşte bu!","Harika!","Çok iyi!"];
+function reactPop(icon,text,cls){var good=(cls==='good');var c=document.querySelector('.card');if(!c)return;var d=document.createElement('div');d.className='bigreact show '+(good?'good':'bad');var sub=good?(BR_GOOD[Math.floor(Math.random()*BR_GOOD.length)]+' '+(text||'')):((typeof WMSG!=='undefined'&&WMSG.length)?WMSG[Math.floor(Math.random()*WMSG.length)]:'Olmadı!');d.innerHTML='<div class="br-title">'+(good?'DOĞRU!':'YANLIŞ!')+'</div><div class="br-sub">'+sub+'</div>';c.appendChild(d);setTimeout(function(){if(d&&d.parentNode)d.parentNode.removeChild(d);},1500);}
+</script>
+</body>
+</html>
