@@ -452,22 +452,29 @@
     emptyMsg.style.display = totalVisible === 0 ? 'block' : 'none';
   }
 
-  tabs.forEach(function(btn){
-    btn.addEventListener('click', function(){
-      tabs.forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      var g = btn.getAttribute('data-grade');
-      panels.forEach(function(p){
-        p.style.display = (p.getAttribute('data-grade') === g) ? '' : 'none';
-      });
-      if (search){ search.value = ''; }
-      emptyMsg.style.display = 'none';
+  function selectGrade(g){
+    var tab = tabs.filter(function(b){ return b.getAttribute('data-grade') === g; })[0];
+    if (!tab) return;
+    tabs.forEach(function(b){ b.classList.remove('active'); });
+    tab.classList.add('active');
+    panels.forEach(function(p){
+      p.style.display = (p.getAttribute('data-grade') === g) ? '' : 'none';
     });
+    if (search){ search.value = ''; }
+    emptyMsg.style.display = 'none';
+  }
+
+  tabs.forEach(function(btn){
+    btn.addEventListener('click', function(){ selectGrade(btn.getAttribute('data-grade')); });
   });
 
   if (search){
     search.addEventListener('input', function(){ filterRows(search.value); });
   }
+
+  // Derin link: #9 / #10 / #11 / #12 (Fizo gibi dış sayfalardan doğrudan sınıf sekmesini açar)
+  var hashGrade = (location.hash || '').replace('#','').replace('grade-','').trim();
+  if (['9','10','11','12'].indexOf(hashGrade) !== -1) selectGrade(hashGrade);
 })();
 </script>
 
