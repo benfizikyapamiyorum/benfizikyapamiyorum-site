@@ -61,6 +61,8 @@
     var ozetT = [art("goruntuleme")];
     var gunT  = [art("goruntuleme")];
     if (yeniOturum) { ozetT.push(art("ziyaret")); gunT.push(art("ziyaret")); }
+    // gün-bazlı sayfa kırılımı: aynı gün dokümanına s_<sayfa> alanı olarak +1
+    gunT.push(art("s_" + key.replace(/[^a-zA-Z0-9]/g, "_")));
 
     var govde = {
       writes: [
