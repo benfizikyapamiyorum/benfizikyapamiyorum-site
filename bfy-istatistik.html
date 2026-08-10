@@ -123,7 +123,8 @@
   }).catch(function(){ $('tZiyaret').textContent='0'; $('tGoruntuleme').textContent='0'; });
 
   // 2) Son 14 gün: barlar + günlük detay
-  db.collection("istatistik_gun").orderBy(firebase.firestore.FieldPath.documentId(),'desc').limit(14).get()
+  // (not: belge-ID sıralaması bazı ortamlarda reddediliyor; "gun" alanına göre sıralıyoruz)
+  db.collection("istatistik_gun").orderBy("gun","desc").limit(14).get()
   .then(function(snap){
     var days = [];
     snap.forEach(function(doc){ days.push({ gun: doc.id, data: doc.data() }); });
@@ -173,7 +174,11 @@
       det.innerHTML='<summary><span>'+etiket+'</span><span class="oz">'+nf(z)+' ziyaret · '+nf(g)+' görüntüleme</span></summary><div class="ic">'+ic+'</div>';
       gd.appendChild(det);
     });
-  }).catch(function(e){ $('bars').innerHTML='<span class="muted">Grafik yüklenemedi.</span>'; $('gunluk').innerHTML='<span class="muted">Detay yüklenemedi (kurallar?).</span>'; });
+  }).catch(function(e){
+    var msg=(e&&e.message)?e.message:String(e);
+    $('bars').innerHTML='<span class="muted">Grafik yüklenemedi: '+msg+'</span>';
+    $('gunluk').innerHTML='<span class="muted">Detay yüklenemedi: '+msg+'</span>';
+  });
 
   // 3) En çok gezilen sayfalar (tüm zamanlar)
   db.collection("istatistik_sayfa").orderBy("goruntuleme","desc").limit(15).get()
