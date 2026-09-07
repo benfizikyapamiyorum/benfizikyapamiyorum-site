@@ -124,38 +124,7 @@
     <!-- MASCOT -->
     <div class="mascot-card">
       <div class="stagebg"></div>
-      <svg id="fizo" viewBox="0 0 300 320" xmlns="http://www.w3.org/2000/svg" aria-label="Fizo">
-        <defs>
-          <radialGradient id="headg" cx="42%" cy="36%" r="70%">
-            <stop offset="0%" stop-color="#ffd9a8"/><stop offset="100%" stop-color="#f0a878"/>
-          </radialGradient>
-        </defs>
-        <g id="electrons">
-          <ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="rgba(226,109,79,.35)" stroke-width="2"/>
-          <ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="rgba(45,125,210,.30)" stroke-width="2" transform="rotate(60 150 120)"/>
-          <ellipse cx="150" cy="120" rx="118" ry="44" fill="none" stroke="rgba(212,160,23,.30)" stroke-width="2" transform="rotate(120 150 120)"/>
-          <circle id="el1" cx="268" cy="120" r="7" fill="#e26d4f"/>
-          <circle id="el2" cx="32" cy="120" r="6" fill="#2d7dd2"/>
-          <circle id="el3" cx="150" cy="120" r="6" fill="#d4a017"/>
-        </g>
-        <g id="bodyG">
-          <g id="armL"><rect x="74" y="232" width="20" height="58" rx="10" fill="#2a3450"/><circle cx="84" cy="294" r="13" fill="#f0a878" stroke="#d98a5c" stroke-width="2"/></g>
-          <g id="armR"><rect x="206" y="232" width="20" height="58" rx="10" fill="#2a3450"/><circle cx="216" cy="294" r="13" fill="#f0a878" stroke="#d98a5c" stroke-width="2"/></g>
-          <rect x="96" y="222" width="108" height="86" rx="26" fill="#2a3450"/>
-          <text x="150" y="276" font-size="34" font-weight="800" text-anchor="middle" fill="#ffd98a" font-family="Georgia,serif">φ</text>
-        </g>
-        <g id="headG">
-          <circle cx="150" cy="120" r="78" fill="url(#headg)" stroke="#d98a5c" stroke-width="2"/>
-          <rect id="browL" x="104" y="86" width="32" height="7" rx="3.5" fill="#7a4a2c"/>
-          <rect id="browR" x="164" y="86" width="32" height="7" rx="3.5" fill="#7a4a2c"/>
-          <g id="eyeL"><ellipse cx="120" cy="112" rx="15" ry="17" fill="#fff"/><circle cx="123" cy="114" r="7.5" fill="#22303f"/><circle cx="126" cy="111" r="2.4" fill="#fff"/></g>
-          <g id="eyeR"><ellipse cx="180" cy="112" rx="15" ry="17" fill="#fff"/><circle cx="183" cy="114" r="7.5" fill="#22303f"/><circle cx="186" cy="111" r="2.4" fill="#fff"/></g>
-          <circle cx="106" cy="142" r="10" fill="rgba(226,109,79,.30)"/>
-          <circle cx="194" cy="142" r="10" fill="rgba(226,109,79,.30)"/>
-          <path id="smile" d="M128 150 Q150 168 172 150" fill="none" stroke="#7a4a2c" stroke-width="5" stroke-linecap="round"/>
-          <ellipse id="mouth" cx="150" cy="154" rx="16" ry="0" fill="#5a2d1c" opacity="0"/>
-        </g>
-      </svg>
+      <img id="fizo" src="fizo-3d-tanitim.webp" width="640" height="960" alt="BFY kıyafetli üç boyutlu Fizo" decoding="async" style="border-radius:18px;transform-origin:50% 85%;">
       <div class="mascot-name">Fizo</div>
       <div class="mascot-state" id="state">Merhaba! Bir şey sor 👇</div>
       <div class="ctrls">
@@ -230,50 +199,21 @@
 
   const feed=$('feed'), typing=$('typing'), inp=$('inp'), stateEl=$('state');
 
-  // ---------- Mascot animasyonu ----------
-  const headG=$('headG'), bodyG=$('bodyG'), electrons=$('electrons');
-  const mouth=$('mouth'), smile=$('smile'), eyeL=$('eyeL'), eyeR=$('eyeR');
-  const browL=$('browL'), browR=$('browR'), armL=$('armL'), armR=$('armR');
+  // ---------- Yeni 3B Fizo: ses ve selamlama ile eşzamanlı, tek parça hareket ----------
+  const mascot=$('fizo');
+  const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   let speaking=false, mouthOpen=0, t0=performance.now();
-  let blinkAt=1.5, gesture=null, gestureEnd=0;
-
-  function setMouth(o){
-    if(o>0.06){ mouth.setAttribute('ry',(2+o*13).toFixed(1)); mouth.setAttribute('opacity','1'); smile.setAttribute('opacity','0'); }
-    else { mouth.setAttribute('opacity','0'); smile.setAttribute('opacity','1'); }
-  }
+  let gesture=null, gestureEnd=0;
   function loop(now){
-    const t=(now-t0)/1000;
-    const bob=Math.sin(t*2)*3;
-    headG.setAttribute('transform',`translate(0 ${bob})`);
-    bodyG.setAttribute('transform',`translate(0 ${bob*0.4})`);
-    electrons.setAttribute('transform',`rotate(${(t*55)%360} 150 120)`);
-    posEl('el1',t*1.6, 118,44, 0); posEl('el2',t*1.6+2.1, 118,44, 60); posEl('el3',t*1.6+4.2, 118,44, 120);
-    let target=0;
-    if(speaking) target=0.3+0.55*Math.abs(Math.sin(t*20))*(0.6+0.4*Math.random());
-    mouthOpen+=(target-mouthOpen)*0.4; setMouth(mouthOpen);
-    const bup = speaking? -3:0; browL.setAttribute('y',86+bup); browR.setAttribute('y',86+bup);
-    if(t>blinkAt){ blink(); blinkAt=t+2+Math.random()*3; }
-    let aL=8*Math.sin(t*1.3), aR=-8*Math.sin(t*1.3);
-    if(gesture && now<gestureEnd){
-      if(gesture==='wave') aR=-35+Math.sin(now/55)*22;
-      if(gesture==='point') aR=-48;
-    } else gesture=null;
-    armL.setAttribute('transform',`rotate(${aL} 84 232)`);
-    armR.setAttribute('transform',`rotate(${aR} 216 232)`);
+    if(!document.hidden){
+      const t=(now-t0)/1000;
+      const active=gesture && now<gestureEnd;
+      if(!active) gesture=null;
+      const y=reducedMotion.matches?0:Math.sin(t*(speaking?5:1.8))*(speaking?2.5:1.5);
+      const angle=reducedMotion.matches?0:(active?Math.sin(t*7)*2:(speaking?Math.sin(t*4)*0.5:0));
+      mascot.style.transform=`translateY(${y.toFixed(2)}px) rotate(${angle.toFixed(2)}deg)`;
+    }
     requestAnimationFrame(loop);
-  }
-  function posEl(id,ang,rx,ry,rot){
-    const el=$(id); if(!el)return;
-    const x=Math.cos(ang)*rx, y=Math.sin(ang)*ry, r=rot*Math.PI/180, cx=150, cy=120;
-    el.setAttribute('cx',(cx + x*Math.cos(r) - y*Math.sin(r)).toFixed(1));
-    el.setAttribute('cy',(cy + x*Math.sin(r) + y*Math.cos(r)).toFixed(1));
-  }
-  let blinking=false;
-  function blink(){
-    if(blinking)return; blinking=true;
-    eyeL.setAttribute('transform','translate(0 112) scale(1 0.1) translate(0 -112)');
-    eyeR.setAttribute('transform','translate(0 112) scale(1 0.1) translate(0 -112)');
-    setTimeout(()=>{ eyeL.removeAttribute('transform'); eyeR.removeAttribute('transform'); blinking=false; },120);
   }
   function doGesture(name){ gesture=name; gestureEnd=performance.now()+(name==='wave'?1400:900); }
   requestAnimationFrame(loop);
