@@ -137,6 +137,32 @@
       if (details.open && iframe) { iframe.src = iframe.dataset.src; delete iframe.dataset.src; }
     });
   });
+
+  const demoFrame = document.getElementById('kit-live-demo');
+  if (demoFrame) {
+    let currentWeek = '07';
+    let started = false;
+    const titles = {'07':'Skaler ve Vektörel Nicelikler','23':'Kaldırma Kuvveti · Deney Haftası'};
+    const placeholder = document.getElementById('demo-placeholder');
+    const loadButton = document.getElementById('demo-load');
+    function chooseWeek(week) {
+      currentWeek = week;
+      const url = `BFY9_Hafta${week}_KIT_interaktif.html`;
+      document.querySelectorAll('[data-demo-week]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.demoWeek === week)));
+      document.getElementById('demo-open').href = url;
+      document.getElementById('demo-topic').textContent = titles[week];
+      placeholder.querySelector('.eyebrow').textContent = `9. SINIF · HAFTA ${Number(week)}`;
+      demoFrame.title = `BFY Hoca Kiti — 9. sınıf ${Number(week)}. hafta: ${titles[week]}`;
+      if (started) demoFrame.src = url;
+    }
+    document.querySelectorAll('[data-demo-week]').forEach(button => button.addEventListener('click', () => chooseWeek(button.dataset.demoWeek)));
+    loadButton.addEventListener('click', () => {
+      started = true;
+      placeholder.hidden = true;
+      demoFrame.hidden = false;
+      chooseWeek(currentWeek);
+    });
+  }
   // Pointer depth is decorative. Touch, keyboard and reduced-motion users get the same content.
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   document.querySelectorAll('.kit-display,.spotlight-books').forEach(surface => {
