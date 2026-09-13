@@ -7,7 +7,7 @@ const button = document.getElementById('motion-toggle');
 if (stage && canvas) {
   try {
     const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'low-power'});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -55,19 +55,27 @@ if (stage && canvas) {
       object.castShadow = true; object.receiveShadow = true;
       parent.add(object); return object;
     }
-    const outer = mesh(new THREE.TorusGeometry(1.22,.055,16,112),brass);
+    const outer = mesh(new THREE.TorusGeometry(1.25,.047,16,112),brass);
     outer.rotation.y = -.28;
-    const middle = mesh(new THREE.TorusGeometry(1.06,.08,20,112),darkGreen);
+    const middle = mesh(new THREE.TorusGeometry(1.01,.061,20,112),darkGreen);
     middle.rotation.set(.52, .82, .13);
-    const inner = mesh(new THREE.TorusGeometry(.89,.037,16,96),gold);
+    const inner = mesh(new THREE.TorusGeometry(.76,.032,16,96),gold);
     inner.rotation.set(-.7, -.7, .45);
-    const core = mesh(new THREE.SphereGeometry(.39,48,32),gold);
+    const core = new THREE.Group();sculpture.add(core);
+    mesh(new THREE.SphereGeometry(.34,40,24),gold,core);
+    for (const angle of [0,Math.PI/3,Math.PI*2/3]) {
+      const meridian=mesh(new THREE.TorusGeometry(.344,.009,8,64),darkGreen,core);
+      meridian.rotation.y=angle;
+    }
     const axis = mesh(new THREE.CylinderGeometry(.025,.025,2.64,16),brass);
     axis.rotation.z = -.25;
-    const satellite = mesh(new THREE.SphereGeometry(.10,24,16),ivory);
-    satellite.position.set(1.08,.57,.1);
-    const satellite2 = mesh(new THREE.SphereGeometry(.065,20,12),gold);
-    satellite2.position.set(-.78,-.78,-.1);
+    // Markers travel with their own ring so each independent rotation is legible.
+    const satellite = mesh(new THREE.SphereGeometry(.09,24,16),ivory,outer);
+    satellite.position.set(1.25,0,0);
+    const satellite2 = mesh(new THREE.SphereGeometry(.075,20,12),gold,middle);
+    satellite2.position.set(0,1.01,0);
+    const satellite3 = mesh(new THREE.SphereGeometry(.06,20,12),darkGreen,inner);
+    satellite3.position.set(-.76,0,0);
 
     const pedestal = mesh(new THREE.CylinderGeometry(1.43,1.5,.15,96),ivory,scene);
     pedestal.position.set(.18,-1.27,0);
@@ -86,11 +94,12 @@ if (stage && canvas) {
       frame = 0;
       const moving = !paused && !motion.matches;
       if (moving) {
-        const dt = previousTime ? Math.min((time-previousTime)/1000,.05) : 0;
+        const dt = previousTime ? Math.max(0,(time-previousTime)/1000) : 0;
         elapsed += dt;
-        middle.rotation.y = .82 + Math.sin(elapsed*.22)*.38;
-        inner.rotation.x = -.7 + Math.sin(elapsed*.28)*.4;
-        core.rotation.y = elapsed*.1;
+        outer.rotation.set(.23+Math.sin(elapsed*.48)*.2,elapsed*.38,-.12);
+        middle.rotation.set(.52+elapsed*.62,.82+Math.sin(elapsed*.43)*.45,.13);
+        inner.rotation.set(-.7,-.7-elapsed*.88,.45+Math.sin(elapsed*.6)*.25);
+        core.rotation.y = elapsed*.65;
         sculpture.rotation.y += (pointer.x*.20 - sculpture.rotation.y)*.04;
         sculpture.rotation.x += (pointer.y*.10 - sculpture.rotation.x)*.04;
       }
@@ -103,11 +112,11 @@ if (stage && canvas) {
       if (visible && !document.hidden && !contextLost) draw();
     }
     function resize() {
-      const {width,height} = stage.getBoundingClientRect();
+      const {width,height} = canvas.getBoundingClientRect();
       if (!width || !height) return;
       renderer.setSize(width,height,false);
       camera.aspect = width/height;
-      camera.position.set(3.8,3.1,6.9);
+      camera.position.set(2.5,1.9,5.2);
       if (camera.aspect < .77) camera.position.multiplyScalar(1.13);
       camera.lookAt(.03,.02,0);
       camera.updateProjectionMatrix();
