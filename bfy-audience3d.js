@@ -194,7 +194,10 @@ for(const canvas of canvases) {
         mesh(new THREE.SphereGeometry(.117,28,20),gold,[0,-.62,0],p);swings.push(p);
       }
       animate=t=>{
-        const wave=Math.sin(t*2.2);swings[0].rotation.z=Math.max(0,wave)*.65;swings[3].rotation.z=Math.min(0,wave)*.65;
+        // Bobs hang below each pivot: negative Z swings left, positive Z swings right.
+        const wave=Math.sin(t*2.2);
+        swings[0].rotation.z=-Math.max(0,wave)*.65;
+        swings[3].rotation.z=-Math.min(0,wave)*.65;
         const pen=handwriting.update(t);
         const x=-faceWidth/2+pen.x/1024*faceWidth,y=.30+faceHeight/2-pen.y/640*faceHeight;
         chalkStick.visible=pen.writing;chalkStick.position.set(x+.045,y+.065,.17);
