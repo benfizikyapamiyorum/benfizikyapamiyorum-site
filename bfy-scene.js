@@ -47,7 +47,7 @@ if (stage && canvas) {
     const ivory = new THREE.MeshStandardMaterial({color:'#e7e6cf',metalness:.08,roughness:.58});
     const brass = new THREE.MeshStandardMaterial({color:'#b7a579',metalness:.92,roughness:.29});
     const sculpture = new THREE.Group();
-    sculpture.position.set(.22,.28,0);
+    sculpture.position.set(.18,.28,0);
     sculpture.rotation.z = -.22;
     scene.add(sculpture);
     function mesh(geometry, material, parent = sculpture) {
@@ -67,8 +67,9 @@ if (stage && canvas) {
       const meridian=mesh(new THREE.TorusGeometry(.344,.009,8,64),darkGreen,core);
       meridian.rotation.y=angle;
     }
-    const axis = mesh(new THREE.CylinderGeometry(.025,.025,2.64,16),brass);
-    axis.rotation.z = -.25;
+    // The fixed shaft meets the pedestal socket; only the rings respond to pointer tilt.
+    const axis = mesh(new THREE.CylinderGeometry(.025,.025,2.64,16),brass,scene);
+    axis.position.copy(sculpture.position);
     // Markers travel with their own ring so each independent rotation is legible.
     const satellite = mesh(new THREE.SphereGeometry(.09,24,16),ivory,outer);
     satellite.position.set(1.25,0,0);
@@ -82,9 +83,9 @@ if (stage && canvas) {
     const pedestalLine = mesh(new THREE.TorusGeometry(1.44,.014,8,96),brass,scene);
     pedestalLine.rotation.x = Math.PI/2; pedestalLine.position.set(.18,-1.205,0);
     const support = mesh(new THREE.CylinderGeometry(.12,.19,.2,32),brass,scene);
-    support.position.set(.18,-1.09,0);
+    support.position.set(.18,-1.095,0);
     const floor = mesh(new THREE.PlaneGeometry(20,20), new THREE.ShadowMaterial({opacity:.16}),scene);
-    floor.rotation.x = -Math.PI/2; floor.position.y=-1.355; floor.castShadow=false;
+    floor.rotation.x = -Math.PI/2; floor.position.y=-1.345; floor.castShadow=false;
 
     const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const fine = window.matchMedia('(hover: hover) and (pointer: fine)');
