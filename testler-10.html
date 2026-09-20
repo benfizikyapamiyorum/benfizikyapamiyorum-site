@@ -303,6 +303,23 @@
     line-height: 1.55;
     margin-top: 8px;
   }
+
+  .q-text, .review-question-text, .cozum-text { white-space: pre-line; }
+  .review-question-text { font-size: .96rem; line-height: 1.6; }
+  .question-figure { margin: 12px 0 20px; padding: 14px; background: #fff; border: 1px solid var(--border); border-radius: 12px; }
+  .question-figure svg, .question-figure img { display: block; width: 100%; height: auto; max-width: 760px; margin: 0 auto; }
+  .question-figure figcaption { margin-top: 10px; text-align: right; }
+  .figure-zoom, .figure-close { border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--ink); padding: 9px 13px; font: inherit; font-size: .88rem; cursor: pointer; }
+  .figure-zoom:focus-visible, .figure-close:focus-visible { outline: 3px solid var(--mustard); outline-offset: 3px; }
+  #figureDialog { width: min(1000px, calc(100vw - 28px)); max-width: none; max-height: calc(100dvh - 28px); box-sizing: border-box; border: 1px solid var(--border); border-radius: 14px; padding: 18px; background: #fff; color: var(--ink); }
+  #figureDialog::backdrop { background: rgba(20, 30, 40, .7); }
+  .figure-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+  .figure-toolbar h2 { margin: 0; font-size: 1.1rem; }
+  .figure-scroll { overflow: auto; max-height: calc(100dvh - 160px); margin-top: 12px; }
+  #figureContent svg, #figureContent img { display: block; width: 100%; min-width: 640px; height: auto; }
+  .figure-hint { font-size: .8rem; color: var(--ink-2); margin: 10px 0 0; }
+  @media (max-width: 620px) { .question-figure { padding: 8px; } }
+
 </style>
   <script defer src="analytics.js"></script>
 </head>
@@ -519,17 +536,10 @@ let SORULAR=[],currentMode="mini",activeQuestions=[],currentIdx=0,answers=[],tim
 
 async function loadSorular(){
   try{
-    const resp=await fetch("sorular-10.json");
+    const resp=await fetch("sorular-10.json?v=20260920-figures");
     const allQ=await resp.json();
-    // Bozuk parse edilmiş soruları filtrele (grafik etiket text'i karışmış, şık corruption vb.)
-    // EK: "şekilde/şekildeki/grafiğinde/tabloda" diye bahsedip görseli OLMAYAN soruları da çıkar
-    const sekilRefRe=/şekilde|şekildeki|aşağıdaki şekil|yukarıdaki şekil|görselde|grafiğinde|tabloda/i;
-    SORULAR=allQ.filter(q=>{
-      if(q.broken)return false;
-      if(q.image)return true;
-      if(sekilRefRe.test(q.soru||""))return false;
-      return true;
-    });
+    // Figure requirements are explicit metadata; words such as “şekilde” may describe prose.
+    SORULAR=allQ.filter(q => !q.broken && (!q.has_figure || Boolean(q.svg || q.image)));
     populateKonuSelect();
   }catch(e){
     document.getElementById("questionCard").innerHTML=
@@ -600,6 +610,35 @@ function showScreen(name){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
+// Each rendered copy needs unique SVG IDs, including the enlarged view.
+function figureMarkup(q, scope){
+  if(q.svg){
+    const ids=[...q.svg.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
+    let svg=q.svg;
+    for(const id of ids){
+      const unique=`${scope}-${id}`;
+      svg=svg.split(`id="${id}"`).join(`id="${unique}"`)
+        .split(`id='${id}'`).join(`id='${unique}'`)
+        .split(`url(#${id})`).join(`url(#${unique})`);
+    }
+    return svg;
+  }
+  return q.image ? `<img src="${escapeHTML(q.image)}" alt="Sorunun şekli">` : '';
+}
+function renderFigure(q, scope){
+  if(!q.svg && !q.image) return '';
+  return `<figure class="question-figure">
+    ${figureMarkup(q, scope)}
+    <figcaption><button type="button" class="figure-zoom" onclick="openFigure(${q.id})">Şekli büyüt ↗</button></figcaption>
+  </figure>`;
+}
+function openFigure(id){
+  const q=SORULAR.find(item=>item.id===id);
+  if(!q || (!q.svg && !q.image)) return;
+  document.getElementById('figureContent').innerHTML=figureMarkup(q, 'zoom');
+  document.getElementById('figureDialog').showModal();
+}
+
 function renderQuestion(){
   const q=activeQuestions[currentIdx];
   document.getElementById("qNum").textContent=currentIdx+1;
@@ -612,9 +651,7 @@ function renderQuestion(){
       <div class="text">${escapeHTML(q.siklar[h]||'')}</div>
     </div>`;
   }).join("");
-  const imgHtml = q.svg
-    ? `<div style="text-align:center; margin: 8px 0 18px; background:#fff; border-radius:8px; border:1px solid var(--border); padding:12px;">${q.svg}</div>`
-    : (q.image ? `<div style="text-align:center; margin: 8px 0 18px"><img src="${q.image}" alt="Soru şekli" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);"></div>` : "");
+  const imgHtml = renderFigure(q, 'question');
   document.getElementById("questionCard").innerHTML=`
     <div class="q-meta">
       <span class="pill">${q.kazanim}</span>
@@ -765,9 +802,7 @@ function renderCevapList(){
     const bos=!verilen;
     const sinif=bos?"bos":(dogru?"dogru":"yanlis");
     const durum=bos?"⊘ Boş":(dogru?"✓ Doğru":"✗ Yanlış");
-    const imgH = q.svg
-      ? `<div style="text-align:center; margin:10px 0; background:#fff; border-radius:8px; border:1px solid var(--border); padding:10px;">${q.svg}</div>`
-      : (q.image ? `<div style="text-align:center; margin:10px 0"><img src="${q.image}" alt="Soru şekli" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);"></div>` : "");
+    const imgH = renderFigure(q, 'answer');
     return `<details class="cevap-item ${sinif}">
       <summary>Soru ${i+1} — ${durum}
         <span style="font-weight:400; color:var(--ink-2); font-size:0.85rem">
@@ -775,7 +810,7 @@ function renderCevapList(){
         </span>
       </summary>
       <div class="cevap-body">
-        <p style="font-size:0.96rem; line-height:1.6">${escapeHTML(q.soru)}</p>
+        <p class="review-question-text">${escapeHTML(q.soru)}</p>
         ${imgH}
         <div style="margin: 12px 0">
           ${["A","B","C","D","E"].map(h=>{
@@ -812,5 +847,10 @@ function restartQuiz(){
 loadSorular();
 </script>
 
+<dialog id="figureDialog" aria-labelledby="figureTitle">
+  <div class="figure-toolbar"><h2 id="figureTitle">Soru şekli</h2><button type="button" class="figure-close" onclick="document.getElementById('figureDialog').close()" autofocus>Kapat ×</button></div>
+  <div class="figure-scroll" id="figureContent" tabindex="0" aria-label="Büyütülmüş soru şekli"></div>
+  <p class="figure-hint">Şekil ekrana sığmıyorsa kaydırarak tamamını inceleyebilirsin.</p>
+</dialog>
 </body>
 </html>
