@@ -354,7 +354,7 @@
   <div class="page-head">
     <div class="crumbs"><a href="index.html">Ana Sayfa</a> / Online Testler</div>
     <h1>10. Sınıf Fizik Diagnostik Testi</h1>
-    <p>Maarif Modeli'ne tam uyumlu. Kendini test et — konu konu güçlü ve zayıf tarafların önüne gelsin.</p>
+    <p>2026 Maarif Modeli konu ve öğrenme çıktısı sırasıyla. Konunu seç, soruları çöz, çözümlerini incele.</p>
   </div>
 
   <!-- BAŞLANGIÇ EKRANI -->
@@ -373,8 +373,8 @@
           <div class="lbl">Dakika</div>
         </div>
         <div class="intro-card">
-          <div class="num">323</div>
-          <div class="lbl">Soru Havuzu</div>
+          <div class="num" id="poolCount">…</div>
+          <div class="lbl">Seçilebilir Soru</div>
         </div>
       </div>
 
@@ -386,31 +386,26 @@
         </div>
         <div class="mode-card" data-mode="unite" onclick="selectMode('unite')">
           <h4>📚 Ünite Testi · 20 soru</h4>
-          <p>Tek ünite, 20 soru. Konuyu bitirdikten sonra kendini test et.</p>
+          <p>Bir ünite seç, en fazla 20 soruyla çalış.</p>
         </div>
         <div class="mode-card" data-mode="tam" onclick="selectMode('tam')">
           <h4>📝 Tam Deneme · 40 soru</h4>
-          <p>4 üniteden 40 soru, 60 dakika. Yıl sonu provası.</p>
+          <p>4 ünitenin havuzundan 40 soru, 60 dakika.</p>
         </div>
         <div class="mode-card" data-mode="konu" onclick="selectMode('konu')">
           <h4>🔬 Konu Testi · 10 soru</h4>
-          <p>Tek konuyu (kazanım) seç, 10 soru. Hedefli çalışma.</p>
+          <p>Bir konu seç, en fazla 10 soruyla çalış.</p>
         </div>
       </div>
 
       <div id="uniteSecici" style="display:none; margin: 18px 0; text-align: left">
         <label style="font-weight:700; display:block; margin-bottom: 8px">Ünite seç:</label>
-        <select id="uniteSelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);">
-          <option value="1">1. Ünite — Fizik Bilimi ve Kariyer Keşfi (70 soru)</option>
-          <option value="2">2. Ünite — Kuvvet ve Hareket (80 soru)</option>
-          <option value="3">3. Ünite — Akışkanlar (70 soru)</option>
-          <option value="4">4. Ünite — Enerji (84 soru)</option>
-        </select>
+        <select id="uniteSelect" onchange="updateModeSummary()" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);"></select>
       </div>
 
       <div id="konuSecici" style="display:none; margin: 18px 0; text-align: left">
         <label style="font-weight:700; display:block; margin-bottom: 8px">Konu seç:</label>
-        <select id="konuSelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);">
+        <select id="konuSelect" onchange="updateModeSummary()" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);">
         </select>
       </div>
 
@@ -475,7 +470,7 @@
 
 <footer class="footer">
   <div class="footer-inner">
-    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>© 2026 Ben Fizik Yapamıyorum · Yeni Maarif Modeli</div>
     <div>
       <a href="hakkimda.html">Hakkımda</a> ·
       <a href="hizmetler.html">Hizmetler</a> ·
@@ -488,43 +483,41 @@
 
 <script>
 // 10. SINIF FİZİK · DIAGNOSTİK TEST MOTORU
+// Topic labels follow MEB's 2026 programme; see tymm.meb.gov.tr.
 const KAZANIM_AD = {
-  // 1. Ünite — Kuvvet ve Hareket
-  "FİZ.10.1.1":"Sabit Hızlı Hareket",
-  "FİZ.10.1.2":"Bir Boyutta Sabit İvmeli Hareket",
-  "FİZ.10.1.3":"Serbest Düşme",
-  "FİZ.10.1.4":"İki Boyutta Sabit İvmeli Hareket",
-  "FİZ.10.U1.D":"1. Ünite Değerlendirme",
-  // 2. Ünite — Enerji
-  "FİZ.10.2.1":"İş, Enerji ve Güç",
-  "FİZ.10.2.2":"Enerji Biçimleri",
-  "FİZ.10.2.3":"Mekanik Enerji",
-  "FİZ.10.2.4":"Enerji Kaynakları",
-  "FİZ.10.U2.D":"2. Ünite Değerlendirme",
-  // 3. Ünite — Elektrik
-  "FİZ.10.3.1":"Elektrik Akımı",
-  "FİZ.10.3.2":"Ohm Yasası",
-  "FİZ.10.3.3":"Dirençlerin Bağlanması",
-  "FİZ.10.3.4":"Üreteçlerin Bağlanması",
-  "FİZ.10.3.5":"Basit Elektrik Devreleri",
-  "FİZ.10.3.6":"Voltmetre / Ampermetre",
-  "FİZ.10.3.7":"Elektrik Tehlikeleri",
-  "FİZ.10.U3.D":"3. Ünite Değerlendirme",
-  // 4. Ünite — Dalgalar
-  "FİZ.10.4.1":"Dalgaların Sınıflandırılması",
-  "FİZ.10.4.2":"Dalgaların Temel Kavramları",
-  "FİZ.10.4.3":"Yayılma Süratini Etkileyen Etmenler",
-  "FİZ.10.4.4":"Periyodik Hareketler",
-  "FİZ.10.4.5":"Su Dalgalarında Yansıma & Kırılma",
-  "FİZ.10.4.6":"Rezonans ve Deprem",
-  "FİZ.10.U4.D":"4. Ünite Değerlendirme"
+  "FİZ.10.1.1": "Sabit Hızlı Hareket",
+  "FİZ.10.1.2": "İvme ve Hız Değişimi",
+  "FİZ.10.1.3": "Yatay Doğrultuda Sabit İvmeli Hareket",
+  "FİZ.10.2.1": "Kuvvet–Yer Değiştirme Grafiği ve İş",
+  "FİZ.10.2.2": "İş, Enerji ve Güç",
+  "FİZ.10.2.3": "Enerji Biçimleri",
+  "FİZ.10.2.4": "Mekanik Enerji",
+  "FİZ.10.2.5": "Enerji Kaynakları",
+  "FİZ.10.3.1": "Basit Elektrik Devrelerinin Temel Kavramları",
+  "FİZ.10.3.2": "Elektrik Akımı",
+  "FİZ.10.3.3": "Ohm Yasası",
+  "FİZ.10.3.4": "Dirençlerin Bağlanması ve Devre Ölçümleri",
+  "FİZ.10.3.5": "Üreteçlerin Bağlanması",
+  "FİZ.10.3.6": "Elektrik Akımının Tehlikelerine Karşı Önlemler",
+  "FİZ.10.3.7": "Topraklamanın Önemi",
+  "FİZ.10.4.1": "Periyodik Hareketler",
+  "FİZ.10.4.2": "Dalgaların Temel Kavramları",
+  "FİZ.10.4.3": "Dalgaların Sınıflandırılması",
+  "FİZ.10.4.4": "Dalgaların Yayılma Sürati",
+  "FİZ.10.4.5": "Su Dalgalarında Yansıma ve Kırılma",
+  "FİZ.10.4.6": "Rezonans ve Deprem",
+  "FİZ.10.4.7": "Deprem Modelleri ve Sismograf"
 };
-const KAZANIM_UNITE = {
-  "1":["FİZ.10.1.1","FİZ.10.1.2","FİZ.10.1.3","FİZ.10.1.4","FİZ.10.U1.D"],
-  "2":["FİZ.10.2.1","FİZ.10.2.2","FİZ.10.2.3","FİZ.10.2.4","FİZ.10.U2.D"],
-  "3":["FİZ.10.3.1","FİZ.10.3.2","FİZ.10.3.3","FİZ.10.3.4","FİZ.10.3.5","FİZ.10.3.6","FİZ.10.3.7","FİZ.10.U3.D"],
-  "4":["FİZ.10.4.1","FİZ.10.4.2","FİZ.10.4.3","FİZ.10.4.4","FİZ.10.4.5","FİZ.10.4.6","FİZ.10.U4.D"]
+const UNITE_AD = {
+  "1": "1. Ünite — Kuvvet ve Hareket",
+  "2": "2. Ünite — Enerji",
+  "3": "3. Ünite — Elektrik",
+  "4": "4. Ünite — Dalgalar"
 };
+// Derive unit membership from the same catalogue used by the topic picker.
+const KAZANIM_UNITE = Object.fromEntries(Object.keys(UNITE_AD).map(u =>
+  [u, Object.keys(KAZANIM_AD).filter(k => k.split('.')[2] === u)]
+));
 const MOD_CONFIG = {
   mini:{soruSay:15,dakika:22,label:"Mini Diagnostik"},
   unite:{soruSay:20,dakika:30,label:"Ünite Testi"},
@@ -536,11 +529,16 @@ let SORULAR=[],currentMode="mini",activeQuestions=[],currentIdx=0,answers=[],tim
 
 async function loadSorular(){
   try{
-    const resp=await fetch("sorular-10.json?v=20260920-figures");
+    const resp=await fetch("sorular-10.json?v=20260920-topics");
     const allQ=await resp.json();
     // Figure requirements are explicit metadata; words such as “şekilde” may describe prose.
     SORULAR=allQ.filter(q => !q.broken && (!q.has_figure || Boolean(q.svg || q.image)));
+    // A grade test must not silently include unclassified or next-grade content.
+    SORULAR = SORULAR.filter(q => !q.ek_calisma && Object.hasOwn(KAZANIM_AD, q.kazanim));
     populateKonuSelect();
+    populateUniteSelect();
+    document.getElementById("poolCount").textContent = SORULAR.length;
+    updateModeSummary();
   }catch(e){
     document.getElementById("questionCard").innerHTML=
       `<p style="color: var(--coral)">Sorular yüklenemedi. Lütfen sayfayı yenileyin.</p>`;
@@ -550,12 +548,35 @@ async function loadSorular(){
 
 function populateKonuSelect(){
   const sel=document.getElementById("konuSelect");
-  const kazList=Object.keys(KAZANIM_AD).filter(k=>!k.includes(".U"));
-  sel.innerHTML=kazList.map(k=>{
-    const sayi=SORULAR.filter(s=>s.kazanim===k).length;
-    if(sayi===0) return ""; // şekil-bağımlı konuları gizle
-    return `<option value="${k}">${KAZANIM_AD[k]} (${sayi} soru)</option>`;
-  }).filter(Boolean).join("");
+  sel.innerHTML=Object.entries(KAZANIM_AD).map(([k,name])=>{
+    const count=SORULAR.filter(q=>q.kazanim===k).length;
+    return count ? `<option value="${k}">${escapeHTML(name)} (${count} soru)</option>` : "";
+  }).join("");
+}
+
+function populateUniteSelect(){
+  document.getElementById("uniteSelect").innerHTML=Object.entries(UNITE_AD).map(([u,name])=>{
+    const count=SORULAR.filter(q=>KAZANIM_UNITE[u].includes(q.kazanim)).length;
+    return count ? `<option value="${u}">${escapeHTML(name)} (${count} soru)</option>` : "";
+  }).join("");
+}
+
+function eligibleQuestions(){
+  if(currentMode==="unite"){
+    const allowed=KAZANIM_UNITE[document.getElementById("uniteSelect").value] || [];
+    return SORULAR.filter(q=>allowed.includes(q.kazanim));
+  }
+  if(currentMode==="konu"){
+    const code=document.getElementById("konuSelect").value;
+    return SORULAR.filter(q=>q.kazanim===code);
+  }
+  return SORULAR;
+}
+
+function updateModeSummary(){
+  const cfg=MOD_CONFIG[currentMode];
+  document.getElementById("introSoru").textContent=Math.min(cfg.soruSay,eligibleQuestions().length);
+  document.getElementById("introSure").textContent=cfg.dakika;
 }
 
 function selectMode(mode){
@@ -565,24 +586,13 @@ function selectMode(mode){
   });
   document.getElementById("uniteSecici").style.display=(mode==="unite")?"block":"none";
   document.getElementById("konuSecici").style.display=(mode==="konu")?"block":"none";
-  document.getElementById("introSoru").textContent=MOD_CONFIG[mode].soruSay;
-  document.getElementById("introSure").textContent=MOD_CONFIG[mode].dakika;
+  updateModeSummary();
 }
 
 function pickQuestions(){
-  let pool=[...SORULAR];
-  const cfg=MOD_CONFIG[currentMode];
-  if(currentMode==="unite"){
-    const u=document.getElementById("uniteSelect").value;
-    const allowed=KAZANIM_UNITE[u];
-    pool=pool.filter(q=>allowed.includes(q.kazanim));
-  }
-  if(currentMode==="konu"){
-    const k=document.getElementById("konuSelect").value;
-    pool=pool.filter(q=>q.kazanim===k);
-  }
+  const pool=[...eligibleQuestions()];
   pool.sort(()=>Math.random()-0.5);
-  return pool.slice(0,Math.min(cfg.soruSay,pool.length));
+  return pool.slice(0,Math.min(MOD_CONFIG[currentMode].soruSay,pool.length));
 }
 
 function startQuiz(){

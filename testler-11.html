@@ -337,7 +337,7 @@
   <div class="page-head">
     <div class="crumbs"><a href="index.html">Ana Sayfa</a> / Online Testler</div>
     <h1>11. Sınıf Fizik Diagnostik Testi</h1>
-    <p>Maarif Modeli'ne tam uyumlu. Kendini test et — konu konu güçlü ve zayıf tarafların önüne gelsin.</p>
+    <p>2026 Maarif Modeli konu ve öğrenme çıktısı sırasıyla. Konunu seç, soruları çöz, çözümlerini incele.</p>
   </div>
 
   <!-- BAŞLANGIÇ EKRANI -->
@@ -356,8 +356,8 @@
           <div class="lbl">Dakika</div>
         </div>
         <div class="intro-card">
-          <div class="num">122</div>
-          <div class="lbl">Soru Havuzu</div>
+          <div class="num" id="poolCount">…</div>
+          <div class="lbl">Seçilebilir Soru</div>
         </div>
       </div>
 
@@ -369,31 +369,26 @@
         </div>
         <div class="mode-card" data-mode="unite" onclick="selectMode('unite')">
           <h4>📚 Ünite Testi · 20 soru</h4>
-          <p>Tek ünite, 20 soru. Konuyu bitirdikten sonra kendini test et.</p>
+          <p>Bir ünite seç, en fazla 20 soruyla çalış.</p>
         </div>
         <div class="mode-card" data-mode="tam" onclick="selectMode('tam')">
           <h4>📝 Tam Deneme · 40 soru</h4>
-          <p>4 üniteden 40 soru, 60 dakika. Yıl sonu provası.</p>
+          <p>3 ünitenin havuzundan 40 soru, 60 dakika.</p>
         </div>
         <div class="mode-card" data-mode="konu" onclick="selectMode('konu')">
           <h4>🔬 Konu Testi · 10 soru</h4>
-          <p>Tek konuyu (kazanım) seç, 10 soru. Hedefli çalışma.</p>
+          <p>Bir konu seç, en fazla 10 soruyla çalış.</p>
         </div>
       </div>
 
       <div id="uniteSecici" style="display:none; margin: 18px 0; text-align: left">
         <label style="font-weight:700; display:block; margin-bottom: 8px">Ünite seç:</label>
-        <select id="uniteSelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);">
-          <option value="1">1. Ünite — Kuvvet ve Hareket (42 soru)</option>
-          <option value="2">2. Ünite — Elektrik ve Manyetizma (80 soru)</option>
-          <option value="3" disabled>3. Ünite — Madde ve Doğası (yakında)</option>
-          <option value="4" disabled>4. Ünite — Optik (yakında)</option>
-        </select>
+        <select id="uniteSelect" onchange="updateModeSummary()" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);"></select>
       </div>
 
       <div id="konuSecici" style="display:none; margin: 18px 0; text-align: left">
         <label style="font-weight:700; display:block; margin-bottom: 8px">Konu seç:</label>
-        <select id="konuSelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);">
+        <select id="konuSelect" onchange="updateModeSummary()" style="width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); font-size: 0.96rem; font-family: inherit; color: var(--ink);">
         </select>
       </div>
 
@@ -458,7 +453,7 @@
 
 <footer class="footer">
   <div class="footer-inner">
-    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>© 2026 Ben Fizik Yapamıyorum · Yeni Maarif Modeli</div>
     <div>
       <a href="hakkimda.html">Hakkımda</a> ·
       <a href="hizmetler.html">Hizmetler</a> ·
@@ -471,34 +466,51 @@
 
 <script>
 // 11. SINIF FİZİK · DIAGNOSTİK TEST MOTORU
+// Topic labels follow MEB's 2026 programme; see tymm.meb.gov.tr.
 const KAZANIM_AD = {
-  // 1. Ünite — Kuvvet ve Hareket
-  "FİZ.11.1.1":"Newton Hareket Yasaları",
-  "FİZ.11.1.2":"Newton + Serbest Cisim Diyagramı",
-  "FİZ.11.1.3":"Statik vs Kinetik Sürtünme",
-  "FİZ.11.1.4":"Sürtünme Kuvvetinin Matematiksel Modeli",
-  "FİZ.11.1.5":"Limit Hız",
-  "FİZ.11.1.6":"Çembersel Hareket — Kavramsal",
-  "FİZ.11.1.7":"Çembersel Hareket — Matematiksel Model",
-  // 2. Ünite — Elektrik ve Manyetizma
-  "FİZ.11.2.1":"Coulomb Yasası",
-  "FİZ.11.2.2":"Elektriksel Alan",
-  "FİZ.11.2.3":"Faraday Kafesi",
-  "FİZ.11.2.4":"Mıknatıs Etkileşimi + Manyetik Alan Çizgileri",
-  "FİZ.11.2.5":"Düz İletken Telin Manyetik Alanı",
-  "FİZ.11.2.6":"Akım Makarası (Selenoid)",
-  "FİZ.11.2.7":"Elektromıknatıs",
-  "FİZ.11.2.8":"Manyetik Alanda Akımlı Tele Kuvvet",
-  "FİZ.11.2.9":"Elektrik Motoru",
-  "FİZ.11.2.10":"Manyetik Akı",
-  "FİZ.11.2.11":"İndüksiyon Gerilimi (Faraday-Lenz)",
-  "FİZ.11.2.12":"Alternatif Akım (Jeneratör)",
-  "FİZ.11.2.13":"Transformatör"
+  "FİZ.11.1.1": "Serbest Düşmede İvme",
+  "FİZ.11.1.2": "Serbest Düşme: Grafikler ve Hesaplamalar",
+  "FİZ.11.1.3": "İki Boyutta Sabit İvmeli Hareket",
+  "FİZ.11.1.4": "Newton’ın Hareket Yasaları",
+  "FİZ.11.1.5": "Serbest Cisim Diyagramı ve Newton Yasaları",
+  "FİZ.11.1.6": "Statik ve Kinetik Sürtünme",
+  "FİZ.11.1.7": "Sürtünme Kuvvetinin Matematiksel Modeli",
+  "FİZ.11.1.8": "Limit Hız",
+  "FİZ.11.1.9": "Çembersel Harekette Yörünge ve Hız",
+  "FİZ.11.1.10": "Çembersel Hareketin Matematiksel Modeli",
+  "FİZ.11.2.1": "Coulomb Yasası",
+  "FİZ.11.2.2": "Elektriksel Alan",
+  "FİZ.11.2.3": "Faraday Kafesi",
+  "FİZ.11.2.4": "Mıknatısların Etkileşimi ve Alan Çizgileri",
+  "FİZ.11.2.5": "Akımlı Düz Telin Manyetik Alanı",
+  "FİZ.11.2.6": "Akım Makarasının Manyetik Alanı",
+  "FİZ.11.2.7": "Elektromıknatıslar",
+  "FİZ.11.2.8": "Manyetik Alanda Akımlı Tele Etki Eden Kuvvet",
+  "FİZ.11.2.9": "Elektrik Motoru ve Manyetik Kuvvet Uygulamaları",
+  "FİZ.11.2.10": "Manyetik Akı",
+  "FİZ.11.2.11": "İndüksiyon Gerilimi",
+  "FİZ.11.2.12": "Alternatif Akım ve Jeneratör",
+  "FİZ.11.2.13": "Transformatör",
+  "FİZ.11.3.1": "Işık Şiddeti, Işık Akısı ve Aydınlanma",
+  "FİZ.11.3.2": "Düzlem Aynalar",
+  "FİZ.11.3.3": "Küresel Aynaların Özellikleri",
+  "FİZ.11.3.4": "Küresel Aynalarda Görüntü",
+  "FİZ.11.3.5": "Işığın Kırılması ve Tam Yansıma",
+  "FİZ.11.3.6": "Görünür Derinlik",
+  "FİZ.11.3.7": "Fiber Optik",
+  "FİZ.11.3.8": "Prizmalar",
+  "FİZ.11.3.9": "Merceklerin Özellikleri",
+  "FİZ.11.3.10": "Merceklerde Görüntü"
 };
-const KAZANIM_UNITE = {
-  "1":["FİZ.11.1.1","FİZ.11.1.2","FİZ.11.1.3","FİZ.11.1.4","FİZ.11.1.5","FİZ.11.1.6","FİZ.11.1.7"],
-  "2":["FİZ.11.2.1","FİZ.11.2.2","FİZ.11.2.3","FİZ.11.2.4","FİZ.11.2.5","FİZ.11.2.6","FİZ.11.2.7","FİZ.11.2.8","FİZ.11.2.9","FİZ.11.2.10","FİZ.11.2.11","FİZ.11.2.12","FİZ.11.2.13"]
+const UNITE_AD = {
+  "1": "1. Ünite — Kuvvet ve Hareket",
+  "2": "2. Ünite — Elektrik ve Manyetizma",
+  "3": "3. Ünite — Optik"
 };
+// Derive unit membership from the same catalogue used by the topic picker.
+const KAZANIM_UNITE = Object.fromEntries(Object.keys(UNITE_AD).map(u =>
+  [u, Object.keys(KAZANIM_AD).filter(k => k.split('.')[2] === u)]
+));
 const MOD_CONFIG = {
   mini:{soruSay:15,dakika:22,label:"Mini Diagnostik"},
   unite:{soruSay:20,dakika:30,label:"Ünite Testi"},
@@ -510,10 +522,15 @@ let SORULAR=[],currentMode="mini",activeQuestions=[],currentIdx=0,answers=[],tim
 
 async function loadSorular(){
   try{
-    const resp=await fetch("sorular-11.json?v=" + Date.now());
+    const resp=await fetch("sorular-11.json?v=20260920-topics");
     const allQ=await resp.json();
     SORULAR=allQ.filter(q=>!q.broken);
+    // A grade test must not silently include unclassified or next-grade content.
+    SORULAR = SORULAR.filter(q => !q.ek_calisma && Object.hasOwn(KAZANIM_AD, q.kazanim));
     populateKonuSelect();
+    populateUniteSelect();
+    document.getElementById("poolCount").textContent = SORULAR.length;
+    updateModeSummary();
   }catch(e){
     document.getElementById("questionCard").innerHTML=
       `<p style="color: var(--coral)">Sorular yüklenemedi. Lütfen sayfayı yenileyin.</p>`;
@@ -523,12 +540,35 @@ async function loadSorular(){
 
 function populateKonuSelect(){
   const sel=document.getElementById("konuSelect");
-  const kazList=Object.keys(KAZANIM_AD).filter(k=>!k.includes(".U"));
-  sel.innerHTML=kazList.map(k=>{
-    const sayi=SORULAR.filter(s=>s.kazanim===k).length;
-    if(sayi===0) return "";
-    return `<option value="${k}">${KAZANIM_AD[k]} (${sayi} soru)</option>`;
-  }).filter(Boolean).join("");
+  sel.innerHTML=Object.entries(KAZANIM_AD).map(([k,name])=>{
+    const count=SORULAR.filter(q=>q.kazanim===k).length;
+    return count ? `<option value="${k}">${escapeHTML(name)} (${count} soru)</option>` : "";
+  }).join("");
+}
+
+function populateUniteSelect(){
+  document.getElementById("uniteSelect").innerHTML=Object.entries(UNITE_AD).map(([u,name])=>{
+    const count=SORULAR.filter(q=>KAZANIM_UNITE[u].includes(q.kazanim)).length;
+    return count ? `<option value="${u}">${escapeHTML(name)} (${count} soru)</option>` : "";
+  }).join("");
+}
+
+function eligibleQuestions(){
+  if(currentMode==="unite"){
+    const allowed=KAZANIM_UNITE[document.getElementById("uniteSelect").value] || [];
+    return SORULAR.filter(q=>allowed.includes(q.kazanim));
+  }
+  if(currentMode==="konu"){
+    const code=document.getElementById("konuSelect").value;
+    return SORULAR.filter(q=>q.kazanim===code);
+  }
+  return SORULAR;
+}
+
+function updateModeSummary(){
+  const cfg=MOD_CONFIG[currentMode];
+  document.getElementById("introSoru").textContent=Math.min(cfg.soruSay,eligibleQuestions().length);
+  document.getElementById("introSure").textContent=cfg.dakika;
 }
 
 function selectMode(mode){
@@ -538,24 +578,13 @@ function selectMode(mode){
   });
   document.getElementById("uniteSecici").style.display=(mode==="unite")?"block":"none";
   document.getElementById("konuSecici").style.display=(mode==="konu")?"block":"none";
-  document.getElementById("introSoru").textContent=MOD_CONFIG[mode].soruSay;
-  document.getElementById("introSure").textContent=MOD_CONFIG[mode].dakika;
+  updateModeSummary();
 }
 
 function pickQuestions(){
-  let pool=[...SORULAR];
-  const cfg=MOD_CONFIG[currentMode];
-  if(currentMode==="unite"){
-    const u=document.getElementById("uniteSelect").value;
-    const allowed=KAZANIM_UNITE[u];
-    pool=pool.filter(q=>allowed.includes(q.kazanim));
-  }
-  if(currentMode==="konu"){
-    const k=document.getElementById("konuSelect").value;
-    pool=pool.filter(q=>q.kazanim===k);
-  }
+  const pool=[...eligibleQuestions()];
   pool.sort(()=>Math.random()-0.5);
-  return pool.slice(0,Math.min(cfg.soruSay,pool.length));
+  return pool.slice(0,Math.min(MOD_CONFIG[currentMode].soruSay,pool.length));
 }
 
 function startQuiz(){
