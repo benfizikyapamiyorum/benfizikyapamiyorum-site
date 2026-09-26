@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>3B Enerji ve Sarkaç Laboratuvarı — Enerjinin Korunumu | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Gerçek bir laboratuvarda pirinç sarkacı bırak; kinetik ve potansiyel enerjinin parlayan tüplerde nasıl yer değiştirdiğini gör. Sürtünmeyi aç, Ay ve Jüpiter'de dene, iki sarkacı karşılaştır. 9. sınıf Enerji, TYT.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/enerji-sarkac-3d.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="3B Enerji ve Sarkaç Laboratuvarı">
+<meta property="og:description" content="Kinetik ve potansiyel enerji gözünün önünde yer değiştiriyor. Sarkaç periyodu kütleye bağlı mı? Dene ve gör.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/enerji-sarkac-3d.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/bfy-sarkac3d-kapak.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="sim3d/lab3d.css?v=2">
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
+<link rel="modulepreload" href="bfy-three.module.min.js">
+<link rel="modulepreload" href="bfy-three.core.min.js">
+<style>
+  .vals{width:100%;border-collapse:collapse;font-size:.84rem;font-variant-numeric:tabular-nums;margin-top:4px;}
+  .vals td{padding:5px 0;border-bottom:1px dashed #eadfc8;} .vals td:last-child{text-align:right;font-weight:800;}
+  .tag3d.ke{background:#ff7a3d;color:#fff;} .tag3d.pe{background:#2d7dd2;color:#fff;} .tag3d.q{background:#6b6b6b;color:#fff;} .tag3d.v{background:#f2c230;color:#1c1403;}
+  .clock{position:absolute;right:12px;bottom:12px;background:rgba(14,12,8,.86);color:#fff;border-radius:14px;padding:10px 14px;font-variant-numeric:tabular-nums;}
+  .clock b{font-size:1.35rem;color:#f2c230;display:block;line-height:1.1;} .clock small{font-size:.66rem;opacity:.75;letter-spacing:.06em;text-transform:uppercase;}
+</style>
+<script defer src="analytics.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text"><span>Ben Fizik Yapamıyorum</span><small>Yapabilirsin. Söz veriyorum.</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head a3-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / 3B Enerji ve Sarkaç</div>
+    <h1>3B Enerji ve Sarkaç Laboratuvarı</h1>
+    <p class="sub">Pirinç gülleyi tutup çek, bırak. Kinetik ve potansiyel enerji, yanındaki cam tüplerde birbirine dönüşsün. Sürtünmeyi açınca kaybolan enerjinin <b>ısıya</b> gittiğini gör. İki sarkacı yan yana koy: periyot kütleye bağlı mı?</p>
+    <div class="a3-tags"><span class="new">YENİ · 3B</span><span>9. Sınıf · Enerji</span><span>TYT</span><span>Maarif (TYMM)</span><span>Ücretsiz</span></div>
+  </div>
+  <div class="a3-grid">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="c3d" aria-label="3B sarkaç sahnesi"></canvas>
+        <div class="ov" id="ov">
+          <div class="hud">
+            <div class="a3p"><small>Zaman</small><span id="h-t">0,00 s</span></div>
+            <div class="a3p"><small>Açı θ</small><span id="h-th">0°</span></div>
+            <div class="a3p v"><small>Hız v</small><span id="h-v">0,00 m/s</span></div>
+            <div class="a3p"><small>Yükseklik h</small><span id="h-h">0,0 cm</span></div>
+            <div class="a3p" style="box-shadow:inset 3px 0 0 #ff7a3d"><small>KE</small><span id="h-ke">0 J</span></div>
+            <div class="a3p" style="box-shadow:inset 3px 0 0 #3d8bff"><small>PE</small><span id="h-pe">0 J</span></div>
+            <div class="a3p" style="box-shadow:inset 3px 0 0 #9a9a9a"><small>Isı Q</small><span id="h-q">0 J</span></div>
+          </div>
+          <div class="planet-chip" id="h-g">Dünya<small>g = 9,8 m/s²</small></div>
+          <div class="tag3d ke" id="tag-ke"></div><div class="tag3d pe" id="tag-pe"></div><div class="tag3d q" id="tag-q"></div><div class="tag3d v" id="tag-v"></div>
+          <div class="aimhint" id="aimhint">İpucu: Gülleyi tutup yana çek, bırak</div>
+          <div class="clock"><small>Periyot (ölçülen)</small><b id="h-T">—</b><span id="h-Tf" style="font-size:.74rem;opacity:.8"></span></div>
+          <div class="toast" id="toast"></div>
+        </div>
+        <div class="loading" id="loading"><div style="text-align:center"><div class="spin"></div>Laboratuvar hazırlanıyor… <span id="load-pct">0%</span></div></div>
+      </div>
+      <div class="bar">
+        <button class="b fire" id="btn-go">▶ Bırak</button>
+        <button class="b" id="btn-reset">↺ Başa al</button>
+        <div class="seg" id="seg-cam"><button data-cam="orbit" class="on">Serbest</button><button data-cam="front">Önden</button><button data-cam="follow">Gülleyi izle</button></div>
+        <div class="seg" id="seg-speed"><button data-s="0.25">¼×</button><button data-s="0.5">½×</button><button data-s="1" class="on">1×</button></div>
+        <span class="sp"></span>
+        <button class="b" id="btn-full" title="Tam ekran">⛶</button>
+      </div>
+      <div class="toggles">
+        <button class="tg on" id="tg-tubes"><i style="background:#ff7a3d"></i>Enerji tüpleri</button>
+        <button class="tg on" id="tg-vec"><i style="background:#f2c230"></i>Hız vektörü</button>
+        <button class="tg" id="tg-force"><i style="background:#e0483b"></i>Kuvvetler</button>
+        <button class="tg on" id="tg-trail"><i style="background:#9ad0ff"></i>İz</button>
+      </div>
+      <div class="graphbox">
+        <div class="top"><h3>Canlı grafik</h3>
+          <div class="seg" id="seg-graph"><button data-g="E" class="on">Enerji–t</button><button data-g="th">θ–t</button><button data-g="v">v–t</button></div></div>
+        <canvas id="graph"></canvas>
+      </div>
+      <div class="learn">
+        <div><h4>🔁 Enerji dönüşümü</h4><p>En üst noktada hız sıfırdır, enerjinin tamamı potansiyeldir. En alt noktada yükseklik sıfırdır, enerjinin tamamı kinetiktir. Sürtünme yoksa KE + PE hep aynı kalır.</p></div>
+        <div><h4>⏱ Periyot</h4><p>Küçük açılarda periyot T = 2π√(L/g) olur. Kütle ve (küçük) genlik periyodu değiştirmez; ipi uzatırsan ya da g küçülürse sarkaç yavaşlar.</p></div>
+        <div><h4>🔥 Kaybolan enerji</h4><p>Hava ve askı sürtünmesi mekanik enerjiyi azaltır. Enerji yok olmaz: gri tüpteki kısım ısıya dönüşmüştür.</p></div>
+      </div>
+      <p style="font-size:.8rem;color:#8a8375;margin:14px 0 30px">Klasik 2B sürüm: <a href="enerji-sarkac-laboratuvari.html">Enerji ve Sarkaç Laboratuvarı</a>. Ortam ve modeller: Poly Haven (CC0).</p>
+    </div>
+    <aside class="panel">
+      <h3>Sarkaç ayarları</h3>
+      <p class="hint">Gülleyi sahnede sürükleyerek de açıyı ayarlayabilirsin.</p>
+      <div class="ctrl"><label>İp uzunluğu L <b id="o-L">80 cm</b></label><input type="range" id="i-L" min="20" max="100" step="1" value="80"></div>
+      <div class="ctrl"><label>Başlangıç açısı θ₀ <b id="o-th">30°</b></label><input type="range" id="i-th" min="3" max="80" step="1" value="30"></div>
+      <div class="ctrl"><label>Kütle m <b id="o-m">1,00 kg</b></label><input type="range" id="i-m" min="0.1" max="2" step="0.05" value="1"></div>
+      <div class="ctrl"><label>Sürtünme (sönüm) <b id="o-b">Yok</b></label><input type="range" id="i-b" min="0" max="1" step="0.05" value="0"></div>
+      <div class="ctrl"><label>Nerede sallanıyor?</label>
+        <div class="a3cards four" id="cards-g">
+          <button class="a3c on" data-g="9.8"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#8fd0ff,#2f7fc2 55%,#2c6b3a)"></span>Dünya<small>9,8</small></button>
+          <button class="a3c" data-g="1.62"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#f1f1f1,#9a9a9a 60%,#5d5d5d)"></span>Ay<small>1,62</small></button>
+          <button class="a3c" data-g="3.71"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#f5a36b,#c1502a 60%,#6e2513)"></span>Mars<small>3,71</small></button>
+          <button class="a3c" data-g="24.8"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#f3dcb8,#c79a62 55%,#7a5431)"></span>Jüpiter<small>24,8</small></button>
+        </div></div>
+      <div class="ctrl"><label>Karşılaştırma sarkacı</label>
+        <div class="seg" id="seg-cmp" style="width:100%"><button data-c="none" class="on" style="flex:1">Yok</button><button data-c="mass" style="flex:1">Aynı boy, ¼ kütle</button><button data-c="len" style="flex:1">¼ boy</button></div></div>
+      <h3 style="margin-top:14px">Anlık değerler</h3>
+      <table class="vals" id="vals"></table>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div><a href="hakkimda.html">Hakkımda</a> · <a href="simulasyonlar.html">Simülasyonlar</a> · <a href="oyunlar.html">Oyunlar</a> · <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a></div>
+  </div>
+</footer>
+<script type="module" src="sim3d/lab-sarkac.js?v=1"></script>
+</body>
+</html>

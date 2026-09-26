@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>3B Manyetik Alan Laboratuvarı — Demir Tozu ve Pusula | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Akım geçen telin, halkanın, bobinin ve çubuk mıknatısın manyetik alanını demir tozlarıyla 3B gör. Pusulaları sürükle, sağ el kuralını test et, B = μ₀I/2πr değerini ölç. 11. sınıf Elektrik ve Manyetizma, AYT.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/manyetik-alan-3d.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="3B Manyetik Alan Laboratuvarı">
+<meta property="og:description" content="Demir tozları alan çizgilerini çiziyor, pusulalar dönüyor. Tel, halka, bobin ve mıknatıs.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/manyetik-alan-3d.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/bfy-manyetik3d-kapak.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="sim3d/lab3d.css?v=2">
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
+<link rel="modulepreload" href="bfy-three.module.min.js">
+<link rel="modulepreload" href="bfy-three.core.min.js">
+<style>
+  .vals{width:100%;border-collapse:collapse;font-size:.84rem;font-variant-numeric:tabular-nums;margin-top:4px;}
+  .vals td{padding:5px 0;border-bottom:1px dashed #eadfc8;} .vals td:last-child{text-align:right;font-weight:800;}
+  .tag3d.ke{background:#ff7a3d;color:#fff;} .tag3d.pe{background:#2d7dd2;color:#fff;} .tag3d.q{background:#6b6b6b;color:#fff;} .tag3d.v{background:#f2c230;color:#1c1403;}
+  .clock{position:absolute;right:12px;bottom:12px;background:rgba(14,12,8,.86);color:#fff;border-radius:14px;padding:10px 14px;font-variant-numeric:tabular-nums;}
+  .clock b{font-size:1.35rem;color:#f2c230;display:block;line-height:1.1;} .clock small{font-size:.66rem;opacity:.75;letter-spacing:.06em;text-transform:uppercase;}
+</style>
+<script defer src="analytics.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text"><span>Ben Fizik Yapamıyorum</span><small>Yapabilirsin. Söz veriyorum.</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head a3-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / 3B Manyetik Alan</div>
+    <h1>3B Manyetik Alan Laboratuvarı</h1>
+    <p class="sub">Güç kaynağını aç, akım telden geçsin. Pleksi plakadaki demir tozları alan çizgilerini çizsin, pusulalar dönsün. Akımı ters çevir, sağ el kuralını kendi gözünle doğrula.</p>
+    <div class="a3-tags"><span class="new">YENİ · 3B</span><span>11. Sınıf · Elektrik ve Manyetizma</span><span>AYT</span><span>Maarif (TYMM)</span><span>Ücretsiz</span></div>
+  </div>
+  <div class="a3-grid">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="c3d" aria-label="3B manyetik alan laboratuvarı"></canvas>
+        <div class="ov" id="ov">
+          <div class="hud" id="hud"></div>
+          <div class="planet-chip" id="h-mode">Düz tel<small>Akım yukarı doğru</small></div>
+          <div class="tag3d v" id="tag-c"></div><div class="tag3d p" id="tag-i"></div><div class="tag3d p" id="tag-n"></div><div class="tag3d p" id="tag-s"></div>
+          <div class="aimhint" id="aimhint">İpucu: Büyük pusulayı sürükle</div>
+          <div class="toast" id="toast"></div>
+        </div>
+        <div class="loading" id="loading"><div style="text-align:center"><div class="spin"></div>Laboratuvar hazırlanıyor… <span id="load-pct">0%</span></div></div>
+      </div>
+      <div class="bar">
+        <button class="b fire" id="btn-pow">⏻ Akımı kes</button>
+        <button class="b" id="btn-rev">⇅ Akımı ters çevir</button>
+        <button class="b" id="btn-shake">✨ Tozları yeniden serp</button>
+        <div class="seg" id="seg-cam"><button data-cam="orbit" class="on">Serbest</button><button data-cam="top">Üstten</button></div>
+        <span class="sp"></span>
+        <button class="b" id="btn-full" title="Tam ekran">⛶</button>
+      </div>
+      <div class="toggles">
+        <button class="tg on" id="tg-fil"><i style="background:#555"></i>Demir tozu</button>
+        <button class="tg on" id="tg-comp"><i style="background:#e0483b"></i>Pusulalar</button>
+        <button class="tg" id="tg-lines"><i style="background:#58a6ff"></i>Alan çizgileri</button>
+        <button class="tg on" id="tg-flow"><i style="background:#f2c230"></i>Akımın yönü</button>
+        <button class="tg" id="tg-hand"><i style="background:#ff9a3d"></i>Sağ el kuralı</button>
+        <button class="tg" id="tg-earth"><i style="background:#2d7dd2"></i>Dünya'nın alanı</button>
+      </div>
+      <div class="learn">
+        <div><h4>🧭 Pusula alanı gösterir</h4><p>Pusulanın kırmızı (N) ucu, bulunduğu noktadaki manyetik alan yönünü gösterir. Demir tozları da alan çizgileri boyunca dizilir.</p></div>
+        <div><h4>✋ Sağ el kuralı</h4><p>Başparmak akım yönünü gösterirse diğer parmaklar alanın döndüğü yönü gösterir. Akımı ters çevirince bütün pusulalar da ters döner.</p></div>
+        <div><h4>🌀 Bobin bir mıknatıstır</h4><p>Akım geçen bobinin alanı çubuk mıknatısınkine benzer: bir ucu N, diğer ucu S kutbu gibi davranır. İçinde alan neredeyse düzgündür.</p></div>
+      </div>
+      <p style="font-size:.8rem;color:#8a8375;margin:14px 0 30px">Klasik 2B sürüm: <a href="manyetik-alan-laboratuvari.html">Manyetik Alan Laboratuvarı</a>. Alan, Biot–Savart yasasıyla sayısal hesaplanır. Ortam: Poly Haven (CC0).</p>
+    </div>
+    <aside class="panel">
+      <h3>Kaynak</h3>
+      <div class="a3cards four" id="cards-src">
+        <button class="a3c on" data-s="wire"><span class="ic" style="background:linear-gradient(90deg,#6b3b1a,#e0975a 50%,#6b3b1a);border-radius:4px;width:10px"></span>Düz tel<small>dik tel</small></button>
+        <button class="a3c" data-s="loop"><span class="ic" style="background:radial-gradient(circle,transparent 45%,#d7874a 48%,#8a4f22 62%,transparent 65%)"></span>Halka<small>tek sarım</small></button>
+        <button class="a3c" data-s="sol"><span class="ic" style="background:repeating-linear-gradient(90deg,#8a4f22 0 3px,#e0975a 3px 6px)"></span>Bobin<small>selenoit</small></button>
+        <button class="a3c" data-s="bar"><span class="ic sq" style="background:linear-gradient(90deg,#2455ff 50%,#d8231c 50%)"></span>Mıknatıs<small>çubuk</small></button>
+      </div>
+      <div class="ctrl" id="c-i" style="margin-top:12px"><label>Akım şiddeti I <b id="o-i">10 A</b></label><input type="range" id="i-i" min="1" max="20" step="0.5" value="10"></div>
+      <div class="ctrl" id="c-n" style="display:none"><label>Sarım sayısı N <b id="o-n">20</b></label><input type="range" id="i-n" min="5" max="40" step="1" value="20"></div>
+      <h3 style="margin-top:6px">Büyük pusulanın olduğu yerde</h3>
+      <table class="vals" id="vals"></table>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div><a href="hakkimda.html">Hakkımda</a> · <a href="simulasyonlar.html">Simülasyonlar</a> · <a href="oyunlar.html">Oyunlar</a> · <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a></div>
+  </div>
+</footer>
+<script type="module" src="sim3d/lab-manyetik.js?v=2"></script>
+</body>
+</html>

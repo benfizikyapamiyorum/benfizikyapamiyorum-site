@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>3B Hareket Grafikleri Laboratuvarı — x-t, v-t, a-t Canlı | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Oyuncak arabayı rampada koştur, hareket sensörü konum-zaman, hız-zaman ve ivme-zaman grafiklerini canlı çizsin. İki arabayı yarıştır, eşit zaman fotoğraflarını gör. 9. sınıf Kuvvet ve Hareket, TYT.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/hareket-grafikleri-3d.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="3B Hareket Grafikleri Laboratuvarı">
+<meta property="og:description" content="Rampada koşan arabalar, canlı çizilen x-t, v-t ve a-t grafikleri.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/hareket-grafikleri-3d.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/bfy-hareket3d-kapak.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="sim3d/lab3d.css?v=2">
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
+<link rel="modulepreload" href="bfy-three.module.min.js">
+<link rel="modulepreload" href="bfy-three.core.min.js">
+<style>
+  .vals{width:100%;border-collapse:collapse;font-size:.84rem;font-variant-numeric:tabular-nums;margin-top:4px;}
+  .vals th{font-size:.72rem;text-align:right;color:#8a8375;font-weight:700;padding:2px 0;} .vals th:first-child{text-align:left}
+  .vals td{padding:5px 0;border-bottom:1px dashed #eadfc8;} .vals td+td{text-align:right;font-weight:800;}
+  .vals .cA{color:#d2412f} .vals .cB{color:#2d6fd2}
+  .tag3d.A{background:#d2412f;color:#fff;} .tag3d.B{background:#2d6fd2;color:#fff;} .tag3d.meet{background:#f2c230;color:#1c1403;transform:translate(0,10px);border-top-left-radius:0} .tag3d.meet::after{left:-4px;top:-4px;bottom:auto;transform:rotate(45deg)}
+  .tag3d.A{transform:translate(-50%,10px)} .tag3d.A::after{top:-4px;bottom:auto} .tag3d.B{transform:translate(0,-100%);border-bottom-left-radius:0} .tag3d.B::after{left:-4px;transform:rotate(45deg)}
+  #graph{height:430px;} @media(max-width:600px){#graph{height:400px;}}
+  .carbox{border:1px solid #eadfc8;border-radius:14px;padding:10px 12px 2px;margin-top:10px;}
+  .carbox h4{margin:0 0 6px;font-size:.9rem;display:flex;align-items:center;gap:8px;} .carbox h4 i{width:12px;height:12px;border-radius:50%;display:inline-block}
+  .carbox.off .ctrl{display:none}
+  .tiltnote{font-size:.74rem;color:#8a8375;margin:-4px 0 8px;}
+  .clock{position:absolute;right:12px;bottom:12px;background:rgba(14,12,8,.86);color:#fff;border-radius:14px;padding:8px 14px;font-variant-numeric:tabular-nums;}
+  .clock b{font-size:1.35rem;color:#f2c230;display:block;line-height:1.1;} .clock small{font-size:.66rem;opacity:.75;letter-spacing:.06em;text-transform:uppercase;}
+</style>
+<script defer src="analytics.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text"><span>Ben Fizik Yapamıyorum</span><small>Yapabilirsin. Söz veriyorum.</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head a3-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / 3B Hareket Grafikleri</div>
+    <h1>3B Hareket Grafikleri Laboratuvarı</h1>
+    <p class="sub">Oyuncak arabayı alüminyum rayda fırlat. Hareket sensörü arabanın yerini ölçsün, <b>x-t</b>, <b>v-t</b> ve <b>a-t</b> grafikleri aynı anda çizilsin. Rampayı eğ, arabayı hızlandır ya da geri döndür. İki arabayı yarıştır: nerede yan yana gelecekler?</p>
+    <div class="a3-tags"><span class="new">YENİ · 3B</span><span>9. Sınıf · Kuvvet ve Hareket</span><span>TYT</span><span>Maarif (TYMM)</span><span>Ücretsiz</span></div>
+  </div>
+  <div class="a3-grid">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="c3d" aria-label="3B hareket grafikleri laboratuvarı"></canvas>
+        <div class="ov" id="ov">
+          <div class="hud" id="hud"></div>
+          <div class="planet-chip" id="h-mode">Sabit hız<small>Düz ray, a = 0</small></div>
+          <div class="tag3d A" id="tag-a"></div><div class="tag3d B" id="tag-b"></div><div class="tag3d meet" id="tag-m"></div>
+          <div class="aimhint" id="aimhint">İpucu: Hazır bir senaryo seç, sonra ▶ Başlat</div>
+          <div class="clock"><small>Süre</small><b id="h-t">0,00 s</b></div>
+          <div class="toast" id="toast"></div>
+        </div>
+        <div class="loading" id="loading"><div style="text-align:center"><div class="spin"></div>Laboratuvar hazırlanıyor… <span id="load-pct">0%</span></div></div>
+      </div>
+      <div class="bar">
+        <button class="b fire" id="btn-go">▶ Başlat</button>
+        <button class="b" id="btn-step" title="0,25 s ilerlet">⏭ Adım</button>
+        <button class="b" id="btn-reset">↺ Sıfırla</button>
+        <div class="seg" id="seg-cam"><button data-cam="side" class="on">Yandan izle</button><button data-cam="chase">Arabadan</button><button data-cam="orbit">Serbest</button></div>
+        <div class="seg" id="seg-speed"><button data-s="0.25">¼×</button><button data-s="0.5">½×</button><button data-s="1" class="on">1×</button></div>
+        <span class="sp"></span>
+        <button class="b" id="btn-full" title="Tam ekran">⛶</button>
+      </div>
+      <div class="toggles">
+        <button class="tg on" id="tg-v"><i style="background:#3fbf5f"></i>Hız vektörü</button>
+        <button class="tg on" id="tg-a"><i style="background:#ff9a3d"></i>İvme vektörü</button>
+        <button class="tg" id="tg-strobe"><i style="background:#b9c3cf"></i>Eşit zaman fotoğrafları</button>
+        <button class="tg" id="tg-area"><i style="background:#f2c230"></i>Grafik altındaki alan</button>
+        <button class="tg on" id="tg-sonar"><i style="background:#58a6ff"></i>Sensör dalgaları</button>
+      </div>
+      <div class="graphbox">
+        <div class="top"><h3>Hareket sensöründen canlı grafik</h3><span style="font-size:.78rem;color:#8a8375">Kırmızı çizgi: A · Mavi çizgi: B · Dikey çizgi: şu an</span></div>
+        <canvas id="graph"></canvas>
+      </div>
+      <div class="learn">
+        <div><h4>📈 Eğim ne anlatır?</h4><p>x-t grafiğinin eğimi hızı verir. v-t grafiğinin eğimi ivmeyi verir. Eğim ne kadar dikse değişim o kadar hızlıdır.</p></div>
+        <div><h4>▨ Alan ne anlatır?</h4><p>v-t grafiğinin altındaki alan yer değiştirmedir. a-t grafiğinin altındaki alan hız değişimidir. Eksenin altında kalan alan negatif sayılır.</p></div>
+        <div><h4>⛰ İvme nereden geliyor?</h4><p>Sürtünmesiz rampada ivme a = g·sinθ olur. Ray düzken ivme sıfırdır ve araba sabit hızla gider. Ray ne kadar eğikse ivme o kadar büyüktür.</p></div>
+      </div>
+      <p style="font-size:.8rem;color:#8a8375;margin:14px 0 30px">Klasik 2B sürüm: <a href="hareket-grafikleri-laboratuvari.html">Hareket ve Grafikler Laboratuvarı</a>. Sürtünme ve hava direnci ihmal edilmiştir. Araba modeli: Khronos glTF örnekleri (CC0). Ortam: Poly Haven (CC0).</p>
+    </div>
+    <aside class="panel">
+      <h3>Hazır senaryolar</h3>
+      <div class="a3cards four" id="cards-sc">
+        <button class="a3c on" data-sc="const"><span class="ic" style="background:linear-gradient(135deg,#8fd0a0,#2f8a4c)"></span>Sabit hız<small>a = 0</small></button>
+        <button class="a3c" data-sc="acc"><span class="ic" style="background:linear-gradient(135deg,#ffd08a,#e07a1f)"></span>Hızlanan<small>a &gt; 0</small></button>
+        <button class="a3c" data-sc="back"><span class="ic" style="background:linear-gradient(135deg,#ffb0a0,#c8412f)"></span>Geri dönen<small>a &lt; 0</small></button>
+        <button class="a3c" data-sc="race"><span class="ic" style="background:linear-gradient(90deg,#d2412f 50%,#2d6fd2 50%)"></span>Yarış<small>A ile B</small></button>
+      </div>
+      <div class="carbox" id="box-a">
+        <h4><i style="background:#d2412f"></i>A arabası (öndeki ray)</h4>
+        <div class="ctrl"><label>Başlangıç konumu x₀ <b id="o-xa">0,30 m</b></label><input type="range" id="i-xa" min="0.3" max="1.8" step="0.05" value="0.3"></div>
+        <div class="ctrl"><label>Başlangıç hızı v₀ <b id="o-va">0,35 m/s</b></label><input type="range" id="i-va" min="-1" max="1.5" step="0.05" value="0.35"></div>
+        <div class="ctrl"><label>İvme a <b id="o-aa">0,00 m/s²</b></label><input type="range" id="i-aa" min="-0.8" max="0.8" step="0.05" value="0"></div>
+        <p class="tiltnote" id="n-a">Ray düz.</p>
+      </div>
+      <div class="carbox off" id="box-b">
+        <h4><i style="background:#2d6fd2"></i>B arabası (arkadaki ray) <button class="tg" id="tg-b" style="margin-left:auto;padding:4px 10px">Kapalı</button></h4>
+        <div class="ctrl"><label>Başlangıç konumu x₀ <b id="o-xb">0,30 m</b></label><input type="range" id="i-xb" min="0.3" max="1.8" step="0.05" value="0.3"></div>
+        <div class="ctrl"><label>Başlangıç hızı v₀ <b id="o-vb">0,00 m/s</b></label><input type="range" id="i-vb" min="-1" max="1.5" step="0.05" value="0"></div>
+        <div class="ctrl"><label>İvme a <b id="o-ab">0,20 m/s²</b></label><input type="range" id="i-ab" min="-0.8" max="0.8" step="0.05" value="0.2"></div>
+        <p class="tiltnote" id="n-b"></p>
+      </div>
+      <h3 style="margin-top:14px">Anlık değerler</h3>
+      <table class="vals" id="vals"></table>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div><a href="hakkimda.html">Hakkımda</a> · <a href="simulasyonlar.html">Simülasyonlar</a> · <a href="oyunlar.html">Oyunlar</a> · <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a></div>
+  </div>
+</footer>
+<script type="module" src="sim3d/lab-hareket.js?v=1"></script>
+</body>
+</html>

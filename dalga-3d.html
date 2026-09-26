@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>3B Dalga Leğeni — Su Dalgaları, Girişim, Kırınım | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Gerçek bir dalga leğeninde su dalgası üret: tek ve çift kaynak girişimi, yarıkta kırınım, derin-sığ geçişte kırılma, yansıma. Dalga boyu, frekans ve hızı ölç. 10. sınıf Dalgalar, TYT.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/dalga-3d.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="3B Dalga Leğeni — Girişim, kırınım, kırılma">
+<meta property="og:description" content="Su dalgalarını gerçek dalga denklemiyle 3B izle. Çift kaynak girişimi, yarıkta kırınım, sığ bölgede kırılma.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/dalga-3d.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/bfy-dalga3d-kapak.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="sim3d/lab3d.css?v=2">
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
+<link rel="modulepreload" href="bfy-three.module.min.js">
+<link rel="modulepreload" href="bfy-three.core.min.js">
+<style>
+  .vals{width:100%;border-collapse:collapse;font-size:.84rem;font-variant-numeric:tabular-nums;margin-top:4px;}
+  .vals td{padding:5px 0;border-bottom:1px dashed #eadfc8;} .vals td:last-child{text-align:right;font-weight:800;}
+  .tag3d.ke{background:#ff7a3d;color:#fff;} .tag3d.pe{background:#2d7dd2;color:#fff;} .tag3d.q{background:#6b6b6b;color:#fff;} .tag3d.v{background:#f2c230;color:#1c1403;}
+  .clock{position:absolute;right:12px;bottom:12px;background:rgba(14,12,8,.86);color:#fff;border-radius:14px;padding:10px 14px;font-variant-numeric:tabular-nums;}
+  .clock b{font-size:1.35rem;color:#f2c230;display:block;line-height:1.1;} .clock small{font-size:.66rem;opacity:.75;letter-spacing:.06em;text-transform:uppercase;}
+</style>
+<script defer src="analytics.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text"><span>Ben Fizik Yapamıyorum</span><small>Yapabilirsin. Söz veriyorum.</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head a3-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / 3B Dalga Leğeni</div>
+    <h1>3B Dalga Leğeni</h1>
+    <p class="sub">Titreşen kaynak suya dokunsun, dalgalar yayılsın. Leğenin altındaki beyaz kâğıtta tepeler parlak, çukurlar karanlık görünür. İki kaynakla <b>girişim</b>, yarıkla <b>kırınım</b>, sığ bölgeyle <b>kırılma</b> oluştur.</p>
+    <div class="a3-tags"><span class="new">YENİ · 3B</span><span>10. Sınıf · Dalgalar</span><span>TYT</span><span>Maarif (TYMM)</span><span>Ücretsiz</span></div>
+  </div>
+  <div class="a3-grid">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="c3d" aria-label="3B dalga leğeni"></canvas>
+        <div class="ov" id="ov">
+          <div class="hud">
+            <div class="a3p"><small>Frekans f</small><span id="h-f">10 Hz</span></div>
+            <div class="a3p"><small>Dalga boyu λ</small><span id="h-l">3,0 cm</span></div>
+            <div class="a3p v"><small>Hız v = λ·f</small><span id="h-v">30 cm/s</span></div>
+            <div class="a3p"><small>Periyot T</small><span id="h-T">0,10 s</span></div>
+          </div>
+          <div class="planet-chip" id="h-mode">Tek kaynak<small>Dairesel dalgalar</small></div>
+          <div class="tag3d v" id="tag-l"></div><div class="tag3d p" id="tag-a"></div><div class="tag3d p" id="tag-b"></div>
+          <div class="toast" id="toast"></div>
+        </div>
+        <div class="loading" id="loading"><div style="text-align:center"><div class="spin"></div>Laboratuvar hazırlanıyor… <span id="load-pct">0%</span></div></div>
+      </div>
+      <div class="bar">
+        <button class="b fire" id="btn-go">⏸ Durdur</button>
+        <button class="b" id="btn-reset">↺ Suyu durult</button>
+        <div class="seg" id="seg-cam"><button data-cam="orbit" class="on">Serbest</button><button data-cam="paper">Kâğıttaki desen</button><button data-cam="low">Su yüzeyi</button></div>
+        <div class="seg" id="seg-speed"><button data-s="0.25">¼×</button><button data-s="0.5">½×</button><button data-s="1" class="on">1×</button></div>
+        <span class="sp"></span>
+        <button class="b" id="btn-full" title="Tam ekran">⛶</button>
+      </div>
+      <div class="toggles">
+        <button class="tg on" id="tg-edge"><i style="background:#58a6ff"></i>Kenarlarda sönüm (plaj)</button>
+        <button class="tg" id="tg-ruler"><i style="background:#f2c230"></i>λ ölçer</button>
+        <button class="tg" id="tg-nodal"><i style="background:#fff;border:1px solid #aaa"></i>Düğüm çizgileri</button>
+      </div>
+      <div class="learn">
+        <div><h4>〰 v = λ·f</h4><p>Frekansı artırınca dalga boyu kısalır; hız aynı kalır. Hızı su derinliği belirler: sığ suda dalga yavaşlar, dalga boyu kısalır, frekans değişmez.</p></div>
+        <div><h4>⋯ Girişim</h4><p>İki kaynaktan gelen tepe-tepe buluşursa dalga büyür (yapıcı), tepe-çukur buluşursa söner (yıkıcı). Sönen noktalar <b>düğüm çizgilerini</b> oluşturur.</p></div>
+        <div><h4>▮▯▮ Kırınım</h4><p>Dalga dar bir yarıktan geçerken yayılır. Yarık, dalga boyuna göre ne kadar darsa kırınım o kadar belirgindir.</p></div>
+      </div>
+      <p style="font-size:.8rem;color:#8a8375;margin:14px 0 30px">Klasik 2B sürüm (ip dalgaları): <a href="dalga-laboratuvari.html">Dalga Laboratuvarı</a>. Dalgalar 2B dalga denkleminin sayısal çözümüyle hesaplanır. Ortam: Poly Haven (CC0).</p>
+    </div>
+    <aside class="panel">
+      <h3>Kaynak</h3>
+      <div class="seg" id="seg-src" style="margin-bottom:12px"><button data-s="point" class="on">Tek nokta</button><button data-s="two">İki nokta</button><button data-s="line">Düz dalga</button></div>
+      <div class="ctrl"><label>Frekans f <b id="o-f">10 Hz</b></label><input type="range" id="i-f" min="4" max="20" step="0.5" value="10"></div>
+      <div class="ctrl"><label>Genlik <b id="o-a">Orta</b></label><input type="range" id="i-a" min="0.3" max="1.6" step="0.05" value="1"></div>
+      <div class="ctrl" id="c-d" style="display:none"><label>Kaynaklar arası uzaklık d <b id="o-d">8 cm</b></label><input type="range" id="i-d" min="3" max="20" step="0.5" value="8"></div>
+      <h3 style="margin-top:6px">Leğendeki düzenek</h3>
+      <div class="seg" id="seg-bar" style="margin-bottom:12px"><button data-b="none" class="on">Boş</button><button data-b="slit">Tek yarık</button><button data-b="double">Çift yarık</button><button data-b="block">Engel</button></div>
+      <div class="ctrl" id="c-w" style="display:none"><label>Yarık genişliği <b id="o-w">3 cm</b></label><input type="range" id="i-w" min="1" max="12" step="0.5" value="3"></div>
+      <div class="seg" id="seg-depth" style="margin-bottom:12px"><button data-d="deep" class="on">Tek derinlik</button><button data-d="half">Sığ bölge</button><button data-d="slant">Eğik sınır</button></div>
+      <h3 style="margin-top:6px">Değerler</h3>
+      <table class="vals" id="vals"></table>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div><a href="hakkimda.html">Hakkımda</a> · <a href="simulasyonlar.html">Simülasyonlar</a> · <a href="oyunlar.html">Oyunlar</a> · <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a></div>
+  </div>
+</footer>
+<script type="module" src="sim3d/lab-dalga.js?v=1"></script>
+</body>
+</html>

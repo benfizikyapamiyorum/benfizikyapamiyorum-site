@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>3B Eğik Atış Laboratuvarı — Topla Atış, Gezegen Değiştir | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Gerçekçi 3B manzarada top ateşle: açıyı ve hızı ayarla, Dünya, Ay ve Mars arasında gezegen değiştir, hava direncini aç, stroboskop iziyle yatay ve düşey hareketi ayrı ayrı gör. Hedefi vur modu. 11. sınıf atışlar konusu ve AYT için ücretsiz.">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="canonical" href="https://benfizikyapamiyorum.com/egik-atis-3d.html">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:site_name" content="Ben Fizik Yapamıyorum">
+<meta property="og:title" content="3B Eğik Atış Laboratuvarı — Topla atış yap, gezegen değiştir">
+<meta property="og:description" content="Gerçekçi manzarada top ateşle. Ay'da, Mars'ta, Dünya'da aynı atış nasıl değişir? Stroboskop, bileşenler, hedefi vur modu.">
+<meta property="og:url" content="https://benfizikyapamiyorum.com/egik-atis-3d.html">
+<meta property="og:image" content="https://benfizikyapamiyorum.com/bfy-atis3d-kapak.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
+<link rel="modulepreload" href="bfy-three.module.min.js">
+<link rel="modulepreload" href="bfy-three.core.min.js">
+<link rel="preload" as="image" href="sim3d/env/earth_bg.jpg" crossorigin="anonymous">
+<style>
+  :root{
+    --a-ink:#0e0c08; --a-coral:#e26d4f; --a-gold:#d4a017; --a-gold2:#b8902f; --a-muted:#5a544a;
+    --a-line:#e7dcc6; --a-blue:#2d7dd2; --a-red:#e0483b; --a-yel:#f2c230;
+  }
+  .a3-head h1{margin:.2em 0 .15em;}
+  .a3-head .sub{color:var(--a-muted);font-size:1.02rem;line-height:1.6;max-width:780px;}
+  .a3-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;}
+  .a3-tags span{font-size:.74rem;font-weight:700;padding:4px 11px;border-radius:20px;background:#f7efdc;border:1px solid #ecdcb5;color:#8a6a12;}
+  .a3-tags span.new{background:#0e0c08;color:#f2c230;border-color:#0e0c08;}
+
+  .a3-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;margin-top:20px;align-items:start;}
+  @media(max-width:1020px){.a3-grid{grid-template-columns:1fr;}}
+
+  /* ---------- Sahne ---------- */
+  .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:300px;border-radius:18px;overflow:hidden;
+    background:#9cc3e6;box-shadow:0 18px 44px rgba(14,12,8,.18);touch-action:none;user-select:none;-webkit-user-select:none;}
+  @media(max-width:640px){.stage{aspect-ratio:4/3.3;border-radius:14px;}}
+  .stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .stage:fullscreen{aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;}
+  .stage.pseudo-full{position:fixed;inset:0;z-index:99999;aspect-ratio:auto;width:100vw;height:100vh;border-radius:0;}
+  .ov{position:absolute;inset:0;pointer-events:none;z-index:2;}
+  .hud{position:absolute;top:12px;left:12px;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100% - 150px);}
+  .a3p{background:rgba(10,14,22,.62);color:#fff;border-radius:10px;padding:6px 10px;font-size:.8rem;font-weight:700;
+    font-variant-numeric:tabular-nums;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);line-height:1.15;}
+  .a3p small{display:block;font-size:.6rem;font-weight:600;letter-spacing:.08em;opacity:.7;text-transform:uppercase;}
+  .a3p.vx{box-shadow:inset 3px 0 0 #58a6ff;} .a3p.vy{box-shadow:inset 3px 0 0 #ff6b5e;} .a3p.v{box-shadow:inset 3px 0 0 #f2c230;}
+  .planet-chip{position:absolute;top:12px;right:12px;background:rgba(10,14,22,.62);color:#fff;border-radius:10px;padding:6px 11px;
+    font-size:.8rem;font-weight:700;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-align:right;}
+  .planet-chip small{display:block;font-size:.62rem;opacity:.72;font-weight:600;}
+  .tag3d{position:absolute;transform:translate(-50%,-100%);background:rgba(255,255,255,.93);color:#0e0c08;border-radius:8px;
+    padding:4px 8px;font-size:.74rem;font-weight:800;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.18);
+    font-variant-numeric:tabular-nums;display:none;}
+  .tag3d::after{content:"";position:absolute;left:50%;bottom:-5px;width:9px;height:9px;background:inherit;transform:translateX(-50%) rotate(45deg);}
+  .tag3d.dark{background:rgba(14,12,8,.86);color:#fff;}
+  .toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%) translateY(20px);opacity:0;transition:all .35s;
+    background:rgba(14,12,8,.88);color:#fff;padding:9px 16px;border-radius:12px;font-size:.88rem;font-weight:600;max-width:90%;text-align:center;}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+  @media(max-width:640px){ .hud{max-width:calc(100% - 96px);gap:4px;top:8px;left:8px} .a3p{padding:4px 7px;font-size:.7rem;border-radius:8px} .a3p small{font-size:.5rem} .a3p.vx,.a3p.vy{display:none}
+    .planet-chip{top:8px;right:8px;font-size:.72rem;padding:4px 8px} .planet-chip small{display:none} .aimhint{display:none} .seg button{padding:8px 9px;font-size:.78rem} }
+  .aimhint{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.9);color:#0e0c08;border-radius:10px;padding:6px 10px;
+    font-size:.74rem;font-weight:700;letter-spacing:.02em;}
+  .a3res{position:absolute;right:12px;bottom:12px;width:min(300px,calc(100% - 24px));background:rgba(255,255,255,.95);border-radius:14px;
+    padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:.84rem;color:#0e0c08;display:none;pointer-events:auto;}
+  .a3res.on{display:block;animation:pop .35s ease;}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
+  .a3res h4{margin:0 0 6px;font-size:.95rem;display:flex;justify-content:space-between;align-items:center;}
+  .a3res h4 button{border:0;background:none;font-size:1rem;cursor:pointer;color:#5a544a;padding:0 2px;}
+  .a3res table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+  .a3res td{padding:3px 0;border-bottom:1px dashed #eadfc8;}
+  .a3res td:last-child{text-align:right;font-weight:800;}
+  .a3res .fx{margin-top:8px;font-size:.76rem;color:#5a544a;line-height:1.45;}
+  .a3res .fx b{color:#0e0c08;}
+  .a3res .hit{margin:0 0 6px;padding:6px 9px;border-radius:9px;font-weight:800;font-size:.84rem;}
+  .a3res .hit.yes{background:#e3f6e4;color:#1d6b2a;} .a3res .hit.no{background:#fdeceb;color:#9b2a1f;}
+  .loading{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(#9cc3e6,#dbe8d2);color:#0e0c08;
+    font-weight:700;z-index:5;transition:opacity .6s;}
+  .loading.off{opacity:0;pointer-events:none;}
+  .loading .spin{width:38px;height:38px;border-radius:50%;border:4px solid rgba(14,12,8,.15);border-top-color:#e26d4f;animation:sp 1s linear infinite;margin:0 auto 10px;}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* ---------- Araç çubuğu ---------- */
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center;}
+  .b{padding:10px 15px;font-size:.88rem;border-radius:11px;border:1.5px solid var(--a-line);background:#fff;color:var(--a-ink);
+    font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:inherit;transition:all .14s;}
+  .b:hover{background:#faf6ec;}
+  .b.fire{background:var(--a-coral);border-color:var(--a-coral);color:#fff;font-size:.98rem;padding:11px 22px;box-shadow:0 6px 16px rgba(226,109,79,.35);}
+  .b.fire:hover{background:#cf5a3c;}
+  .b.fire:disabled{opacity:.55;cursor:wait;}
+  .b.on{background:var(--a-ink);border-color:var(--a-ink);color:#fff;}
+  .seg{display:inline-flex;border:1.5px solid var(--a-line);border-radius:11px;overflow:hidden;background:#fff;}
+  .seg button{border:0;background:none;padding:9px 12px;font:inherit;font-size:.82rem;font-weight:700;cursor:pointer;color:var(--a-muted);}
+  .seg button.on{background:var(--a-ink);color:#fff;}
+  .bar .sp{flex:1;}
+  .toggles{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;}
+  .tg{padding:7px 12px;font-size:.8rem;border-radius:20px;border:1.5px solid var(--a-line);background:#fff;font-weight:700;cursor:pointer;font-family:inherit;color:var(--a-muted);}
+  .tg.on{background:#fff5d6;border-color:var(--a-gold);color:#5b4306;}
+  .tg i{font-style:normal;display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0;}
+
+  /* ---------- Panel ---------- */
+  .panel{background:#fff;border:1px solid var(--a-line);border-radius:18px;padding:16px 16px 18px;box-shadow:0 6px 18px rgba(0,0,0,.05);}
+  .panel h3{margin:0 0 3px;font-size:1rem;}
+  .panel .hint{font-size:.78rem;color:var(--a-muted);margin:0 0 12px;}
+  .ctrl{margin-bottom:14px;}
+  .ctrl label{display:flex;justify-content:space-between;font-size:.86rem;font-weight:600;margin-bottom:5px;}
+  .ctrl label b{color:var(--a-gold2);font-variant-numeric:tabular-nums;}
+  .ctrl input[type=range]{width:100%;accent-color:var(--a-coral);}
+  .a3cards{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+  .a3c{border:1.5px solid var(--a-line);border-radius:12px;padding:8px 4px 7px;text-align:center;cursor:pointer;background:#fff;font:inherit;
+    font-size:.74rem;font-weight:700;color:var(--a-ink);transition:all .14s;}
+  .a3c .ic{display:block;width:30px;height:30px;border-radius:50%;margin:0 auto 5px;box-shadow:inset -5px -6px 10px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.2);}
+  .a3c small{display:block;font-weight:600;color:var(--a-muted);font-size:.66rem;margin-top:1px;}
+  .a3c.on{border-color:var(--a-coral);background:#fff4ef;}
+  .a3c:disabled{opacity:.4;cursor:not-allowed;}
+  .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:.86rem;font-weight:600;padding:9px 0;border-top:1px solid #f1e9d6;}
+  .sw input{width:18px;height:18px;accent-color:var(--a-coral);}
+  .sw small{display:block;font-weight:500;color:var(--a-muted);font-size:.72rem;}
+  .mission{margin-top:14px;border-radius:14px;background:linear-gradient(135deg,#1d2a44,#2f2a4f);color:#fff;padding:14px;}
+  .mission h4{margin:0 0 4px;font-size:.95rem;}
+  .mission p{margin:0 0 10px;font-size:.8rem;opacity:.85;line-height:1.45;}
+  .mission .b{background:#f2c230;border-color:#f2c230;color:#1c1403;}
+  .mission .score{font-size:.8rem;margin-top:8px;font-weight:700;opacity:.9;}
+
+  /* ---------- Grafik ---------- */
+  .graphbox{margin-top:16px;background:#fff;border:1px solid var(--a-line);border-radius:18px;padding:12px 14px 10px;}
+  .graphbox .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+  .graphbox h3{margin:0;font-size:.98rem;}
+  #graph{width:100%;height:220px;display:block;}
+
+  .learn{margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media(max-width:860px){.learn{grid-template-columns:1fr;}}
+  .learn div{background:#fff;border:1px solid var(--a-line);border-radius:16px;padding:16px;}
+  .learn h4{margin:0 0 6px;font-size:.96rem;}
+  .learn p{margin:0;font-size:.86rem;color:var(--a-muted);line-height:1.55;}
+  .cta{margin:26px 0 10px;border-radius:20px;background:#0e0c08;color:#fff;padding:22px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+  .cta div{flex:1;min-width:240px;}
+  .cta h3{margin:0 0 6px;color:#fff;}
+  .cta p{margin:0;opacity:.8;font-size:.9rem;line-height:1.5;}
+  .cta a{display:inline-block;background:#f2c230;color:#1c1403;font-weight:800;padding:11px 18px;border-radius:12px;text-decoration:none;}
+  .cta a.ghost{background:transparent;border:1.5px solid rgba(255,255,255,.4);color:#fff;}
+</style>
+<script defer src="analytics.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="nav">
+    <a href="index.html" class="brand">
+      <span class="logo"><img src="logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';"><span class="logo-fallback" style="display:none">φ</span></span>
+      <span class="brand-text">
+        <span>Ben Fizik Yapamıyorum</span>
+        <small>Yapabilirsin. Söz veriyorum.</small>
+      </span>
+    </a>
+    <button class="menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')">Menü</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Ana Sayfa</a></li>
+      <li><a href="yks.html">Dersler & YKS</a></li>
+      <li><a href="simulasyonlar.html" class="active">Simülasyonlar</a></li>
+      <li><a href="deneyler.html">Deneyler</a></li>
+      <li><a href="testler.html">Online Testler</a></li>
+      <li><a href="videolar.html">Videolar</a></li>
+      <li><a href="oyunlar.html">Oyunlar</a></li>
+      <li><a href="materyaller.html">Öğretmene Özel</a></li>
+      <li><a href="maarif.html">Maarif</a></li>
+      <li><a href="hakkimda.html">Hakkımda</a></li>
+    </ul>
+  </div>
+</header>
+
+<main class="container">
+  <div class="page-head a3-head">
+    <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / 3B Eğik Atış</div>
+    <h1>3B Eğik Atış Laboratuvarı</h1>
+    <p class="sub">Topu ateşle, gülleyi izle. Açıyı ve hızı değiştir, <b>Ay'a</b> ve <b>Mars'a</b> git, aynı atışın nasıl değiştiğini gör. Stroboskop izi, topun yatayda neden eşit adımlarla ilerlediğini ve düşeyde neden yavaşlayıp hızlandığını gösterir.</p>
+    <div class="a3-tags"><span class="new">YENİ · 3B</span><span>11. Sınıf · Atışlar</span><span>AYT</span><span>Maarif (TYMM)</span><span>Ücretsiz</span></div>
+  </div>
+
+  <div class="a3-grid">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="c3d" aria-label="3B eğik atış sahnesi"></canvas>
+        <div class="ov" id="ov">
+          <div class="hud">
+            <div class="a3p"><small>Zaman</small><span id="h-t">0,00 s</span></div>
+            <div class="a3p"><small>Yatay x</small><span id="h-x">0,0 m</span></div>
+            <div class="a3p"><small>Yükseklik y</small><span id="h-y">0,0 m</span></div>
+            <div class="a3p vx"><small>vₓ</small><span id="h-vx">0,0 m/s</span></div>
+            <div class="a3p vy"><small>vᵧ</small><span id="h-vy">0,0 m/s</span></div>
+            <div class="a3p v"><small>v</small><span id="h-v">0,0 m/s</span></div>
+          </div>
+          <div class="planet-chip" id="h-planet">Dünya<small>g = 9,8 m/s²</small></div>
+          <div class="tag3d dark" id="tag-apex"></div>
+          <div class="tag3d" id="tag-land"></div>
+          <div class="tag3d" id="tag-target"></div>
+          <div class="aimhint" id="aimhint">İpucu: Topun ağzından sürükleyerek nişan al</div>
+          <div class="a3res" id="result"></div>
+          <div class="toast" id="toast"></div>
+        </div>
+        <div class="loading" id="loading"><div style="text-align:center"><div class="spin"></div>Manzara hazırlanıyor… <span id="load-pct">0%</span></div></div>
+      </div>
+
+      <div class="bar">
+        <button class="b fire" id="btn-fire">🔥 Ateşle</button>
+        <button class="b" id="btn-clear" title="İzleri temizle">🧹 Temizle</button>
+        <div class="seg" id="seg-cam" aria-label="Kamera">
+          <button data-cam="side" class="on">Yandan</button>
+          <button data-cam="cine">Sinematik</button>
+          <button data-cam="chase">Takip</button>
+          <button data-cam="free">Serbest</button>
+        </div>
+        <div class="seg" id="seg-speed" aria-label="Hız">
+          <button data-s="0.25">¼×</button>
+          <button data-s="0.5">½×</button>
+          <button data-s="1" class="on">1×</button>
+        </div>
+        <span class="sp"></span>
+        <button class="b" id="btn-sound" title="Ses">🔊</button>
+        <button class="b" id="btn-full" title="Tam ekran">⛶</button>
+      </div>
+      <div class="toggles">
+        <button class="tg on" id="tg-strobe"><i style="background:#f2c230"></i>Stroboskop (0,25 s)</button>
+        <button class="tg on" id="tg-vec"><i style="background:#ff6b5e"></i>Hız vektörleri</button>
+        <button class="tg" id="tg-comp"><i style="background:#58a6ff"></i>Bileşen gölgeleri</button>
+        <button class="tg" id="tg-pred"><i style="background:#fff;border:1px solid #aaa"></i>Tahmini yörünge</button>
+      </div>
+
+      <div class="graphbox">
+        <div class="top">
+          <h3>Canlı grafik</h3>
+          <div class="seg" id="seg-graph">
+            <button data-g="y" class="on">y–t</button>
+            <button data-g="x">x–t</button>
+            <button data-g="vy">vᵧ–t</button>
+            <button data-g="vx">vₓ–t</button>
+          </div>
+        </div>
+        <canvas id="graph"></canvas>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <h3>Atış ayarları</h3>
+      <p class="hint">Kaydırıcıyı kullan ya da sahnede topun ağzından sürükle.</p>
+      <div class="ctrl"><label>Atış hızı v₀ <b id="o-v0">18 m/s</b></label><input type="range" id="i-v0" min="5" max="40" step="0.5" value="18"></div>
+      <div class="ctrl"><label>Atış açısı θ <b id="o-ang">45°</b></label><input type="range" id="i-ang" min="0" max="80" step="1" value="45"></div>
+      <div class="ctrl"><label>Atış yüksekliği h₀ <b id="o-h0">0 m</b></label><input type="range" id="i-h0" min="0" max="40" step="1" value="0"></div>
+
+      <div class="ctrl"><label>Nerede atıyoruz?</label>
+        <div class="a3cs" id="cards-planet">
+          <button class="a3c on" data-p="earth"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#8fd0ff,#2f7fc2 55%,#2c6b3a)"></span>Dünya<small>g = 9,8</small></button>
+          <button class="a3c" data-p="moon"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#f1f1f1,#9a9a9a 60%,#5d5d5d)"></span>Ay<small>g = 1,62</small></button>
+          <button class="a3c" data-p="mars"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#f5a36b,#c1502a 60%,#6e2513)"></span>Mars<small>g = 3,71</small></button>
+        </div>
+      </div>
+      <div class="ctrl"><label>Ne atıyoruz?</label>
+        <div class="a3cs" id="cards-ball">
+          <button class="a3c on" data-b="iron"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#8a8f96,#34383d 60%,#15171a)"></span>Demir gülle<small>515 kg</small></button>
+          <button class="a3c" data-b="soccer"><span class="ic" style="background:radial-gradient(circle at 35% 30%,#fff 30%,#ccc 65%,#555);outline:3px dotted #222;outline-offset:-10px"></span>Futbol topu<small>0,43 kg</small></button>
+          <button class="a3c" data-b="beach"><span class="ic" style="background:conic-gradient(#e7453b 0 60deg,#fff 0 120deg,#2e7fd8 0 180deg,#f5c52b 0 240deg,#fff 0 300deg,#35a852 0)"></span>Plaj topu<small>0,10 kg</small></button>
+        </div>
+      </div>
+      <label class="sw"><span>Hava direnci<small id="drag-note">Kapalıyken kütle önemsizdir.</small></span><input type="checkbox" id="i-drag"></label>
+      <label class="sw"><span>g = 10 m/s² kullan<small>Ders kitabı soruları için</small></span><input type="checkbox" id="i-g10"></label>
+
+      <div class="mission">
+        <h4>🎯 Hedefi vur</h4>
+        <p id="m-text">Sahneye bir hedef yerleştir. Hesapla, ayarla, tek atışta vurmaya çalış.</p>
+        <button class="b" id="btn-mission">Yeni hedef</button>
+        <div class="score" id="m-score"></div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="learn">
+    <div><h4>↔ Yatayda sabit hız</h4><p>Hava direnci yokken topa yatayda kuvvet etki etmez. Bu yüzden vₓ = v₀·cosθ hiç değişmez. Stroboskop izinde toplar yatayda hep eşit aralıklıdır.</p></div>
+    <div><h4>↕ Düşeyde düzgün değişen hareket</h4><p>Düşeyde yalnızca yer çekimi vardır. vᵧ her saniye g kadar azalır, tepe noktasında sıfır olur, sonra ters yönde artar. Tepe süresi t = v₀·sinθ / g olur.</p></div>
+    <div><h4>🌍 🌕 Gezegen değişince</h4><p>Aynı top Ay'da yaklaşık 6 kat uzağa gider, çünkü g yaklaşık 6 kat küçüktür (R = v₀²·sin2θ / g). Ay'da hava olmadığı için top patlamasının sesi de duyulmaz.</p></div>
+  </div>
+
+  <div class="cta">
+    <div>
+      <h3>Şimdi kâğıt üstünde dene.</h3>
+      <p>Atışlar konusunda kendini ölç: 11. sınıf konu testleri ücretsiz. Adım adım çözümlü bağlam temelli sorular Soru Kütüphanesi'nde.</p>
+    </div>
+    <a href="testler-11.html">Ücretsiz teste başla →</a>
+    <a class="ghost" href="https://shopier.com/benfizikyapamiyorum/48810112" target="_blank" rel="noopener">Soru Kütüphanesi</a>
+  </div>
+  <p style="font-size:.8rem;color:#8a8375;margin:6px 0 30px">Klasik 2B sürüm ve karşılaştırma modu için: <a href="egik-atis-laboratuvari.html">Eğik Atış Laboratuvarı</a>. Manzara, doku ve modeller: Poly Haven ve ambientCG (CC0); Dünya görüntüsü: NASA.</p>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div>© 2026 Ben Fizik Yapamıyorum · Maarif Modeli'ne %100 uyumlu</div>
+    <div>
+      <a href="hakkimda.html">Hakkımda</a> ·
+      <a href="simulasyonlar.html">Simülasyonlar</a> ·
+      <a href="oyunlar.html">Oyunlar</a> ·
+      <a href="https://instagram.com/benfizikyapamiyorum" target="_blank" rel="noopener">Instagram</a> ·
+      <a href="https://wa.me/905425549386" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="bfy-atis3d.js?v=20260926a"></script>
+</body>
+</html>
