@@ -133,7 +133,7 @@ const stage = $('stage'), canvas = $('c3d');
 let renderer;
 try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); }
 catch (e) { $('loading').innerHTML = '<div style="max-width:420px;text-align:center;padding:20px">Tarayıcın 3B grafiği (WebGL) desteklemiyor.<br><a href="egik-atis-laboratuvari.html">Klasik Eğik Atış Laboratuvarı\'nı aç →</a></div>'; throw e; }
-const DPR = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 1.75);
+const DPR = Math.min(window.devicePixelRatio || 1, isMobile ? 1.75 : 2);
 renderer.setPixelRatio(DPR);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -146,7 +146,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(36, 16 / 9, .2, 30000);
 camera.position.set(20, 8, 50);
 
-const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: isMobile ? 2 : 4 }));
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
 composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .28, .5, .96);
 composer.addPass(bloom);
@@ -166,6 +166,8 @@ const manager = new THREE.LoadingManager();
 let loadDone = 0, loadTotal = 1;
 manager.onProgress = (u, l, t) => { loadDone = l; loadTotal = t; const el = $('load-pct'); if (el) el.textContent = Math.round(l / t * 100) + '%'; };
 const texL = new THREE.TextureLoader(manager), hdrL = new HDRLoader(manager), gltfL = new GLTFLoader(manager);
+{ const KEYS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap']; const ld = gltfL.load.bind(gltfL);
+  gltfL.load = (url, ok, prog, err) => ld(url, g => { g.scene.traverse(o => { if (o.isMesh) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => KEYS.forEach(k => { if (m[k]) m[k].anisotropy = MAXANISO; })); }); ok(g); }, prog, err); }
 const A = 'sim3d/';
 function tex(path, srgb = true) { const t = texL.load(A + path); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = MAXANISO; return t; }
 const pmrem = new THREE.PMREMGenerator(renderer);
@@ -781,10 +783,10 @@ function fire() {
   const a = S.ang * DEG, dir = new THREE.Vector3(Math.cos(a), Math.sin(a), 0), mouth = new THREE.Vector3(0, S.h0 + AXLE_R, 0);
   const air = PLANETS[S.planet].rho > 0;
   const smokeCol = S.planet === 'mars' ? '#e7c6aa' : '#d9d8d4';
-  for (let i = 0; i < (air ? 34 : 14); i++) {
+  for (let i = 0; i < (air ? 20 : 10); i++) {
     const sp = Math.random();
     const v = dir.clone().multiplyScalar(3 + sp * 16).add(new THREE.Vector3((Math.random() - .5) * 5, (Math.random() - .3) * 3, (Math.random() - .5) * 5));
-    puff(mouth.clone().addScaledVector(dir, .8), v, { color: smokeCol, size: .9 + Math.random() * 1.1, grow: air ? 5.5 : 2.5, life: air ? 3 + Math.random() * 2.5 : .9, drag: air ? 2.4 : .1, op: air ? .7 : .45 });
+    puff(mouth.clone().addScaledVector(dir, .8), v, { color: smokeCol, size: 1.1 + Math.random() * 1.3, grow: air ? 5 : 2.5, life: air ? 3 + Math.random() * 2.5 : .9, drag: air ? 2.4 : .1, op: air ? .7 : .45 });
   }
   for (let i = 0; i < 3; i++) puff(mouth.clone().addScaledVector(dir, .9 + i * .5), dir.clone().multiplyScalar(4 + i * 3), { tex: flashTex, color: '#ffffff', size: 2.8 - i * .6, grow: .5, life: .12 + i * .03, drag: 0, op: 1, add: true, hdr: 3.5 });
   flashLight.position.copy(mouth).addScaledVector(dir, 1.2); flashLight.intensity = 90;
@@ -1043,8 +1045,8 @@ canvas.addEventListener('wheel', e => { if (S.cam !== 'free') return; e.preventD
 const qParam = new URLSearchParams(location.search).get('q');
 const Q = { level: qParam === 'low' ? 0 : qParam === 'med' ? 1 : qParam === 'high' ? 2 : (isMobile ? 1 : 2), locked: !!qParam, dpr: DPR, frames: 0, acc: 0 };
 function applyQuality() {
-  Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.25) : 1;
-  renderer.setPixelRatio(Q.dpr);
+  Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : 1;
+  renderer.setPixelRatio(Q.dpr); bloom.enabled = Q.level > 0;
   const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
   if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
   renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
@@ -1055,11 +1057,13 @@ function resize() {
   renderer.setSize(w, h, false); composer.setPixelRatio(Q.dpr); composer.setSize(w, h); bloom.setSize(w * Q.dpr / 2, h * Q.dpr / 2);
   camera.aspect = w / h; camera.updateProjectionMatrix();
 }
+let qWarm = 0;
 function qualityTick(dt) {
-  if (Q.locked || Q.level === 0 || intro.on && intro.t < .6) return;
+  // Yalnızca beklerken ölç (atış anındaki duman ölçümü bozmasın), uzun süre gerçekten yavaşsa bir kademe düş
+  if (Q.locked || Q.level < 2 || intro.on || S.phase === 'flying') return;
+  qWarm += dt; if (qWarm < 6 || dt > .2) return;
   Q.frames++; Q.acc += dt;
-  if (Q.frames >= 90) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0;
-    if (fps < 45) { Q.level--; applyQuality(); if (Q.level === 0) Q.locked = true; } else Q.locked = true; }
+  if (Q.frames >= 240) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 28) { Q.level = 1; applyQuality(); } Q.locked = true; }
 }
 new ResizeObserver(() => { resize(); computeFrame(); }).observe(stage);
 applyQuality();
@@ -1134,7 +1138,9 @@ function tick() {
   if (disk.material.userData.U) disk.material.userData.U.uCenter.value.set(camera.position.x, camera.position.z);
   stars.position.copy(camera.position); earthInSky.position.copy(camera.position).add(EARTH_DIR);
   const focus = S.phase === 'flying' ? BALLPOS : camLook;
-  sun.target.position.set(Math.round(focus.x / 4) * 4, 0, Math.round(focus.z / 4) * 4); sun.position.copy(sun.target.position).addScaledVector(SUN_DIR, 300);
+  { const tx = 72 / sun.shadow.mapSize.x, fw = SUN_DIR.clone().negate(), rt = new THREE.Vector3(0, 1, 0).cross(fw).normalize(), up = fw.clone().cross(rt);
+    const f0 = new THREE.Vector3(focus.x, 0, focus.z), a = Math.round(f0.dot(rt) / tx) * tx, b = Math.round(f0.dot(up) / tx) * tx, c = f0.dot(fw);
+    sun.target.position.copy(rt.multiplyScalar(a)).addScaledVector(up, b).addScaledVector(fw, c); sun.position.copy(sun.target.position).addScaledVector(SUN_DIR, 300); }
 
   if (S.phase === 'landed' && cur) {
     tag('tag-apex', new THREE.Vector3(sampleAt(cur, cur.tA)[1], cur.H + r * 2 + .6, 0), `h<sub>maks</sub> = ${fmt(cur.H, 1)} m`);
@@ -1143,7 +1149,7 @@ function tick() {
   if (mission) tag('tag-target', new THREE.Vector3(mission.x, 3.8, -3.4), `🎯 ${fmt(mission.x, 1)} m`); else $('tag-target').style.display = 'none';
   setHUD(q);
   drawGraph();
-  if (Q.level > 0) composer.render(dt); else renderer.render(scene, camera);
+  composer.render(dt);
   qualityTick(Math.min(rawDt, .5));
   if (firstFrame) { firstFrame = false; $('loading').classList.add('off'); }
 }
@@ -1155,6 +1161,12 @@ resize(); syncUI(); computeFrame();
 applyPlanet('earth').then(() => {
   sideCam(camT); camLook.copy(camT.look);
   loadCrates();
+  // ilk atışta takılma olmasın: duman ve parlama gölgelendiricilerini önceden derle
+  puff(camera.position.clone().add(new THREE.Vector3(0, -50, 0)), new THREE.Vector3(), { op: .001, life: .5 });
+  puff(camera.position.clone().add(new THREE.Vector3(0, -50, 0)), new THREE.Vector3(), { tex: flashTex, add: true, hdr: 3.5, op: .001, life: .5 });
+  { const w1 = makeTrail(simulate(params()), '#ffffff', .001, false), w2 = makeTrail(simulate(params()), '#ffffff', .001, true); ghostPts = [[0, -300]]; ghosts.count = 1;
+    try { renderer.compile(scene, camera); } catch (e) { }
+    setTimeout(() => { [w1, w2].forEach(t => { scene.remove(t); t.geometry.dispose(); }); if (S.phase === 'idle') { ghosts.count = 0; ghostPts = []; } }, 1200); }
   if (!running) { running = true; clock.getDelta(); requestAnimationFrame(tick); }
 });
 window.__bfy3d = { simulate, params, S, fire, Q, get cur() { return cur; }, camera, scene, intro, director, target, get mission() { return mission; }, set speed(v) { S.speed = v; } };
