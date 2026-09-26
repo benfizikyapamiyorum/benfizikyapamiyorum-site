@@ -105,8 +105,11 @@
 </style>
   <script defer src="analytics.js"></script>
 <link rel="stylesheet" href="lab-ui.css">
+<link rel="stylesheet" href="bfy-lab-studio.css?v=20260926">
+<script src="bfy-lab-physics.js?v=20260926"></script>
+<script src="bfy-lab-studio.js?v=20260926"></script>
 </head>
-<body>
+<body class="bfy-studio">
 
 <header class="topbar">
   <div class="nav">
@@ -138,7 +141,7 @@
     <div class="crumbs"><a href="index.html">Ana Sayfa</a> / <a href="simulasyonlar.html">Simülasyonlar</a> / Enerji &amp; Sarkaç Laboratuvarı</div>
     <a href="enerji-sarkac-3d.html" style="display:inline-flex;gap:8px;align-items:center;margin:10px 0 2px;background:#0e0c08;color:#f2c230;font-weight:800;font-size:.84rem;padding:8px 14px;border-radius:12px;text-decoration:none;">★ Yeni: 3B sürümü dene (enerji tüpleri, gezegenler) →</a>
     <h1>🔋 Enerji &amp; Sarkaç Laboratuvarı</h1>
-    <p class="sub">Bobu <strong>sürükleyip bırak</strong> (ip uzunluğunu ve açıyı seç), salınımı izle. Kinetik ve potansiyel enerjinin <strong>canlı barlarını</strong> ve <strong>enerji-zaman grafiğini</strong> gör — sürtünmeyi aç, enerjinin nasıl "kaybolduğunu" izle. <strong>Enerjinin korunumu</strong> konusuyla birebir.</p>
+    <p class="sub">Bobu <strong>sürükleyip bırak</strong> (ip uzunluğunu ve açıyı seç), salınımı izle. Kinetik ve potansiyel enerjinin <strong>canlı barlarını</strong> ve <strong>enerji-zaman grafiğini</strong> gör — sürtünmeyi aç, mekanik enerjinin ısıya dönüşmesini izle. <strong>Enerjinin korunumu</strong> konusuyla birebir.</p>
   </div>
 
   <div style="background:#fff;border:1px solid #e7dcc6;border-left:5px solid #e26d4f;border-radius:14px;padding:16px 20px;margin-top:16px;box-shadow:0 4px 14px rgba(0,0,0,.05);">
@@ -242,7 +245,7 @@
         <h3>Anlık değerler</h3>
         <div class="readout">
           <div class="r"><div class="k">Süre t</div><div class="v"><span id="oT">0.00</span> s</div></div>
-          <div class="r"><div class="k">Periyot T</div><div class="v"><span id="oTper">2.01</span> s</div></div>
+          <div class="r"><div class="k">İdeal periyot T</div><div class="v"><span id="oTper">2.01</span> s</div></div>
           <div class="r"><div class="k">Açı θ</div><div class="v"><span id="oTheta">30.0</span>°</div></div>
           <div class="r"><div class="k">Açısal hız ω</div><div class="v"><span id="oOmega">0.00</span></div></div>
           <div class="r wide"><div class="k">Bob hızı |v|</div><div class="v"><span id="oV">0.00</span> m/s</div></div>
@@ -266,9 +269,9 @@
     <div class="feat">
       <span>Sürükle-bırak bob</span><span>Canlı KE/PE/Toplam barları</span><span>Enerji-zaman grafiği</span>
       <span>Hız vektörü</span><span>Kuvvet ayrıştırması</span><span>Sürtünme/sönüm</span>
-      <span>4 gezegen yerçekimi</span><span>Periyot T = 2π√(L/g)</span><span>Ağır çekim / adım adım</span>
+      <span>4 gezegen yerçekimi</span><span>Küçük açıda T ≈ 2π√(L/g)</span><span>Ağır çekim / adım adım</span>
     </div>
-    <p style="margin-top:14px;">Periyot kütleden bağımsızdır; sadece ip uzunluğu ve g'ye bağlıdır. Gezegeni değiştirip aynı sarkacın Ay'da neden daha yavaş salındığını görebilirsin. Bu lab zamanla daha da gelişecek. Bir fikrin olursa <a href="https://wa.me/905425549386" target="_blank" rel="noopener" style="color:#ffd98a;font-weight:700;">WhatsApp'tan yaz</a>.</p>
+    <p style="margin-top:14px;">Periyot kütleden bağımsızdır; ip uzunluğu, g ve büyük açılarda başlangıç açısına bağlıdır. Gösterilen periyot, seçilen başlangıç açısı için sönümsüz ideal değerdir. Gezegeni değiştirip aynı sarkacın Ay'da neden daha yavaş salındığını görebilirsin. Bu lab zamanla daha da gelişecek. Bir fikrin olursa <a href="https://wa.me/905425549386" target="_blank" rel="noopener" style="color:#ffd98a;font-weight:700;">WhatsApp'tan yaz</a>.</p>
     <a href="egik-atis-laboratuvari.html" class="btn btn-primary">🎯 Eğik Atış Laboratuvarı</a>
     <a href="simulasyonlar.html" class="btn btn-ghost">Tüm simülasyonlar</a>
   </div>
@@ -323,7 +326,7 @@
   }
 
   // ---------- Fizik yardımcıları ----------
-  const periodT = () => 2*Math.PI*Math.sqrt(P.L/P.g);          // küçük açı
+  const periodT = () => BFYPhysics.period(P.L,P.g,P.th0);          // küçük açı
   function energy(){
     const v = P.L*st.omega;                                    // bob hızı (m/s)
     const KE = 0.5*P.m*v*v;
@@ -341,7 +344,7 @@
     view.W=W; view.H=H;
     view.pivotX=W/2; view.pivotY=Math.max(40,H*0.10);
     const avail = H - view.pivotY - 46;
-    view.pxm = avail/3.15;                                      // 3 m tam sığsın
+    view.pxm = Math.min(avail/(Math.max(1.5,P.L)*1.08),(W*.44)/(Math.max(1.5,P.L)));                                      // 3 m tam sığsın
   }
   function bobScreen(theta, L){
     const Lpx = L*view.pxm;
@@ -361,13 +364,7 @@
   function drawScene(){
     computeView();
     const W=view.W, H=view.H;
-    const g = sx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,'#eef2f7'); g.addColorStop(1,'#f6f2ea');
-    sx.fillStyle=g; sx.fillRect(0,0,W,H);
-
-    // tavan
-    sx.fillStyle=C.wall; sx.fillRect(view.pivotX-60, view.pivotY-16, 120, 12);
-    sx.fillStyle='#0e0c08'; for(let i=-54;i<54;i+=12){ sx.beginPath(); sx.moveTo(view.pivotX+i,view.pivotY-4); sx.lineTo(view.pivotX+i+8,view.pivotY-12); sx.lineWidth=1.4; sx.strokeStyle='rgba(14,12,8,.4)'; sx.stroke(); }
+    BFYStudio.background(sx,W,H); BFYStudio.support(sx,view.pivotX,view.pivotY,H-14,P.L*view.pxm+40);
 
     // denge çizgisi
     const Lpx=P.L*view.pxm;
@@ -407,10 +404,7 @@
 
     // bob
     const r = 11 + P.m*1.4;
-    const grd = sx.createRadialGradient(bx-r*0.3,by-r*0.3,2,bx,by,r);
-    grd.addColorStop(0,'#f0a085'); grd.addColorStop(1,C.coral);
-    sx.fillStyle=grd; sx.strokeStyle=C.ink; sx.lineWidth=1.8;
-    sx.beginPath(); sx.arc(bx,by,r,0,7); sx.fill(); sx.stroke();
+    BFYStudio.sphere(sx,bx,by,r,'#bd793c');
 
     if (dragging){ sx.fillStyle=C.muted; sx.font='12px ui-monospace, monospace'; sx.fillText('L='+P.L.toFixed(2)+'m  θ='+(st.theta*180/Math.PI).toFixed(0)+'°', bx+r+6, by); }
 
@@ -520,16 +514,8 @@
 
   // ---------- Animasyon ----------
   function physics(dtReal){
-    let acc = dtReal*speed + leftover;
-    const h = 0.0015;
-    const b = P.damp ? P.b : 0;
-    let n=0;
-    while (acc>=h && n<2000){
-      const alpha = -(P.g/P.L)*Math.sin(st.theta) - b*st.omega;
-      st.omega += alpha*h; st.theta += st.omega*h; st.t += h;
-      acc-=h; n++;
-    }
-    leftover=acc;
+    let acc=dtReal*speed+leftover; const h=.004,b=P.damp?P.b:0; let n=0;
+    while(acc>=h&&n<2000){const q=BFYPhysics.pendulum(st.theta,st.omega,h,P.g,P.L,b);st.theta=q.theta;st.omega=q.omega;st.t+=h;acc-=h;n++;}leftover=acc;
   }
   function frame(now){
     const dt = Math.min(0.05,(now-lastNow)/1000); lastNow=now;

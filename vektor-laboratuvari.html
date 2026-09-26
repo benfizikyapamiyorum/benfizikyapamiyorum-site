@@ -104,8 +104,11 @@
   .faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#fff;}
   .faq summary{font-weight:700;cursor:pointer;} .faq p{color:var(--mut);line-height:1.6;margin:8px 0 0;}
 </style>
+<link rel="stylesheet" href="bfy-lab-studio.css?v=20260926">
+<script src="bfy-lab-physics.js?v=20260926"></script>
+<script src="bfy-lab-studio.js?v=20260926"></script>
 </head>
-<body>
+<body class="bfy-studio">
 
 <header class="topbar">
   <div class="nav">
@@ -264,7 +267,7 @@
     if(scene.width!==Math.round(w*r)||scene.height!==Math.round(h*r)){ scene.width=Math.round(w*r); scene.height=Math.round(h*r); sx.setTransform(r,0,0,r,0,0);} }
 
   let O={x:0,y:0}, pxU=20, W=0, H=0;
-  function computeView(){ fit(); W=scene.clientWidth; H=scene.clientHeight; O.x=W*0.52; O.y=H*0.5; pxU=Math.min(W,H)/(2*MAXU)*0.9; }
+  function computeView(){ fit(); W=scene.clientWidth; H=scene.clientHeight;if(drag.kind==='vec')return;const R=resultant(),points=[{x:0,y:0},R];for(const i of active()){const b=baseWorld(i);points.push(b,{x:b.x+V[i].x,y:b.y+V[i].y});}const loX=Math.min(-6,...points.map(p=>p.x))-1,hiX=Math.max(6,...points.map(p=>p.x))+1,loY=Math.min(-6,...points.map(p=>p.y))-1,hiY=Math.max(6,...points.map(p=>p.y))+1;pxU=Math.min((W-70)/(hiX-loX),(H-60)/(hiY-loY));O.x=W/2-(loX+hiX)/2*pxU;O.y=H/2+(loY+hiY)/2*pxU;}
   const w2sx=x=>O.x+x*pxU, w2sy=y=>O.y-y*pxU, s2wx=px=>(px-O.x)/pxU, s2wy=py=>(O.y-py)/pxU;
   const MT = makeMeasureTools({ ctx:sx, w2s:p=>({x:w2sx(p.x),y:w2sy(p.y)}), s2w:(px,py)=>({x:s2wx(px),y:s2wy(py)}), pxPerMeter:()=>pxU });
 
@@ -296,7 +299,7 @@
 
   function draw(){
     computeView();
-    sx.fillStyle='#fbfcfe'; sx.fillRect(0,0,W,H);
+    BFYStudio.background(sx,W,H);
     if(tog.grid){
       sx.strokeStyle='rgba(28,35,54,.06)'; sx.lineWidth=1; sx.fillStyle='rgba(28,35,54,.30)'; sx.font='10px ui-monospace, monospace';
       const maxX=Math.ceil(s2wx(W)),minX=Math.floor(s2wx(0)),maxY=Math.ceil(s2wy(0)),minY=Math.floor(s2wy(H));
@@ -309,12 +312,13 @@
     sx.fillStyle='#697089'; sx.font='600 12px system-ui, sans-serif';
     sx.fillText('x', W-16, O.y-8); sx.fillText('y', O.x+8, 16);
     sx.font='10px ui-monospace, monospace'; sx.fillStyle='rgba(28,35,54,.4)';
-    for(let x=-MAXU;x<=MAXU;x+=2){ if(x!==0&&w2sx(x)>10&&w2sx(x)<W-10) sx.fillText(x,w2sx(x)-4,O.y+13); }
-    for(let y=-MAXU;y<=MAXU;y+=2){ if(y!==0&&w2sy(y)>10&&w2sy(y)<H-10) sx.fillText(y,O.x+5,w2sy(y)+3); }
+    for(let x=Math.floor(s2wx(0)/2)*2;x<=Math.ceil(s2wx(W));x+=2){ if(x!==0&&w2sx(x)>10&&w2sx(x)<W-10) sx.fillText(x,w2sx(x)-4,O.y+13); }
+    for(let y=Math.floor(s2wy(H)/2)*2;y<=Math.ceil(s2wy(0));y+=2){ if(y!==0&&w2sy(y)>10&&w2sy(y)<H-10) sx.fillText(y,O.x+5,w2sy(y)+3); }
 
     const R=resultant();
     if(tog.para && mode==='common' && !showC){
       const tA=tipScreen(0),tB=tipScreen(1),tR={x:w2sx(R.x),y:w2sy(R.y)};
+      sx.fillStyle='rgba(50,130,170,.08)';sx.beginPath();sx.moveTo(O.x,O.y);sx.lineTo(tA.x,tA.y);sx.lineTo(tR.x,tR.y);sx.lineTo(tB.x,tB.y);sx.closePath();sx.fill();
       sx.strokeStyle='rgba(28,35,54,.22)'; sx.lineWidth=1.5; sx.setLineDash([6,5]);
       sx.beginPath(); sx.moveTo(tA.x,tA.y); sx.lineTo(tR.x,tR.y); sx.moveTo(tB.x,tB.y); sx.lineTo(tR.x,tR.y); sx.stroke(); sx.setLineDash([]);
     }
@@ -329,11 +333,11 @@
       sx.fillStyle='#e8623f'; sx.fillText('Ry',w2sx(R.x)+(R.x>=0?5:-20),(O.y+tR.y)/2);
     }
     for(const i of active()){ const b=baseWorld(i),bx=w2sx(b.x),by=w2sy(b.y),t=tipScreen(i);
-      arrow(bx,by,t.x,t.y,COL[i],3.5);
+      BFYStudio.arrow(sx,bx,by,t.x,t.y,COL[i],4);
       sx.fillStyle=COL[i]; sx.font='800 14px system-ui, sans-serif'; sx.fillText(NAMES[i],(bx+t.x)/2+7,(by+t.y)/2-5);
     }
     const tR={x:w2sx(R.x),y:w2sy(R.y)};
-    arrow(O.x,O.y,tR.x,tR.y,RCOL,5);
+    BFYStudio.arrow(sx,O.x,O.y,tR.x,tR.y,RCOL,6);
     sx.fillStyle=RCOL; sx.font='800 15px system-ui, sans-serif'; sx.fillText('R',tR.x+9,tR.y-6);
     if(tog.angle){ let rad=32; for(const i of active()){ if(mag(V[i])>0.2){ angleArc(angOf(V[i]),rad,COL[i],Math.round(angOf(V[i]))+'°'); rad+=15; } } if(mag(R)>0.2) angleArc(angOf(R),rad,RCOL,Math.round(angOf(R))+'°'); }
     for(const i of active()){ const t=tipScreen(i); handle(t.x,t.y,COL[i]); }
@@ -387,9 +391,9 @@
     if(best>=0){ hinted=true; drag.kind='vec'; drag.idx=best; setVec(best,px,py); e.preventDefault(); } }
   function moveE(e){ if(!drag.kind)return; const {px,py}=evtPos(e);
     if(drag.kind==='tool'){ MT.onMove(px,py); draw(); } else if(drag.kind==='vec'){ setVec(drag.idx,px,py); } e.preventDefault(); }
-  function up(){ if(drag.kind==='tool')MT.onUp(); drag.kind=null; drag.idx=-1; }
+  function up(){if(!drag.kind)return;if(drag.kind==='tool')MT.onUp();drag.kind=null;drag.idx=-1;render();}
   function setVec(i,px,py){ const b=baseWorld(i); let x=s2wx(px)-b.x, y=s2wy(py)-b.y;
-    if(tog.snap){ x=Math.round(x); y=Math.round(y); } const m=Math.hypot(x,y); if(m>MAXU){ x=x/m*MAXU; y=y/m*MAXU; if(tog.snap){x=Math.round(x);y=Math.round(y);} } V[i]={x,y}; render(); }
+    if(tog.snap){ x=Math.round(x); y=Math.round(y); } const m=Math.hypot(x,y); if(m>MAXU){ x=x/m*MAXU; y=y/m*MAXU;  } V[i]={x,y}; render(); }
   scene.addEventListener('mousedown',down); window.addEventListener('mousemove',moveE); window.addEventListener('mouseup',up);
   scene.addEventListener('touchstart',down,{passive:false}); scene.addEventListener('touchmove',moveE,{passive:false}); window.addEventListener('touchend',up);
 

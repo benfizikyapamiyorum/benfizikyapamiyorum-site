@@ -70,8 +70,11 @@
   .faq{max-width:820px;margin-top:26px;} .faq h2{font-size:1.3rem;}
   .faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#fff;} .faq summary{font-weight:700;cursor:pointer;} .faq p{color:var(--mut);line-height:1.6;margin:8px 0 0;}
 </style>
+<link rel="stylesheet" href="bfy-lab-studio.css?v=20260926">
+<script src="bfy-lab-physics.js?v=20260926"></script>
+<script src="bfy-lab-studio.js?v=20260926"></script>
 </head>
-<body>
+<body class="bfy-studio">
 
 <header class="topbar">
   <div class="nav">
@@ -209,7 +212,7 @@
   function image(){
     const f=fSigned(), dov=P.do;
     let di, m, inf=false;
-    if(Math.abs(dov-f)<0.4){ inf=true; di=Infinity; m=Infinity; }
+    if(Math.abs(dov-f)<1e-8){ inf=true; di=Infinity; m=Infinity; }
     else { di = dov*f/(dov-f); m = -di/dov; }
     const hi = inf?Infinity : m*P.ho;
     const real = di>0 && isFinite(di);
@@ -240,14 +243,14 @@
     sx.beginPath(); sx.moveTo(x2,y2); sx.lineTo(x2-s*Math.cos(a-.4),y2-s*Math.sin(a-.4)); sx.lineTo(x2-s*Math.cos(a+.4),y2-s*Math.sin(a+.4)); sx.closePath(); sx.fill();
     sx.lineCap='butt';
   }
-  function ray(x1,y1,x2,y2,color,dash){ sx.strokeStyle=color; sx.lineWidth=2; sx.setLineDash(dash||[]); sx.beginPath(); sx.moveTo(x1,y1); sx.lineTo(x2,y2); sx.stroke(); sx.setLineDash([]); }
+  function ray(x1,y1,x2,y2,color,dash){sx.save();sx.strokeStyle=color;sx.lineWidth=2;sx.setLineDash(dash||[]);if(!dash){sx.shadowColor=color;sx.shadowBlur=5;}sx.beginPath();sx.moveTo(x1,y1);sx.lineTo(x2,y2);sx.stroke();sx.restore();}
 
   function drawElement(Lpx){
     const mir=isMirror(), conv=converging();
-    sx.strokeStyle='#7aa0c8'; sx.fillStyle='rgba(45,125,210,.10)'; sx.lineWidth=2.5;
+    const glass=sx.createLinearGradient(cx-10,0,cx+10,0);glass.addColorStop(0,'#2379a755');glass.addColorStop(.4,'#ffffffc0');glass.addColorStop(1,'#2888b566');sx.strokeStyle='#6395ad';sx.fillStyle=glass;sx.lineWidth=2.5;
     if(!mir){
       // mercek gövdesi
-      const w=9;
+      const w=18;
       if(conv){ sx.beginPath(); sx.moveTo(cx,cy-Lpx); sx.quadraticCurveTo(cx+w,cy,cx,cy+Lpx); sx.quadraticCurveTo(cx-w,cy,cx,cy-Lpx); sx.closePath(); sx.fill(); sx.stroke(); }
       else { sx.beginPath();
         sx.moveTo(cx-7,cy-Lpx); sx.quadraticCurveTo(cx+4,cy,cx-7,cy+Lpx);
@@ -262,7 +265,7 @@
   }
 
   function draw(){
-    view(); sx.fillStyle='#fbfcfe'; sx.fillRect(0,0,W,H);
+    view(); BFYStudio.background(sx,W,H);
     const im=image();
     const Lpx = Math.min(H*0.42, (Math.max(P.ho, isFinite(im.hi)?Math.abs(im.hi):0)+3)*pxU);
     // optik eksen
@@ -273,7 +276,7 @@
     if(tog.foci){
       sx.fillStyle='#8a93a8'; sx.font='700 11px system-ui, sans-serif';
       const pts = isMirror()
-        ? [[-P.fabs,'F'],[-2*P.fabs,'M']]
+        ? [[-fSigned(),'F'],[-2*fSigned(),'M']]
         : [[-P.fabs,'F'],[P.fabs,"F'"],[-2*P.fabs,'2F'],[2*P.fabs,'2F']];
       for(const [wx,lab] of pts){ const px=X(wx); if(px>6&&px<W-6){ sx.fillStyle='#b3bacb'; sx.beginPath(); sx.arc(px,cy,3.5,0,7); sx.fill(); sx.fillStyle='#8a93a8'; sx.fillText(lab,px-6,cy+18); } }
     }
@@ -299,6 +302,10 @@
       });
     }
 
+    if(tog.rays && im.inf){
+      const O={x:-P.do,y:P.ho};
+      [{x:0,y:P.ho},{x:0,y:0}].forEach((Pk,k)=>{const col=RAY[k];ray(X(O.x),Y(O.y),X(Pk.x),Y(Pk.y),col);const dx=isMirror()?-80:80,dy=-P.ho/P.fabs*80;ray(X(Pk.x),Y(Pk.y),X(Pk.x+dx),Y(Pk.y+dy),col);});
+    }
     // görüntü
     if(!im.inf && isFinite(im.xi) && Math.abs(im.xi)<70){
       const ix=X(im.xi), iyTop=Y(im.hi);

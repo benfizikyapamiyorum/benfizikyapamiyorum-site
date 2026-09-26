@@ -117,8 +117,11 @@
 </style>
   <script defer src="analytics.js"></script>
 <link rel="stylesheet" href="lab-ui.css">
+<link rel="stylesheet" href="bfy-lab-studio.css?v=20260926">
+<script src="bfy-lab-physics.js?v=20260926"></script>
+<script src="bfy-lab-studio.js?v=20260926"></script>
 </head>
-<body>
+<body class="bfy-studio">
 
 <header class="topbar">
   <div class="nav">
@@ -403,32 +406,7 @@
   }
 
   // ---------- Physics ----------
-  function computePath(p){
-    const rad = p.ang * Math.PI/180;
-    let x=0, y=p.h0, vx=p.v0*Math.cos(rad), vy=p.v0*Math.sin(rad), t=0;
-    const dt = 0.004;
-    const pts = [{t,x,y,vx,vy,v:Math.hypot(vx,vy)}];
-    let apex = p.h0, guard = 0;
-    while (guard++ < 300000){
-      let ax=0, ay=-p.g;
-      if (p.drag){ const sp=Math.hypot(vx,vy), kk=p.k/p.m; ax-=kk*sp*vx; ay-=kk*sp*vy; }
-      vx+=ax*dt; vy+=ay*dt; x+=vx*dt; y+=vy*dt; t+=dt;
-      if (y>apex) apex=y;
-      if (y<=0){
-        const prev = pts[pts.length-1];
-        const frac = prev.y/(prev.y - y);
-        const lx = prev.x + (x-prev.x)*frac;
-        const lt = prev.t + (t-prev.t)*frac;
-        pts.push({t:lt,x:lx,y:0,vx,vy,v:Math.hypot(vx,vy)});
-        break;
-      }
-      pts.push({t,x,y,vx,vy,v:Math.hypot(vx,vy)});
-    }
-    const last = pts[pts.length-1];
-    let maxX=0,maxY=0,maxV=0;
-    for (const q of pts){ if(q.x>maxX)maxX=q.x; if(q.y>maxY)maxY=q.y; if(q.v>maxV)maxV=q.v; }
-    return { pts, max:{x:maxX,y:maxY,t:last.t,v:maxV}, stats:{range:last.x, flight:last.t, apex} };
-  }
+  function computePath(p){ return BFYPhysics.projectile(p); }
 
   function pointAt(p, T){
     const pts = p.pts;
@@ -485,9 +463,9 @@
     fit(scene, sx);
     computeView();
     const W=V.W, H=V.H;
-    const sky = sx.createLinearGradient(0,0,0,H);
-    sky.addColorStop(0,'#cfe4f7'); sky.addColorStop(1,'#eef4f0');
-    sx.fillStyle=sky; sx.fillRect(0,0,W,H);
+    BFYStudio.background(sx,W,H);
+    // distant ridges, kept below the useful plotting area
+    sx.fillStyle='#7195ab18';sx.beginPath();sx.moveTo(0,H*.83);for(let i=0;i<=24;i++)sx.lineTo(W*i/24,H*(.72+.05*Math.sin(i*1.7)+.025*Math.cos(i*3.1)));sx.lineTo(W,H);sx.lineTo(0,H);sx.fill();
 
     const groundY = w2sy(0);
     if (tog.grid){
@@ -562,11 +540,7 @@
     MT.draw();
   }
 
-  function drawCannonBase(h0){
-    if (h0<=0) return;
-    const cx=w2sx(0), cy=w2sy(h0), groundY=w2sy(0);
-    sx.fillStyle='#7a6f59'; sx.fillRect(cx-7, cy, 14, groundY-cy);
-  }
+  function drawCannonBase(h0){const x=w2sx(0),y=w2sy(h0),floor=w2sy(0);sx.save();sx.strokeStyle='#506d82';sx.lineWidth=7;sx.beginPath();sx.moveTo(x,y);sx.lineTo(x,floor);sx.stroke();sx.fillStyle='#304b61';sx.beginPath();sx.roundRect(x-16,floor-3,32,8,3);sx.fill();sx.restore();}
   function drawPreview(p,color){
     sx.strokeStyle=color; sx.lineWidth=2; sx.setLineDash([2,5]);
     sx.beginPath();
@@ -598,7 +572,7 @@
     let fill = ballColor;
     if (faint) fill = (ballColor===C.blue) ? 'rgba(45,125,210,.7)' : 'rgba(217,120,92,.85)';
     sx.fillStyle=fill; sx.strokeStyle=C.ink; sx.lineWidth=1.6;
-    sx.beginPath(); sx.arc(px,py,7,0,7); sx.fill(); sx.stroke();
+    BFYStudio.sphere(sx,px,py,8,ballColor);
   }
   function arrow(x1,y1,x2,y2,color,w){
     if (Math.hypot(x2-x1,y2-y1)<2) return;

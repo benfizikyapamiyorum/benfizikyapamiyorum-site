@@ -72,8 +72,11 @@
   .faq{max-width:820px;margin-top:26px;} .faq h2{font-size:1.3rem;}
   .faq details{border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:10px;background:#fff;} .faq summary{font-weight:700;cursor:pointer;} .faq p{color:var(--mut);line-height:1.6;margin:8px 0 0;}
 </style>
+<link rel="stylesheet" href="bfy-lab-studio.css?v=20260926">
+<script src="bfy-lab-physics.js?v=20260926"></script>
+<script src="bfy-lab-studio.js?v=20260926"></script>
 </head>
-<body>
+<body class="bfy-studio">
 
 <header class="topbar">
   <div class="nav">
@@ -209,23 +212,9 @@
   let drag = { kind:null };
 
   // ---- FİZİK ----
-  function fieldDirAt(wx,wy){
-    if(P.src==='wire'){ let r=Math.hypot(wx,wy); if(r<1e-6)r=1e-6; const ux=wx/r,uy=wy/r; return P.dir>0? {x:-uy,y:ux} : {x:uy,y:-ux}; }
-    return { x:(P.dir>0?1:-1), y:0 };   // halka/selenoit: eksenel
-  }
-  function fieldMag(wx,wy){ // Tesla
-    const I=P.I;
-    if(P.src==='wire'){ let r=Math.hypot(wx,wy)/100; if(r<0.005)r=0.005; return MU0*I/(2*Math.PI*r); }
-    if(P.src==='loop'){ const Rm=P.R/100, xm=wx/100; return MU0*I*Rm*Rm/(2*Math.pow(Rm*Rm+xm*xm,1.5)); }
-    // selenoit
-    const n=P.N/(P.L/100), inside=Math.abs(wx)<=P.L/2; return inside? MU0*n*I : 0;
-  }
-  function centerMag(){ // Tesla — halka merkezi / bobin içi
-    const I=P.I;
-    if(P.src==='loop') return MU0*I/(2*(P.R/100));
-    if(P.src==='solenoid') return MU0*(P.N/(P.L/100))*I;
-    return 0;
-  }
+  function fieldDirAt(wx,wy){const b=BFYPhysics.field(P,wx,wy),m=Math.hypot(b.x,b.y)||1;return {x:b.x/m,y:b.y/m};}
+  function fieldMag(wx,wy){const b=BFYPhysics.field(P,wx,wy);return Math.hypot(b.x,b.y);}
+  function centerMag(){return fieldMag(0,0);}
   function fmtB(T){ const u=T*1e6; if(u<1000) return (u<10?u.toFixed(2):u.toFixed(1)).replace('.',',')+' µT'; return (u/1000).toFixed(2).replace('.',',')+' mT'; }
 
   // ---- GÖRÜNÜM ----
@@ -277,6 +266,7 @@
     }
     // iç eksenel alan
     axialArrow(-P.R*0.75*0+(dirx>0?-P.R*0.7:P.R*0.7), (dirx>0?P.R*0.7:-P.R*0.7), 0, C.B, 3.4);
+    BFYStudio.coil(sx,cx,cy,P.R*scale,7,1);
     // iletken kesitleri (üst/alt)
     symbol(X(0),Y(P.R), P.dir>0?'out':'in', C.A, 11);
     symbol(X(0),Y(-P.R), P.dir>0?'in':'out', C.A, 11);
@@ -292,6 +282,7 @@
     }
     // iç düzgün alan (birkaç ok)
     [-RCOIL*0.5,0,RCOIL*0.5].forEach(y=> axialArrow(dirx>0?-half*0.72:half*0.72, dirx>0?half*0.72:-half*0.72, y, C.B, 2.6));
+    BFYStudio.coil(sx,cx,cy,RCOIL*scale,half*scale,Math.min(13,Math.max(6,Math.round(P.N/22))));
     // sarımlar: üst sıra ⊙/⊗, alt sıra tersi
     const turns=Math.max(6,Math.min(13,Math.round(P.N/22)));
     for(let i=0;i<turns;i++){ const x=-half + (i+0.5)*(P.L/turns);
@@ -314,8 +305,9 @@
   }
 
   function draw(){
-    view(); sx.fillStyle='#fbfcfe'; sx.fillRect(0,0,W,H);
+    view(); BFYStudio.background(sx,W,H);
     if(P.src==='wire') drawWire(); else if(P.src==='loop') drawLoop(); else drawSolenoid();
+    sx.fillStyle=C.mut;sx.font='11px system-ui';sx.fillText(P.src==='wire'?'Alan çizgileri: tel çevresinde daireler':'Çizgiler şematik · Pusula alanı sayısal hesaplanır',12,H-12);
     drawCompass();
     MT.draw();
   }
@@ -334,17 +326,17 @@
       $('oDir').textContent = P.dir>0?'↺ saat yönü tersi':'↻ saat yönü';
       $('oForm').innerHTML='B = μ₀·I / (2π·r)';
     } else if(P.src==='loop'){
-      $('oRlab').textContent='Eksende konum x'; $('oR').textContent=comp.x.toFixed(1);
+      $('oRlab').textContent='Yatay konum x'; $('oR').textContent=comp.x.toFixed(1);
       $('rowCenter').style.display='flex'; $('oClab').textContent='Merkez alanı B₀'; $('oCenter').textContent=fmtB(centerMag());
       $('oDir').textContent = P.dir>0?'→ eksende sağa (N sağda)':'← eksende sola (N solda)';
       $('oForm').innerHTML='Merkez: B = μ₀·I / (2R)';
     } else {
-      $('oRlab').textContent='Eksende konum x'; $('oR').textContent=comp.x.toFixed(1);
-      $('rowCenter').style.display='flex'; $('oClab').textContent='İç alan (düzgün)'; $('oCenter').textContent=fmtB(centerMag());
+      $('oRlab').textContent='Yatay konum x'; $('oR').textContent=comp.x.toFixed(1);
+      $('rowCenter').style.display='flex'; $('oClab').textContent='Sonlu bobin merkez alanı'; $('oCenter').textContent=fmtB(centerMag());
       $('oDir').textContent = P.dir>0?'→ eksende sağa (N sağda)':'← eksende sola (N solda)';
-      $('oForm').innerHTML='İç: B = μ₀·n·I,  n = N/L';
+      $('oForm').innerHTML='Uzun bobin yaklaşımı: B ≈ μ₀·N·I/L';
     }
-    $('btnDir').textContent = P.dir>0? 'Akım yönü: ⊙ dışarı (bize doğru)' : 'Akım yönü: ⊗ içeri (bizden uzağa)';
+    $('btnDir').textContent=P.src==='wire'?(P.dir>0?'Akım: ⊙ bize doğru':'Akım: ⊗ bizden uzağa'):(P.dir>0?'Akımı ters çevir · N sağda':'Akımı ters çevir · N solda');
   }
   function render(){ draw(); update(); }
 
@@ -374,7 +366,7 @@
   function nearComp(px,py){ return Math.hypot(px-X(comp.x), py-Y(comp.y))<24; }
   function setComp(px,py){ let wx=sx2wx(px), wy=sy2wy(py);
     if(P.src==='wire'){ if(Math.hypot(wx,wy)<1.2){ const a=Math.atan2(wy,wx)||0; wx=1.2*Math.cos(a); wy=1.2*Math.sin(a);} comp={x:wx,y:wy}; }
-    else { comp={x:Math.max(-extent().ex+1,Math.min(extent().ex-1,wx)), y:0}; }
+    else { comp={x:Math.max(-extent().ex+1,Math.min(extent().ex-1,wx)), y:Math.max(-extent().ey+1,Math.min(extent().ey-1,wy))}; }
     render(); }
   function down(e){ const {px,py}=evt(e);
     if(MT.onDown(px,py)){ drag.kind='tool'; draw(); e.preventDefault(); return; }

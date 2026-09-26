@@ -100,8 +100,11 @@
 </style>
   <script defer src="analytics.js"></script>
 <link rel="stylesheet" href="lab-ui.css">
+<link rel="stylesheet" href="bfy-lab-studio.css?v=20260926">
+<script src="bfy-lab-physics.js?v=20260926"></script>
+<script src="bfy-lab-studio.js?v=20260926"></script>
 </head>
-<body>
+<body class="bfy-studio">
 
 <header class="topbar">
   <div class="nav">
@@ -333,16 +336,15 @@
 
   // ---- sahne ----
   function drawWave(fn,color,width){
-    sx.strokeStyle=color; sx.lineWidth=width; sx.beginPath();
-    const N=600;
-    for(let i=0;i<=N;i++){ const x=Lx*i/N; const X=w2sx(x), Y=w2sy(fn(x,t)); i?sx.lineTo(X,Y):sx.moveTo(X,Y); }
-    sx.stroke();
+    sx.save();sx.lineCap='round';sx.strokeStyle=color;sx.lineWidth=width;sx.beginPath();const N=500;
+    for(let i=0;i<=N;i++){const x=Lx*i/N,X=w2sx(x),Y=w2sy(fn(x,t));i?sx.lineTo(X,Y):sx.moveTo(X,Y);}
+    if(width>3){sx.shadowColor=color;sx.shadowBlur=9;}sx.stroke();sx.shadowBlur=0;
+    if(width>3){for(let i=0;i<=48;i++){const x=Lx*i/48,X=w2sx(x),Y=w2sy(fn(x,t));sx.fillStyle='#f6fbff';sx.strokeStyle=color;sx.lineWidth=1.5;sx.beginPath();sx.arc(X,Y,2.3,0,7);sx.fill();sx.stroke();}}sx.restore();
   }
   function drawScene(){
     computeView();
     const W=V.W,H=V.H;
-    const g=sx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#eef4f8'); g.addColorStop(1,'#f6f2ea');
-    sx.fillStyle=g; sx.fillRect(0,0,W,H);
+    BFYStudio.background(sx,W,H);
 
     // ızgara + eksen
     const stepX=niceStep(Lx);
@@ -354,7 +356,7 @@
     // bileşen dalgalar
     if(two && tog.comp){ drawWave(y1,'rgba(226,109,79,.40)',2); drawWave(y2,'rgba(45,125,210,.55)',2); }
     // toplam (ana) dalga
-    drawWave(yTot, two?C.ink:C.coral, 3.2);
+    drawWave(yTot, two?'#216a8b':'#c87838', 3.8);
 
     // etiketler λ, A (Dalga 1'e göre)
     if(tog.labels) drawLabels();
