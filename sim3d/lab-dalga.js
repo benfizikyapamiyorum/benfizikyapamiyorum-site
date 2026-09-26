@@ -1,5 +1,5 @@
 // BFY · 3B Dalga Leğeni — 2B dalga denkleminin GPU'da sayısal çözümü (FDTD)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
 
 const TY = .76, LEGH = .26;
 const L = .56;                               // su alanının kenarı (m)
@@ -229,6 +229,6 @@ function ui() {
 /* ---------- başlat ---------- */
 W.orbit.minR = .3; W.orbit.maxR = 4; W.orbit.minPh = .25;
 buildMask(); setSources(); setCam(); W.orbit.th = 1.3; W.orbit.r = 2.1; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
-setTimeout(() => { setCam(); W.orbit.auto = .035; }, 200);
+setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
 W.loadEnv('lab').then(() => { clearSim(); W.start(); });
 window.__bfyLab = { W, S, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); }, simAdvance(sec) { const n = Math.round(sec / DT); for (let i = 0; i < n; i++) simStep(); } };

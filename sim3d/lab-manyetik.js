@@ -1,7 +1,7 @@
 // BFY · 3B Manyetik Alan Laboratuvarı — Biot–Savart ile alan, demir tozu, pusulalar
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=3';
 
-const TY = .76, PY = TY + .12, FY = PY + .004;   // plaka üstü = alan düzlemi
+const TY = .76, PY = TY + .12, FY = PY + .005;   // plaka üstü = alan düzlemi
 const PL = .46;                                    // plaka kenarı
 const MU0 = 4 * Math.PI * 1e-7;
 const S = { src: 'wire', I: 10, dir: 1, N: 20, on: true, fil: true, comp: true, lines: false, flow: true, hand: false, earth: false, cam: 'orbit' };
@@ -28,7 +28,7 @@ const brass = new THREE.MeshStandardMaterial({ color: '#c9a04e', metalness: 1, r
 const plate = new THREE.Mesh(new THREE.BoxGeometry(PL, .006, PL), new THREE.MeshPhysicalMaterial({ color: '#f4fbff', transparent: true, opacity: .35, roughness: .05, envMapIntensity: 1.2 }));
 plate.position.set(0, PY, 0); scene.add(plate);
 const paperTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#f3f1ea'; g.fillRect(0, 0, w, h); const R = rng(3); for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(120,110,90,${R() * .05})`; g.fillRect(R() * w, R() * h, 1 + R() * 2, 1); } });
-const paper = new THREE.Mesh(new THREE.PlaneGeometry(PL * .96, PL * .96).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: paperTex, color: '#cfcabd', roughness: .95 })); paper.position.set(0, PY + .0032, 0); paper.receiveShadow = true; scene.add(paper);
+const paper = new THREE.Mesh(new THREE.PlaneGeometry(PL * .96, PL * .96).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: paperTex, color: '#cfcabd', roughness: .95 })); paper.position.set(0, PY + .0038, 0); paper.receiveShadow = true; scene.add(paper);
 for (const x of [-PL / 2 + .02, PL / 2 - .02]) for (const z of [-PL / 2 + .02, PL / 2 - .02]) { const l = new THREE.Mesh(new THREE.CylinderGeometry(.007, .007, PY - TY, 16), chrome); l.position.set(x, (PY + TY) / 2, z); l.castShadow = true; scene.add(l); }
 
 /* ---------- kaynaklar (görsel) ---------- */
@@ -240,7 +240,7 @@ $('i-n').addEventListener('input', e => { S.N = +e.target.value; $('o-n').textCo
 const tg = (id, k, after) => $(id).addEventListener('click', e => { S[k] = !S[k]; e.currentTarget.classList.toggle('on', S[k]); after && after(); });
 tg('tg-fil', 'fil', () => grains.visible = S.fil); tg('tg-comp', 'comp'); tg('tg-lines', 'lines', buildLines); tg('tg-flow', 'flow'); tg('tg-hand', 'hand'); tg('tg-earth', 'earth', () => toast(S.earth ? "Dünya'nın alanı (~30 µT) kuzeye doğru eklendi. Akımı kesince pusulalar kuzeyi gösterir." : "Dünya'nın alanı kaldırıldı."));
 const segCam = $('seg-cam'); segCam.querySelectorAll('button').forEach(b => b.onclick = () => { segCam.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); S.cam = b.dataset.cam; setCam(); });
-function setCam() { const o = W.orbit; o.auto = 0; if (S.cam === 'top') { o.target.set(0, FY, 0); o.r = .95; o.th = 0; o.ph = .02; } else { o.target.set(0, FY + .03, 0); o.r = 1.05; o.th = .45; o.ph = .92; } }
+function setCam() { const o = W.orbit; o.auto = 0; if (S.cam === 'top') { o.target.set(0, FY, 0); o.r = .95; o.th = 0; o.ph = .02; } else { o.target.set(0, FY + .04, 0); o.r = .88; o.th = .45; o.ph = .9; } }
 W.bindFullscreen($('btn-full'));
 
 /* ---------- döngü ---------- */
@@ -288,6 +288,6 @@ function ui() {
 /* ---------- başlat ---------- */
 W.orbit.minR = .25; W.orbit.maxR = 3.5; W.orbit.minPh = .02;
 sprinkle(); rebuild(false); setCam(); W.orbit.th = 1.4; W.orbit.r = 1.8; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
-setTimeout(() => { setCam(); W.orbit.auto = .03; }, 200);
+setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
 W.loadEnv('lab').then(() => W.start());
 window.__bfyLab = { W, S, rebuild, fieldAt, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

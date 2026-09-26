@@ -1,5 +1,5 @@
 // BFY · 3B Optik Laboratuvarı — renk karışımı + optik ray (mercek ve ayna)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
 
 const TY = .76;
 const S = { mode: 'color', cam: 'orbit', L: { r: { on: true, k: 1 }, g: { on: true, k: 1 }, b: { on: true, k: 1 } }, obj: 'post', beam: true, labels: true,
@@ -97,9 +97,19 @@ function colorTags() {
     if (!key) continue; key = ['r', 'g', 'b'].filter(c => key.includes(c)).join('');
     (bins[key] = bins[key] || [0, 0, 0]); bins[key][0] += x; bins[key][1] += y; bins[key][2]++;
   }
-  let ti = 0;
-  Object.entries(bins).sort((a, b) => b[1][2] - a[1][2]).forEach(([k, [sx, sy, n]]) => { if (n < 12 || ti >= 7) return; const el = tags[ti++];
-    W.tag(el, new THREE.Vector3(sx / n, sy / n + .012, SCR.z + .01), NAMES[k]); el.style.background = TAGCOL[k]; el.style.color = k === 'b' || k === 'r' ? '#fff' : '#111'; });
+  let ti = 0; const L = [];
+  const ents = Object.entries(bins).sort((a, b) => b[1][2] - a[1][2]).filter(([, v]) => v[2] >= 12).slice(0, 7);
+  // tüm ışığın merkezinden dışarı doğru it: tek renkler en dışta, ikili karışımlar ortada, beyaz merkezde
+  let cx = 0, cy = 0, cn = 0; ents.forEach(([, [sx, sy, n]]) => { cx += sx; cy += sy; cn += n; }); cx /= cn; cy /= cn;
+  ents.forEach(([k, [sx, sy, n]]) => { const el = tags[ti++]; const px = sx / n, py = sy / n, f = k.length === 1 ? 1.55 : k.length === 2 ? 1.2 : 1;
+    const s2 = W.toScreen(new THREE.Vector3(cx + (px - cx) * f, cy + (py - cy) * f + .012, SCR.z + .01)); if (!s2.ok) return;
+    el.style.display = 'block'; if (el._h !== NAMES[k]) { el.innerHTML = NAMES[k]; el._h = NAMES[k]; } el.style.background = TAGCOL[k]; el.style.color = k === 'b' || k === 'r' ? '#fff' : '#111';
+    L.push({ el, x: s2.x, y: s2.y, w: el.offsetWidth || 70, h: (el.offsetHeight || 24) + 6 }); });
+  // ekranda üst üste binen etiketleri birbirinden uzaklaştır
+  for (let it = 0; it < 40; it++) { let moved = false; for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) { const a = L[i], b = L[j];
+      const ox = (a.w + b.w) / 2 + 4 - Math.abs(a.x - b.x), oy = (a.h + b.h) / 2 - Math.abs(a.y - b.y); if (ox <= 0 || oy <= 0) continue; moved = true;
+      if (ox < oy) { const d = (a.x < b.x ? -1 : 1) * ox / 2; a.x += d; b.x -= d; } else { const d = (a.y < b.y ? -1 : 1) * oy / 2; a.y += d; b.y -= d; } } if (!moved) break; }
+  L.forEach(t => { t.el.style.left = t.x + 'px'; t.el.style.top = t.y + 'px'; });
 }
 
 /* =====================================================================
@@ -317,5 +327,5 @@ function benchUI(O) {
 /* ---------- başlat ---------- */
 W.orbit.minR = .3; W.orbit.maxR = 4; W.orbit.minPh = .3;
 setObj('post'); showElement(); updBenchLabels();
-W.loadEnv('lab').then(() => { setMode('color'); W.orbit.th = 1.3; W.orbit.r = 2.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target); setTimeout(() => { setCam(); W.orbit.auto = .03; }, 200); W.start(); });
+W.loadEnv('lab').then(() => { setMode('color'); W.orbit.th = 1.3; W.orbit.r = 2.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target); setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200); W.start(); });
 window.__bfyLab = { W, S, setMode, setObj, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

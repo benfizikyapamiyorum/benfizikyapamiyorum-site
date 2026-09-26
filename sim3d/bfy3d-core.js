@@ -57,13 +57,13 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); }
   catch (e) { const L = $('loading'); if (L) L.innerHTML = '<div style="max-width:420px;text-align:center;padding:20px">Tarayıcın 3B grafiği (WebGL) desteklemiyor. Chrome, Edge ya da Safari\'nin güncel sürümünü dene.</div>'; throw e; }
-  const DPR = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 1.75);
+  const DPR = Math.min(window.devicePixelRatio || 1, isMobile ? 1.75 : 2);
   renderer.setPixelRatio(DPR); renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(fov, 16 / 9, near, far);
-  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: new URLSearchParams(location.search).has('aa') ? +new URLSearchParams(location.search).get('aa') : (antialiasSamples ?? (isMobile ? 2 : 4)) }));
+  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: new URLSearchParams(location.search).has('aa') ? +new URLSearchParams(location.search).get('aa') : (antialiasSamples ?? 4) }));
   composer.addPass(new RenderPass(scene, camera));
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), bloom[0], bloom[1], bloom[2]);
   composer.addPass(bloomPass); composer.addPass(new OutputPass());
@@ -82,7 +82,9 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
   const W = { THREE, renderer, scene, camera, composer, bloomPass, hemi, sun, sunDir, pmrem, stage, canvas, DPR };
   W.tex = (path, srgb = true, rep) => { const t = texL.load(BASE + path); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = aniso; if (rep) t.repeat.set(rep[0], rep[1]); return t; };
   const gcache = {};
-  W.gltf = path => gcache[path] || (gcache[path] = new Promise((res, rej) => gltfL.load(BASE + path, g => res(g.scene), undefined, rej)));
+  const TEXKEYS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'clearcoatMap', 'clearcoatNormalMap', 'sheenColorMap', 'alphaMap'];
+  const sharpen = root => root.traverse(o => { if (!o.isMesh) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => TEXKEYS.forEach(k => { if (m[k]) { m[k].anisotropy = aniso; m[k].needsUpdate = true; } })); });
+  W.gltf = path => gcache[path] || (gcache[path] = new Promise((res, rej) => gltfL.load(BASE + path, g => { sharpen(g.scene); res(g.scene); }, undefined, rej)));
   W.loadEnv = key => new Promise(res => {
     const E = ENVS[key]; let pend = 2; const done = () => { if (--pend === 0) res(); };
     texL.load(BASE + E.bg, t => { t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; scene.background = t; done(); });
@@ -102,7 +104,7 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     camera.aspect = w / h; camera.updateProjectionMatrix(); W.onResize && W.onResize(w, h);
   }
   function applyQuality() {
-    Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.25) : 1; renderer.setPixelRatio(Q.dpr);
+    Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : 1; renderer.setPixelRatio(Q.dpr); bloomPass.enabled = Q.level > 0;
     const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
     if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
     renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; resize();
@@ -174,11 +176,18 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     if (!visible && !document.fullscreenElement && !stage.classList.contains('pseudo-full')) return;
     W.update && W.update(dt);
     stepParts(dt);
-    if (Q.level > 0) composer.render(dt); else renderer.render(scene, camera);
+    composer.render(dt);
     if (first) { first = false; const L = $('loading'); if (L) L.classList.add('off'); }
-    if (!Q.locked && Q.level > 0) { Q.warm += raw; if (Q.warm > 1.5) { Q.frames++; Q.acc += Math.min(raw, .5); if (Q.frames >= 90) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 45) { Q.level--; applyQuality(); if (!Q.level) Q.locked = true; } else Q.locked = true; } } }
+    // Uyarlanır kalite: yalnızca uzun süre gerçekten yavaşsa ve en fazla bir kademe düşer (keskinlik korunur)
+    if (!Q.locked && Q.level === 2) { Q.warm += raw; if (Q.warm > 6 && raw < .2) { Q.frames++; Q.acc += raw; if (Q.frames >= 240) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 28) { Q.level = 1; applyQuality(); } Q.locked = true; } } }
   }
-  W.start = () => { clock.getDelta(); requestAnimationFrame(tick); };
+  W.start = () => {
+    // Açılışta gölgelendiricileri önceden derle: ilk etkileşimde takılma olmasın
+    const warm = [W.smokeTex, W.dropTex].flatMap(t => [false, true].map(add => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, opacity: .001, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !add })); s.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)); scene.add(s); return s; }));
+    try { renderer.compile(scene, camera); } catch (e) { }
+    setTimeout(() => warm.forEach(s => { scene.remove(s); s.material.dispose(); }), 800);
+    clock.getDelta(); requestAnimationFrame(tick);
+  };
 
   W.bindFullscreen = btn => btn && btn.addEventListener('click', () => {
     if (document.fullscreenElement || stage.classList.contains('pseudo-full')) { if (document.fullscreenElement) document.exitFullscreen(); stage.classList.remove('pseudo-full'); return; }

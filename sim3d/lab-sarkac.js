@@ -1,5 +1,5 @@
 // BFY · 3B Enerji ve Sarkaç Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
 
 const TY = .76, TOPY = TY + 1.16, PIV = new THREE.Vector3(0, TOPY - .03, 0);
 const BRASS_RHO = 8500;
@@ -156,8 +156,8 @@ segs('seg-cam', b => { S.cam = b.dataset.cam; setCam(); });
 const tg = (id, k) => $(id).addEventListener('click', e => { S[k] = !S[k]; e.currentTarget.classList.toggle('on', S[k]); });
 tg('tg-tubes', 'tubes'); tg('tg-vec', 'vec'); tg('tg-force', 'force'); tg('tg-trail', 'trail');
 function setCam() { const o = W.orbit; o.auto = 0;
-  if (S.cam === 'front') { o.target.set(.12, TY + .62, 0); o.r = 2.1; o.th = 0; o.ph = 1.53; }
-  else if (S.cam === 'orbit') { o.target.set(.2, TY + .56, 0); o.r = 1.95; o.th = .3; o.ph = 1.38; } }
+  if (S.cam === 'front') { o.target.set(.12, TY + .62, 0); o.r = 2.6; o.th = 0; o.ph = 1.53; }
+  else if (S.cam === 'orbit') { o.target.set(.22, TY + .66, 0); o.r = 2.75; o.th = .3; o.ph = 1.43; } }
 W.bindFullscreen($('btn-full'));
 
 /* ---------- döngü ---------- */
@@ -205,6 +205,6 @@ function ui(e) {
 /* ---------- başlat ---------- */
 W.orbit.minR = .35; W.orbit.maxR = 5; W.orbit.minPh = .3;
 resetAll(); setCam(); W.orbit.th = 1.2; W.orbit.r = 3.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
-setTimeout(() => { setCam(); W.orbit.auto = .04; }, 200);
+setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
 W.loadEnv('lab').then(() => W.start());
 window.__bfyLab = { W, S, P1, P2, go, resetAll, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

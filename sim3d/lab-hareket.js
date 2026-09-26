@@ -1,5 +1,5 @@
 // BFY · 3B Hareket Grafikleri — rampada oyuncak araba, hareket sensörü, canlı x-t / v-t / a-t
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
 
 const G = 9.8, TY = .76, LT = 3.1, X_MIN = .12, X_MAX = 2.9, TMAX = 12;
 const XS = -1.5;                       // şerit sıfırının dünya x'i
@@ -318,7 +318,7 @@ function cameraDirector() {
   if (S.cam === 'orbit') return; const o = W.orbit; o.auto = 0;
   const k = CAR.A.on ? 'A' : 'B'; const L = lanes[k]; const both = CAR.A.on && CAR.B.on;
   const p = L.g.localToWorld(new THREE.Vector3(L.x, L.carY, 0));
-  if (S.cam === 'side') { let cx = p.x; if (both) cx = (p.x + lanes.B.g.localToWorld(new THREE.Vector3(lanes.B.x, 0, 0)).x) / 2; o.target.set(lerp(o.target.x, cx, .08), TY + .04, 0); o.r = (isMobile ? 1.35 : 1) * (both ? 1.4 : 1.25); o.th = .16; o.ph = 1.08; }
+  if (S.cam === 'side') { let cx = p.x; if (both) cx = (p.x + lanes.B.g.localToWorld(new THREE.Vector3(lanes.B.x, 0, 0)).x) / 2; o.target.set(lerp(o.target.x, cx + (both ? 0 : .28), .08), TY + .03, 0); o.r = (isMobile ? 1.3 : 1) * (both ? 1.15 : .82); o.th = .18; o.ph = 1.1; }
   else { const dir = Math.sign(L.v || CAR[k].v0 || 1); o.target.set(p.x + dir * .6, p.y + .05, L.z); o.r = .55; o.th = dir > 0 ? -1.35 : 1.35; o.ph = 1.28; }
 }
 function ui() {

@@ -1,5 +1,5 @@
 // BFY · 3B Vektör Laboratuvarı — akıntılı nehirde motorlu kayık, bileşke hız
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=3';
 
 const Z0 = 10, Z1 = -10, D = Z0 - Z1;       // kalkış ve varış çizgileri (m)
 const BANK = 13;                            // kıyı çizgisi |z|
@@ -253,7 +253,7 @@ function arrive() {
 }
 function cameraDirector() {
   if (S.cam === 'free') return; const o = W.orbit; const bp = new THREE.Vector3(S.x, .8, S.z);
-  if (S.cam === 'drone') { o.target.lerp(new THREE.Vector3(S.x * .6, 0, 0), .05); o.r = isMobile ? 40 : 31; o.th = lerp(o.th, -.45, .02); o.ph = .82; }
+  if (S.cam === 'drone') { o.target.lerp(new THREE.Vector3(S.x * .6, 0, 0), .05); o.r = isMobile ? 32 : 24; o.th = lerp(o.th, -.45, .02); o.ph = .82; }
   else if (S.cam === 'bank') { o.target.lerp(bp, .08); o.r = isMobile ? 24 : 19; o.th = lerp(o.th, -.7, .03); o.ph = 1.32; }
   else { const h = heading(); o.target.lerp(bp.clone().add(new THREE.Vector3(h.x, 0, h.z).multiplyScalar(6)), .15); o.r = isMobile ? 18 : 15; o.th = Math.atan2(-h.x, -h.z); o.ph = 1.08; }
 }

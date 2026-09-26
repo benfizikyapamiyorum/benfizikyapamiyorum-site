@@ -1,5 +1,5 @@
 // BFY · 3B Kaldırma Kuvveti Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=3';
 
 /* =====================================================================
    Sabitler ve cisimler (SI birimleri: m, kg, s)
@@ -82,14 +82,16 @@ const tank = new THREE.Group(); tank.position.set(TANK.x, TY, TANK.z); scene.add
 {
   const { w, d, h, glass: t, base } = TANK;
   const panel = (sx, sy, sz, x, y, z) => { const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), glassMat); m.position.set(x, y, z); m.renderOrder = 5; tank.add(m); return m; };
-  panel(w, h, t, 0, h / 2, d / 2 - t / 2); panel(w, h, t, 0, h / 2, -d / 2 + t / 2);
-  panel(t, h, d - 2 * t, w / 2 - t / 2, h / 2, 0); panel(t, h, d - 2 * t, -w / 2 + t / 2, h / 2, 0);
+  // cam paneller çerçevenin içinde biter: üst yüzeyleri çerçeveyle çakışıp titreşmesin
+  const gh = h - .004, gy = base + (gh - base) / 2, gH = gh - base;
+  panel(w - .002, gH, t, 0, gy, d / 2 - t / 2); panel(w - .002, gH, t, 0, gy, -d / 2 + t / 2);
+  panel(t, gH, d - 2 * t, w / 2 - t / 2, gy, 0); panel(t, gH, d - 2 * t, -w / 2 + t / 2, gy, 0);
   const bottom = new THREE.Mesh(new THREE.BoxGeometry(w, base, d), new THREE.MeshPhysicalMaterial({ color: '#cfe9e0', roughness: .1, transparent: true, opacity: .5 })); bottom.position.y = base / 2; bottom.receiveShadow = true; tank.add(bottom);
   // Yeşilimsi cam kenarları (gerçek camın kalın kenarı)
-  for (const [sx, sz, x, z] of [[t, t, w / 2 - t / 2, d / 2 - t / 2], [t, t, -w / 2 + t / 2, d / 2 - t / 2], [t, t, w / 2 - t / 2, -d / 2 + t / 2], [t, t, -w / 2 + t / 2, -d / 2 + t / 2]]) { const e = new THREE.Mesh(new THREE.BoxGeometry(sx * 1.4, h, sz * 1.4), edgeMat); e.position.set(x, h / 2, z); tank.add(e); }
+  for (const [sx, sz, x, z] of [[t, t, w / 2 - t / 2, d / 2 - t / 2], [t, t, -w / 2 + t / 2, d / 2 - t / 2], [t, t, w / 2 - t / 2, -d / 2 + t / 2], [t, t, -w / 2 + t / 2, -d / 2 + t / 2]]) { const e = new THREE.Mesh(new THREE.BoxGeometry(sx * 1.2, gH, sz * 1.2), edgeMat); e.position.set(x - Math.sign(x) * .0006, gy, z - Math.sign(z) * .0006); tank.add(e); }
   // Siyah plastik çerçeve (üst ve alt)
-  const trim = (y, hh) => { for (const [sx, sz, x, z] of [[w + .006, .012, 0, d / 2], [w + .006, .012, 0, -d / 2], [.012, d, w / 2, 0], [.012, d, -w / 2, 0]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(sx, hh, sz), trimMat); m.position.set(x, y, z); m.castShadow = true; tank.add(m); } };
-  trim(h - .007, .014); trim(.008, .016);
+  const trim = (y, hh) => { for (const [sx, sz, x, z] of [[w + .006, .0145, 0, d / 2], [w + .006, .0145, 0, -d / 2], [.0145, d - .0146, w / 2, 0], [.0145, d - .0146, -w / 2, 0]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(sx, hh, sz), trimMat); m.position.set(x, y, z); m.castShadow = true; tank.add(m); } };
+  trim(h - .0065, .014); trim(.008, .0165);
   // Cetvel çıkartması (ön camda, cm)
   const rt = canvasTex(64, 512, (g, W2, H2) => { g.clearRect(0, 0, W2, H2); g.fillStyle = 'rgba(255,255,255,.0)'; g.fillRect(0, 0, W2, H2);
     g.fillStyle = 'rgba(20,20,20,.9)'; g.font = '700 20px Arial'; for (let cm = 0; cm <= 30; cm++) { const y = H2 - (cm / 30) * H2 * .9375 - 8; const L = cm % 5 === 0 ? 30 : 16; g.fillRect(0, y, L, 2); if (cm % 5 === 0 && cm) g.fillText(cm, 34, y + 7); } });
@@ -450,6 +452,6 @@ W.update = dt => {
 W.orbit.minR = .25; W.orbit.maxR = 3; W.orbit.minPh = .25;
 setLiquid(LIQS[1]); select('egg'); setCam();
 W.orbit.th = 1.4; W.orbit.r = 1.6; W.orbit.ph = 1.05; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
-setTimeout(() => { setCam(); W.orbit.auto = .05; }, 200);
+setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
 W.loadEnv('lab').then(() => { W.start(); });
 window.__bfyLab = { W, S, items, OBJS, vsub, setMode, select, dropSelected, get waterY() { return waterY; }, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };
