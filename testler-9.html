@@ -522,7 +522,7 @@ let SORULAR=[],currentMode="mini",activeQuestions=[],currentIdx=0,answers=[],tim
 
 async function loadSorular(){
   try{
-    const resp=await fetch("sorular-9.json?v=20260928-editorial1");
+    const resp=await fetch("sorular-9.json?v=20260928-figures2");
     const allQ=await resp.json();
     // Görsel gereksinimi sözcük aramasından değil, soru kaydından okunur.
     SORULAR=allQ.filter(q => !q.broken && (!q.has_figure || Boolean(q.svg || q.image)));
@@ -617,12 +617,14 @@ function showScreen(name){
 function figureMarkup(q, scope){
   if(q.svg){
     const ids=[...q.svg.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
-    let svg=q.svg;
+    let svg=q.svg.replace(/<style[^>]*>\s*\*\{stroke-linejoin: round; stroke-linecap: butt\}\s*<\/style>/g, "");
     for(const id of ids){
       const unique=`${scope}-${id}`;
       svg=svg.split(`id="${id}"`).join(`id="${unique}"`)
         .split(`id='${id}'`).join(`id='${unique}'`)
-        .split(`url(#${id})`).join(`url(#${unique})`);
+        .split(`url(#${id})`).join(`url(#${unique})`)
+        .split(`href="#${id}"`).join(`href="#${unique}"`)
+        .split(`href='#${id}'`).join(`href='#${unique}'`);
     }
     return svg;
   }
