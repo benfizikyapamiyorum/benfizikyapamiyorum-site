@@ -5,7 +5,8 @@ export function solve({m1=2,m2=2,u1=4,u2=0,e=1,x1=-5,x2=5,width=1.8}={}){
   const momentum=m1*u1+m2*u2, energy=.5*(m1*u1*u1+m2*u2*u2);
   const v1=(momentum-m2*e*relative)/(m1+m2),v2=(momentum+m1*e*relative)/(m1+m2);
   const after=.5*(m1*v1*v1+m2*v2*v2);
-  const duration=Number.isFinite(impact)?impact+Math.max(1.5,Math.min(3,8/Math.max(Math.abs(v1),Math.abs(v2),1))):4;
+  // Keep the aftermath visible longer; collision time, velocities and conserved quantities stay unchanged.
+  const duration=Number.isFinite(impact)?impact+Math.max(3,Math.min(5,16/Math.max(Math.abs(v1),Math.abs(v2),1))):6;
   return {m1,m2,u1,u2,e,x1,x2,width,impact,v1,v2,momentum,energy,after,loss:Math.max(0,energy-after),duration};
 }
 export function sample(s,t){

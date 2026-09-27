@@ -157,6 +157,11 @@
             <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option>
           </select>
         </label>
+        <label class="tb" style="cursor:default;gap:8px;" for="experimentDuration">Deney süresi
+          <select id="experimentDuration" style="border:none;background:transparent;font-weight:700;font-family:inherit;cursor:pointer;">
+            <option value="10">10 s</option><option value="15" selected>15 s</option><option value="30">30 s</option>
+          </select>
+        </label>
         <button class="tb" id="btnFs">⛶ Tam ekran</button>
       </div>
 
@@ -190,7 +195,7 @@
       <div class="panel" style="margin-top:16px;">
         <h3>Anlık değerler</h3>
         <div class="readout">
-          <div class="r"><div class="k">Süre t</div><div class="v"><span id="oT">0.0</span> s</div></div>
+          <div class="r"><div class="k">Süre t</div><div class="v"><span id="oT">0.0</span> / <span id="oEnd">15</span> s</div></div>
           <div class="r"><div class="k">Konum x</div><div class="v"><span id="oX">0.0</span> m</div></div>
           <div class="r"><div class="k">Hız v</div><div class="v"><span id="oV">4.0</span> m/s</div></div>
           <div class="r"><div class="k">İvme a</div><div class="v"><span id="oA">2.0</span> m/s²</div></div>
@@ -257,7 +262,7 @@
   const stage=$('stage');
 
   const P = { x0:0, v0:4, a:2 };
-  const T = 10;                 // toplam süre (s)
+  let T = 15;                   // seçili deney süresi (s)
   const DT = 0.02;
   let path=null;                // {pts:[{t,x,v,a,d}], xmin,xmax,vmin,vmax}
   let playing=false, speed=1, raf=null, lastNow=0, simT=0;
@@ -376,7 +381,7 @@
     gx.beginPath(); gx.moveTo(cx,gy0); gx.lineTo(cx,gy0+gh); gx.stroke(); gx.setLineDash([]);
     const cur=at(simT); gx.fillStyle=color; gx.beginPath(); gx.arc(X(simT),Y(val(cur)),4,0,7); gx.fill();
     // t ekseni etiketi
-    gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace'; gx.fillText('t (s)', gx0+gw-30, gy0+gh+14);
+    gx.fillStyle=C.muted; gx.font='10px ui-monospace, monospace'; gx.fillText('0',gx0,gy0+gh+14); gx.fillText(T+' s', gx0+gw-28, gy0+gh+14);
   }
   function drawGraph(){
     fit(graph,gx); const W=graph.clientWidth, H=graph.clientHeight;
@@ -395,7 +400,7 @@
   }
   function updateReadout(){
     const cur=at(simT);
-    $('oT').textContent=simT.toFixed(1); $('oX').textContent=cur.x.toFixed(1);
+    $('oT').textContent=simT.toFixed(1); $('oEnd').textContent=T; $('oX').textContent=cur.x.toFixed(1);
     $('oV').textContent=cur.v.toFixed(1); $('oA').textContent=P.a.toFixed(1);
     $('oDisp').textContent=(cur.x-P.x0).toFixed(1); $('oDist').textContent=cur.d.toFixed(1);
     $('oAreaV').textContent=(cur.x-P.x0).toFixed(1);
@@ -435,6 +440,7 @@
   $('btnStep').addEventListener('click',step);
   $('btnReset').addEventListener('click',reset);
   $('speed').addEventListener('change',e=>{ speed=+e.target.value; });
+  $('experimentDuration').addEventListener('change',e=>{ T=+e.target.value; reset(); });
   $('btnFs').addEventListener('click',()=>{ const lg=document.querySelector('.lab-grid'); const on=lg.classList.toggle('maximized'); document.body.style.overflow=on?'hidden':''; $('btnFs').textContent=on?'✕ Kapat':'⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); });
   window.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const lg=document.querySelector('.lab-grid'); if(lg&&lg.classList.contains('maximized')){ lg.classList.remove('maximized'); document.body.style.overflow=''; $('btnFs').textContent='⛶ Tam ekran'; window.dispatchEvent(new Event('resize')); } } });
 

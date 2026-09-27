@@ -188,10 +188,16 @@
         <button class="tb" id="btnStep">⏭ Adım</button>
         <button class="tb" id="btnReset">↺ Sıfırla</button>
         <div class="tb-sep"></div>
+        <label class="tb" style="cursor:default;gap:8px;" for="playbackSpeed">Oynatma hızı
+          <select id="playbackSpeed" style="border:none;background:transparent;font-weight:700;font-family:inherit;cursor:pointer;" aria-describedby="playbackNote">
+            <option value="0.25">0,25×</option><option value="0.5">0,5×</option><option value="0.75" selected>0,75×</option><option value="1">1× · Normal</option>
+          </select>
+        </label>
         <button class="tb" id="btnClear">🧹 İzleri temizle</button>
         <button class="tb" id="btnFs">⛶ Tam ekran</button>
       </div>
 
+      <p id="playbackNote" class="hint" style="margin:8px 0 12px;">Daha rahat incelemek için 0,75× hızla başlar. Deney saati fiziksel uçuş süresini gösterir.</p>
       <div class="toggles">
         <button class="tb" id="tgCompare">⚖️ Karşılaştır (A/B)</button>
         <button class="tb on" id="tgVec">➶ Hız vektörü</button>
@@ -390,7 +396,7 @@
   let path = null;        // Atış A {pts, max, stats}
   let pathB = null;       // Atış B
   let ghosts = [];        // [{pts,color}]
-  let anim = { mode:'idle', simT:0, speed:1, raf:null, last:0 };
+  let anim = { mode:'idle', simT:0, speed:0.75, raf:null, last:0 };
   const palette = ['#e26d4f','#2d7dd2','#d4a017','#7a8a3a','#9b59b6','#127a6b'];
   let ghostColor = 0;
 
@@ -683,6 +689,8 @@
     $('cmpHA').textContent=a.stats.apex.toFixed(1)+' m';  $('cmpHB').textContent=b.stats.apex.toFixed(1)+' m';
     $('cmpFA').textContent=a.stats.flight.toFixed(2)+' s'; $('cmpFB').textContent=b.stats.flight.toFixed(2)+' s';
   }
+
+  $('playbackSpeed').addEventListener('change',e=>{ anim.speed=+e.target.value; });
 
   // ---------- Recompute (idle) ----------
   function refresh(){

@@ -1,4 +1,4 @@
-import {solve,sample} from './bfy-collision-physics.mjs';
+import {solve,sample} from './bfy-collision-physics.mjs?v=20260927-duration';
 const $=id=>document.getElementById(id), fmt=(n,d=2)=>n.toFixed(d).replace('.',','), signed=n=>(n>0?'+':'')+fmt(n);
 const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let model,t=0,playing=false,cinematic=!reduced,last=0,renderScene,resizeScene,recorder=null,videoURL=null,recordCanvas=null,recordContext=null,recordStream=null;
