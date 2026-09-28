@@ -26,6 +26,8 @@
   .stage-wrap{position:relative;width:100%;max-width:880px;margin:0 auto;border-radius:18px;overflow:hidden;
     box-shadow:0 24px 70px rgba(10,16,48,.45);border:1px solid rgba(255,255,255,.08);background:#070b22;}
   canvas#game{display:block;width:100%;height:auto;touch-action:none;}
+  #g3d{touch-action:none;}
+  #stage.stage-fs #g3d, #stage:fullscreen #g3d{position:fixed!important;inset:0;width:100vw!important;height:100vh!important}
   /* HUD */
   .hud{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;justify-content:space-between;
     padding:12px 14px;pointer-events:none;font-family:'Helvetica Neue',Arial,sans-serif;color:var(--ink)}
@@ -60,7 +62,8 @@
     user-select:none;-webkit-user-select:none;backdrop-filter:blur(4px)}
   .tbtn:active{background:rgba(242,198,106,.35)}
   .tbtn.thrust{width:80px;height:80px;font-size:30px}
-  .topbtns{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:8px}
+  .topbtns{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:6;display:flex;gap:8px}
+  .hud .panel span:not(.big){display:block}
   .mini{pointer-events:auto;cursor:pointer;background:rgba(8,12,34,.55);border:1px solid rgba(255,255,255,.15);
     color:#cdd6ea;border-radius:10px;padding:6px 12px;font-size:12px;font-weight:700}
   .hint{text-align:center;color:#7c7a86;font-size:13px;margin:12px auto;max-width:620px;line-height:1.6}
@@ -86,6 +89,7 @@
     .topbtns .mini{padding:5px 8px;font-size:11px}
     .tbtn{width:56px;height:56px;font-size:21px} .tbtn.thrust{width:70px;height:70px}
   }
+  #stage:has(.ovl:not(.hidden)) .topbtns{display:none}
 </style>
 <!-- Firebase: global skor tablosu -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -109,6 +113,7 @@
   } catch (e) { console.warn('Firebase baslatilamadi:', e); }
 </script>
   <script defer src="analytics.js"></script>
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
 </head>
 <body>
 
@@ -146,14 +151,16 @@
 
       <div class="hud" id="hud">
         <div class="panel"><b>Gezegen</b><span class="big" id="hPlanet">Ay</span><span id="hG">g = 1.6 m/s²</span></div>
-        <div class="panel"><b>Dikey hız</b><span class="big" id="hVy">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 55</span></div>
-        <div class="panel"><b>Yatay hız</b><span class="big" id="hVx">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 35</span></div>
+        <div class="panel"><b>Dikey hız</b><span class="big" id="hVy">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 7,9 m/s</span></div>
+        <div class="panel"><b>Yatay hız</b><span class="big" id="hVx">0</span><span style="font-size:11px;color:#9fb0d8">güvenli &lt; 5,0 m/s</span></div>
+        <div class="panel"><b>Yükseklik</b><span class="big" id="hAlt">0 m</span><span style="font-size:11px;color:#9fb0d8">pistten</span></div>
         <div class="panel"><b>Yakıt</b><span class="big" id="hFuel">100%</span><div class="fuel-bar"><div class="fuel-fill" id="fuelFill"></div></div></div>
       </div>
 
       <div class="topbtns">
         <button class="mini" id="btnFs">⛶ Tam ekran</button>
         <button class="mini" id="btnSound">🔊 Ses</button>
+        <button class="mini" id="btnForce">➶ Kuvvetler</button>
         <button class="mini" id="btnMenu">↺ Menü</button>
       </div>
 
@@ -178,6 +185,7 @@
         </div>
         <div id="startStats" style="margin:4px 0 2px;font-size:14px;color:#cdd6ea"></div>
         <div class="planets" id="planetPicker"></div>
+        <div id="planetInfo" style="max-width:440px;margin:-6px auto 8px;font-size:13.5px;color:#e8dcb8;line-height:1.5;min-height:40px"></div>
         <button class="btn-play" id="btnStart">Başlat</button>
         <div style="width:100%;max-width:340px;margin:14px auto 0;text-align:left">
           <div style="font-size:13px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;text-align:center">🏆 En Yüksek Skorlar</div>
@@ -251,12 +259,22 @@
     {name:'Mars', g:3.7, sky:['#2a1208','#3a1a10'], ground:'#b5562e', accent:'#e8916a'},
     {name:'Dünya', g:9.8, sky:['#071a3a','#0d2b54'], ground:'#3b7d4f', accent:'#7fd0a0'},
     {name:'Jüpiter', g:24.8, sky:['#2a1a06','#3c2a10'], ground:'#caa46a', accent:'#f0d49a'},
+    {name:'Titan', g:1.35, drag:.0094, sky:['#3a2410','#6a4420'], ground:'#6f5a44', accent:'#ffd27a'},
   ];
+  // gezegen bilgi kartları (başlangıç ekranında gösterilir)
+  const INFO={
+    'Ay':"Hava yok, g Dünya'nınkinin altıda biri. Motoru kapatınca hiçbir şey seni frenlemez.",
+    'Mars':"g ≈ 3,7 m/s². Havası çok ince (Dünya'nın ~%1'i), paraşüt neredeyse işe yaramaz.",
+    'Dünya':"g = 9,8 m/s². Roket hızla ivmelenir; itkiyi erken ve kararlı kullan.",
+    'Jüpiter':"Katı yüzeyi yok! Bulutların üstünde yüzen bir istasyona iniyorsun. g ≈ 24,8 m/s², en zoru.",
+    'Titan':"Satürn'ün uydusu. Havası Dünya'nınkinden 4 kat yoğun: hava direnci düşüşü frenler, limit hıza ulaşırsın.",
+  };
   const SCALE=7;            // m/s² -> px/s²
   const THRUST=255, SIDE=115, ROT=0;
   const SAFE_VY=55, SAFE_VX=35;
+  let showForces=true;
   const FUEL_MAIN=20, FUEL_SIDE=11; // birim/sn
-  let planet=PLANETS[0], done=[false,false,false,false];
+  let planet=PLANETS[0], done=[false,false,false,false,false];
   let state='start';        // start, play, end
   // ---- puan / rekor / rozet (ödül) sistemi ----
   const RANKS=[[0,'Çırak Pilot'],[500,'Pilot'],[1500,'Kıdemli Pilot'],[3500,'Uzman Pilot'],[7000,'Usta Pilot'],[12000,'Efsane Pilot 🏆']];
@@ -270,6 +288,8 @@
     {id:'fuel',icon:'⛽',name:'Yakıt Cimrisi'},
     {id:'all',icon:'🏆',name:'Gezegen Fatihi'},
     {id:'quiz',icon:'🧠',name:'Bilgili Pilot'},
+    {id:'titan',icon:'🟠',name:"Titan'a İniş"},
+    {id:'terminal',icon:'🪂',name:'Limit Hız Ustası'},
   ];
   let stats={best:0,total:0,badges:[],planets:[]};
   function loadStats(){ try{ const s=JSON.parse(localStorage.getItem('bfy_roket_v1')); if(s){ stats.best=s.best||0; stats.total=s.total||0; stats.badges=s.badges||[]; stats.planets=s.planets||[]; } }catch(e){} }
@@ -306,7 +326,7 @@
   function reset(){
     pad={x: 120+Math.random()*(W-340), w:160};
     rocket={x:W/2, y:90, vx:(Math.random()*40-20), vy:0, angle:0, fuel:100, alive:true};
-    particles=[]; shake=0; state='play';
+    particles=[]; shake=0; state='play'; if(window.BFY_GAME&&BFY_GAME.on) BFY_GAME.on('reset');
     document.getElementById('ovlStart').classList.add('hidden');
     document.getElementById('ovlEnd').classList.add('hidden');
     document.getElementById('bonusBox').style.display='none';
@@ -324,13 +344,13 @@
       particles.push({x,y,vx:Math.cos(a)*(120+Math.random()*120),vy:Math.sin(a)*(120+Math.random()*120),
         life:0.5+Math.random()*0.4,age:0,r:2+Math.random()*3,col:col||['#ffd36a','#ff8a3c','#ff5a2c'][Math.floor(Math.random()*3)]}); }
   }
-  function explode(x,y){
+  function explode(x,y){ if(window.BFY_GAME&&BFY_GAME.on) BFY_GAME.on('explode');
     for(let i=0;i<70;i++){ const a=Math.random()*6.28, sp=60+Math.random()*320;
       particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:0.6+Math.random()*0.8,age:0,r:2+Math.random()*4,
         col:['#ffd36a','#ff8a3c','#ff4d3c','#9a9aa8','#6b6b6b'][Math.floor(Math.random()*5)]}); }
     shake=22;
   }
-  function sparkle(x,y){ for(let i=0;i<40;i++){ const a=Math.random()*6.28, sp=40+Math.random()*160;
+  function sparkle(x,y){ if(window.BFY_GAME&&BFY_GAME.on) BFY_GAME.on('land'); for(let i=0;i<40;i++){ const a=Math.random()*6.28, sp=40+Math.random()*160;
       particles.push({x,y,vx:Math.cos(a)*sp,vy:-Math.abs(Math.sin(a)*sp)-40,life:0.7+Math.random()*0.6,age:0,r:1.5+Math.random()*2.5,col:['#f2c66a','#46d39a','#ffffff'][Math.floor(Math.random()*3)]}); } }
 
   // ---- input ----
@@ -367,6 +387,7 @@
     // tilt visual toward horizontal motion / steering
     const targetAngle=(keys.right?-0.22:0)+(keys.left?0.22:0)+Math.max(-0.3,Math.min(0.3,r.vx/400));
     r.angle+=(targetAngle-r.angle)*Math.min(1,dt*6);
+    if(planet.drag){ const sp=Math.hypot(r.vx,r.vy); ax-=planet.drag*r.vx*sp/SCALE; ay-=planet.drag*r.vy*sp/SCALE; }
     r.vx+=ax*dt; r.vy+=ay*dt;
     r.x+=r.vx*dt; r.y+=r.vy*dt;
     if(r.x<18){r.x=18;r.vx*=-0.4;} if(r.x>W-18){r.x=W-18;r.vx*=-0.4;}
@@ -395,7 +416,7 @@
       const idx=PLANETS.indexOf(planet); done[idx]=true;
       const vy=Math.abs(r.vy), vx=Math.abs(r.vx);
       // --- puan ---
-      const mult=[1,1.5,2.5,4][idx];
+      const mult=[1,1.5,2.5,4,1.2][idx];
       const soft=Math.round(Math.max(0,(SAFE_VY-vy)/SAFE_VY*100)+Math.max(0,(SAFE_VX-vx)/SAFE_VX*60));
       const fuelB=Math.round(r.fuel*2);
       const center=Math.abs(r.x-(pad.x+pad.w/2)); const acc=Math.round(Math.max(0,(pad.w/2-center)/(pad.w/2))*80);
@@ -407,8 +428,9 @@
       let news=[];
       function give(id){ if(!stats.badges.includes(id)){ stats.badges.push(id); const b=BADGES.find(x=>x.id===id); news.push(b.icon+' '+b.name); } }
       if(!stats.planets.includes(idx)) stats.planets.push(idx);
-      give(['ay','mars','dunya','jupiter'][idx]);
-      if(stats.planets.length>=4) give('all');
+      give(['ay','mars','dunya','jupiter','titan'][idx]);
+      if([0,1,2,3].every(i=>stats.planets.includes(i))) give('all');
+      if(planet.drag && r.fuel>85) give('terminal');
       if(acc>=72) give('bullseye');
       if(vy<12) give('feather');
       if(r.fuel>70) give('fuel');
@@ -436,7 +458,7 @@
       const vyM=(Math.abs(r.vy)/SCALE).toFixed(1), vxM=(Math.abs(r.vx)/SCALE).toFixed(1);
       const limY=(SAFE_VY/SCALE).toFixed(1), limX=(SAFE_VX/SCALE).toFixed(1);
       let why = (r.x<pad.x||r.x>pad.x+pad.w)?'Piste isabet etmedin.':(Math.abs(r.vy)>=SAFE_VY?'Çok hızlı indin: dikey hızın '+vyM+' m/s (güvenli sınır '+limY+').':(Math.abs(r.vx)>=SAFE_VX?'Yana kayıyordun: yatay hızın '+vxM+' m/s (sınır '+limX+').':'Roket çok eğikti.'));
-      document.getElementById('endMsg').textContent=why+' 💡 Bu gezegende g = '+planet.g+' m/s² — alçalırken erken ve kısa itkiler, az yakıtla hızı sınırın altına çeker.';
+      document.getElementById('endMsg').textContent=why+(planet.drag?' 💡 Titan\'da hava direnci düşüşü frenler: motoru kapalı bıraksan bile hız bir limit değerde sabitlenir. Limit hızı güvenli sınırın altına indirmek için kısa itkiler yeter.':' 💡 Bu gezegende g = '+planet.g+' m/s² — alçalırken erken ve kısa itkiler, az yakıtla hızı sınırın altına çeker.');
       document.getElementById('endStat').innerHTML='<div style="font-size:14px">🏅 Rekor: <b>'+stats.best+'</b> · Σ Toplam: <b>'+stats.total+'</b> · Rütbe: <b>'+rankFor(stats.total)+'</b></div>'+badgeShelf()
         +'<div style="margin-top:10px;font-size:13.5px"><a href="enerji-sarkac-laboratuvari.html" style="color:#46d39a;font-weight:800;text-decoration:none">🔬 Gezegenlerde g\'yi labda dene</a> &nbsp;·&nbsp; <a href="testler.html" style="color:#36c6ff;font-weight:800;text-decoration:none">📝 Konu testi</a></div>';
     }
@@ -477,7 +499,18 @@
     ctx.beginPath(); ctx.moveTo(11,12); ctx.lineTo(18,24); ctx.lineTo(11,22); ctx.fill();
     ctx.restore();
   }
-  function render(){
+  function hud(){
+    if(!rocket) return;
+    const vy=Math.abs(rocket.vy)/SCALE, vx=Math.abs(rocket.vx)/SCALE;
+    const eVy=document.getElementById('hVy'), eVx=document.getElementById('hVx');
+    eVy.textContent=vy.toFixed(1).replace('.',',')+' m/s'; eVy.style.color=Math.abs(rocket.vy)<SAFE_VY?'var(--good)':'var(--bad)';
+    eVx.textContent=vx.toFixed(1).replace('.',',')+' m/s'; eVx.style.color=Math.abs(rocket.vx)<SAFE_VX?'var(--good)':'var(--bad)';
+    const alt=Math.max(0,(H-70-(rocket.y+30))/SCALE); const eA=document.getElementById('hAlt'); if(eA) eA.textContent=alt.toFixed(1).replace('.',',')+' m';
+    document.getElementById('hFuel').textContent=rocket.fuel.toFixed(0)+'%';
+    document.getElementById('fuelFill').style.width=rocket.fuel+'%';
+  }
+  function render(dt){
+    if(window.BFY_R3D && BFY_R3D.ready){ try{ BFY_R3D.frame(dt||0.016); }catch(e){ console.warn(e); BFY_R3D.ready=false; cv.style.visibility='visible'; } hud(); return; }
     ctx.save();
     if(shake>0){ ctx.translate((Math.random()-0.5)*shake,(Math.random()-0.5)*shake); }
     // sky
@@ -496,17 +529,11 @@
     ctx.globalAlpha=1;
     if(rocket && rocket.alive) drawRocket();
     ctx.restore();
-    // HUD update
-    if(rocket){
-      const vy=Math.abs(rocket.vy), vx=Math.abs(rocket.vx);
-      const eVy=document.getElementById('hVy'), eVx=document.getElementById('hVx');
-      eVy.textContent=vy.toFixed(0); eVy.style.color=vy<SAFE_VY?'var(--good)':'var(--bad)';
-      eVx.textContent=vx.toFixed(0); eVx.style.color=vx<SAFE_VX?'var(--good)':'var(--bad)';
-      document.getElementById('hFuel').textContent=rocket.fuel.toFixed(0)+'%';
-      document.getElementById('fuelFill').style.width=rocket.fuel+'%';
-    }
+    hud();
   }
-  function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(); requestAnimationFrame(loop); }
+  window.BFY_GAME={ W, H, SCALE, THRUST, canvas:cv, get rocket(){return rocket;}, get pad(){return pad;}, get planet(){return planet;}, get state(){return state;}, get keys(){return keys;}, get forces(){return showForces;},
+    dragAcc(){ if(!planet.drag||!rocket) return 0; const sp=Math.hypot(rocket.vx,rocket.vy); return -planet.drag*rocket.vy*sp/SCALE/SCALE; } };
+  function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(dt); requestAnimationFrame(loop); }
   requestAnimationFrame(loop);
 
   // ---- UI ----
@@ -515,6 +542,7 @@
     PLANETS.forEach((p,i)=>{ const got=stats.planets.includes(i); const b=document.createElement('div'); b.className='planet-btn'+(p===planet?' sel':'')+(got?' done':'');
       b.innerHTML=p.name+'<span class="g">g='+p.g+(got?' ✓':'')+'</span>';
       b.onclick=()=>{ planet=p; buildPicker(); syncPlanetHud(); }; pp.appendChild(b); });
+    const inf=document.getElementById('planetInfo'); if(inf) inf.textContent=INFO[planet.name]||'';
     updateStartStats();
   }
   buildPicker(); syncPlanetHud();
@@ -523,6 +551,7 @@
   document.getElementById('btnAgain').onclick=()=>reset();
   document.getElementById('btnPick').onclick=()=>{ state='start'; document.getElementById('ovlEnd').classList.add('hidden'); buildPicker(); document.getElementById('ovlStart').classList.remove('hidden'); };
   document.getElementById('btnMenu').onclick=()=>{ state='start'; thrustSound(false); buildPicker(); document.getElementById('ovlEnd').classList.add('hidden'); document.getElementById('ovlStart').classList.remove('hidden'); };
+  document.getElementById('btnForce').onclick=function(){ showForces=!showForces; this.textContent=showForces?'➶ Kuvvetler':'➶ Kuvvetler (kapalı)'; };
   document.getElementById('btnSound').onclick=function(){ soundOn=!soundOn; this.textContent=soundOn?'🔊 Ses':'🔇 Ses'; if(!soundOn)thrustSound(false); };
   // ---- tam ekran ----
   const stage=document.getElementById('stage');
@@ -556,7 +585,17 @@
     {q:"Atmosferi olan gezegende düşen cismin hızı neden bir süre sonra sabitlenir (limit hız)?",opts:["Hava direnci ağırlığa eşitlenip net kuvvet sıfırlandığı için","Yerçekimi kaybolduğu için","Kütle azaldığı için","Cisim yukarı çıktığı için"],a:0,exp:"Hız arttıkça hava direnci büyür; ağırlığa eşit olunca net kuvvet sıfırlanır, hız sabitlenir."},
     {q:"Güvenli iniş için roketin yatay hızını da küçük tutmak neden gerekir?",opts:["Pistten kaymadan dik inmek için","Yakıt üretmek için","Yerçekimini artırmak için","Ses çıkarmamak için"],a:0,exp:"Yatay hız büyükse roket pistten kayar; güvenli iniş için hem dikey hem yatay hız küçük olmalı."},
     {q:"Jüpiter'de g, Dünya'nınkinin ~2,5 katıdır. Serbest düşen cismi nasıl etkiler?",opts:["Daha hızlı ivmelenir","Daha yavaş ivmelenir","Etkilemez","Havada durur"],a:0,exp:"g büyük → ivme büyük → her saniye daha çok hızlanır. Bu yüzden Jüpiter'e inmek zordur."},
-    {q:"SI birim sisteminde kuvvetin birimi nedir?",opts:["Newton (N)","Joule (J)","Watt (W)","Pascal (Pa)"],a:0,exp:"Kuvvet birimi Newton'dur: 1 N = 1 kg·m/s²."}
+    {q:"SI birim sisteminde kuvvetin birimi nedir?",opts:["Newton (N)","Joule (J)","Watt (W)","Pascal (Pa)"],a:0,exp:"Kuvvet birimi Newton'dur: 1 N = 1 kg·m/s²."},
+    {q:"Titan'da motoru kapalı bırakınca roketin hızı neden sonsuza kadar artmaz?",opts:["Hava direnci hızla birlikte artar, ağırlığa eşitlenince net kuvvet sıfır olur","Titan'da yerçekimi yoktur","Roketin kütlesi azalır","Yakıt kendiliğinden yanar"],a:0,exp:"Yoğun atmosferde direnç kuvveti hızla büyür. Ağırlığa eşit olduğu anda ivme sıfırlanır: bu hıza limit hız denir."},
+    {q:"Roket motoru çalışırken roket yukarı doğru sabit hızla iniyorsa (yavaşlamıyor, hızlanmıyor) itki kuvveti için ne söylenebilir?",opts:["İtki, ağırlığa eşittir","İtki, ağırlıktan büyüktür","İtki sıfırdır","İtki, ağırlığın yarısıdır"],a:0,exp:"Sabit hız → ivme sıfır → net kuvvet sıfır. Yukarı itki ile aşağı ağırlık birbirini dengeler."},
+    {q:"Aşağı doğru inen roketi yavaşlatmak için net kuvvetin yönü ne olmalıdır?",opts:["Yukarı","Aşağı","Yatay","Sıfır"],a:0,exp:"Yavaşlamak, hareketin tersi yönünde ivme demektir. İnerken yavaşlamak için net kuvvet yukarı olmalı: itki > ağırlık."},
+    {q:"Kütlesi 1000 kg olan bir roketin Mars'taki ağırlığı yaklaşık kaç N'dur? (g ≈ 3,7 m/s²)",opts:["3700 N","1000 N","9800 N","370 N"],a:0,exp:"G = m·g = 1000 · 3,7 = 3700 N."},
+    {q:"Ay'da yumuşak iniş için neden paraşüt kullanılamaz?",opts:["Ay'da hava olmadığı için direnç oluşmaz","Ay'da yerçekimi çok büyük olduğu için","Paraşüt Ay'da donar","Ay yüzeyi çok yumuşak olduğu için"],a:0,exp:"Paraşüt hava direnciyle çalışır. Havası olmayan Ay'da direnç yoktur; frenleme yalnızca roket itkisiyle yapılabilir."},
+    {q:"Jüpiter'e 'inmek' neden aslında mümkün değildir?",opts:["Jüpiter bir gaz devidir, katı bir yüzeyi yoktur","Jüpiter çok soğuktur","Jüpiter'de yerçekimi yoktur","Jüpiter Güneş'e çok yakındır"],a:0,exp:"Jüpiter büyük oranda hidrojen ve helyumdan oluşur; basamak basamak yoğunlaşan gaz katmanlarından ibarettir. Oyunda bulutların üstünde yüzen bir istasyona iniyorsun."},
+    {q:"Serbest düşen bir cismin hızı her saniye ne kadar artar? (Dünya, hava direnci yok)",opts:["Yaklaşık 9,8 m/s","9,8 m","Hiç artmaz","1 m/s"],a:0,exp:"İvme 9,8 m/s² demek, hızın her saniye 9,8 m/s artması demektir."},
+    {q:"Yatay itki (◀ ▶) kullanmak roketin dikey hızını doğrudan değiştirir mi?",opts:["Hayır; yatay ve dikey hareket birbirinden bağımsızdır","Evet, dikey hızı iki katına çıkarır","Evet, roketi durdurur","Yalnızca Jüpiter'de değiştirir"],a:0,exp:"Dik doğrultulardaki hareketler bağımsızdır: yatay kuvvet yalnızca yatay hızı değiştirir."},
+    {q:"Roketin yakıtı azaldıkça kütlesi azalır. Aynı itki kuvvetiyle ivmesi nasıl değişir?",opts:["Artar","Azalır","Değişmez","Sıfır olur"],a:0,exp:"a = F / m. Kuvvet aynıyken kütle azalırsa ivme artar. Gerçek roketler yakıt yandıkça daha kolay hızlanır."},
+    {q:"Titan'ın havası çok yoğun ama g küçük. Limit hız neye bağlıdır?",opts:["Ağırlık ile hava direncinin eşitlendiği hıza","Yalnızca yakıt miktarına","Roketin rengine","Gezegenin Güneş'e uzaklığına"],a:0,exp:"Limit hızda m·g = direnç kuvveti olur. Havası yoğun ve g'si küçük Titan'da limit hız düşüktür; bu yüzden Titan'a inmek görece kolaydır."}
   ];
   let bonusUsed=false;
   function renderBonus(){
@@ -680,5 +719,6 @@
   document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
+<script type="module" src="oyun3d/roket3d.js?v=1"></script>
 </body>
 </html>

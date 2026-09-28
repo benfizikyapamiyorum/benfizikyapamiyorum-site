@@ -26,6 +26,10 @@
   .stage-wrap{position:relative;width:100%;max-width:880px;margin:0 auto;border-radius:18px;overflow:hidden;
     box-shadow:0 24px 70px rgba(20,40,80,.35);border:1px solid rgba(255,255,255,.5);background:#bfe8ff;}
   canvas#game{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair;}
+  #stage.r3d{aspect-ratio:880/620}
+  #stage.r3d canvas#game{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;z-index:2}
+  #stage.r3d.stage-fs, #stage.r3d:fullscreen{aspect-ratio:auto}
+  #stage.r3d .hud{z-index:3}
   .hud{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;justify-content:space-between;
     padding:12px 14px;pointer-events:none;font-family:'Helvetica Neue',Arial,sans-serif;color:#10233a}
   .hud .panel{background:rgba(255,255,255,.72);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.8);
@@ -61,6 +65,7 @@
     .hud{padding:8px 8px;gap:5px} .hud .panel{min-width:0;padding:5px 7px;font-size:10px;border-radius:9px}
     .hud .big{font-size:13px} .topbtns{top:54px} .topbtns .mini{padding:5px 8px;font-size:11px}
   }
+  #stage:has(.ovl:not(.hidden)) .topbtns{display:none}
 </style>
 <!-- Firebase: global skor tablosu -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -79,6 +84,7 @@
   catch (e) { console.warn('Firebase yok:', e); }
 </script>
   <script defer src="analytics.js"></script>
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
 </head>
 <body>
 
@@ -202,11 +208,12 @@
   const W=cv.width, H=cv.height;
   const GROUND=H-54;
   const ORIGIN={x:78, y:GROUND-22};         // top fırlatma noktası (mancınık)
-  const G=1300;                              // px/s^2
-  const MAXPULL=150, MINV=320, MAXV=1000;    // güç
+  // Ölçek: 12 px = 1 m. g = 9,8 m/s² gerçek değer; oyun akıcı olsun diye zaman 1,7 kat hızlı oynatılır (yörünge değişmez).
+  const PXM=12, G=9.8*PXM, TS=1.7;
+  const MAXPULL=150, MINV=8*PXM, MAXV=25*PXM;    // atış hızı 8–25 m/s
   let state='start';                          // start, play, end
   let level=1, shots=0, score=0, combo=0, wind=0;
-  let targets=[], particles=[], pops=[], clouds=[], proj=null, aiming=false, aim=null, shotsFired=0, hitsThis=0;
+  let walls=[], targets=[], particles=[], pops=[], clouds=[], proj=null, aiming=false, aim=null, shotsFired=0, hitsThis=0;
   let soundOn=true;
 
   // ---- istatistik / rütbe / rozet ----
@@ -220,6 +227,8 @@
     {id:'wind',icon:'🌬️',name:'Rüzgârda İsabet'},
     {id:'bullseye',icon:'💥',name:'Uzak Mesafe'},
     {id:'quiz',icon:'🧠',name:'Bilgili Nişancı'},
+    {id:'wall',icon:'🧱',name:'Duvar Aşırı'},
+    {id:'moving',icon:'🎈',name:'Hareketli Hedef'},
   ];
   let stats={best:0,total:0,badges:[]};
   function loadStats(){ try{const s=JSON.parse(localStorage.getItem('bfy_egik_v1')); if(s){stats.best=s.best||0;stats.total=s.total||0;stats.badges=s.badges||[];}}catch(e){} }
@@ -266,13 +275,16 @@
 
   // ---- bölüm kurulumu ----
   function spawnLevel(){
-    targets=[]; proj=null; aiming=false; aim=null; hitsThis=0;
+    targets=[]; walls=[]; proj=null; aiming=false; aim=null; hitsThis=0;
     const rr = daily ? srnd : rnd;   // günlük modda tohumlu (herkese aynı)
     const n=Math.min(3+Math.floor(level/2),6);
-    wind = daily ? Math.round(rr(-120,120)) : (level>=3 ? Math.round(rnd(-120,120)) : 0);
+    // rüzgâr: yatay sabit ivme, en çok ±1 m/s²
+    wind = daily ? Math.round(rr(-12,12)) : (level>=3 ? Math.round(rnd(-12,12)) : 0);
+    if(level>=6 || (daily && level>=2)){ const wx=rr(250,380); walls.push({x:wx, w:26, h:rr(130,230)}); }
     for(let i=0;i<n;i++){
       const far = 360 + (i/(n-1||1))*(W-440) + rr(-30,30);
-      targets.push({ x:Math.max(330,Math.min(W-40,far)), y:rr(120,GROUND-120), r:Math.max(16,24-level), hit:false,
+      const tx=Math.max(330,Math.min(W-40,far)), mv=(level>=4 && i%2===1) ? rr(25,55) : 0;
+      targets.push({ x:tx, x0:tx, y:rr(120,GROUND-120), r:Math.max(16,24-level), hit:false, mv, ph:Math.random()*6.28,
         bob:Math.random()*6.28, col:['#ff5d7a','#ffb13d','#46d39a','#9b6dff','#36c6ff'][i%5] });
     }
     shots = n + 1;     // hedef + 1 hak
@@ -286,7 +298,9 @@
   }
 
   // ---- nişan / atış ----
-  function pos(e){ const r=cv.getBoundingClientRect(); const t=e.touches&&e.touches[0];
+  function pos(e){ const t=e.touches&&e.touches[0];
+    if(window.BFY_R3D&&BFY_R3D.ready){ const q=BFY_R3D.pick(t?t.clientX:e.clientX, t?t.clientY:e.clientY); if(q) return q; }
+    const r=cv.getBoundingClientRect();
     const px=(t?t.clientX:e.clientX)-r.left, py=(t?t.clientY:e.clientY)-r.top;
     return {x:px*(W/r.width), y:py*(H/r.height)}; }
   function aimVec(){ // topu, sürüklenen yöne doğru fırlat (uzun sürükle = güçlü)
@@ -300,7 +314,7 @@
   function up(e){ if(!aiming) return; e.preventDefault(); aiming=false;
     const v=aimVec(); if(v.pw<14){ aim=null; return; }   // küçük dokunuş = iptal
     proj={x:ORIGIN.x,y:ORIGIN.y,vx:v.vx,vy:v.vy,trail:[],t:0}; aim=null;
-    shots--; shotsFired++; sLaunch(); puff(ORIGIN.x+18,ORIGIN.y-6); shake=4; syncHUD();
+    shots--; shotsFired++; sLaunch(); puff(ORIGIN.x+18,ORIGIN.y-6); shake=4; syncHUD(); ev('launch');
   }
   cv.addEventListener('mousedown',down); cv.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
   cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); cv.addEventListener('touchend',up,{passive:false});
@@ -312,13 +326,14 @@
     particles=particles.filter(p=>p.age<p.life);
     for(const p of pops){ p.age+=dt; p.y+=p.vy*dt; p.vy*=0.92; }
     pops=pops.filter(p=>p.age<p.life);
-    for(const t of targets) t.bob+=dt*2;
+    for(const t of targets){ t.bob+=dt*2; if(t.mv){ t.ph+=dt*.9; t.x=t.x0+Math.sin(t.ph)*t.mv; } }
     if(shake>0) shake=Math.max(0,shake-dt*20);
     if(state!=='play') return;
     if(proj){
-      proj.t+=dt;
-      proj.vy+=G*dt; proj.vx+=wind*dt;
-      proj.x+=proj.vx*dt; proj.y+=proj.vy*dt;
+      const sdt=dt*TS; proj.t+=sdt;
+      proj.vy+=G*sdt; proj.vx+=wind*sdt;
+      proj.x+=proj.vx*sdt; proj.y+=proj.vy*sdt;
+      for(const w of walls){ if(proj.x>w.x-w.w/2-5 && proj.x<w.x+w.w/2+5 && proj.y>GROUND-w.h-5){ puff(proj.x,proj.y); addPop('DUVARA ÇARPTI — daha dik at',proj.x,GROUND-w.h-30,'#ff9a9a',.95); ev('wall'); endShot(false); return; } }
       proj.trail.push({x:proj.x,y:proj.y}); if(proj.trail.length>18) proj.trail.shift();
       // hedef çarpışma
       for(const t of targets){ if(t.hit) continue;
@@ -327,7 +342,7 @@
       }
       // yer / ekran dışı
       if(proj && (proj.y>GROUND-2 || proj.x>W+40 || proj.x<-40)){
-        if(proj.y>GROUND-2){ puff(proj.x,GROUND-4);
+        if(proj.y>GROUND-2){ puff(proj.x,GROUND-4); ev('ground',proj.x);
           // öğretici an: en yakın hedefe göre kısa mı uzun mu?
           const kalan=targets.filter(t=>!t.hit);
           if(kalan.length){
@@ -342,7 +357,7 @@
     }
   }
   function hitTarget(t){
-    t.hit=true; sHit(); burst(t.x,t.y,[t.col,'#ffffff','#ffe08a'],30); shake=8;
+    t.hit=true; sHit(); burst(t.x,t.y,[t.col,'#ffffff','#ffe08a'],30); shake=8; ev('hit',t); if(t.mv) give('moving'); if(walls.length) give('wall');
     combo++;
     const distB=Math.round((t.x-ORIGIN.x)/12);
     const pts=Math.round((120+distB)*Math.max(1,combo));
@@ -366,7 +381,7 @@
   function levelClear(){
     const bonus=shots*150; score+=bonus; stats.total+=bonus; saveStats();
     addPop('BÖLÜM '+level+' TAMAM! +'+bonus, W/2, H/2-30, '#ffd36a', 1.5);
-    burst(W/2,H/2,[ '#ff5d7a','#ffb13d','#46d39a','#9b6dff','#36c6ff'],50); sLevel(); shake=10;
+    burst(W/2,H/2,[ '#ff5d7a','#ffb13d','#46d39a','#9b6dff','#36c6ff'],50); sLevel(); shake=10; ev('clear');
     if(level+1===5) give('lvl5'); if(level+1===10) give('lvl10');
     level++; syncHUD();
     if(daily && level>3){ setTimeout(()=>{ if(state==='play') gameOver(true); }, 900); return; }
@@ -390,15 +405,15 @@
     // yörünge önizleme (noktalı)
     let x=ORIGIN.x,y=ORIGIN.y,vx=v.vx,vy=v.vy;
     ctx.fillStyle='rgba(255,255,255,.75)';
-    for(let i=0;i<34;i++){ vy+=G*0.05; vx+=wind*0.05; x+=vx*0.05; y+=vy*0.05; if(y>GROUND||x>W||x<0) break;
-      if(i%2===0){ ctx.globalAlpha=Math.max(0.15,1-i/34); ctx.beginPath(); ctx.arc(x,y,3,0,6.28); ctx.fill(); } }
+    for(let i=0;i<110;i++){ vy+=G*0.05; vx+=wind*0.05; x+=vx*0.05; y+=vy*0.05; if(y>GROUND||x>W||x<0) break;
+      if(i%3===0){ ctx.globalAlpha=Math.max(0.15,1-i/110); ctx.beginPath(); ctx.arc(x,y,3,0,6.28); ctx.fill(); } }
     ctx.globalAlpha=1;
     // güç çubuğu + açı
     const pct=v.pw/MAXPULL;
     ctx.fillStyle='rgba(16,35,58,.7)'; ctx.fillRect(ORIGIN.x-4,ORIGIN.y-78,150,20);
     ctx.fillStyle=pct<0.5?'#46d39a':(pct<0.8?'#ffb13d':'#ff5d5d'); ctx.fillRect(ORIGIN.x-2,ORIGIN.y-76,146*pct,16);
     ctx.fillStyle='#fff'; ctx.font='bold 13px Arial'; ctx.textAlign='left';
-    ctx.fillText('Açı '+Math.round(v.ang*180/Math.PI)+'°  ·  Hız '+Math.round(v.sp/12), ORIGIN.x-2, ORIGIN.y-92);
+    ctx.fillText('Açı '+Math.round(v.ang*180/Math.PI)+'°  ·  Hız '+Math.round(v.sp/12)+' m/s', ORIGIN.x-2, ORIGIN.y-92);
   }
   function balloon(t){
     const y=t.y+Math.sin(t.bob)*5;
@@ -408,7 +423,30 @@
     ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(t.x-t.r*0.3,y-t.r*0.35,t.r*0.18,t.r*0.28,-0.5,0,6.28); ctx.fill();
     ctx.fillStyle=t.col; ctx.beginPath(); ctx.moveTo(t.x,y+t.r); ctx.lineTo(t.x-4,y+t.r+5); ctx.lineTo(t.x+4,y+t.r+5); ctx.fill();
   }
-  function render(){
+  function ev(type,a){ if(window.BFY_GAME&&BFY_GAME.on) BFY_GAME.on(type,a); }
+  function aimInfo(v){ // canlı fizik: menzil, tepe yüksekliği, uçuş süresi (düz zemin, rüzgârsız)
+    const vm=v.sp/PXM, th=v.ang, g=9.8, R=vm*vm*Math.sin(2*th)/g, Hm=Math.pow(vm*Math.sin(th),2)/(2*g), T=2*vm*Math.sin(th)/g;
+    return {vm,deg:Math.round(th*180/Math.PI),R,Hm,T}; }
+  function render3d(dt){
+    try{ BFY_R3D.frame(dt); }catch(e){ console.warn(e); BFY_R3D.ready=false; return; }
+    const c=BFY_R3D.overlay(); const P=BFY_R3D.proj;
+    if(aiming&&aim){ const v=aimVec(); let x=ORIGIN.x,y=ORIGIN.y,vx=v.vx,vy=v.vy; c.fillStyle='rgba(255,255,255,.9)';
+      for(let i=0;i<160;i++){ const h=.03; vy+=G*h; vx+=wind*h; x+=vx*h; y+=vy*h; if(y>GROUND||x>W+40||x<-40) break; if(walls.some(w=>x>w.x-w.w/2&&x<w.x+w.w/2&&y>GROUND-w.h)) break;
+        if(i%4===0){ const q=P(x,y); c.globalAlpha=Math.max(.15,1-i/160); c.beginPath(); c.arc(q.x,q.y,3.2,0,6.28); c.fill(); } }
+      c.globalAlpha=1; const o=P(ORIGIN.x,ORIGIN.y), inf=aimInfo(v), pct=v.pw/MAXPULL;
+      const bx=o.x+18, by=o.y-130; c.fillStyle='rgba(10,22,40,.78)'; c.beginPath(); c.roundRect(bx,by,210,92,12); c.fill();
+      c.fillStyle=pct<.5?'#46d39a':(pct<.8?'#ffb13d':'#ff5d5d'); c.fillRect(bx+12,by+12,186*pct,8);
+      c.fillStyle='#fff'; c.font='800 14px "Plus Jakarta Sans",Arial'; c.textAlign='left';
+      c.fillText('Açı '+inf.deg+'°  ·  Hız '+inf.vm.toFixed(1).replace('.',',')+' m/s', bx+12, by+40);
+      c.font='600 12.5px "Plus Jakarta Sans",Arial'; c.fillStyle='#cfe0ff';
+      c.fillText('Menzil R = v²·sin2θ/g ≈ '+inf.R.toFixed(1).replace('.',',')+' m', bx+12, by+60);
+      c.fillText('Tepe '+inf.Hm.toFixed(1).replace('.',',')+' m  ·  Uçuş '+inf.T.toFixed(2).replace('.',',')+' s', bx+12, by+78); }
+    for(const p of pops){ const q=P(p.x,p.y); c.globalAlpha=Math.max(0,1-p.age/p.life); c.font='900 '+Math.round(19*p.scale)+'px "Plus Jakarta Sans",Arial'; c.textAlign='center';
+      c.lineWidth=4; c.strokeStyle='rgba(0,0,0,.45)'; c.strokeText(p.text,q.x,q.y); c.fillStyle=p.color; c.fillText(p.text,q.x,q.y); }
+    c.globalAlpha=1;
+  }
+  function render(dt){
+    if(window.BFY_R3D&&BFY_R3D.ready){ render3d(dt); return; }
     ctx.save(); if(shake>0) ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
     // gökyüzü
     const sky=ctx.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#5bb6f5'); sky.addColorStop(0.7,'#bfe6ff'); sky.addColorStop(1,'#e8f7ff');
@@ -430,6 +468,7 @@
       ctx.beginPath(); ctx.moveTo(wx+dir*len,40); ctx.lineTo(wx+dir*(len-12),34); ctx.lineTo(wx+dir*(len-12),46); ctx.fill();
       ctx.font='bold 12px Arial'; ctx.textAlign='center'; ctx.fillText('RÜZGÂR',wx,26); ctx.restore(); }
     // hedefler
+    for(const w of walls){ ctx.fillStyle='#8a5a3a'; ctx.fillRect(w.x-w.w/2,GROUND-w.h,w.w,w.h); }
     for(const t of targets){ if(!t.hit) balloon(t); }
     drawCannon();
     drawAim();
@@ -445,7 +484,8 @@
     ctx.restore();
   }
   let last=0;
-  function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(); requestAnimationFrame(loop); }
+  window.BFY_GAME={ W, H, GROUND, ORIGIN, PXM, canvas:cv, get targets(){return targets;}, get walls(){return walls;}, get proj(){return proj;}, get aiming(){return aiming;}, get aim(){return aim;}, aimVec:()=>aimVec(), get wind(){return wind;}, get state(){return state;}, get level(){return level;}, get shake(){return shake;} };
+  function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(dt); requestAnimationFrame(loop); }
   requestAnimationFrame(loop);
 
   // ---- oyun akışı ----
@@ -527,7 +567,15 @@
     {q:"Eğik atışta cismin yörüngesi hangi şekildedir?",opts:["Parabol","Doğru","Çember","Elips"],a:0,exp:"Yatay sabit hız + düşey ivmeli hareket birleşince yörünge parabol olur."},
     {q:"Yatay atışta cismin ilk düşey hızı kaçtır?",opts:["Sıfır","Yatay hıza eşit","g","Maksimum"],a:0,exp:"Yatay atışta cisim yere paraleldir; düşey hız 0'dan başlar, g ile artar."},
     {q:"Atış hızı sabitken açı 30°'den 45°'ye çıkarsa menzil nasıl değişir?",opts:["Artar","Azalır","Değişmez","Sıfırlanır"],a:0,exp:"45°'ye kadar menzil artar (maksimum 45°'de). 45°'den sonra tekrar azalır."},
-    {q:"Eğik atışta uçuş süresini en çok ne belirler?",opts:["Düşey hız bileşeni ve g","Yatay hız","Cismin kütlesi","Rengi"],a:0,exp:"Havada kalma süresi düşey harekete bağlıdır: t = 2·v·sinθ / g."}
+    {q:"Eğik atışta uçuş süresini en çok ne belirler?",opts:["Düşey hız bileşeni ve g","Yatay hız","Cismin kütlesi","Rengi"],a:0,exp:"Havada kalma süresi düşey harekete bağlıdır: t = 2·v·sinθ / g."},
+    {q:"30° ve 60° ile aynı hızla atılan iki topun menzilleri için ne söylenir?",opts:["Eşittir","30° olan iki katıdır","60° olan iki katıdır","Hesaplanamaz"],a:0,exp:"sin(2·30°) = sin(2·60°) = sin60°. Toplamı 90° olan açılar aynı menzili verir; 60° olan daha yükseğe çıkar ve daha uzun süre havada kalır."},
+    {q:"Önünde yüksek bir duvar varken hedefe ulaşmak için hangi atış daha uygundur?",opts:["Büyük açılı (dik) atış","Küçük açılı (yatık) atış","Yatay atış","Aşağı doğru atış"],a:0,exp:"Dik atışta tepe yüksekliği h = (v·sinθ)²/2g büyüktür; top duvarın üstünden aşar."},
+    {q:"20 m/s ile 45° açıyla atılan topun menzili yaklaşık kaç metredir? (g = 10 m/s²)",opts:["40 m","20 m","80 m","10 m"],a:0,exp:"R = v²·sin(2θ)/g = 400·1/10 = 40 m."},
+    {q:"Atış hızı iki katına çıkarsa (açı aynı) menzil kaç katına çıkar?",opts:["4 katına","2 katına","Aynı kalır","Yarıya iner"],a:0,exp:"R, v² ile orantılıdır: hız 2 kat → menzil 2² = 4 kat."},
+    {q:"Rüzgâr topa sabit yatay bir kuvvet uygularsa yatay hareket nasıl olur?",opts:["Sabit ivmeli olur","Sabit hızlı kalır","Durur","Dairesel olur"],a:0,exp:"Yatayda net kuvvet varsa yatay ivme de vardır: a = F/m. Rüzgâr yönünde hız artar, ters yönde azalır."},
+    {q:"Tepe noktasında topun hızı için ne doğrudur?",opts:["Yalnızca yatay bileşen kalır, hız en küçük değerini alır","Hız sıfırdır","Hız en büyüktür","Hız düşey yöndedir"],a:0,exp:"Tepede düşey hız sıfır, yatay hız devam eder. Bu yüzden hızın büyüklüğü tepede en küçüktür (sıfır değil)."},
+    {q:"Ay'da (g = 1,6 m/s²) aynı atış yapılırsa menzil nasıl değişir?",opts:["Yaklaşık 6 kat artar","Değişmez","Azalır","Sıfır olur"],a:0,exp:"R = v²·sin2θ/g; g yaklaşık 6 kat küçük olduğu için menzil yaklaşık 6 kat büyür."},
+    {q:"Hareket eden bir hedefi vurmak için neyi hesaba katmalısın?",opts:["Topun uçuş süresince hedefin ne kadar yol alacağını","Yalnızca hedefin rengini","Topun kütlesini","Güneşin konumunu"],a:0,exp:"Top uçarken hedef de ilerler. Hedefin uçuş süresi sonunda olacağı yere nişan almalısın."}
   ];
   let bonusUsed=false;
   function renderBonus(){
@@ -611,5 +659,6 @@
   document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
+<script type="module" src="oyun3d/nisanci3d.js?v=1"></script>
 </body>
 </html>
