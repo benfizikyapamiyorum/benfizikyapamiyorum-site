@@ -26,6 +26,10 @@
   .stage-wrap{position:relative;width:100%;max-width:880px;margin:0 auto;border-radius:18px;overflow:hidden;
     box-shadow:0 24px 70px rgba(8,30,26,.55);border:1px solid rgba(52,225,255,.2);background:#06140f;}
   canvas#game{display:block;width:100%;height:auto;touch-action:none;}
+  #stage.r3d{aspect-ratio:880/620}
+  #stage.r3d canvas#game{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;z-index:2;pointer-events:none}
+  #stage.r3d.stage-fs, #stage.r3d:fullscreen{aspect-ratio:auto}
+  #stage.r3d .hud{z-index:3}
   .hud{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;justify-content:space-between;
     padding:12px 14px;pointer-events:none;font-family:'Helvetica Neue',Arial,sans-serif;color:var(--ink)}
   .hud .panel{background:rgba(6,24,20,.6);backdrop-filter:blur(6px);border:1px solid rgba(52,225,255,.18);
@@ -72,6 +76,7 @@
     .hud .big{font-size:13px} .topbtns{top:56px} .topbtns .mini{padding:5px 8px;font-size:11px}
     .ctrlgrp{min-width:130px;padding:6px 8px} .stepbtn{width:34px;height:34px;font-size:20px} .stepval{font-size:18px}
   }
+  #stage:has(.ovl:not(.hidden)) .topbtns{display:none}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -88,6 +93,7 @@
   try { firebase.initializeApp(firebaseConfig); window.BFY_DB = firebase.firestore(); } catch (e) { console.warn('Firebase yok:', e); }
 </script>
   <script defer src="analytics.js"></script>
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
 </head>
 <body>
 
@@ -230,7 +236,7 @@
   let state='start';
   let round=1, lives=3, score=0, combo=0;
   let V=6, R=6, lockV=false, lockR=false;
-  let I=1, target=2, tol=0.25, burnMax=4;
+  let I=1, target=2, tol=0.25, burnMax=4, RB=0;   // RB: 7. bölümden sonra ampulün kendi direnci (seri)
   let stableT=0, dangerT=0, roundT=0, busy=false;
   let dots=[], particles=[], pops=[], flow=0, shake=0, bulbBurst=0, soundOn=true;
 
@@ -244,6 +250,7 @@
     {id:'noburn',icon:'🛡️',name:'Sigortacı (3 cana dek)'},
     {id:'fast',icon:'⏱️',name:'Hızlı Çözüm'},
     {id:'quiz',icon:'🧠',name:'Bilgili Teknisyen'},
+    {id:'seri',icon:'🔗',name:'Seri Devre Ustası'},
   ];
   let stats={best:0,total:0,badges:[]};
   function loadStats(){ try{const s=JSON.parse(localStorage.getItem('bfy_devre_v1'));if(s){stats.best=s.best||0;stats.total=s.total||0;stats.badges=s.badges||[];}}catch(e){} }
@@ -286,6 +293,8 @@
     tol=Math.max(0.09, 0.28-round*0.014);
     burnMax=target + Math.max(1.4, 3.2-round*0.12);
     lockV=false; lockR=false;
+    RB = round>=7 ? 1+Math.floor(Math.random()*3) : 0;
+    if(RB && round===7) addPop('YENİ: Ampulün de direnci var! Toplam R = R + '+RB+' Ω', W/2, 520, '#34e1ff', .95);
     const m = round<3?0:Math.floor(Math.random()*3);
     if(m===1){ lockV=true; V=Math.max(2,Math.min(24,Math.round(target*rnd(2,6)))); R=6; }
     else if(m===2){ lockR=true; R=Math.max(2,Math.min(Math.max(2,Math.floor(24/target)),Math.round(rnd(2,6)))); V=6; }
@@ -300,7 +309,7 @@
   document.getElementById('ctrl').addEventListener('click',e=>{ const b=e.target.closest('[data-a]'); if(!b)return; const a=b.getAttribute('data-a'); adj(a[0], a[1]==='+'?1:-1); });
 
   function solve(){
-    busy=true; combo++;
+    busy=true; combo++; ev('solve');
     const acc=Math.max(0,1-Math.abs(I-target)/tol);
     const speedB=Math.max(0,Math.round(80-roundT*10));
     const pts=Math.round((120+Math.round(acc*70)+speedB)*Math.max(1,combo));
@@ -308,16 +317,16 @@
     addPop('+'+pts, bulbP.x, bulbP.y-40, '#ffd23f', 1+Math.min(combo*0.05,0.5));
     addPop(combo>=2?(combo+' COMBO!'):'DEVRE TAMAM!', W/2, 95, '#46d39a', 1+Math.min(combo*0.05,0.5));
     burst(bulbP.x,bulbP.y,['#ffd23f','#ffffff','#34e1ff'],34); shake=6; sSolve();
-    give('ilk'); if(combo>=3)give('combo3'); if(combo>=5)give('combo5'); if(roundT<3)give('fast');
+    give('ilk'); if(RB) give('seri'); if(combo>=3)give('combo3'); if(combo>=5)give('combo5'); if(roundT<3)give('fast');
     if(round+1===5)give('r5'); if(round+1===10)give('r10');
     saveStats(); round++; if(lives===3&&round>=6)give('noburn'); syncHUD();
     setTimeout(()=>{ if(state==='play') newRound(); }, 900);
   }
   function burn(){
-    busy=true; lives--; combo=0; bulbBurst=1; shake=14; sBurn();
+    busy=true; lives--; combo=0; bulbBurst=1; shake=14; sBurn(); ev('burn');
     burst(bulbP.x,bulbP.y,['#ff5d5d','#ff9a3c','#333','#777'],40);
     addPop('💥 PATLADI!', bulbP.x, bulbP.y-40, '#ff5d5d', 1.3);
-    addPop('I = '+V+'V / '+R+'Ω = '+(V/R).toFixed(1)+'A > sınır '+burnMax.toFixed(1)+'A '+(lockV?'→ direnci ARTIR':(lockR?'→ gerilimi AZALT':'→ R↑ ya da V↓')), W/2, bulbP.y+42, '#ffd23f', 0.92);
+    addPop('I = '+V+'V / '+(R+RB)+'Ω = '+(V/(R+RB)).toFixed(1)+'A > sınır '+burnMax.toFixed(1)+'A '+(lockV?'→ direnci ARTIR':(lockR?'→ gerilimi AZALT':'→ R↑ ya da V↓')), W/2, bulbP.y+42, '#ffd23f', 0.92);
     saveStats(); syncHUD();
     if(lives<=0){ setTimeout(gameOver,800); }
     else setTimeout(()=>{ if(state==='play') newRound(); }, 1000);
@@ -330,7 +339,7 @@
     for(const p of pops){ p.age+=dt; p.y+=p.vy*dt; p.vy*=0.92; }
     pops=pops.filter(p=>p.age<p.life);
     if(state!=='play'){ hum(false); return; }
-    I = V/R;
+    I = V/(R+RB);
     // akım akışı animasyonu
     flow += I*dt*42;
     hum(true, Math.min(I,8));
@@ -411,7 +420,34 @@
   }
   function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
-  function render(){
+  function ev(t,a){ if(window.BFY_GAME&&BFY_GAME.on) BFY_GAME.on(t,a); }
+  function render3d(dt){
+    try{ BFY_R3D.frame(dt); }catch(e){ console.warn(e); BFY_R3D.ready=false; return; }
+    const c=BFY_R3D.overlay(), O=BFY_R3D.size(), P=BFY_R3D.proj;
+    if(state==='play'){
+      const inB = !busy && Math.abs(I-target)<=tol && I<=burnMax;
+      const pw=226, ph=RB?128:106, px=O.w-pw-14, py=78;
+      c.fillStyle='rgba(6,24,20,.78)'; c.strokeStyle='rgba(52,225,255,.25)'; c.lineWidth=1; c.beginPath(); c.roundRect(px,py,pw,ph,12); c.fill(); c.stroke();
+      c.textAlign='left'; c.fillStyle='#7fd9c9'; c.font='800 10.5px "Plus Jakarta Sans",Arial'; c.fillText('HEDEF AKIM',px+14,py+20); c.fillText('ŞU ANKİ',px+122,py+20);
+      c.fillStyle='#fff'; c.font='900 20px "Plus Jakarta Sans",Arial'; c.fillText(target.toFixed(1).replace('.',',')+' A',px+14,py+43);
+      c.fillStyle=I>burnMax?'#ff6a6a':(inB?'#46d39a':'#fff'); c.fillText(I.toFixed(2).replace('.',',')+' A',px+122,py+43);
+      const bx=px+14,by=py+56,bw=pw-28, lo=Math.max(0,target-tol),hi=target+tol, maxv=burnMax*1.15;
+      c.fillStyle='rgba(255,255,255,.12)'; c.fillRect(bx,by,bw,10); c.fillStyle='rgba(70,211,154,.55)'; c.fillRect(bx+bw*lo/maxv,by,bw*(hi-lo)/maxv,10);
+      c.fillStyle='rgba(255,93,93,.5)'; c.fillRect(bx+bw*burnMax/maxv,by,bw-bw*burnMax/maxv,10);
+      const ix=bx+bw*Math.min(I,maxv)/maxv; c.fillStyle=I>burnMax?'#ff5d5d':(inB?'#46d39a':'#ffd23f'); c.fillRect(ix-2,by-3,4,16);
+      c.fillStyle='#bfe6dd'; c.font='700 12px "Plus Jakarta Sans",Arial';
+      c.fillText('I = V / R = '+V+' / '+(R+RB)+'   ·   P = V·I = '+(V*I).toFixed(1).replace('.',',')+' W',px+14,py+88);
+      if(RB) c.fillText('Toplam R = '+R+' Ω (direnç) + '+RB+' Ω (ampul)',px+14,py+108);
+      const b=P('bulb');
+      if(stableT>0&&!busy){ c.strokeStyle='#46d39a'; c.lineWidth=4; c.beginPath(); c.arc(b.x,b.y,34,-1.57,-1.57+6.28*Math.min(1,stableT/0.65)); c.stroke(); }
+      if(dangerT>0&&!busy){ c.fillStyle='#ff5d5d'; c.font='900 15px "Plus Jakarta Sans",Arial'; c.textAlign='center'; c.fillText('⚠ FAZLA AKIM!',b.x,b.y-52); }
+    }
+    for(const p of pops){ const q=P('px',p.x,p.y); c.globalAlpha=Math.max(0,1-p.age/p.life); c.font='900 '+Math.round(18*p.scale)+'px "Plus Jakarta Sans",Arial'; c.textAlign='center';
+      c.lineWidth=4; c.strokeStyle='rgba(0,0,0,.5)'; c.strokeText(p.text,q.x,q.y); c.fillStyle=p.color; c.fillText(p.text,q.x,q.y); }
+    c.globalAlpha=1;
+  }
+  function render(dt){
+    if(window.BFY_R3D&&BFY_R3D.ready){ render3d(dt); return; }
     ctx.save(); if(shake>0)ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
     // arka plan: devre kartı
     ctx.fillStyle='#06140f'; ctx.fillRect(-40,-40,W+80,H+80);
@@ -431,7 +467,8 @@
     ctx.globalAlpha=1;
     ctx.restore();
   }
-  let last=0; function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(); requestAnimationFrame(loop); } requestAnimationFrame(loop);
+  window.BFY_GAME={ W, H, canvas:cv, A, B, C, D, bulbP, battP, resP, PERIM, ptAt, get V(){return V;}, get R(){return R;}, get RB(){return RB;}, get I(){return I;}, get target(){return target;}, get tol(){return tol;}, get burnMax(){return burnMax;}, get busy(){return busy;}, get flow(){return flow;}, get bulbBurst(){return bulbBurst;}, get state(){return state;}, get lockV(){return lockV;}, get lockR(){return lockR;}, get shake(){return shake;} };
+  let last=0; function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(dt); requestAnimationFrame(loop); } requestAnimationFrame(loop);
 
   // ---- akış ----
   function startGame(){ round=1; lives=3; score=0; combo=0; state='play';
@@ -479,7 +516,13 @@
     {q:"Bir iletkenden geçen elektrik akımı neyin hareketidir?",opts:["Elektrik yükünün (elektronların)","Atom çekirdeğinin","Işığın","Isının"],a:0,exp:"Akım, yük taşıyıcılarının (iletkenlerde elektronların) düzenli hareketidir."},
     {q:"Ampermetre devreye nasıl bağlanır?",opts:["Seri","Paralel","Bağlanmaz","Ters"],a:0,exp:"Ampermetre üzerinden geçen akımı ölçmek için seri bağlanır (iç direnci çok küçüktür)."},
     {q:"Voltmetre devreye nasıl bağlanır?",opts:["Paralel","Seri","Çapraz","Bağlanmaz"],a:0,exp:"Voltmetre, ölçtüğü elemana paralel bağlanır (iç direnci çok büyüktür)."},
-    {q:"Elektriksel güç hangi ifadeyle bulunur?",opts:["P = V · I","P = V / I","P = I / V","P = V + I"],a:0,exp:"Güç = gerilim × akım. P = V·I = I²·R = V²/R olarak da yazılır."}
+    {q:"Elektriksel güç hangi ifadeyle bulunur?",opts:["P = V · I","P = V / I","P = I / V","P = V + I"],a:0,exp:"Güç = gerilim × akım. P = V·I = I²·R = V²/R olarak da yazılır."},
+    {q:"12 V'luk bir üreteç 4 Ω'luk dirence bağlanırsa devreden geçen akım kaç A olur?",opts:["3 A","48 A","0,33 A","16 A"],a:0,exp:"I = V / R = 12 / 4 = 3 A."},
+    {q:"Direnci 4 Ω olan ampul, 2 Ω'luk bir dirençle seri bağlanıp 12 V'a bağlanıyor. Akım kaç A olur?",opts:["2 A","3 A","6 A","1 A"],a:0,exp:"Seri bağlamada dirençler toplanır: 4 + 2 = 6 Ω. I = 12 / 6 = 2 A."},
+    {q:"Ampulün parlaklığı en çok neye bağlıdır?",opts:["Ampulün harcadığı güce (P = V·I)","Telin rengine","Pilin büyüklüğüne","Ampulün şekline"],a:0,exp:"Ampul, üzerinde harcanan elektrik enerjisini ışığa ve ısıya dönüştürür. Harcanan güç arttıkça parlaklık artar."},
+    {q:"Bir ampulden çok fazla akım geçerse neden bozulur?",opts:["Harcanan güç (I²·R) çok artar, flaman aşırı ısınıp kopar","Akım ampulü soğutur","Gerilim sıfır olur","Direnç sonsuz olur"],a:0,exp:"Isıya dönüşen güç P = I²·R ile artar. Akım iki katına çıkarsa ısı dört katına çıkar ve ince flaman erir."},
+    {q:"Devrede geleneksel akımın yönü nasıl kabul edilir?",opts:["Üretecin + kutbundan − kutbuna doğru (dış devrede)","− kutuptan + kutba doğru","Rastgele","Akımın yönü yoktur"],a:0,exp:"Geleneksel akım dış devrede + kutuptan − kutba doğru akar. Elektronlar ise ters yönde hareket eder."},
+    {q:"Ampermetrenin iç direnci neden çok küçük olmalıdır?",opts:["Seri bağlandığı için devredeki akımı değiştirmemesi gerekir","Daha az yer kaplaması için","Voltmetreye benzemesi için","Pilin ömrünü kısaltmak için"],a:0,exp:"Ampermetre seri bağlanır. İç direnci büyük olsaydı toplam direnci artırır, ölçtüğü akımı küçültürdü."}
   ];
   let bonusUsed=false;
   function renderBonus(){ bonusUsed=false; const q=QBANK[Math.floor(Math.random()*QBANK.length)];
@@ -553,5 +596,6 @@
   document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
+<script type="module" src="oyun3d/devre3d.js?v=1"></script>
 </body>
 </html>

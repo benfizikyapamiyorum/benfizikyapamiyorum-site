@@ -26,6 +26,11 @@
   .stage-wrap{position:relative;width:100%;max-width:880px;margin:0 auto;border-radius:18px;overflow:hidden;
     box-shadow:0 24px 70px rgba(20,10,50,.6);border:1px solid rgba(39,231,255,.25);background:#070617;}
   canvas#game{display:block;width:100%;height:auto;touch-action:none;cursor:pointer;}
+  #stage.r3d{aspect-ratio:880/620}
+  #stage.r3d canvas#game{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;z-index:2}
+  #stage.r3d.stage-fs, #stage.r3d:fullscreen{aspect-ratio:auto}
+  #stage.r3d .hud{z-index:3}
+  #stage.r3d .topbtns{top:auto;bottom:10px;left:auto;right:12px;transform:none}
   .hud{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;justify-content:space-between;
     padding:12px 14px;pointer-events:none;font-family:'Helvetica Neue',Arial,sans-serif;color:var(--ink)}
   .hud .panel{background:rgba(10,8,30,.55);backdrop-filter:blur(6px);border:1px solid rgba(39,231,255,.2);
@@ -57,6 +62,7 @@
     .hud{padding:8px 8px;gap:5px} .hud .panel{min-width:0;padding:5px 7px;font-size:10px;border-radius:9px}
     .hud .big{font-size:13px} .topbtns{top:56px} .topbtns .mini{padding:5px 8px;font-size:11px}
   }
+  #stage:has(.ovl:not(.hidden)) .topbtns{display:none}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -73,6 +79,7 @@
   try { firebase.initializeApp(firebaseConfig); window.BFY_DB = firebase.firestore(); } catch (e) { console.warn('Firebase yok:', e); }
 </script>
   <script defer src="analytics.js"></script>
+<script type="importmap">{"imports":{"three":"./bfy-three.module.min.js"}}</script>
 </head>
 <body>
 
@@ -185,14 +192,14 @@
 
 <script>
 (function(){
-  const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+  const cv=document.getElementById('game'); let ctx=cv.getContext('2d');
   const W=cv.width, H=cv.height;
   const GX0=66, GX1=W-26, GY0=86, GY1=H-150;      // grafik alanı
   const VMAX=100, ACC=88, BRK=74;
   let state='start';                                // start, count, play, between, end
   let round=1, lives=3, score=0, mult=1;
   let track=[], TLEN=14, tol=0.10, tnow=0, vP=40, holding=false;
-  let trail=[], inZone=false, timeInZone=0, syncTimer=0, countT=0, gradeShow=null, betweenT=0;
+  let dist=0, trail=[], inZone=false, timeInZone=0, syncTimer=0, countT=0, gradeShow=null, betweenT=0;
   let particles=[], pops=[], stars=[], scroll=0, shake=0, edge=0, soundOn=true;
 
   const RANKS=[[0,'Acemi Sürücü'],[1000,'Sürücü'],[3000,'Pilot'],[7000,'Yarış Pilotu'],[13000,'Efsane Pilot 🏆']];
@@ -205,6 +212,7 @@
     {id:'r5',icon:'🏅',name:'5. Tur'},
     {id:'r10',icon:'👑',name:'10. Tur'},
     {id:'quiz',icon:'🧠',name:'Grafik Uzmanı'},
+    {id:'alan',icon:'📐',name:'Alan Ustası'},
   ];
   let stats={best:0,total:0,badges:[]};
   function loadStats(){ try{const s=JSON.parse(localStorage.getItem('bfy_grafik_v1'));if(s){stats.best=s.best||0;stats.total=s.total||0;stats.badges=s.badges||[];}}catch(e){} }
@@ -250,7 +258,7 @@
   function syncHUD(){ document.getElementById('hRound').textContent=round; document.getElementById('hLives').innerHTML=lifeStr();
     document.getElementById('hScore').textContent=score; document.getElementById('hSync').textContent='x'+mult.toFixed(1); }
 
-  function startTrack(){ buildTrack(); tnow=0; vP=tv(0); trail=[]; timeInZone=0; mult=1; syncTimer=0; gradeShow=null; state='count'; countT=3.0; syncHUD(); }
+  function startTrack(){ buildTrack(); tnow=0; vP=tv(0); trail=[]; dist=0; timeInZone=0; mult=1; syncTimer=0; gradeShow=null; state='count'; countT=3.0; syncHUD(); }
   function endTrack(){
     const acc=timeInZone/TLEN;             // 0..1
     let grade='D'; if(acc>=0.9)grade='S'; else if(acc>=0.78)grade='A'; else if(acc>=0.62)grade='B'; else if(acc>=0.45)grade='C';
@@ -259,7 +267,7 @@
     score+=bonus; stats.total+=bonus;
     gradeShow={grade,acc,bonus,passed};
     burst(W/2,GY0+90,['#27e7ff','#ff3df0','#ffe14d','#46ffa0'],46); shake=8; sGrade();
-    if(grade==='A'||grade==='S')give('perfectA'); if(grade==='S')give('perfectS');
+    if(grade==='A'||grade==='S')give('perfectA'); if(grade==='S'){ give('perfectS'); if(round>=3) give('alan'); }
     if(!passed){ lives--; sFail(); addPop('💡 Eğim = ivme! Çizgi kırılmadan ÖNCE gaza hazırlan', W/2, GY0+46, '#ffe14d', 0.95); }
     if(round+1===5)give('r5'); if(round+1===10)give('r10');
     saveStats();
@@ -285,7 +293,7 @@
     // hız güncelle
     if(holding) vP=Math.min(VMAX, vP+ACC*dt); else vP=Math.max(0, vP-BRK*dt);
     engine(true, vP);
-    tnow+=dt; const p=tnow/TLEN;
+    tnow+=dt; dist+=vP*dt; const p=tnow/TLEN;
     const tgt=tv(p); const err=Math.abs(vP-tgt)/VMAX;
     inZone = err<=tol;
     const sx=GX0+(GX1-GX0)*Math.min(1,p);
@@ -370,7 +378,35 @@
     ctx.fillStyle='#7fc7ff'; ctx.font='bold 13px Arial'; ctx.textAlign='center'; ctx.fillText('HIZ: '+Math.round(vP), cx, H-18);
   }
   function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-  function render(){
+  function areaFill(){ // oyuncunun hız eğrisi altındaki alan = alınan yol
+    if(trail.length<2) return; ctx.beginPath(); ctx.moveTo(trail[0].x,GY1); for(const t of trail) ctx.lineTo(t.x,t.y); ctx.lineTo(trail[trail.length-1].x,GY1); ctx.closePath();
+    ctx.fillStyle='rgba(70,255,160,.13)'; ctx.fill(); }
+  function render3d(dt){
+    try{ BFY_R3D.frame(dt); }catch(e){ console.warn(e); BFY_R3D.ready=false; ctx=cv.getContext('2d'); return; }
+    const c=BFY_R3D.overlay(), O=BFY_R3D.size(); ctx=c;
+    const sc=Math.min(O.w/W,O.h/H), ox=(O.w-W*sc)/2, oy=(O.h-H*sc)/2;
+    c.save(); c.translate(ox,oy); c.scale(sc,sc); if(shake>0)c.translate(rnd(-shake,shake),rnd(-shake,shake));
+    const act=(state==='play'||state==='between'||state==='count');
+    if(act){ c.fillStyle='rgba(8,6,28,.62)'; c.strokeStyle='rgba(120,150,255,.25)'; c.lineWidth=1; c.beginPath(); c.roundRect(GX0-56,GY0-26,GX1-GX0+72,GY1-GY0+52,16); c.fill(); c.stroke();
+      grid(); targetCurve(); areaFill(); if(trail.length) playerTrail();
+      // hız, ivme, yol göstergesi
+      const a=holding?ACC:-BRK, bx=GX0+10, by=GY0-4;
+      c.font='800 14px "Plus Jakarta Sans",Arial'; c.textAlign='left'; c.fillStyle='#7fc7ff'; c.fillText('HIZ '+Math.round(vP),bx,by+14);
+      c.fillStyle=holding?'#46ffa0':'#ff9a3c'; c.fillText('İVME (eğim) '+(a>0?'+':'−')+Math.abs(a)+(holding?' · gaz':' · fren'),bx+86,by+14);
+      c.fillStyle='#ffe14d'; c.fillText('YOL = alan ≈ '+Math.round(dist),bx+300,by+14); }
+    if(edge>0){ c.strokeStyle='rgba(70,255,160,'+(edge*0.6)+')'; c.lineWidth=10; c.strokeRect(5,5,W-10,H-10); }
+    if(state==='count'){ c.fillStyle='#27e7ff'; c.font='900 120px "Plus Jakarta Sans",Arial'; c.textAlign='center'; c.shadowColor='#ff3df0'; c.shadowBlur=24;
+      const k=Math.ceil(countT); c.fillText(k>0?k:'SÜR!', W/2, H/2+30); c.shadowBlur=0; c.fillStyle='#fff'; c.font='800 18px "Plus Jakarta Sans",Arial'; c.fillText('Bas = gaz, bırak = fren', W/2, H/2+80); }
+    if(gradeShow && state==='between'){ const gc={S:'#ffe14d',A:'#46ffa0',B:'#27e7ff',C:'#ff9a3c',D:'#ff5d77'}[gradeShow.grade];
+      c.fillStyle='rgba(7,6,23,.5)'; c.fillRect(0,0,W,H); c.fillStyle=gc; c.font='900 150px "Plus Jakarta Sans",Arial'; c.textAlign='center'; c.shadowColor=gc; c.shadowBlur=30; c.fillText(gradeShow.grade,W/2,H/2+20); c.shadowBlur=0;
+      c.fillStyle='#fff'; c.font='800 26px "Plus Jakarta Sans",Arial'; c.fillText('Senkron: %'+Math.round(gradeShow.acc*100)+'  ·  +'+gradeShow.bonus+' puan',W/2,H/2+70);
+      c.fillStyle=gradeShow.passed?'#46ffa0':'#ff5d77'; c.font='800 18px "Plus Jakarta Sans",Arial'; c.fillText(gradeShow.passed?'Geçtin! Sıradaki tur...':'Az kaldı! Can −1',W/2,H/2+104); }
+    for(const p of particles){ c.globalAlpha=Math.max(0,1-p.age/p.life); c.fillStyle=p.col; c.beginPath(); c.arc(p.x,p.y,p.r,0,6.28); c.fill(); } c.globalAlpha=1;
+    for(const p of pops){ c.globalAlpha=Math.max(0,1-p.age/p.life); c.font='900 '+Math.round(18*p.scale)+'px "Plus Jakarta Sans",Arial'; c.textAlign='center'; c.lineWidth=4; c.strokeStyle='rgba(0,0,0,.5)'; c.strokeText(p.text,p.x,p.y); c.fillStyle=p.color; c.fillText(p.text,p.x,p.y); } c.globalAlpha=1;
+    c.restore();
+  }
+  function render(dt){
+    if(window.BFY_R3D&&BFY_R3D.ready){ render3d(dt); return; }
     ctx.save(); if(shake>0)ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
     bg(); grid();
     if(state==='play'||state==='between'||state==='count'){ targetCurve(); if(trail.length) playerTrail(); car(); }
@@ -390,7 +426,8 @@
     for(const p of pops){ ctx.globalAlpha=Math.max(0,1-p.age/p.life); ctx.fillStyle=p.color; ctx.font='bold '+Math.round(18*p.scale)+'px Arial'; ctx.textAlign='center'; ctx.fillText(p.text,p.x,p.y); } ctx.globalAlpha=1;
     ctx.restore();
   }
-  let last=0; function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(); requestAnimationFrame(loop); } requestAnimationFrame(loop);
+  window.BFY_GAME={ W, H, canvas:cv, get v(){return vP;}, get holding(){return holding;}, get state(){return state;}, get inZone(){return inZone;}, get round(){return round;} };
+  let last=0; function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(dt); requestAnimationFrame(loop); } requestAnimationFrame(loop);
 
   // akış
   function startGame(){ round=1; lives=3; score=0; state='play'; document.getElementById('ovlStart').classList.add('hidden'); document.getElementById('ovlEnd').classList.add('hidden'); startTrack(); }
@@ -435,7 +472,13 @@
     {q:"Hız-zaman grafiğinde çizgi zaman ekseninin altındaysa ne anlama gelir?",opts:["Ters yönde hareket (negatif hız)","Durma","Hızlanma","Serbest düşme"],a:0,exp:"Negatif hız, cismin seçilen yönün tersine hareket ettiğini gösterir."},
     {q:"İvme-zaman grafiğinde alan neyi verir?",opts:["Hız değişimini","Yolu","Konumu","Kuvveti"],a:0,exp:"a-t grafiğinde alan = Δv (hız değişimi)."},
     {q:"Konum-zaman grafiğinde yatay bir doğru ne anlama gelir?",opts:["Cisim duruyor (hız sıfır)","Sabit hız","Hızlanıyor","Geri dönüyor"],a:0,exp:"Konum değişmiyorsa hız sıfırdır; cisim duruyordur."},
-    {q:"Düzgün hızlanan bir cismin konum-zaman grafiği nasıldır?",opts:["Parabol (eğrisel)","Düz çizgi","Yatay çizgi","Basamaklı"],a:0,exp:"Sabit ivmede konum zamanın karesiyle değişir; grafik paraboldür."}
+    {q:"Düzgün hızlanan bir cismin konum-zaman grafiği nasıldır?",opts:["Parabol (eğrisel)","Düz çizgi","Yatay çizgi","Basamaklı"],a:0,exp:"Sabit ivmede konum zamanın karesiyle değişir; grafik paraboldür."},
+    {q:"Bir araç 4 s içinde hızını 10 m/s'den 30 m/s'ye çıkarıyor. İvmesi kaç m/s²'dir?",opts:["5 m/s²","20 m/s²","10 m/s²","40 m/s²"],a:0,exp:"a = Δv / Δt = (30 − 10) / 4 = 5 m/s²."},
+    {q:"v-t grafiğinde 5 s boyunca hız 12 m/s'de sabit kalıyor. Bu sürede alınan yol kaç metredir?",opts:["60 m","12 m","17 m","2,4 m"],a:0,exp:"Alan = dikdörtgen = 12 · 5 = 60 m."},
+    {q:"Araç duruştan başlayıp 4 s'de 20 m/s hıza düzgün hızlanıyor. Alınan yol kaç metredir?",opts:["40 m","80 m","20 m","5 m"],a:0,exp:"v-t grafiği bir üçgendir: alan = (taban · yükseklik) / 2 = (4 · 20) / 2 = 40 m."},
+    {q:"Grafik Yarışı'nda gaza basınca hız çizgisi yukarı eğimli olur. Bu eğim neyi gösterir?",opts:["Pozitif ivmeyi (hızlanma)","Negatif ivmeyi","Alınan yolu","Kütleyi"],a:0,exp:"v-t grafiğinde yukarı doğru eğim, hızın arttığını yani ivmenin pozitif olduğunu gösterir."},
+    {q:"İki aracın v-t grafiğinde, altındaki alanı büyük olan araç için ne söylenir?",opts:["Aynı sürede daha çok yol almıştır","Daha hızlı yavaşlamıştır","Daha ağırdır","Daha az yol almıştır"],a:0,exp:"v-t grafiğinde alan, alınan yolu verir. Alanı büyük olan daha çok yol almıştır."},
+    {q:"Frene basan aracın v-t grafiği zaman eksenine değdiği anda araç için ne söylenir?",opts:["Durmuştur (hız sıfır)","En hızlı anıdır","İvmesi sıfırdır","Geri gitmektedir"],a:0,exp:"Grafiğin zaman eksenine değdiği yerde v = 0'dır; araç o an durmuştur."}
   ];
   let bonusUsed=false;
   function renderBonus(){ bonusUsed=false; const q=QBANK[Math.floor(Math.random()*QBANK.length)];
@@ -510,5 +553,6 @@
   document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
+<script type="module" src="oyun3d/grafik3d.js?v=1"></script>
 </body>
 </html>

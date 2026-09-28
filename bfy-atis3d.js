@@ -1076,8 +1076,12 @@ new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(stag
 function tick() {
   requestAnimationFrame(tick);
   if (window.__pause) { clock.getDelta(); return; }
-  const rawDt = clock.getDelta(), dt = Math.min(rawDt, 1 / 20);
-  if (!visible && !document.fullscreenElement) return;
+  step(clock.getDelta());
+}
+window.__frame = rawDt => step(rawDt);
+function step(rawDt) {
+  const dt = Math.min(rawDt, 1 / 20);
+  if (!visible && !document.fullscreenElement && !window.__rec) return;
   const r = ballR();
   let q = [0, 0, S.h0, 0, 0];
   if (S.phase === 'flying' && cur) {

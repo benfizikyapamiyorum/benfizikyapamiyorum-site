@@ -181,6 +181,7 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     // Uyarlanır kalite: yalnızca uzun süre gerçekten yavaşsa ve en fazla bir kademe düşer (keskinlik korunur)
     if (!Q.locked && Q.level === 2) { Q.warm += raw; if (Q.warm > 6 && raw < .2) { Q.frames++; Q.acc += raw; if (Q.frames >= 240) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 28) { Q.level = 1; applyQuality(); } Q.locked = true; } } }
   }
+  W.frame = dt => { W.update && W.update(dt); stepParts(dt); composer.render(dt); }; // kayıt için tek kare
   W.start = () => {
     // Açılışta gölgelendiricileri önceden derle: ilk etkileşimde takılma olmasın
     const warm = [W.smokeTex, W.dropTex].flatMap(t => [false, true].map(add => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, opacity: .001, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !add })); s.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)); scene.add(s); return s; }));
@@ -218,12 +219,13 @@ export class Arrow {
 export function worldUVMaterial({ map, normalMap, roughnessMap, tile = 1, tint = '#ffffff', roughness = 1, metalness = 0, normalScale = 1, envMapIntensity = .8, axis = 'xz' }) {
   const m = new THREE.MeshStandardMaterial({ map, normalMap, roughnessMap, roughness, metalness, envMapIntensity, color: tint });
   m.normalScale.set(normalScale, normalScale);
+  m.userData.uOff = { value: new THREE.Vector3() }; // doku kaydırma (kayan zeminler için)
   m.onBeforeCompile = sh => {
-    sh.uniforms.uTile = { value: tile };
+    sh.uniforms.uTile = { value: tile }; sh.uniforms.uOff = m.userData.uOff;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWPos;').replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWPos = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     for (const c of ['map_fragment', 'normal_fragment_maps', 'roughnessmap_fragment', 'metalnessmap_fragment']) sh.fragmentShader = sh.fragmentShader.replace(`#include <${c}>`, THREE.ShaderChunk[c]);
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWPos; uniform float uTile;')
-      .replace('void main() {', `void main() { vec2 wuv = vWPos.${axis} / uTile;`)
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWPos; uniform float uTile; uniform vec3 uOff;')
+      .replace('void main() {', `void main() { vec2 wuv = (vWPos.${axis} + uOff.${axis}) / uTile;`)
       .replace(/vMapUv/g, 'wuv').replace(/vNormalMapUv/g, 'wuv').replace(/vRoughnessMapUv/g, 'wuv');
   };
   return m;
