@@ -20375,12 +20375,22 @@ function inline1(s) {
     const son = (sonraki.t.match(/^[^\s]*/) || [''])[0];
     out += fmtText(onceki.t.slice(0, onceki.t.length - bas.length));
     const bosluk = !son && /^\s/.test(sonraki.t) ? ' bs' : '';
-    out += `<span class="nw${bosluk}">${fmtText(bas)}${tex(p.m, false)}${fmtText(son)}</span>`;
+    out += `<span class="nw${bosluk}">${fmtText(bas)}${texKir(p.m)}${fmtText(son)}</span>`;
     onceki.t = ''; sonraki.t = sonraki.t.slice(son.length);
   }
   return out + fmtText(parts[parts.length - 1].t);
 }
 function fmtText(t) { return esc(t); }
+// Dijital sürümde uzun satır içi formül yalnızca üst düzey "=" işaretlerinden sonra kırılabilir
+// (çarpma noktasında ya da eksi işaretinde satır kırılmaz). PDF düzeni etkilenmez.
+function texKir(m) {
+  if (!window.BFY_ESIT_KIR || m.replace(/\\[a-zA-Z]+|[{}_^\s]/g, '').length < 16) return tex(m, false);
+  const par = []; let d = 0, bas = 0;
+  for (let i = 0; i < m.length; i++) { const c = m[i]; if (c === '{' || c === '(') d++; else if (c === '}' || c === ')') d--; else if (c === '=' && d === 0 && m[i - 1] !== '\\') { par.push(m.slice(bas, i + 1)); bas = i + 1; } }
+  par.push(m.slice(bas));
+  if (par.length < 2) return tex(m, false);
+  return par.map(x => tex(x.endsWith('=') ? x + '{}' : '{}' + x, false)).join('<span class="kr"> </span>');
+}
 function md(src, ctx = {}) {
   const paras = String(src).trim().split(/\n\s*\n/);
   return paras.map(p => {
