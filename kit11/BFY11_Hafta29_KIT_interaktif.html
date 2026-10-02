@@ -167,6 +167,8 @@ table.t.small th,table.t.small td{padding:6px 8px}
   .q{break-inside:auto;page-break-inside:auto}
   .q .qh{break-after:avoid;page-break-after:avoid}
   .mcq .q,.parts,.opts,.ans{break-inside:avoid;page-break-inside:avoid}
+  .mcq.flow{display:block;columns:2;column-gap:26pt}
+  .mcq.flow>.q{display:block;break-inside:avoid;page-break-inside:avoid}
   h1,h2,h3{break-after:avoid;page-break-after:avoid}
   .lines i{height:26px;border-bottom-color:#9AA3B2}
   a{color:inherit;text-decoration:none}
@@ -1111,7 +1113,11 @@ function animateReveal(root,instant){
 function hideReveal(root){ if(root.classList&&root.classList.contains('q')) resetSteps(root);
  root.querySelectorAll('.anslayer').forEach(g=>{g.classList.remove('on');g.querySelectorAll('*').forEach(el=>{el.style.transition='none';el.style.opacity='0'})});}
 /* MCQ: iki sütuna dağıt (tek-çift) — sayfa kırılımı sütun içinde düzgün akar */
-document.querySelectorAll('.mcq').forEach(m=>{if(m.querySelector('.col'))return;const qs=[...m.children];const a=document.createElement('div'),b=document.createElement('div');a.className='col';b.className='col';qs.forEach((q,i)=>(i%2?b:a).appendChild(q));m.append(a,b);});
+function mcqQs(m){if(m._qs)return m._qs;const c=[...m.children].filter(e=>e.classList.contains('col'));let qs;if(c.length===2){const a=[...c[0].children],b=[...c[1].children];qs=[];for(let i=0;i<a.length||i<b.length;i++){if(a[i])qs.push(a[i]);if(b[i])qs.push(b[i]);}}else qs=[...m.children];return m._qs=qs;}
+function mcqSplit(){document.querySelectorAll('.mcq').forEach(m=>{const qs=mcqQs(m);m.classList.remove('flow');m.textContent='';const a=document.createElement('div'),b=document.createElement('div');a.className='col';b.className='col';qs.forEach((q,i)=>(i%2?b:a).appendChild(q));m.append(a,b);});}
+/* baskıda sorular sırayla akar: sayfada önce sol sütun yukarıdan aşağı, sonra sağ sütun (1-2-3 | 4-5-6) */
+function mcqFlow(){document.querySelectorAll('.mcq').forEach(m=>{const qs=mcqQs(m);m.textContent='';qs.forEach(q=>m.appendChild(q));m.classList.add('flow');});}
+mcqSplit();window.addEventListener('beforeprint',mcqFlow);window.addEventListener('afterprint',mcqSplit);
 /* writing lines */
 document.querySelectorAll('.lines').forEach(el=>{const m=el.className.match(/l(\d)/);const n=m?+m[1]:3;el.innerHTML='<i></i>'.repeat(n);});
 /* ---------- SVG helpers ---------- */
