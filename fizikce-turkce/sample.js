@@ -4,7 +4,7 @@ window.FIZIKCE_SAMPLE = {
   "phrase": "Direnç sabit tutuluyor",
   "plain_meaning": "Gerilim ile akım ilişkisini tek değişken üzerinden inceleyebilirsin.",
   "first_action": "Sabit kalan büyüklüğü not et.",
-  "applicability_note": "Akım değişimini tartışırken hangi gerilimin sabit kaldığını da kontrol et.",
+  "applicability_note": "Sabit kalan büyüklük dirençtir; gerilim değişebilir. R sabitken akım gerilimle doğru orantılıdır.",
   "outcome_codes": [
     "FİZ.10.3.3"
   ],
