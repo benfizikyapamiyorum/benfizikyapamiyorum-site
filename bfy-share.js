@@ -11,7 +11,7 @@
   section.className = 'bfy-share';
   section.setAttribute('aria-label', 'Sınıfla paylaş');
   section.innerHTML = '<div><strong>Birlikte çalışmak daha kolay.</strong><p>Bu sayfanın bağlantısını paylaş veya QR kodu tahtada aç.</p></div><button type="button">Sınıfınla paylaş ↗</button>';
-  const main = document.querySelector('main');
+  const main = document.querySelector('main, .app');
   if (!main) return;
   main.appendChild(section);
   const dialog = document.createElement('dialog');
