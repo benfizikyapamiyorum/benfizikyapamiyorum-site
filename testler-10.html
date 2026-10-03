@@ -314,8 +314,8 @@
   }
 
 </style>
-  <script defer src="analytics.js"></script>
-</head>
+  <script defer src="analytics.js?v=20261003-growth1"></script>
+<link rel="stylesheet" href="bfy-student.css?v=20261003-growth1"><script defer src="bfy-share.js?v=20261003-growth1"></script></head>
 <body>
 
 <header class="topbar">
@@ -373,6 +373,7 @@
 
       <h3 style="margin-bottom: 10px">Test modunu seç:</h3>
       <div class="quiz-mode-picker">
+        <button type="button" class="mode-card" data-mode="hizli" onclick="selectMode('hizli')" style="font:inherit;text-align:left;background:var(--surface)"><h4>3 Soruluk Pekiştirme</h4><p>Konunu seç, üç soruyla ücretsiz başla.</p></button>
         <div class="mode-card selected" data-mode="mini" onclick="selectMode('mini')">
           <h4>🎯 Mini Diagnostik · 15 soru</h4>
           <p>Karışık 15 soru, tüm üniteden. 22 dakika. Önerilen başlangıç.</p>
@@ -511,12 +512,14 @@ const KAZANIM_UNITE = Object.fromEntries(Object.keys(UNITE_AD).map(u =>
   [u, Object.keys(KAZANIM_AD).filter(k => k.split('.')[2] === u)]
 ));
 const MOD_CONFIG = {
+  hizli:{soruSay:3,dakika:5,label:"3 Soruluk Pekiştirme"},
   mini:{soruSay:15,dakika:22,label:"Mini Diagnostik"},
   unite:{soruSay:20,dakika:30,label:"Ünite Testi"},
   tam:{soruSay:40,dakika:60,label:"Tam Deneme"},
   konu:{soruSay:10,dakika:15,label:"Konu Testi"}
 };
 
+let quizFinished=true;
 let SORULAR=[],currentMode="mini",activeQuestions=[],currentIdx=0,answers=[],timerInterval=null,timeLeft=0;
 
 async function loadSorular(){
@@ -530,6 +533,7 @@ async function loadSorular(){
     populateKonuSelect();
     populateUniteSelect();
     document.getElementById("poolCount").textContent = SORULAR.length;
+    applyStudentLink();
     updateModeSummary();
   }catch(e){
     document.getElementById("questionCard").innerHTML=
@@ -558,7 +562,7 @@ function eligibleQuestions(){
     const allowed=KAZANIM_UNITE[document.getElementById("uniteSelect").value] || [];
     return SORULAR.filter(q=>allowed.includes(q.kazanim));
   }
-  if(currentMode==="konu"){
+  if(currentMode==="konu" || currentMode==="hizli"){
     const code=document.getElementById("konuSelect").value;
     return SORULAR.filter(q=>q.kazanim===code);
   }
@@ -575,16 +579,24 @@ function selectMode(mode){
   currentMode=mode;
   document.querySelectorAll(".mode-card").forEach(c=>{
     c.classList.toggle("selected",c.dataset.mode===mode);
+    c.setAttribute("aria-pressed",String(c.dataset.mode===mode));
   });
   document.getElementById("uniteSecici").style.display=(mode==="unite")?"block":"none";
-  document.getElementById("konuSecici").style.display=(mode==="konu")?"block":"none";
+  document.getElementById("konuSecici").style.display=(mode==="konu" || mode==="hizli")?"block":"none";
   updateModeSummary();
 }
 
+function shuffleStudentQuestions(pool){
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  return pool;
+}
 function pickQuestions(){
   const pool=[...eligibleQuestions()];
-  pool.sort(()=>Math.random()-0.5);
-  return pool.slice(0,Math.min(MOD_CONFIG[currentMode].soruSay,pool.length));
+  const previous=new Set(activeQuestions.map(q=>q.id));
+  // Prioritise unattempted questions, filling from the same topic if its pool is small.
+  const fresh=shuffleStudentQuestions(pool.filter(q=>!previous.has(q.id)));
+  const seen=shuffleStudentQuestions(pool.filter(q=>previous.has(q.id)));
+  return [...fresh,...seen].slice(0,Math.min(MOD_CONFIG[currentMode].soruSay,pool.length));
 }
 
 function startQuiz(){
@@ -597,6 +609,8 @@ function startQuiz(){
     alert("Seçilen kategoride yeterli soru yok.");
     return;
   }
+  quizFinished=false;
+  window.BFY?.track("test_start");
   currentIdx=0;
   answers=new Array(activeQuestions.length).fill(null);
   timeLeft=MOD_CONFIG[currentMode].dakika*60;
@@ -703,6 +717,8 @@ function updateTimerDisplay(){
 }
 
 function finishQuiz(){
+  if(quizFinished) return;
+  quizFinished=true;
   clearInterval(timerInterval);
   const total=activeQuestions.length;
   if(!total) return;
@@ -718,6 +734,10 @@ function finishQuiz(){
   renderReviewPlan(byKaz);
   renderCevapList();
   showScreen("result");
+  window.BFY?.track("test_complete");
+  const topic=Object.keys(byKaz)[0];
+  try{localStorage.setItem('bfy_quiz_resume_v1',JSON.stringify({grade:STUDENT_GRADE,code:topic,title:KAZANIM_AD[topic]||'',updated:Date.now()}));}catch(_){}
+
 }
 
 function _konuAnalizGetir(){
@@ -755,7 +775,7 @@ function renderReviewPlan(byKaz=_konuAnalizGetir()){
   const topics=Object.entries(byKaz).filter(([,d])=>d.tekrar.length);
   if(!topics.length){
     document.getElementById("reviewPlan").innerHTML=`<h3>Bu testteki tüm soruları doğru yanıtladın</h3>
-      <p>Çözümlerdeki gerekçeleri kendi yaklaşımınla karşılaştır. Konuları farklı soru türleriyle çalışmak için yeni bir test çözebilirsin.</p>`;
+      <p>Çözümlerdeki gerekçeleri kendi yaklaşımınla karşılaştır. Konuları farklı soru türleriyle çalışmak için yeni bir test çözebilirsin.</p>${studentReviewActions(Object.keys(byKaz)[0])}`;
     return;
   }
   const allBlank=Object.values(byKaz).every(d=>d.bos===d.total);
@@ -775,7 +795,7 @@ function renderReviewPlan(byKaz=_konuAnalizGetir()){
     }).join('');
     return `<div class="review-topic"><h4>${escapeHTML(KAZANIM_AD[kaz]||kaz)}</h4>
       <p>${d.yanlis} yanlış · ${d.bos} boş. ${suggestion}</p>
-      <div class="review-question-links">${links}</div></div>`;
+      <div class="review-question-links">${links}</div>${studentReviewActions(kaz)}</div>`;
   }).join('');
   document.getElementById("reviewPlan").innerHTML=`<h3>${title}</h3><p>${intro}</p>${cards}`;
 }
@@ -836,6 +856,55 @@ function escapeHTML(str){
 function restartQuiz(){
   showScreen("intro");
   window.scrollTo({top:0,behavior:"smooth"});
+}
+
+const STUDENT_GRADE=10;
+function applyStudentLink(){
+  document.querySelectorAll('.mode-card').forEach(card=>{
+    card.setAttribute('aria-pressed',String(card.dataset.mode===currentMode));
+    if(card.tagName!=='BUTTON'){
+      card.setAttribute('role','button');card.tabIndex=0;
+      card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMode(card.dataset.mode);}});
+    }
+  });
+  const params=new URLSearchParams(location.search);
+  const mode=params.get('mode'), code=params.get('konu');
+  if(Object.hasOwn(MOD_CONFIG,mode))selectMode(mode);
+  const select=document.getElementById('konuSelect');
+  if(code&&[...select.options].some(option=>option.value===code)){
+    select.value=code;
+    if(currentMode!=='hizli')selectMode('konu');
+  }
+}
+function studentReviewResource(code){
+  const resources={
+    'FİZ.9.2.2':['9-sinif-fizik-vektorler.html','Vektörler: kısa not ve çözümlü örnek'],
+    'FİZ.9.2.3':['9-sinif-fizik-vektorler.html','Vektörler: kısa not ve çözümlü örnek'],
+    'FİZ.9.2.4':['9-sinif-fizik-vektorler.html','Vektörler: kısa not ve çözümlü örnek'],
+    'FİZ.10.1.1':['10-sinif-fizik-hareket-grafikleri.html','Hareket grafikleri: kısa not ve örnek'],
+    'FİZ.10.1.2':['10-sinif-fizik-hareket-grafikleri.html','Hız ve ivme: kısa not ve örnek'],
+    'FİZ.10.1.3':['10-sinif-fizik-hareket-grafikleri.html','Hareket grafikleri: kısa not ve örnek'],
+    'FİZ.10.2.1':['10-sinif-fizik-enerji-sorulari.html','İş ve enerji: kısa not ve örnek'],
+    'FİZ.10.2.2':['10-sinif-fizik-enerji-sorulari.html','İş ve enerji: kısa not ve örnek'],
+    'FİZ.10.2.3':['10-sinif-fizik-enerji-sorulari.html','Enerji: kısa not ve örnek'],
+    'FİZ.10.2.4':['10-sinif-fizik-enerji-sorulari.html','Mekanik enerji: kısa not ve örnek'],
+    'FİZ.11.1.4':['11-sinif-fizik-newton-yasalari.html','Newton yasaları: kısa not ve örnek'],
+    'FİZ.11.1.5':['11-sinif-fizik-newton-yasalari.html','Net kuvvet: kısa not ve örnek']
+  };
+  return resources[code]||[`${STUDENT_GRADE}-sinif-fizik-konulari.html`,'Sınıfının konu listesini incele'];
+}
+function studentReviewActions(code){
+  if(!Object.hasOwn(KAZANIM_AD,code))return '';
+  const resource=studentReviewResource(code);
+  return `<div class="student-review-actions"><a href="${resource[0]}" data-bfy-event="review_resource">${resource[1]} →</a><button type="button" onclick="startStudentPractice('${code}')">Konudan 3 soru ile pekiştir →</button></div>`;
+}
+function startStudentPractice(code){
+  const select=document.getElementById('konuSelect');
+  if(![...select.options].some(option=>option.value===code))return;
+  select.value=code;
+  selectMode('hizli');
+  window.BFY?.track('practice_click');
+  startQuiz();
 }
 
 loadSorular();

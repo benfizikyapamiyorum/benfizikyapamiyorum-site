@@ -50,7 +50,7 @@
 <div class="wrap">
   <span class="lock">🔒 Özel sayfa — menüde yok, aramaya kapalı</span>
   <h1>📊 Ziyaret İstatistikleri</h1>
-  <p class="sub">benfizikyapamiyorum.com · kendi Firebase sayacın (reklam engelleyiciden etkilenmez)</p>
+  <p class="sub">benfizikyapamiyorum.com · kendi Firebase sayacın · günler Türkiye saatine göre</p>
 
   <div class="cards">
     <div class="card accent"><div class="lbl">Toplam Ziyaret</div><div class="val" id="tZiyaret">—</div></div>
@@ -76,7 +76,7 @@
     </table>
   </div>
 
-  <div class="foot">
+<div class="panel"><h2>Öğrenci akışı — son 14 kayıtlı gün</h2><p class="muted" style="font-size:.86rem">Yeni ölçümler bu güncellemeden sonra birikir. Sayılar işlem adedidir; farklı öğrencilerin sayısı değildir. Geri dönüş, aynı cihazın daha önce gelmiş olduğu oturumları sayar. Shopier tıklaması satın alma anlamına gelmez.</p><div id="studentMetrics">Yükleniyor…</div><h2 style="margin-top:24px">Hangi kaynak çalışıyor?</h2><div id="studentSources">Yükleniyor…</div></div>  <div class="foot">
     <span id="durum" class="muted">Firebase'e bağlanılıyor…</span>
     <button class="btn" onclick="location.reload()">↻ Yenile</button>
   </div>
@@ -102,7 +102,9 @@
   var db;
   try { db = firebase.firestore(); } catch(e){ durum.textContent = "Firebase başlatılamadı."; return; }
 
-  var today = new Date().toISOString().slice(0,10);
+  var parts = new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Istanbul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  var datePart = function(type){return parts.find(function(p){return p.type===type;}).value;};
+  var today = datePart('year')+'-'+datePart('month')+'-'+datePart('day');
   var AYLAR=['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
   function guzelGun(g){ // "2026-08-10" → "10 Ağu Pzt"
     try{ var d=new Date(g+'T12:00:00');
@@ -128,6 +130,12 @@
   .then(function(snap){
     var days = [];
     snap.forEach(function(doc){ days.push({ gun: doc.id, data: doc.data() }); });
+
+    var metricLabels = {e_student_start:'Ücretsiz başlangıca geçiş',e_test_start:'Başlanan test',e_test_complete:'Bitirilen test',e_practice_click:'Pekiştirmeye geçiş',e_lesson_lab:'Konudan deneye geçiş',e_review_resource:'Sonuçtan anlatıma geçiş',e_share_open:'Paylaşım penceresi açılışı',e_share_copy:'Kopyalanan bağlantı',e_share_whatsapp:'WhatsApp paylaşımına geçiş',e_share_qr:'QR kod açılışı',geri_donen_oturum:'Daha önce gelen cihaz oturumları',e_shop_click:'Shopier’e geçiş'};
+    var sum = function(field){return days.reduce(function(n,x){return n+(Number(x.data[field])||0);},0);};
+    $('studentMetrics').innerHTML='<table><thead><tr><th>Adım</th><th>İşlem adedi</th></tr></thead><tbody>'+Object.keys(metricLabels).map(function(field){return '<tr><td>'+metricLabels[field]+'</td><td class="num">'+nf(sum(field))+'</td></tr>';}).join('')+'</tbody></table>';
+    var sourceLabels={arama:'Arama motoru',instagram:'Instagram',youtube:'YouTube',tiktok:'TikTok',ogretmen:'Öğretmen paylaşımı / QR',dogrudan:'Doğrudan / kaynağı bilinmeyen',diger:'Diğer siteler'};
+    $('studentSources').innerHTML='<div style="overflow-x:auto"><table><thead><tr><th>Kaynak</th><th>Oturum</th><th>Test başlangıcı</th><th>Test bitişi</th></tr></thead><tbody>'+Object.keys(sourceLabels).map(function(source){return '<tr><td>'+sourceLabels[source]+'</td><td class="num">'+nf(sum('kaynak_'+source))+'</td><td class="num">'+nf(sum('e_test_start_'+source))+'</td><td class="num">'+nf(sum('e_test_complete_'+source))+'</td></tr>';}).join('')+'</tbody></table></div>';
     // --- bugün kartı ---
     var t = days.filter(function(x){ return x.gun===today; })[0];
     $('tBugun').textContent = t ? (nf(t.data.ziyaret)+' · '+nf(t.data.goruntuleme)) : '0 · 0';
@@ -175,6 +183,8 @@
       gd.appendChild(det);
     });
   }).catch(function(e){
+    $('studentMetrics').textContent='Ölçümler yüklenemedi.';
+    $('studentSources').textContent='Kaynaklar yüklenemedi.';
     var msg=(e&&e.message)?e.message:String(e);
     $('bars').innerHTML='<span class="muted">Grafik yüklenemedi: '+msg+'</span>';
     $('gunluk').innerHTML='<span class="muted">Detay yüklenemedi: '+msg+'</span>';
