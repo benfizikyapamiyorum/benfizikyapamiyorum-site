@@ -1,5 +1,5 @@
 // BFY · 3B Dalga Leğeni — 2B dalga denkleminin GPU'da sayısal çözümü (FDTD)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=5';
 
 const TY = .76, LEGH = .26;
 const L = .56;                               // su alanının kenarı (m)
@@ -36,8 +36,10 @@ const simMat = new THREE.ShaderMaterial({
     uType: { value: 0 }, uS1: { value: new THREE.Vector2(.5, .82) }, uS2: { value: new THREE.Vector2(.5, .82) }, uR: { value: 2.2 / N }, uLineY: { value: .88 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }',
   fragmentShader: `precision highp float; varying vec2 vUv; uniform sampler2D uState, uMask; uniform vec2 uTexel, uS1, uS2; uniform float uK, uDrive, uR, uLineY; uniform int uType;
+    // sonlu değil (Inf/NaN) ya da aşırı büyükse sıfırla/kırp: yansıtan kutu + sert kaynak enerjiyi büyütse de su ve parıltı bozulmasın
+    float fin(float x){ return (isnan(x) || isinf(x) || x != x) ? 0. : clamp(x, -40., 40.); }
     void main(){
-      vec4 s = texture2D(uState, vUv); float u = s.r, up = s.g;
+      vec4 s = texture2D(uState, vUv); float u = fin(s.r), up = fin(s.g);
       float lap = texture2D(uState, vUv - vec2(uTexel.x, 0.)).r + texture2D(uState, vUv + vec2(uTexel.x, 0.)).r + texture2D(uState, vUv - vec2(0., uTexel.y)).r + texture2D(uState, vUv + vec2(0., uTexel.y)).r - 4. * u;
       vec4 m = texture2D(uMask, vUv);
       float un = 2. * u - up + uK * m.g * lap;
@@ -46,6 +48,7 @@ const simMat = new THREE.ShaderMaterial({
       if (uType == 0 || uType == 1) { if (distance(vUv, uS1) < uR) un = uDrive; }
       if (uType == 1) { if (distance(vUv, uS2) < uR) un = uDrive; }
       if (uType == 2) { if (abs(vUv.y - uLineY) < uTexel.y * 1.2 && abs(vUv.x - .5) < .44) un = uDrive; }
+      un = fin(un);
       gl_FragColor = vec4(un, u, 0., 1.);
     }` });
 const simScene = new THREE.Scene(), simCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -143,17 +146,20 @@ const uvToWorld = (u, v) => new THREE.Vector3((u - .5) * L, WATERY, -(v - .5) * 
 /* ---------- engel ve sığ bölge görselleri ---------- */
 const barG = new THREE.Group(); scene.add(barG);
 const barMat = new THREE.MeshStandardMaterial({ color: '#8f989f', metalness: .85, roughness: .35 });
+const unitBox = new THREE.BoxGeometry(1, 1, 1); // ortak birim kutu: engeller ölçeklenir, her yeniden kurulumda geometri üretilmez
 function buildBarriers3D() {
-  barG.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); barG.clear();
+  barG.clear();
   for (const [i0, i1, j0, j1] of barrierRects) { const w = (Math.min(i1, N) - Math.max(i0, 0)) * DX, d = (j1 - j0) * DX; if (w <= 0) continue;
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, .022, Math.max(d, .006)), barMat); const c = uvToWorld(((Math.max(i0, 0) + Math.min(i1, N)) / 2) / N, ((j0 + j1) / 2) / N); m.position.set(c.x, TRAYY + .011, c.z); m.castShadow = true; m.receiveShadow = true; barG.add(m); }
+    const m = new THREE.Mesh(unitBox, barMat); m.scale.set(w, .022, Math.max(d, .006)); const c = uvToWorld(((Math.max(i0, 0) + Math.min(i1, N)) / 2) / N, ((j0 + j1) / 2) / N); m.position.set(c.x, TRAYY + .011, c.z); m.castShadow = true; m.receiveShadow = true; barG.add(m); }
 }
 const shallowG = new THREE.Group(); scene.add(shallowG);
+// malzeme bir kez: eskiden her genişlik girişinde yeni malzeme üretilip hiç serbest bırakılmıyordu
+const shallowMat = new THREE.MeshPhysicalMaterial({ color: '#e0f4ff', transparent: true, opacity: .35, roughness: .08, envMapIntensity: 1.3, depthWrite: false });
 function buildShallow3D() {
-  shallowG.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); shallowG.clear();
+  shallowG.traverse(o => { if (o.isMesh && o.geometry !== unitBox) o.geometry.dispose(); }); shallowG.clear();
   if (S.depth === 'deep') return;
-  const mat = new THREE.MeshPhysicalMaterial({ color: '#e0f4ff', transparent: true, opacity: .35, roughness: .08, envMapIntensity: 1.3, depthWrite: false });
-  if (S.depth === 'half') { const m = new THREE.Mesh(new THREE.BoxGeometry(L, .0065, L * .42), mat); const c = uvToWorld(.5, .21); m.position.set(c.x, TRAYY + .0033, c.z); shallowG.add(m); }
+  const mat = shallowMat;
+  if (S.depth === 'half') { const m = new THREE.Mesh(unitBox, mat); m.scale.set(L, .0065, L * .42); const c = uvToWorld(.5, .21); m.position.set(c.x, TRAYY + .0033, c.z); shallowG.add(m); }
   else { const sh = new THREE.Shape(); const pts = []; for (const [u, v] of [[0, 0], [1, 0], [1, .5 + .5 * .55 - .08], [0, .5 - .5 * .55 - .08]]) pts.push(uvToWorld(u, v)); sh.moveTo(pts[0].x, -pts[0].z); pts.slice(1).forEach(p => sh.lineTo(p.x, -p.z));
     const g = new THREE.ExtrudeGeometry(sh, { depth: .0065, bevelEnabled: false }); g.rotateX(-Math.PI / 2); const m = new THREE.Mesh(g, mat); m.position.y = TRAYY; shallowG.add(m); }
 }
@@ -230,5 +236,8 @@ function ui() {
 W.orbit.minR = .3; W.orbit.maxR = 4; W.orbit.minPh = .25;
 buildMask(); setSources(); setCam(); W.orbit.th = 1.3; W.orbit.r = 2.1; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
 setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
-W.loadEnv('lab').then(() => { clearSim(); W.start(); });
+// derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
+const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
+// sığ cam ve engel malzemeleri ilk tıklamadan önce derlensin
+W.loadEnv('lab').then(() => { clearSim(); return prewarmLin([new THREE.Mesh(unitBox, shallowMat), new THREE.Mesh(unitBox, barMat)]); }).then(() => W.start());
 window.__bfyLab = { W, S, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); }, simAdvance(sec) { const n = Math.round(sec / DT); for (let i = 0; i < n; i++) simStep(); } };

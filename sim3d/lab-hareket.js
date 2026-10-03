@@ -1,5 +1,5 @@
 // BFY · 3B Hareket Grafikleri — rampada oyuncak araba, hareket sensörü, canlı x-t / v-t / a-t
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=5';
 
 const G = 9.8, TY = .76, LT = 3.1, X_MIN = .12, X_MAX = 2.9, TMAX = 12;
 const XS = -1.5;                       // şerit sıfırının dünya x'i
@@ -29,6 +29,7 @@ const rubber = new THREE.MeshStandardMaterial({ color: '#1b1b1d', roughness: .85
 const redRub = new THREE.MeshStandardMaterial({ color: '#b3261e', roughness: .7 });
 const woodTex = canvasTex(256, 64, (g, w, h) => { g.fillStyle = '#b8864f'; g.fillRect(0, 0, w, h); for (let i = 0; i < 26; i++) { g.strokeStyle = `rgba(90,52,20,${.08 + Math.random() * .16})`; g.lineWidth = 1 + Math.random() * 2; g.beginPath(); const y = Math.random() * h; g.moveTo(0, y); g.bezierCurveTo(w * .3, y + (Math.random() - .5) * 10, w * .6, y + (Math.random() - .5) * 10, w, y + (Math.random() - .5) * 6); g.stroke(); } });
 const woodMat = new THREE.MeshStandardMaterial({ map: woodTex, roughness: .7 });
+const blockGeo = new THREE.BoxGeometry(1, 1, 1); // takozlar ortak birim kutuyu ölçekler: kaydırıcı her girişte geometri sızdırmasın
 
 /* ---------- şerit metre dokusu (1 m / parça) ---------- */
 function tapeTex(m) {
@@ -74,7 +75,7 @@ function buildLane(key) {
   // yükseltme takozları
   L.blocks = new THREE.Group(); scene.add(L.blocks);
   // ses dalgaları
-  L.pulses = []; L.pulseT = 0;
+  L.pulses = []; L.pulseT = 0; L.pulsePool = [];
   // hayalet (eşit zaman) kopyaları
   L.ghosts = new THREE.Group(); L.g.add(L.ghosts); L.ghostN = 0;
   // oklar
@@ -151,13 +152,13 @@ function applyLane(L) {
   L.blocks.clear(); L.g.updateMatrixWorld(true);
   const w = L.g.localToWorld(new THREE.Vector3(pHigh, -.018, 0));
   const h = w.y - TY, n = Math.floor(h / .025 + 1e-6);
-  for (let i = 0; i <= n; i++) { const hh = i < n ? .025 : h - n * .025; if (hh < .002) continue; const b = new THREE.Mesh(new THREE.BoxGeometry(.075, hh - .0008, .16), woodMat); b.position.set(w.x, TY + i * .025 + hh / 2, L.z + (i % 2 ? .004 : -.003)); b.rotation.y = (i % 2 ? .03 : -.02); b.castShadow = b.receiveShadow = true; L.blocks.add(b); }
+  for (let i = 0; i <= n; i++) { const hh = i < n ? .025 : h - n * .025; if (hh < .002) continue; const b = new THREE.Mesh(blockGeo, woodMat); b.scale.set(.075, hh - .0008, .16); b.position.set(w.x, TY + i * .025 + hh / 2, L.z + (i % 2 ? .004 : -.003)); b.rotation.y = (i % 2 ? .03 : -.02); b.castShadow = b.receiveShadow = true; L.blocks.add(b); }
   L.g.visible = L.blocks.visible = c.on;
   resetLane(L);
 }
 function resetLane(L) {
   const c = CAR[L.key]; L.x = c.x0; L.v = c.v0; L.stopT = null; L.dist = 0; L.hist.length = 0; L.state = 'ready'; L.Tend = hitTime(c);
-  L.ghosts.clear(); L.ghostN = 0; L.pulses.forEach(p => L.g.remove(p.m)); L.pulses.length = 0;
+  L.ghosts.clear(); L.ghostN = 0; L.pulses.forEach(p => { p.m.visible = false; L.pulsePool.push(p.m); }); L.pulses.length = 0;
   L.launcher.visible = Math.abs(c.v0) > 1e-6; placeLauncher(L, 0);
   if (L.car) placeCar(L);
 }
@@ -173,11 +174,13 @@ const ringTex = canvasTex(128, 128, g => { g.strokeStyle = 'rgba(140,200,255,1)'
 const ringMat = new THREE.MeshBasicMaterial({ map: ringTex, color: new THREE.Color(1.3, 1.6, 2), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide });
 const ringGeo = new THREE.PlaneGeometry(1, 1).rotateY(Math.PI / 2);
 function stepPulses(L, dt) {
-  if (S.sonar && S.run && L.state === 'run') { L.pulseT -= dt; if (L.pulseT <= 0) { L.pulseT = .12; const m = new THREE.Mesh(ringGeo, ringMat.clone()); m.position.set(-.07, TH + .0425, 0); L.g.add(m); L.pulses.push({ m, x: -.07 }); } }
+  if (S.sonar && S.run && L.state === 'run') { L.pulseT -= dt; if (L.pulseT <= 0) { L.pulseT = .12; const m = L.pulsePool.pop() || newPulse(L); m.visible = true; m.position.set(-.07, TH + .0425, 0); L.pulses.push({ m, x: -.07 }); } }
   for (let i = L.pulses.length - 1; i >= 0; i--) { const p = L.pulses[i]; p.x += dt * 2.2; const back = L.x - .11; const k = (p.x + .07) / Math.max(.05, back + .07);
     p.m.position.x = p.x; const s = .03 + (p.x + .07) * .06; p.m.scale.set(1, s, s); p.m.material.opacity = clamp(1 - k, 0, 1) * .8;
-    if (p.x > back) { L.g.remove(p.m); p.m.material.dispose(); L.pulses.splice(i, 1); } }
+    if (p.x > back) { p.m.visible = false; L.pulsePool.push(p.m); L.pulses.splice(i, 1); } }
 }
+// ses halkaları havuzda kalır: eskiden sıfırlamada malzemeler sızıyor, son halka silinince program da gidip yeniden derleniyordu
+function newPulse(L) { const m = new THREE.Mesh(ringGeo, ringMat.clone()); m.visible = false; L.g.add(m); return m; }
 
 /* ---------- simülasyon ---------- */
 const active = () => ['A', 'B'].filter(k => CAR[k].on);
@@ -294,7 +297,8 @@ function advanceSim(dt) {
   checkMeet(prev, S.t); strobe(S.t);
   if (allDone() || S.t >= TMAX) { S.run = false; S.done = true; $('btn-go').textContent = '↺ Tekrar'; }
 }
-let lastUI = 0, time = 0;
+let lastUI = 0, time = 0, graphKey = '';
+const _up = new THREE.Vector3(), _fw = new THREE.Vector3(), _top = new THREE.Vector3(), _v = new THREE.Vector3(), _p = new THREE.Vector3();
 W.update = dt => {
   time += dt;
   if (S.run) { S.kick = (S.kick || 0) + dt; advanceSim(dt * S.speed); }
@@ -305,14 +309,17 @@ W.update = dt => {
     stepPulses(L, dt);
     L.led.material.color.setRGB(...(S.run && L.state === 'run' && (time * 8 % 1) < .5 ? [3.5, .4, .3] : [.2, 2.4, .5]));
     // oklar (dünya uzayında, arabanın üstünde)
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(L.g.quaternion), fw = new THREE.Vector3(1, 0, 0).applyQuaternion(L.g.quaternion);
-    const top = L.g.localToWorld(new THREE.Vector3(L.x, L.carY + .085, 0));
-    if (S.vec && Math.abs(L.v) > .02) L.arV.set(top, fw.clone().multiplyScalar(L.v * .32), .0045); else L.arV.hide();
-    if (S.acc && Math.abs(c.a) > .01) L.arA.set(top.clone().addScaledVector(up, .045), fw.clone().multiplyScalar(c.a * .45), .0045); else L.arA.hide();
+    const up = _up.set(0, 1, 0).applyQuaternion(L.g.quaternion), fw = _fw.set(1, 0, 0).applyQuaternion(L.g.quaternion);
+    const top = L.g.localToWorld(_top.set(L.x, L.carY + .085, 0));
+    if (S.vec && Math.abs(L.v) > .02) L.arV.set(top, _v.copy(fw).multiplyScalar(L.v * .32), .0045); else L.arV.hide();
+    if (S.acc && Math.abs(c.a) > .01) L.arA.set(_p.copy(top).addScaledVector(up, .045), _v.copy(fw).multiplyScalar(c.a * .45), .0045); else L.arA.hide();
   }
   cameraDirector(dt);
   W.updateOrbit(dt, S.cam === 'orbit' ? 5 : 3);
-  if (time - lastUI > .08) { lastUI = time; ui(); drawGraph(); }
+  if (time - lastUI > .08) { lastUI = time; ui();
+    // grafik yalnızca veri ya da ayar değişince yeniden çizilir
+    const key = [S.t, S.area, S.meet ? S.meet.t : 0, ...active().map(k => lanes[k].hist.length + ':' + CAR[k].x0 + ':' + CAR[k].v0 + ':' + CAR[k].a), gc.clientWidth, gc.clientHeight].join();
+    if (key !== graphKey) { graphKey = key; drawGraph(); } }
 };
 function cameraDirector() {
   if (S.cam === 'orbit') return; const o = W.orbit; o.auto = 0;
@@ -339,5 +346,11 @@ function ui() {
 /* ---------- başlat ---------- */
 W.orbit.minR = .3; W.orbit.maxR = 6; W.orbit.maxPh = 1.5;
 syncUI(); resetAll(); W.orbit.target.set(-.6, TY + .1, 0); W.orbit.r = 2.6; W.orbit.th = .7; W.orbit.ph = 1.05; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
-W.loadEnv('lab').then(() => W.start());
+// derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
+const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
+// sonradan görünen oklar, ses halkası ve fotoğraf hayaleti de açılışta derlensin: ilk tıklamada takılma olmasın
+async function warm() { const objs = ['A', 'B'].flatMap(k => [lanes[k].arV.g, lanes[k].arA.g]), vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true);
+  const smp = [new THREE.Mesh(ringGeo, ringMat), new THREE.Mesh(blockGeo, new THREE.MeshStandardMaterial({ color: '#ff8a78', transparent: true, opacity: .26, roughness: .4, depthWrite: false }))];
+  await prewarmLin(smp); objs.forEach((o, i) => o.visible = vis[i]); smp[1].material.dispose(); }
+W.loadEnv('lab').then(warm).then(() => W.start());
 window.__bfyLab = { W, S, CAR, lanes, setScenario, resetAll, go, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

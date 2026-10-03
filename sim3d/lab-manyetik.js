@@ -1,5 +1,5 @@
 // BFY · 3B Manyetik Alan Laboratuvarı — Biot–Savart ile alan, demir tozu, pusulalar
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=3';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=5';
 
 const TY = .76, PY = TY + .12, FY = PY + .005;   // plaka üstü = alan düzlemi
 const PL = .46;                                    // plaka kenarı
@@ -100,8 +100,9 @@ function fieldAt(x, y, z) {
       bx += (s[4] * rz - s[5] * ry) * inv; by += (s[5] * rx - s[3] * rz) * inv; bz += (s[3] * ry - s[4] * rx) * inv; } const k = MU0 / (4 * Math.PI); bx *= k; by *= k; bz *= k; }
   return [bx, by, bz];
 }
-const GN = 112; const GB = new Float32Array(GN * GN * 2); let gridMax = 1e-9;
+const GN = 112; const GB = new Float32Array(GN * GN * 2); let gridMax = 1e-9, gridI = 0;
 function buildGrid() {
+  gridI = S.I;
   const ys = S.src === 'bar' ? FY + BAR.w / 2 : FY;
   for (let j = 0; j < GN; j++) for (let i = 0; i < GN; i++) { const x = -PL / 2 + (i + .5) / GN * PL, z = -PL / 2 + (j + .5) / GN * PL; const b = fieldAt(x, ys, z); GB[(j * GN + i) * 2] = b[0]; GB[(j * GN + i) * 2 + 1] = b[2]; }
   const mags = []; for (let k = 0; k < GN * GN; k += 7) mags.push(Math.hypot(GB[k * 2], GB[k * 2 + 1])); mags.sort((a, b) => a - b); gridMax = mags[Math.floor(mags.length * .85)] || 1e-9;
@@ -140,9 +141,11 @@ function computeTargets() {
   for (; k < NG; k++) { GP[k * 2] = (R() - .5) * PL * .94; GP[k * 2 + 1] = (R() - .5) * PL * .94; GT[k] = R() * Math.PI; }
   alignT = 0;
 }
-let alignT = 1, startA = null;
+let alignT = 1, startA = null, grainsDirty = true;
+// 12 000 matris yalnızca hizalanırken ya da düzen değişince yazılır (durağanken her kare GPU'ya yüklenmesin)
 function layoutGrains(dt) {
-  if (!grains.visible) return;
+  if (!grains.visible || (alignT >= 1 && !grainsDirty)) return;
+  grainsDirty = false;
   if (alignT < 1) { if (!startA) startA = GA.slice(); alignT = Math.min(1, alignT + dt / 1.4); const e = smooth(0, 1, alignT);
     for (let k = 0; k < NG; k++) { let d = GT[k] - startA[k]; d = ((d + Math.PI / 2) % Math.PI + Math.PI) % Math.PI - Math.PI / 2; GA[k] = startA[k] + d * e; } if (alignT >= 1) startA = null; }
   const yy = S.src === 'bar' ? FY + .0003 : FY + .0003;
@@ -196,13 +199,14 @@ const big = makeCompass(.026); big.x = .095; big.z = .07; big.big = true; compas
 const flowTex = canvasTex(64, 64, g => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 30); gr.addColorStop(0, 'rgba(255,255,220,1)'); gr.addColorStop(.3, 'rgba(255,210,80,.9)'); gr.addColorStop(1, 'rgba(255,150,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
 const flows = Array.from({ length: 72 }, (_, i) => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: flowTex, color: new THREE.Color(3, 2.3, 1.1), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); s.scale.setScalar(.008); scene.add(s); return { s, i, u: 0 }; });
 let flowPh = 0;
-function pathPoint(u) {
+function pathPoint(u, out = new THREE.Vector3()) {
   u = ((u % 1) + 1) % 1;
-  if (S.src === 'wire') return new THREE.Vector3(0, TY + .02 + u * .42, 0);
-  if (S.src === 'loop') { const a = u * Math.PI * 2 - Math.PI / 2; return new THREE.Vector3(R_LOOP * Math.cos(a), PY + R_LOOP * Math.sin(a), 0); }
-  if (S.src === 'sol' && solPath.length) { const f = u * (solPath.length - 1), i = Math.floor(f); return solPath[i].clone().lerp(solPath[Math.min(i + 1, solPath.length - 1)], f - i); }
-  return new THREE.Vector3(0, -10, 0);
+  if (S.src === 'wire') return out.set(0, TY + .02 + u * .42, 0);
+  if (S.src === 'loop') { const a = u * Math.PI * 2 - Math.PI / 2; return out.set(R_LOOP * Math.cos(a), PY + R_LOOP * Math.sin(a), 0); }
+  if (S.src === 'sol' && solPath.length) { const f = u * (solPath.length - 1), i = Math.floor(f); return out.copy(solPath[i]).lerp(solPath[Math.min(i + 1, solPath.length - 1)], f - i); }
+  return out.set(0, -10, 0);
 }
+const _q = new THREE.Vector3(), _c = new THREE.Vector3(), UPY = new THREE.Vector3(0, 1, 0), _ad = new THREE.Vector3();
 const hand = new THREE.Group(); scene.add(hand);
 const handMat = new THREE.MeshBasicMaterial({ color: new THREE.Color('#ff9a3d').multiplyScalar(1.8), toneMapped: false, transparent: true, opacity: .9 });
 { const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.004, .004, .16, 16), handMat); shaft.position.y = .08; const head = new THREE.Mesh(new THREE.ConeGeometry(.011, .03, 20), handMat); head.position.y = .175; const thumb = new THREE.Group(); thumb.add(shaft, head); thumb.name = 'thumb'; hand.add(thumb);
@@ -234,7 +238,10 @@ document.querySelectorAll('#cards-src .a3c').forEach(b => b.onclick = () => { do
 $('btn-pow').onclick = () => { S.on = !S.on; $('btn-pow').textContent = S.on ? '⏻ Akımı kes' : '⏻ Akımı aç'; if (!S.on) { sprinkle(); } rebuild(false); if (!S.on) { for (let k = 0; k < NG; k++) GT[k] = GA[k]; } };
 $('btn-rev').onclick = () => { S.dir *= -1; rebuild(false); toast('Akım ters döndü: pusulalar da ters yönü gösterir. Tozların deseni aynı kalır (tozların yönü yoktur).'); };
 $('btn-shake').onclick = () => { sprinkle(); computeTargets(); };
-$('i-i').addEventListener('input', e => { S.I = +e.target.value; $('o-i').textContent = fmt(S.I, S.I % 1 ? 1 : 0) + ' A'; drawLCD(); clearTimeout(riT); riT = setTimeout(() => { buildSegments(); buildGrid(); buildLines(); }, 80); });
+// Alan I ile doğrusal: ızgara yalnızca ölçeklenir. Alan çizgilerinin biçimi (birim yön) ve mıknatıs alanı I'ya bağlı değil → yeniden kurulmaz.
+$('i-i').addEventListener('input', e => { S.I = +e.target.value; $('o-i').textContent = fmt(S.I, S.I % 1 ? 1 : 0) + ' A'; drawLCD();
+  if (S.src === 'bar') return; buildSegments();
+  if (gridI > 0 && S.I > 0) { const k = S.I / gridI; for (let q = 0; q < GB.length; q++) GB[q] *= k; gridMax *= k; gridI = S.I; } else buildGrid(); });
 let riT = 0;
 $('i-n').addEventListener('input', e => { S.N = +e.target.value; $('o-n').textContent = S.N; clearTimeout(riT); riT = setTimeout(() => rebuild(false), 150); });
 const tg = (id, k, after) => $(id).addEventListener('click', e => { S[k] = !S[k]; e.currentTarget.classList.toggle('on', S[k]); after && after(); });
@@ -257,12 +264,12 @@ W.update = dt => {
   // akım parçacıkları
   const flowOn = S.flow && S.on && S.src !== 'bar';
   const nF = S.src === 'wire' ? 16 : S.src === 'loop' ? 12 : 72; flowPh += dt * S.I / 10 * S.dir * (S.src === 'sol' ? .02 : .08);
-  flows.forEach(f => { f.s.visible = flowOn && f.i < nF; if (!f.s.visible) return; f.u = f.i / nF + flowPh; const q = pathPoint(f.u); f.s.position.copy(q).addScaledVector(camera.position.clone().sub(q).normalize(), .007); });
+  flows.forEach(f => { f.s.visible = flowOn && f.i < nF; if (!f.s.visible) return; f.u = f.i / nF + flowPh; const q = pathPoint(f.u, _q); f.s.position.copy(q).addScaledVector(_c.copy(camera.position).sub(q).normalize(), .007); });
   // sağ el kuralı
   hand.visible = S.hand && S.on && S.src !== 'bar';
   if (hand.visible) { const th = hand.getObjectByName('thumb'), arc = hand.getObjectByName('arc'), ah = hand.getObjectByName('ah');
     if (S.src === 'wire') { hand.scale.setScalar(1); hand.position.set(0, FY + .12, 0); hand.rotation.set(0, 0, S.dir > 0 ? 0 : Math.PI); th.visible = true; arc.visible = ah.visible = true;
-      const a = Math.PI * 1.6; ah.position.set(.045 * Math.cos(a), 0, -.045 * Math.sin(a)); ah.rotation.set(0, 0, 0); ah.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(-Math.sin(a), 0, -Math.cos(a))); }
+      const a = Math.PI * 1.6; ah.position.set(.045 * Math.cos(a), 0, -.045 * Math.sin(a)); ah.rotation.set(0, 0, 0); ah.quaternion.setFromUnitVectors(UPY, _ad.set(-Math.sin(a), 0, -Math.cos(a))); }
     else { hand.position.set(0, PY, 0); hand.scale.setScalar(S.src === 'sol' ? 1.35 : 1); if (S.src === 'loop') hand.rotation.set(S.dir > 0 ? Math.PI / 2 : -Math.PI / 2, 0, 0); else hand.rotation.set(0, 0, S.dir > 0 ? -Math.PI / 2 : Math.PI / 2); arc.visible = ah.visible = th.visible = true; } }
   W.updateOrbit(dt, 5);
   if (time - lastUI > .12) { lastUI = time; ui(); }
@@ -289,5 +296,9 @@ function ui() {
 W.orbit.minR = .25; W.orbit.maxR = 3.5; W.orbit.minPh = .02;
 sprinkle(); rebuild(false); setCam(); W.orbit.th = 1.4; W.orbit.r = 1.8; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
 setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
-W.loadEnv('lab').then(() => W.start());
+// derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
+const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
+// gizli kaynaklar, sağ el oku ve alan çizgisi malzemesi de açılışta derlensin: ilk tıklamada takılma olmasın
+async function warm() { const objs = [...Object.values(srcG), hand], vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); await prewarmLin([new THREE.Mesh(new THREE.ConeGeometry(.0035, .01, 12), lineMat)]); objs.forEach((o, i) => o.visible = vis[i]); }
+W.loadEnv('lab').then(warm).then(() => W.start());
 window.__bfyLab = { W, S, rebuild, fieldAt, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };
