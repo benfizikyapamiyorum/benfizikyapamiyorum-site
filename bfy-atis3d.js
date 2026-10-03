@@ -720,7 +720,9 @@ function warmUp() {
   if (!debrisN) { debris.setMatrixAt(0, new THREE.Matrix4().makeTranslation(at.x, at.y, 0)); debris.instanceMatrix.needsUpdate = true; debris.count = 1; }
   const wc = new THREE.Mesh(craterGeo, craterMat); wc.position.copy(at); wc.rotation.x = -Math.PI / 2; craters.add(wc);
   flag.visible = target.visible = compG.visible = true;
-  try { renderer.compile(scene, camera); composer.render(0); } catch (e) { }
+  // son işleme tamponunun varyantı derlenir (sahne ekrana değil o hedefe çizilir)
+  renderer.setRenderTarget(composer.renderTarget1); try { renderer.compile(scene, camera); } catch (e) { } renderer.setRenderTarget(null);
+  try { composer.render(0); } catch (e) { }
   craters.remove(wc); warmTrails.forEach(t => t.visible = false);
   ghosts.count = ghostN; debris.count = debrisN; flag.visible = fv; target.visible = tv; compG.visible = cv;
   try { composer.render(0); } catch (e) { } // ekranda ısınma karesi kalmasın
@@ -1099,7 +1101,8 @@ function applyQuality() {
   [composer.renderTarget1, composer.renderTarget2].forEach(rt => { if (rt.samples !== smp) { rt.samples = smp; rt.dispose(); } });
   const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
   if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
-  renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
+  // gölge türü yalnız açılışta seçilir: oyun sırasında değişirse bütün gölgelendiriciler yeniden derlenir (takılma)
+  if (!Q.shadowSet) { renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; Q.shadowSet = true; }
   resize();
 }
 function resize() {

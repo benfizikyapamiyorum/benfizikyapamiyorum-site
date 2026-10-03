@@ -1,11 +1,13 @@
 // BFY · Eğik Atış Nişancı — 3B görüntü katmanı
-import { THREE, worldUVMaterial, canvasTex, clamp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=4';
-import { overlayWorld, macroGround } from './ortak.js?v=1';
+import { THREE, worldUVMaterial, canvasTex, clamp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
+import { overlayWorld, macroGround } from './ortak.js?v=2';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const M = G.PXM, toX = x => (x - G.W / 2) / M, toY = y => (G.GROUND - y) / M;
 const { W, O, stage } = overlayWorld(G, { fov: 36, shadowBox: 60, bloom: [.2, .45, 1.2] });
 const { scene, camera, sun } = W;
+// Önceden derleme son işleme hedefine göre yapılmalı (ekrana göre derlenen ton eşlemeli çeşit oyunda kullanılmaz)
+const prewarm = objs => { if (!W.prewarm) return Promise.resolve(); W.renderer.setRenderTarget(W.composer.renderTarget1); return W.prewarm(objs); };
 
 /* ---------- zemin ---------- */
 const gT = { col: W.tex('tex/grass_col.jpg'), nor: W.tex('tex/grass_nor.jpg', false), rough: W.tex('tex/grass_rough.jpg', false) };
@@ -36,20 +38,27 @@ cannon.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = tr
 const MUZ = 2.1;   // namlu ucu
 
 /* ---------- balonlar ---------- */
-const balloons = new Map();
+// Balon havuzu: birim geometriler ölçeklenir, malzeme renge göre paylaşılır (yeni bölümde derleme/sızıntı yok)
+const balloons = new Map(), balloonFree = [];
+const bSphG = new THREE.SphereGeometry(1, 36, 28), bKnotG = new THREE.ConeGeometry(.16, .22, 12).rotateX(Math.PI), bStrG = new THREE.CylinderGeometry(.015, .015, 2.2, 5), bStrM = new THREE.MeshBasicMaterial({ color: '#eeeeee' });
+const balloonMats = {};
+const balloonMat = col => balloonMats[col] || (balloonMats[col] = new THREE.MeshPhysicalMaterial({ color: col, roughness: .18, metalness: 0, clearcoat: 1, clearcoatRoughness: .06, sheen: .4, sheenColor: new THREE.Color('#ffffff') }));
 function balloonMesh(t) {
-  const g = new THREE.Group(), r = t.r / M * 1.25;
-  const m = new THREE.MeshPhysicalMaterial({ color: t.col, roughness: .18, metalness: 0, clearcoat: 1, clearcoatRoughness: .06, sheen: .4, sheenColor: new THREE.Color('#ffffff') });
-  const b = new THREE.Mesh(new THREE.SphereGeometry(r, 36, 28), m); b.scale.set(.92, 1.06, .92); b.castShadow = true; g.add(b);
-  const knot = new THREE.Mesh(new THREE.ConeGeometry(r * .16, r * .22, 12).rotateX(Math.PI), m); knot.position.y = -r * 1.1; g.add(knot);
-  const str = new THREE.Mesh(new THREE.CylinderGeometry(.015, .015, 2.2, 5), new THREE.MeshBasicMaterial({ color: '#eeeeee' })); str.position.y = -r * 1.1 - 1.1; g.add(str);
-  g.userData.r = r; scene.add(g); return g;
+  let g = balloonFree.pop();
+  if (!g) { g = new THREE.Group(); const m0 = balloonMat(t.col), b = new THREE.Mesh(bSphG, m0), knot = new THREE.Mesh(bKnotG, m0), str = new THREE.Mesh(bStrG, bStrM); b.castShadow = true; g.add(b, knot, str); g.userData.p = { b, knot, str }; scene.add(g); }
+  const r = t.r / M * 1.25, { b, knot, str } = g.userData.p, m = balloonMat(t.col);
+  b.material = knot.material = m; b.scale.set(.92 * r, 1.06 * r, .92 * r); knot.scale.setScalar(r); knot.position.y = -r * 1.1; str.position.y = -r * 1.1 - 1.1;
+  g.userData.r = r; g.visible = true; return g;
 }
 const walls3 = new Map();
 const brickTex = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#7a3d2a'; g.fillRect(0, 0, w, h); const R = rng(9);
   for (let y = 0; y < 8; y++) for (let x = -1; x < 5; x++) { const bx = x * 64 + (y % 2) * 32, by = y * 32; g.fillStyle = `hsl(${12 + R() * 10},${40 + R() * 15}%,${30 + R() * 12}%)`; g.fillRect(bx + 2, by + 2, 60, 28); } }, { repeat: [1, 1] });
 brickTex.wrapS = brickTex.wrapT = THREE.RepeatWrapping;
-function wallMesh(w) { const hm = w.h / M, wm = w.w / M; const t = brickTex.clone(); t.needsUpdate = true; t.repeat.set(3, hm / 2.2); const m = new THREE.Mesh(new THREE.BoxGeometry(wm, hm, 8), new THREE.MeshStandardMaterial({ map: t, roughness: .85 })); m.position.set(toX(w.x), hm / 2, 0); m.castShadow = m.receiveShadow = true; scene.add(m); return m; }
+// tek doku + tek malzeme: tekrar UV ölçeğiyle verilir (duvar başına doku kopyası/yüklemesi yok)
+const brickM = new THREE.MeshStandardMaterial({ map: brickTex, roughness: .85 });
+function wallMesh(w) { const hm = w.h / M, wm = w.w / M, geo = new THREE.BoxGeometry(wm, hm, 8), uv = geo.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 3, uv.getY(i) * hm / 2.2);
+  const m = new THREE.Mesh(geo, brickM); m.position.set(toX(w.x), hm / 2, 0); m.castShadow = m.receiveShadow = true; scene.add(m); return m; }
 
 /* ---------- mermi, iz ---------- */
 const ball = new THREE.Mesh(new THREE.SphereGeometry(.42, 24, 18), iron); ball.castShadow = true; scene.add(ball);
@@ -65,9 +74,12 @@ const sockMesh = new THREE.Mesh(new THREE.CylinderGeometry(.45, .2, 2.4, 20, 6, 
 sockMesh.castShadow = true; sockPivot.add(sockMesh);
 
 /* ---------- efektler ---------- */
-const shard = new THREE.PlaneGeometry(.35, .25), shards = [];
-function pop(t) { const p = new THREE.Vector3(toX(t.x), toY(t.y), 0), c = new THREE.Color(t.col);
-  for (let i = 0; i < 26; i++) { const m = new THREE.Mesh(shard, new THREE.MeshStandardMaterial({ color: c, side: THREE.DoubleSide, roughness: .3 })); m.position.copy(p); scene.add(m); shards.push({ m, v: new THREE.Vector3((Math.random() - .5) * 14, (Math.random() - .2) * 12, (Math.random() - .5) * 14), w: new THREE.Vector3(Math.random() * 12, Math.random() * 12, 0), t: 0 }); }
+// kırıklar: havuzlu meshler, renk başına paylaşılan malzeme (dispose → program silinip yeniden derlenmesin)
+const shard = new THREE.PlaneGeometry(.35, .25), shards = [], shardFree = [], shardMats = {};
+const shardMat = col => shardMats[col] || (shardMats[col] = new THREE.MeshStandardMaterial({ color: col, side: THREE.DoubleSide, roughness: .3 }));
+function pop(t) { const p = new THREE.Vector3(toX(t.x), toY(t.y), 0), mat = shardMat(t.col);
+  for (let i = 0; i < 26; i++) { let s = shardFree.pop(); if (!s) { s = { m: new THREE.Mesh(shard, mat), v: new THREE.Vector3(), w: new THREE.Vector3(), t: 0 }; scene.add(s.m); }
+    s.m.material = mat; s.m.visible = true; s.m.position.copy(p); s.m.rotation.set(0, 0, 0); s.v.set((Math.random() - .5) * 14, (Math.random() - .2) * 12, (Math.random() - .5) * 14); s.w.set(Math.random() * 12, Math.random() * 12, 0); s.t = 0; shards.push(s); }
   for (let i = 0; i < 26; i++) W.puff(p.clone(), new THREE.Vector3((Math.random() - .5) * 16, Math.random() * 12, (Math.random() - .5) * 16), { tex: W.dropTex, color: ['#ffffff', '#ffe08a', t.col][i % 3], size: .6, grow: 0, life: 1.2, grav: 7, drag: .4, op: 1, add: true, hdr: 1.8 }); }
 function smoke(p, n = 12, col = '#e8e6e0') { for (let i = 0; i < n; i++) W.puff(p.clone(), new THREE.Vector3((Math.random() - .3) * 4, Math.random() * 2.5, (Math.random() - .5) * 4), { color: col, size: 1.2, grow: 3, life: 1.8, drag: 1.4, op: .6 }); }
 let shake = 0;
@@ -96,22 +108,22 @@ function frame(dt) {
   const alive = new Set();
   for (const t of G.targets) { if (t.hit) continue; alive.add(t); let g = balloons.get(t); if (!g) { g = balloonMesh(t); balloons.set(t, g); }
     g.position.set(toX(t.x), toY(t.y + Math.sin(t.bob) * 5), 0); g.rotation.z = Math.sin(t.bob * .7) * .08 + G.wind * -.004; }
-  for (const [t, g] of balloons) if (!alive.has(t)) { scene.remove(g); balloons.delete(t); }
+  for (const [t, g] of balloons) if (!alive.has(t)) { g.visible = false; balloonFree.push(g); balloons.delete(t); }
   // duvarlar
   const ws = new Set(G.walls); for (const w of ws) if (!walls3.has(w)) walls3.set(w, wallMesh(w));
-  for (const [w, m] of walls3) if (!ws.has(w)) { scene.remove(m); walls3.delete(w); }
+  for (const [w, m] of walls3) if (!ws.has(w)) { scene.remove(m); m.geometry.dispose(); walls3.delete(w); }
   // namlu açısı
   if (G.aiming && G.aim) lastAng = G.aimVec().ang;
   pivot.rotation.z = lastAng; kick = Math.max(0, kick - dt * 2); pivot.position.x = -kick * .6;
   // mermi
   const p = G.proj; ball.visible = !!p;
   const tp = trailG.attributes.position.array;
-  if (p) { ball.position.set(toX(p.x), toY(p.y), 0); for (let i = 0; i < TRN; i++) { const q = p.trail[Math.max(0, p.trail.length - 1 - Math.floor(i * p.trail.length / TRN))] || p; tp.set([toX(q.x), toY(q.y), 0], i * 3); } trailG.setDrawRange(0, Math.min(TRN, p.trail.length)); }
+  if (p) { ball.position.set(toX(p.x), toY(p.y), 0); for (let i = 0; i < TRN; i++) { const q = p.trail[Math.max(0, p.trail.length - 1 - Math.floor(i * p.trail.length / TRN))] || p; tp[i * 3] = toX(q.x); tp[i * 3 + 1] = toY(q.y); tp[i * 3 + 2] = 0; } trailG.setDrawRange(0, Math.min(TRN, p.trail.length)); }
   else trailG.setDrawRange(0, 0);
   trailG.attributes.position.needsUpdate = true;
   // parçalar
   for (let i = shards.length - 1; i >= 0; i--) { const s = shards[i]; s.t += dt; s.v.y -= 9.8 * dt; s.v.multiplyScalar(Math.exp(-dt * 1.2)); s.m.position.addScaledVector(s.v, dt); s.m.rotation.x += s.w.x * dt; s.m.rotation.y += s.w.y * dt;
-    if (s.m.position.y < .02) { s.m.position.y = .02; s.v.set(0, 0, 0); s.w.set(0, 0, 0); } if (s.t > 6) { scene.remove(s.m); s.m.material.dispose(); shards.splice(i, 1); } }
+    if (s.m.position.y < .02) { s.m.position.y = .02; s.v.set(0, 0, 0); s.w.set(0, 0, 0); } if (s.t > 6) { s.m.visible = false; shardFree.push(s); shards.splice(i, 1); } }
   // rüzgâr tulumu: rüzgâr yönüne döner, şiddetle kalkar
   const w = G.wind, k = clamp(Math.abs(w) / 12, 0, 1);
   sockPivot.rotation.y = w >= 0 ? 0 : Math.PI; sockPivot.rotation.z = -(1 - k) * 1.25 + Math.sin(time * 6) * .04 * k; sockMesh.rotation.x = Math.sin(time * 9) * .15 * k;
@@ -122,5 +134,13 @@ function frame(dt) {
 }
 const proj = (x, y) => O.project(new THREE.Vector3(toX(x), toY(y), 0));
 const pick = (cx, cy) => { const h = O.pick(cx, cy, 0); return h ? { x: h.x * M + G.W / 2, y: G.GROUND - h.y * M } : null; };
-W.loadEnv('alps').then(() => { fitCamera(); O.show(); window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), proj, pick }; });
+// Önceden derleme: ilk balon/duvar/kırıkta takılma olmasın (örnekler sonra havuza döner)
+async function warm() {
+  const cols = ['#ff5d7a', '#ffb13d', '#46d39a', '#9b6dff', '#36c6ff'], objs = [];
+  for (const col of cols) { const g = balloonMesh({ r: 20, col }); scene.remove(g); objs.push(g); const sm = new THREE.Mesh(shard, shardMat(col)); objs.push(sm); }
+  const wall = wallMesh({ x: G.W / 2, w: 26, h: 150 }); scene.remove(wall); objs.push(wall);
+  await prewarm(objs);
+  objs.forEach(o => { if (o.isGroup) { o.visible = false; o.position.set(0, 0, 0); scene.add(o); balloonFree.push(o); } }); wall.geometry.dispose();
+}
+W.loadEnv('alps').then(async () => { fitCamera(); try { await warm(); } catch (e) { console.error(e); } O.show(); window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), proj, pick }; });
 window.__r3d = { W, scene, camera };

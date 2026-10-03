@@ -117,7 +117,8 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     [composer.renderTarget1, composer.renderTarget2].forEach(rt => { if (rt.samples !== smp) { rt.samples = smp; rt.dispose(); } });
     const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
     if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
-    renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; resize();
+    // gölge türü yalnız açılışta seçilir: oyun sırasında değişirse bütün gölgelendiriciler yeniden derlenir (takılma)
+    if (!Q.shadowSet) { renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; Q.shadowSet = true; } resize();
   }
   W.resize = resize; applyQuality();
   // Sürekli ölçüm: ~3 sn ortalama 30 kare/sn altındaysa bir kademe düş (2 → 1 → 0)
@@ -225,7 +226,11 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     const at = new THREE.Vector3(0, 0, -2).applyQuaternion(camera.quaternion).add(camera.position);
     [W.smokeTex, W.dropTex].forEach(t => [false, true].forEach(add => W.puff(at, new THREE.Vector3(), { tex: t, add, op: 0, life: .05 })));
     const g = new THREE.Group(); objs.forEach(o => { if (!o.parent) { g.add(o); o.visible = true; } }); g.position.copy(at); scene.add(g);
-    try { if (renderer.compileAsync) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera); composer.render(0); } catch (e) { }
+    // sahne son işleme tamponuna çizildiği için o hedefin varyantı derlenmeli (ekran varyantı hiç kullanılmaz)
+    const prevRT = renderer.getRenderTarget(); renderer.setRenderTarget(composer.renderTarget1);
+    try { if (renderer.compileAsync) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera); } catch (e) { }
+    renderer.setRenderTarget(prevRT);
+    try { composer.render(0); } catch (e) { }
     scene.remove(g); objs.forEach(o => { if (o.parent === g) g.remove(o); });
   };
   // Nesneyi ve alt nesnelerinin geometri/malzemelerini serbest bırakır (paylaşılan dokulara dokunmaz)
@@ -236,7 +241,7 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
   W.start = () => {
     // Açılışta gölgelendiricileri önceden derle: ilk etkileşimde takılma olmasın
     [W.smokeTex, W.dropTex].forEach(t => [false, true].forEach(add => W.puff(camera.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)), new THREE.Vector3(), { tex: t, add, op: 0, life: .05 })));
-    try { renderer.compile(scene, camera); } catch (e) { }
+    { const prevRT = renderer.getRenderTarget(); renderer.setRenderTarget(composer.renderTarget1); try { renderer.compile(scene, camera); } catch (e) { } renderer.setRenderTarget(prevRT); }
     clock.getDelta(); requestAnimationFrame(tick);
   };
 

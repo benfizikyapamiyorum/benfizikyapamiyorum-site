@@ -27,14 +27,17 @@
   function pieceSeg(pc) { const h = HALF[pc.type], c = Math.cos(pc.a * D), s = Math.sin(pc.a * D); return [pc.x - c * h, pc.y - s * h, pc.x + c * h, pc.y + s * h]; }
   function segDist(px, py, ax, ay, bx, by) { const ex = bx - ax, ey = by - ay, L2 = ex * ex + ey * ey; let t = L2 ? ((px - ax) * ex + (py - ay) * ey) / L2 : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(ax + ex * t - px, ay + ey * t - py); }
 
+  // seviyenin sabit kenarları önbellekte (trace her karede çağrılır; her seferinde yeniden kurulmasın)
+  const LC = new WeakMap();
+  function levelEdges(L) { let c = LC.get(L); if (!c) { c = { glass: (L.glass || []).map(r => ({ E: edges(r.length === 4 && typeof r[0] === 'number' ? rectPoly(r) : r) })), walls: (L.walls || []).map(r => edges(rectPoly(r))) }; LC.set(L, c); } return c; }
   // L: seviye, pieces: tüm optik elemanlar ({type:'mirror'|'lens'|'dlens'|'prism', x, y, a})
   function trace(L, pieces) {
     const la = L.laser, segs = [], ev = [], gems = new Set();
     let px = la.x + Math.cos(la.a * D) * 24, py = la.y + Math.sin(la.a * D) * 24, dx = Math.cos(la.a * D), dy = Math.sin(la.a * D);
-    const glass = (L.glass || []).map(r => ({ E: edges(r.length === 4 && typeof r[0] === 'number' ? rectPoly(r) : r) }));
+    const LE = levelEdges(L), glass = LE.glass.slice();
     const optics = [];
     for (const pc of pieces) { if (pc.type === 'prism') glass.push({ E: edges(prismPoly(pc.x, pc.y, pc.a)), pc }); else optics.push(pc); }
-    const walls = (L.walls || []).map(r => edges(rectPoly(r)));
+    const walls = LE.walls;
     let inside = -1, end = 'bound', n = 0;
     for (let k = 0; k < 80; k++) {
       let best = { t: Infinity };

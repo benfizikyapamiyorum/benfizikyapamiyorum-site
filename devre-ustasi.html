@@ -420,7 +420,7 @@
   }
   function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
-  function ev(t,a){ if(window.BFY_GAME&&BFY_GAME.on) BFY_GAME.on(t,a); }
+  function ev(t,a){ if(window.BFY_GAME&&BFY_GAME.on) try{ BFY_GAME.on(t,a); }catch(e){ console.error(e); } }
   function render3d(dt){
     try{ BFY_R3D.frame(dt); }catch(e){ console.warn(e); BFY_R3D.ready=false; return; }
     const c=BFY_R3D.overlay(), O=BFY_R3D.size(), P=BFY_R3D.proj;
@@ -468,7 +468,10 @@
     ctx.restore();
   }
   window.BFY_GAME={ W, H, canvas:cv, A, B, C, D, bulbP, battP, resP, PERIM, ptAt, get V(){return V;}, get R(){return R;}, get RB(){return RB;}, get I(){return I;}, get target(){return target;}, get tol(){return tol;}, get burnMax(){return burnMax;}, get busy(){return busy;}, get flow(){return flow;}, get bulbBurst(){return bulbBurst;}, get state(){return state;}, get lockV(){return lockV;}, get lockR(){return lockR;}, get shake(){return shake;} };
-  let last=0; function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(dt); requestAnimationFrame(loop); } requestAnimationFrame(loop);
+  let last=0; function loop(t){ requestAnimationFrame(loop);   // önce sıradaki kare: bir hata döngüyü dondurmasın
+    const dt=Math.min(0.033,(t-last)/1000||0); last=t;
+    try{ update(dt); }catch(e){ console.error(e); }
+    try{ render(dt); }catch(e){ console.error(e); } } requestAnimationFrame(loop);
 
   // ---- akış ----
   function startGame(){ round=1; lives=3; score=0; combo=0; state='play';
@@ -596,6 +599,6 @@
   document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
-<script type="module" src="oyun3d/devre3d.js?v=1"></script>
+<script type="module" src="oyun3d/devre3d.js?v=2"></script>
 </body>
 </html>

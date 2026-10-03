@@ -186,7 +186,7 @@
     <a href="oyunlar.html" class="btn btn-ghost">← Tüm oyunlar</a>
     <a href="basinc-kaldirma-laboratuvari.html" class="btn btn-primary">Kaldırma kuvveti labı →</a>
   </div>
-<script type="module" src="oyun3d/denizalti3d.js?v=1"></script>
+<script type="module" src="oyun3d/denizalti3d.js?v=2"></script>
 </main>
 
 <footer class="footer">
@@ -218,7 +218,7 @@
   let score=0, lives=3, combo=0, dist=0, speed=150;
   let holding=false, ballast=0.5, vy=0, invuln=0, cleanDist=0, treCount=0, gateCount=0;
   let gates=[], mines=[], treas=[], bubbles=[], particles=[], pops=[], weeds=[], plank=[];
-  function ev(type,a){ if(window.BFY_GAME&&BFY_GAME.on) try{ BFY_GAME.on(type,a); }catch(e){} }
+  function ev(type,a){ if(window.BFY_GAME&&BFY_GAME.on) try{ BFY_GAME.on(type,a); }catch(e){ console.error(e); } }
   let spawnT=1.4, shake=0, t=0, soundOn=true;
   const sub={x:210, y:H/2, r:22};
 
@@ -555,7 +555,10 @@
   window.BFY_GAME={ W, H, SURF, BED, PXM, canvas:cv, sub, get gates(){return gates;}, get mines(){return mines;}, get treas(){return treas;}, get bubbles(){return bubbles;}, get particles(){return particles;},
     get state(){return state;}, get holding(){return holding;}, get ballast(){return ballast;}, get vy(){return vy;}, get speed(){return speed;}, get invuln(){return invuln;}, get shake(){return shake;},
     get dist(){return dist;}, _setDist:v=>{dist=v;}, get rhoSu(){return rhoSu;}, rho:()=>rho(), get zone(){return zoneIdx;}, zoneAt, nextBoundary, ZONES };
-  function loop(ts){ const dt=Math.min(0.033,(ts-last)/1000||0); last=ts; update(dt); render(dt); requestAnimationFrame(loop); }
+  function loop(ts){ requestAnimationFrame(loop);   // önce sıradaki kare: bir hata döngüyü dondurmasın
+    const dt=Math.min(0.033,(ts-last)/1000||0); last=ts;
+    try{ update(dt); }catch(e){ console.error(e); }
+    try{ render(dt); }catch(e){ console.error(e); } }
   requestAnimationFrame(loop);
 
   // ---- giriş ----

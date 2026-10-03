@@ -237,7 +237,7 @@
   </div>
 </footer>
 
-<script src="oyun3d/optik-motor.js?v=1"></script>
+<script src="oyun3d/optik-motor.js?v=2"></script>
 <script src="oyun3d/optik-seviyeler.js?v=1"></script>
 <script>
 (function(){
@@ -285,7 +285,7 @@
   const snap=(x,y)=>({x:20+40*Math.round((x-20)/40), y:100+40*Math.round((y-100)/40)});
   const NAMES={mirror:'🪞 Düz ayna',lens:'🔍 İnce kenarlı',dlens:'🔭 Kalın kenarlı',prism:'🔺 Prizma'};
   const DEF_A={mirror:45,lens:90,dlens:90,prism:0};
-  function ev(type,a){ if(window.BFY_GAME&&BFY_GAME.on) try{ BFY_GAME.on(type,a); }catch(e){} }
+  function ev(type,a){ if(window.BFY_GAME&&BFY_GAME.on) try{ BFY_GAME.on(type,a); }catch(e){ console.error(e); } }
   function allOptics(){ return pieces; }
   function inRect(x,y,r,m){ return x>r[0]-m&&x<r[2]+m&&y>r[1]-m&&y<r[3]+m; }
   function cellFree(x,y,ignore){
@@ -471,7 +471,10 @@
   function render(dt){ if(window.BFY_R3D&&BFY_R3D.ready){ render3d(dt); return; } render2d(); }
   let last=0;
   window.BFY_GAME={ W, H, BH, canvas:cv, get L(){return L;}, get pieces(){return pieces;}, get res(){return res;}, get sel(){return sel;}, get state(){return state;}, get lvl(){return lvl;}, get winT(){return winT;}, get drag(){return drag;} };
-  function loop(ts){ const dt=Math.min(0.033,(ts-last)/1000||0); last=ts; update(dt); render(dt); requestAnimationFrame(loop); }
+  function loop(ts){ requestAnimationFrame(loop);   // önce sıradaki kare: bir hata döngüyü dondurmasın
+    const dt=Math.min(0.033,(ts-last)/1000||0); last=ts;
+    try{ update(dt); }catch(e){ console.error(e); }
+    try{ render(dt); }catch(e){ console.error(e); } }
   requestAnimationFrame(loop);
 
   // ---- tam ekran ----
@@ -561,6 +564,6 @@
   window.__mk={ load:i=>{ document.getElementById('ovlStart').classList.add('hidden'); loadLevel(i); }, solve:()=>{ const s=LV[lvl].sol; pieces=pieces.filter(p=>p.fixed); for(const x of s){ if(x.i!==undefined) pieces[x.i].a=x.a; else if(x.laser!==undefined) L.laser.a=x.laser; else pieces.push(Object.assign({fixed:false,rot:true},x)); } } };
 })();
 </script>
-<script type="module" src="oyun3d/mercek3d.js?v=1"></script>
+<script type="module" src="oyun3d/mercek3d.js?v=2"></script>
 </body>
 </html>
