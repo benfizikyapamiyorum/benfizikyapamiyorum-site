@@ -8,6 +8,8 @@ import { EffectComposer } from './lib/postprocessing/EffectComposer.js';
 import { RenderPass } from './lib/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from './lib/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from './lib/postprocessing/OutputPass.js';
+import { ShaderPass } from './lib/postprocessing/ShaderPass.js';
+import { SanitizeShader } from './lib/shaders/SanitizeShader.js';
 export { THREE };
 
 /* ---------- küçük yardımcılar ---------- */
@@ -63,8 +65,12 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(fov, 16 / 9, near, far);
-  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: new URLSearchParams(location.search).has('aa') ? +new URLSearchParams(location.search).get('aa') : (antialiasSamples ?? 4) }));
+  // Yarım hassasiyetli tampona çizemeyen cihazda siyah ekran olmasın
+  const canHalf = renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float');
+  const aaParam = new URLSearchParams(location.search).get('aa'), SAMPLES = aaParam != null ? +aaParam : (antialiasSamples ?? 4);
+  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: canHalf ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: SAMPLES }));
   composer.addPass(new RenderPass(scene, camera));
+  composer.addPass(new ShaderPass(SanitizeShader)); // Inf/NaN → bloom ekranı karartmasın
   const bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), bloom[0], bloom[1], bloom[2]);
   composer.addPass(bloomPass); composer.addPass(new OutputPass());
   const hemi = new THREE.HemisphereLight('#c8d6ea', '#6a6450', .3); scene.add(hemi);
@@ -98,23 +104,41 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
   /* uyarlanır kalite */
   const qp = new URLSearchParams(location.search).get('q');
   const Q = W.Q = { level: qp === 'low' ? 0 : qp === 'med' ? 1 : qp === 'high' ? 2 : (isMobile ? 1 : 2), locked: !!qp, dpr: DPR, frames: 0, acc: 0, warm: 0 };
+  let RW = 1, RH = 1;
   function resize() {
-    const r = stage.getBoundingClientRect(), w = Math.max(1, r.width), h = Math.max(1, r.height);
+    const r = stage.getBoundingClientRect(), w = Math.max(1, r.width), h = Math.max(1, r.height); RW = w; RH = h;
     renderer.setSize(w, h, false); composer.setPixelRatio(Q.dpr); composer.setSize(w, h); bloomPass.setSize(w * Q.dpr / 2, h * Q.dpr / 2);
     camera.aspect = w / h; camera.updateProjectionMatrix(); W.onResize && W.onResize(w, h);
   }
   function applyQuality() {
     Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : 1; renderer.setPixelRatio(Q.dpr); bloomPass.enabled = Q.level > 0;
+    // çoklu örnekleme yalnız en yüksek kalitede (orta/düşükte GPU yükü ciddi azalır)
+    const smp = Q.level === 2 && !(isMobile && aaParam == null) ? SAMPLES : 0;
+    [composer.renderTarget1, composer.renderTarget2].forEach(rt => { if (rt.samples !== smp) { rt.samples = smp; rt.dispose(); } });
     const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
     if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
     renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; resize();
   }
   W.resize = resize; applyQuality();
+  // Sürekli ölçüm: ~3 sn ortalama 30 kare/sn altındaysa bir kademe düş (2 → 1 → 0)
+  function qualityTick(raw) {
+    if (Q.locked || Q.level === 0 || document.hidden) return;
+    Q.warm += raw; if (Q.warm < 4 || raw > .5) return;
+    Q.frames++; Q.acc += raw;
+    if (Q.acc >= 3) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 30) { Q.level--; applyQuality(); Q.warm = 0; } }
+  }
+  // WebGL bağlamı kaybolursa ekran kararıp donmasın: daha hafif ayarla yeniden aç
+  canvas.addEventListener('webglcontextlost', e => {
+    e.preventDefault();
+    const L = $('loading'); if (L) { L.classList.remove('off'); L.style.opacity = 1; L.innerHTML = '<div style="max-width:420px;text-align:center;padding:20px">Grafik kartı sıfırlandı, sahne daha hafif ayarla yeniden açılıyor…</div>'; }
+    setTimeout(() => { const u = new URL(location.href); u.searchParams.set('q', Q.level > 1 ? 'med' : 'low'); location.replace(u.toString()); }, 900);
+  });
   new ResizeObserver(resize).observe(stage);
 
   /* ekran izdüşümü ve etiketler */
   const V = new THREE.Vector3();
-  W.toScreen = p => { V.copy(p).project(camera); const r = canvas.getBoundingClientRect(); return { x: (V.x * .5 + .5) * r.width, y: (-V.y * .5 + .5) * r.height, ok: V.z < 1 && V.z > -1 }; };
+  // boyut resize()'da önbelleğe alınır: her etikette getBoundingClientRect sayfa düzenini zorlamasın
+  W.toScreen = p => { V.copy(p).project(camera); return { x: (V.x * .5 + .5) * RW, y: (-V.y * .5 + .5) * RH, ok: V.z < 1 && V.z > -1 }; };
   W.tag = (el, p, html) => { if (!el) return; const s = W.toScreen(p); if (!s.ok) { el.style.display = 'none'; return; } el.style.display = 'block'; el.style.left = s.x + 'px'; el.style.top = s.y + 'px'; if (html != null && el._h !== html) { el.innerHTML = html; el._h = html; } };
 
   /* yörünge kamerası */
@@ -150,16 +174,22 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
       img.data[k] = img.data[k + 1] = img.data[k + 2] = l; img.data[k + 3] = clamp(a * 255, 0, 255); }
     g.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
   W.dropTex = canvasTex(64, 64, g => { const gr = g.createRadialGradient(28, 26, 2, 32, 32, 30); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.35, 'rgba(220,240,255,.8)'); gr.addColorStop(1, 'rgba(200,230,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
-  const parts = [];
+  // Parçacık havuzu: sprite + malzeme yeniden kullanılır. Eskiden her parçacık malzemesi dispose ediliyordu;
+  // son parçacık sönünce Three.js programı siliyor, sonraki efektte yeniden derleyip takılıyordu. Çöp toplayıcı da rahatlar.
+  const parts = [], pool = { 0: [], 1: [] }, MAXPARTS = 220;
   W.puff = (pos, vel, { color = '#dcdcdc', size = 1, grow = 2, life = 2.5, grav = 0, drag = 1.2, op = .8, tex = W.smokeTex, add = false, hdr = 1, floor = -1e9 } = {}) => {
-    const m = new THREE.SpriteMaterial({ map: tex, color: new THREE.Color(color).multiplyScalar(hdr), transparent: true, depthWrite: false, opacity: op, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !add });
-    const s = new THREE.Sprite(m); s.position.copy(pos); s.scale.setScalar(size); m.rotation = Math.random() * 6; scene.add(s);
-    parts.push({ s, v: vel.clone(), size, grow, life, t: 0, grav, drag, op, floor, spin: (Math.random() - .5) * .8 });
+    if (parts.length >= MAXPARTS || (Q.level === 0 && !add && Math.random() < .4)) return;
+    const key = add ? 1 : 0; let s = pool[key].pop();
+    if (!s) { s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !add })); s.userData.key = key; scene.add(s); }
+    const m = s.material; m.map = tex; m.color.set(color).multiplyScalar(hdr); m.opacity = op; m.rotation = Math.random() * 6;
+    s.visible = true; s.position.copy(pos); s.scale.setScalar(size);
+    const p = parts[parts.length] = s.userData.p || (s.userData.p = { v: new THREE.Vector3() });
+    p.s = s; p.v.copy(vel); Object.assign(p, { size, grow, life, t: 0, grav, drag, op, floor, spin: (Math.random() - .5) * .8 });
   };
   function stepParts(dt) {
     for (let i = parts.length - 1; i >= 0; i--) {
       const p = parts[i]; p.t += dt; const k = p.t / p.life;
-      if (k >= 1 || p.s.position.y < p.floor) { scene.remove(p.s); p.s.material.dispose(); parts.splice(i, 1); continue; }
+      if (k >= 1 || p.s.position.y < p.floor) { p.s.visible = false; pool[p.s.userData.key].push(p.s); parts.splice(i, 1); continue; }
       p.v.multiplyScalar(Math.exp(-p.drag * dt)); p.v.y -= p.grav * dt; p.s.position.addScaledVector(p.v, dt); p.s.material.rotation += p.spin * dt;
       p.s.scale.setScalar(p.size * (1 + p.grow * Math.sqrt(k))); p.s.material.opacity = p.op * (1 - k) * (k < .06 ? k / .06 : 1);
     }
@@ -173,20 +203,40 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     requestAnimationFrame(tick);
     if (window.__pause) { clock.getDelta(); return; }
     const raw = clock.getDelta(), dt = Math.min(raw, 1 / 20);
-    if (!visible && !document.fullscreenElement && !stage.classList.contains('pseudo-full')) return;
-    W.update && W.update(dt);
+    if (!W.shown()) return;
+    try { W.update && W.update(dt); } catch (e) { console.error(e); } // tek bir hata döngüyü dondurmasın
     stepParts(dt);
     composer.render(dt);
     if (first) { first = false; const L = $('loading'); if (L) L.classList.add('off'); }
-    // Uyarlanır kalite: yalnızca uzun süre gerçekten yavaşsa ve en fazla bir kademe düşer (keskinlik korunur)
-    if (!Q.locked && Q.level === 2) { Q.warm += raw; if (Q.warm > 6 && raw < .2) { Q.frames++; Q.acc += raw; if (Q.frames >= 240) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 28) { Q.level = 1; applyQuality(); } Q.locked = true; } } }
+    qualityTick(raw);
   }
-  W.frame = dt => { W.update && W.update(dt); stepParts(dt); composer.render(dt); }; // kayıt için tek kare
+  W.shown = () => visible || !!document.fullscreenElement || stage.classList.contains('pseudo-full') || !!window.__rec;
+  let lastFrame = 0;
+  // Oyunlar kendi döngülerinden bunu çağırır: sahne ekranda değilse çizim atlanır, kalite ölçümü de burada yapılır
+  W.frame = dt => {
+    W.update && W.update(dt); stepParts(dt);
+    if (!W.shown()) return;
+    composer.render(dt);
+    const now = performance.now(); if (lastFrame) qualityTick((now - lastFrame) / 1000); lastFrame = now;
+  };
+  // Önceden derleme: oyunun sonradan ortaya çıkan nesnelerinden (kırıklar, mayınlar, mercekler…) birer örnek
+  // verilir; sahneye geçici eklenip parçacıklarla birlikte derlenir, gölge geçişi için bir kare çizilir, sonra kaldırılır.
+  W.prewarm = async (objs = []) => {
+    const at = new THREE.Vector3(0, 0, -2).applyQuaternion(camera.quaternion).add(camera.position);
+    [W.smokeTex, W.dropTex].forEach(t => [false, true].forEach(add => W.puff(at, new THREE.Vector3(), { tex: t, add, op: 0, life: .05 })));
+    const g = new THREE.Group(); objs.forEach(o => { if (!o.parent) { g.add(o); o.visible = true; } }); g.position.copy(at); scene.add(g);
+    try { if (renderer.compileAsync) await renderer.compileAsync(scene, camera); else renderer.compile(scene, camera); composer.render(0); } catch (e) { }
+    scene.remove(g); objs.forEach(o => { if (o.parent === g) g.remove(o); });
+  };
+  // Nesneyi ve alt nesnelerinin geometri/malzemelerini serbest bırakır (paylaşılan dokulara dokunmaz)
+  W.disposeDeep = obj => {
+    if (!obj) return; if (obj.parent) obj.parent.remove(obj);
+    obj.traverse(o => { if (o.geometry && !o.geometry.userData.shared) o.geometry.dispose(); if (o.material) [].concat(o.material).forEach(m => { if (!m.userData.shared) m.dispose(); }); });
+  };
   W.start = () => {
     // Açılışta gölgelendiricileri önceden derle: ilk etkileşimde takılma olmasın
-    const warm = [W.smokeTex, W.dropTex].flatMap(t => [false, true].map(add => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, opacity: .001, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !add })); s.position.copy(camera.position).add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)); scene.add(s); return s; }));
+    [W.smokeTex, W.dropTex].forEach(t => [false, true].forEach(add => W.puff(camera.position.clone().add(new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion)), new THREE.Vector3(), { tex: t, add, op: 0, life: .05 })));
     try { renderer.compile(scene, camera); } catch (e) { }
-    setTimeout(() => warm.forEach(s => { scene.remove(s); s.material.dispose(); }), 800);
     clock.getDelta(); requestAnimationFrame(tick);
   };
 
@@ -200,6 +250,7 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
 }
 
 /* ---------- ok (kalın, her zaman görünür) ---------- */
+const UPV = new THREE.Vector3(0, 1, 0), TMPV = new THREE.Vector3();
 export class Arrow {
   constructor(scene, color, { glow = 1.6, depthTest = false } = {}) {
     const m = new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(glow), depthTest, transparent: true, opacity: .96, toneMapped: false });
@@ -209,7 +260,7 @@ export class Arrow {
   set(from, vec, thick) {
     const L = vec.length(); if (L < 1e-5) { this.g.visible = false; return; } this.g.visible = true;
     const hl = Math.min(L * .4, thick * 5), sl = L - hl;
-    this.g.position.copy(from); this.g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), vec.clone().normalize());
+    this.g.position.copy(from); this.g.quaternion.setFromUnitVectors(UPV, TMPV.copy(vec).divideScalar(L));
     this.shaft.scale.set(thick, sl, thick); this.head.position.y = sl; this.head.scale.set(thick * 2.6, hl, thick * 2.6);
   }
   hide() { this.g.visible = false; }

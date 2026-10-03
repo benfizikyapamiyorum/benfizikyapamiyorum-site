@@ -7,6 +7,8 @@ import { EffectComposer } from './sim3d/lib/postprocessing/EffectComposer.js';
 import { RenderPass } from './sim3d/lib/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from './sim3d/lib/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from './sim3d/lib/postprocessing/OutputPass.js';
+import { ShaderPass } from './sim3d/lib/postprocessing/ShaderPass.js';
+import { SanitizeShader } from './sim3d/lib/shaders/SanitizeShader.js';
 
 /* =====================================================================
    0) Yardımcılar
@@ -143,11 +145,15 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const MAXANISO = renderer.capabilities.getMaxAnisotropy();
 
 const scene = new THREE.Scene();
+const sceneFog = new THREE.FogExp2('#c79570', 0); scene.fog = sceneFog;
 const camera = new THREE.PerspectiveCamera(36, 16 / 9, .2, 30000);
 camera.position.set(20, 8, 50);
 
-const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
+// Yarım hassasiyetli renk tamponuna çizemeyen cihazlarda (bazı eski tablet/tahta) siyah ekran olmasın
+const canHalf = renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float');
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: canHalf ? THREE.HalfFloatType : THREE.UnsignedByteType, samples: 4 }));
 composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new ShaderPass(SanitizeShader)); // Inf/NaN → bloom ekranı karartmasın
 const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .28, .5, .96);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
@@ -497,14 +503,19 @@ function scatterRocks(pl) {
       const s = pl === 'earth' ? .5 + Math.pow(R(), 2) * 2.4 : .3 + Math.pow(R(), 3) * 4;
       d.position.set(x, groundH(pl, x, z), z); d.rotation.set((R() - .5) * .3, R() * 6.3, (R() - .5) * .3); d.scale.setScalar(s); d.updateMatrix(); m.setMatrixAt(k++, d.matrix);
     }
-    m.castShadow = true; m.receiveShadow = true; m.userData.pl = pl; m.visible = S.planet === pl; props.add(m);
+    m.castShadow = true; m.receiveShadow = true; m.userData.pl = pl;
+    // sahneye eklemeden önce arka planda derle (yüklenince oyun takılmasın)
+    const add = () => { m.visible = S.planet === pl; props.add(m); };
+    if (renderer.compileAsync) renderer.compileAsync(m, camera, scene).then(add, add); else add();
   });
 }
 function loadCrates() {
   gltfL.load(`${A}models/wooden_crate_02/wooden_crate_02.gltf`, gl => {
     const c = gl.scene; c.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } });
     const bb = new THREE.Box3().setFromObject(c), sz = new THREE.Vector3(); bb.getSize(sz); const s = .9 / Math.max(sz.x, sz.y, sz.z);
-    [[-5.2, 4.4, .3], [-6.2, 4.7, -.4], [-5.7, 4.5, 1.2, 1]].forEach(([x, z, r, up]) => { const k = c.clone(); k.scale.setScalar(s); k.position.set(x, up ? sz.y * s : 0, z); k.rotation.y = r; k.userData.pl = 'all'; props.add(k); });
+    const ks = [[-5.2, 4.4, .3], [-6.2, 4.7, -.4], [-5.7, 4.5, 1.2, 1]].map(([x, z, r, up]) => { const k = c.clone(); k.scale.setScalar(s); k.position.set(x, up ? sz.y * s : 0, z); k.rotation.y = r; k.userData.pl = 'all'; return k; });
+    const add = () => ks.forEach(k => props.add(k));
+    if (renderer.compileAsync) renderer.compileAsync(ks[0], camera, scene).then(add, add); else add();
   });
 }
 
@@ -539,7 +550,7 @@ function trailMat(color, opacity = 1, dashed = false, glow = 2.2) {
     uniforms: { uTime: { value: 1e9 }, uColor: { value: new THREE.Color(color).multiplyScalar(glow) }, uOp: { value: opacity }, uPx: { value: 3 * DPR }, uWorld: { value: .08 }, uScale: { value: 500 }, uDash: { value: dashed ? 1 : 0 } },
     vertexShader: `attribute float aT; uniform float uTime,uPx,uWorld,uScale; varying float vVis; varying float vT;
       void main(){ vec4 mv = modelViewMatrix * vec4(position,1.); gl_Position = projectionMatrix * mv; vVis = aT <= uTime ? 1. : 0.; vT = aT;
-        gl_PointSize = max(uWorld * uScale / max(-mv.z, .1), uPx); }`,
+        gl_PointSize = clamp(uWorld * uScale / max(-mv.z, .1), uPx, uPx * 14.); }`,
     fragmentShader: `uniform vec3 uColor; uniform float uOp,uDash; varying float vVis; varying float vT;
       void main(){ if (vVis < .5) discard; if (uDash > .5 && mod(vT, .16) > .09) discard; vec2 q = gl_PointCoord - .5; float r = dot(q,q); if (r > .25) discard;
         gl_FragColor = vec4(uColor, uOp * smoothstep(.25, .1, r)); }`,
@@ -595,16 +606,22 @@ const smokeTex = (() => { const N = 128, c = document.createElement('canvas'); c
     const a = Math.max(0, 1 - r) ** 1.6 * (.55 + n * .9); const k = (j * N + i) * 4; const l = 200 + n * 55; img.data[k] = l; img.data[k + 1] = l; img.data[k + 2] = l; img.data[k + 3] = clamp(a * 255, 0, 255); }
   g.putImageData(img, 0, 0); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; })();
 const flashTex = canvasTex(128, 128, (g) => { const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,255,240,1)'); gr.addColorStop(.2, 'rgba(255,210,120,.95)'); gr.addColorStop(.5, 'rgba(255,120,30,.45)'); gr.addColorStop(1, 'rgba(255,60,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); });
-const parts = [];
+// Parçacık havuzu: sprite ve malzemeler yeniden kullanılır. Eskiden her duman malzemesi dispose ediliyordu;
+// duman bitince Three.js programı siliyor, sonraki atışta yeniden derleyip takılıyordu.
+const parts = [], partPool = { 0: [], 1: [] }, MAXPARTS = 160;
 function puff(pos, vel, { color = '#dcdcdc', size = 1, grow = 2, life = 2.5, grav = 0, drag = 1.2, op = .8, tex = smokeTex, add = false, hdr = 1 } = {}) {
-  const m = new THREE.SpriteMaterial({ map: tex, color: new THREE.Color(color).multiplyScalar(hdr), transparent: true, depthWrite: false, opacity: op, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !add });
-  const s = new THREE.Sprite(m); s.position.copy(pos); s.scale.setScalar(size); m.rotation = Math.random() * 6; scene.add(s);
+  if (parts.length >= MAXPARTS || (Q.level === 0 && !add && Math.random() < .45)) return;
+  const key = add ? 1 : 0;
+  let s = partPool[key].pop();
+  if (!s) { s = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, toneMapped: !add })); s.userData.key = key; s.frustumCulled = false; scene.add(s); }
+  const m = s.material; m.map = tex; m.color.set(color).multiplyScalar(hdr); m.opacity = op; m.rotation = Math.random() * 6;
+  s.visible = true; s.position.copy(pos); s.scale.setScalar(size);
   parts.push({ s, v: vel.clone(), size, grow, life, t: 0, grav, drag, op, spin: (Math.random() - .5) * .8 });
 }
 function stepParts(dt) {
   for (let i = parts.length - 1; i >= 0; i--) {
     const p = parts[i]; p.t += dt; const k = p.t / p.life;
-    if (k >= 1) { scene.remove(p.s); p.s.material.dispose(); parts.splice(i, 1); continue; }
+    if (k >= 1) { p.s.visible = false; partPool[p.s.userData.key].push(p.s); parts.splice(i, 1); continue; }
     p.v.multiplyScalar(Math.exp(-p.drag * dt)); p.v.y -= p.grav * dt; p.s.position.addScaledVector(p.v, dt);
     if (p.grav > 0 && p.s.position.y < p.size * .3) { p.s.position.y = p.size * .3; p.v.set(0, 0, 0); }
     p.s.material.rotation += p.spin * dt;
@@ -632,7 +649,13 @@ const flashLight = new THREE.PointLight('#ffb35a', 0, 60, 1.5); scene.add(flashL
 const craterTex = canvasTex(256, 256, (g) => { const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128); gr.addColorStop(0, 'rgba(22,16,9,.92)'); gr.addColorStop(.35, 'rgba(48,36,22,.8)'); gr.addColorStop(.55, 'rgba(92,74,50,.55)'); gr.addColorStop(.72, 'rgba(120,100,70,.28)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
   const R = rng(2); for (let i = 0; i < 90; i++) { const a = R() * 7, r = 50 + R() * 75; g.fillStyle = `rgba(${40 + R() * 40},${30 + R() * 30},${20 + R() * 20},${.3 + R() * .5})`; g.beginPath(); g.arc(128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 1 + R() * 5, 0, 7); g.fill(); } });
 const craters = new THREE.Group(); scene.add(craters);
-function addCrater(x, size, tint) { const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({ map: craterTex, color: tint, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, roughness: 1 })); m.rotation.set(-Math.PI / 2, 0, Math.random() * 6); m.position.set(x, .02, 0); m.receiveShadow = true; craters.add(m); }
+// Tek ortak malzeme + geometri: her inişte yeni malzeme derlenmez, bellek şişmez
+const craterMat = new THREE.MeshStandardMaterial({ map: craterTex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, roughness: 1 });
+const craterGeo = new THREE.PlaneGeometry(1, 1);
+function addCrater(x, size) {
+  while (craters.children.length >= 12) craters.remove(craters.children[0]);
+  const m = new THREE.Mesh(craterGeo, craterMat); m.scale.set(size, size, 1); m.rotation.set(-Math.PI / 2, 0, Math.random() * 6); m.position.set(x, .02, 0); m.receiveShadow = true; craters.add(m);
+}
 
 const flag = (() => { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, 2.2, 10).translate(0, 1.1, 0), chrome); const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(.9, -.28); sh.lineTo(0, -.56); const f = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshStandardMaterial({ color: '#e8563a', side: THREE.DoubleSide, roughness: .6 })); f.position.y = 2.15; p.castShadow = f.castShadow = true; g.add(p, f); g.visible = false; scene.add(g); return g; })();
 const targetTex = canvasTex(512, 512, (g) => { const cols = ['#d8402f', '#f8f6ef', '#d8402f', '#f8f6ef', '#d8402f']; for (let i = 0; i < 5; i++) { g.fillStyle = cols[i]; g.beginPath(); g.arc(256, 256, 256 - i * 51, 0, 7); g.fill(); } g.fillStyle = '#0e0c08'; g.beginPath(); g.arc(256, 256, 12, 0, 7); g.fill(); });
@@ -672,13 +695,35 @@ async function applyPlanet(pl) {
   SUN_DIR.copy(sd);
   sun.color.set(P.sunC); sun.intensity = P.sunI; hemi.intensity = P.hemi; hemi.color.set(pl === 'mars' ? '#e8c0a0' : '#c8d6ea'); hemi.groundColor.set(pl === 'mars' ? '#7a4a30' : '#6a7a4a');
   renderer.toneMappingExposure = P.exposure;
-  scene.fog = P.fog ? new THREE.FogExp2(P.fog[0], P.fog[1]) : null;
+  // Sis nesnesi hep sahnede kalır, yalnız yoğunluğu değişir: aç/kapa gölgelendiricileri yeniden derletip takılma yapıyordu
+  if (P.fog) { sceneFog.color.set(P.fog[0]); sceneFog.density = P.fog[1]; } else sceneFog.density = 0;
+  craterMat.color.set(pl === 'moon' ? '#b0b0b0' : '#ffffff');
   stars.visible = earthInSky.visible = pl === 'moon';
   if (pl === 'moon' && !earthInSky.material.map) { earthInSky.material.map = tex('tex/earth_day.jpg'); earthInSky.material.needsUpdate = true; }
   paintMat.opacity = pl === 'earth' ? .82 : .6;
   debrisMat.color.set(pl === 'earth' ? '#5d4b36' : pl === 'mars' ? '#8a4526' : '#77777a');
   scatterRocks(pl);
   craters.clear();
+  warmUp();
+}
+// Isınma: atış ve iniş efektlerinin bütün gölgelendiricilerini (gölge geçişi dahil) gezegen yüklenirken derle,
+// böylece atış ya da iniş anında derleme takılması olmaz. Isınma izlerinin malzemesi hiç bırakılmaz (program bellekte kalır).
+let warmTrails = null;
+function warmUp() {
+  const at = new THREE.Vector3(camLook.x, .5, 0);
+  puff(at, new THREE.Vector3(), { op: 0, life: .3 });
+  puff(at, new THREE.Vector3(), { tex: flashTex, add: true, hdr: 3.5, op: 0, life: .3 });
+  if (!warmTrails) warmTrails = [makeTrail(simulate(params()), '#ffffff', 0, false), makeTrail(simulate(params()), '#ffffff', 0, true)];
+  const ghostN = ghosts.count, debrisN = debris.count, fv = flag.visible, tv = target.visible, cv = compG.visible;
+  warmTrails.forEach(t => t.visible = true);
+  if (!ghostN) { ghosts.setMatrixAt(0, new THREE.Matrix4().makeTranslation(at.x, at.y, 0)); ghosts.count = 1; }
+  if (!debrisN) { debris.setMatrixAt(0, new THREE.Matrix4().makeTranslation(at.x, at.y, 0)); debris.instanceMatrix.needsUpdate = true; debris.count = 1; }
+  const wc = new THREE.Mesh(craterGeo, craterMat); wc.position.copy(at); wc.rotation.x = -Math.PI / 2; craters.add(wc);
+  flag.visible = target.visible = compG.visible = true;
+  try { renderer.compile(scene, camera); composer.render(0); } catch (e) { }
+  craters.remove(wc); warmTrails.forEach(t => t.visible = false);
+  ghosts.count = ghostN; debris.count = debrisN; flag.visible = fv; target.visible = tv; compG.visible = cv;
+  try { composer.render(0); } catch (e) { } // ekranda ısınma karesi kalmasın
 }
 
 /* =====================================================================
@@ -712,7 +757,7 @@ function cineShot(dt, bpos) {
     else { const R = cur.R; pos = new THREE.Vector3(R + 7 + R * .05, 1.3, 8 + R * .04); look = bpos.clone().lerp(new THREE.Vector3(R, 0, 0), .35); k = 5; director.slow = .4; director.phase = 3; }
   } else if (S.phase === 'landed' && cur) {
     director.t += dt; const a = director.t * .25 + .6, R = cur.R, r = 12 + R * .06;
-    pos = new THREE.Vector3(R + Math.cos(a) * r, 3 + R * .02, Math.sin(a) * r + 2); look = new THREE.Vector3(R, .5, 0); k = 2; director.slow = 1;
+    pos = new THREE.Vector3(R + Math.cos(a) * r, 3 + R * .02, Math.sin(a) * r + 2); look = new THREE.Vector3(R, 1.6 + R * .012, 0); k = 2; director.slow = 1;
   } else { director.t += dt; const a = 2.15 + Math.sin(director.t * .2) * .55, gc = new THREE.Vector3(-1.6, gunBaseY + 2.2, 0), r = 9.5;
     pos = gc.clone().add(new THREE.Vector3(Math.cos(a) * r, 1.4, Math.sin(a) * r)); look = gc.clone().add(new THREE.Vector3(.8, .4, 0)); k = 2.5; director.slow = 1; }
   pos.y = Math.max(pos.y, groundH(S.planet, pos.x, pos.z) + 1);
@@ -776,7 +821,7 @@ function fire() {
   cur = simulate(params()); cur.params = { ...params(), planet: S.planet, ballKey: S.ball, g10: S.g10 };
   tSim = 0; S.phase = 'flying'; landInfo = null; ghostPts = []; ghosts.count = 0; director.t = 0;
   $('result').classList.remove('on'); flag.visible = false; hideTags();
-  if (trails.length >= 5) { const t = trails.shift(); scene.remove(t); t.geometry.dispose(); }
+  if (trails.length >= 5) dropTrail(trails.shift());
   trails.forEach(t => t.material.uniforms.uOp.value = .4);
   const tr = makeTrail(cur, TRAIL_COLS[trailIdx++ % TRAIL_COLS.length], 1, false); tr.material.uniforms.uTime.value = 0; trails.push(tr); cur.trail = tr;
   if (predTrail) predTrail.visible = false;
@@ -789,7 +834,7 @@ function fire() {
     puff(mouth.clone().addScaledVector(dir, .8), v, { color: smokeCol, size: 1.1 + Math.random() * 1.3, grow: air ? 5 : 2.5, life: air ? 3 + Math.random() * 2.5 : .9, drag: air ? 2.4 : .1, op: air ? .7 : .45 });
   }
   for (let i = 0; i < 3; i++) puff(mouth.clone().addScaledVector(dir, .9 + i * .5), dir.clone().multiplyScalar(4 + i * 3), { tex: flashTex, color: '#ffffff', size: 2.8 - i * .6, grow: .5, life: .12 + i * .03, drag: 0, op: 1, add: true, hdr: 3.5 });
-  flashLight.position.copy(mouth).addScaledVector(dir, 1.2); flashLight.intensity = 90;
+  flashLight.position.copy(mouth).addScaledVector(dir, 1.2); flashLight.intensity = 40;
   pivotKick = .22; camShake = S.cam === 'side' ? 0 : .22;
   if (PLANETS[S.planet].sound) boom(S.planet === 'mars' ? .35 : 1, S.planet === 'mars'); else toast("Ay'da hava yok: patlamanın sesi duyulmaz.");
   if (S.planet === 'mars' && S.sound) toast("Mars'ın ince havasında ses çok kısık ve boğuk duyulur.");
@@ -808,7 +853,7 @@ function land() {
     const v = new THREE.Vector3(Math.cos(a) * sp * .7, (2 + Math.random() * 6) * E * (moon ? 1.4 : 1), Math.sin(a) * sp * .7);
     puff(new THREE.Vector3(x, .3, 0), v, { color: dustCol, size: heavy ? .8 + Math.random() * 1.2 : .35, grow: air ? 3.8 : .35, life: moon ? 2.6 : 2.2 + Math.random() * 1.8, grav: moon ? 1.62 : (air ? 1.2 : 3), drag: air ? 1.5 : 0, op: .8 });
   }
-  if (heavy) { addCrater(x, 3, p.planet === 'moon' ? '#b0b0b0' : '#ffffff'); spawnDebris(x, 60, dustCol, p.g); camShake = S.cam === 'side' ? .05 : .35; thud(false); } else thud(true);
+  if (heavy) { addCrater(x, 3); spawnDebris(x, 60, dustCol, p.g); camShake = S.cam === 'side' ? .05 : .35; thud(false); } else thud(true);
   flag.position.set(x, 0, -1.2); flag.visible = true;
   ghostUpdate(sim.T);
   if (mission) judgeMission(x); else if (S.cam === 'cine') setTimeout(() => { if (S.phase === 'landed' && cur === sim) showResult(); }, 1800); else showResult();
@@ -964,7 +1009,7 @@ function syncUI() {
   updatePred();
 }
 function updatePred() {
-  if (predTrail) { scene.remove(predTrail); predTrail.geometry.dispose(); predTrail = null; }
+  if (predTrail) { dropTrail(predTrail); predTrail = null; }
   if (S.pred && !mission && S.phase !== 'flying') predTrail = makeTrail(simulate(params()), '#ffffff', .8, true);
 }
 let frameTimer = 0;
@@ -1000,7 +1045,9 @@ tg('tg-strobe', 'strobe', () => { if (!S.strobe) ghosts.count = 0; else if (cur 
 tg('tg-vec', 'vec'); tg('tg-comp', 'comp'); tg('tg-pred', 'pred', () => { if (S.pred && mission) toast('Hedef görevinde tahmini yörünge gizlidir.'); updatePred(); });
 $('btn-fire').addEventListener('click', fire);
 $('btn-clear').addEventListener('click', () => { clearTrails(); resetShot(); });
-function clearTrails() { trails.forEach(t => { scene.remove(t); t.geometry.dispose(); }); trails = []; craters.clear(); graphHist = []; ghosts.count = 0; ghostPts = []; debris.count = 0; }
+// İz malzemesi de bırakılır; ısınma izlerinin malzemesi hiç bırakılmadığı için program bellekte kalır, yeniden derlenmez
+function dropTrail(t) { scene.remove(t); t.geometry.dispose(); t.material.dispose(); }
+function clearTrails() { trails.forEach(dropTrail); trails = []; craters.clear(); graphHist = []; ghosts.count = 0; ghostPts = []; debris.count = 0; }
 $('btn-sound').addEventListener('click', e => { S.sound = !S.sound; e.currentTarget.textContent = S.sound ? '🔊' : '🔇'; });
 $('btn-full').addEventListener('click', () => {
   if (document.fullscreenElement || stage.classList.contains('pseudo-full')) { if (document.fullscreenElement) document.exitFullscreen(); stage.classList.remove('pseudo-full'); return; }
@@ -1047,6 +1094,9 @@ const Q = { level: qParam === 'low' ? 0 : qParam === 'med' ? 1 : qParam === 'hig
 function applyQuality() {
   Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : 1;
   renderer.setPixelRatio(Q.dpr); bloom.enabled = Q.level > 0;
+  // Çoklu örnekleme (MSAA) yalnız en yüksek kalitede: orta/düşükte GPU yükü ciddi azalır
+  const smp = Q.level === 2 ? 4 : 0;
+  [composer.renderTarget1, composer.renderTarget2].forEach(rt => { if (rt.samples !== smp) { rt.samples = smp; rt.dispose(); } });
   const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
   if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
   renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
@@ -1059,12 +1109,23 @@ function resize() {
 }
 let qWarm = 0;
 function qualityTick(dt) {
-  // Yalnızca beklerken ölç (atış anındaki duman ölçümü bozmasın), uzun süre gerçekten yavaşsa bir kademe düş
-  if (Q.locked || Q.level < 2 || intro.on || S.phase === 'flying') return;
-  qWarm += dt; if (qWarm < 6 || dt > .2) return;
+  // Sürekli ölç (atış dahil): ~3 sn boyunca ortalama 30 kare/sn altındaysa bir kademe düş (2 → 1 → 0).
+  // Akıllı tahta / eski telefonda atış sonrası duman + parıltı yükü takılma yapmasın.
+  if (Q.locked || Q.level === 0 || intro.on || document.hidden) return;
+  qWarm += dt; if (qWarm < 4) return;
+  if (dt > .5) return; // sekme değişimi vb. tek seferlik boşluklar ölçümü bozmasın
   Q.frames++; Q.acc += dt;
-  if (Q.frames >= 240) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 28) { Q.level = 1; applyQuality(); } Q.locked = true; }
+  if (Q.acc >= 3) {
+    const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0;
+    if (fps < 30) { Q.level--; applyQuality(); qWarm = 0; }
+  }
 }
+// WebGL bağlamı kaybolursa (zayıf GPU, sürücü sıfırlanması) ekran kararıp donmasın: düşük kalitede yeniden aç
+canvas.addEventListener('webglcontextlost', e => {
+  e.preventDefault();
+  const el = $('loading'); if (el) { el.classList.remove('off'); el.innerHTML = '<div style="max-width:420px;text-align:center;padding:20px">Grafik kartı sıfırlandı, sahne daha hafif ayarla yeniden açılıyor…</div>'; }
+  setTimeout(() => { const u = new URL(location.href); u.searchParams.set('q', Q.level > 1 ? 'med' : 'low'); location.replace(u.toString()); }, 900);
+});
 new ResizeObserver(() => { resize(); computeFrame(); }).observe(stage);
 applyQuality();
 
@@ -1165,12 +1226,6 @@ resize(); syncUI(); computeFrame();
 applyPlanet('earth').then(() => {
   sideCam(camT); camLook.copy(camT.look);
   loadCrates();
-  // ilk atışta takılma olmasın: duman ve parlama gölgelendiricilerini önceden derle
-  puff(camera.position.clone().add(new THREE.Vector3(0, -50, 0)), new THREE.Vector3(), { op: .001, life: .5 });
-  puff(camera.position.clone().add(new THREE.Vector3(0, -50, 0)), new THREE.Vector3(), { tex: flashTex, add: true, hdr: 3.5, op: .001, life: .5 });
-  { const w1 = makeTrail(simulate(params()), '#ffffff', .001, false), w2 = makeTrail(simulate(params()), '#ffffff', .001, true); ghostPts = [[0, -300]]; ghosts.count = 1;
-    try { renderer.compile(scene, camera); } catch (e) { }
-    setTimeout(() => { [w1, w2].forEach(t => { scene.remove(t); t.geometry.dispose(); }); if (S.phase === 'idle') { ghosts.count = 0; ghostPts = []; } }, 1200); }
   if (!running) { running = true; clock.getDelta(); requestAnimationFrame(tick); }
 });
-window.__bfy3d = { simulate, params, S, fire, Q, get cur() { return cur; }, camera, scene, intro, director, target, get mission() { return mission; }, set speed(v) { S.speed = v; } };
+window.__bfy3d = { simulate, params, S, fire, Q, renderer, get cur() { return cur; }, camera, scene, intro, director, target, get mission() { return mission; }, set speed(v) { S.speed = v; } };
