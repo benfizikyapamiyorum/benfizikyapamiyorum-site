@@ -108,7 +108,7 @@ button.play:hover{background:var(--soft)}
 .deck{display:none}
 /* MCQ */
 .mcq{display:grid;grid-template-columns:1fr 1fr;column-gap:38px;align-items:start}
-.mcq .col{min-width:0}
+.mcq .col,.mcq>.q{min-width:0}
 .mcq .q{break-inside:avoid;page-break-inside:avoid;display:block;margin:0 0 22px;padding-top:0;border-top:0}
 .mcq .q .num{width:30px;height:30px;font-size:14px;border-radius:9px}
 .mcq .q .title{font-size:15.5px}
@@ -176,7 +176,7 @@ table.t.small th,table.t.small td{padding:6px 8px}
 }
 @media (max-width:700px){
   .page{padding:26px 20px}
-  .mcq{columns:1}
+  .mcq{grid-template-columns:1fr}
   .grid2{grid-template-columns:1fr}
   .idline{grid-template-columns:1fr 1fr}
   h1{font-size:24px}
@@ -1189,7 +1189,7 @@ function hideReveal(root){ if(root.classList&&root.classList.contains('q')) rese
  root.querySelectorAll('.anslayer').forEach(g=>{g.classList.remove('on');g.querySelectorAll('*').forEach(el=>{el.style.transition='none';el.style.opacity='0'})});}
 /* MCQ: iki sütuna dağıt (tek-çift) — sayfa kırılımı sütun içinde düzgün akar */
 function mcqQs(m){if(m._qs)return m._qs;const c=[...m.children].filter(e=>e.classList.contains('col'));let qs;if(c.length===2){const a=[...c[0].children],b=[...c[1].children];qs=[];for(let i=0;i<a.length||i<b.length;i++){if(a[i])qs.push(a[i]);if(b[i])qs.push(b[i]);}}else qs=[...m.children];return m._qs=qs;}
-function mcqSplit(){document.querySelectorAll('.mcq').forEach(m=>{const qs=mcqQs(m);m.classList.remove('flow');m.textContent='';const a=document.createElement('div'),b=document.createElement('div');a.className='col';b.className='col';qs.forEach((q,i)=>(i%2?b:a).appendChild(q));m.append(a,b);});}
+function mcqSplit(){document.querySelectorAll('.mcq').forEach(m=>{const qs=mcqQs(m);m.classList.remove('flow');m.textContent='';qs.forEach(q=>m.appendChild(q));});} /* ekranda satır hizalı ızgara: 1|2, 3|4 … her satır aynı yükseklikte */
 /* baskıda sorular sırayla akar: sayfada önce sol sütun yukarıdan aşağı, sonra sağ sütun (1-2-3 | 4-5-6) */
 function mcqFlow(){document.querySelectorAll('.mcq').forEach(m=>{const qs=mcqQs(m);m.textContent='';qs.forEach(q=>m.appendChild(q));m.classList.add('flow');});}
 mcqSplit();window.addEventListener('beforeprint',mcqFlow);window.addEventListener('afterprint',mcqSplit);
