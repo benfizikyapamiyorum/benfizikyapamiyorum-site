@@ -708,6 +708,22 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
 .kc:not(.acik) .kc-arka{position:absolute;inset:0;overflow:hidden}
 .kc.acik .kc-on{position:absolute;inset:0}
 @media (prefers-reduced-motion: reduce){ .kc-ic{transition:none} }
+/* Süreli konu testi */
+.kt-kart{border-color:var(--copper)}
+.kt-kart .kt-ik{font-size:26px;line-height:1}
+.kt-kart small:last-of-type{display:block;margin-top:2px}
+.kt-giris{text-align:center}
+.kt-giris .kt-buyuk{font-size:40px;line-height:1.1}
+.kt-giris h2{margin:6px 0 8px;font-size:20px}
+.kt-giris p{margin:6px 0}
+.kt-sure-kart{text-align:center}
+.kt-sure-buyuk{font-size:44px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1.1;margin:4px 0}
+.kt-kiyas b{display:block;margin-bottom:4px}
+.kt-kiyas p{margin:0;font-size:14.5px;line-height:1.5}
+.kt-kiyas p b{display:inline;margin:0}
+.kt-uzun{display:inline-block;font-size:11px;font-weight:800;color:#fff;background:var(--copper);border-radius:99px;padding:1px 7px;margin-left:4px;vertical-align:1px}
+.kt-cubuk{display:block;height:5px;border-radius:9px;background:var(--ui-line);margin-top:5px;overflow:hidden}
+.kt-cubuk i{display:block;height:100%;background:var(--copper);border-radius:9px}
 </style>
 </head>
 <body class="dj">
@@ -61612,9 +61628,9 @@ const IKON = {
 /* ---------------- Kayıt ---------------- */
 function yukle() { try { return JSON.parse(store.get(ANAHTAR)) || {}; } catch (e) { return {}; } }
 // kc: açık kavram kartları ('konu:not:kart' -> 1), oy: kazanılan not içi oyunlar ('oy:konu:not' -> { d, t })
-const K = Object.assign({ q: {}, ef: {}, kc: {}, oy: {}, xp: 0, gunler: [], son: null, deneme: null, denemeler: [], kh: {}, ayar: { ses: true, titresim: true } }, yukle());
+const K = Object.assign({ q: {}, ef: {}, kc: {}, oy: {}, xp: 0, gunler: [], son: null, deneme: null, denemeler: [], kt: null, ktler: [], kh: {}, ayar: { ses: true, titresim: true } }, yukle());
 K.ayar = Object.assign({ ses: true, titresim: true }, K.ayar);
-K.kc = K.kc || {}; K.oy = K.oy || {};
+K.kc = K.kc || {}; K.oy = K.oy || {}; K.ktler = K.ktler || [];
 function kaydet() { store.set(ANAHTAR, JSON.stringify(K)); }
 // Kâğıt genişliği: ekranın kısa kenarı döndürmeyle değişmez; bu yüzden kâğıt her yönde aynı genişlikte kalır.
 (function kagitGenisligi() {
@@ -61789,8 +61805,10 @@ function konuEkran(id, sekme) {
   if (sekme === 'not') {
     h += `<div class="kagit dj-not murekkep-host" data-ink="not-${id}">${notHTML(konu)}</div>`;
     h += `<a class="btn ana gen" href="#/soru/${id}/0" style="display:block;text-align:center;text-decoration:none">Sorulara geç →</a>`;
+    h += ktKarti(konu);
   } else {
     h += kilitBant(`Ücretsiz sürümde her konuda 4 soru açık. Hepsi ${konuSinif(konu)}. sınıf lisansıyla açılır.`, konuSinif(konu));
+    h += ktKarti(konu);
     const v = vitrin(konu);
     const lst = sirali(konu);
     h += `<div class="soru-liste">${lst.map((q, i) => {
@@ -61888,7 +61906,7 @@ function soruEkran(id, idx, tekrar) {
   const onc = idx > 0 ? `#/soru/${id}/${idx - 1}` : null, snr = idx < liste.length - 1 ? `#/soru/${id}/${idx + 1}` : null;
   const gezinti = `<div class="q-alt"><a class="btn cizgi ince" ${onc ? `href="${onc}"` : 'aria-disabled="true" style="opacity:.4"'}>←</a><a class="btn ${K.q[q.id] ? 'yesil' : 'cizgi'}" style="text-align:center;text-decoration:none" href="${snr || `#/konu/${id}/sorular`}">${snr ? 'Sonraki soru →' : 'Konuya dön'}</a></div>`;
   if (!acik(konu, q)) {
-    return h + `<div class="kagit kilit-soru"><div class="ik">🔒</div><p><b>Bu soru tam sürümde.</b></p><p class="dip">Ücretsiz sürümde her konuda 4 soru açık. ${konuSinif(konu)}. sınıf lisansınla ${konu.sorular.length} sorunun hepsi ve adım adım çözümler açılır.</p><button class="btn ana kucuk" type="button" data-kod>Lisansım var</button></div>` + gezinti;
+    return h + `<div class="kagit kilit-soru"><div class="ik">🔒</div><p><b>Bu soru tam sürümde.</b></p><p class="dip">Ücretsiz sürümde her konuda 4 soru açık. ${konuSinif(konu)}. sınıf lisansınla ${tumSorular(konu).length} sorunun hepsi ve adım adım çözümler açılır.</p><button class="btn ana kucuk" type="button" data-kod>Lisansım var</button></div>` + gezinti;
   }
   const r = tekrar ? null : K.q[q.id];
   gecici.tekrar = !!tekrar;
@@ -62125,6 +62143,110 @@ function denemeIncele(i) {
   return h;
 }
 
+
+/* ---- Süreli konu testi ----
+   Süre teste girince başlar, "Bitirdim"e basınca durur; ileri sayar, sınır yoktur.
+   Uygulama arka plandayken ya da test ekranından çıkılınca süre durur, dönünce kaldığı yerden devam eder.
+   Her sorunun ekranında geçen süre ayrıca tutulur. Rapor yalnız öğrencinin cihazında kalır. */
+const ktSorular = konu => sirali(konu).filter(q => q.tur === 'cs' && acik(konu, q)).map(q => q.id);
+const ktGecen = (T = K.kt) => (T ? T.gecen + (T.akt ? Date.now() - T.akt : 0) : 0);
+function ktDurdur() { const T = K.kt; if (!T || !T.akt) return; const dt = Math.max(0, Date.now() - T.akt); T.gecen += dt; if (T.cur) T.qt[T.cur] = (T.qt[T.cur] || 0) + dt; T.akt = 0; kaydet(); }
+function ktIsle(qid) { const T = K.kt; if (!T || T.bitti || document.hidden) return; T.akt = Date.now(); T.son = T.akt; T.cur = qid; kaydet(); }
+// Uygulama kapanıp açıldıysa: kapalı geçen süre sayılmaz, son kayda kadar olan eklenir.
+if (K.kt && K.kt.akt) { const T = K.kt, dt = Math.max(0, (T.son || T.akt) - T.akt); T.gecen += dt; if (T.cur) T.qt[T.cur] = (T.qt[T.cur] || 0) + dt; T.akt = 0; }
+const snYaz = sn => { sn = Math.round(sn); const d = Math.floor(sn / 60), s = sn % 60; return d ? `${d} dk${s ? ' ' + s + ' sn' : ''}` : `${s} sn`; };
+const dkYuvarla = sn => Math.max(1, Math.round(sn / 60));
+const ktGecmis = id => K.ktler.filter(x => x.k === id);
+function ktKarti(konu) {
+  const n = ktSorular(konu).length; if (!n) return '';
+  const T = K.kt, yarim = T && !T.bitti && T.k === konu.id, g = ktGecmis(konu.id), son = g[g.length - 1];
+  const alt = yarim ? `Yarım kaldı: ${Object.keys(T.cev).length}/${T.qs.length} cevaplı, ${dkSn(Math.round(ktGecen(T) / 1000))}` : son ? `Son testin: ${dkSn(son.sn)}, ${son.d}/${son.n} doğru. Tekrar ölç.` : `${n} soru. Süre başlayınca işler, bitirince durur.`;
+  return `<a class="devam kt-kart" href="#/kt/${konu.id}"><span class="kt-ik">⏱</span><div><small>Süreli konu testi</small><b>${yarim ? 'Teste devam et' : 'Kendini ölç'}</b><small>${alt}</small></div><span class="ok">→</span></a>`;
+}
+function ktGiris(id) {
+  const konu = BANK[id]; if (!konu) return anaEkran();
+  ust({ geri: `#/konu/${id}/sorular`, baslik: 'Süreli konu testi', alt: konu.ad }); navAktif('konular');
+  const qs = ktSorular(konu), T = K.kt, yarim = T && !T.bitti && T.k === id, g = ktGecmis(id);
+  let h = `<div class="kart kt-giris"><div class="kt-buyuk">⏱</div><h2>${esc(konu.ad)}</h2><p><b>${qs.length} soru.</b> Süre “Teste başla”ya bastığın anda işlemeye başlar ve “Bitirdim” diyene kadar sayar. Sınır yok; kendi hızında çöz.</p><p class="dip">Cevaplar sonda değerlendirilir. Uygulamadan çıkarsan süre durur, döndüğünde kaldığı yerden devam eder. Sonunda toplam süreni, soru başına süreni ve gerçek sınavda ne kadar süreye ihtiyacın olacağını görürsün.</p></div>`;
+  h += kilitBant(`Ücretsiz sürümde test yalnız açık sorulardan kurulur. Konunun bütün soruları ${konuSinif(konu)}. sınıf lisansıyla gelir.`, konuSinif(konu));
+  if (yarim) h += `<a class="devam" href="#/kt/${id}/${Math.max(0, T.qs.indexOf(T.cur))}"><div><small>Yarım kalan test</small><b>${Object.keys(T.cev).length}/${T.qs.length} cevaplı, geçen süre ${dkSn(Math.round(ktGecen(T) / 1000))}</b></div><span class="ok">→</span></a>`;
+  h += `<div class="q-alt" style="margin-top:16px"><button class="btn ana gen" type="button" data-kt-basla="${id}">${yarim ? 'Baştan yeni test başlat' : 'Teste başla'}</button></div>`;
+  if (g.length) h += `<h2 class="baslik2">Bu konudaki testlerin</h2><div class="soru-liste">${g.slice(-6).reverse().map(x => `<div class="sl"><span class="no" style="width:auto;padding:0 8px">${dkSn(x.sn)}</span><span class="sl-m"><b>${x.d} doğru, ${x.y} yanlış, ${x.b} boş</b><small>${x.tarih}, soru başına ${snYaz(x.sn / x.n)}</small></span></div>`).join('')}</div>`;
+  return h;
+}
+function ktBasla(id) {
+  const konu = BANK[id]; const qs = konu && ktSorular(konu); if (!qs || !qs.length) return;
+  K.kt = { k: id, qs, cev: {}, gecen: 0, akt: 0, son: 0, cur: null, qt: {}, bitti: false, bas: Date.now() };
+  kaydet(); location.hash = `#/kt/${id}/0`;
+}
+function ktCalis(id, i) {
+  const T = K.kt; if (!T || T.k !== id) return ktGiris(id);
+  if (T.bitti) { location.hash = `#/kt/${id}/sonuc`; return; }
+  i = Math.max(0, Math.min(T.qs.length - 1, i || 0));
+  document.body.classList.add('odak');
+  ust({ geri: `#/kt/${id}`, baslik: 'Konu testi', alt: `Soru ${i + 1} / ${T.qs.length}`, kalem: true, sag: `<span class="ust-btn sure" id="ktSure">⏱ ${dkSn(Math.round(ktGecen(T) / 1000))}</span>` });
+  const q = qBul(T.qs[i]);
+  ktIsle(q.id);
+  let h = `<div class="ilerleme-nok">${T.qs.map((x, j) => `<a href="#/kt/${id}/${j}" class="${T.cev[x] !== undefined ? 'd' : ''} ${j === i ? 'su' : ''}">${j + 1}</a>`).join('')}</div>`;
+  h += `<div class="kagit murekkep-host" data-ink="kt-${q.id}">${soruKart(q, { mod: 'deneme', secim: T.cev[q.id] })}<div class="karalama" style="height:220px"><span class="kl-et">Karalama alanı</span></div></div>`;
+  h += `<div class="q-alt"><a class="btn cizgi ince" ${i > 0 ? `href="#/kt/${id}/${i - 1}"` : 'aria-disabled="true" style="opacity:.4"'}>←</a>${i < T.qs.length - 1 ? `<a class="btn yesil" style="text-align:center;text-decoration:none" href="#/kt/${id}/${i + 1}">Sonraki →</a>` : '<button class="btn ana" type="button" id="ktBitir">Bitirdim</button>'}</div>`;
+  if (i < T.qs.length - 1) h += `<button class="karalama-arti" type="button" id="ktBitir">Bitirdim, testi bitir</button>`;
+  return h;
+}
+function ktBitir() {
+  const T = K.kt; if (!T || T.bitti) return;
+  ktDurdur();
+  let d = 0, y = 0;
+  T.qs.forEach(id => {
+    const q = qBul(id), c = T.cev[id]; if (c === undefined) return;
+    const dg = c === q.dogru; if (dg) d++; else y++;
+    if (!K.q[id]) { const xp = dg ? XP[q.zorluk] : 0; K.q[id] = { d: dg ? 1 : 0, s: c, xp, t: Date.now(), kt: 1 }; K.xp += xp; }
+  });
+  const sn = Math.max(1, Math.round(T.gecen / 1000));
+  T.bitti = true; T.sonuc = { d, y, b: T.qs.length - d - y, net: +(d - y / 4).toFixed(2), sn };
+  K.ktler.push({ k: T.k, n: T.qs.length, d, y, b: T.sonuc.b, net: T.sonuc.net, sn, tarih: bugun(), qt: Object.fromEntries(T.qs.map(id => [id, Math.round((T.qt[id] || 0) / 1000)])) });
+  if (K.ktler.length > 200) K.ktler.shift();
+  gunEkle(); kaydet();
+  if (d >= T.qs.length * 0.7) { konfeti(); ses('d'); }
+  location.hash = `#/kt/${T.k}/sonuc`;
+}
+function ktSonuc(id) {
+  const T = K.kt; if (!T || T.k !== id || !T.bitti) return ktGiris(id);
+  const konu = BANK[id], S = T.sonuc, n = T.qs.length, ort = S.sn / n;
+  ust({ geri: `#/konu/${id}/sorular`, baslik: 'Test raporu', alt: konu.ad }); navAktif('konular');
+  let h = `<div class="kart kt-sure-kart"><div class="dip" style="margin:0">Toplam süren</div><div class="kt-sure-buyuk">${dkSn(S.sn)}</div><div class="dip" style="margin:0">${n} soru, soru başına <b>${snYaz(ort)}</b></div></div>`;
+  h += `<div class="sonuc-ozet"><div><b style="color:#2f8f5b">${S.d}</b><span>doğru</span></div><div><b style="color:var(--coral)">${S.y}</b><span>yanlış</span></div><div><b>${S.b}</b><span>boş</span></div></div>`;
+  h += `<div class="kart" style="text-align:center"><div class="dip" style="margin:0">Net</div><div style="font-size:30px;font-weight:800">${S.net.toLocaleString('tr-TR')}</div></div>`;
+  const g = ktGecmis(id), onc = g.length > 1 ? g[g.length - 2] : null;
+  if (onc) { const f = onc.sn / onc.n - ort; h += `<div class="kart kt-kiyas"><b>Önceki testinle</b><p>Önceki testin ${dkSn(onc.sn)} sürdü (soru başına ${snYaz(onc.sn / onc.n)}, ${onc.d}/${onc.n} doğru). ${Math.abs(f) < 3 ? 'Hızın aynı kaldı.' : f > 0 ? `Bu sefer soru başına ${snYaz(f)} daha hızlısın.` : `Bu sefer soru başına ${snYaz(-f)} daha yavaşsın.`}</p></div>`; }
+  h += `<div class="kart kt-kiyas"><b>Gerçek sınav için</b><p>Bu hızla 10 soruluk bir yazılı yaklaşık <b>${dkYuvarla(ort * 10)} dakika</b>, 20 soruluk bir test yaklaşık <b>${dkYuvarla(ort * 20)} dakika</b> sürer. Gözden geçirme için üstüne birkaç dakika ekle.</p></div>`;
+  const qsn = T.qs.map(qid => Math.round((T.qt[qid] || 0) / 1000)), enUzun = Math.max(1, ...qsn), uzunlar = new Set(qsn.map((sn, i) => [sn, i]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, n > 3 ? 3 : 0).map(x => x[1]));
+  h += `<h2 class="baslik2">Soru soru süren<small>En uzun süren üç soru işaretli</small></h2><div class="soru-liste">${T.qs.map((qid, i) => { const q = qBul(qid), c = T.cev[qid], dg = c === q.dogru, sn = qsn[i], uzun = uzunlar.has(i); return `<a class="sl ${c === undefined ? '' : dg ? 'd' : 'y'}" href="#/kt/${id}/incele/${i}"><span class="no">${i + 1}</span><span class="sl-m"><b>${snYaz(sn)}${uzun ? ' <span class="kt-uzun">en uzun</span>' : ''}</b><small>${c === undefined ? 'boş' : dg ? 'doğru' : `yanlış, doğrusu ${HARF[q.sira.indexOf(q.dogru)]}`}</small><span class="kt-cubuk"><i style="width:${Math.round(100 * sn / enUzun)}%"></i></span></span><span class="yz">${yildiz(q.zorluk)}</span></a>`; }).join('')}</div>`;
+  h += `<div class="q-alt" style="margin-top:16px"><a class="btn cizgi" style="text-align:center;text-decoration:none" href="#/konu/${id}/sorular">Konuya dön</a><button class="btn ana" type="button" data-kt-basla="${id}">Tekrar ölç</button></div>`;
+  return h;
+}
+function ktIncele(id, i) {
+  const T = K.kt; if (!T || T.k !== id || !T.bitti) return ktGiris(id);
+  i = Math.max(0, Math.min(T.qs.length - 1, i || 0));
+  document.body.classList.add('odak');
+  const q = qBul(T.qs[i]), c = T.cev[q.id];
+  ust({ geri: `#/kt/${id}/sonuc`, baslik: 'Soru incele', alt: `${i + 1} / ${T.qs.length}, ${snYaz((T.qt[q.id] || 0) / 1000)}`, kalem: true });
+  let h = `<div class="kagit murekkep-host" data-ink="kt-${q.id}">${soruKart(q, { mod: 'incele', cevap: c === undefined ? -1 : c })}`;
+  h += c === undefined ? `<div class="sonuc y"><span class="ik">–</span><div>Boş bıraktın. Doğru cevap ${HARF[q.sira.indexOf(q.dogru)]}.</div></div>` : c === q.dogru ? `<div class="sonuc d"><span class="ik">✓</span><div>Doğru!</div></div>` : `<div class="sonuc y"><span class="ik">✗</span><div>Doğru cevap ${HARF[q.sira.indexOf(q.dogru)]}.</div></div>${nedenHTML(q, c)}`;
+  h += cozumHTML(q, c, true) + '</div>';
+  h += `<div class="q-alt"><a class="btn cizgi ince" ${i > 0 ? `href="#/kt/${id}/incele/${i - 1}"` : 'aria-disabled="true" style="opacity:.4"'}>←</a><a class="btn yesil" style="text-align:center;text-decoration:none" href="${i < T.qs.length - 1 ? `#/kt/${id}/incele/${i + 1}` : `#/kt/${id}/sonuc`}">${i < T.qs.length - 1 ? 'Sonraki →' : 'Rapora dön'}</a></div>`;
+  return h;
+}
+// İlerleme ekranındaki süre raporu: konu konu ortalama ve genel tahmin
+function ktRapor() {
+  if (!K.ktler.length) return '';
+  const top = K.ktler.reduce((a, x) => ({ sn: a.sn + x.sn, n: a.n + x.n }), { sn: 0, n: 0 }), ort = top.sn / top.n;
+  const gr = {}; K.ktler.forEach(x => { if (BANK[x.k]) (gr[x.k] = gr[x.k] || []).push(x); });
+  let h = `<h2 class="baslik2">Süre raporun<small>${K.ktler.length} süreli test</small></h2><div class="kart kt-kiyas"><p>Ortalama hızın soru başına <b>${snYaz(ort)}</b>. Bu hızla 10 soruluk bir yazılı yaklaşık <b>${dkYuvarla(ort * 10)} dakika</b>, 20 soruluk bir test yaklaşık <b>${dkYuvarla(ort * 20)} dakika</b> sürer.</p></div>`;
+  h += `<div class="soru-liste">${Object.entries(gr).map(([k, l]) => { const s = l[l.length - 1], o = l.reduce((a, x) => a + x.sn, 0) / l.reduce((a, x) => a + x.n, 0), en = Math.min(...l.map(x => x.sn)); return `<a class="sl" href="#/kt/${k}"><span class="no" style="width:auto;padding:0 8px">${snYaz(o)}</span><span class="sl-m"><b>${esc(BANK[k].ad)}</b><small>${l.length} test, son ${dkSn(s.sn)} (${s.d}/${s.n} doğru), en iyi ${dkSn(en)}</small></span></a>`; }).join('')}</div><p class="dip" style="margin-top:6px">Soldaki sayı o konuda soru başına ortalama süren.</p>`;
+  return h;
+}
+
 /* ---- Yanlışlarım ---- */
 function yanlislar() {
   ust({ baslik: 'Yanlışlarım', alt: 'Tekrar çöz, eksiğini kapat' }); navAktif('yanlislar');
@@ -62158,6 +62280,7 @@ function ilerleme() {
     const ks = u.konular.filter(k => BANK[k.id]); if (!ks.length) return;
     h += `<h2 class="baslik2">${cok ? s.no + '. Sınıf, ' : ''}${u.no}. Ünite: ${esc(u.ad)}</h2><div class="kart">${ks.map(kb => { const k = BANK[kb.id], d = konuDurum(k); return `<div class="kb-sat" style="--renk:${k.renk || '#244f40'}"><div><span>${esc(k.ad)}</span><span>${d.c}/${d.n}</span></div><div class="cubuk"><i style="width:${d.yuzde}%"></i></div></div>`; }).join('')}</div>`;
   }));
+  h += ktRapor();
   h += `<h2 class="baslik2">Rozetler</h2><div class="rozetler">${rozetler().map(([ik, ad, ac, var_]) => `<div class="rozet ${var_ ? '' : 'yok'}"><div class="ik">${ik}</div><b>${ad}</b><small>${ac}</small></div>`).join('')}</div>`;
   h += `<h2 class="baslik2">Ayarlar</h2><div class="kart">
     <label class="ayar-sat">Doğru/yanlış sesi<input class="dugme-a" type="checkbox" data-ayar="ses" ${K.ayar.ses ? 'checked' : ''}></label>
@@ -62250,6 +62373,7 @@ let sonHash = null, sayac;
 function yolParca() { return location.hash.replace(/^#\/?/, '').split('/').filter(Boolean); }
 function ciz(kaydirma = true) {
   clearInterval(sayac);
+  ktDurdur();
   document.body.classList.remove('odak');
   const p = yolParca();
   let h;
@@ -62257,6 +62381,7 @@ function ciz(kaydirma = true) {
   else if (p[0] === 'konu') h = konuEkran(p[1], p[2] || 'not');
   else if (p[0] === 'soru') h = soruEkran(p[1], +p[2], p[3] === 'tekrar');
   else if (p[0] === 'deneme') h = p[1] === 'calis' ? denemeCalis(+p[2]) : p[1] === 'sonuc' ? denemeSonuc() : p[1] === 'incele' ? denemeIncele(+p[2]) : denemeKur();
+  else if (p[0] === 'kt') h = !p[2] ? ktGiris(p[1]) : p[2] === 'sonuc' ? ktSonuc(p[1]) : p[2] === 'incele' ? ktIncele(p[1], +p[3]) : ktCalis(p[1], +p[2]);
   else if (p[0] === 'yanlislar') h = yanlislar();
   else if (p[0] === 'ilerleme') h = ilerleme();
   else h = anaEkran();
@@ -62267,10 +62392,17 @@ function ciz(kaydirma = true) {
   if (INK.aktif) kalemAc(true);
   if (kaydirma && location.hash !== sonHash) window.scrollTo(0, 0);
   sonHash = location.hash;
+  if (p[0] === 'kt' && $('#ktSure')) {
+    let tik = 0;
+    sayac = setInterval(() => { const el = $('#ktSure'); if (el) el.textContent = '⏱ ' + dkSn(Math.round(ktGecen() / 1000)); if (++tik % 5 === 0 && K.kt && K.kt.akt) { K.kt.son = Date.now(); kaydet(); } }, 1000);
+  }
   if (p[0] === 'deneme' && p[1] === 'calis' && K.deneme && K.deneme.sure) {
     sayac = setInterval(() => { const s = kalanSure(), el = $('#sure'); if (el) { el.textContent = '⏱ ' + dkSn(s); el.classList.toggle('az', s < 60); } if (s <= 0) { clearInterval(sayac); tost('Süre doldu!'); denemeBitir(); } }, 1000);
   }
 }
+// Süreli konu testinde uygulama arka plana geçince süre durur, dönünce devam eder.
+document.addEventListener('visibilitychange', () => { if (document.hidden) { ktDurdur(); return; } const p = yolParca(); if (p[0] === 'kt' && K.kt && !K.kt.bitti && K.kt.cur && /^\d+$/.test(p[2] || '')) ktIsle(K.kt.cur); });
+window.addEventListener('pagehide', () => ktDurdur());
 window.addEventListener('hashchange', () => { gecici.secim = null; gecici.etk = {}; gecici.oySonuc = {}; ciz(); });
 let rz; window.addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => $$('.murekkep-host').forEach(h => h._ink && inkCiz(h)), 150); });
 
@@ -62303,6 +62435,7 @@ document.addEventListener('click', e => {
   const sec = t.closest('[data-sec]');
   if (sec && !sec.disabled) {
     const orj = +sec.dataset.sec, p = yolParca();
+    if (p[0] === 'kt' && K.kt && !K.kt.bitti && /^\d+$/.test(p[2] || '')) { const T = K.kt, q = qBul(T.qs[Math.max(0, +p[2] || 0)]); if (T.cev[q.id] === orj) delete T.cev[q.id]; else T.cev[q.id] = orj; T.son = Date.now(); kaydet(); $$('.secenekler button').forEach(b => b.classList.toggle('secili', T.cev[q.id] === +b.dataset.sec)); $$('.ilerleme-nok a.su').forEach(a => a.classList.toggle('d', T.cev[q.id] !== undefined)); return; }
     if (p[0] === 'deneme' && p[1] === 'calis') { const D = K.deneme, q = qBul(D.qs[Math.max(0, +p[2] || 0)]); if (D.cev[q.id] === orj) delete D.cev[q.id]; else D.cev[q.id] = orj; kaydet(); ciz(false); return; }
     gecici.secim = orj;
     $$('.secenekler button').forEach(b => b.classList.toggle('secili', +b.dataset.sec === orj));
@@ -62338,6 +62471,8 @@ document.addEventListener('click', e => {
   const dk = t.closest('[data-dk]'); if (dk) { const [k, v] = dk.dataset.dk.split('='); window._dk[k] = +v; ciz(false); return; }
   if (t.closest('#denemeBasla')) return denemeBaslat();
   if (t.closest('#denemeBitir')) { const D = K.deneme; const bos = D.qs.length - Object.keys(D.cev).length; if (bos > 0 && !t.closest('#denemeBitir').dataset.onay) { const b = t.closest('#denemeBitir'); b.dataset.onay = 1; b.textContent = `${bos} boş soru var. Yine de bitirmek için tekrar dokun.`; return; } return denemeBitir(); }
+  const kb = t.closest('[data-kt-basla]'); if (kb) return ktBasla(kb.dataset.ktBasla);
+  if (t.closest('#ktBitir')) { const T = K.kt, b = t.closest('#ktBitir'); if (!T) return; const bos = T.qs.length - Object.keys(T.cev).length; if (bos > 0 && !b.dataset.onay) { b.dataset.onay = 1; b.textContent = `${bos} boş soru var. Yine de bitirmek için tekrar dokun.`; return; } return ktBitir(); }
   if (t.closest('#yeniDeneme')) { K.deneme = null; kaydet(); location.hash = '#/deneme'; ciz(); return; }
   if (t.closest('#sifirla')) { const b = t.closest('#sifirla'); if (!b.dataset.onay) { b.dataset.onay = 1; b.textContent = 'Emin misin? Tekrar dokun'; return; } try { Object.keys(localStorage).filter(k => k.startsWith('bfy_dj_')).forEach(k => localStorage.removeItem(k)); } catch (x) { } location.reload(); return; }
   if (t.closest('#kalemAc')) { kalemAc(!INK.aktif); if (INK.aktif) tost(INK.sadeceKalem ? 'Kalem açık.' : 'Kalem açık. Tablet kalemin varsa parmakla kaydırmaya devam edebilirsin.'); return; }
