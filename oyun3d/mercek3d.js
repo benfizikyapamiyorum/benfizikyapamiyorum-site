@@ -1,6 +1,6 @@
 // BFY · Mercek Keskin Nişancı — 3B görüntü katmanı (optik masa: lazer, aynalar, cam mercekler, prizmalar)
-import { THREE, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=4';
-import { overlayWorld } from './ortak.js?v=1';
+import { THREE, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
+import { overlayWorld } from './ortak.js?v=2';
 
 const G = window.BFY_GAME, OP = window.BFY_OPTIK; if (!G || !OP) throw new Error('oyun yok');
 const K = .001, TY = .76, PY = TY + .012, BHW = G.BH * K;          // 1 px = 1 mm · ışın yüksekliği 75 mm
@@ -8,6 +8,8 @@ const CX = 440, CZ = 340, D = Math.PI / 180;
 const toV = (x, y, h = BHW) => new THREE.Vector3((x - CX) * K, PY + h, (y - CZ) * K);
 const { W, O } = overlayWorld(G, { fov: 24, near: .02, far: 40, shadowBox: .8, shadowFar: 6, bloom: [.34, .38, .95] });
 const { scene, camera, sun, renderer } = W;
+// Önceden derleme son işleme hedefine göre yapılmalı (ekrana göre derlenen ton eşlemeli çeşit oyunda kullanılmaz)
+const prewarm = objs => { if (!W.prewarm) return Promise.resolve(); W.renderer.setRenderTarget(W.composer.renderTarget1); return W.prewarm(objs); };
 sun.castShadow = true;
 
 /* ---------- oda, masa, optik tabla ---------- */
@@ -35,33 +37,44 @@ const ringM = { lens: new THREE.MeshStandardMaterial({ color: '#1f86b8', roughne
 const fixedMark = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.2, .9, .25), toneMapped: false });
 const rotMark = new THREE.MeshBasicMaterial({ color: new THREE.Color(.4, 1.6, 2.4), toneMapped: false });
 
-function post(h = BHW - .01) { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(.0065, .0065, h, 16).translate(0, h / 2, 0), alu); p.castShadow = true;
-  const b = new THREE.Mesh(new THREE.CylinderGeometry(.013, .014, .008, 20).translate(0, .004, 0), anod); b.castShadow = true; g.add(p, b); return g; }
+// Parça geometrileri/malzemeleri paylaşılır: parça kaldırılınca GPU'da sızan bir şey kalmaz
+const shared = o => { o.userData.shared = true; return o; };
+const disposeDeep = o => W.disposeDeep ? W.disposeDeep(o) : o.parent && o.parent.remove(o);
+[anod, alu, mirrorM, glassM, ringM.lens, ringM.dlens, fixedMark, rotMark].forEach(shared);
+const postG = {}, postBaseG = shared(new THREE.CylinderGeometry(.013, .014, .008, 20).translate(0, .004, 0));
+function post(h = BHW - .01) { const g = new THREE.Group(), k = h.toFixed(5); const pg = postG[k] || (postG[k] = shared(new THREE.CylinderGeometry(.0065, .0065, h, 16).translate(0, h / 2, 0)));
+  const p = new THREE.Mesh(pg, alu); p.castShadow = true;
+  const b = new THREE.Mesh(postBaseG, anod); b.castShadow = true; g.add(p, b); return g; }
+const markG = shared(new THREE.SphereGeometry(.004, 10, 8));
+const mirG = { face: shared(new THREE.BoxGeometry(.08, .062, .005)), frame: shared(new THREE.BoxGeometry(.084, .006, .009)), hold: shared(new THREE.BoxGeometry(.02, .012, .012)) };
 function makeMirror(fixed) { const g = new THREE.Group();
-  const face = new THREE.Mesh(new THREE.BoxGeometry(.08, .062, .005), [anod, anod, anod, anod, mirrorM, mirrorM]); face.position.y = BHW; face.castShadow = true;
-  const frame = new THREE.Mesh(new THREE.BoxGeometry(.084, .006, .009), anod); frame.position.y = BHW - .034; const ft = frame.clone(); ft.position.y = BHW + .034;
-  const hold = new THREE.Mesh(new THREE.BoxGeometry(.02, .012, .012), anod); hold.position.y = BHW - .04;
-  g.add(face, frame, ft, hold, post(BHW - .045)); if (fixed) { const m = new THREE.Mesh(new THREE.SphereGeometry(.004, 10, 8), fixed === 'rot' ? rotMark : fixedMark); m.position.set(0, BHW + .042, 0); g.add(m); }
+  const face = new THREE.Mesh(mirG.face, [anod, anod, anod, anod, mirrorM, mirrorM]); face.position.y = BHW; face.castShadow = true;
+  const frame = new THREE.Mesh(mirG.frame, anod); frame.position.y = BHW - .034; const ft = frame.clone(); ft.position.y = BHW + .034;
+  const hold = new THREE.Mesh(mirG.hold, anod); hold.position.y = BHW - .04;
+  g.add(face, frame, ft, hold, post(BHW - .045)); if (fixed) { const m = new THREE.Mesh(markG, fixed === 'rot' ? rotMark : fixedMark); m.position.set(0, BHW + .042, 0); g.add(m); }
   return g; }
 function lensGeo(conv) { const R = .05, pts = [], N = 18;
   const th = r => conv ? .003 + .012 * (1 - (r / R) ** 2) : .004 + .011 * (r / R) ** 2;
   for (let i = 0; i <= N; i++) { const r = R * i / N; pts.push(new THREE.Vector2(r, th(r) / 2)); }
   for (let i = N; i >= 0; i--) { const r = R * i / N; pts.push(new THREE.Vector2(r, -th(r) / 2)); }
   return new THREE.LatheGeometry(pts, 64).rotateX(Math.PI / 2); }
-const geoL = { lens: lensGeo(true), dlens: lensGeo(false) };
+const geoL = { lens: shared(lensGeo(true)), dlens: shared(lensGeo(false)) };
+// mercek camı türe göre tek malzeme (eskiden her mercekte kopya)
+const lensM = {}; for (const type of ['lens', 'dlens']) { const m = shared(glassM.clone()); m.color.set(isMobile ? lensTint[type] : '#ffffff'); if (!isMobile) m.attenuationColor.set(lensTint[type]); lensM[type] = m; }
+const lensRingG = shared(new THREE.TorusGeometry(.0515, .0042, 10, 64)), tabG = shared(new THREE.BoxGeometry(.012, .012, .008));
 function makeLens(type, fixed) { const g = new THREE.Group();
-  const m = glassM.clone(); m.color.set(isMobile ? lensTint[type] : '#ffffff'); if (!isMobile) m.attenuationColor.set(lensTint[type]);
-  const l = new THREE.Mesh(geoL[type], m); l.position.y = BHW;
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(.0515, .0042, 10, 64), ringM[type]); ring.position.y = BHW;
-  const tab = new THREE.Mesh(new THREE.BoxGeometry(.012, .012, .008), anod); tab.position.y = BHW - .056;
-  g.add(l, ring, tab, post(BHW - .06)); if (fixed) { const mk = new THREE.Mesh(new THREE.SphereGeometry(.004, 10, 8), fixed === 'rot' ? rotMark : fixedMark); mk.position.set(0, BHW + .058, 0); g.add(mk); }
+  const l = new THREE.Mesh(geoL[type], lensM[type]); l.position.y = BHW;
+  const ring = new THREE.Mesh(lensRingG, ringM[type]); ring.position.y = BHW;
+  const tab = new THREE.Mesh(tabG, anod); tab.position.y = BHW - .056;
+  g.add(l, ring, tab, post(BHW - .06)); if (fixed) { const mk = new THREE.Mesh(markG, fixed === 'rot' ? rotMark : fixedMark); mk.position.set(0, BHW + .058, 0); g.add(mk); }
   return g; }
 function prismGeo() { const s = new THREE.Shape(); const P = OP.prismPoly(0, 0, 0); s.moveTo(P[0][0] * K, P[0][1] * K); s.lineTo(P[1][0] * K, P[1][1] * K); s.lineTo(P[2][0] * K, P[2][1] * K); s.closePath();
   return new THREE.ExtrudeGeometry(s, { depth: .11, bevelEnabled: true, bevelThickness: .0015, bevelSize: .0015, bevelSegments: 2 }).rotateX(Math.PI / 2).translate(0, .11, 0); }
-const geoP = prismGeo();
+const geoP = shared(prismGeo()), prismBaseG = shared(new THREE.CylinderGeometry(.03, .03, .004, 24).translate(0, .002, 0)), prismEdgeG = shared(new THREE.EdgesGeometry(geoP, 30));
+const prismEdgeM = shared(new THREE.LineBasicMaterial({ color: '#cfefff', transparent: true, opacity: .55 }));
 function makePrism() { const g = new THREE.Group(); const m = new THREE.Mesh(geoP, glassM); m.position.y = .004; m.castShadow = !isMobile; g.add(m);
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .004, 24).translate(0, .002, 0), anod); g.add(base);
-  const e = new THREE.LineSegments(new THREE.EdgesGeometry(geoP, 30), new THREE.LineBasicMaterial({ color: '#cfefff', transparent: true, opacity: .55 })); e.position.y = .004; g.add(e); return g; }
+  const base = new THREE.Mesh(prismBaseG, anod); g.add(base);
+  const e = new THREE.LineSegments(prismEdgeG, prismEdgeM); e.position.y = .004; g.add(e); return g; }
 
 /* ---------- lazer, hedef, kristaller, duvarlar, cam ---------- */
 const laser = new THREE.Group(); scene.add(laser);
@@ -81,31 +94,36 @@ const tCore = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.5, .3, .35)
   const top = new THREE.Mesh(new THREE.SphereGeometry(.012, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), tCore); top.position.y = BHW + .017;
   const rim = new THREE.Mesh(new THREE.TorusGeometry(.0205, .002, 8, 40).rotateX(Math.PI / 2), alu); rim.position.y = BHW + .017; const rim2 = rim.clone(); rim2.position.y = BHW - .017;
   target.add(cyl, top, rim, rim2, post(BHW - .018)); }
-const tLight = new THREE.PointLight('#46ff9a', 0, .6, 2); tLight.position.y = BHW + .03; target.add(tLight);
+// ışık hedef grubunda değil sahnede: hedef gizlenince ışık sayısı değişip her şey yeniden derlenmesin
+const tLight = new THREE.PointLight('#46ff9a', 0, .6, 2); scene.add(tLight);
 const haloTex = canvasTex(64, 64, g => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 31); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.25, 'rgba(255,255,255,.5)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
 const gemMat = () => new THREE.MeshStandardMaterial({ color: '#7ff0ff', metalness: .3, roughness: .05, emissive: new THREE.Color('#0a4a60'), emissiveIntensity: 1, flatShading: true, envMapIntensity: 2 });
+const wallEdgeM = shared(new THREE.LineBasicMaterial({ color: '#3b3e46' })), glassEdgeM = shared(new THREE.LineBasicMaterial({ color: '#bfefff', transparent: true, opacity: .45 }));
+const gemG = shared(new THREE.OctahedronGeometry(.011, 0).scale(1, 1.4, 1));
+// kristaller havuzlu (malzemeleri kristale özel: parlaklık ayrı ayrı değişir); duvar/cam geometrileri bölüm değişince serbest bırakılır
+const gemFree = [];
+function makeGem() { const g = new THREE.Group(); const m = new THREE.Mesh(gemG, gemMat()); g.add(m);
+  const h = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color: new THREE.Color(.6, 2, 2.4), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); h.scale.setScalar(.05); g.add(h);
+  const ps = post(BHW - .02); g.add(ps); ps.position.y = -BHW; ps.scale.set(.5, 1, .5); return { g, m, h, on: 0 }; }
 let levelObjs = [], gems = [];
-function clearLevel() { for (const o of levelObjs) scene.remove(o); levelObjs = []; gems = []; }
+function clearLevel() { for (const o of levelObjs) disposeDeep(o); for (const gm of gems) { scene.remove(gm.g); gemFree.push(gm); } levelObjs = []; gems = []; }
 function buildLevel(L) {
   clearLevel();
   for (const w of (L.walls || [])) { const m = new THREE.Mesh(new THREE.BoxGeometry((w[2] - w[0]) * K - .002, .09, (w[3] - w[1]) * K - .002), anod); m.position.copy(toV((w[0] + w[2]) / 2, (w[1] + w[3]) / 2, .045)); m.castShadow = m.receiveShadow = true; scene.add(m); levelObjs.push(m);
-    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({ color: '#3b3e46' })); e.position.copy(m.position); scene.add(e); levelObjs.push(e); }
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), wallEdgeM); e.position.copy(m.position); scene.add(e); levelObjs.push(e); }
   for (const r of (L.glass || [])) { const m = new THREE.Mesh(new THREE.BoxGeometry((r[2] - r[0]) * K, .12, (r[3] - r[1]) * K), glassM); m.position.copy(toV((r[0] + r[2]) / 2, (r[1] + r[3]) / 2, .06)); scene.add(m); levelObjs.push(m);
-    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({ color: '#bfefff', transparent: true, opacity: .45 })); e.position.copy(m.position); scene.add(e); levelObjs.push(e); }
-  (L.gems || []).forEach(p => { const g = new THREE.Group(); const m = new THREE.Mesh(new THREE.OctahedronGeometry(.011, 0).scale(1, 1.4, 1), gemMat()); g.add(m);
-    const h = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color: new THREE.Color(.6, 2, 2.4), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); h.scale.setScalar(.05); g.add(h);
-    const ps = post(BHW - .02); g.add(ps); ps.position.y = -BHW; ps.scale.set(.5, 1, .5);
-    g.position.copy(toV(p[0], p[1])); scene.add(g); levelObjs.push(g); gems.push({ g, m, h, on: 0 }); });
-  target.position.copy(toV(L.target.x, L.target.y, 0));
+    const e = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), glassEdgeM); e.position.copy(m.position); scene.add(e); levelObjs.push(e); }
+  (L.gems || []).forEach(p => { const gm = gemFree.pop() || makeGem(); gm.on = 0; gm.g.position.copy(toV(p[0], p[1])); scene.add(gm.g); gems.push(gm); });
+  target.position.copy(toV(L.target.x, L.target.y, 0)); tLight.position.copy(target.position).y += BHW + .03;
 }
 
 /* ---------- parçalar: oyundaki nesnelerle eşleşen havuz ---------- */
-const pmap = new Map();
+const pmap = new Map(), tpV = new THREE.Vector3();
 function syncPieces() { const seen = new Set();
   for (const p of G.pieces) { let o = pmap.get(p); if (!o) { const fx = p.fixed ? (p.rot ? 'rot' : 'lock') : null; o = p.type === 'mirror' ? makeMirror(fx) : p.type === 'prism' ? makePrism() : makeLens(p.type, fx); scene.add(o); pmap.set(p, o); o.userData.pop = 0; }
-    seen.add(p); const tp = toV(p.x, p.y, 0); o.position.lerp(tp, o.position.distanceTo(tp) > .2 ? 1 : .45); const ta = -p.a * D; let da = ta - o.rotation.y; da = Math.atan2(Math.sin(da), Math.cos(da)); o.rotation.y += da * .45;
+    seen.add(p); const tp = setV(tpV, p.x, p.y, 0); o.position.lerp(tp, o.position.distanceTo(tp) > .2 ? 1 : .45); const ta = -p.a * D; let da = ta - o.rotation.y; da = Math.atan2(Math.sin(da), Math.cos(da)); o.rotation.y += da * .45;
     o.userData.pop = Math.max(0, o.userData.pop - .06); o.scale.setScalar(1 + o.userData.pop * .15 + (G.drag && G.drag.p === p && G.drag.moved ? .06 : 0)); }
-  for (const [k, o] of pmap) if (!seen.has(k)) { scene.remove(o); pmap.delete(k); } }
+  for (const [k, o] of pmap) if (!seen.has(k)) { disposeDeep(o); pmap.delete(k); } }
 
 /* ---------- ışın ---------- */
 const MAXS = 90, coreM = new THREE.MeshBasicMaterial({ color: new THREE.Color(9, .55, .5), toneMapped: false });
@@ -123,18 +141,20 @@ for (let i = 0; i < DN; i++) dust.push({ u: Math.random(), s: Math.random(), j: 
 dustG.setAttribute('position', new THREE.BufferAttribute(dustP, 3)); dustG.setAttribute('color', new THREE.BufferAttribute(dustC, 3));
 const dustPts = new THREE.Points(dustG, new THREE.PointsMaterial({ map: haloTex, size: .0045, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); dustPts.frustumCulled = false; scene.add(dustPts);
 const up = new THREE.Vector3(0, 1, 0), tv = new THREE.Vector3();
+const setV = (v, x, y, h = BHW) => v.set((x - CX) * K, PY + h, (y - CZ) * K);
+const lenPool = [], lens = [], cum = [], NOSEG = [];   // kare başına yeni dizi/vektör ayrılmasın
 function drawBeam(res, time) {
-  const segs = res ? res.segs : []; let n = 0, total = 0; const lens = [];
-  for (const s of segs) { const a = toV(s[0], s[1]), b = toV(s[2], s[3]), L = a.distanceTo(b); lens.push([a, b, L]); total += L;
+  const segs = res ? res.segs : NOSEG; let n = 0, total = 0; lens.length = 0;
+  for (const s of segs) { const l = lenPool[lens.length] || (lenPool[lens.length] = [new THREE.Vector3(), new THREE.Vector3(), 0]); const a = setV(l[0], s[0], s[1]), b = setV(l[1], s[2], s[3]), L = a.distanceTo(b); l[2] = L; lens.push(l); total += L;
     if (n < MAXS && L > 1e-4) { const c = cores[n], g = glows[n]; W.orient(c, a, b); W.orient(g, a, b); const fl = 1 + Math.sin(time * 40 + n) * .04;
       c.scale.x = c.scale.z = .0011 * fl; g.scale.x = g.scale.z = (s[4] ? .0034 : .0048) * fl; c.visible = g.visible = true; n++; } }
   for (let i = n; i < MAXS; i++) cores[i].visible = glows[i].visible = false;
   // etkileşim noktalarında parlama
-  let f = 0; if (res) for (const e of res.ev) { if (f >= flares.length) break; const s = flares[f++]; s.position.copy(toV(e.x, e.y)); s.scale.setScalar(.014 + Math.sin(time * 30 + f) * .0015); s.visible = true; }
+  let f = 0; if (res) for (const e of res.ev) { if (f >= flares.length) break; const s = flares[f++]; setV(s.position, e.x, e.y); s.scale.setScalar(.014 + Math.sin(time * 30 + f) * .0015); s.visible = true; }
   for (let i = f; i < flares.length; i++) flares[i].visible = false;
   if (lens.length) { const last = lens[lens.length - 1]; endL.position.copy(last[1]); endL.intensity = res.hit ? 0 : .1; beamL.position.copy(lens[0][0]).lerp(last[1], .5); beamL.intensity = .15; }
   // toz
-  let acc = 0; const cum = lens.map(l => (acc += l[2]));
+  let acc = 0; cum.length = lens.length; for (let i = 0; i < lens.length; i++) cum[i] = (acc += lens[i][2]);
   for (let i = 0; i < DN; i++) { const d = dust[i]; d.u += .0015; if (d.u > 1) d.u -= 1; if (!total) { dustC[i * 3] = dustC[i * 3 + 1] = dustC[i * 3 + 2] = 0; continue; }
     const at = d.s * total; let k = 0; while (k < cum.length - 1 && cum[k] < at) k++; const l = lens[k], prev = k ? cum[k - 1] : 0, tt = l[2] ? (at - prev) / l[2] : 0;
     tv.copy(l[0]).lerp(l[1], tt); dustP[i * 3] = tv.x + d.j[0] * Math.sin(time + d.ph); dustP[i * 3 + 1] = tv.y + d.j[1] * Math.cos(time * .7 + d.ph); dustP[i * 3 + 2] = tv.z + d.j[0] * Math.cos(time * 1.3 + d.ph);
@@ -145,7 +165,7 @@ function drawBeam(res, time) {
 /* ---------- olaylar ---------- */
 let winFx = 0;
 G.on = (type, a) => {
-  if (type === 'level') { buildLevel(G.L); for (const [, o] of pmap) scene.remove(o); pmap.clear(); winFx = 0; }
+  if (type === 'level') { buildLevel(G.L); for (const [, o] of pmap) disposeDeep(o); pmap.clear(); winFx = 0; }
   else if (type === 'add') { requestAnimationFrame(() => { const o = pmap.get(a.p); if (o) o.userData.pop = 1; }); }
   else if (type === 'win') { winFx = 1; const p = toV(a.x, a.y);
     for (let i = 0; i < 26; i++) { const ang = Math.random() * 6.28, sp = .1 + Math.random() * .25; W.puff(p, new THREE.Vector3(Math.cos(ang) * sp, .15 + Math.random() * .3, Math.sin(ang) * sp), { tex: haloTex, add: true, color: ['#46ffa0', '#ffd34d', '#ff5d77', '#7ff0ff'][i % 4], hdr: 3, size: .012, grow: .2, life: 1.1, grav: .35, drag: 1.2, op: 1 }); } }
@@ -168,7 +188,7 @@ const rc = new THREE.Raycaster(), pl = new THREE.Plane(new THREE.Vector3(0, 1, 0
 function frame(dt) {
   time += dt; if ((fitN++ % 30) === 0 || camera.aspect !== lastAsp) { lastAsp = camera.aspect; fit(); }
   const L = G.L;
-  if (L) { laser.visible = target.visible = true; laser.position.copy(toV(L.laser.x, L.laser.y, 0)); laser.rotation.y = -L.laser.a * D; laserRot.visible = !!L.laser.rot; laserRot.material.opacity = 1;
+  if (L) { laser.visible = target.visible = true; setV(laser.position, L.laser.x, L.laser.y, 0); laser.rotation.y = -L.laser.a * D; laserRot.visible = !!L.laser.rot; laserRot.material.opacity = 1;
     syncPieces(); drawBeam(G.res, time);
     const hitT = G.res && G.res.hit; tCore.color.setRGB(...(hitT ? [.4, 3, 1.2] : [2.5 + Math.sin(time * 4) * .5, .3, .35])); tMat.emissive.setRGB(...(hitT ? [.3, 1, .5] : [0, 0, 0])); tLight.intensity = hitT ? 1.2 + Math.sin(time * 10) * .3 : 0;
     gems.forEach((g, i) => { const onB = G.res && G.res.gems.has(i); g.on = Math.max(onB ? 1 : 0, g.on - dt * 2); g.m.rotation.y = time * (1 + g.on * 3); g.g.position.y = PY + BHW + Math.sin(time * 2 + i) * .002;
@@ -178,7 +198,13 @@ function frame(dt) {
   sun.target.position.set(0, PY, 0); sun.position.copy(W.sunDir).multiplyScalar(4).add(sun.target.position);
   W.frame(dt);
 }
-W.loadEnv('lab').then(() => { scene.environmentIntensity = .75; renderer.toneMappingExposure = .9; scene.backgroundBlurriness = .06; fit(); if (G.L) buildLevel(G.L); O.show();
+// Önceden derleme: ilk mercek/prizma/ayna/kristalde takılma olmasın (iletim (transmission) hedefi de burada ayrılır)
+async function warm() {
+  const gm = makeGem(), wall = new THREE.Mesh(mirG.hold, anod), gl = new THREE.Mesh(mirG.hold, glassM), we = new THREE.LineSegments(prismEdgeG, wallEdgeM), ge = new THREE.LineSegments(prismEdgeG, glassEdgeM);
+  await prewarm([makeMirror('rot'), makeMirror('lock'), makeLens('lens', 'rot'), makeLens('dlens'), makePrism(), gm.g, wall, gl, we, ge]);
+  gemFree.push(gm);
+}
+W.loadEnv('lab').then(async () => { scene.environmentIntensity = .75; renderer.toneMappingExposure = .9; scene.backgroundBlurriness = .06; fit(); try { await warm(); } catch (e) { console.error(e); } if (G.L) buildLevel(G.L); O.show();
   window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), size: () => O, proj: (x, y, h = G.BH) => O.project(toV(x, y, h * K)),
     pick: (cx, cy) => { const r = W.canvas.getBoundingClientRect(); rc.setFromCamera(new THREE.Vector2((cx - r.left) / r.width * 2 - 1, -(cy - r.top) / r.height * 2 + 1), camera); return rc.ray.intersectPlane(pl, hit) ? { x: hit.x / K + CX, y: hit.z / K + CZ } : null; } }; });
 window.__r3d = { W, scene, camera };

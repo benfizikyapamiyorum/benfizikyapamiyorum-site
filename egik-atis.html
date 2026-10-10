@@ -423,7 +423,7 @@
     ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(t.x-t.r*0.3,y-t.r*0.35,t.r*0.18,t.r*0.28,-0.5,0,6.28); ctx.fill();
     ctx.fillStyle=t.col; ctx.beginPath(); ctx.moveTo(t.x,y+t.r); ctx.lineTo(t.x-4,y+t.r+5); ctx.lineTo(t.x+4,y+t.r+5); ctx.fill();
   }
-  function ev(type,a){ if(window.BFY_GAME&&BFY_GAME.on) BFY_GAME.on(type,a); }
+  function ev(type,a){ if(window.BFY_GAME&&BFY_GAME.on) try{ BFY_GAME.on(type,a); }catch(e){ console.error(e); } }
   function aimInfo(v){ // canlı fizik: menzil, tepe yüksekliği, uçuş süresi (düz zemin, rüzgârsız)
     const vm=v.sp/PXM, th=v.ang, g=9.8, R=vm*vm*Math.sin(2*th)/g, Hm=Math.pow(vm*Math.sin(th),2)/(2*g), T=2*vm*Math.sin(th)/g;
     return {vm,deg:Math.round(th*180/Math.PI),R,Hm,T}; }
@@ -485,7 +485,10 @@
   }
   let last=0;
   window.BFY_GAME={ W, H, GROUND, ORIGIN, PXM, canvas:cv, get targets(){return targets;}, get walls(){return walls;}, get proj(){return proj;}, get aiming(){return aiming;}, get aim(){return aim;}, aimVec:()=>aimVec(), get wind(){return wind;}, get state(){return state;}, get level(){return level;}, get shake(){return shake;} };
-  function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(dt); requestAnimationFrame(loop); }
+  function loop(t){ requestAnimationFrame(loop);   // önce sıradaki kare: bir hata döngüyü dondurmasın
+    const dt=Math.min(0.033,(t-last)/1000||0); last=t;
+    try{ update(dt); }catch(e){ console.error(e); }
+    try{ render(dt); }catch(e){ console.error(e); } }
   requestAnimationFrame(loop);
 
   // ---- oyun akışı ----
@@ -659,6 +662,6 @@
   document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
-<script type="module" src="oyun3d/nisanci3d.js?v=1"></script>
+<script type="module" src="oyun3d/nisanci3d.js?v=2"></script>
 </body>
 </html>

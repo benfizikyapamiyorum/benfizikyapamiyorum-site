@@ -1,5 +1,5 @@
 // BFY · 3B Optik Laboratuvarı — renk karışımı + optik ray (mercek ve ayna)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=5';
 
 const TY = .76;
 const S = { mode: 'color', cam: 'orbit', L: { r: { on: true, k: 1 }, g: { on: true, k: 1 }, b: { on: true, k: 1 } }, obj: 'post', beam: true, labels: true,
@@ -49,20 +49,21 @@ PROJ.forEach(p => {
   const stand = new THREE.Mesh(new THREE.CylinderGeometry(.008, .008, PY - TY, 16), chrome); stand.position.y = -(PY - TY) / 2; g.add(stand);
   const foot = new THREE.Mesh(new THREE.CylinderGeometry(.04, .045, .012, 32), black); foot.position.y = -(PY - TY) + .006; g.add(foot);
   const L = new THREE.SpotLight(p.col, 0, 0, ANG, .18, 0); L.castShadow = true; L.shadow.mapSize.set(isMobile ? 512 : 1024, isMobile ? 512 : 1024); L.shadow.bias = -.0006; L.shadow.normalBias = .01; L.shadow.camera.near = .05; L.shadow.camera.far = 2;
-  colorG.add(L, L.target); p.L = L;
+  scene.add(L, L.target); p.L = L; // ışık grubun dışında: mod değişince ışık sayısı sabit kalsın
   const beam = new THREE.Mesh(new THREE.CylinderGeometry(1, .06, 1, 48, 1, true).translate(0, -.5, 0), beamMat(p.col)); beam.renderOrder = 8; colorG.add(beam); p.beam = beam;
   p.dir = new THREE.Vector3().subVectors(p.aim, new THREE.Vector3(p.x, PY, PZ)).normalize();
 });
+const _pos = new THREE.Vector3(), _lens = new THREE.Vector3(), _aim = new THREE.Vector3(), UPY = new THREE.Vector3(0, 1, 0);
 function layoutProj() {
   PROJ.forEach(p => {
-    const pos = new THREE.Vector3(p.x, PY, PZ); p.g.position.copy(pos); p.g.lookAt(pos.clone().add(p.dir)); // grup -z yönüne bakar
+    const pos = _pos.set(p.x, PY, PZ); p.g.position.copy(pos); p.g.lookAt(_aim.copy(pos).add(p.dir)); // grup -z yönüne bakar
     p.g.rotateY(Math.PI);
-    const lensPos = pos.clone().addScaledVector(p.dir, .075); p.L.position.copy(lensPos);
-    const t = (SCR.z + .007 - lensPos.z) / p.dir.z, hit = lensPos.clone().addScaledVector(p.dir, t); p.hit = hit; p.dist = t;
+    const lensPos = _lens.copy(pos).addScaledVector(p.dir, .075); p.L.position.copy(lensPos);
+    const t = (SCR.z + .007 - lensPos.z) / p.dir.z, hit = (p.hit || (p.hit = new THREE.Vector3())).copy(lensPos).addScaledVector(p.dir, t); p.dist = t;
     p.L.target.position.copy(hit); p.L.target.updateMatrixWorld();
-    const st = S.L[p.k], I = st.on ? st.k : 0; p.L.intensity = I * 3; p.lens.material.color.set(p.col).multiplyScalar(.2 + 2.8 * I);
+    const st = S.L[p.k], I = st.on ? st.k : 0; p.L.intensity = I * 3; p.L.shadow.autoUpdate = I > 0; p.lens.material.color.set(p.col).multiplyScalar(.2 + 2.8 * I);
     const R = Math.tan(ANG) * t; p.R = R * .93; // görünür daire yarıçapı (yarı gölge ortası)
-    p.beam.visible = S.beam && I > 0 && S.mode === 'color'; p.beam.position.copy(hit); p.beam.scale.set(R, t, R); p.beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p.dir);
+    p.beam.visible = S.beam && I > 0 && S.mode === 'color'; p.beam.position.copy(hit); p.beam.scale.set(R, t, R); p.beam.quaternion.setFromUnitVectors(UPY, p.dir);
     p.beam.material.uniforms.k.value = .09 * I;
   });
 }
@@ -141,20 +142,23 @@ const mirBack = new THREE.Mesh(new THREE.CylinderGeometry(.053, .053, .006, 48).
 [lensConv, lensDiv, lensRing, mirCave, mirVex, mirBack].forEach(m => { m.position.y = AY; m.castShadow = true; elG.add(m); });
 function showElement() { const e = S.el; lensConv.visible = e === 'conv'; lensDiv.visible = e === 'div'; lensRing.visible = e === 'conv' || e === 'div'; mirCave.visible = e === 'concave'; mirVex.visible = e === 'convex'; mirBack.visible = e === 'concave' || e === 'convex'; mirBack.position.x = e === 'concave' ? .012 : e === 'convex' ? .012 : 0; }
 // Mum (cisim)
+// Mum bir kez kurulur; boy değişince yalnızca ölçek/konum güncellenir (eskiden her girişte yeni geometri + malzeme sızıyordu)
+const waxGeo = new THREE.CylinderGeometry(.011, .012, 1, 32).translate(0, .5, 0), wickGeo = new THREE.CylinderGeometry(.0009, .0009, .006, 6).translate(0, .003, 0);
+function setCandleH(g, h) { const u = g.userData, hw = h - .02; u.h = h; u.wax.scale.y = hw; u.wick.position.y = hw; u.flame.position.y = hw + .001; u.core.position.y = hw + .002; }
 function candle(h, ghost = false) {
-  const g = new THREE.Group(); const hw = h - .02;
-  const wax = new THREE.Mesh(new THREE.CylinderGeometry(.011, .012, hw, 32).translate(0, hw / 2, 0), ghost ? new THREE.MeshStandardMaterial({ color: '#fff0d8', transparent: true, opacity: .55, emissive: '#5a3a10', emissiveIntensity: .4 }) : new THREE.MeshPhysicalMaterial({ color: '#fbf1dc', roughness: .5, transmission: .15, thickness: .02 }));
+  const g = new THREE.Group();
+  const wax = new THREE.Mesh(waxGeo, ghost ? new THREE.MeshStandardMaterial({ color: '#fff0d8', transparent: true, opacity: .55, emissive: '#5a3a10', emissiveIntensity: .4 }) : new THREE.MeshPhysicalMaterial({ color: '#fbf1dc', roughness: .5, transmission: .15, thickness: .02 }));
   wax.castShadow = !ghost; g.add(wax);
-  const wick = new THREE.Mesh(new THREE.CylinderGeometry(.0009, .0009, .006, 6).translate(0, hw + .003, 0), new THREE.MeshBasicMaterial({ color: '#222' })); g.add(wick);
+  const wick = new THREE.Mesh(wickGeo, new THREE.MeshBasicMaterial({ color: '#222' })); g.add(wick);
   const fg = new THREE.SphereGeometry(1, 24, 16); { const p = fg.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i); const k = y > 0 ? 1 - y * .75 : 1; p.setXYZ(i, p.getX(i) * .0055 * k, (y + 1) * .0095, p.getZ(i) * .0055 * k); } fg.computeVertexNormals(); }
-  const flame = new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffb040').multiplyScalar(ghost ? 1.8 : 3.2), transparent: ghost, opacity: ghost ? .8 : 1, toneMapped: false })); flame.position.y = hw + .001; g.add(flame);
-  const core = new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ color: new THREE.Color('#fff4d0').multiplyScalar(3.5), toneMapped: false })); core.scale.setScalar(.5); core.position.y = hw + .002; if (!ghost) g.add(core);
-  g.userData = { flame, wax, h }; return g;
+  const flame = new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ color: new THREE.Color('#ffb040').multiplyScalar(ghost ? 1.8 : 3.2), transparent: ghost, opacity: ghost ? .8 : 1, toneMapped: false })); g.add(flame);
+  const core = new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ color: new THREE.Color('#fff4d0').multiplyScalar(3.5), toneMapped: false })); core.scale.setScalar(.5); if (!ghost) g.add(core);
+  g.userData = { flame, wax, wick, core }; setCandleH(g, h); return g;
 }
 const candleG = new THREE.Group(); benchG.add(candleG); candleG.add(carrier()); const candlePost = postTo(AY - TY - .046); candleG.add(candlePost);
-let candleM = candle(S.h); candleM.position.y = AY; candleG.add(candleM);
-const flameLight = new THREE.PointLight('#ffae4a', .35, .8, 2); candleG.add(flameLight);
-let ghostM = candle(S.h, true); benchG.add(ghostM);
+const candleM = candle(S.h); candleM.position.y = AY; candleG.add(candleM);
+const flameLight = new THREE.PointLight('#ffae4a', 0, .8, 2); scene.add(flameLight); // grubun dışında: mod değişince ışık sayısı sabit
+const ghostM = candle(S.h, true); benchG.add(ghostM);
 // Ekran
 const scrTexC = document.createElement('canvas'); scrTexC.width = scrTexC.height = 256; const scrTex = new THREE.CanvasTexture(scrTexC); scrTex.colorSpace = THREE.SRGBColorSpace;
 const scrG = new THREE.Group(); benchG.add(scrG); scrG.add(carrier()); scrG.add(postTo(AY - TY - .046 - .07));
@@ -182,8 +186,8 @@ function optics() {
 function layoutBench() {
   const O = optics(); const X0 = -S.dO;
   candleG.position.set(X0, 0, RZ);
-  if (candleM.userData.h !== S.h) { candleG.remove(candleM); candleM = candle(S.h); candleM.position.y = AY; candleG.add(candleM); benchG.remove(ghostM); ghostM = candle(S.h, true); benchG.add(ghostM); }
-  flameLight.position.set(0, AY + S.h, 0);
+  if (candleM.userData.h !== S.h) { setCandleH(candleM, S.h); setCandleH(ghostM, S.h); }
+  flameLight.position.set(X0, AY + S.h, RZ);
   candleM.userData.flame.scale.set(1, 1 + Math.sin(performance.now() * .013) * .06, 1);
   // ekran: mercekte sağda, aynada solda (eksenden biraz geride)
   const sx = O.isMir ? -S.dS : S.dS; scrG.position.set(sx, 0, O.isMir ? RZ - .085 : RZ);
@@ -292,7 +296,8 @@ function setMode(m) {
   $('learn-color').style.display = m === 'color' ? 'grid' : 'none'; $('learn-bench').style.display = m === 'bench' ? 'grid' : 'none';
   // oda ışığı: renk karışımında karanlık, rayda loş
   scene.backgroundIntensity = m === 'color' ? .045 : .16; scene.environmentIntensity = m === 'color' ? .03 : .22; W.hemi.intensity = m === 'color' ? .01 : .06; W.sun.intensity = 0; dimLamp.intensity = m === 'color' ? 0 : 2.2;
-  PROJ.forEach(p => p.L.visible = m === 'color'); flameLight.visible = m === 'bench';
+  // ışıklar gizlenmez, söndürülür (ışık sayısı değişirse her malzeme yeniden derlenir); sönük spotun gölge haritası çizilmez
+  PROJ.forEach(p => { if (m !== 'color') { p.L.intensity = 0; p.L.shadow.autoUpdate = false; } }); flameLight.intensity = m === 'bench' ? .35 : 0;
   $('h-mode').innerHTML = m === 'color' ? 'Renk karışımı<small>Işıklar toplanır</small>' : 'Optik ray<small>Mercek ve ayna</small>';
   [1, 2, 3, 4, 5, 6, 7].forEach(i => $('tag-' + i).style.display = 'none');
   setCam();
@@ -327,5 +332,15 @@ function benchUI(O) {
 /* ---------- başlat ---------- */
 W.orbit.minR = .3; W.orbit.maxR = 4; W.orbit.minPh = .3;
 setObj('post'); showElement(); updBenchLabels();
-W.loadEnv('lab').then(() => { setMode('color'); W.orbit.th = 1.3; W.orbit.r = 2.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target); setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200); W.start(); });
+// derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
+const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
+// İki modun da gölgelendiricilerini açılışta derle (cam mercek, mum, ışınlar…): ilk "Optik ray" tıklaması takılmasın
+async function warm() {
+  setMode('bench'); layoutBench(); layoutProj(); colorG.visible = true; camera.position.copy(W.orbitPos()); camera.lookAt(W.orbit.target); // cam geçişi de kadrajda derlensin
+  const objs = [...Object.values(holders), lensConv, lensDiv, lensRing, mirCave, mirVex, mirBack, ghostM, ...PROJ.map(p => p.beam)], vis = objs.map(o => o.visible);
+  objs.forEach(o => o.visible = true); flameLight.intensity = .35; PROJ.forEach(p => { p.L.intensity = 3; p.L.shadow.autoUpdate = true; });
+  await prewarmLin();
+  objs.forEach((o, i) => o.visible = vis[i]);
+}
+W.loadEnv('lab').then(warm).then(() => { setMode('color'); W.orbit.th = 1.3; W.orbit.r = 2.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target); setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200); W.start(); });
 window.__bfyLab = { W, S, setMode, setObj, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

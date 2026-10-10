@@ -1,5 +1,5 @@
 // BFY · 3B Vektör Laboratuvarı — akıntılı nehirde motorlu kayık, bileşke hız
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=3';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=5';
 
 const Z0 = 10, Z1 = -10, D = Z0 - Z1;       // kalkış ve varış çizgileri (m)
 const BANK = 13;                            // kıyı çizgisi |z|
@@ -208,13 +208,16 @@ W.bindFullscreen($('btn-full'));
 
 /* ---------- döngü ---------- */
 let time = 0, lastUI = 0; const tmp = new THREE.Vector3();
+// döngü geçicileri (her kare yeni nesne üretilmesin)
+const _o = new THREE.Object3D(), UPY = new THREE.Vector3(0, 1, 0), _st = new THREE.Vector3(), _bw = new THREE.Vector3(), _sd = new THREE.Vector3(),
+  _P = new THREE.Vector3(), _vk = new THREE.Vector3(), _va = new THREE.Vector3(), _vr = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
 W.update = dt => {
   time += dt;
   const v = vel(), h = heading();
   // akıntı: normal haritaları akış yönünde kaydır
   n1.offset.x -= S.va * dt / 7 + .002 * dt; n1.offset.y += .004 * dt; n2.offset.x -= S.va * dt / 2.6 * .9; n2.offset.y -= .006 * dt;
   // yapraklar
-  const o = new THREE.Object3D(); LF.forEach((l, i) => { l.x += S.va * dt; l.r += l.w * dt; if (l.x > 45) l.x -= 90; o.position.set(l.x, .02, l.z); o.rotation.set(0, l.r, 0); o.updateMatrix(); leaves.setMatrixAt(i, o.matrix); }); leaves.instanceMatrix.needsUpdate = true;
+  const o = _o; LF.forEach((l, i) => { l.x += S.va * dt; l.r += l.w * dt; if (l.x > 45) l.x -= 90; o.position.set(l.x, .02, l.z); o.rotation.set(0, l.r, 0); o.updateMatrix(); leaves.setMatrixAt(i, o.matrix); }); leaves.instanceMatrix.needsUpdate = true;
   // hareket
   if (S.run) { const sdt = dt * S.speed; S.t += sdt; S.x += v.x * sdt; S.z += v.z * sdt;
     if (S.z <= Z1) { const over = (Z1 - S.z) / -v.z; S.t -= over; S.x -= v.x * over; S.z = Z1; S.run = false; S.done = true; $('btn-go').textContent = '↺ Tekrar'; arrive(); }
@@ -226,19 +229,19 @@ W.update = dt => {
   boat.prop.rotation.x += dt * (S.run ? 40 : 2);
   { const a = boat.flagG.attributes.position.array, b = boat.flagP; for (let i = 0; i < a.length; i += 3) { const x = b[i]; a[i + 2] = Math.sin(x * 14 - time * 9) * x * .12; } boat.flagG.attributes.position.needsUpdate = true; }
   // köpük ve sıçrama
-  if (S.run) { foamT -= dt; if (foamT <= 0) { foamT = .06; const st = new THREE.Vector3(-boat.L / 2 - .2, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(boat.root.position); spawnFoam(st, .7);
-      const bw = new THREE.Vector3(boat.L / 2 - .2, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw).add(boat.root.position); for (const sd of [-1, 1]) { const side = new THREE.Vector3(0, 0, sd * .7).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw); spawnFoam(bw.clone().add(side), .45); } } }
+  if (S.run) { foamT -= dt; if (foamT <= 0) { foamT = .06; const st = _st.set(-boat.L / 2 - .2, 0, 0).applyAxisAngle(UPY, yaw).add(boat.root.position); spawnFoam(st, .7);
+      const bw = _bw.set(boat.L / 2 - .2, 0, 0).applyAxisAngle(UPY, yaw).add(boat.root.position); for (const sd of [-1, 1]) { const side = _sd.set(0, 0, sd * .7).applyAxisAngle(UPY, yaw); spawnFoam(side.add(bw), .45); } } }
   foams.forEach(f => { if (f.life <= 0) return; f.life -= dt * .45; f.m.position.x += S.va * dt; const k = 1 - f.life; f.m.scale.setScalar(f.s * (1 + k * 1.6)); f.m.material.opacity = Math.pow(Math.max(0, f.life), 1.5) * .5; if (f.life <= 0) f.m.visible = false; });
   // oklar
-  const P = new THREE.Vector3(S.x, 1.1, S.z), vk = new THREE.Vector3(h.x, 0, h.z).multiplyScalar(S.vk * K), va = new THREE.Vector3(S.va * K, 0, 0), vr = vk.clone().add(va);
+  const P = _P.set(S.x, 1.1, S.z), vk = _vk.set(h.x, 0, h.z).multiplyScalar(S.vk * K), va = _va.set(S.va * K, 0, 0), vr = _vr.copy(vk).add(va);
   if (S.vec) { const th = .11; arK.set(P, vk, th); arR.set(P, vr, th * 1.15);
-    if (S.mode === 'tip') { arA.set(P.clone().add(vk), va, th); paraA.visible = paraB.visible = false; } else { arA.set(P, va, th); setLine(paraA, P.clone().add(vk), P.clone().add(vr)); setLine(paraB, P.clone().add(va), P.clone().add(vr)); }
+    if (S.mode === 'tip') { arA.set(_a.copy(P).add(vk), va, th); paraA.visible = paraB.visible = false; } else { arA.set(P, va, th); setLine(paraA, _a.copy(P).add(vk), _b.copy(P).add(vr)); setLine(paraB, _a.copy(P).add(va), _b.copy(P).add(vr)); }
     if (S.va < .01) arA.hide(); }
   else { arK.hide(); arA.hide(); arR.hide(); paraA.visible = paraB.visible = false; }
-  if (S.comp && S.vec) { arCx.set(P.clone().setY(1.06), new THREE.Vector3(vr.x, 0, 0), .04); arCz.set(P.clone().setY(1.06), new THREE.Vector3(0, 0, vr.z), .04); } else { arCx.hide(); arCz.hide(); }
+  if (S.comp && S.vec) { _a.copy(P).setY(1.06); arCx.set(_a, _b.set(vr.x, 0, 0), .04); arCz.set(_a, _b.set(0, 0, vr.z), .04); } else { arCx.hide(); arCz.hide(); }
   // tahmini rota ve varış noktası
   const T = crossT(); const lx = S.x + v.x * ((S.z - Z1) / Math.max(1e-6, -v.z));
-  if (S.path && isFinite(T) && !S.done) { setLine(pathL, new THREE.Vector3(S.x, .08, S.z), new THREE.Vector3(lx, .08, Z1)); landRing.visible = true; landRing.position.set(lx, .05, Z1); landRing.scale.setScalar(1 + .08 * Math.sin(time * 4)); }
+  if (S.path && isFinite(T) && !S.done) { setLine(pathL, _a.set(S.x, .08, S.z), _b.set(lx, .08, Z1)); landRing.visible = true; landRing.position.set(lx, .05, Z1); landRing.scale.setScalar(1 + .08 * Math.sin(time * 4)); }
   else { pathL.visible = false; landRing.visible = S.done; if (S.done) landRing.position.set(S.x, .05, Z1); }
   pierRing.scale.setScalar(1 + .05 * Math.sin(time * 3)); pierRing.material.opacity = S.mission ? .95 : .45;
   cameraDirector(dt);
@@ -273,5 +276,9 @@ function ui(v, lx) {
 /* ---------- başlat ---------- */
 W.orbit.minR = 4; W.orbit.maxR = 120; W.orbit.maxPh = 1.45; W.orbit.minPh = .25;
 syncUI(); resetAll(); W.orbit.target.set(0, 0, 0); W.orbit.r = 60; W.orbit.th = -1.1; W.orbit.ph = .9; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
-W.loadEnv('lake').then(() => W.start());
+// derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
+const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
+// oklar ve köpük de açılışta derlensin: ilk tıklamada takılma olmasın
+async function warm() { const f = foams[0].m, objs = [arK, arA, arR, arCx, arCz].map(a => a.g).concat(f), vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); f.material.opacity = .01; await prewarmLin(); objs.forEach((o, i) => o.visible = vis[i]); f.material.opacity = 0; }
+W.loadEnv('lake').then(warm).then(() => W.start());
 window.__bfyLab = { W, S, setScenario, resetAll, go, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

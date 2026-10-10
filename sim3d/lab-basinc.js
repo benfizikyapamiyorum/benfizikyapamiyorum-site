@@ -1,5 +1,5 @@
 // BFY · 3B Kaldırma Kuvveti Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=3';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=5';
 
 /* =====================================================================
    Sabitler ve cisimler (SI birimleri: m, kg, s)
@@ -252,13 +252,16 @@ const meter = new THREE.Group(); scene.add(meter);
   meter.position.set(-.3, TY, .12); meter.rotation.y = .5; }
 const hose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(.1, .1, .1), new THREE.Vector3(.2, 0, 0)]), 40, .0025, 8), new THREE.MeshStandardMaterial({ color: '#222', roughness: .7 })); scene.add(hose);
 const P = { x: TANK.x - .08, y: FLOOR + .1, z: TANK.z + .03 };
-function drawMeter(pk, hcm) { const g2 = meterTexC.getContext('2d'); g2.fillStyle = '#0c1a12'; g2.fillRect(0, 0, 256, 128); g2.fillStyle = '#6dff9c'; g2.font = '700 58px ui-monospace,Menlo,monospace'; g2.textAlign = 'right'; g2.fillText(fmt(pk, 2), 200, 72); g2.font = '700 24px Arial'; g2.fillText('kPa', 246, 72); g2.fillStyle = '#9fd9b3'; g2.font = '600 20px Arial'; g2.textAlign = 'left'; g2.fillText('Derinlik ' + fmt(hcm, 1) + ' cm', 14, 110); meterTex.needsUpdate = true; }
+let meterKey = '', hoseX = NaN, hoseY = NaN;
+function drawMeter(pk, hcm) { const key = fmt(pk, 2) + '|' + fmt(hcm, 1); if (key === meterKey) return; meterKey = key; const g2 = meterTexC.getContext('2d'); g2.fillStyle = '#0c1a12'; g2.fillRect(0, 0, 256, 128); g2.fillStyle = '#6dff9c'; g2.font = '700 58px ui-monospace,Menlo,monospace'; g2.textAlign = 'right'; g2.fillText(fmt(pk, 2), 200, 72); g2.font = '700 24px Arial'; g2.fillText('kPa', 246, 72); g2.fillStyle = '#9fd9b3'; g2.font = '600 20px Arial'; g2.textAlign = 'left'; g2.fillText('Derinlik ' + fmt(hcm, 1) + ' cm', 14, 110); meterTex.needsUpdate = true; }
 function layoutProbe() {
   const on = S.mode === 'probe'; probe.visible = on; meter.visible = on; hose.visible = on; if (!on) return;
   P.x = clamp(P.x, TANK.x - IN.w / 2 + .02, TANK.x + IN.w / 2 - .02); P.y = clamp(P.y, FLOOR + .012, waterY + .08);
   probe.position.set(P.x, P.y, P.z);
+  // hortum yalnızca sonda ~0,5 mm'den fazla kayınca yeniden kurulur (eskiden her kare yeni TubeGeometry)
+  if (Math.abs(P.x - hoseX) > 5e-4 || Math.abs(P.y - hoseY) > 5e-4) { hoseX = P.x; hoseY = P.y;
   const a = new THREE.Vector3(P.x, P.y + .3, P.z), b = new THREE.Vector3(-.3 + .06, TY + .04, .12 + .03);
-  hose.geometry.dispose(); hose.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a, a.clone().add(new THREE.Vector3(-.04, .08, .02)), new THREE.Vector3((a.x + b.x) / 2 - .05, TY + .34, .2), b.clone().add(new THREE.Vector3(0, .06, .02)), b]), 60, .0028, 8);
+  hose.geometry.dispose(); hose.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a, a.clone().add(new THREE.Vector3(-.04, .08, .02)), new THREE.Vector3((a.x + b.x) / 2 - .05, TY + .34, .2), b.clone().add(new THREE.Vector3(0, .06, .02)), b]), 60, .0028, 8); }
   const depth = Math.max(0, waterY - P.y); const pk = S.rho * g() * depth / 1000; drawMeter(pk, depth * 100);
   return { depth, pk };
 }
@@ -269,10 +272,12 @@ function layoutProbe() {
 const arW = new Arrow(scene, '#ff4a3d'), arF = new Arrow(scene, '#3d8bff'), arT = new Arrow(scene, '#ffc93a'), arN = new Arrow(scene, '#4ad16a');
 const pArrows = Array.from({ length: 7 }, () => new Arrow(scene, '#58a6ff', { glow: 1.3 }));
 const ringTex = canvasTex(128, 128, gx => { const gr = gx.createRadialGradient(64, 64, 40, 64, 64, 62); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.6, 'rgba(255,255,255,.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); gx.fillStyle = gr; gx.fillRect(0, 0, 128, 128); });
-const rings = [];
+const rings = [], ringPool = [], ringGeo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+// halkalar havuzdan: malzeme serbest bırakılınca program da siliniyor, sonraki sıçramada yeniden derlenip takılıyordu
+const newRing = () => { const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ map: ringTex, transparent: true, depthWrite: false, opacity: 0, color: '#ffffff' })); m.renderOrder = 6; m.visible = false; scene.add(m); return m; };
 function ripple(x, z, amp) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: ringTex, transparent: true, depthWrite: false, opacity: .5 * amp, color: '#ffffff' }));
-  m.position.set(x, waterY + .0015, z); m.renderOrder = 6; scene.add(m); rings.push({ m, t: 0, amp });
+  const m = ringPool.pop() || newRing(); m.material.opacity = .5 * amp; m.visible = true;
+  m.position.set(x, waterY + .0015, z); rings.push({ m, t: 0, amp });
 }
 function splash(it, speed) {
   const n = Math.min(40, Math.round(speed * 26));
@@ -415,7 +420,7 @@ W.update = dt => {
   waterNor.offset.x = time * .012; waterNor.offset.y = time * .008;
   causticMat.uniforms.time.value = time; causticMat.uniforms.k.value = .55 * (S.liq.id === 'oil' ? .6 : 1);
   for (let i = rings.length - 1; i >= 0; i--) { const r = rings[i]; r.t += dt; const s = .02 + r.t * .22; r.m.scale.set(s, 1, s); r.m.position.y = waterY + .0015; r.m.material.opacity = .45 * r.amp * (1 - r.t / 1.1);
-    if (r.t > 1.1) { scene.remove(r.m); r.m.geometry.dispose(); r.m.material.dispose(); rings.splice(i, 1); } }
+    if (r.t > 1.1) { r.m.visible = false; ringPool.push(r.m); rings.splice(i, 1); } }
   // dinamometre ve sonda
   const hungIt = items.find(i => i.hung);
   layoutDyn(hungIt ? hungIt.T : 0);
@@ -453,5 +458,10 @@ W.orbit.minR = .25; W.orbit.maxR = 3; W.orbit.minPh = .25;
 setLiquid(LIQS[1]); select('egg'); setCam();
 W.orbit.th = 1.4; W.orbit.r = 1.6; W.orbit.ph = 1.05; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
 setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
-W.loadEnv('lab').then(() => { W.start(); });
+// derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
+const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
+// oklar ve halka da açılışta derlensin: ilk bırakmada takılma olmasın
+async function warm() { const objs = [arW, arF, arT, arN, ...pArrows].map(a => a.g), vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); const r = newRing(); r.visible = true; r.material.opacity = .01;
+  await prewarmLin(); objs.forEach((o, i) => o.visible = vis[i]); r.visible = false; ringPool.push(r); }
+W.loadEnv('lab').then(warm).then(() => { W.start(); });
 window.__bfyLab = { W, S, items, OBJS, vsub, setMode, select, dropSelected, get waterY() { return waterY; }, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

@@ -1,5 +1,5 @@
 // BFY · 3B Enerji ve Sarkaç Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=3';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=5';
 
 const TY = .76, TOPY = TY + 1.16, PIV = new THREE.Vector3(0, TOPY - .03, 0);
 const BRASS_RHO = 8500;
@@ -98,7 +98,8 @@ const tubes = [['KE', '#ff7a3d'], ['PE', '#3d8bff'], ['Q', '#9a9a9a']].map(([k, 
   const liq = new THREE.Mesh(new THREE.CylinderGeometry(TUBE.r * .86, TUBE.r * .86, 1, 40).translate(0, .5, 0), new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: .9, roughness: .3, transparent: true, opacity: .92 })); liq.position.y = .012; g.add(liq);
   const cap = new THREE.Mesh(new THREE.TorusGeometry(TUBE.r, .003, 10, 40).rotateX(Math.PI / 2), chrome); cap.position.y = TUBE.h + .012; g.add(cap);
   const light = new THREE.PointLight(col, 0, .5, 2); light.position.y = .15; g.add(light);
-  return { g, liq, light, k };
+  // ışık hep sahnede kalır (tüp kapalıyken şiddeti 0): ışık sayısı değişirse tüm malzemeler yeniden derlenir
+  return { g, liq, light, k, parts: g.children.filter(c => c !== light) };
 });
 const plaque = new THREE.Mesh(new THREE.PlaneGeometry(.26, .05), new THREE.MeshStandardMaterial({ map: canvasTex(512, 100, (g2, w, h) => { g2.fillStyle = '#0e0c08'; g2.fillRect(0, 0, w, h); g2.fillStyle = '#fff'; g2.font = '800 44px "Plus Jakarta Sans", Arial'; g2.textAlign = 'center'; g2.fillText('E = KE + PE + Q', w / 2, 66); }), roughness: .5 }));
 plaque.position.set(TUBE.x + TUBE.gap, TY + .026, TUBE.z + .07); plaque.rotation.x = -.6; scene.add(plaque);
@@ -177,7 +178,7 @@ W.update = dt => {
   W.updateOrbit(dt, 5);
   // enerji tüpleri
   const e = energies(P1), E0 = Math.max(P1.E0, 1e-9);
-  tubes.forEach(t => { t.g.visible = S.tubes; const val = t.k === 'KE' ? e.KE : t.k === 'PE' ? e.PE : e.Q; const f = clamp(val / E0, 0, 1); t.liq.scale.y = Math.max(.0005, f * (TUBE.h - .01)); t.light.intensity = f * .35; t.val = val; });
+  tubes.forEach(t => { t.parts.forEach(c => c.visible = S.tubes); const val = t.k === 'KE' ? e.KE : t.k === 'PE' ? e.PE : e.Q; const f = clamp(val / E0, 0, 1); t.liq.scale.y = Math.max(.0005, f * (TUBE.h - .01)); t.light.intensity = S.tubes ? f * .35 : 0; t.val = val; });
   const tagOn = S.tubes; [['tag-ke', 0, 'KE'], ['tag-pe', 1, 'PE'], ['tag-q', 2, 'Q']].forEach(([id, i, n]) => { const el = $(id); if (!tagOn) { el.style.display = 'none'; return; } W.tag(el, new THREE.Vector3(TUBE.x + i * TUBE.gap, TY + TUBE.h + .055, TUBE.z), n); });
   // oklar
   const r = bobR(P1.m), vt = new THREE.Vector3(Math.cos(P1.th), Math.sin(P1.th), 0).multiplyScalar(P1.L * P1.w);
@@ -188,23 +189,30 @@ W.update = dt => {
     arTan.set(c1.clone().add(new THREE.Vector3(0, 0, r + .008)), new THREE.Vector3(Math.cos(P1.th), Math.sin(P1.th), 0).multiplyScalar(-Fg * Math.sin(P1.th) * sc), .003); }
   else { arG.hide(); arT.hide(); arTan.hide(); }
   if (time - lastUI > .08) { lastUI = time; ui(e); }
-  drawGraph();
+  // grafik ~15 Hz ve yalnızca veri/ayar değişince çizilir
+  if (time - lastG > 1 / 15) { lastG = time; const h = hist[hist.length - 1], key = [hist.length, h ? h.t : 0, S.gk, P1.E0, S.th0, S.L, S.g, gc.clientWidth, gc.clientHeight].join(); if (key !== lastGKey) { lastGKey = key; drawGraph(); } }
 };
+let lastG = -1, lastGKey = '', lastVals = '';
 function ui(e) {
   $('h-t').textContent = fmt(P1.t, 2) + ' s'; $('h-th').textContent = fmt(P1.th / DEG, 1) + '°'; $('h-v').textContent = fmt(Math.abs(e.v), 2) + ' m/s'; $('h-h').textContent = fmt(e.h * 100, 1) + ' cm'; $('h-ke').textContent = fmt(e.KE, 2) + ' J'; $('h-pe').textContent = fmt(e.PE, 2) + ' J'; $('h-q').textContent = fmt(e.Q, 2) + ' J';
   const T0 = 2 * Math.PI * Math.sqrt(S.L / S.g), th0 = Math.abs(S.th0), Tex = T0 * (1 + th0 * th0 / 16 + 11 * th0 ** 4 / 3072);
   $('h-T').textContent = P1.T > 0 ? fmt(P1.T, 3) + ' s' : '—';
   $('h-Tf').textContent = `2π√(L/g) = ${fmt(T0, 3)} s` + (P2.g.visible && P2.T > 0 ? ` · 2. sarkaç: ${fmt(P2.T, 3)} s` : '');
-  $('vals').innerHTML = `<tr><td>Kinetik enerji KE = ½mv²</td><td>${fmt(e.KE, 3)} J</td></tr><tr><td>Potansiyel enerji PE = mgh</td><td>${fmt(e.PE, 3)} J</td></tr>
+  const vals = `<tr><td>Kinetik enerji KE = ½mv²</td><td>${fmt(e.KE, 3)} J</td></tr><tr><td>Potansiyel enerji PE = mgh</td><td>${fmt(e.PE, 3)} J</td></tr>
     <tr><td>Mekanik enerji KE + PE</td><td>${fmt(e.KE + e.PE, 3)} J</td></tr><tr><td>Isıya dönüşen Q</td><td>${fmt(e.Q, 3)} J</td></tr>
     <tr><td>Başlangıç enerjisi E₀ = mgL(1 − cos θ₀)</td><td>${fmt(P1.E0, 3)} J</td></tr>
     <tr><td>Periyot (küçük açı) 2π√(L/g)</td><td>${fmt(T0, 3)} s</td></tr><tr><td>Periyot (θ₀ düzeltmeli)</td><td>${fmt(Tex, 3)} s</td></tr>
     <tr><td>En alttaki hız √(2gh₀)</td><td>${fmt(Math.sqrt(2 * S.g * S.L * (1 - Math.cos(S.th0))), 2)} m/s</td></tr>`;
+  if (vals !== lastVals) { lastVals = vals; $('vals').innerHTML = vals; }
 }
 
 /* ---------- başlat ---------- */
 W.orbit.minR = .35; W.orbit.maxR = 5; W.orbit.minPh = .3;
 resetAll(); setCam(); W.orbit.th = 1.2; W.orbit.r = 3.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target);
 setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
-W.loadEnv('lab').then(() => W.start());
+// derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
+const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
+// sonradan görünen oklar, 2. sarkaç ve izi de açılışta derlensin: ilk tıklamada takılma olmasın
+async function warm() { const objs = [arV.g, arG.g, arT.g, arTan.g, P2.g, trails[1]], vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); await prewarmLin(); objs.forEach((o, i) => o.visible = vis[i]); }
+W.loadEnv('lab').then(warm).then(() => W.start());
 window.__bfyLab = { W, S, P1, P2, go, resetAll, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

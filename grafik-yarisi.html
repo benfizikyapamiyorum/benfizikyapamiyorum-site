@@ -427,7 +427,10 @@
     ctx.restore();
   }
   window.BFY_GAME={ W, H, canvas:cv, get v(){return vP;}, get holding(){return holding;}, get state(){return state;}, get inZone(){return inZone;}, get round(){return round;} };
-  let last=0; function loop(t){ const dt=Math.min(0.033,(t-last)/1000||0); last=t; update(dt); render(dt); requestAnimationFrame(loop); } requestAnimationFrame(loop);
+  let last=0; function loop(t){ requestAnimationFrame(loop);   // önce sıradaki kare: bir hata döngüyü dondurmasın
+    const dt=Math.min(0.033,(t-last)/1000||0); last=t;
+    try{ update(dt); }catch(e){ console.error(e); }
+    try{ render(dt); }catch(e){ console.error(e); } } requestAnimationFrame(loop);
 
   // akış
   function startGame(){ round=1; lives=3; score=0; state='play'; document.getElementById('ovlStart').classList.add('hidden'); document.getElementById('ovlEnd').classList.add('hidden'); startTrack(); }
@@ -553,6 +556,6 @@
   document.getElementById('btnShare').onclick=shareImage;
 })();
 </script>
-<script type="module" src="oyun3d/grafik3d.js?v=1"></script>
+<script type="module" src="oyun3d/grafik3d.js?v=2"></script>
 </body>
 </html>

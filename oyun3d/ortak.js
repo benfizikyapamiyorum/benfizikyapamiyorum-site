@@ -1,5 +1,5 @@
 // BFY oyunları · ortak 3B yardımcıları
-import { THREE, createWorld } from '../sim3d/bfy3d-core.js?v=4';
+import { THREE, createWorld } from '../sim3d/bfy3d-core.js?v=5';
 
 // 2B oyun tuvalini 3B sahnenin üstünde şeffaf bir katman yapar.
 // Oyun mantığı kendi piksel koordinatlarında (G.W × G.H) kalır; çizim ve dokunma 3B'ye çevrilir.

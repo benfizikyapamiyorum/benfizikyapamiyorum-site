@@ -1,10 +1,12 @@
 // BFY · Grafik Yarışı — 3B görüntü katmanı (dağ yolunda yarış arabası; üstte canlı v-t grafiği)
-import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=4';
-import { overlayWorld, macroGround } from './ortak.js?v=1';
+import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
+import { overlayWorld, macroGround } from './ortak.js?v=2';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const { W, O } = overlayWorld(G, { fov: 40, near: .1, far: 6000, shadowBox: 20, shadowFar: 200, bloom: [.3, .4, 1.1] });
 const { scene, camera, sun } = W;
+// Önceden derleme son işleme hedefine göre yapılmalı (ekrana göre derlenen ton eşlemeli çeşit oyunda kullanılmaz)
+const prewarm = objs => { if (!W.prewarm) return Promise.resolve(); W.renderer.setRenderTarget(W.composer.renderTarget1); return W.prewarm(objs); };
 const VS = .33;                      // oyundaki hız birimi → m/s (görsel)
 
 /* ---------- yol ve çevre (dünya sabit, arabayla birlikte kayar) ---------- */
@@ -30,7 +32,7 @@ posts.castShadow = true; scene.add(posts, refl);
 const rail = new THREE.Mesh(new THREE.BoxGeometry(480, .28, .06), new THREE.MeshStandardMaterial({ color: '#b9bec6', metalness: .9, roughness: .3 })); rail.position.set(60, .7, -5.6); rail.castShadow = true; scene.add(rail);
 /* ---------- araba ---------- */
 const CS = 108, car = new THREE.Group(); scene.add(car); let wheels = [], brakeM = null, tail = null;
-Promise.all([W.gltf('models/ToyCar/car.glb'), fetch(new URL('../sim3d/models/ToyCar/wheels_meta.json', import.meta.url)).then(r => r.json())]).then(([sc, meta]) => {
+const carReady = Promise.all([W.gltf('models/ToyCar/car.glb'), fetch(new URL('../sim3d/models/ToyCar/wheels_meta.json', import.meta.url)).then(r => r.json())]).then(([sc, meta]) => {
   let body = null, glass = null; sc.traverse(o => { if (o.isMesh && o.material.name === 'ToyCar') body = o; if (o.isMesh && o.material.name === 'Glass') glass = o; });
   const root = new THREE.Group(); root.rotation.y = Math.PI / 2; root.scale.setScalar(CS); root.position.y = -9.6e-4 * CS; car.add(root);
   const raw = new THREE.Group(); raw.quaternion.set(.7071068, 0, 0, .7071067); raw.scale.setScalar(1e-4); root.add(raw);
@@ -56,7 +58,7 @@ function fitCamera(v) { camT += 1 / 60; const d = (isMobile ? 17 : 15) * Math.ma
 
 /* ---------- kare ---------- */
 let dist = 0, vs = 0, time = 0;
-const dO = new THREE.Object3D();
+const dO = new THREE.Object3D(), pA = new THREE.Vector3(), pB = new THREE.Vector3();   // W.puff konumu kopyalar: geçiciler yeniden kullanılır
 function frame(dt) {
   time += dt;
   const play = G.state === 'play' || G.state === 'count' || G.state === 'between';
@@ -71,11 +73,14 @@ function frame(dt) {
   car.position.y = Math.sin(time * 23) * .006 * clamp(vs / 20, 0, 1); car.rotation.z = lerp(car.rotation.z, (G.holding ? .012 : -.02) * clamp(vs / 10, 0, 1), 1 - Math.exp(-dt * 5));
   if (brakeM) brakeM.color.setRGB(...(!G.holding && play && vs > .5 ? [4, .25, .15] : [.25, .02, .02]));
   flame.visible = G.holding && play; flame.scale.setScalar(.35 + Math.random() * .3);
-  if (G.holding && play && Math.random() < dt * 20) W.puff(new THREE.Vector3(-2.4, .35, .45), new THREE.Vector3(-3 - vs * .1, .4, 0), { color: '#c8c6c0', size: .4, grow: 3, life: .9, drag: 2, op: .35 });
-  if (!G.holding && play && vs > 8 && Math.random() < dt * 14) for (const z of [-.8, .8]) W.puff(new THREE.Vector3(-1.4, .1, z), new THREE.Vector3(-vs * .2, .3, 0), { color: '#9a9690', size: .3, grow: 2.5, life: .7, drag: 2, op: .3 });
+  if (G.holding && play && Math.random() < dt * 20) W.puff(pA.set(-2.4, .35, .45), pB.set(-3 - vs * .1, .4, 0), { color: '#c8c6c0', size: .4, grow: 3, life: .9, drag: 2, op: .35 });
+  if (!G.holding && play && vs > 8 && Math.random() < dt * 14) for (const z of [-.8, .8]) W.puff(pA.set(-1.4, .1, z), pB.set(-vs * .2, .3, 0), { color: '#9a9690', size: .3, grow: 2.5, life: .7, drag: 2, op: .3 });
   fitCamera(vs);
   sun.target.position.set(0, 0, 0); sun.position.copy(W.sunDir).multiplyScalar(90);
   W.frame(dt);
 }
-W.loadEnv('alps').then(() => { fitCamera(0); O.show(); window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), size: () => O }; });
+// Önceden derleme: araba modeli (en çok 6 sn beklenir) ve egzoz parçacıkları ilk gazda takılmasın
+W.loadEnv('alps').then(async () => { fitCamera(0);
+  try { await Promise.race([carReady.catch(e => console.error(e)), new Promise(r => setTimeout(r, 6000))]); flame.visible = true; await prewarm([]); } catch (e) { console.error(e); }
+  O.show(); window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), size: () => O }; });
 window.__r3d = { W, scene, camera };

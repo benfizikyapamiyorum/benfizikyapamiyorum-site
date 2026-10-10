@@ -1,6 +1,6 @@
 // BFY · Devre Ustası — 3B görüntü katmanı (laboratuvar masasında gerçek devre)
-import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=4';
-import { overlayWorld } from './ortak.js?v=1';
+import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
+import { overlayWorld } from './ortak.js?v=2';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const K = .0022, TY = .76, BY = TY + .012;            // 1 px = 2,2 mm; tahta yüzeyi
@@ -8,6 +8,8 @@ const cx = (G.A.x + G.B.x) / 2, cz = (G.A.y + G.D.y) / 2;
 const toP = (x, y, h = 0) => new THREE.Vector3((x - cx) * K, BY + h, (y - cz) * K);
 const { W, O } = overlayWorld(G, { fov: 34, near: .02, far: 60, shadowBox: 1.2, shadowFar: 8, bloom: [.28, .4, 1.0] });
 const { scene, camera, sun } = W;
+// Önceden derleme son işleme hedefine göre yapılmalı (ekrana göre derlenen ton eşlemeli çeşit oyunda kullanılmaz)
+const prewarm = objs => { if (!W.prewarm) return Promise.resolve(); W.renderer.setRenderTarget(W.composer.renderTarget1); return W.prewarm(objs); };
 sun.castShadow = true;
 
 /* ---------- masa, zemin ---------- */
@@ -68,7 +70,9 @@ const filM = new THREE.MeshBasicMaterial({ color: new THREE.Color(.05, .03, .02)
 const glowSpr = new THREE.Sprite(new THREE.SpriteMaterial({ map: canvasTex(128, 128, g => { const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(255,240,200,1)'); gr.addColorStop(.25, 'rgba(255,200,120,.55)'); gr.addColorStop(1, 'rgba(255,160,60,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); }), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }));
 glowSpr.position.y = .105; bulbG.add(glowSpr);
 const bulbLight = new THREE.PointLight('#ffcf8a', 0, 2.2, 1.7); bulbLight.position.y = .105; bulbLight.castShadow = !isMobile; bulbLight.shadow.mapSize.set(512, 512); bulbLight.shadow.bias = -.002; bulbG.add(bulbLight);
-const shards = [];
+bulbLight.shadow.autoUpdate = false;   // küp gölge (6 çizim) yalnız ampul yanarken güncellenir
+// cam kırıkları: tek geometri, havuzlu meshler
+const shardG = new THREE.PlaneGeometry(.008, .006), shards = [], shardPool = [];
 
 /* ---------- ampermetre (alt) ---------- */
 const amTex = document.createElement('canvas'); amTex.width = 256; amTex.height = 256; const amT = new THREE.CanvasTexture(amTex); amT.colorSpace = THREE.SRGBColorSpace;
@@ -91,7 +95,8 @@ function fit() { const d = (isMobile ? 1.75 : 1.55) * Math.max(1, 1.42 / camera.
 let shake = 0;
 G.on = t => {
   const bp = bulbG.position.clone().add(new THREE.Vector3(0, .16, 0));
-  if (t === 'burn') { shake = .012; glass.visible = false; for (let i = 0; i < 30; i++) { const m = new THREE.Mesh(new THREE.PlaneGeometry(.008, .006), glassM); m.position.copy(bp); scene.add(m); shards.push({ m, v: new THREE.Vector3((Math.random() - .5) * 1.4, Math.random() * 1.4, (Math.random() - .5) * 1.4), w: new THREE.Vector3(Math.random() * 20, Math.random() * 20, 0), t: 0 }); }
+  if (t === 'burn') { shake = .012; glass.visible = false; for (let i = 0; i < 30; i++) { let s = shardPool.pop(); if (!s) { s = { m: new THREE.Mesh(shardG, glassM), v: new THREE.Vector3(), w: new THREE.Vector3(), t: 0 }; scene.add(s.m); }
+      s.m.visible = true; s.m.position.copy(bp); s.m.rotation.set(0, 0, 0); s.v.set((Math.random() - .5) * 1.4, Math.random() * 1.4, (Math.random() - .5) * 1.4); s.w.set(Math.random() * 20, Math.random() * 20, 0); s.t = 0; shards.push(s); }
     for (let i = 0; i < 16; i++) W.puff(bp.clone(), new THREE.Vector3((Math.random() - .5) * .3, .1 + Math.random() * .3, (Math.random() - .5) * .3), { color: '#6a6a6a', size: .04, grow: 3, life: 1.8, drag: 1.5, op: .6 });
     for (let i = 0; i < 24; i++) W.puff(bp.clone(), new THREE.Vector3((Math.random() - .5) * 2, Math.random() * 1.6, (Math.random() - .5) * 2), { tex: W.dropTex, color: '#ffb44a', size: .008, grow: 0, life: .6, grav: 5, drag: .5, op: 1, add: true, hdr: 3 }); }
   if (t === 'solve') { for (let i = 0; i < 40; i++) W.puff(bp.clone(), new THREE.Vector3((Math.random() - .5) * .9, .3 + Math.random() * .8, (Math.random() - .5) * .9), { tex: W.dropTex, color: ['#ffd23f', '#ffffff', '#34e1ff'][i % 3], size: .01, grow: 0, life: 1.1, grav: 2.5, drag: .8, op: 1, add: true, hdr: 2 }); }
@@ -107,14 +112,14 @@ function frame(dt) {
   const mx = Math.max(2, Math.ceil(G.burnMax * 1.2)); if (mx !== amMax) { amMax = mx; drawDial(mx); }
   // akım noktaları: I ile hızlanır, geleneksel akım yönü (+ uçtan saat yönünde)
   const n = Math.round(clamp(18 + I * 6, 18, NDOT)), col = over ? [3.2, .6, .5] : inB ? [3.2, 2.5, .6] : [.9, 2.4, 3.2]; dotMat.color.setRGB(...col);
-  for (let i = 0; i < NDOT; i++) { if (i < n && play && G.bulbBurst <= 0) { const p = G.ptAt(G.flow * .9 + i * G.PERIM / n); dO.position.copy(toP(p.x, p.y, .012)); dO.scale.setScalar(1); } else dO.scale.setScalar(0); dO.updateMatrix(); dots.setMatrixAt(i, dO.matrix); }
+  for (let i = 0; i < NDOT; i++) { if (i < n && play && G.bulbBurst <= 0) { const p = G.ptAt(G.flow * .9 + i * G.PERIM / n); dO.position.set((p.x - cx) * K, BY + .012, (p.y - cz) * K); dO.scale.setScalar(1); } else dO.scale.setScalar(0); dO.updateMatrix(); dots.setMatrixAt(i, dO.matrix); }
   dots.instanceMatrix.needsUpdate = true;
   // ampul parlaklığı ~ harcanan güç
   const target = play && G.bulbBurst <= 0 ? clamp(I * I / Math.max(.4, G.target * G.target), 0, 1.8) : 0; bright = lerp(bright, target, 1 - Math.exp(-dt * 10));
-  if (G.bulbBurst <= 0 && !glass.visible) { glass.visible = true; shards.forEach(s => scene.remove(s.m)); shards.length = 0; }
+  if (G.bulbBurst <= 0 && !glass.visible) { glass.visible = true; for (const s of shards) { s.m.visible = false; shardPool.push(s); } shards.length = 0; }
   const hot = over ? [3, .9, .5] : [3, 2, 1]; filM.color.setRGB(.05 + hot[0] * bright, .03 + hot[1] * bright, .02 + hot[2] * bright);
   glowSpr.material.opacity = clamp(bright * .75, 0, .9); glowSpr.scale.setScalar(.03 + bright * .05); glowSpr.material.color.setRGB(...(over ? [1, .5, .45] : [1, .9, .75]));
-  bulbLight.intensity = bright * .35; bulbLight.color.set(over ? '#ff8a70' : '#ffcf8a');
+  bulbLight.intensity = bright * .35; bulbLight.color.set(over ? '#ff8a70' : '#ffcf8a'); bulbLight.shadow.needsUpdate = bright > .02;
   // ibre (yaylı sönüm)
   const want = Math.PI * (-.65 + clamp(I / amMax, 0, 1.05) * 1.3); needleW += ((want - needleA) * 180 - needleW * 16) * dt; needleA += needleW * dt; needle.rotation.y = -needleA;
   psu.userData.knob.rotation.x = G.V * .25;
@@ -125,5 +130,6 @@ function frame(dt) {
 }
 const proj = (kind, x, y) => kind === 'bulb' ? O.project(bulbG.position.clone().add(new THREE.Vector3(0, .16, 0))) : O.project(toP(x, y, .02));
 drawLCD(6); drawDial(amMax); setBands(6);
-W.loadEnv('lab').then(() => { fit(); O.show(); window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), size: () => O, proj }; });
+// Önceden derleme: ampul gölgesi (küp), kırıklar ve parçacıklar ilk patlamada takılmasın
+W.loadEnv('lab').then(async () => { fit(); try { bulbLight.shadow.needsUpdate = true; await prewarm([new THREE.Mesh(shardG, glassM)]); } catch (e) { console.error(e); } O.show(); window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), size: () => O, proj }; });
 window.__r3d = { W, scene, camera };

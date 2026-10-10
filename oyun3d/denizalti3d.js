@@ -1,10 +1,12 @@
 // BFY · Denizaltı Kaptanı — 3B görüntü katmanı (su altı: ışık hüzmeleri, kostik desenler, yosun ormanı)
-import { THREE, canvasTex, Arrow, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=4';
-import { overlayWorld } from './ortak.js?v=1';
+import { THREE, canvasTex, Arrow, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
+import { overlayWorld } from './ortak.js?v=2';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const { W, O } = overlayWorld(G, { fov: 40, near: .1, far: 400, shadowBox: 26, shadowFar: 120, bloom: [.42, .5, .92] });
 const { scene, camera, sun, hemi, renderer } = W;
+// Önceden derleme son işleme hedefine göre yapılmalı (ekrana göre derlenen ton eşlemeli çeşit oyunda kullanılmaz)
+const prewarm = objs => { if (!W.prewarm) return Promise.resolve(); W.renderer.setRenderTarget(W.composer.renderTarget1); return W.prewarm(objs); };
 const S = 24;                                              // 24 oyun pikseli = 1 birim
 const X = x => (x - G.W / 2) / S, Y = y => (G.SURF - y) / S;
 const BEDY = Y(G.BED), R = rng(7);
@@ -158,6 +160,8 @@ const beamTex = canvasTex(8, 256, (g, w, h) => { const v = g.createLinearGradien
 const beam = new THREE.Mesh(new THREE.ConeGeometry(2.1, 11, 32, 1, true).translate(0, -5.5, 0).rotateZ(Math.PI / 2), new THREE.MeshBasicMaterial({ map: beamTex, color: new THREE.Color('#fff0cf'), transparent: true, opacity: .05, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
 beam.position.set(1.38, -.15, 0); beam.rotation.z = -.1; sub.add(beam);
 const subLight = new THREE.PointLight('#ffd9a0', 6, 6, 2); subLight.position.set(0, .2, 1.5); sub.add(subLight);
+// yanıp sönme yalnız gövdeye: ışıklar gizlenirse ışık sayısı değişir ve tüm malzemeler yeniden derlenir
+const subBody = sub.children.filter(o => !o.isLight && o !== spot.target);
 // kuvvet okları: uzunluk kuvvetle orantılı (aynı V için G ∝ ρ, Fk ∝ ρsu)
 const arG = new Arrow(scene, '#ff6f8d', { glow: 1.8 }), arF = new Arrow(scene, '#6fe4ff', { glow: 1.8 });
 const FK = 1.7 / 1000;
@@ -172,13 +176,13 @@ const lampOn = new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 3, .5), t
 const cylG = new THREE.CylinderGeometry(.33, .33, 1, 20, 1).translate(0, .5, 0), capG = new THREE.CylinderGeometry(.42, .42, .3, 24), bandG = new THREE.TorusGeometry(.43, .05, 8, 28).rotateX(Math.PI / 2);
 const buoyG = new THREE.CylinderGeometry(.7, .55, .7, 24), buoyM = new THREE.MeshStandardMaterial({ color: '#d8471f', roughness: .5, metalness: .1 });
 const baseG = new THREE.BoxGeometry(1.4, .6, 1.4), baseM = new THREE.MeshStandardMaterial({ color: '#6c706c', roughness: .9, map: W.tex('tex/concrete_col.jpg'), normalMap: W.tex('tex/concrete_nor.jpg', false) });
-const lampG = new THREE.SphereGeometry(.11, 12, 10);
+const lampG = new THREE.SphereGeometry(.11, 12, 10), ringG = new THREE.TorusGeometry(1, .045, 8, 64).rotateY(Math.PI / 2);
 function makeGate() { const g = new THREE.Group();
   const top = new THREE.Mesh(cylG, pillarMat), bot = new THREE.Mesh(cylG, pillarMat); top.castShadow = bot.castShadow = true;
   const cT = new THREE.Mesh(capG, hazard), cB = new THREE.Mesh(capG, hazard), bT = new THREE.Mesh(bandG, glowMat), bB = new THREE.Mesh(bandG, glowMat);
   const lT = new THREE.Mesh(lampG, lampOn), lB = new THREE.Mesh(lampG, lampOn), buoy = new THREE.Mesh(buoyG, buoyM), base = new THREE.Mesh(baseG, baseM); base.castShadow = true;
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(1, .045, 8, 64).rotateY(Math.PI / 2), ringMat()); ring.renderOrder = 5;
-  g.add(top, bot, cT, cB, bT, bB, lT, lB, buoy, base, ring); scene.add(g);
+  const ring = new THREE.Mesh(ringG, ringMat()); ring.renderOrder = 5;   // malzeme kapıya özel (renk/opaklık), havuzda yeniden kullanılır
+  g.add(top, bot, cT, cB, bT, bB, lT, lB, buoy, base, ring);
   return { g, top, bot, cT, cB, bT, bB, lT, lB, buoy, base, ring, flash: 0 }; }
 function layoutGate(o, gt) { const x = X(gt.x), yT = Y(gt.gy - gt.gapH / 2), yB = Y(gt.gy + gt.gapH / 2), r = (yT - yB) / 2;
   o.g.position.set(x, 0, 0);
@@ -190,28 +194,39 @@ const spikeG = new THREE.CylinderGeometry(.035, .06, .24, 8).translate(0, .62, 0
 const mineMat = new THREE.MeshStandardMaterial({ color: '#9aa7ad', map: rust.col, normalMap: rust.nor, roughnessMap: rust.arm, metalness: .45, roughness: 1, envMapIntensity: 1.1 });
 const mineLightOn = new THREE.MeshBasicMaterial({ color: new THREE.Color(5, .3, .3), toneMapped: false }), mineLightOff = new THREE.MeshBasicMaterial({ color: '#4a1a20' });
 const dirs = []; { const n = 14, ga = Math.PI * (3 - Math.sqrt(5)); for (let i = 0; i < n; i++) { const y = 1 - (i + .5) / n * 2, r = Math.sqrt(1 - y * y); dirs.push(new THREE.Vector3(Math.cos(i * ga) * r, y, Math.sin(i * ga) * r)); } }
-function makeMine() { const g = new THREE.Group(); const body = new THREE.Mesh(new THREE.SphereGeometry(.56, 28, 20), mineMat); body.castShadow = true; g.add(body);
-  const eq = new THREE.Mesh(new THREE.TorusGeometry(.565, .03, 8, 40).rotateX(Math.PI / 2), dark); g.add(eq);
-  for (const d of dirs) { const s = new THREE.Mesh(spikeG, mineMat), k = new THREE.Mesh(knobG, steel); s.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d); k.quaternion.copy(s.quaternion); g.add(s, k); }
-  const l = new THREE.Mesh(new THREE.SphereGeometry(.1, 12, 10), mineLightOn); l.position.set(0, 0, .56); g.add(l);
-  const h = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color: new THREE.Color(3, .25, .2), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); h.scale.setScalar(.9); h.position.z = .6; g.add(h);
-  scene.add(g); return { g, l, h }; }
+const mineG = new THREE.SphereGeometry(.56, 28, 20), eqG = new THREE.TorusGeometry(.565, .03, 8, 40).rotateX(Math.PI / 2), mLampG = new THREE.SphereGeometry(.1, 12, 10);
+let mineHaloM = null;
+function makeMine() { const g = new THREE.Group(); const body = new THREE.Mesh(mineG, mineMat); body.castShadow = true; g.add(body);
+  const eq = new THREE.Mesh(eqG, dark); g.add(eq);
+  for (const d of dirs) { const s = new THREE.Mesh(spikeG, mineMat), k = new THREE.Mesh(knobG, steel); s.quaternion.setFromUnitVectors(up, d); k.quaternion.copy(s.quaternion); g.add(s, k); }
+  const l = new THREE.Mesh(mLampG, mineLightOn); l.position.set(0, 0, .56); g.add(l);
+  mineHaloM = mineHaloM || new THREE.SpriteMaterial({ map: haloTex, color: new THREE.Color(3, .25, .2), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  const h = new THREE.Sprite(mineHaloM); h.scale.setScalar(.9); h.position.z = .6; g.add(h);
+  return { g, l, h }; }
 const LINKS = 520, linkM = new THREE.InstancedMesh(new THREE.TorusGeometry(.11, .028, 6, 14).scale(1, 1.6, 1), steel, LINKS); linkM.frustumCulled = false; linkM.count = 0; scene.add(linkM);
 const gemMat = new THREE.MeshStandardMaterial({ color: '#ffcf3d', metalness: .9, roughness: .12, emissive: new THREE.Color('#7a4f00'), emissiveIntensity: .9, flatShading: true, envMapIntensity: 1.6 });
 const haloTex = canvasTex(64, 64, g => { const gr = g.createRadialGradient(32, 32, 0, 32, 32, 31); gr.addColorStop(0, 'rgba(255,240,180,1)'); gr.addColorStop(.3, 'rgba(255,200,80,.45)'); gr.addColorStop(1, 'rgba(255,160,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 64, 64); });
-function makeGem() { const g = new THREE.Group(); const m = new THREE.Mesh(new THREE.OctahedronGeometry(.36, 0).scale(1, 1.35, 1), gemMat); g.add(m);
+const gemG = new THREE.OctahedronGeometry(.36, 0).scale(1, 1.35, 1);
+function makeGem() { const g = new THREE.Group(); const m = new THREE.Mesh(gemG, gemMat); g.add(m);
   const h = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, color: new THREE.Color(2.2, 1.6, .7), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); h.scale.setScalar(1.6); g.add(h);
-  scene.add(g); return { g, m, h }; }
-const pools = { gate: new Map(), mine: new Map(), tre: new Map() };
-function sync(list, map, make, place) { const seen = new Set();
-  for (const it of list) { if (it.x < -200) continue; let o = map.get(it); if (!o) { o = make(); map.set(it, o); } o.g.visible = true; place(o, it); seen.add(it); }
-  for (const [k, o] of map) if (!seen.has(k)) { scene.remove(o.g); map.delete(k); } }
+  return { g, m, h }; }
+// Havuz: nesneler silinmez, gizlenip sonraki kapı/mayın/hazine için yeniden kullanılır (geometri/malzeme sızıntısı ve derleme yok)
+const pools = { gate: new Map(), mine: new Map(), tre: new Map() }, free = { gate: [], mine: [], tre: [] }, makers = { gate: makeGate, mine: makeMine, tre: makeGem };
+function take(k) { let o = free[k].pop(); if (!o) { o = makers[k](); scene.add(o.g); } o.flash = 0; return o; }
+function drop(k, o) { o.g.visible = false; free[k].push(o); }
+let stamp = 0;
+function sync(list, k, place) { const map = pools[k]; stamp++;
+  for (const it of list) { if (it.x < -200) continue; let o = map.get(it); if (!o) { o = take(k); map.set(it, o); } o.g.visible = true; place(o, it); o.seen = stamp; }
+  for (const [it, o] of map) if (o.seen !== stamp) { drop(k, o); map.delete(it); } }
 
 /* ---------- baloncuklar ve parçacıklar ---------- */
 const BUB = 700, bubG = new THREE.BufferGeometry(), bubP = new Float32Array(BUB * 3); bubG.setAttribute('position', new THREE.BufferAttribute(bubP, 3));
 const bubbles = new THREE.Points(bubG, new THREE.PointsMaterial({ map: W.dropTex, size: .22, color: new THREE.Color(1.4, 1.7, 1.9), transparent: true, opacity: .8, depthWrite: false, sizeAttenuation: true, fog: false })); bubbles.frustumCulled = false; scene.add(bubbles);
 const bub3 = [];
-const addBub = (p, v, life = 2.5) => { if (bub3.length < 480) bub3.push({ p: p.clone(), v: v.clone(), t: 0, life, w: Math.random() * 6 }); };
+const bubFree = [];
+const addBub = (p, v, life = 2.5) => { if (bub3.length >= 480) return; const b = bubFree.pop() || { p: new THREE.Vector3(), v: new THREE.Vector3() };
+  b.p.copy(p); b.v.copy(v); b.t = 0; b.life = life; b.w = Math.random() * 6; bub3.push(b); };
+const tA = new THREE.Vector3(), tB = new THREE.Vector3(), tC = new THREE.Vector3();
 const PN = 260, parG = new THREE.BufferGeometry(), parP = new Float32Array(PN * 3), parC = new Float32Array(PN * 3);
 parG.setAttribute('position', new THREE.BufferAttribute(parP, 3)); parG.setAttribute('color', new THREE.BufferAttribute(parC, 3));
 const parts = new THREE.Points(parG, new THREE.PointsMaterial({ map: haloTex, size: .5, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, sizeAttenuation: true })); parts.frustumCulled = false; scene.add(parts);
@@ -224,17 +239,17 @@ const shockMat = new THREE.ShaderMaterial({ uniforms: { opacity: { value: 0 } },
 const shock = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), shockMat); scene.add(shock); shock.material.opacity = 0;
 let boomT = 9, camShake = 0;
 function boom(x, y) { boomT = 0; boomL.position.set(X(x), Y(y), 2); shock.position.set(X(x), Y(y), 0); camShake = 1;
-  for (let i = 0; i < 60; i++) addBub(new THREE.Vector3(X(x) + (Math.random() - .5), Y(y) + (Math.random() - .5), (Math.random() - .5)), new THREE.Vector3((Math.random() - .5) * 6, Math.random() * 5, (Math.random() - .5) * 6), 2 + Math.random() * 2);
+  for (let i = 0; i < 60; i++) addBub(tA.set(X(x) + (Math.random() - .5), Y(y) + (Math.random() - .5), (Math.random() - .5)), tB.set((Math.random() - .5) * 6, Math.random() * 5, (Math.random() - .5) * 6), 2 + Math.random() * 2);
   for (let i = 0; i < 6; i++) W.puff(new THREE.Vector3(X(x), Y(y), 0), new THREE.Vector3((Math.random() - .5) * 3, 1 + Math.random() * 2, (Math.random() - .5) * 3), { color: '#9fb4bd', size: 1.2, grow: 3, life: 2.2, drag: 1.5, op: .45, grav: -.6 }); }
 /* olaylar */
 let zoneFlash = 0;
 G.on = (type, a) => {
   if (type === 'mine') boom(a.x, a.y);
-  else if (type === 'hit') { camShake = Math.max(camShake, .7); for (let i = 0; i < 25; i++) addBub(sub.position.clone().add(new THREE.Vector3(0, .3, 0)), new THREE.Vector3((Math.random() - .5) * 4, 1 + Math.random() * 3, (Math.random() - .5) * 3)); }
+  else if (type === 'hit') { camShake = Math.max(camShake, .7); for (let i = 0; i < 25; i++) addBub(tA.copy(sub.position).setY(sub.position.y + .3), tB.set((Math.random() - .5) * 4, 1 + Math.random() * 3, (Math.random() - .5) * 3)); }
   else if (type === 'gate') { const o = pools.gate.get(a.g); if (o) { o.flash = 1; o.ring.material.color.setRGB(...(a.ok ? (a.merkez ? [3, 2.3, .4] : [.4, 3, 1]) : [3, .3, .3])); } }
-  else if (type === 'tre') { for (let i = 0; i < 16; i++) addBub(new THREE.Vector3(X(a.x), Y(a.y), 0), new THREE.Vector3((Math.random() - .5) * 3, Math.random() * 3, (Math.random() - .5) * 3), 1.2); }
+  else if (type === 'tre') { for (let i = 0; i < 16; i++) addBub(tA.set(X(a.x), Y(a.y), 0), tB.set((Math.random() - .5) * 3, Math.random() * 3, (Math.random() - .5) * 3), 1.2); }
   else if (type === 'zone') zoneFlash = 1;
-  else if (type === 'reset') { for (const k in pools) { for (const [, o] of pools[k]) scene.remove(o.g); pools[k].clear(); } }
+  else if (type === 'reset') { for (const k in pools) { for (const [, o] of pools[k]) drop(k, o); pools[k].clear(); } }
 };
 
 /* ---------- halokline perdesi: iki farklı yoğunluktaki suyun sınırı ---------- */
@@ -277,31 +292,31 @@ function frame(dt) {
   sub.position.set(sx, sy + Math.sin(time * 1.6) * .03, 0);
   subRot = lerp(subRot, -clamp(G.vy * .0012, -.22, .22), 1 - Math.exp(-dt * 6)); roll = Math.sin(time * .9) * .03;
   sub.rotation.set(roll, Math.sin(time * .4) * .06 - .12, subRot);
-  sub.visible = !(G.invuln > 0 && play && Math.sin(time * 20) > 0);
+  const subOn = !(G.invuln > 0 && play && Math.sin(time * 20) > 0); for (const o of subBody) o.visible = subOn;
   propA += (play ? 14 + G.speed * .05 : 5) * dt; prop.rotation.x = propA;
   tankFill.scale.x = Math.max(.001, G.ballast); antL.visible = Math.sin(time * 4) > 0;
   winMat.emissiveIntensity = 1.1 + Math.sin(time * 7) * .05;
   // pervane izi ve balast baloncukları (tanka su girerken hava tahliye edilir)
-  const tail = new THREE.Vector3(-1.75, 0, 0).applyEuler(sub.rotation).add(sub.position);
-  if (Math.random() < dt * (play ? 26 : 8)) addBub(tail.clone().add(new THREE.Vector3(0, (Math.random() - .5) * .5, (Math.random() - .5) * .5)), new THREE.Vector3(-1.5 - Math.random() * 2, .4 + Math.random() * .6, (Math.random() - .5)), 1.6);
-  if (G.holding && play && Math.random() < dt * 30) addBub(sub.position.clone().add(new THREE.Vector3(-.3 + Math.random() * .7, .6, (Math.random() - .5) * .4)), new THREE.Vector3(-v * .3, 1.6 + Math.random() * 1.2, (Math.random() - .5) * .6), 2.4);
+  if (Math.random() < dt * (play ? 26 : 8)) { tC.set(-1.75, 0, 0).applyEuler(sub.rotation).add(sub.position);
+    addBub(tA.set(tC.x, tC.y + (Math.random() - .5) * .5, tC.z + (Math.random() - .5) * .5), tB.set(-1.5 - Math.random() * 2, .4 + Math.random() * .6, (Math.random() - .5)), 1.6); }
+  if (G.holding && play && Math.random() < dt * 30) addBub(tA.copy(sub.position).add(tB.set(-.3 + Math.random() * .7, .6, (Math.random() - .5) * .4)), tB.set(-v * .3, 1.6 + Math.random() * 1.2, (Math.random() - .5) * .6), 2.4);
   // kuvvet okları
-  const r = G.rho(), c = new THREE.Vector3(sx, sy, .9);
-  if (play || G.state === 'start') { arG.set(c.clone().add(new THREE.Vector3(0, -.15, 0)), dn.clone().multiplyScalar(r * FK), .055); arF.set(c.clone().add(new THREE.Vector3(0, .15, 0)), up.clone().multiplyScalar(rs * FK), .055); }
+  const r = G.rho();
+  if (play || G.state === 'start') { arG.set(tA.set(sx, sy - .15, .9), tB.copy(dn).multiplyScalar(r * FK), .055); arF.set(tA.set(sx, sy + .15, .9), tB.copy(up).multiplyScalar(rs * FK), .055); }
   else { arG.hide(); arF.hide(); }
   // oyun nesneleri
-  sync(G.gates, pools.gate, makeGate, (o, gt) => { layoutGate(o, gt); const bl = Math.sin(time * 5) > 0; o.lT.material = o.lB.material = bl ? lampOn : lampOff;
+  sync(G.gates, 'gate', (o, gt) => { layoutGate(o, gt); const bl = Math.sin(time * 5) > 0; o.lT.material = o.lB.material = bl ? lampOn : lampOff;
     o.flash = Math.max(0, o.flash - dt * 1.2); o.ring.material.opacity = gt.passed ? .25 + o.flash * .7 : .55 + .2 * Math.sin(time * 3); if (!gt.passed) o.ring.material.color.setRGB(.3, 2.2, 2);
     o.ring.rotation.x = time * .3; });
   let li = 0;
-  sync(G.mines, pools.mine, makeMine, (o, m) => { const y = Y(m.y + Math.sin(m.bob) * 5); o.g.position.set(X(m.x), y, 0); o.g.rotation.set(Math.sin(m.bob) * .15, m.bob * .2, 0); const on = Math.sin(time * 6) > 0; o.l.material = on ? mineLightOn : mineLightOff; o.h.visible = on;
+  sync(G.mines, 'mine', (o, m) => { const y = Y(m.y + Math.sin(m.bob) * 5); o.g.position.set(X(m.x), y, 0); o.g.rotation.set(Math.sin(m.bob) * .15, m.bob * .2, 0); const on = Math.sin(time * 6) > 0; o.l.material = on ? mineLightOn : mineLightOff; o.h.visible = on;
     if (m.chained) for (let yy = y - .72; yy > BEDY && li < LINKS; yy -= .3) { dO.position.set(X(m.x), yy, 0); dO.rotation.set(0, li % 2 ? Math.PI / 2 : 0, 0); dO.scale.set(1, 1, 1); dO.updateMatrix(); linkM.setMatrixAt(li++, dO.matrix); } });
   linkM.count = li; linkM.instanceMatrix.needsUpdate = true;
-  sync(G.treas, pools.tre, makeGem, (o, t) => { o.g.position.set(X(t.x), Y(t.y), 0); o.m.rotation.y = time * 2 + t.tw * .2; o.h.material.opacity = .6 + .4 * Math.sin(t.tw * 2); });
+  sync(G.treas, 'tre', (o, t) => { o.g.position.set(X(t.x), Y(t.y), 0); o.m.rotation.y = time * 2 + t.tw * .2; o.h.material.opacity = .6 + .4 * Math.sin(t.tw * 2); });
   // baloncuklar: oyunun 2B baloncukları + 3B iz baloncukları
   let bi = 0;
   for (const b of G.bubbles) { if (bi >= BUB) break; bubP[bi * 3] = X(b.x); bubP[bi * 3 + 1] = Y(b.y); bubP[bi * 3 + 2] = .3; bi++; }
-  for (let i = bub3.length - 1; i >= 0; i--) { const b = bub3[i]; b.t += dt; if (b.t > b.life || b.p.y > -.05) { bub3.splice(i, 1); continue; }
+  for (let i = bub3.length - 1; i >= 0; i--) { const b = bub3[i]; b.t += dt; if (b.t > b.life || b.p.y > -.05) { bubFree.push(b); bub3[i] = bub3[bub3.length - 1]; bub3.pop(); continue; }
     b.v.multiplyScalar(Math.exp(-dt * 1.4)); b.v.y += 2.2 * dt; b.p.addScaledVector(b.v, dt); b.p.x += Math.sin(b.t * 6 + b.w) * .01 - (play ? v * .25 : 0) * dt;
     if (bi < BUB) { bubP[bi * 3] = b.p.x; bubP[bi * 3 + 1] = b.p.y; bubP[bi * 3 + 2] = b.p.z; bi++; } }
   bubG.setDrawRange(0, bi); bubG.attributes.position.needsUpdate = true;
@@ -320,5 +335,18 @@ function frame(dt) {
   W.frame(dt);
 }
 fitCamera(0); O.show();
-window.BFY_R3D = { frame, ready: true, overlay: () => O.sync(), size: () => O, proj: (x, y) => O.project(new THREE.Vector3(X(x), Y(y), 0)) };
+// Önceden derleme + doku yükleme: ilk kapı/mayın/hazine/patlamada takılma olmasın. Örnekler sonra havuza girer.
+const texReady = ts => new Promise(res => { const t0 = performance.now(), chk = () => ts.every(t => t.image) || performance.now() - t0 > 5000 ? res() : setTimeout(chk, 60); chk(); });
+const pv = new THREE.Vector3();
+const R3D = { frame, ready: false, overlay: () => O.sync(), size: () => O, proj: (x, y) => O.project(pv.set(X(x), Y(y), 0)) };
+(async () => {
+  try { await texReady([rust.col, rust.nor, rust.arm, baseM.map, baseM.normalMap]);
+    const s = { gate: take('gate'), mine: take('mine'), tre: take('tre') }; for (const k in s) scene.remove(s[k].g);
+    curtain.visible = shock.visible = true;
+    await prewarm([s.gate.g, s.mine.g, s.tre.g, new THREE.Mesh(lampG, lampOff), new THREE.Mesh(mLampG, mineLightOff)]);   // yanıp sönen lambaların ikinci malzemesi de
+    for (const k in s) { s[k].g.position.set(0, 0, 0); scene.add(s[k].g); drop(k, s[k]); } curtain.visible = shock.visible = false;
+  } catch (e) { console.error(e); }
+  R3D.ready = true;
+})();
+window.BFY_R3D = R3D;
 window.__r3d = { W, scene, camera, sub };
