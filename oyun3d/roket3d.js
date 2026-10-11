@@ -1,5 +1,5 @@
 // BFY · Roket İnişi — 3B görüntü katmanı (oyun mantığı sayfadaki betikte, burada yalnızca çizim)
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, ENVS, clamp, lerp, rng, Noise, isMobile } from '../sim3d/bfy3d-core.js?v=6';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, ENVS, clamp, lerp, rng, Noise, isMobile } from '../sim3d/bfy3d-core.js?v=7';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const PX = G.SCALE;                         // 1 m = 7 px
@@ -10,7 +10,7 @@ const CEN = 30 / PX;                        // roket merkezi, ayak tabanından 4
 /* ---------- dünya ---------- */
 const stage = document.getElementById('stage');
 const canvas = document.createElement('canvas'); canvas.id = 'g3d'; stage.insertBefore(canvas, stage.firstChild);
-const W = createWorld({ stage, canvas, fov: 36, near: .2, far: 9000, shadowBox: 70, shadowFar: 400, bloom: [.35, .45, 1.2] });
+const W = createWorld({ stage, canvas, fov: 36, near: .2, far: 9000, shadowBox: 70, shadowFar: 400, bloom: [.35, .45, 1.2], crispSky: false }); // arka planı gezegen önbelleği yönetiyor
 const { scene, camera, renderer, sun, hemi } = W;
 W.orbit.enabled = false;
 Object.assign(ENVS, {

@@ -9,6 +9,7 @@ import { UnrealBloomPass } from './sim3d/lib/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from './sim3d/lib/postprocessing/OutputPass.js';
 import { ShaderPass } from './sim3d/lib/postprocessing/ShaderPass.js';
 import { SanitizeShader } from './sim3d/lib/shaders/SanitizeShader.js';
+import { createSky } from './sim3d/bfy-sky.js?v=1';
 
 /* =====================================================================
    0) Yardımcılar
@@ -148,6 +149,7 @@ const scene = new THREE.Scene();
 const sceneFog = new THREE.FogExp2('#c79570', 0); scene.fog = sceneFog;
 const camera = new THREE.PerspectiveCamera(36, 16 / 9, .2, 30000);
 camera.position.set(20, 8, 50);
+const sky = createSky(scene, camera); // keskin (bikübik) 360° arka plan
 
 // Yarım hassasiyetli renk tamponuna çizemeyen cihazlarda (bazı eski tablet/tahta) siyah ekran olmasın
 const canHalf = renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float');
@@ -709,12 +711,12 @@ async function applyPlanet(pl) {
   bermKey = ''; buildBerm();
   if (pl === 'moon') { terrain.material = gm; terrain.visible = true; disk.visible = false; }
   else { disk.material = gm; disk.visible = true; terrain.visible = false; }
-  scene.background = pl === 'moon' ? new THREE.Color('#000000') : L.bg;
   scene.environment = L.env || null;
   scene.environmentIntensity = P.envI; scene.backgroundIntensity = P.bgI;
   let sd;
   if (P.sunUV) { curEnvRot = P.rot; const d = uvToDir(P.sunUV[0], P.sunUV[1]); sd = d.applyAxisAngle(new THREE.Vector3(0, 1, 0), -curEnvRot); scene.backgroundRotation.set(0, curEnvRot, 0); scene.environmentRotation.set(0, curEnvRot, 0); }
   else { sd = new THREE.Vector3(...P.sunDir).normalize(); scene.backgroundRotation.set(0, 0, 0); }
+  if (pl === 'moon') { sky.set(null); scene.background = new THREE.Color('#000000'); } else { sky.set(L.bg); loadHiBg(pl); }
   SUN_DIR.copy(sd);
   sun.color.set(P.sunC); sun.intensity = P.sunI; hemi.intensity = P.hemi; hemi.color.set(pl === 'mars' ? '#e8c0a0' : '#c8d6ea'); hemi.groundColor.set(pl === 'mars' ? '#7a4a30' : '#6a7a4a');
   renderer.toneMappingExposure = P.exposure;
@@ -728,6 +730,18 @@ async function applyPlanet(pl) {
   scatterRocks(pl);
   craters.clear();
   warmUp();
+}
+// Masaüstünde 8K arka plan: önce 4K açılır, 8K beklerken arka planda yüklenip yerine geçer (telefon 4K'da kalır)
+const hiBgOK = !isMobile && renderer.capabilities.maxTextureSize >= 8192 && (navigator.deviceMemory || 8) >= 4 && new URLSearchParams(location.search).get('bg') !== '4k';
+const hiBg = {};
+function loadHiBg(pl) {
+  const P = PSET[pl]; if (!hiBgOK || Q.level < 2 || !P.bg || hiBg[pl]) return; hiBg[pl] = 1;
+  new THREE.TextureLoader().load(A + P.bg.replace('_bg.jpg', '_bg_8k.jpg'), t => {
+    t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+    const swap = () => { if (S.phase === 'flying' || intro.on) return setTimeout(swap, 500); // atış sırasında yükleme takılması olmasın
+      const L = loaded[pl]; L.then(o => { const old = o.bg; o.bg = t; if (S.planet === pl) sky.set(t, { mips: false }); if (old && old !== t) old.dispose(); }); };
+    swap();
+  }, undefined, () => { });
 }
 // Isınma: atış ve iniş efektlerinin bütün gölgelendiricilerini (gölge geçişi dahil) gezegen yüklenirken derle,
 // böylece atış ya da iniş anında derleme takılması olmaz. Isınma izlerinin malzemesi hiç bırakılmaz (program bellekte kalır).
@@ -900,13 +914,16 @@ function ghostUpdate(t) {
    10) HUD, etiketler, sonuç kartı
    ===================================================================== */
 const V3 = new THREE.Vector3();
-function toScreen(p) { V3.copy(p).project(camera); const r = canvas.getBoundingClientRect(); return { x: (V3.x * .5 + .5) * r.width, y: (-V3.y * .5 + .5) * r.height, ok: V3.z < 1 && V3.z > -1 }; }
+// boyut resize()'da saklanır: her etikette sayfa düzenini yeniden ölçmesin
+function toScreen(p) { V3.copy(p).project(camera); return { x: (V3.x * .5 + .5) * stageW, y: (-V3.y * .5 + .5) * stageH, ok: V3.z < 1 && V3.z > -1 }; }
 function tag(id, p, html) { const el = $(id), s = toScreen(p); if (!s.ok) { el.style.display = 'none'; return; } el.style.display = 'block'; el.style.left = s.x + 'px'; el.style.top = (s.y - 6) + 'px'; if (html != null && el._h !== html) { el.innerHTML = html; el._h = html; } }
 function hideTags() { ['tag-apex', 'tag-land'].forEach(i => $(i).style.display = 'none'); }
+const hudEl = {}, hudTxt = {};
+const hudSet = (id, v) => { if (hudTxt[id] === v) return; hudTxt[id] = v; (hudEl[id] || (hudEl[id] = $(id))).textContent = v; }; // değişmeyen metne dokunma
 function setHUD(q) {
   const [t, x, y, vx, vy] = q;
-  $('h-t').textContent = fmt(t, 2) + ' s'; $('h-x').textContent = fmt(x, 1) + ' m'; $('h-y').textContent = fmt(y, 1) + ' m';
-  $('h-vx').textContent = fmt(vx, 1) + ' m/s'; $('h-vy').textContent = fmt(vy, 1) + ' m/s'; $('h-v').textContent = fmt(Math.hypot(vx, vy), 1) + ' m/s';
+  hudSet('h-t', fmt(t, 2) + ' s'); hudSet('h-x', fmt(x, 1) + ' m'); hudSet('h-y', fmt(y, 1) + ' m');
+  hudSet('h-vx', fmt(vx, 1) + ' m/s'); hudSet('h-vy', fmt(vy, 1) + ' m/s'); hudSet('h-v', fmt(Math.hypot(vx, vy), 1) + ' m/s');
 }
 function showResult() {
   const sim = cur, p = sim.params, gtxt = p.g === 10 ? '10' : fmt(p.g, 2).replace(/0$/, '');
@@ -940,11 +957,21 @@ let toastT = 0; function toast(msg) { const el = $('toast'); el.textContent = ms
    ===================================================================== */
 const gc = $('graph'), gx = gc.getContext('2d');
 let graphKey = 'y', graphHist = [];
-function drawGraph() {
-  const r = gc.getBoundingClientRect(), W = r.width, H = r.height; if (!W) return;
+// Grafik yalnız değişince çizilir: eskiden beklerken her karede yörünge baştan hesaplanıp
+// sayfa düzeni ölçülüyordu (takılmanın kaynaklarından biri). Uçuş sırasında ~30 Hz yeterli.
+let gcW = 0, gcH = 0, graphKeyLast = '', idleSim = null, idleKey = '', graphT = 0;
+new ResizeObserver(es => { const r = es[0].contentRect; gcW = r.width; gcH = r.height; graphKeyLast = ''; }).observe(gc);
+function drawGraph(dt = 0) {
+  const pk = JSON.stringify(params());
+  const key = [S.phase, graphKey, pk, cur ? cur.T : 0, graphHist.length, graphHist[1] && graphHist[1].sim ? graphHist[1].sim.T : 0, gcW, gcH].join('|');
+  if (S.phase === 'flying') { graphT += dt; if (graphT < 1 / 30 && key === graphKeyLast) return; graphT = 0; }
+  else if (key === graphKeyLast) return;
+  graphKeyLast = key;
+  const W = gcW, H = gcH; if (!W) return;
   if (gc.width !== Math.round(W * DPR)) { gc.width = Math.round(W * DPR); gc.height = Math.round(H * DPR); }
   gx.setTransform(DPR, 0, 0, DPR, 0, 0); gx.clearRect(0, 0, W, H);
-  const sim = cur && (S.phase !== 'idle') ? cur : simulate(params());
+  if (S.phase === 'idle' && idleKey !== pk) { idleKey = pk; idleSim = simulate(params()); }
+  const sim = cur && (S.phase !== 'idle') ? cur : idleSim;
   const idx = { x: 1, y: 2, vx: 3, vy: 4 }[graphKey], names = { x: ['x', 'm'], y: ['y', 'm'], vx: ['vₓ', 'm/s'], vy: ['vᵧ', 'm/s'] }[graphKey];
   const col = { x: '#2d7dd2', y: '#e26d4f', vx: '#2d7dd2', vy: '#e0483b' }[graphKey];
   const P = sim.pts, n = P.length / 5, T = Math.max(sim.T, .5);
@@ -1130,8 +1157,9 @@ function applyQuality() {
   if (!Q.shadowSet) { renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; Q.shadowSet = true; }
   resize();
 }
+let stageW = 1, stageH = 1;
 function resize() {
-  const r = stage.getBoundingClientRect(); const w = Math.max(1, r.width), h = Math.max(1, r.height);
+  const r = stage.getBoundingClientRect(); const w = Math.max(1, r.width), h = Math.max(1, r.height); stageW = w; stageH = h;
   renderer.setSize(w, h, false); composer.setPixelRatio(Q.dpr); composer.setSize(w, h); bloom.setSize(w * Q.dpr / 2, h * Q.dpr / 2);
   camera.aspect = w / h; camera.updateProjectionMatrix();
 }
@@ -1244,7 +1272,7 @@ function step(rawDt) {
   }
   if (mission) tag('tag-target', new THREE.Vector3(mission.x, 3.8, -3.4), `🎯 ${fmt(mission.x, 1)} m`); else $('tag-target').style.display = 'none';
   setHUD(q);
-  drawGraph();
+  drawGraph(dt);
   composer.render(dt);
   qualityTick(Math.min(rawDt, .5));
   if (firstFrame) { firstFrame = false; $('loading').classList.add('off'); }

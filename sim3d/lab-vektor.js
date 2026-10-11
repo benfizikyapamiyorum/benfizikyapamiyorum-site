@@ -1,5 +1,5 @@
 // BFY · 3B Vektör Laboratuvarı — akıntılı nehirde motorlu kayık, bileşke hız
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=6';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=7';
 
 const Z0 = 10, Z1 = -10, D = Z0 - Z1;       // kalkış ve varış çizgileri (m)
 const BANK = 13;                            // kıyı çizgisi |z|

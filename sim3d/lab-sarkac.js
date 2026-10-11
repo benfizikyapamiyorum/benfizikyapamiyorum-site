@@ -1,5 +1,5 @@
 // BFY · 3B Enerji ve Sarkaç Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=6';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
 
 const TY = .76, TOPY = TY + 1.16, PIV = new THREE.Vector3(0, TOPY - .03, 0);
 const BRASS_RHO = 8500;

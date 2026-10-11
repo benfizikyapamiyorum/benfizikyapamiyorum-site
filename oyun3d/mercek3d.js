@@ -1,6 +1,6 @@
 // BFY · Mercek Keskin Nişancı — 3B görüntü katmanı (optik masa: lazer, aynalar, cam mercekler, prizmalar)
-import { THREE, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=6';
-import { overlayWorld } from './ortak.js?v=3';
+import { THREE, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=7';
+import { overlayWorld } from './ortak.js?v=4';
 
 const G = window.BFY_GAME, OP = window.BFY_OPTIK; if (!G || !OP) throw new Error('oyun yok');
 const K = .001, TY = .76, PY = TY + .012, BHW = G.BH * K;          // 1 px = 1 mm · ışın yüksekliği 75 mm
