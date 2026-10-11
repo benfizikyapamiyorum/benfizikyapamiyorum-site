@@ -1,6 +1,6 @@
 // BFY · Denizaltı Kaptanı — 3B görüntü katmanı (su altı: ışık hüzmeleri, kostik desenler, yosun ormanı)
-import { THREE, canvasTex, Arrow, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
-import { overlayWorld } from './ortak.js?v=2';
+import { THREE, canvasTex, Arrow, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=6';
+import { overlayWorld } from './ortak.js?v=3';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const { W, O } = overlayWorld(G, { fov: 40, near: .1, far: 400, shadowBox: 26, shadowFar: 120, bloom: [.42, .5, .92] });

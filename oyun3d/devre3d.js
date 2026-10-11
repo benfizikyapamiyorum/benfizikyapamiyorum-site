@@ -1,6 +1,6 @@
 // BFY · Devre Ustası — 3B görüntü katmanı (laboratuvar masasında gerçek devre)
-import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
-import { overlayWorld } from './ortak.js?v=2';
+import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=6';
+import { overlayWorld } from './ortak.js?v=3';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const K = .0022, TY = .76, BY = TY + .012;            // 1 px = 2,2 mm; tahta yüzeyi

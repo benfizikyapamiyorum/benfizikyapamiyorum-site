@@ -40,6 +40,23 @@
 
   .a3-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;margin-top:20px;align-items:start;}
   @media(max-width:1020px){.a3-grid{grid-template-columns:1fr;}}
+  /* Tam ekran: sahne + ayar paneli birlikte; ayarlar tam ekranda da değişebilir */
+  .a3-grid:fullscreen,.a3-grid.pseudo-full{margin:0;width:100vw;height:100vh;height:100dvh;box-sizing:border-box;padding:10px;gap:10px;
+    background:#f6f1e6;grid-template-columns:minmax(0,1fr) 320px;grid-template-rows:minmax(0,1fr);align-items:stretch;overflow:hidden;}
+  .a3-grid.pseudo-full{position:fixed;inset:0;z-index:99999;}
+  .a3-grid:fullscreen > div:first-child,.a3-grid.pseudo-full > div:first-child{display:flex;flex-direction:column;min-height:0;overflow:auto;}
+  .a3-grid:fullscreen .stage,.a3-grid.pseudo-full .stage{flex:1 0 auto;aspect-ratio:auto;min-height:55vh;border-radius:14px;}
+  .a3-grid:fullscreen .graphbox,.a3-grid.pseudo-full .graphbox{display:none;}
+  .a3-grid:fullscreen .panel,.a3-grid.pseudo-full .panel{overflow:auto;min-height:0;}
+  @media(max-width:820px),(max-height:520px) and (orientation:landscape){
+    .a3-grid:fullscreen,.a3-grid.pseudo-full{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;padding:6px;gap:6px;}
+    .a3-grid:fullscreen .panel,.a3-grid.pseudo-full .panel{max-height:34vh;padding:10px 12px;}
+    .a3-grid:fullscreen .stage,.a3-grid.pseudo-full .stage{min-height:40vh;}
+  }
+  @media(orientation:landscape) and (max-height:520px){
+    .a3-grid:fullscreen,.a3-grid.pseudo-full{grid-template-columns:minmax(0,1fr) 260px;grid-template-rows:minmax(0,1fr);}
+    .a3-grid:fullscreen .panel,.a3-grid.pseudo-full .panel{max-height:none;}
+  }
 
   /* ---------- Sahne ---------- */
   .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:300px;border-radius:18px;overflow:hidden;
@@ -69,9 +86,13 @@
     .planet-chip{top:8px;right:8px;font-size:.72rem;padding:4px 8px} .planet-chip small{display:none} .aimhint{display:none} .seg button{padding:8px 9px;font-size:.78rem} }
   .aimhint{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.9);color:#0e0c08;border-radius:10px;padding:6px 10px;
     font-size:.74rem;font-weight:700;letter-spacing:.02em;}
-  .a3res{position:absolute;right:12px;bottom:12px;width:min(300px,calc(100% - 24px));background:rgba(255,255,255,.95);border-radius:14px;
-    padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);font-size:.84rem;color:#0e0c08;display:none;pointer-events:auto;}
-  .a3res.on{display:block;animation:pop .35s ease;}
+  /* Sonuç kartı sahnenin dışında, düğme çubuğunun altında: atış alanını kapatmaz */
+  .a3res{margin-top:12px;background:#fff;border:1px solid var(--a-line);border-radius:16px;
+    padding:12px 16px;box-shadow:0 6px 18px rgba(0,0,0,.05);font-size:.86rem;color:#0e0c08;display:none;}
+  .a3res.on{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:6px 22px;align-items:start;animation:pop .35s ease;}
+  .a3res.on > h4,.a3res.on > .hit{grid-column:1/-1;}
+  .a3res .fx{margin-top:0 !important;}
+  @media(max-width:640px){.a3res.on{grid-template-columns:1fr;}}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:none;opacity:1}}
   .a3res h4{margin:0 0 6px;font-size:.95rem;display:flex;justify-content:space-between;align-items:center;}
   .a3res h4 button{border:0;background:none;font-size:1rem;cursor:pointer;color:#5a544a;padding:0 2px;}
@@ -185,7 +206,7 @@
     <div class="a3-tags"><span class="new">YENİ · 3B</span><span>11. Sınıf · Atışlar</span><span>AYT</span><span>Maarif (TYMM)</span><span>Ücretsiz</span></div>
   </div>
 
-  <div class="a3-grid">
+  <div class="a3-grid" id="a3-wrap">
     <div>
       <div class="stage" id="stage">
         <canvas id="c3d" aria-label="3B eğik atış sahnesi"></canvas>
@@ -203,7 +224,6 @@
           <div class="tag3d" id="tag-land"></div>
           <div class="tag3d" id="tag-target"></div>
           <div class="aimhint" id="aimhint">İpucu: Topun ağzından sürükleyerek nişan al</div>
-          <div class="a3res" id="result"></div>
           <div class="toast" id="toast"></div>
         </div>
         <div class="loading" id="loading"><div style="text-align:center"><div class="spin"></div>Manzara hazırlanıyor… <span id="load-pct">0%</span></div></div>
@@ -227,6 +247,7 @@
         <button class="b" id="btn-sound" title="Ses">🔊</button>
         <button class="b" id="btn-full" title="Tam ekran">⛶</button>
       </div>
+      <div class="a3res" id="result" aria-live="polite"></div>
       <div class="toggles">
         <button class="tg on" id="tg-strobe"><i style="background:#f2c230"></i>Stroboskop (0,25 s)</button>
         <button class="tg on" id="tg-vec"><i style="background:#ff6b5e"></i>Hız vektörleri</button>
@@ -311,6 +332,6 @@
   </div>
 </footer>
 
-<script type="module" src="bfy-atis3d.js?v=20261003"></script>
+<script type="module" src="bfy-atis3d.js?v=20261011"></script>
 </body>
 </html>

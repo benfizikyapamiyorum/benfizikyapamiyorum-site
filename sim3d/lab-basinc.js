@@ -1,5 +1,5 @@
 // BFY · 3B Kaldırma Kuvveti Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=5';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=6';
 
 /* =====================================================================
    Sabitler ve cisimler (SI birimleri: m, kg, s)

@@ -111,9 +111,9 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     camera.aspect = w / h; camera.updateProjectionMatrix(); W.onResize && W.onResize(w, h);
   }
   function applyQuality() {
-    Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : 1; renderer.setPixelRatio(Q.dpr); bloomPass.enabled = Q.level > 0;
-    // çoklu örnekleme yalnız en yüksek kalitede (orta/düşükte GPU yükü ciddi azalır)
-    const smp = Q.level === 2 && !(isMobile && aaParam == null) ? SAMPLES : 0;
+    Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : Math.min(DPR, 1.25); renderer.setPixelRatio(Q.dpr); bloomPass.enabled = Q.level > 0;
+    // kenar yumuşatma her kademede açık, yalnız en düşükte azalır (kapalıyken kenarlar tırtıklı görünür)
+    const smp = Q.level === 0 ? Math.min(SAMPLES, 2) : SAMPLES;
     [composer.renderTarget1, composer.renderTarget2].forEach(rt => { if (rt.samples !== smp) { rt.samples = smp; rt.dispose(); } });
     const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
     if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
@@ -121,12 +121,14 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     if (!Q.shadowSet) { renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; Q.shadowSet = true; } resize();
   }
   W.resize = resize; applyQuality();
-  // Sürekli ölçüm: ~3 sn ortalama 30 kare/sn altındaysa bir kademe düş (2 → 1 → 0)
+  // Sürekli ölçüm: gerçekten yavaşsa bir kademe düş (2 → 1 → 0)
   function qualityTick(raw) {
+    // art arda iki 4 sn'lik pencerede gerçekten yavaşsa bir kademe düşer; kısa yük anları görüntüyü bozmaz
     if (Q.locked || Q.level === 0 || document.hidden) return;
-    Q.warm += raw; if (Q.warm < 4 || raw > .5) return;
+    Q.warm += raw; if (Q.warm < 6 || raw > .5) return;
     Q.frames++; Q.acc += raw;
-    if (Q.acc >= 3) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; if (fps < 30) { Q.level--; applyQuality(); Q.warm = 0; } }
+    if (Q.acc >= 4) { const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0; Q.bad = (Q.level === 2 ? fps < 26 : fps < 20) ? (Q.bad || 0) + 1 : 0;
+      if (Q.bad >= 2) { Q.level--; Q.bad = 0; applyQuality(); Q.warm = 0; } }
   }
   // WebGL bağlamı kaybolursa ekran kararıp donmasın: daha hafif ayarla yeniden aç
   canvas.addEventListener('webglcontextlost', e => {
@@ -211,7 +213,7 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     if (first) { first = false; const L = $('loading'); if (L) L.classList.add('off'); }
     qualityTick(raw);
   }
-  W.shown = () => visible || !!document.fullscreenElement || stage.classList.contains('pseudo-full') || !!window.__rec;
+  W.shown = () => visible || !!document.fullscreenElement || stage.classList.contains('pseudo-full') || !!stage.closest('.pseudo-full') || !!window.__rec;
   let lastFrame = 0;
   // Oyunlar kendi döngülerinden bunu çağırır: sahne ekranda değilse çizim atlanır, kalite ölçümü de burada yapılır
   W.frame = dt => {
@@ -245,11 +247,13 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     clock.getDelta(); requestAnimationFrame(tick);
   };
 
+  // Tam ekran, sahneyi ayar paneliyle birlikte açar (.a3-grid); yalnız sahne açılınca ayarlar değiştirilemiyordu
+  const fsEl = stage.closest('.a3-grid') || stage;
   W.bindFullscreen = btn => btn && btn.addEventListener('click', () => {
-    if (document.fullscreenElement || stage.classList.contains('pseudo-full')) { if (document.fullscreenElement) document.exitFullscreen(); stage.classList.remove('pseudo-full'); return; }
-    if (stage.requestFullscreen) stage.requestFullscreen().catch(() => stage.classList.add('pseudo-full')); else stage.classList.add('pseudo-full');
+    if (document.fullscreenElement || fsEl.classList.contains('pseudo-full')) { if (document.fullscreenElement) document.exitFullscreen(); fsEl.classList.remove('pseudo-full'); return; }
+    if (fsEl.requestFullscreen) fsEl.requestFullscreen().catch(() => fsEl.classList.add('pseudo-full')); else fsEl.classList.add('pseudo-full');
   });
-  window.addEventListener('keydown', e => { if (e.key === 'Escape') stage.classList.remove('pseudo-full'); });
+  window.addEventListener('keydown', e => { if (e.key === 'Escape') fsEl.classList.remove('pseudo-full'); });
   W.orient = (mesh, a, b) => { const d = new THREE.Vector3().subVectors(b, a), L = d.length(); mesh.position.copy(a).addScaledVector(d, .5); mesh.scale.set(1, L, 1); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); };
   return W;
 }

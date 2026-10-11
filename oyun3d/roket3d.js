@@ -1,5 +1,5 @@
 // BFY · Roket İnişi — 3B görüntü katmanı (oyun mantığı sayfadaki betikte, burada yalnızca çizim)
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, ENVS, clamp, lerp, rng, Noise, isMobile } from '../sim3d/bfy3d-core.js?v=5';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, ENVS, clamp, lerp, rng, Noise, isMobile } from '../sim3d/bfy3d-core.js?v=6';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const PX = G.SCALE;                         // 1 m = 7 px
