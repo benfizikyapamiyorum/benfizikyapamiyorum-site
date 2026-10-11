@@ -1,5 +1,5 @@
 // BFY · 3B Manyetik Alan Laboratuvarı — Biot–Savart ile alan, demir tozu, pusulalar
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=5';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=7';
 
 const TY = .76, PY = TY + .12, FY = PY + .005;   // plaka üstü = alan düzlemi
 const PL = .46;                                    // plaka kenarı

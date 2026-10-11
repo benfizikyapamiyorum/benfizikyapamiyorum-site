@@ -1,5 +1,5 @@
 // BFY · 3B Optik Laboratuvarı — renk karışımı + optik ray (mercek ve ayna)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=5';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
 
 const TY = .76;
 const S = { mode: 'color', cam: 'orbit', L: { r: { on: true, k: 1 }, g: { on: true, k: 1 }, b: { on: true, k: 1 } }, obj: 'post', beam: true, labels: true,

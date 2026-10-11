@@ -1,6 +1,6 @@
 // BFY · Grafik Yarışı — 3B görüntü katmanı (dağ yolunda yarış arabası; üstte canlı v-t grafiği)
-import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
-import { overlayWorld, macroGround } from './ortak.js?v=2';
+import { THREE, worldUVMaterial, canvasTex, clamp, lerp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=7';
+import { overlayWorld, macroGround } from './ortak.js?v=4';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const { W, O } = overlayWorld(G, { fov: 40, near: .1, far: 6000, shadowBox: 20, shadowFar: 200, bloom: [.3, .4, 1.1] });

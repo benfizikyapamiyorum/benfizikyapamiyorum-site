@@ -1,6 +1,6 @@
 // BFY · Eğik Atış Nişancı — 3B görüntü katmanı
-import { THREE, worldUVMaterial, canvasTex, clamp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=5';
-import { overlayWorld, macroGround } from './ortak.js?v=2';
+import { THREE, worldUVMaterial, canvasTex, clamp, rng, isMobile } from '../sim3d/bfy3d-core.js?v=7';
+import { overlayWorld, macroGround } from './ortak.js?v=4';
 
 const G = window.BFY_GAME; if (!G) throw new Error('oyun yok');
 const M = G.PXM, toX = x => (x - G.W / 2) / M, toY = y => (G.GROUND - y) / M;

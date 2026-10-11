@@ -1,5 +1,5 @@
 // BFY · 3B Hareket Grafikleri — rampada oyuncak araba, hareket sensörü, canlı x-t / v-t / a-t
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=5';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
 
 const G = 9.8, TY = .76, LT = 3.1, X_MIN = .12, X_MAX = 2.9, TMAX = 12;
 const XS = -1.5;                       // şerit sıfırının dünya x'i

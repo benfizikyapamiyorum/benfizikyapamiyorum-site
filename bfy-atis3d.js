@@ -9,6 +9,7 @@ import { UnrealBloomPass } from './sim3d/lib/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from './sim3d/lib/postprocessing/OutputPass.js';
 import { ShaderPass } from './sim3d/lib/postprocessing/ShaderPass.js';
 import { SanitizeShader } from './sim3d/lib/shaders/SanitizeShader.js';
+import { createSky } from './sim3d/bfy-sky.js?v=1';
 
 /* =====================================================================
    0) Yardımcılar
@@ -148,6 +149,7 @@ const scene = new THREE.Scene();
 const sceneFog = new THREE.FogExp2('#c79570', 0); scene.fog = sceneFog;
 const camera = new THREE.PerspectiveCamera(36, 16 / 9, .2, 30000);
 camera.position.set(20, 8, 50);
+const sky = createSky(scene, camera); // keskin (bikübik) 360° arka plan
 
 // Yarım hassasiyetli renk tamponuna çizemeyen cihazlarda (bazı eski tablet/tahta) siyah ekran olmasın
 const canHalf = renderer.extensions.has('EXT_color_buffer_float') || renderer.extensions.has('EXT_color_buffer_half_float');
@@ -544,27 +546,50 @@ function setBallLook() {
   else { ballMesh.visible = true; ballMesh.material = ballMats[S.ball]; if (footballObj) footballObj.visible = false; }
 }
 
+// Yörünge izi: ekran uzayında kalınlığı korunan, kenarı yumuşak kesintisiz şerit.
+// (Eskiden tek tek noktalardı; uzaktan kesik kesik, "piksel piksel" ilerliyor gibi görünüyordu.)
 function trailMat(color, opacity = 1, dashed = false, glow = 2.2) {
   return new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false, toneMapped: false,
-    uniforms: { uTime: { value: 1e9 }, uColor: { value: new THREE.Color(color).multiplyScalar(glow) }, uOp: { value: opacity }, uPx: { value: 3 * DPR }, uWorld: { value: .08 }, uScale: { value: 500 }, uDash: { value: dashed ? 1 : 0 } },
-    vertexShader: `attribute float aT; uniform float uTime,uPx,uWorld,uScale; varying float vVis; varying float vT;
-      void main(){ vec4 mv = modelViewMatrix * vec4(position,1.); gl_Position = projectionMatrix * mv; vVis = aT <= uTime ? 1. : 0.; vT = aT;
-        gl_PointSize = clamp(uWorld * uScale / max(-mv.z, .1), uPx, uPx * 14.); }`,
-    fragmentShader: `uniform vec3 uColor; uniform float uOp,uDash; varying float vVis; varying float vT;
-      void main(){ if (vVis < .5) discard; if (uDash > .5 && mod(vT, .16) > .09) discard; vec2 q = gl_PointCoord - .5; float r = dot(q,q); if (r > .25) discard;
-        gl_FragColor = vec4(uColor, uOp * smoothstep(.25, .1, r)); }`,
+    transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide,
+    uniforms: { uTime: { value: 1e9 }, uColor: { value: new THREE.Color(color).multiplyScalar(glow) }, uOp: { value: opacity }, uPx: { value: 3 * DPR }, uWorld: { value: .08 }, uScale: { value: 500 }, uRes: { value: new THREE.Vector2(1600, 900) }, uDash: { value: dashed ? 1 : 0 } },
+    vertexShader: `attribute float aT, aSide; attribute vec3 aPrev, aNext; uniform float uTime,uPx,uWorld,uScale; uniform vec2 uRes; varying float vVis, vT, vSide;
+      void main(){
+        vec4 mv = modelViewMatrix * vec4(position, 1.), c = projectionMatrix * mv;
+        vec4 p = projectionMatrix * modelViewMatrix * vec4(aPrev, 1.), n = projectionMatrix * modelViewMatrix * vec4(aNext, 1.);
+        vVis = aT <= uTime ? 1. : 0.; vT = aT; vSide = aSide;
+        if (c.w > .001 && p.w > .001 && n.w > .001) {
+          vec2 asp = vec2(uRes.x / uRes.y, 1.), d = n.xy / n.w * asp - p.xy / p.w * asp;
+          d = dot(d, d) < 1e-12 ? vec2(1., 0.) : normalize(d);
+          float wpx = clamp(uWorld * uScale / max(-mv.z, .1), uPx, uPx * 14.);
+          vec2 off = vec2(-d.y, d.x) * aSide * wpx / uRes.y; off.x /= asp.x;
+          c.xy += off * c.w;
+        }
+        gl_Position = c; }`,
+    fragmentShader: `uniform vec3 uColor; uniform float uOp,uDash; varying float vVis, vT, vSide;
+      void main(){ if (vVis < .5) discard; if (uDash > .5 && mod(vT, .16) > .09) discard;
+        gl_FragColor = vec4(uColor, uOp * (1. - smoothstep(.45, 1., abs(vSide)))); }`,
   });
 }
 function makeTrail(sim, color, op, dashed) {
-  const P = sim.pts, n = P.length / 5, step = Math.max(1, Math.floor(n / 40000));
-  const cnt = Math.ceil(n / step), pos = new Float32Array(cnt * 3), at = new Float32Array(cnt);
-  for (let i = 0, k = 0; i < n; i += step, k++) { pos[k * 3] = P[i * 5 + 1]; pos[k * 3 + 1] = P[i * 5 + 2] + BALLS[S.ball].r; pos[k * 3 + 2] = 0; at[k] = P[i * 5]; }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aT', new THREE.BufferAttribute(at, 1));
-  const pts = new THREE.Points(g, trailMat(color, op, dashed, dashed ? 1.2 : 2.2)); pts.frustumCulled = false; pts.renderOrder = 3; scene.add(pts); return pts;
+  const P = sim.pts, n = P.length / 5, step = Math.max(1, Math.floor(n / 4000)), k = Math.ceil(n / step), r = BALLS[S.ball].r;
+  const pt = new Float32Array(k * 3), tt = new Float32Array(k);
+  for (let i = 0, j = 0; i < n; i += step, j++) { pt[j * 3] = P[i * 5 + 1]; pt[j * 3 + 1] = P[i * 5 + 2] + r; tt[j] = P[i * 5]; }
+  const pos = new Float32Array(k * 6), prv = new Float32Array(k * 6), nxt = new Float32Array(k * 6), side = new Float32Array(k * 2), at = new Float32Array(k * 2);
+  for (let j = 0; j < k; j++) {
+    const a = Math.max(j - 1, 0), b = Math.min(j + 1, k - 1);
+    for (let s = 0; s < 2; s++) { const v = j * 2 + s;
+      for (let c = 0; c < 3; c++) { pos[v * 3 + c] = pt[j * 3 + c]; prv[v * 3 + c] = pt[a * 3 + c]; nxt[v * 3 + c] = pt[b * 3 + c]; }
+      side[v] = s ? 1 : -1; at[v] = tt[j]; }
+  }
+  const idx = new (k * 2 > 65535 ? Uint32Array : Uint16Array)(Math.max(0, k - 1) * 6);
+  for (let j = 0; j < k - 1; j++) { const v = j * 2; idx.set([v, v + 1, v + 2, v + 1, v + 3, v + 2], j * 6); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aPrev', new THREE.BufferAttribute(prv, 3)); g.setAttribute('aNext', new THREE.BufferAttribute(nxt, 3));
+  g.setAttribute('aSide', new THREE.BufferAttribute(side, 1)); g.setAttribute('aT', new THREE.BufferAttribute(at, 1)); g.setIndex(new THREE.BufferAttribute(idx, 1));
+  const m = new THREE.Mesh(g, trailMat(color, op, dashed, dashed ? 1.2 : 2.2)); m.frustumCulled = false; m.renderOrder = 3; scene.add(m); return m;
 }
 const TRAIL_COLS = ['#ff8a3d', '#4fa3ff', '#6ee07a', '#c58bff', '#ffd24a'];
-let trails = [], trailIdx = 0, predTrail = null;
+let trails = [], trailIdx = 0, predTrail = null; const trailRes = new THREE.Vector2();
 
 const MAXG = 520;
 const ghostMat = new THREE.MeshStandardMaterial({ color: '#ffd35a', emissive: '#ffb020', emissiveIntensity: .9, roughness: .4, transparent: true, opacity: .55, depthWrite: false });
@@ -686,12 +711,12 @@ async function applyPlanet(pl) {
   bermKey = ''; buildBerm();
   if (pl === 'moon') { terrain.material = gm; terrain.visible = true; disk.visible = false; }
   else { disk.material = gm; disk.visible = true; terrain.visible = false; }
-  scene.background = pl === 'moon' ? new THREE.Color('#000000') : L.bg;
   scene.environment = L.env || null;
   scene.environmentIntensity = P.envI; scene.backgroundIntensity = P.bgI;
   let sd;
   if (P.sunUV) { curEnvRot = P.rot; const d = uvToDir(P.sunUV[0], P.sunUV[1]); sd = d.applyAxisAngle(new THREE.Vector3(0, 1, 0), -curEnvRot); scene.backgroundRotation.set(0, curEnvRot, 0); scene.environmentRotation.set(0, curEnvRot, 0); }
   else { sd = new THREE.Vector3(...P.sunDir).normalize(); scene.backgroundRotation.set(0, 0, 0); }
+  if (pl === 'moon') { sky.set(null); scene.background = new THREE.Color('#000000'); } else { sky.set(L.bg); loadHiBg(pl); }
   SUN_DIR.copy(sd);
   sun.color.set(P.sunC); sun.intensity = P.sunI; hemi.intensity = P.hemi; hemi.color.set(pl === 'mars' ? '#e8c0a0' : '#c8d6ea'); hemi.groundColor.set(pl === 'mars' ? '#7a4a30' : '#6a7a4a');
   renderer.toneMappingExposure = P.exposure;
@@ -705,6 +730,18 @@ async function applyPlanet(pl) {
   scatterRocks(pl);
   craters.clear();
   warmUp();
+}
+// Masaüstünde 8K arka plan: önce 4K açılır, 8K beklerken arka planda yüklenip yerine geçer (telefon 4K'da kalır)
+const hiBgOK = !isMobile && renderer.capabilities.maxTextureSize >= 8192 && (navigator.deviceMemory || 8) >= 4 && new URLSearchParams(location.search).get('bg') !== '4k';
+const hiBg = {};
+function loadHiBg(pl) {
+  const P = PSET[pl]; if (!hiBgOK || Q.level < 2 || !P.bg || hiBg[pl]) return; hiBg[pl] = 1;
+  new THREE.TextureLoader().load(A + P.bg.replace('_bg.jpg', '_bg_8k.jpg'), t => {
+    t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+    const swap = () => { if (S.phase === 'flying' || intro.on) return setTimeout(swap, 500); // atış sırasında yükleme takılması olmasın
+      const L = loaded[pl]; L.then(o => { const old = o.bg; o.bg = t; if (S.planet === pl) sky.set(t, { mips: false }); if (old && old !== t) old.dispose(); }); };
+    swap();
+  }, undefined, () => { });
 }
 // Isınma: atış ve iniş efektlerinin bütün gölgelendiricilerini (gölge geçişi dahil) gezegen yüklenirken derle,
 // böylece atış ya da iniş anında derleme takılması olmaz. Isınma izlerinin malzemesi hiç bırakılmaz (program bellekte kalır).
@@ -877,13 +914,16 @@ function ghostUpdate(t) {
    10) HUD, etiketler, sonuç kartı
    ===================================================================== */
 const V3 = new THREE.Vector3();
-function toScreen(p) { V3.copy(p).project(camera); const r = canvas.getBoundingClientRect(); return { x: (V3.x * .5 + .5) * r.width, y: (-V3.y * .5 + .5) * r.height, ok: V3.z < 1 && V3.z > -1 }; }
+// boyut resize()'da saklanır: her etikette sayfa düzenini yeniden ölçmesin
+function toScreen(p) { V3.copy(p).project(camera); return { x: (V3.x * .5 + .5) * stageW, y: (-V3.y * .5 + .5) * stageH, ok: V3.z < 1 && V3.z > -1 }; }
 function tag(id, p, html) { const el = $(id), s = toScreen(p); if (!s.ok) { el.style.display = 'none'; return; } el.style.display = 'block'; el.style.left = s.x + 'px'; el.style.top = (s.y - 6) + 'px'; if (html != null && el._h !== html) { el.innerHTML = html; el._h = html; } }
 function hideTags() { ['tag-apex', 'tag-land'].forEach(i => $(i).style.display = 'none'); }
+const hudEl = {}, hudTxt = {};
+const hudSet = (id, v) => { if (hudTxt[id] === v) return; hudTxt[id] = v; (hudEl[id] || (hudEl[id] = $(id))).textContent = v; }; // değişmeyen metne dokunma
 function setHUD(q) {
   const [t, x, y, vx, vy] = q;
-  $('h-t').textContent = fmt(t, 2) + ' s'; $('h-x').textContent = fmt(x, 1) + ' m'; $('h-y').textContent = fmt(y, 1) + ' m';
-  $('h-vx').textContent = fmt(vx, 1) + ' m/s'; $('h-vy').textContent = fmt(vy, 1) + ' m/s'; $('h-v').textContent = fmt(Math.hypot(vx, vy), 1) + ' m/s';
+  hudSet('h-t', fmt(t, 2) + ' s'); hudSet('h-x', fmt(x, 1) + ' m'); hudSet('h-y', fmt(y, 1) + ' m');
+  hudSet('h-vx', fmt(vx, 1) + ' m/s'); hudSet('h-vy', fmt(vy, 1) + ' m/s'); hudSet('h-v', fmt(Math.hypot(vx, vy), 1) + ' m/s');
 }
 function showResult() {
   const sim = cur, p = sim.params, gtxt = p.g === 10 ? '10' : fmt(p.g, 2).replace(/0$/, '');
@@ -917,11 +957,21 @@ let toastT = 0; function toast(msg) { const el = $('toast'); el.textContent = ms
    ===================================================================== */
 const gc = $('graph'), gx = gc.getContext('2d');
 let graphKey = 'y', graphHist = [];
-function drawGraph() {
-  const r = gc.getBoundingClientRect(), W = r.width, H = r.height; if (!W) return;
+// Grafik yalnız değişince çizilir: eskiden beklerken her karede yörünge baştan hesaplanıp
+// sayfa düzeni ölçülüyordu (takılmanın kaynaklarından biri). Uçuş sırasında ~30 Hz yeterli.
+let gcW = 0, gcH = 0, graphKeyLast = '', idleSim = null, idleKey = '', graphT = 0;
+new ResizeObserver(es => { const r = es[0].contentRect; gcW = r.width; gcH = r.height; graphKeyLast = ''; }).observe(gc);
+function drawGraph(dt = 0) {
+  const pk = JSON.stringify(params());
+  const key = [S.phase, graphKey, pk, cur ? cur.T : 0, graphHist.length, graphHist[1] && graphHist[1].sim ? graphHist[1].sim.T : 0, gcW, gcH].join('|');
+  if (S.phase === 'flying') { graphT += dt; if (graphT < 1 / 30 && key === graphKeyLast) return; graphT = 0; }
+  else if (key === graphKeyLast) return;
+  graphKeyLast = key;
+  const W = gcW, H = gcH; if (!W) return;
   if (gc.width !== Math.round(W * DPR)) { gc.width = Math.round(W * DPR); gc.height = Math.round(H * DPR); }
   gx.setTransform(DPR, 0, 0, DPR, 0, 0); gx.clearRect(0, 0, W, H);
-  const sim = cur && (S.phase !== 'idle') ? cur : simulate(params());
+  if (S.phase === 'idle' && idleKey !== pk) { idleKey = pk; idleSim = simulate(params()); }
+  const sim = cur && (S.phase !== 'idle') ? cur : idleSim;
   const idx = { x: 1, y: 2, vx: 3, vy: 4 }[graphKey], names = { x: ['x', 'm'], y: ['y', 'm'], vx: ['vₓ', 'm/s'], vy: ['vᵧ', 'm/s'] }[graphKey];
   const col = { x: '#2d7dd2', y: '#e26d4f', vx: '#2d7dd2', vy: '#e0483b' }[graphKey];
   const P = sim.pts, n = P.length / 5, T = Math.max(sim.T, .5);
@@ -1051,12 +1101,14 @@ $('btn-clear').addEventListener('click', () => { clearTrails(); resetShot(); });
 function dropTrail(t) { scene.remove(t); t.geometry.dispose(); t.material.dispose(); }
 function clearTrails() { trails.forEach(dropTrail); trails = []; craters.clear(); graphHist = []; ghosts.count = 0; ghostPts = []; debris.count = 0; }
 $('btn-sound').addEventListener('click', e => { S.sound = !S.sound; e.currentTarget.textContent = S.sound ? '🔊' : '🔇'; });
+// Tam ekran sahneyi ayar paneliyle birlikte açar (yalnız sahne açılınca ayarlar değişemiyordu)
+const fsWrap = $('a3-wrap') || stage;
 $('btn-full').addEventListener('click', () => {
-  if (document.fullscreenElement || stage.classList.contains('pseudo-full')) { if (document.fullscreenElement) document.exitFullscreen(); stage.classList.remove('pseudo-full'); return; }
-  if (stage.requestFullscreen) stage.requestFullscreen().catch(() => stage.classList.add('pseudo-full')); else stage.classList.add('pseudo-full');
+  if (document.fullscreenElement || fsWrap.classList.contains('pseudo-full')) { if (document.fullscreenElement) document.exitFullscreen(); fsWrap.classList.remove('pseudo-full'); return; }
+  if (fsWrap.requestFullscreen) fsWrap.requestFullscreen().catch(() => fsWrap.classList.add('pseudo-full')); else fsWrap.classList.add('pseudo-full');
 });
 $('btn-mission').addEventListener('click', () => { if (S.phase !== 'idle') resetShot(); clearTrails(); newMission(); });
-window.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return; if (e.code === 'Space' || e.key === 'Enter') { if (e.target.tagName === 'BUTTON') return; e.preventDefault(); fire(); } if (e.key === 'Escape') stage.classList.remove('pseudo-full'); });
+window.addEventListener('keydown', e => { if (e.target.tagName === 'INPUT' && e.target.type !== 'range') return; if (e.code === 'Space' || e.key === 'Enter') { if (e.target.tagName === 'BUTTON') return; e.preventDefault(); fire(); } if (e.key === 'Escape') fsWrap.classList.remove('pseudo-full'); });
 
 const pointers = new Map(); let aiming = false, pinch0 = 0, r0 = 0;
 canvas.addEventListener('pointerdown', e => {
@@ -1094,10 +1146,10 @@ canvas.addEventListener('wheel', e => { if (S.cam !== 'free') return; e.preventD
 const qParam = new URLSearchParams(location.search).get('q');
 const Q = { level: qParam === 'low' ? 0 : qParam === 'med' ? 1 : qParam === 'high' ? 2 : (isMobile ? 1 : 2), locked: !!qParam, dpr: DPR, frames: 0, acc: 0 };
 function applyQuality() {
-  Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : 1;
+  Q.dpr = Q.level === 2 ? DPR : Q.level === 1 ? Math.min(DPR, 1.5) : Math.min(DPR, 1.25);
   renderer.setPixelRatio(Q.dpr); bloom.enabled = Q.level > 0;
-  // Çoklu örnekleme (MSAA) yalnız en yüksek kalitede: orta/düşükte GPU yükü ciddi azalır
-  const smp = Q.level === 2 ? 4 : 0;
+  // Kenar yumuşatma (MSAA) her kademede açık; yalnız en düşükte 2 örneğe iner (kapalıyken kenarlar tırtıklı görünür)
+  const smp = Q.level === 0 ? 2 : 4;
   [composer.renderTarget1, composer.renderTarget2].forEach(rt => { if (rt.samples !== smp) { rt.samples = smp; rt.dispose(); } });
   const sm = Q.level === 2 ? (isMobile ? 1024 : 2048) : 1024;
   if (sun.shadow.mapSize.x !== sm) { sun.shadow.mapSize.set(sm, sm); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; } }
@@ -1105,22 +1157,25 @@ function applyQuality() {
   if (!Q.shadowSet) { renderer.shadowMap.type = Q.level === 0 ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap; Q.shadowSet = true; }
   resize();
 }
+let stageW = 1, stageH = 1;
 function resize() {
-  const r = stage.getBoundingClientRect(); const w = Math.max(1, r.width), h = Math.max(1, r.height);
+  const r = stage.getBoundingClientRect(); const w = Math.max(1, r.width), h = Math.max(1, r.height); stageW = w; stageH = h;
   renderer.setSize(w, h, false); composer.setPixelRatio(Q.dpr); composer.setSize(w, h); bloom.setSize(w * Q.dpr / 2, h * Q.dpr / 2);
   camera.aspect = w / h; camera.updateProjectionMatrix();
 }
 let qWarm = 0;
 function qualityTick(dt) {
-  // Sürekli ölç (atış dahil): ~3 sn boyunca ortalama 30 kare/sn altındaysa bir kademe düş (2 → 1 → 0).
-  // Akıllı tahta / eski telefonda atış sonrası duman + parıltı yükü takılma yapmasın.
+  // Sürekli ölç (atış dahil). Kısa yük anlarında değil, art arda iki 4 sn'lik pencerede gerçekten yavaşsa
+  // bir kademe düş (2 → 1, çok yavaşsa → 0). Gereksiz düşüş görüntüyü bulanıklaştırıyordu.
   if (Q.locked || Q.level === 0 || intro.on || document.hidden) return;
-  qWarm += dt; if (qWarm < 4) return;
+  qWarm += dt; if (qWarm < 6) return;
   if (dt > .5) return; // sekme değişimi vb. tek seferlik boşluklar ölçümü bozmasın
   Q.frames++; Q.acc += dt;
-  if (Q.acc >= 3) {
+  if (Q.acc >= 4) {
     const fps = Q.frames / Q.acc; Q.frames = 0; Q.acc = 0;
-    if (fps < 30) { Q.level--; applyQuality(); qWarm = 0; }
+    const slow = Q.level === 2 ? fps < 26 : fps < 20;
+    Q.bad = slow ? (Q.bad || 0) + 1 : 0;
+    if (Q.bad >= 2) { Q.level--; Q.bad = 0; applyQuality(); qWarm = 0; }
   }
 }
 // WebGL bağlamı kaybolursa (zayıf GPU, sürücü sıfırlanması) ekran kararıp donmasın: düşük kalitede yeniden aç
@@ -1177,7 +1232,8 @@ function step(rawDt) {
   ball.rotation.set(0, 0, -spin);
   if (ghosts.count) { const kg = (S.cam === 'side' || S.cam === 'free') ? visScale(camLook, r) * .9 : 1; for (let i = 0; i < ghosts.count; i++) { const [gx0, gy0] = ghostPts[i]; tmpP.set(gx0, gy0 + r, 0); tmpS.setScalar(r * Math.max(1, kg) * .9); tmpM.compose(tmpP, tmpQ, tmpS); ghosts.setMatrixAt(i, tmpM); } ghosts.instanceMatrix.needsUpdate = true; }
   const scalePx = canvas.clientHeight / (2 * Math.tan(camera.fov * DEG / 2)) * DPR;
-  trails.forEach(t => { t.material.uniforms.uScale.value = scalePx; }); if (predTrail) predTrail.material.uniforms.uScale.value = scalePx;
+  trailRes.set(canvas.clientWidth * DPR, canvas.clientHeight * DPR);
+  trails.concat(predTrail ? [predTrail] : []).forEach(t => { t.material.uniforms.uScale.value = scalePx; t.material.uniforms.uRes.value.copy(trailRes); });
 
   if (S.vec && S.phase === 'flying' && !(S.cam === 'cine' && director.phase !== 2) && S.cam !== 'chase') {
     const f = Math.max(1, k * .6), sc = .16 * f, th = .045 * f, c = BALLPOS.clone();
@@ -1216,7 +1272,7 @@ function step(rawDt) {
   }
   if (mission) tag('tag-target', new THREE.Vector3(mission.x, 3.8, -3.4), `🎯 ${fmt(mission.x, 1)} m`); else $('tag-target').style.display = 'none';
   setHUD(q);
-  drawGraph();
+  drawGraph(dt);
   composer.render(dt);
   qualityTick(Math.min(rawDt, .5));
   if (firstFrame) { firstFrame = false; $('loading').classList.add('off'); }

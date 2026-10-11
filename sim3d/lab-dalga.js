@@ -1,5 +1,5 @@
 // BFY · 3B Dalga Leğeni — 2B dalga denkleminin GPU'da sayısal çözümü (FDTD)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=5';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
 
 const TY = .76, LEGH = .26;
 const L = .56;                               // su alanının kenarı (m)
