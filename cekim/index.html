@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Yapabilirim çekim modu</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;overflow:hidden}
+body{background:radial-gradient(120% 90% at 75% 10%,#2f6b56 0%,#1d473a 45%,#0f241c 100%);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+.sahne{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6vw;padding:2vh 4vw}
+.tel{position:relative;flex:none;border-radius:calc(56px*var(--s));background:#0d1512;padding:calc(14px*var(--s));box-shadow:0 40px 90px rgba(0,0,0,.5),inset 0 0 0 3px #2e3a35}
+.tel .ekran{position:relative;overflow:hidden;border-radius:calc(44px*var(--s));background:#f6f4ee;width:calc(430px*var(--s));height:calc(932px*var(--s))}
+.tel iframe{position:absolute;left:0;top:0;width:430px;height:932px;border:0;transform:scale(var(--s));transform-origin:0 0;background:#f6f4ee}
+.genis .tel{border-radius:22px;padding:12px}
+.genis .tel .ekran{border-radius:12px;width:calc(var(--gw)*1px);height:calc(var(--gh)*1px)}
+.genis .tel iframe{width:calc(var(--gw)*1px/var(--s));height:calc(var(--gh)*1px/var(--s))}
+.yazi{max-width:40vw}
+.no{display:inline-flex;align-items:center;gap:12px;font-size:clamp(16px,1.5vw,24px);font-weight:800;letter-spacing:.12em;color:#1c2522;background:#e9be64;padding:8px 18px;border-radius:99px}
+.bas{margin-top:2.4vh;font-size:clamp(40px,5.2vw,92px);font-weight:800;letter-spacing:-.045em;line-height:1.02}
+.bas em{font-family:'Fraunces',serif;font-style:italic;font-weight:600;color:#e9be64;letter-spacing:-.02em}
+.alt{margin-top:2vh;font-size:clamp(18px,1.9vw,32px);line-height:1.35;color:#dbe7df;font-weight:500}
+.marka{display:flex;margin-bottom:3vh;align-items:center;gap:12px;font-weight:800;color:#d9edaf;font-size:clamp(14px,1.3vw,20px)}
+.marka img{width:44px;height:44px;border-radius:12px}
+.web{margin-top:4vh;font-weight:800;color:#d9edaf;opacity:.85;letter-spacing:.04em;font-size:clamp(13px,1.2vw,18px)}
+/* yönetmen paneli: çekimde H ile gizle */
+.panel{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(10,22,18,.92);border:1px solid rgba(217,237,175,.25);border-radius:16px;padding:8px 10px;font-size:14px;color:#cfe0d6;max-width:96vw;z-index:9}
+.panel button{font:inherit;font-weight:800;background:#244f40;color:#fff;border:0;border-radius:10px;padding:8px 12px;cursor:pointer}
+.panel button:hover{background:#2f6b56}
+.panel .soyle{max-width:52vw;line-height:1.3}
+.panel .soyle b{color:#e9be64}
+.gizli .panel{display:none}
+.uyari{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,18,14,.94);z-index:20;padding:24px}
+.uyari.ac{display:flex}
+.uyari div{max-width:640px;background:#f6f4ee;color:#173a30;border-radius:24px;padding:28px 30px;font-size:17px;line-height:1.5}
+.uyari h2{font-size:26px;margin-bottom:10px}
+.uyari ul{margin:12px 0 18px 20px}
+.uyari button{font:inherit;font-weight:800;background:#244f40;color:#fff;border:0;border-radius:12px;padding:12px 18px;cursor:pointer}
+</style></head>
+<body>
+<div class="sahne" id="sahne">
+  <div class="tel"><div class="ekran"><iframe id="cer" title="Yapabilirim"></iframe></div></div>
+  <div class="yazi"><div class="marka"><img src="../bfy-logo-3d.webp" alt="">Ben Fizik Yapamıyorum</div><span class="no" id="no"></span><div class="bas" id="bas"></div><div class="alt" id="alt"></div><div class="web">benfizikyapamiyorum.com</div></div>
+</div>
+<div class="panel" id="panel">
+  <button id="geri" type="button">◀</button>
+  <span id="say" style="font-weight:800;white-space:nowrap"></span>
+  <button id="ileri" type="button">▶</button>
+  <span class="soyle" id="soyle"></span>
+  <button id="yenile" type="button" title="Sahneyi baştan kur">↻</button>
+  <button id="gizle" type="button" title="Paneli gizle (H)">Gizle</button>
+</div>
+<div class="uyari" id="uyari"><div>
+  <h2>Önce lisansları bu tarayıcıya yükle</h2>
+  Bu sayfa uygulamanın tamamını gösterir; bunun için lisansların bu tarayıcıda kayıtlı olması gerekir. Sana gönderdiğim dört lisans linkini (9, 10, 11 ve TYT) <b>bu tarayıcıda</b> birer kez aç, sonra bu sayfayı yenile.
+  <ul id="eksik"></ul>
+  <button type="button" onclick="document.getElementById('uyari').classList.remove('ac')">Yine de devam et</button>
+</div></div>
+<script>
+const S = [
+  { app: 'calis/', h: '#/', sinif: '10', no: 'Yapabilirim', bas: 'Senin adınla <em>açılıyor.</em>', alt: 'XP, günlük seri, unvan. Sınıfını seç, konuna gir.', soyle: 'Uygulama senin adınla açılıyor. XP, seri, unvan; sınıfını seçip konuna giriyorsun.' },
+  { app: 'calis/', h: '#/konu/10.2.4/not', no: 'Konu notu', bas: 'Hikâyeyle <em>başlar.</em>', alt: 'Önce hikâye, sonra kavram ve formül. Kısa ve net.', soyle: 'Her konu bir hikâyeyle başlıyor; sonra kavram, şekil, formül.' },
+  { app: 'calis/', h: '#/konu/11.2.2/not', hedef: '.n-a3b', sira: 0, tikla: '[data-a3b-oynat]', no: '3B animasyon', bas: 'Sağ el kuralı <em>3B.</em>', alt: 'El tele uzanıyor, parmaklar kıvrılıyor, alan dönüyor. Ekranı parmağınla sürükleyip çevir.', soyle: '11. sınıfta sağ el kuralı 3B: başparmak akım, parmakların dönüşü alanın dönüşü. Sahneyi parmağımla çevirebiliyorum.' },
+  { app: 'calis/', h: null, hedef: '.n-a3b', sira: 0, tikla: '[data-a3b-adim]', no: '3B, adım adım', bas: 'Adım adım <em>ilerle.</em>', alt: '◀ ▶ ile beş adım: önce akım, sonra el, sonra alan.', soyle: 'Adım adım modunda kendi hızımda ilerliyorum.' },
+  { app: 'calis/', h: null, hedef: '.n-a3b', sira: 2, tikla: '[data-a3b-oynat]', no: '3B, kuvvet', bas: 'Akımı <em>ters çevir.</em>', alt: 'Bu sahnede “Akımı ters çevir”e bas: kuvvet de yön değiştiriyor.', soyle: 'Akımı ters çeviriyorum; tele etki eden kuvvet de anında yön değiştiriyor.' },
+  { app: 'calis/', h: null, hedef: '.n-a3b', sira: 1, tikla: '[data-a3b-oynat]', no: '3B, makara', bas: 'Akım makarası <em>3B.</em>', alt: 'Makarada sağ el: parmaklar akım yönünde, başparmak N kutbunu gösterir.', soyle: 'Akım makarasında da aynı el: başparmağım kuzey kutbunu gösteriyor.' },
+  { app: 'calis/', h: '#/konu/9.3.7/not', hedef: '.n-kartlar-dj', no: 'Kavram kartları', bas: 'Dokun, <em>çevir.</em>', alt: 'Kartın ön yüzünü oku, düşün, dokun ve arkasını gör.', soyle: 'Kavram kartları: önce kendin cevaplıyorsun, sonra dokunup çeviriyorsun.' },
+  { app: 'calis/', h: '#/konu/9.4.5/not', hedef: '.n-oyun-dj', no: 'Mini oyun', bas: 'Oynayarak <em>öğren.</em>', alt: 'Her durumu doğru gruba yerleştir, anında sonuç.', soyle: 'Mini oyunlar: her olayı doğru gruba yerleştiriyorsun, anında görüyorsun.' },
+  { app: 'calis/', h: '#/soru/10.3.4/12', no: 'Eşleştir', bas: 'Eşleştir, <em>dene.</em>', alt: 'Sol ile sağı eşleştir. Klasik test değil, düşündüren soru.', soyle: 'Sadece test değil: eşleştirme sorusu, dokunarak eşleştiriyorum.' },
+  { app: 'calis/', h: '#/soru/10.2.4/3', no: 'Sırala', bas: 'Doğru sıraya <em>diz.</em>', alt: 'Olayları sırala, kontrol et.', soyle: 'Sıralama sorusu: trambolindeki enerjiyi sıraya diziyorum.' },
+  { app: 'calis/', h: '#/soru/9.3.7/10', no: 'Sınıfla', bas: 'Gruplara <em>ayır.</em>', alt: 'Her olayı hangi ilkeyle açıklarsın? Seç, yerleştir.', soyle: 'Sınıflandırma sorusu: her olayı ilkesine göre ayırıyorum.' },
+  { app: 'calis/', h: '#/soru/10.2.4/4', no: 'Yeni nesil soru', bas: 'Sınavdaki gibi <em>şekiller.</em>', alt: 'Gerçekçi şekil, bağlam, beş şık. Bu soruda bilerek <b>B</b>’yi seç.', soyle: 'Sorular yeni nesil, şekiller sınavdaki gibi. Şimdi bilerek yanlış şıkkı seçiyorum.' },
+  { app: 'calis/', h: null, no: 'Yanlışın nedeni', bas: 'Neden yanlış <em>yaptın?</em>', alt: 'Seçtiğin şıkkın hangi hatadan geldiğini söyler.', soyle: 'Yanlış yapınca sadece doğru cevabı değil, benim hatamın nedenini söylüyor.' },
+  { app: 'calis/', h: null, no: 'Çözüm', bas: 'Adım adım <em>çözüm.</em>', alt: '“Sonraki adım” ile her adım ayrı açılır.', soyle: 'Çözüm adım adım açılıyor; takıldığın yerde duruyorsun.' },
+  { app: 'calis/', h: null, kalem: true, no: 'Kalem', bas: 'Üstüne <em>çiz.</em>', alt: 'Sorunun üstüne yaz, çiz. Telefonda parmakla, tablette kalemle.', soyle: 'Kalemle sorunun üstüne yazıp çizebiliyorum.' },
+  { app: 'calis/', h: '#/deneme', no: 'Deneme', bas: 'Süreli <em>deneme.</em>', alt: 'Konuları seç, süreyi ayarla. Sonunda net ve soru soru süre.', soyle: 'Deneme modunda süre tutuyor; sonunda netini ve soru soru süreni görüyorsun.' },
+  { app: 'calis/', h: '#/ilerleme', no: 'İlerleme', bas: 'Rozetler ve <em>ilerleme.</em>', alt: 'Hangi konuda neredesin, tek ekranda.', soyle: 'Çalıştıkça rozet kazanıyorsun; hangi konuda eksiğin var, görüyorsun.' },
+  { app: 'tyt/', h: '#/tyt/TD01', no: 'Yeni: Yapabilirim TYT', bas: 'TYT’de fizik <em>boş kalmasın.</em>', alt: 'Gerçek TYT gibi 7 soru, 10 dakika. Başla’ya bas, süre akıyor.', soyle: 'Yeni ürünümüz Yapabilirim TYT: gerçek TYT gibi 7 soru, 10 dakika; her hafta yeni deneme.' },
+  { app: 'tyt/', h: '#/konu/T.3.2/not', hedef: '.n-cozumlu-dj', no: 'TYT', bas: '104 çözümlü <em>örnek.</em>', alt: 'Şıkkı seç, sonra çözümü adım adım aç.', soyle: '104 çözümlü örnek var; önce sen deniyorsun, sonra çözümü açıyorsun.' },
+  { app: 'olustur/', genis: true, no: 'Çıktı al', bas: 'Adına özel <em>PDF.</em>', alt: 'Konu ve deneme kitapçığı; öğretmene A/B formu, cevap anahtarı.', soyle: 'İstersen çıktı alıyorsun: adına özel kitapçık; öğretmenler için A/B formu.' }
+];
+const $ = s => document.querySelector(s), cer = $('#cer');
+let i = 0, yukluApp = '';
+try { const k = +location.hash.slice(1); if (k >= 1 && k <= S.length) i = k - 1; } catch (e) {}
+function olcek() {
+  const g = S[i].genis, H = innerHeight * .9;
+  if (g) { const gw = Math.min(innerWidth * .56, 1200), gh = H; const s = Math.min(1, gw / 1280); document.body.style.setProperty('--s', s); document.body.style.setProperty('--gw', gw); document.body.style.setProperty('--gh', gh); }
+  else document.body.style.setProperty('--s', Math.min(H / 960, innerWidth * .4 / 460));
+  $('#sahne').classList.toggle('genis', !!g);
+}
+function icDoc() { try { return cer.contentDocument; } catch (e) { return null; } }
+function bekle(kosul, sure = 6000) { return new Promise(r => { const t0 = Date.now(); (function d() { let ok = false; try { ok = kosul(); } catch (e) {} if (ok || Date.now() - t0 > sure) r(ok); else setTimeout(d, 120); })(); }); }
+async function kur(yenidenYukle) {
+  const s = S[i];
+  $('#no').textContent = String(i + 1).padStart(2, '0') + '  ' + s.no;
+  $('#bas').innerHTML = s.bas; $('#alt').innerHTML = s.alt;
+  $('#soyle').innerHTML = '<b>Söyle:</b> ' + s.soyle; $('#say').textContent = (i + 1) + ' / ' + S.length;
+  history.replaceState(null, '', '#' + (i + 1));
+  olcek();
+  if (s.h === null && !yenidenYukle) { const d = icDoc(); if (s.kalem) { const b = d && d.getElementById('kalemAc'); if (b && !b.classList.contains('on')) b.click(); } if (d && s.hedef) await hedefle(d, s); return; }
+  let h = s.h; if (h === null) { for (let k = i; k >= 0; k--) if (S[k].h) { h = S[k].h; break; } }
+  const url = '../' + s.app + (h || '');
+  if (yukluApp !== s.app || yenidenYukle || !icDoc()) { yukluApp = s.app; cer.src = url; await new Promise(r => cer.onload = r); }
+  else { const d0 = icDoc(), eski = d0 && d0.querySelector('#uyg') && d0.querySelector('#uyg').firstElementChild; if (cer.contentWindow.location.hash !== (h || '')) { cer.contentWindow.location.hash = h || ''; await bekle(() => { const u = d0.querySelector('#uyg'); return u && u.firstElementChild && u.firstElementChild !== eski; }, 4000); } }
+  const d = icDoc(); if (!d) return;
+  await bekle(() => d.querySelector('#uyg') && d.querySelector('#uyg').children.length);
+  await new Promise(r => setTimeout(r, 250));
+  if (s.sinif) { const b = [...d.querySelectorAll('button,a')].find(e => e.textContent.trim().startsWith(s.sinif + '. Sınıf')); if (b) b.click(); }
+  if (s.hedef) await hedefle(d, s);
+  else cer.contentWindow.scrollTo(0, 0);
+}
+async function hedefle(d, s) {
+  await bekle(() => d.querySelectorAll(s.hedef).length > (s.sira || 0));
+  const el = d.querySelectorAll(s.hedef)[s.sira || 0]; if (!el) return;
+  cer.contentWindow.scrollTo({ top: el.getBoundingClientRect().top + cer.contentWindow.scrollY - 70, behavior: 'smooth' });
+  if (s.tikla) { await new Promise(r => setTimeout(r, 700)); const b = el.querySelector(s.tikla); if (b && !b.disabled) b.click(); }
+}
+function git(n) { if (n < 0 || n >= S.length) return; i = n; kur(false); }
+$('#ileri').onclick = () => git(i + 1); $('#geri').onclick = () => git(i - 1);
+$('#yenile').onclick = () => kur(true); $('#gizle').onclick = () => document.body.classList.add('gizli');
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') git(i + 1);
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') git(i - 1);
+  else if (e.key.toLowerCase() === 'h') document.body.classList.toggle('gizli');
+  else if (e.key.toLowerCase() === 'r') kur(true);
+});
+// iframe içine tıklanınca ok tuşları da çalışsın
+cer.addEventListener('load', () => { try { cer.contentWindow.addEventListener('keydown', e => { if (['ArrowRight', 'ArrowLeft', 'PageDown', 'PageUp'].includes(e.key) || e.key.toLowerCase() === 'h') { if (/INPUT|TEXTAREA/.test(e.target.tagName)) return; dispatchEvent(new KeyboardEvent('keydown', { key: e.key })); } }); } catch (e) {} });
+addEventListener('resize', olcek);
+try { const L = JSON.parse(localStorage.getItem('bfy_lisanslar') || '{}'); const eks = ['9', '10', '11', '20'].filter(k => !L[k]); if (eks.length) { $('#eksik').innerHTML = eks.map(k => `<li>${k === '20' ? 'TYT' : k + '. sınıf'} lisansı bu tarayıcıda yok.</li>`).join(''); $('#uyari').classList.add('ac'); } } catch (e) {}
+kur(true);
+</script>
+</body></html>
