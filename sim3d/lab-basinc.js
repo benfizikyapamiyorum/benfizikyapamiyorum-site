@@ -465,3 +465,5 @@ async function warm() { const objs = [arW, arF, arT, arN, ...pArrows].map(a => a
   await prewarmLin(); objs.forEach((o, i) => o.visible = vis[i]); r.visible = false; ringPool.push(r); }
 W.loadEnv('lab').then(warm).then(() => { W.start(); });
 window.__bfyLab = { W, S, items, OBJS, vsub, setMode, select, dropSelected, get waterY() { return waterY; }, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };
+
+window.BFYGrowthLab={prepare(){setMode('free');S.moon=false;$('i-moon').checked=false;setLiquid(LIQS[1]);select('egg');dropSelected();},read(){const it=items.find(it=>it.o.id===S.sel);return it?{selected:S.sel,mode:S.mode,density:S.rho,inTank:it.inTank,hung:it.hung,grab:it.grab,clearFloor:it.y>FLOOR+.002,submerged:vsub(it.o,it.ds)/it.o.V,velocity:it.v}:null;}};
