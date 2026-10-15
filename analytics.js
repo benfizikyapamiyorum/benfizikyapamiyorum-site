@@ -55,7 +55,7 @@
     // Keep only a fixed channel label; no raw referrer URLs or personal identifiers.
     function channel() {
       var utm = new URLSearchParams(location.search).get('utm_source');
-      if (utm === 'ogretmen') return 'ogretmen';
+      if (utm === 'ogretmen' || utm === 'paylasim') return utm;
       if (utm === 'instagram' || utm === 'youtube' || utm === 'tiktok') return utm;
       var ref = '';
       try { ref = new URL(document.referrer).hostname; } catch (_) {}
@@ -72,7 +72,8 @@
         returning = Boolean(localStorage.getItem('bfy_seen_v1'));
         localStorage.setItem('bfy_seen_v1', '1');
       } else {
-        source = sessionStorage.getItem('bfy_source_v1') || source;
+        var taggedSource = new URLSearchParams(location.search).get('utm_source');
+        if (['instagram','youtube','tiktok','ogretmen','paylasim'].indexOf(taggedSource) === -1) source = sessionStorage.getItem('bfy_source_v1') || source;
         sessionStorage.setItem('bfy_source_v1', source);
       }
     } catch (_) {}
@@ -115,11 +116,31 @@
       body: JSON.stringify(govde)
     }).catch(function () { /* sessiz — site asla etkilenmesin */ });
 
-    var allowed = ['student_start','test_start','test_complete','practice_click','lesson_lab','review_resource','share_open','share_copy','share_whatsapp','share_qr','shop_click'];
+    // Bounded attribution labels only; never save arbitrary query strings or visitor details.
+    var labs = ["basinc-kaldirma-3d", "basinc-kaldirma-laboratuvari", "carpisma-laboratuvari", "dalga-3d", "dalga-laboratuvari", "devre-laboratuvari", "egik-atis-3d", "egik-atis-laboratuvari", "enerji-sarkac-3d", "enerji-sarkac-laboratuvari", "hareket-grafikleri-3d", "hareket-grafikleri-laboratuvari", "manyetik-alan-3d", "manyetik-alan-laboratuvari", "optik-3d", "optik-laboratuvari", "vektor-3d", "vektor-laboratuvari"];
+    var campaigns = ['simulasyon','haftalik-gorev','yazili','yapabilirim','ogretmen','sinif'];
+    var creatives = ['carpisma','kaldirma','atis','devre','vektor','hareket','optik','manyetik','enerji','dalga'];
+    var query = new URLSearchParams(location.search), campaign='', creative='', paid=false, activeLab='';
+    try {
+      if (yeniOturum || ['instagram','youtube','tiktok','ogretmen','paylasim'].indexOf(query.get('utm_source'))!==-1) ['bfy_lab_v1','bfy_campaign_v1','bfy_creative_v1','bfy_paid_v1'].forEach(function(k){ sessionStorage.removeItem(k); });
+      var fromQuery=query.get('utm_campaign'), content=query.get('utm_content');
+      if(campaigns.indexOf(fromQuery)!==-1) sessionStorage.setItem('bfy_campaign_v1',fromQuery);
+      if(creatives.indexOf(content)!==-1) sessionStorage.setItem('bfy_creative_v1',content);
+      if(['cpc','paid_social','paid'].indexOf(query.get('utm_medium'))!==-1) sessionStorage.setItem('bfy_paid_v1','1');
+      campaign=sessionStorage.getItem('bfy_campaign_v1')||''; creative=sessionStorage.getItem('bfy_creative_v1')||''; paid=sessionStorage.getItem('bfy_paid_v1')==='1';activeLab=sessionStorage.getItem('bfy_lab_v1')||'';
+    } catch (_) { campaign=query.get('utm_campaign')||''; creative=query.get('utm_content')||''; }
+    if(campaigns.indexOf(campaign)===-1) campaign=''; if(creatives.indexOf(creative)===-1) creative=''; if(labs.indexOf(activeLab)===-1) activeLab='';
+    var allowed = ['student_start','test_start','test_complete','practice_click','lesson_lab','review_resource','share_open','share_copy','share_whatsapp','share_qr','shop_click','lab_open','lab_interact','lab_quiz_start','lab_quiz_complete','lab_product','lab_teacher','lab_share','product_view','challenge_open','challenge_start','challenge_complete','challenge_share','challenge_card'];
     window.BFY = {
-      track: function(event) {
+      track: function(event, context) {
         if (allowed.indexOf(event) === -1) return Promise.resolve(false);
+        context = context || {};
+        if (labs.indexOf(context.lab) !== -1) { activeLab = context.lab; try { sessionStorage.setItem('bfy_lab_v1', activeLab); } catch (_) {} }
         var transforms = [art('e_' + event), art('e_' + event + '_' + source)];
+        if (activeLab) transforms.push(art('l_' + activeLab.replace(/-/g,'_') + '_' + event));
+        if (campaign) transforms.push(art('c_' + campaign.replace(/-/g,'_') + '_' + event));
+        if (creative) transforms.push(art('v_' + creative + '_' + event));
+        if (paid) transforms.push(art('ad_' + source + '_' + event));
         var payload = {writes:[
           yaz('istatistik/ozet', {guncelleme:{timestampValue:new Date().toISOString()}}, ['guncelleme'], [art('e_' + event)]),
           yaz('istatistik_gun/' + today, {gun:{stringValue:today}}, ['gun'], transforms)
@@ -128,10 +149,11 @@
           .then(function(response) { return response.ok; }).catch(function() { return false; });
       }
     };
+    if (/^(9|10|11|tyt)-sinif-fizik-paketi\.html$/.test(key) || key === 'tyt-fizik-paketi.html' || key === 'materyaller.html') window.BFY.track('product_view');
     document.addEventListener('click', function(event) {
       var link = event.target.closest('a');
       if (!link) return;
-      if (link.dataset.bfyEvent) { window.BFY.track(link.dataset.bfyEvent); return; }
+      if (link.dataset.bfyEvent) { window.BFY.track(link.dataset.bfyEvent, {lab:link.dataset.bfyLab}); return; }
       try { if (/(^|\.)shopier\.com$/.test(new URL(link.href).hostname)) window.BFY.track('shop_click'); } catch (_) {}
     });
   } catch (e) { /* sessiz */ }

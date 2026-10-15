@@ -855,6 +855,7 @@ function ballR() { return BALLS[S.ball].r; }
 function restBall() { BALLPOS.set(0, S.h0 + ballR(), 0); BALLVEL.set(0, 0, 0); }
 let pivotKick = 0;
 function fire() {
+  if (mission?.weekly && (mission.tries >= 3 || mission.done)) { toast('Görev denemesi tamamlandı. Sonucu kontrol et veya görevi yeniden başlat.'); return; }
   if (S.phase === 'flying' || intro.on) { if (intro.on) intro.on = false; else return; }
   audio();
   cur = simulate(params()); cur.params = { ...params(), planet: S.planet, ballKey: S.ball, g10: S.g10 };
@@ -1288,3 +1289,6 @@ applyPlanet('earth').then(() => {
   if (!running) { running = true; clock.getDelta(); requestAnimationFrame(tick); }
 });
 window.__bfy3d = { simulate, params, S, fire, Q, renderer, get cur() { return cur; }, camera, scene, intro, director, target, get mission() { return mission; }, set speed(v) { S.speed = v; } };
+
+// A fixed, reproducible target for the weekly challenge. Free-play missions remain unchanged.
+window.BFYGrowthLab={prepare(){resetShot();clearTrails();S.planet='earth';S.g10=true;S.drag=false;S.h0=0;S.v0=20;S.ang=45;$('i-g10').checked=true;$('i-drag').checked=false;buildTower(0);mission={type:'angle',x:30,tries:0,last:'',weekly:true};target.position.set(30,0,0);target.visible=true;$('m-text').textContent='Haftalık görev: 30 m hedef, 20 m/s hız, g = 10 m/s². Açıyı bul; en fazla üç atış.';$('i-v0').disabled=true;$('i-ang').disabled=false;$('i-h0').disabled=true;document.querySelectorAll('#cards-planet .a3c').forEach(b=>b.classList.toggle('on',b.dataset.p==='earth'));applyPlanet('earth').catch(()=>toast('Dünya görseli yüklenemedi; fizik modeli hazır.'));$('btn-mission').textContent='Başka hedef';intro.on=false;syncUI();computeFrame();resetShot();updateScore();},read(){const p=cur?.params;return {weekly:!!mission?.weekly,landed:S.phase==='landed',tries:mission?.tries||0,range:cur?.R,v0:p?.v0,g:p?.g,h0:p?.h0,planet:p?.planet,drag:p?.drag};}};
