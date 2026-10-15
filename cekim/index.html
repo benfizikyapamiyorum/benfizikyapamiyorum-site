@@ -9,9 +9,9 @@
 html,body{height:100%;overflow:hidden}
 body{background:radial-gradient(120% 90% at 75% 10%,#2f6b56 0%,#1d473a 45%,#0f241c 100%);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
 .sahne{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:5vw;padding:1.5vh 4vw}
-.tel{position:relative;flex:none;border-radius:calc(56px*var(--s));background:#0d1512;padding:calc(14px*var(--s));box-shadow:0 40px 90px rgba(0,0,0,.5),inset 0 0 0 3px #2e3a35}
-.tel .ekran{position:relative;overflow:hidden;border-radius:calc(44px*var(--s));background:#f6f4ee;width:calc(390px*var(--s));height:calc(844px*var(--s))}
-.tel iframe{position:absolute;left:0;top:0;width:390px;height:844px;border:0;transform:scale(var(--s));transform-origin:0 0;background:#f6f4ee}
+.tel{position:relative;flex:none;border-radius:62px;background:#0d1512;padding:14px;box-shadow:0 40px 90px rgba(0,0,0,.5),inset 0 0 0 3px #2e3a35}
+.tel .ekran{position:relative;overflow:hidden;border-radius:48px;background:#f6f4ee;width:calc(var(--w)*var(--s)*1px);height:calc(var(--h)*var(--s)*1px)}
+.tel iframe{position:absolute;left:0;top:0;width:calc(var(--w)*1px);height:calc(var(--h)*1px);border:0;transform:scale(var(--s));transform-origin:0 0;background:#f6f4ee}
 .genis .tel{border-radius:22px;padding:12px}
 .genis .tel .ekran{border-radius:12px;width:calc(var(--gw)*1px);height:calc(var(--gh)*1px)}
 .genis .tel iframe{width:calc(var(--gw)*1px/var(--s));height:calc(var(--gh)*1px/var(--s))}
@@ -134,10 +134,16 @@ let i = 0, yukluApp = '';
 // Tek link: #L=jeton9,jeton10,jeton11,jetonTYT ile lisansları bu tarayıcıya kaydeder (jetonlar sunucuya gitmez).
 try { const m = location.hash.match(/^#L=([^&]+)/); if (m) { const o = JSON.parse(localStorage.getItem('bfy_lisanslar') || '{}'); m[1].split(',').forEach(j => { try { const s = atob(j.split('.')[0].replace(/-/g, '+').replace(/_/g, '/')).split('|'); if (s[0] === 'B2' && /^(9|10|11|20)$/.test(s[1])) o[s[1]] = j; } catch (e) {} }); localStorage.setItem('bfy_lisanslar', JSON.stringify(o)); history.replaceState(null, '', location.pathname + location.search + '#1'); } } catch (e) {}
 try { const k = +location.hash.slice(1); if (k >= 1 && k <= S.length) i = k - 1; } catch (e) {}
+let ZOOM = 1.6; try { ZOOM = +localStorage.getItem('bfy_cekim_zoom') || 1.6; } catch (e) {}
 function olcek() {
   const g = S[i].genis, H = innerHeight * .97;
   if (g) { const gw = Math.min(innerWidth * .56, 1200), gh = H; const s = Math.min(1, gw / 1280); document.body.style.setProperty('--s', s); document.body.style.setProperty('--gw', gw); document.body.style.setProperty('--gh', gh); }
-  else document.body.style.setProperty('--s', Math.min(H / 872, innerWidth * .42 / 418));
+  else {
+    // Telefonun içi büyük okunsun: dar mantıksal genişlik (340 px) büyük ölçekle çizilir; yükseklik ekranı doldurur.
+    const W = 340, s = Math.max(1, Math.min(ZOOM, innerWidth * .5 / (W + 28), (H - 28) / 440));
+    const h = Math.round((H - 28) / s);
+    document.body.style.setProperty('--s', s); document.body.style.setProperty('--w', W); document.body.style.setProperty('--h', h);
+  }
   $('#sahne').classList.toggle('genis', !!g);
 }
 function icDoc() { try { return cer.contentDocument; } catch (e) { return null; } }
@@ -175,9 +181,10 @@ addEventListener('keydown', e => {
   else if (e.key === 'ArrowLeft' || e.key === 'PageUp') git(i - 1);
   else if (e.key.toLowerCase() === 'h') document.body.classList.toggle('gizli');
   else if (e.key.toLowerCase() === 'r') kur(true);
+  else if (e.key === '+' || e.key === '=' || e.key === '-') { ZOOM = Math.max(1, Math.min(2.6, ZOOM + (e.key === '-' ? -.1 : .1))); try { localStorage.setItem('bfy_cekim_zoom', ZOOM); } catch (er) {} olcek(); }
 });
 // iframe içine tıklanınca ok tuşları da çalışsın
-cer.addEventListener('load', () => { try { cer.contentWindow.addEventListener('keydown', e => { if (['ArrowRight', 'ArrowLeft', 'PageDown', 'PageUp'].includes(e.key) || e.key.toLowerCase() === 'h') { if (/INPUT|TEXTAREA/.test(e.target.tagName)) return; dispatchEvent(new KeyboardEvent('keydown', { key: e.key })); } }); } catch (e) {} });
+cer.addEventListener('load', () => { try { cer.contentWindow.addEventListener('keydown', e => { if (['ArrowRight', 'ArrowLeft', 'PageDown', 'PageUp', '+', '=', '-'].includes(e.key) || e.key.toLowerCase() === 'h') { if (/INPUT|TEXTAREA/.test(e.target.tagName)) return; dispatchEvent(new KeyboardEvent('keydown', { key: e.key })); } }); } catch (e) {} });
 addEventListener('resize', olcek);
 try { const L = JSON.parse(localStorage.getItem('bfy_lisanslar') || '{}'); const eks = ['9', '10', '11', '20'].filter(k => !L[k]); if (eks.length) { $('#eksik').innerHTML = eks.map(k => `<li>${k === '20' ? 'TYT' : k + '. sınıf'} lisansı bu tarayıcıda yok.</li>`).join(''); $('#uyari').classList.add('ac'); } } catch (e) {}
 kur(true);
