@@ -36,6 +36,13 @@ body{background:radial-gradient(120% 90% at 75% 10%,#2f6b56 0%,#1d473a 45%,#0f24
 .uyari h2{font-size:26px;margin-bottom:10px}
 .uyari ul{margin:12px 0 18px 20px}
 .uyari button{font:inherit;font-weight:800;background:#244f40;color:#fff;border:0;border-radius:12px;padding:12px 18px;cursor:pointer}
+.tam .sahne{padding:0;gap:0}
+.tam .tel{position:fixed;inset:0;border-radius:0;padding:0;box-shadow:none;background:#f6f4ee}
+.tam .tel .ekran{width:100vw!important;height:100vh!important;border-radius:0}
+.tam .tel iframe{width:100vw!important;height:100vh!important;transform:none!important}
+.tam .yazi{display:none}
+.tam.gizli .panel{display:none}
+.tam .panel{bottom:auto;top:10px}
 </style></head>
 <body>
 <div class="sahne" id="sahne">
@@ -128,6 +135,7 @@ const S11 = [
 ];
 const SET = (location.search.match(/^\?(?:set=)?(9|10|11)\b/) || [])[1] || '';
 const SETLER = { '9': S9, '10': S10, '11': S11 };
+const TAM = !/cerceve/.test(location.search); if (TAM) document.body.classList.add('tam', 'gizli');
 if (SETLER[SET]) { S.length = 0; S.push(...SETLER[SET]); }
 const $ = s => document.querySelector(s), cer = $('#cer');
 let i = 0, yukluApp = '';
@@ -136,6 +144,7 @@ try { const m = location.hash.match(/^#L=([^&]+)/); if (m) { const o = JSON.pars
 try { const k = +location.hash.slice(1); if (k >= 1 && k <= S.length) i = k - 1; } catch (e) {}
 let ZOOM = 1.6; try { ZOOM = +localStorage.getItem('bfy_cekim_zoom') || 1.6; } catch (e) {}
 function olcek() {
+  if (TAM) return;
   const g = S[i].genis, H = innerHeight * .97;
   if (g) { const gw = Math.min(innerWidth * .56, 1200), gh = H; const s = Math.min(1, gw / 1280); document.body.style.setProperty('--s', s); document.body.style.setProperty('--gw', gw); document.body.style.setProperty('--gh', gh); }
   else {
@@ -170,7 +179,7 @@ async function kur(yenidenYukle) {
 async function hedefle(d, s) {
   await bekle(() => d.querySelectorAll(s.hedef).length > (s.sira || 0));
   const el = d.querySelectorAll(s.hedef)[s.sira || 0]; if (!el) return;
-  cer.contentWindow.scrollTo({ top: el.getBoundingClientRect().top + cer.contentWindow.scrollY - 70, behavior: 'smooth' });
+  cer.contentWindow.scrollTo({ top: el.getBoundingClientRect().top + cer.contentWindow.scrollY - 105, behavior: 'smooth' });
   if (s.tikla) { await new Promise(r => setTimeout(r, 700)); const b = el.querySelector(s.tikla); if (b && !b.disabled) b.click(); }
 }
 function git(n) { if (n < 0 || n >= S.length) return; i = n; kur(false); }
