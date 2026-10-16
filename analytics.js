@@ -130,7 +130,7 @@
       campaign=sessionStorage.getItem('bfy_campaign_v1')||''; creative=sessionStorage.getItem('bfy_creative_v1')||''; paid=sessionStorage.getItem('bfy_paid_v1')==='1';activeLab=sessionStorage.getItem('bfy_lab_v1')||'';
     } catch (_) { campaign=query.get('utm_campaign')||''; creative=query.get('utm_content')||''; }
     if(campaigns.indexOf(campaign)===-1) campaign=''; if(creatives.indexOf(creative)===-1) creative=''; if(labs.indexOf(activeLab)===-1) activeLab='';
-    var allowed = ['student_start','test_start','test_complete','practice_click','lesson_lab','review_resource','share_open','share_copy','share_whatsapp','share_qr','shop_click','lab_open','lab_interact','lab_quiz_start','lab_quiz_complete','lab_product','lab_teacher','lab_share','product_view','challenge_open','challenge_start','challenge_complete','challenge_share','challenge_card'];
+    var allowed = ['home_student_offer','home_teacher_offer','test_offer_view','test_offer_click','game_student_offer','game_teacher_offer','whatsapp_order','student_start','test_start','test_complete','practice_click','lesson_lab','review_resource','share_open','share_copy','share_whatsapp','share_qr','shop_click','lab_open','lab_interact','lab_quiz_start','lab_quiz_complete','lab_product','lab_teacher','lab_share','product_view','challenge_open','challenge_start','challenge_complete','challenge_share','challenge_card'];
     window.BFY = {
       track: function(event, context) {
         if (allowed.indexOf(event) === -1) return Promise.resolve(false);
@@ -153,7 +153,7 @@
     document.addEventListener('click', function(event) {
       var link = event.target.closest('a');
       if (!link) return;
-      if (link.dataset.bfyEvent) { window.BFY.track(link.dataset.bfyEvent, {lab:link.dataset.bfyLab}); return; }
+      if (link.dataset.bfyEvent) { window.BFY.track(link.dataset.bfyEvent, {lab:link.dataset.bfyLab}); if (['home_student_offer','home_teacher_offer','test_offer_click','game_student_offer','game_teacher_offer'].indexOf(link.dataset.bfyEvent)!==-1) window.BFY.track('shop_click'); return; }
       try { if (/(^|\.)shopier\.com$/.test(new URL(link.href).hostname)) window.BFY.track('shop_click'); } catch (_) {}
     });
   } catch (e) { /* sessiz */ }
