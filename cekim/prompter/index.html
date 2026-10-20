@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#0f241c">
+<title>Yapabilirim teleprompter</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--fs:34px;--yesil:#244f40;--altin:#e9be64}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#0b1511;color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+#kam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;background:#0b1511}
+#kam.ayna{transform:scaleX(-1)}
+.metin{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top) + 58px);height:44%;-webkit-mask-image:linear-gradient(transparent 0,#000 22%,#000 82%,transparent 100%);mask-image:linear-gradient(transparent 0,#000 22%,#000 82%,transparent 100%);overflow:hidden;background:rgba(6,14,11,.82)}
+.metin.tam{height:calc(100% - 58px - 130px);background:rgba(6,14,11,.92)}
+.ic{position:absolute;left:0;right:0;top:34%;padding:0 22px 70vh;will-change:transform}
+.ic.ters{transform-origin:center}
+.blok{padding:10px 0 22px}
+.blok .ip{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.08em;color:#1c2522;background:var(--altin);border-radius:99px;padding:3px 10px;margin-bottom:8px}
+.blok p{font-size:var(--fs);line-height:1.32;font-weight:700;color:#fff}
+.cizgi{position:absolute;left:0;right:0;top:34%;height:0;border-top:2px dashed rgba(233,190,100,.65);pointer-events:none}
+.cizgi::before{content:'';position:absolute;left:4px;top:-9px;border:8px solid transparent;border-left:12px solid var(--altin)}
+.ust{position:fixed;left:10px;right:10px;justify-content:flex-end;top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:6px;z-index:5}
+.alt{position:fixed;left:0;right:0;bottom:0;padding:10px 12px calc(env(safe-area-inset-bottom) + 12px);display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(transparent,rgba(6,14,11,.75));z-index:5;flex-wrap:wrap}
+button{font:inherit;font-weight:800;border:0;border-radius:12px;padding:10px 12px;background:rgba(36,79,64,.92);color:#fff;font-size:15px;cursor:pointer;min-width:44px}
+button:active{transform:scale(.96)}
+#kayit{width:74px;height:74px;border-radius:50%;background:#fff;padding:0;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px rgba(255,255,255,.35)}
+#kayit i{display:block;width:56px;height:56px;border-radius:50%;background:#e2483d;transition:.2s}
+#kayit.on i{width:30px;height:30px;border-radius:7px}
+.sure{font-weight:800;font-variant-numeric:tabular-nums;min-width:64px;text-align:center;font-size:17px}
+.sure.on{color:#ff6b5f}
+.hiz{display:flex;align-items:center;gap:4px;background:rgba(36,79,64,.92);border-radius:12px;padding:0 4px}
+.hiz button{background:transparent;padding:10px 8px}
+.hiz span{font-size:14px;min-width:44px;text-align:center}
+.say{position:fixed;inset:0;display:none;align-items:center;justify-content:center;font-size:150px;font-weight:800;color:#fff;text-shadow:0 6px 30px rgba(0,0,0,.6);z-index:8;pointer-events:none}
+.say.ac{display:flex}
+.son{position:fixed;inset:0;display:none;background:rgba(6,14,11,.96);z-index:10;overflow:auto;padding:calc(env(safe-area-inset-top) + 18px) 18px 30px}
+.son.ac{display:block}
+.son video{width:100%;max-height:52vh;border-radius:16px;background:#000}
+.son h2{font-size:22px;margin:4px 0 12px}
+.son .sat{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.son .sat button,.son .sat a{flex:1 1 140px;text-align:center;text-decoration:none;font-weight:800;border-radius:12px;padding:13px 12px;background:var(--yesil);color:#fff;font-size:16px}
+.son .sat .ana{background:var(--altin);color:#1c2522}
+.son pre{white-space:pre-wrap;font:600 14px/1.5 'Plus Jakarta Sans',system-ui;background:#16271f;border-radius:12px;padding:12px;color:#d9edaf}
+.son small{display:block;color:#a9bdb2;margin-top:6px;line-height:1.4}
+.bilgi{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 160px);text-align:center;font-size:14px;color:#dbe7df;text-shadow:0 1px 6px #000;z-index:4}
+.gizli{display:none!important}
+</style></head>
+<body>
+<video id="kam" class="ayna" autoplay playsinline muted></video>
+<div class="metin" id="metin"><div class="ic" id="ic"></div><div class="cizgi"></div></div>
+<div class="ust">
+  <button id="aKucuk" title="Yazıyı küçült">A−</button>
+  <button id="aBuyuk" title="Yazıyı büyüt">A+</button>
+  <button id="cevir" title="Ön ya da arka kamera">⟲ Kamera</button>
+  <button id="sadece" title="Kamerasız tam ekran metin">Metin</button>
+</div>
+<div class="bilgi" id="bilgi">Kayıt düğmesine bas: 3 saniye geri sayım, sonra yazı akar. Yazıya dokununca durur ya da devam eder.</div>
+<div class="alt">
+  <button id="basa" title="Metni başa al">⏮</button>
+  <div class="hiz"><button id="yavas">−</button><span id="hizY">Hız 4</span><button id="hizli">+</button></div>
+  <button id="kayit" aria-label="Kaydı başlat ya da bitir"><i></i></button>
+  <span class="sure" id="sure">0:00</span>
+  <button id="akBtn" title="Kayıt olmadan yazıyı akıt (prova)">Prova</button>
+</div>
+<div class="say" id="say"></div>
+<div class="son" id="son">
+  <h2>Çekim hazır</h2>
+  <video id="izle" controls playsinline></video>
+  <div class="sat">
+    <button class="ana" id="paylas">Videoyu kaydet</button>
+    <a id="indir" download>Dosya olarak indir</a>
+  </div>
+  <div class="sat"><button id="tekrar">Yeniden çek</button></div>
+  <h2 style="margin-top:14px">Zaman kodları</h2>
+  <pre id="kod"></pre>
+  <small>Her bölümün okuma çizgisine geldiği an. Videoyla birlikte bana yolla; ekran görüntülerini bu zamanlara göre bindiririm.</small>
+  <div class="sat"><button id="kopya">Zaman kodlarını kopyala</button></div>
+</div>
+<script>
+// Metin: /cekim/?yeni sahneleriyle aynı sırada (sahne numaraları bindirme içindir, okunmaz).
+const M = [
+  ['01 Açılış', 'Fizik kitabı artık sadece okunmuyor. Oynanıyor.'],
+  ['01 Açılış', 'Yapabilirim 9, 10 ve 11: dijital fizik kitabı.'],
+  ['02 Konu anlatımı', 'Her konu kısa, net bir anlatımla başlıyor: hikâye, şekil, formül.'],
+  ['03 Kavram kartları', 'Kavram kartlarında önce sen cevaplıyorsun, sonra dokunup çeviriyorsun.'],
+  ['04 Deney: sıvı basıncı', 'Ve her konuda bir deney. Derinliği değiştiriyorsun, basınç anında değişiyor.'],
+  ['05 3B kaldırma kuvveti', 'Bazı deneyler 3B: küp suya iniyor, dinamometre azalıyor.'],
+  ['06 Deney: dirençler', 'Devreyi seri ya da paralel kur, akımı canlı gör.'],
+  ['07 3B U rampa', 'Kaykay iniyor, çıkıyor; enerji dönüşüyor.'],
+  ['08 Sürtünmeyi aç', 'Sürtünmeyi açınca enerji ısıya gidiyor, kaykay her seferinde daha az çıkıyor.'],
+  ['09 Deney: mercek', 'Cismi merceğe yaklaştır, görüntü gözünün önünde değişsin.'],
+  ['10 3B sağ el', 'Sağ el kuralı bile 3B.'],
+  ['11 Test', 'Sonra testler: yeni nesil, şekilli sorular.'],
+  ['12 Yanlışın nedeni', 'Yanlış yaparsan sadece doğruyu göstermiyor, neden yanlış yaptığını söylüyor.'],
+  ['13 Çözüm', 'Çözümler adım adım açılıyor.'],
+  ['14 Etkileşimli soru', 'Eşleştirme, sıralama, sınıflama soruları da var.'],
+  ['15 Mini oyun', 'Mini oyunlarla tekrar ediyorsun.'],
+  ['16 Deneme', 'Süreli denemelerde netini ve soru soru süreni görüyorsun.'],
+  ['17 İlerleme', 'Hangi konuda nerede olduğun tek ekranda.'],
+  ['18 Kapanış', '9, 10 ve 11. sınıf: konu anlatımı, 59 deney, 1700’den fazla soru, çözümler ve denemeler.'],
+  ['18 Kapanış', 'Hepsi tek dijital kitapta. Link profilde.']
+];
+const $ = s => document.querySelector(s);
+const ic = $('#ic'), metin = $('#metin'), kam = $('#kam');
+const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+ic.innerHTML = M.map(([ip, t], i) => `<div class="blok" data-i="${i}">${i && M[i - 1][0] === ip ? '' : `<span class="ip">${esc(ip)}</span><br>`}<p>${esc(t)}</p></div>`).join('');
+const al = (k, v) => { try { const x = localStorage.getItem('bfy_tp_' + k); return x == null ? v : +x; } catch (e) { return v; } };
+const ver = (k, v) => { try { localStorage.setItem('bfy_tp_' + k, v); } catch (e) {} };
+let fs = al('fs', innerWidth < 600 ? 32 : 46), hiz = al('hiz', 4), y = 0, akiyor = false, son = 0;
+const uygula = () => { document.documentElement.style.setProperty('--fs', fs + 'px'); $('#hizY').textContent = 'Hız ' + hiz; };
+uygula();
+// Hız: saniyede akan piksel, yazı boyuna göre ölçeklenir (hız 4 ≈ dakikada 150 kelime).
+const pxSn = () => hiz * fs * 0.45;
+function kare(t) {
+  if (akiyor) { const dt = son ? Math.min(.1, (t - son) / 1000) : 0; y += pxSn() * dt; const mx = ic.scrollHeight - metin.clientHeight * .5; if (y > mx) y = mx; ic.style.transform = `translateY(${-y}px)`; isaretle(); }
+  son = t; requestAnimationFrame(kare);
+}
+requestAnimationFrame(kare);
+// Zaman kodları: her bloğun üstü okuma çizgisine geldiğinde (kayıt sırasında)
+let kod = [], t0 = 0, kayitta = false;
+function isaretle() {
+  if (!kayitta) return; const cz = metin.getBoundingClientRect().top + metin.clientHeight * .34;
+  ic.querySelectorAll('.blok').forEach(b => { const i = +b.dataset.i; if (!b._isr && b.getBoundingClientRect().top <= cz) { b._isr = 1; kod.push([i, (performance.now() - t0) / 1000]); } });
+}
+const zs = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+function basa() { y = 0; ic.style.transform = 'translateY(0)'; ic.querySelectorAll('.blok').forEach(b => b._isr = 0); }
+metin.addEventListener('click', () => { if (kayitta || akiyor) akiyor = !akiyor; });
+// Parmakla sürükleyerek metni elle kaydır
+let sy = null; metin.addEventListener('touchstart', e => { sy = e.touches[0].clientY; }, { passive: true });
+metin.addEventListener('touchmove', e => { if (sy == null) return; const d = sy - e.touches[0].clientY; sy = e.touches[0].clientY; y = Math.max(0, y + d); ic.style.transform = `translateY(${-y}px)`; }, { passive: true });
+metin.addEventListener('wheel', e => { y = Math.max(0, y + e.deltaY); ic.style.transform = `translateY(${-y}px)`; }, { passive: true });
+$('#aKucuk').onclick = () => { fs = Math.max(20, fs - 4); ver('fs', fs); uygula(); };
+$('#aBuyuk').onclick = () => { fs = Math.min(80, fs + 4); ver('fs', fs); uygula(); };
+$('#yavas').onclick = () => { hiz = Math.max(1, hiz - 1); ver('hiz', hiz); uygula(); };
+$('#hizli').onclick = () => { hiz = Math.min(12, hiz + 1); ver('hiz', hiz); uygula(); };
+$('#basa').onclick = basa;
+$('#sadece').onclick = () => { metin.classList.toggle('tam'); };
+$('#akBtn').onclick = () => { if (kayitta) return; if (!akiyor) { basa(); geriSay(() => { akiyor = true; $('#akBtn').textContent = 'Durdur'; }); } else { akiyor = false; $('#akBtn').textContent = 'Prova'; } };
+addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); akiyor = !akiyor; } else if (e.key === 'ArrowUp') $('#hizli').click(); else if (e.key === 'ArrowDown') $('#yavas').click(); else if (e.key.toLowerCase() === 'r') $('#kayit').click(); });
+// Kamera
+let akis = null, yuz = 'user';
+async function kameraAc() {
+  if (akis) akis.getTracks().forEach(t => t.stop());
+  try {
+    akis = await navigator.mediaDevices.getUserMedia({ video: Object.assign({ facingMode: yuz, frameRate: { ideal: 30 } }, innerHeight >= innerWidth ? { width: { ideal: 1080 }, height: { ideal: 1920 }, aspectRatio: { ideal: 9 / 16 } } : { width: { ideal: 1920 }, height: { ideal: 1080 } }), audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    kam.srcObject = akis; kam.classList.toggle('ayna', yuz === 'user'); $('#bilgi').classList.remove('gizli');
+  } catch (e) { akis = null; $('#bilgi').textContent = 'Kamera açılamadı. Tarayıcıya kamera ve mikrofon izni ver, sonra sayfayı yenile. İzin vermeden de metni "Prova" ile akıtabilirsin.'; }
+}
+kameraAc();
+$('#cevir').onclick = () => { if (kayitta) return; yuz = yuz === 'user' ? 'environment' : 'user'; kameraAc(); };
+function geriSay(sonra) { const el = $('#say'); let n = 3; el.textContent = n; el.classList.add('ac'); const t = setInterval(() => { n--; if (n) el.textContent = n; else { clearInterval(t); el.classList.remove('ac'); sonra(); } }, 1000); }
+// Kayıt: yalnız kamera ve ses kaydedilir, yazı videoya girmez.
+let kayitci = null, parca = [], sureT = null, kilit = null, mime = '';
+function mimeSec() { const L = ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']; for (const m of L) if (window.MediaRecorder && MediaRecorder.isTypeSupported(m)) return m; return ''; }
+$('#kayit').onclick = () => {
+  if (kayitta) { bitir(); return; }
+  if (!akis) { kameraAc(); return; }
+  if (!window.MediaRecorder) { alert('Bu tarayıcı video kaydını desteklemiyor. Safari ya da Chrome ile aç.'); return; }
+  $('#bilgi').classList.add('gizli'); basa(); akiyor = false;
+  geriSay(async () => {
+    mime = mimeSec(); parca = []; kod = [];
+    try { kayitci = new MediaRecorder(akis, mime ? { mimeType: mime, videoBitsPerSecond: 10e6 } : { videoBitsPerSecond: 10e6 }); } catch (e) { kayitci = new MediaRecorder(akis); }
+    mime = kayitci.mimeType || mime || 'video/mp4';
+    kayitci.ondataavailable = e => { if (e.data && e.data.size) parca.push(e.data); };
+    kayitci.onstop = goster;
+    kayitci.start(1000); t0 = performance.now(); kayitta = true; akiyor = true;
+    $('#kayit').classList.add('on'); $('#sure').classList.add('on'); $('#akBtn').classList.add('gizli');
+    sureT = setInterval(() => { $('#sure').textContent = zs((performance.now() - t0) / 1000); }, 250);
+    try { kilit = await navigator.wakeLock.request('screen'); } catch (e) {}
+  });
+};
+function bitir() { kayitta = false; akiyor = false; clearInterval(sureT); $('#kayit').classList.remove('on'); $('#sure').classList.remove('on'); $('#akBtn').classList.remove('gizli'); if (kayitci && kayitci.state !== 'inactive') kayitci.stop(); try { kilit && kilit.release(); } catch (e) {} }
+let dosya = null;
+function goster() {
+  const uz = /mp4/.test(mime) ? 'mp4' : 'webm', ad = 'yapabilirim-reels-' + new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '') + '.' + uz;
+  const blob = new Blob(parca, { type: mime.split(';')[0] }); dosya = new File([blob], ad, { type: blob.type });
+  const u = URL.createObjectURL(blob); $('#izle').src = u; $('#indir').href = u; $('#indir').download = ad;
+  $('#kod').textContent = kod.map(([i, s]) => zs(s) + '.' + String(Math.round((s % 1) * 10)) + '  ' + M[i][0] + ': ' + M[i][1]).join('\n') + '\nToplam: ' + zs((performance.now() - t0) / 1000);
+  $('#paylas').classList.toggle('gizli', !(navigator.canShare && navigator.canShare({ files: [dosya] })));
+  $('#son').classList.add('ac');
+}
+$('#paylas').onclick = async () => { try { await navigator.share({ files: [dosya], title: 'Yapabilirim Reels çekimi' }); } catch (e) {} };
+$('#kopya').onclick = async () => { try { await navigator.clipboard.writeText($('#kod').textContent); $('#kopya').textContent = 'Kopyalandı'; } catch (e) { const r = document.createRange(); r.selectNodeContents($('#kod')); getSelection().removeAllRanges(); getSelection().addRange(r); } };
+$('#tekrar').onclick = () => { $('#son').classList.remove('ac'); $('#izle').removeAttribute('src'); basa(); $('#sure').textContent = '0:00'; };
+</script>
+</body></html>
