@@ -2,7 +2,7 @@
 import * as THREE from './bfy-three.module.min.js';
 
 const URUNLER = [
-  { tip: 'tablet', img: 'img/tyt/tablet.webp', ar: 1600 / 1113, renk: '#7a3f2a', kat: 'YENİ · TYT dijital paket', ad: 'Yapabilirim TYT', alt: '24 konu, 1194 soru, 30 deneme. Her hafta yeni TYT denemesi, net grafiği.', fiyat: '₺799', link: 'tyt-fizik-paketi.html', dene: 'tyt/' },
+  { tip: 'tablet', img: 'img/tyt/tablet.webp', ar: 1600 / 1113, renk: '#7a3f2a', kat: 'YENİ · TYT dijital paket', ad: 'Yapabilirim TYT', alt: '24 konu, 1201 soru, 31 deneme. Her hafta yeni TYT denemesi, net grafiği.', fiyat: '₺799', link: 'tyt-fizik-paketi.html', dene: 'tyt/' },
   { tip: 'phone', img: 'img/fizik9/ana.webp', ar: 780 / 1688, renk: '#2e6b57', kat: 'Öğrenci · Dijital paket', ad: 'Yapabilirim 9', alt: '21 konu, 573 soru, kavram kartları ve mini oyunlar. Telefon, tablet, PDF.', fiyat: '₺599', link: '9-sinif-fizik-paketi.html', dene: 'calis/' },
   { tip: 'tablet', img: 'img/fizik10/tablet.webp', ar: 1600 / 1112, renk: '#214e41', kat: 'Öğrenci · Dijital paket', ad: 'Yapabilirim 10', alt: '20 konu, 636 soru, adım adım çözümler. Kalemle çöz, kitapçığını yazdır.', fiyat: '₺599', link: '10-sinif-fizik-paketi.html', dene: 'calis/' },
   { tip: 'phone', img: 'img/fizik11/set.webp', ar: 780 / 1688, renk: '#3b4f8a', kat: 'Öğrenci · Dijital paket', ad: 'Yapabilirim 11', alt: '18 konu, 558 soru ve açık uçlu görev. Deneme modu ve ilerleme takibi.', fiyat: '₺599', link: '11-sinif-fizik-paketi.html', dene: 'calis/' },

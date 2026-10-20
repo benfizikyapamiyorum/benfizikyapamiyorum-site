@@ -37409,6 +37409,246 @@ window.BFY_TYT_TEST[TEST.id] = TEST;
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim TYT · TD31 (TYT Fizik Denemesi 31)
+   Şablon: 1. soru T.1/T.2, 2. soru T.2, 3–7. sorular T.3–T.7'den birer. Zorluk 2/3/2 (★/★★/★★★).
+   Gerçek TYT fizik bölümü gibi 7 soru, 10 dakika. Metinler, sayılar ve şekiller özgündür;
+   ÖSYM sorularından yalnızca soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Şekil anahtarları: TD31_ öneki. Soru kimlikleri: TD31_1 … TD31_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ---------- */
+if (window.BFY_FIGLIB) {
+const { P, T, svg } = window.BFY_FIGLIB;
+
+// 5. soru: karton meyve suyu kutusu, içmeden önce ve içerken (yandan görünüş)
+BFY_FIG_EKLE('TD31_kutu', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="232" rx="10" fill="#f6f9f7"/>`;
+  const kutu = (x0, cok) => {
+    const w = 78, yT = 70, yB = 196, xL = x0, xR = x0 + w, d = cok ? 11 : 0, ym = (yT + yB) / 2;
+    let k = '';
+    // gövde: çökme varsa yan yüzler içe kavisli
+    k += `<path d="M ${xL} ${yT} L ${xR} ${yT} Q ${xR - 2 * d} ${ym} ${xR} ${yB} L ${xL} ${yB} Q ${xL + 2 * d} ${ym} ${xL} ${yT} Z" fill="#f3c46a" stroke="#8a5a1c" stroke-width="2" stroke-linejoin="round"/>`;
+    // yan yüzün içe çökme miktarı (ikinci dereceden Bezier: y doğrusal, x içe 4d·t(1−t))
+    const ic = y => { const t = (y - yT) / (yB - yT); return 4 * d * t * (1 - t); };
+    const serit = (y1, y2) => { const ys = [0, 1, 2, 3, 4, 5, 6].map(i => y1 + (y2 - y1) * i / 6); return ys.map(y => `${(xL + ic(y)).toFixed(1)},${y.toFixed(1)}`).concat(ys.slice().reverse().map(y => `${(xR - ic(y)).toFixed(1)},${y.toFixed(1)}`)).join(' '); };
+    // etiket şeridi (sade bant)
+    k += `<polygon points="${serit(ym - 18, ym + 18)}" fill="#e58a3a" opacity="0.85"/>`;
+    // üst kapak çizgisi
+    k += `<line x1="${(xL + ic(yT + 10)).toFixed(1)}" y1="${yT + 10}" x2="${(xR - ic(yT + 10)).toFixed(1)}" y2="${yT + 10}" stroke="#8a5a1c" stroke-width="1.2"/>`;
+    // pipet: üst yüzden girer, kutunun içinde dibe yakın biter (içte kesikli), üstte sola kıvrılır
+    const px = xL + w * 0.68, yU = yT - 44;
+    k += `<line x1="${px}" y1="${yB - 14}" x2="${px}" y2="${yT}" stroke="#2f7fb8" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+    const yol = `M ${px} ${yT + 1} L ${px} ${yU} L ${px - 12} ${yU - 10}`;
+    k += `<path d="${yol}" fill="none" stroke="#2f7fb8" stroke-width="7" stroke-linejoin="round"/><path d="${yol}" fill="none" stroke="#ffffff" stroke-width="3.6" stroke-linejoin="round"/>`;
+    return k;
+  };
+  s += kutu(52, false) + kutu(190, true);
+  s += T(91, 222, 'İçmeden önce', { size: 12, weight: 800, anchor: 'middle', fill: P.ink2 }) + T(229, 222, 'İçerken', { size: 12, weight: 800, anchor: 'middle', fill: P.ink2 });
+  return svg(320, 232, s, u, 70);
+});
+
+// 6. soru: K (1 pil, 1 lamba), L (2 pil düz seri, 2 lamba seri), M (2 pil paralel, 2 lamba paralel)
+BFY_FIG_EKLE('TD31_devre_genis', function (u) {
+  const c = '#24302c', w = 2;
+  const tel = (a, b, c2, d) => `<line x1="${a}" y1="${b}" x2="${c2}" y2="${d}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  // yatay pil: uzun çizgi (+) solda, kısa kalın çizgi (−) sağda; x merkez
+  const pilY = (x, y) => tel(x - 18, y, x - 4, y) + tel(x + 4, y, x + 18, y) + `<line x1="${x - 4}" y1="${y - 12}" x2="${x - 4}" y2="${y + 12}" stroke="${c}" stroke-width="2.4"/><line x1="${x + 4}" y1="${y - 6}" x2="${x + 4}" y2="${y + 6}" stroke="${c}" stroke-width="4"/>`;
+  const lamba = (x, y) => `<circle cx="${x}" cy="${y}" r="11" fill="#fffbe8" stroke="${c}" stroke-width="${w}"/><line x1="${x - 7.8}" y1="${y - 7.8}" x2="${x + 7.8}" y2="${y + 7.8}" stroke="${c}" stroke-width="1.6"/><line x1="${x - 7.8}" y1="${y + 7.8}" x2="${x + 7.8}" y2="${y - 7.8}" stroke="${c}" stroke-width="1.6"/>`;
+  const nokta = (x, y) => `<circle cx="${x}" cy="${y}" r="3" fill="${c}"/>`;
+  let s = `<rect class="bg" x="0" y="0" width="560" height="214" rx="12" fill="#f7f9f8"/>`;
+  // K: x 20–160
+  { const xl = 30, xr = 150, yt = 64, yb = 164;
+    s += tel(xl, yt, 72, yt) + pilY(90, yt) + tel(108, yt, xr, yt) + tel(xr, yt, xr, yb) + tel(xl, yb, xr, yb) + tel(xl, yt, xl, 103) + lamba(xl, 114) + tel(xl, 125, xl, yb);
+    s += T(90, 198, 'K', { size: 15, weight: 800, anchor: 'middle' }); }
+  // L: x 190–360
+  { const xl = 196, xr = 356, yt = 64, yb = 164;
+    s += tel(xl, yt, 216, yt) + pilY(234, yt) + tel(252, yt, 300, yt) + pilY(318, yt) + tel(336, yt, xr, yt);
+    s += tel(xr, yt, xr, yb) + tel(xl, yt, xl, yb) + tel(xl, yb, 238, yb) + lamba(249, yb) + tel(260, yb, 294, yb) + lamba(305, yb) + tel(316, yb, xr, yb);
+    s += T(276, 198, 'L', { size: 15, weight: 800, anchor: 'middle' }); }
+  // M: x 390–540; iki pil paralel (üstte iki kol), iki lamba paralel (altta iki kol)
+  { const xl = 396, xr = 534, ya = 34, yt = 74, yl1 = 128, yb = 170;
+    s += tel(xl, ya, xl, yb) + tel(xr, ya, xr, yb);
+    s += tel(xl, ya, 447, ya) + pilY(465, ya) + tel(483, ya, xr, ya);
+    s += tel(xl, yt, 447, yt) + pilY(465, yt) + tel(483, yt, xr, yt);
+    s += tel(xl, yl1, 454, yl1) + lamba(465, yl1) + tel(476, yl1, xr, yl1);
+    s += tel(xl, yb, 454, yb) + lamba(465, yb) + tel(476, yb, xr, yb);
+    [[xl, yt], [xr, yt], [xl, yl1], [xr, yl1]].forEach(([a, b]) => { s += nokta(a, b); });
+    s += T(465, 198, 'M', { size: 15, weight: 800, anchor: 'middle' }); }
+  s += T(552, 16, '(Lambalar özdeş, piller özdeştir.)', { size: 10.5, anchor: 'end', weight: 600, fill: P.ink2 });
+  return svg(560, 214, s, u, 150);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'TD31', ad: 'TYT Fizik Denemesi 31', tur: 'deneme', sure: 600,
+  aciklama: 'Temel kuvvetler, kovanına dönen arının yolu, hasta kaldırma liftinde iş ve güç, kar eritip su kaynatma, pipetle içilen kutunun çökmesi, pillerin seri ve paralel bağlanması ve köpek düdüğünün sesi.',
+  baglamlar: ['Mars\'ın uydusu Deimos\'un dolanması, örümcek ağının sineği tutması, Güneş\'in çekirdeğinde protonun nötrona dönüşmesi (tablo şıklı temel kuvvet)',
+    'radar yansıtıcılı bal arısı kovandan çiçeğe gidip kovana dönüyor: 30 dk, 1,8 km yol; kovandan en çok 900 m uzaklaşabilir (olabilir)',
+    'hastanede hasta kaldırma lifti: el pompası 0,6 m 40 s, elektrikli 0,9 m 15 s, 80 kg hasta; iş 1,5 katı, güç 4 katı (iki sütun)',
+    'elektrik kesintisinde köy evinde sobada 1 kg kar eritme, 0 → 100 °C ısıtma ve buharlaştırma: 334 kJ, 418 kJ, 2,26 MJ (sıralama)',
+    'pipetle içilen kapalı karton meyve suyu kutusunun yan yüzlerinin içe çökmesi, ikinci delik (açık hava basıncı)',
+    'özdeş lamba ve pillerle K (1 pil 1 lamba), L (2 seri pil 2 seri lamba), M (2 paralel pil 2 paralel lamba): lamba akımı, pil akımı, tükenme süresi',
+    'köpek eğitmeni Selim\'in köpek düdüğü: insan 20–20 000 Hz, köpek 67–45 000 Hz işitme aralıkları; frekans > 20 kHz, dalga boyu < 1,7 cm (kesinlikle)'],
+  sorular: [
+    {
+      id: 'TD31_1', konu: 'T.2.1', yks: true, zorluk: 1, cikti: 'FİZ.9.2.5', beceri: 'Olay ile temel kuvveti eşleştirme', cikmis: { yil: 2018, kalip: 'Olaylarda etkili temel kuvvet (tablo şıklı)' },
+      metin: r`Bilim kulübünde Kerem, aşağıdaki üç olayda etkili olan temel kuvveti bulmaya çalışıyor.
+
+K: Mars'ın küçük uydusu Deimos'un yaklaşık $30$ saatte bir Mars'ın çevresinde dolanması
+
+L: Örümcek ağının, üzerine çarpan bir sineği kopmadan tutması
+
+M: Güneş'in çekirdeğinde iki protonun birleştiği tepkimede protonlardan birinin nötrona dönüşmesi
+
+Bu olaylarda etkili olan temel kuvvetler aşağıdakilerin hangisinde doğru verilmiştir?`,
+      secenekler: ['K: kütle çekim, L: elektromanyetik, M: güçlü nükleer', 'K: elektromanyetik, L: kütle çekim, M: zayıf nükleer', 'K: kütle çekim, L: güçlü nükleer, M: zayıf nükleer', 'K: kütle çekim, L: elektromanyetik, M: zayıf nükleer', 'K: kütle çekim, L: kütle çekim, M: güçlü nükleer'],
+      dogru: 3,
+      cozum: [
+        r`K. Uydunun gezegen çevresinde dolanmasını sağlayan, kütleli cisimler arasındaki **kütle çekim kuvvetidir.**`,
+        r`L. Ağ ipliğinin kopmadan gerilmesi ve sineği tutması, ipliği oluşturan atom ve moleküller arasındaki **elektromanyetik kuvvetin** sonucudur.`,
+        r`M. Bir protonun nötrona (ya da nötronun protona) dönüşmesi **zayıf nükleer kuvvetle** gerçekleşir.`,
+        r`{{S0}} M'deki dönüşümü protonları ve nötronları bir arada tutan güçlü nükleer kuvvete bağlar; parçacığın başka bir parçacığa dönüşmesi zayıf nükleer kuvvetle olur. {{S1}} gök cisimlerinin dolanması ile ağ ipliğinin dayanıklılığının nedenlerini yer değiştirir. {{S2}} ipliği bir arada tutan kuvveti çekirdek kuvveti sanar; güçlü nükleer kuvvetin etki uzaklığı çekirdek boyutu kadardır. {{S4}} sineğin ağırlığını gördüğü için L'yi kütle çekimine bağlar ve M'deki dönüşümü güçlü nükleer kuvvete yazar.`
+      ]
+    },
+    {
+      id: 'TD31_2', konu: 'T.2.2', yks: true, zorluk: 2, cikti: 'FİZ.9.2.6', beceri: 'Yol ve yer değiştirmeden olası durumları belirleme', cikmis: { yil: 2019, kalip: 'Başlangıç noktasına dönen hareketlide yer değiştirme, ortalama sürat ve hız ("olabilir")' },
+      metin: r`Bir araştırma ekibi, sırtına çok hafif bir radar yansıtıcısı (küçük bir anten) yapıştırılan bal arısının uçuşunu izliyor. Arı kovandan çıkıp yonca tarlasındaki çiçeklere konuyor ve sonra kovana geri dönüyor. Kayıtlara göre arı bu gezide $30$ dakikada toplam $1,8\ \text{km}$ yol almıştır.
+
+Buna göre,
+
+I. Arı, gezi sırasında kovandan $900\ \text{m}$ uzaklaşmış olabilir.
+II. Arı, gezi sırasında kovandan $1,2\ \text{km}$ uzaklaşmış olabilir.
+III. Arının bu gezideki ortalama hızının büyüklüğü $1\ \text{m/s}$ olabilir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`Arı kovana döndüğü için gidiş ve dönüş yollarının toplamı $1,8\ \text{km}$'dir. Kovandan $d$ kadar uzaklaşan arı, oraya gitmek ve geri dönmek için en az $2d$ yol alır: $2d \le 1800\ \text{m}$, yani $d \le 900\ \text{m}$.`,
+        r`I. Arı kovandan aynı doğru boyunca gidip aynı doğru boyunca dönerse en uzak noktası tam $900\ \text{m}$ olur. **Olabilir.**`,
+        r`II. $1,2\ \text{km}$ uzaklaşan arı en az $2,4\ \text{km}$ yol alırdı. **Olamaz.**`,
+        r`III. Arı başladığı noktaya döndüğü için yer değiştirmesi sıfırdır; ortalama hızı da sıfırdır. $1\ \text{m/s}$, arının ortalama süratidir: $\dfrac{1800\ \text{m}}{1800\ \text{s}}$. **Olamaz.**`,
+        r`{{S1}} kovandan uzaklığın alınan yoldan bağımsız olduğunu sanır ve dönüş yolunu hesaba katmaz; I'deki $900\ \text{m}$'nin düz bir gidiş-dönüşle tam sağlandığını da görmez. {{S2}} II'deki uzaklık için dönüş yolunun da gerektiğini unutur. {{S3}} ortalama sürat ile ortalama hızı karıştırır. {{S4}} hem dönüş yolunu unutur hem de ortalama sürati ortalama hız sanır.`
+      ]
+    },
+    {
+      id: 'TD31_3', konu: 'T.3.1', yks: true, zorluk: 2, cikti: 'FİZ.10.2.2', beceri: 'Tablodan iş ve güç oranlarını bulma', cikmis: { yil: 2019, kalip: 'Aynı cismi kaldırmada iş ve güç karşılaştırması (iki sütun)' },
+      metin: r`Bir hastanede hasta bakıcı Gül Hanım, $80\ \text{kg}$ kütleli bir hastayı hasta kaldırma liftiyle yataktan kaldırıyor. Lift el pompasıyla ya da elektrik motoruyla çalışabiliyor. İki denemede de hasta düşey doğrultuda sabit süratle kaldırılıyor. Ölçülen değerler tabloda verilmiştir.
+
+{{tablo}}
+
+Elektrikli modda liftin hastayı kaldırırken yaptığı iş ve güç, el pompası modundakilerin kaç katıdır? ($g = 10\ \text{m/s}^2$)`,
+      tablo: [['Çalışma biçimi', 'Kaldırma yüksekliği', 'Süre'], ['El pompası', '0,6 m', '40 s'], ['Elektrik motoru', '0,9 m', '15 s']],
+      secenekler: ['İş 1,5 katı, güç yaklaşık 0,56 katı', 'İş eşit, güç yaklaşık 2,7 katı', 'İş 1,5 katı, güç 1,5 katı', 'İş 1,5 katı, güç 4 katı', 'İş eşit, güç eşit'],
+      dogru: 3,
+      cozum: [
+        r`Hasta sabit süratle kaldırıldığı için kinetik enerjisi değişmez; liftin yaptığı iş hastanın potansiyel enerjisindeki artışa eşittir: $W = m \cdot g \cdot h$. El pompası: $80 \cdot 10 \cdot 0,6 = 480\ \text{J}$. Elektrikli: $80 \cdot 10 \cdot 0,9 = 720\ \text{J}$. İş oranı $\dfrac{720}{480} = 1,5$.`,
+        r`Güç $P = \dfrac{W}{t}$: el pompası $\dfrac{480}{40} = 12\ \text{W}$, elektrikli $\dfrac{720}{15} = 48\ \text{W}$. Güç oranı $\dfrac{48}{12} = 4$.`,
+        r`{{S1}} hasta aynı olduğu için işi eşit sanar ve yükseklik farkını atlar; yalnızca sürelerin oranını ($\dfrac{40}{15}$) alır. {{S2}} gücün yalnızca işe bağlı olduğunu sanır ve sürenin kısaldığını hesaba katmaz. {{S0}} süre oranını ters kurar ($1,5 \cdot \dfrac{15}{40}$). {{S4}} aynı hastanın aynı biçimde kaldırıldığını düşünür; hem yüksekliği hem süreyi atlar.`
+      ]
+    },
+    {
+      id: 'TD31_4', konu: 'T.4.2', yks: true, zorluk: 1, cikti: 'FİZ.9.4.3', beceri: 'Hâl değişimi ve sıcaklık değişimi ısılarını karşılaştırma', cikmis: { yil: 2018, kalip: 'Isı miktarlarının sıralanması (birim tuzaklı)' },
+      metin: r`Kar yağışı nedeniyle elektriğin kesildiği bir köy evinde Melike, sobanın üstündeki tencerede kar eritip su kaynatıyor. Melike, normal atmosfer basıncında $1\ \text{kg}$ kütleli karla ilgili şu üç ısıyı karşılaştırıyor:
+
+$Q_1$: $0\ {}^{\circ}\text{C}$'deki karın tamamını eritmek için gereken ısı
+
+$Q_2$: oluşan suyu $0\ {}^{\circ}\text{C}$'den $100\ {}^{\circ}\text{C}$'ye ısıtmak için gereken ısı
+
+$Q_3$: $100\ {}^{\circ}\text{C}$'deki suyun tamamını buharlaştırmak için gereken ısı
+
+Karın (buzun) erime ısısı $334\ \text{kJ/kg}$, suyun öz ısısı $4180\ \text{J/(kg} \cdot {}^{\circ}\text{C)}$, buharlaşma ısısı $2,26\ \text{MJ/kg}$ olduğuna göre $Q_1$, $Q_2$ ve $Q_3$ arasındaki ilişki nedir?`,
+      secenekler: [r`$Q_1 > Q_2 > Q_3$`, r`$Q_3 > Q_1 > Q_2$`, r`$Q_2 > Q_1 > Q_3$`, r`$Q_3 > Q_2 > Q_1$`, r`$Q_1 = Q_3 > Q_2$`],
+      dogru: 3,
+      cozum: [
+        r`$Q_1 = m \cdot L_e = 1 \cdot 334 = 334\ \text{kJ}$.`,
+        r`$Q_2 = m \cdot c \cdot \Delta T = 1 \cdot 4180 \cdot 100 = 418\,000\ \text{J} = 418\ \text{kJ}$.`,
+        r`$Q_3 = m \cdot L_b = 1 \cdot 2,26\ \text{MJ} = 2260\ \text{kJ}$. Sıralama: $Q_3 > Q_2 > Q_1$.`,
+        r`{{S0}} katıyı eritmenin en çok ısı gerektirdiğini sanır ve değerleri hesaplamaz. {{S1}} $Q_2$'de sıcaklık değişimini ($100\ {}^{\circ}\text{C}$) çarpmayı unutur ve $4,18\ \text{kJ}$ bulur. {{S2}} $2,26\ \text{MJ}$'ü $2,26\ \text{kJ}$ sanar. {{S4}} erime ve buharlaşmanın ikisi de hâl değişimi olduğu için gereken ısıları eşit sanar ve $\Delta T$'yi unutur.`
+      ]
+    },
+    {
+      id: 'TD31_5', konu: 'T.5.3', yks: true, zorluk: 2, cikti: 'FİZ.9.3.4', beceri: 'Açık hava basıncıyla günlük olayı açıklama', cikmis: { yil: 2020, kalip: 'Kapalı kapta iç basınç azalınca açık hava basıncının etkisi (I-II-III)' },
+      metin: r`Ayşe, kapalı bir karton meyve suyu kutusuna pipeti takıp içerken kutunun yan yüzlerinin içe doğru çöktüğünü görüyor. Kutunun, pipetin sıkıca oturduğu delikten başka açıklığı yoktur.
+
+Buna göre,
+
+I. Ayşe içerken kutunun içindeki havanın basıncı açık hava basıncından küçüktür.
+II. Kutunun yan yüzlerini içe doğru iten, açık hava basıncının yüzeylere uyguladığı kuvvettir.
+III. Kutunun üst yüzünde küçük bir delik daha açılırsa Ayşe içerken kutu içe çökmez.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'TD31_kutu',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Meyve suyu pipetten çıktıkça kutudaki hava daha büyük bir hacme yayılır; dışarıdan hava giremediği için içerideki basınç açık hava basıncının altına düşer. **Doğru.**`,
+        r`II. Kutunun dış yüzeylerine etki eden açık hava basıncı, içerideki basınçtan büyük olduğu için yan yüzleri içe doğru iter. Pipet kutuyu "çekmez". **Doğru.**`,
+        r`III. İkinci delikten içeri hava girer; kutudaki basınç açık hava basıncına eşit kalır ve yüzeylere etki eden kuvvetler dengelenir. Kutu çökmez. **Doğru.**`,
+        r`{{S0}} çökmenin nedenini pipetin kutuyu emmesi sanır; II'yi ve III'ü dışarıda bırakır. {{S1}} ikinci delikten giren havanın iç basıncı açık hava basıncına eşitlediğini görmez. {{S2}} yan yüzleri içe iten kuvvetin kaynağını görmez. {{S3}} içerideki basıncın açık hava basıncından küçük olduğunu görmez.`
+      ]
+    },
+    {
+      id: 'TD31_6', konu: 'T.6.3', yks: true, zorluk: 3, cikti: 'FİZ.10.3.5', beceri: 'Üreteçlerin bağlanmasında akım ve tükenme süresi', cikmis: { yil: 2021, kalip: 'Pillerin seri ve paralel bağlanmasında lamba akımı ve pillerin tükenmesi (I-II-III)' },
+      metin: r`Elektronik kursunda Barış, özdeş lambalar ve iç dirençleri önemsenmeyen özdeş pillerle şekildeki K, L ve M düzeneklerini kuruyor. Lambaların dirençleri sabittir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Her lambadan geçen akım üç düzenekte de aynıdır.
+II. M düzeneğindeki pillerin her birinden çekilen akım, K düzeneğindeki pilden çekilen akıma eşittir.
+III. L düzeneğindeki piller, K düzeneğindeki pilden daha kısa sürede tükenir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'TD31_devre_genis',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Pil gerilimi $V$, lamba direnci $R$ olsun. K: lambanın akımı $I = \dfrac{V}{R}$; pilden çekilen akım da $I$'dır.`,
+        r`L: seri pillerin toplam gerilimi $2V$, seri lambaların eşdeğer direnci $2R$; akım $\dfrac{2V}{2R} = I$. Bu akım iki pilden de geçer. M: her lambanın uçlarında $V$ vardır; her lambadan $I$, ana koldan $2I$ geçer. Paralel özdeş piller bu akımı paylaşır; her pilden $I$ çekilir.`,
+        r`I. Her lambadan üç düzenekte de $I$ geçer. **Doğru.**`,
+        r`II. M'deki her pilden $I$ çekilir, K'daki pilden de $I$. **Doğru.**`,
+        r`III. L'deki her pilden $I$ çekilir; K'daki pil ile aynı sürede tükenir. **Yanlış.**`,
+        r`{{S0}} paralel pillerin ana kol akımını paylaştığını görmez ve M'de her pilden $2I$ çekildiğini sanır. {{S2}} seri bağlı pillerin her zaman daha çabuk tükendiğini sanır; oysa lamba sayısı da iki katına çıktığı için akım değişmemiştir. {{S3}} L'deki iki lambanın gerilimi paylaştığı için lamba akımlarının K'dakinden farklı olduğunu sanır ve iki pilin seri bağlanmasını pillerin daha çabuk tükenmesi olarak yorumlar. {{S4}} I ve II'yi doğru bulur ama L'de toplam gerilimin artmasını pillerden çekilen akımın artması sanır; oysa eşdeğer direnç de iki katına çıktığı için her pilden yine $I$ çekilir.`
+      ]
+    },
+    {
+      id: 'TD31_7', konu: 'T.7.2', yks: true, zorluk: 3, cikti: 'FİZ.10.4.4', beceri: 'Veriden kesin çıkarım yapma', cikmis: { yil: 2022, kalip: 'Ses dalgasında frekans, sürat ve dalga boyu ilişkisi ("kesinlikle")' },
+      metin: r`Köpek eğitmeni Selim, bir köpek düdüğünü üflediğinde köpeğinin düdüğe hemen tepki verdiğini, kendisinin ise hiçbir ses duymadığını fark ediyor. Selim, insanın ve köpeğin işitebildiği ses frekanslarının yaklaşık aralıklarını tabloda buluyor.
+
+{{tablo}}
+
+Sesin havadaki yayılma sürati $340\ \text{m/s}$ olduğuna göre düdüğün çıkardığı sesle ilgili,
+
+I. Frekansı $20\,000\ \text{Hz}$'den büyüktür.
+II. Havadaki yayılma sürati, Selim'in kendi konuşma sesininkinden büyüktür.
+III. Havadaki dalga boyu $1,7\ \text{cm}$'den küçüktür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Canlı', 'İşitebildiği frekans aralığı (yaklaşık)'], ['İnsan', '20 Hz – 20 000 Hz'], ['Köpek', '67 Hz – 45 000 Hz']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Selim sesi duymadığı için frekans $20\ \text{Hz}$'den küçük ya da $20\,000\ \text{Hz}$'den büyüktür. Köpek duyduğu için frekans $67\ \text{Hz}$ ile $45\,000\ \text{Hz}$ arasındadır. İki koşulu birlikte sağlayan aralık $20\,000$–$45\,000\ \text{Hz}$'dir. I **kesinlikle doğru.**`,
+        r`II. Sesin yayılma sürati frekansa değil ortama bağlıdır; aynı havada iki ses de $340\ \text{m/s}$ ile yayılır. **Yanlış.**`,
+        r`III. $\lambda = \dfrac{\vartheta}{f}$; $f > 20\,000\ \text{Hz}$ ise $\lambda < \dfrac{340}{20\,000} = 0,017\ \text{m} = 1,7\ \text{cm}$. **Kesinlikle doğru.**`,
+        r`{{S0}} frekans büyüyünce dalga boyunun küçüldüğünü ve III'ün de kesin olduğunu görmez. {{S1}} yüksek frekanslı sesin havada daha hızlı yayıldığını sanır ve insanın duymadığı sesin $20\ \text{Hz}$'den küçük de olabileceğini düşünüp I'i eler; oysa köpek $67\ \text{Hz}$'in altını duymaz. {{S2}} frekans arttıkça süratin arttığını sanır ve dalga boyu sınırını hesaplamaz. {{S4}} yayılma süratinin frekansa bağlı olduğunu sanır; oysa sürat ortama bağlıdır.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim TYT · TU1 (1. Ünite Taraması: Fizik Bilimi, Nicelikler ve Vektörler)
    14 soru, 20 dakika; yalnız T.1.1, T.1.2, T.1.3. Zorluk 4/6/4 (★/★★/★★★). Ücretsiz vitrin.
    Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
