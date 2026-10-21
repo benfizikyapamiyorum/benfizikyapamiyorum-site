@@ -45,6 +45,16 @@ button:active{transform:scale(.96)}
 .son small{display:block;color:#a9bdb2;margin-top:6px;line-height:1.4}
 .bilgi{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 160px);text-align:center;font-size:14px;color:#dbe7df;text-shadow:0 1px 6px #000;z-index:4}
 .gizli{display:none!important}
+.sahneM{position:fixed;inset:0;z-index:12;background:#0b1511;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 18px) 28px calc(env(safe-area-inset-bottom) + 18px);user-select:none;-webkit-user-select:none}
+.sahneM.ac{display:flex}
+.sahneM .ust2{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.sahneM .no2{font-size:clamp(40px,9vw,96px);font-weight:800;color:var(--altin);line-height:1}
+.sahneM .ad2{font-size:clamp(16px,2.6vw,26px);font-weight:800;color:#d9edaf;flex:1}
+.sahneM .cik{background:#1d3a30}
+.sahneM .soz{flex:1;display:flex;align-items:center;font-size:clamp(34px,6.4vw,78px);line-height:1.22;font-weight:800;color:#fff;padding:2vh 0}
+.sahneM .sonraki{font-size:clamp(15px,2.2vw,22px);color:#9fb8ab;font-weight:600;border-top:1px solid #23402f;padding-top:12px}
+.sahneM .sonraki b{color:var(--altin)}
+.sahneM .ipucu{font-size:13px;color:#6f8a7c;margin-top:8px}
 </style></head>
 <body>
 <video id="kam" class="ayna" autoplay playsinline muted></video>
@@ -54,6 +64,7 @@ button:active{transform:scale(.96)}
   <button id="aBuyuk" title="Yazıyı büyüt">A+</button>
   <button id="cevir" title="Ön ya da arka kamera">⟲ Kamera</button>
   <button id="sadece" title="Kamerasız tam ekran metin">Metin</button>
+  <button id="sahneBtn" title="Sahne sahne: her dokunuşta bir sonraki cümle">Sahne</button>
 </div>
 <div class="bilgi" id="bilgi">Kayıt düğmesine bas: 3 saniye geri sayım, sonra yazı akar. Yazıya dokununca durur ya da devam eder.</div>
 <div class="alt">
@@ -64,6 +75,7 @@ button:active{transform:scale(.96)}
   <button id="akBtn" title="Kayıt olmadan yazıyı akıt (prova)">Prova</button>
 </div>
 <div class="say" id="say"></div>
+<div class="sahneM" id="sahneM"><div class="ust2"><span class="no2" id="no2"></span><span class="ad2" id="ad2"></span><button class="cik" id="cik">Kapat</button></div><div class="soz" id="soz"></div><div class="sonraki" id="sonraki"></div><div class="ipucu">Sağa dokun: sonraki sahne. Sola dokun: önceki. Bilgisayarda → bastıkça buraya da dokun; numaralar ekrandaki sahneyle aynı.</div></div>
 <div class="son" id="son">
   <h2>Çekim hazır</h2>
   <video id="izle" controls playsinline></video>
@@ -183,5 +195,16 @@ function goster() {
 $('#paylas').onclick = async () => { try { await navigator.share({ files: [dosya], title: 'Yapabilirim Reels çekimi' }); } catch (e) {} };
 $('#kopya').onclick = async () => { try { await navigator.clipboard.writeText($('#kod').textContent); $('#kopya').textContent = 'Kopyalandı'; } catch (e) { const r = document.createRange(); r.selectNodeContents($('#kod')); getSelection().removeAllRanges(); getSelection().addRange(r); } };
 $('#tekrar').onclick = () => { $('#son').classList.remove('ac'); $('#izle').removeAttribute('src'); basa(); $('#sure').textContent = '0:00'; };
+
+// Sahne sahne modu: /cekim/?yeni sahneleriyle bire bir; her dokunuşta bir sahne ilerler.
+const SH = []; M.forEach(([ip, t]) => { const no = ip.slice(0, 2); const son = SH[SH.length - 1]; if (son && son.no === no) son.t.push(t); else SH.push({ no, ad: ip.slice(3), t: [t] }); });
+let sh = 0;
+function shCiz() { const a = SH[sh], b = SH[sh + 1]; $('#no2').textContent = a.no + ' / ' + SH.length; $('#ad2').textContent = a.ad; $('#soz').textContent = a.t.join(' '); $('#sonraki').innerHTML = b ? '<b>Sonra ' + b.no + ':</b> ' + esc(b.t.join(' ')) : '<b>Son sahne.</b>'; try { localStorage.setItem('bfy_tp_sh', sh); } catch (e) {} }
+function shGit(d) { sh = Math.max(0, Math.min(SH.length - 1, sh + d)); shCiz(); }
+$('#sahneBtn').onclick = () => { try { sh = +localStorage.getItem('bfy_tp_sh') || 0; } catch (e) {} if (sh >= SH.length) sh = 0; shCiz(); $('#sahneM').classList.add('ac'); };
+$('#cik').onclick = e => { e.stopPropagation(); $('#sahneM').classList.remove('ac'); };
+$('#sahneM').addEventListener('click', e => { if (e.target.closest('#cik')) return; shGit(e.clientX > innerWidth / 3 ? 1 : -1); });
+addEventListener('keydown', e => { if (!$('#sahneM').classList.contains('ac')) return; if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); e.stopImmediatePropagation(); shGit(1); } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); e.stopImmediatePropagation(); shGit(-1); } }, true);
+if (/sahne/.test(location.search)) $('#sahneBtn').click();
 </script>
 </body></html>
