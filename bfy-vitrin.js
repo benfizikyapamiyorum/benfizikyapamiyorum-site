@@ -2,6 +2,9 @@
 import * as THREE from './bfy-three.module.min.js';
 
 const URUNLER = [
+  { tip: 'book', img: 'img/yazili3gun/kapak-9-1.webp', img2: 'img/yazili3gun/kapak-9-2.webp', ar: 720 / 1018, renk: '#1a2c78', kalin: .06, kat: 'YENİ · Yazılı hazırlık kitapçığı', ad: 'Yazılıya 3 Gün Kala: 9. Sınıf', alt: '1. dönem 1. ve 2. yazılı. 3 güne bölünmüş 36 sayfa PDF, 10 çözümlü örnek, 2 deneme ve adım adım çözümlü web sürümü.', fiyat: 'Paket ₺299 · tek yazılı ₺199', btn: 'Paketi al', link: 'https://www.shopier.com/benfizikyapamiyorum/52097306', dene: 'fizik-yazili-sorulari.html', deneAd: 'Ücretsiz yazılı soruları' },
+  { tip: 'book', img: 'img/yazili3gun/kapak-10-1.webp', img2: 'img/yazili3gun/kapak-10-2.webp', ar: 720 / 1018, renk: '#1a2c78', kalin: .06, kat: 'YENİ · Yazılı hazırlık kitapçığı', ad: 'Yazılıya 3 Gün Kala: 10. Sınıf', alt: '1. dönem 1. ve 2. yazılı. 3 güne bölünmüş 36 sayfa PDF, 10 çözümlü örnek, 2 deneme ve adım adım çözümlü web sürümü.', fiyat: 'Paket ₺299 · tek yazılı ₺199', btn: 'Paketi al', link: 'https://www.shopier.com/benfizikyapamiyorum/52097606', dene: 'fizik-yazili-sorulari.html', deneAd: 'Ücretsiz yazılı soruları' },
+  { tip: 'book', img: 'img/yazili3gun/kapak-11-1.webp', img2: 'img/yazili3gun/kapak-11-2.webp', ar: 720 / 1018, renk: '#1a2c78', kalin: .06, kat: 'YENİ · Yazılı hazırlık kitapçığı', ad: 'Yazılıya 3 Gün Kala: 11. Sınıf', alt: '1. dönem 1. ve 2. yazılı. 3 güne bölünmüş 36 sayfa PDF, 10 çözümlü örnek, 2 deneme ve adım adım çözümlü web sürümü.', fiyat: 'Paket ₺299 · tek yazılı ₺199', btn: 'Paketi al', link: 'https://www.shopier.com/benfizikyapamiyorum/52098199', dene: 'fizik-yazili-sorulari.html', deneAd: 'Ücretsiz yazılı soruları' },
   { tip: 'tablet', img: 'img/tyt/tablet.webp', ar: 1600 / 1113, renk: '#7a3f2a', kat: 'YENİ · TYT dijital paket', ad: 'Yapabilirim TYT', alt: '24 konu, 1201 soru, 31 deneme. Her hafta yeni TYT denemesi, net grafiği.', fiyat: '₺799', link: 'tyt-fizik-paketi.html', dene: 'tyt/' },
   { tip: 'phone', img: 'img/fizik9/ana.webp', ar: 780 / 1688, renk: '#2e6b57', kat: 'Öğrenci · Dijital paket', ad: 'Yapabilirim 9', alt: '21 konu, 573 soru, kavram kartları ve mini oyunlar. Telefon, tablet, PDF.', fiyat: '₺599', link: '9-sinif-fizik-paketi.html', dene: 'calis/' },
   { tip: 'tablet', img: 'img/fizik10/tablet.webp', ar: 1600 / 1112, renk: '#214e41', kat: 'Öğrenci · Dijital paket', ad: 'Yapabilirim 10', alt: '20 konu, 636 soru, adım adım çözümler. Kalemle çöz, kitapçığını yazdır.', fiyat: '₺599', link: '10-sinif-fizik-paketi.html', dene: 'calis/' },
@@ -103,12 +106,17 @@ function makeItem(u) {
     const cover = slab(W * .98, H * .55, .02, .05, .008, new THREE.MeshStandardMaterial({ color: '#214e41', roughness: .7 })); cover.position.set(0, -H * .1, -.2); cover.rotation.x = .55; d.add(cover);
     d.position.set(0, H / 2 + .07, 0); d.rotation.x = -.2; g.add(d); g.userData.h = H; }
   else if (u.tip === 'book') { const H = 1.5, W = H * u.ar, T = u.kalin || .12, board = .018, over = .022;
-    const coverM = new THREE.MeshStandardMaterial({ map: t, roughness: .42, envMapIntensity: .8 }), sideM = new THREE.MeshStandardMaterial({ color: u.renk, roughness: .5, envMapIntensity: .7 });
-    const fb = new THREE.Mesh(new THREE.BoxGeometry(W, H, board), [sideM, sideM, sideM, sideM, coverM, sideM]); fb.position.z = T / 2 - board / 2; fb.castShadow = true;
-    const bb = new THREE.Mesh(new THREE.BoxGeometry(W, H, board), sideM); bb.position.z = -T / 2 + board / 2; bb.castShadow = true;
-    const pg = new THREE.Mesh(new THREE.BoxGeometry(W - over * 1.6, H - over * 2, T - 2 * board), pagesMat); pg.position.x = over * .8; pg.castShadow = true;
-    const sp = new THREE.Mesh(new THREE.CylinderGeometry(T / 2, T / 2, H, 24, 1, true, Math.PI, Math.PI), sideM); sp.position.x = -W / 2; sp.castShadow = true;
-    const b = new THREE.Group(); b.add(fb, bb, pg, sp); b.position.y = H / 2 + .01; b.rotation.y = -.18; g.add(b); g.userData.h = H; }
+    const sideM = new THREE.MeshStandardMaterial({ color: u.renk, roughness: .5, envMapIntensity: .7 });
+    const oneBook = tx => { const coverM = new THREE.MeshStandardMaterial({ map: tx, roughness: .42, envMapIntensity: .8 });
+      const fb = new THREE.Mesh(new THREE.BoxGeometry(W, H, board), [sideM, sideM, sideM, sideM, coverM, sideM]); fb.position.z = T / 2 - board / 2; fb.castShadow = true;
+      const bb = new THREE.Mesh(new THREE.BoxGeometry(W, H, board), sideM); bb.position.z = -T / 2 + board / 2; bb.castShadow = true;
+      const pg = new THREE.Mesh(new THREE.BoxGeometry(W - over * 1.6, H - over * 2, T - 2 * board), pagesMat); pg.position.x = over * .8; pg.castShadow = true;
+      const sp = new THREE.Mesh(new THREE.CylinderGeometry(T / 2, T / 2, H, 24, 1, true, Math.PI, Math.PI), sideM); sp.position.x = -W / 2; sp.castShadow = true;
+      const b = new THREE.Group(); b.add(fb, bb, pg, sp); b.position.y = H / 2 + .01; return b; };
+    const b = oneBook(t);
+    if (u.img2) { const b2 = oneBook(tex(u.img2)); b2.position.set(-.42, H / 2 + .01, -.42); b2.rotation.y = .26; g.add(b2); b.position.x = .2; b.rotation.y = -.14; }   // paket: ikinci kitapçık arkada
+    else b.rotation.y = -.18;
+    g.add(b); g.userData.h = H; }
   else if (u.tip === 'box') { const H = 1.3, W = H, D = .36;
     const one = (img, col) => { const bx = new THREE.Group(); const coverM = new THREE.MeshStandardMaterial({ map: tex(img), roughness: .45 }), sideM = new THREE.MeshStandardMaterial({ color: col, roughness: .5 });
       const m = new THREE.Mesh(new THREE.BoxGeometry(W, H, D), [sideM, sideM, sideM, sideM, coverM, sideM]); m.castShadow = m.receiveShadow = true; bx.add(m);
