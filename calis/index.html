@@ -8,6 +8,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BFY Çalış">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>Yapabilirim – Fizik Çalışma | Ben Fizik Yapamıyorum</title>
 <meta name="description" content="Maarif Modeli'ne uygun fizik notları ve bağlam temelli sorular: telefonda, tablette ve bilgisayarda çöz, kalemle yaz, XP topla.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -117340,6 +117342,14 @@ async function basla() {
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', basla); else basla();
 })();
+</script>
+<script>/* Çevrimdışı çalışma: bir kez internetle açılan kitap sonra bağlantısız da açılır (/bfy-sw.js). */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) addEventListener('load', () => {
+  navigator.serviceWorker.register('/bfy-sw.js', { scope: '/' }).then(() => navigator.serviceWorker.ready).then(r => {
+    if (r.active) r.active.postMessage({ tur: 'kaydet', yol: location.pathname });
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  }).catch(() => {});
+});
 </script>
 </body>
 </html>
