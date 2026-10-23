@@ -1,4 +1,4 @@
-/* BFY çevrimdışı çalışma: Yapabilirim (/calis/) ve Ben Fizik Yapabilirim TYT (/tyt/) uygulamaları.
+/* BFY çevrimdışı çalışma: Yapabilirim (/calis/), Ben Fizik Yapabilirim TYT (/tyt/) ve YKS 2027 (/yks2027-ayt/, /yks2027-tyt/) uygulamaları.
    İnternet varken uygulama sayfası her açılışta ağdan güncellenir; yoksa son kaydedilen sürüm açılır.
    Formül (KaTeX), yazı tipi ve 3B (three.js) dosyaları bir kez indirilip saklanır.
    Lisans bilgisi bu dosyaya hiç girmez; tarayıcının kendi deposunda kalır. */
@@ -9,7 +9,7 @@ const KFONT = ['AMS-Regular', 'Caligraphic-Bold', 'Caligraphic-Regular', 'Fraktu
 const ON = [KATEX + 'katex.min.css', KATEX + 'katex.min.js', ...KFONT.map(f => KATEX + 'fonts/KaTeX_' + f + '.woff2'),
   'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.min.js',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap'];
-const UYG_YOL = /^\/(calis|tyt)(\/|$)/;
+const UYG_YOL = /^\/(calis|tyt|yks2027-ayt|yks2027-tyt)(\/|$)/;
 const DIS = /^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 
 self.addEventListener('install', e => {
