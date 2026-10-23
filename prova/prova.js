@@ -16,15 +16,10 @@
        {img:'/img/fizik11/set.webp',ad:'Yapabilirim 11',alt:'Serbest düşme, atışlar ve Newton: not, kavram kartı, adım adım çözüm.',f:'₺599',href:'/11-sinif-fizik-paketi.html',cta:'İncele',dene:'/calis/',k:'yap11'}]
   };
 
-  /* --- hafta (İstanbul saatiyle ISO hafta) --- */
-  const now=new Date(Date.now()+3*3600e3); // UTC+3
-  const d0=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()));
-  const wd=(d0.getUTCDay()+6)%7; const mon=new Date(d0-wd*864e5), sun=new Date(+mon+6*864e5);
-  const th=new Date(+d0+(3-wd)*864e5), y1=new Date(Date.UTC(th.getUTCFullYear(),0,4));
-  const hafta=1+Math.round(((th-y1)/864e5-3+((y1.getUTCDay()+6)%7))/7);
-  const DONEM=th.getUTCFullYear()+'-W'+String(hafta).padStart(2,'0');
-  const aralik=(mon.getUTCMonth()===sun.getUTCMonth()?mon.getUTCDate():mon.getUTCDate()+' '+AYLAR[mon.getUTCMonth()])+'–'+sun.getUTCDate()+' '+AYLAR[sun.getUTCMonth()];
-  $('pvHafta').textContent='TÜRKİYE GENELİ · '+aralik.toLocaleUpperCase('tr-TR')+' HAFTASI';
+  /* --- dönem: 1. yazılı sıralaması, bitiş tarihine kadar sıfırlanmaz --- */
+  const DONEM='2026-27-D1Y1', BITIS=new Date('2026-11-22T23:59:59+03:00'), BITIS_Y='22 Kasım';
+  const ACIK=Date.now()<=BITIS.getTime();
+  $('pvHafta').textContent=ACIK?'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI · '+BITIS_Y.toLocaleUpperCase('tr-TR')+'’A KADAR':'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI KAPANDI';
 
   /* --- firebase --- */
   let DB=null;
@@ -45,7 +40,7 @@
     const L=$('lbList'); if(!DB){ L.innerHTML='<li class="pv-small">Sıralama şu an yüklenemiyor.</li>'; return; }
     L.innerHTML='<li class="pv-small">Yükleniyor…</li>';
     try{ const q=await kayitRef(s).orderBy('puan','desc').limit(40).get(); const r=q.docs.map(d=>d.data()).sort((a,b)=>b.puan-a.puan||a.sure-b.sure).slice(0,10);
-      L.innerHTML=r.length?r.map((x,i)=>`<li class="r"><span class="n">${i<3?['🥇','🥈','🥉'][i]:i+1}</span><span class="a">${esc(x.ad)}<small>${esc(x.il||'')}</small></span><span class="p">${x.puan}</span><span class="t">${sureY(x.sure)}</span></li>`).join(''):`<li class="pv-small">Bu hafta ${s}. sınıfta henüz katılım yok. İlk sen ol!</li>`;
+      L.innerHTML=r.length?r.map((x,i)=>`<li class="r"><span class="n">${i<3?['🥇','🥈','🥉'][i]:i+1}</span><span class="a">${esc(x.ad)}<small>${esc(x.il||'')}</small></span><span class="p">${x.puan}</span><span class="t">${sureY(x.sure)}</span></li>`).join(''):`<li class="pv-small">${s}. sınıfta henüz katılım yok. İlk sen ol!</li>`;
     }catch(e){ L.innerHTML='<li class="pv-small">Sıralama şu an yüklenemiyor.</li>'; } }
   document.querySelectorAll('[data-lb]').forEach(b=>b.onclick=()=>lb(b.dataset.lb));
   const sureY=s=>Math.floor((s||0)/60)+':'+String((s||0)%60).padStart(2,'0');
@@ -100,22 +95,22 @@
     Q.forEach(q=>{ const c=S.cev[q.id]||{}; let kayip=0; q.maddeler.forEach(m=>{ const v=c[m.k]; if(!dolu(v)){ b++; kayip+=m.p; } else if(dogruMu(m,v)){ d++; puan+=m.p; } else { y++; kayip+=m.p; } }); if(kayip) zayif[q.konu]=(zayif[q.konu]||0)+kayip; });
     puan=Math.round(puan); const sure=Math.min(SURE,Math.round((Date.now()-S.bas)/1000));
     SON={puan,d,y,b,sure,sinif:S.sinif,ad:S.ad,il:S.il,zayif};
-    $('rEt').textContent=S.sinif+'. SINIF FİZİK YAZILI PROVASI · '+aralik.toLocaleUpperCase('tr-TR');
+    $('rEt').textContent=S.sinif+'. SINIF FİZİK YAZILI PROVASI · 1. DÖNEM 1. YAZILI';
     $('rPuan').textContent=puan; $('rD').textContent=d; $('rY').textContent=y; $('rB').textContent=b; $('rS').textContent=sureY(sure);
     gozden(Q); urunler(zayif); paylas(); goster('vSonuc');
     window.BFY&&BFY.track&&BFY.track('prova_complete');
-    const ilk=!S.tekrar&&!LS.get(ilkKey(S.sinif));
-    $('rNot').textContent=ilk?'Sonucun kaydediliyor…':'Bu hafta bu sınıfta daha önce çözdüğün için bu deneme sıralamaya girmedi.';
+    const ilk=ACIK&&!S.tekrar&&!LS.get(ilkKey(S.sinif));
+    $('rNot').textContent=ilk?'Sonucun kaydediliyor…':(ACIK?'Bu sınıfın provasını daha önce çözdüğün için bu deneme sıralamaya girmedi; sıralamada ilk denemen geçerli.':'1. yazılı sıralaması '+BITIS_Y+'’da kapandı; bu deneme sıralamaya girmedi.');
     if(!DB){ $('rRank').textContent='Sıralama şu an hesaplanamıyor.'; return; }
     try{
       if(ilk){ await kayitRef(S.sinif).add({ad:S.ad.slice(0,20),il:S.il.slice(0,30),puan,dogru:d,sure,ts:firebase.firestore.FieldValue.serverTimestamp()});
         await dagRef(S.sinif).set({['p'+puan]:firebase.firestore.FieldValue.increment(1),toplam:firebase.firestore.FieldValue.increment(1)},{merge:true});
-        LS.set(ilkKey(S.sinif),{puan,d,sure}); $('rNot').textContent='Bu denemen haftanın sıralamasına girdi.'; }
+        LS.set(ilkKey(S.sinif),{puan,d,sure}); $('rNot').textContent='Bu denemen Türkiye sıralamasına girdi.'; }
       const g=await dagRef(S.sinif).get(); const h=g.exists?g.data():{}; const tot=h.toplam||0;
       let alt=0; for(let i=0;i<puan;i++) alt+=h['p'+i]||0; const es=h['p'+puan]||0;
-      if(tot<5){ $('rRank').innerHTML=`Bu hafta ${S.sinif}. sınıfta provaya ilk katılanlardansın. Sıralama, katılım arttıkça netleşecek.`; }
+      if(tot<5){ $('rRank').innerHTML=`${S.sinif}. sınıfta provaya ilk katılanlardansın. Sıralama, katılım arttıkça netleşecek.`; }
       else{ const ust=Math.max(1,Math.round(100-(alt+es/2)/tot*100)); SON.ust=ust; SON.tot=tot;
-        $('rRank').innerHTML=`Bu hafta katılan <b>${tot.toLocaleString('tr-TR')}</b> ${S.sinif}. sınıf öğrencisi arasında <em>ilk %${ust}</em> dilimindesin.`; }
+        $('rRank').innerHTML=`Şu ana kadar katılan <b>${tot.toLocaleString('tr-TR')}</b> ${S.sinif}. sınıf öğrencisi arasında <em>ilk %${ust}</em> dilimindesin.`; }
       paylas(); lb(S.sinif);
     }catch(e){ console.warn(e); $('rRank').textContent='Puanın hesaplandı; sıralama şu an kaydedilemedi.'; if(ilk) $('rNot').textContent='Bağlantı sorunu yüzünden sonucun sıralamaya eklenemedi. Daha sonra tekrar çözersen ilk kaydın sayılır.'; }
   }
