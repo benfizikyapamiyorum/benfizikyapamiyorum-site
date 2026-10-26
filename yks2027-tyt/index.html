@@ -11729,6 +11729,1670 @@ window.BFY_SIM = window.BFY_SIM || {};
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.7.1 Elektrik Akımı, Direnç ve Ohm Yasası — şekiller
+   Önek: kY71_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY71_ (tanım ve efsane çizimleri; 3B izometrik).
+   Devre dili (2018 programı ders kitapları): pil sembolünde uzun ince çizgi (+), kısa kalın çizgi (−);
+   lamba çember içinde çarpı; direnç zikzak; ampermetre ve voltmetre çember içinde A ve V; anahtar açık/kapalı dil.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const INK = P.ink, BG = '#f4f7f9', VC = '#a8402a', RC = '#c8412b', GL = '#ffd95a', SW = '#2f6fb8';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const panel = (x, y, w, h) => `<rect class="bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+
+/* tel: nokta listesi */
+const W = (pts, o = {}) => `<polyline points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="${o.c || INK}" stroke-width="${o.w || 1.8}" stroke-linejoin="round" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}/>`;
+const dot = (x, y, r = 3.2) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${INK}"/>`;
+const ad = (x, y, s, o = {}) => T(x, y, s, { size: o.size || 13, anchor: o.anchor || 'middle', weight: o.weight || 800, fill: o.fill || INK, italic: o.italic });
+const nok = (x, y, s, dx = 0, dy = -8, an = 'middle') => dot(x, y, 2.8) + T(x + dx, y + dy, s, { size: 12.5, anchor: an, weight: 700, italic: true, fill: P.ink2 });
+
+/* yatay pil: merkez (x, y), pol = +1 → + kutbu solda. Teller x−5 ve x+5'e kadar çizilir. */
+function cellH(x, y, pol, lab, o = {}) {
+  const xp = pol > 0 ? x - 5 : x + 5, xn = pol > 0 ? x + 5 : x - 5, sg = pol > 0 ? -1 : 1;
+  let s = `<line x1="${xp}" y1="${y - 14}" x2="${xp}" y2="${y + 14}" stroke="${INK}" stroke-width="2"/>`;
+  s += `<line x1="${xn}" y1="${y - 7.5}" x2="${xn}" y2="${y + 7.5}" stroke="${INK}" stroke-width="5"/>`;
+  if (o.isaret !== false) s += T(xp + sg * 8, y - 10, '+', { size: 12, anchor: 'middle', weight: 800 }) + T(xn - sg * 9, y - 10, '−', { size: 13, anchor: 'middle', weight: 800 });
+  if (lab) s += T(x + (o.dx || 0), o.lab === 'ust' ? y - 22 : y + 31, lab, { size: o.size || 12.5, anchor: 'middle', weight: 800, fill: o.fill || VC });
+  return s;
+}
+/* dikey pil: merkez (x, y), pol = +1 → + kutbu üstte. Teller y−5 ve y+5'e kadar. */
+function cellV(x, y, pol, lab, o = {}) {
+  const yp = pol > 0 ? y - 5 : y + 5, yn = pol > 0 ? y + 5 : y - 5, sg = pol > 0 ? -1 : 1;
+  let s = `<line x1="${x - 14}" y1="${yp}" x2="${x + 14}" y2="${yp}" stroke="${INK}" stroke-width="2"/>`;
+  s += `<line x1="${x - 7.5}" y1="${yn}" x2="${x + 7.5}" y2="${yn}" stroke="${INK}" stroke-width="5"/>`;
+  const sx = (o.side || 'sag') === 'sag' ? 1 : -1;
+  if (o.isaret !== false) s += T(x + sx * 20, yp + sg * 2 + 4, '+', { size: 12, anchor: 'middle', weight: 800 }) + T(x + sx * 20, yn - sg * 3 + 5, '−', { size: 13, anchor: 'middle', weight: 800 });
+  if (lab) s += T(x - sx * 20, y + 4.5, lab, { size: o.size || 12.5, anchor: sx > 0 ? 'end' : 'start', weight: 800, fill: o.fill || VC });
+  return s;
+}
+/* lamba: merkez (x, y), yarıçap 11; parıltı k (0: yok). Etiket o.lab: 'ust' | 'alt' | 'sol' | 'sag' */
+function lamba(x, y, a, o = {}) {
+  let s = '';
+  if (o.k) s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(12 + 9 * o.k)}" fill="${GL}" opacity="${f1(0.18 + 0.32 * Math.min(1, o.k))}"/>`;
+  s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="11" fill="#fff6d6" stroke="${INK}" stroke-width="1.8"/><path d="M${f1(x - 7.8)} ${f1(y - 7.8)} L${f1(x + 7.8)} ${f1(y + 7.8)} M${f1(x - 7.8)} ${f1(y + 7.8)} L${f1(x + 7.8)} ${f1(y - 7.8)}" stroke="${INK}" stroke-width="1.5"/>`;
+  if (a) {
+    const L = o.lab || 'ust', d = o.d || 0;
+    const [tx, ty, an] = L === 'ust' ? [x, y - 17 - d, 'middle'] : L === 'alt' ? [x, y + 28 + d, 'middle'] : L === 'sol' ? [x - 16 - d, y + 4.5, 'end'] : [x + 16 + d, y + 4.5, 'start'];
+    s += T(tx, ty, a, { size: o.size || 13, anchor: an, weight: 800, fill: o.fill || INK });
+  }
+  return s;
+}
+/* zikzak direnç: yatay (x1..x2, y) ve dikey (x, y1..y2); uç telleri dahil */
+function resH(x1, x2, y, lab, o = {}) {
+  const m = (x1 + x2) / 2, a = m - 20, b = m + 20, n = 6, d = (b - a) / n;
+  let p = `M${x1} ${y} H${a}`;
+  for (let i = 0; i < n; i++) p += ` L${f1(a + d * (i + 0.5))} ${y + (i % 2 ? 6 : -6)}`;
+  p += ` L${b} ${y} H${x2}`;
+  let s = `<path d="${p}" fill="none" stroke="${RC}" stroke-width="2" stroke-linejoin="round"/>`;
+  if (x1 < a) s += `<line x1="${x1}" y1="${y}" x2="${a}" y2="${y}" stroke="${INK}" stroke-width="1.8"/><line x1="${b}" y1="${y}" x2="${x2}" y2="${y}" stroke="${INK}" stroke-width="1.8"/>`;
+  if (lab) s += T(m, o.lab === 'alt' ? y + 24 : y - 12, lab, { size: o.size || 13, anchor: 'middle', weight: 800, fill: o.fill || INK });
+  return s;
+}
+function resV(x, y1, y2, lab, o = {}) {
+  const m = (y1 + y2) / 2, a = m - 20, b = m + 20, n = 6, d = (b - a) / n;
+  let p = `M${x} ${y1} V${a}`;
+  for (let i = 0; i < n; i++) p += ` L${x + (i % 2 ? 6 : -6)} ${f1(a + d * (i + 0.5))}`;
+  p += ` L${x} ${b} V${y2}`;
+  let s = `<path d="${p}" fill="none" stroke="${RC}" stroke-width="2" stroke-linejoin="round"/>`;
+  if (y1 < a) s += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${a}" stroke="${INK}" stroke-width="1.8"/><line x1="${x}" y1="${b}" x2="${x}" y2="${y2}" stroke="${INK}" stroke-width="1.8"/>`;
+  if (lab) s += T(o.side === 'sol' ? x - 12 : x + 12, m + 4.5, lab, { size: o.size || 13, anchor: o.side === 'sol' ? 'end' : 'start', weight: 800, fill: o.fill || INK });
+  return s;
+}
+/* anahtar: kontaklar (x1, y) ve (x2, y); kapalı ise bıçak düz, açık ise yukarı kalkık */
+function anaH(x1, x2, y, kapali, lab, o = {}) {
+  const L = x2 - x1, ex = kapali ? x2 : x1 + L * 0.86, ey = kapali ? y : y - L * 0.5;
+  let s = `<line x1="${x1}" y1="${y}" x2="${f1(ex)}" y2="${f1(ey)}" stroke="${SW}" stroke-width="2.6" stroke-linecap="round"/>`;
+  s += `<circle cx="${x1}" cy="${y}" r="3.3" fill="${INK}"/><circle cx="${x2}" cy="${y}" r="3.4" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`;
+  if (lab) s += T(o.lx ?? (x1 + x2) / 2, o.ly ?? (kapali ? y - 10 : y - L * 0.5 - 6), lab, { size: 13, anchor: 'middle', weight: 800, fill: SW });
+  return s;
+}
+function anaV(x, y1, y2, kapali, lab, o = {}) {
+  const L = y2 - y1, ex = kapali ? x : x + L * 0.5 * (o.yon || 1), ey = kapali ? y2 : y1 + L * 0.86;
+  let s = `<line x1="${x}" y1="${y1}" x2="${f1(ex)}" y2="${f1(ey)}" stroke="${SW}" stroke-width="2.6" stroke-linecap="round"/>`;
+  s += `<circle cx="${x}" cy="${y1}" r="3.3" fill="${INK}"/><circle cx="${x}" cy="${y2}" r="3.4" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`;
+  if (lab) s += T(o.lx ?? (o.side === 'sol' ? x - 12 : x + 12), o.ly ?? ((y1 + y2) / 2 + 4.5), lab, { size: 13, anchor: o.side === 'sol' ? 'end' : 'start', weight: 800, fill: SW });
+  return s;
+}
+/* ölçü aleti: çember içinde harf */
+const olcer = (x, y, h, o = {}) => `<circle cx="${x}" cy="${y}" r="${o.r || 12}" fill="#fff" stroke="${INK}" stroke-width="1.9"/>` + T(x - (o.dx || 0), y + 4.6, h, { size: o.size || 13, anchor: 'middle', weight: 800, halo: false });
+/* numaralı konum (ölçü aleti takılacak yer) */
+const konum = (x, y, n) => `<circle cx="${x}" cy="${y}" r="12" fill="#eef4fb" stroke="${SW}" stroke-width="1.9" stroke-dasharray="3 2"/>` + T(x, y + 4.6, n, { size: 13, anchor: 'middle', weight: 800, fill: SW, halo: false });
+/* grafik ekseni */
+function eksen(ox, oy, ex, ey, xl, yl, o = {}) {
+  let s = `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${INK}" stroke-width="1.5"/><polygon points="${ex + 7},${oy} ${ex - 2},${oy - 4} ${ex - 2},${oy + 4}" fill="${INK}"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${INK}" stroke-width="1.5"/><polygon points="${ox},${ey - 7} ${ox - 4},${ey + 2} ${ox + 4},${ey + 2}" fill="${INK}"/>`;
+  s += T(ox + 8, ey + 3, yl, { size: o.size || 13, weight: 700 }) + T(ex + 11, oy + 4.5, xl, { size: o.size || 13, weight: 700 });
+  if (o.sifir !== false) s += T(ox - 6, oy + 15, '0', { size: 12, anchor: 'end', fill: P.ink2 });
+  return s;
+}
+/* yatay tel çubuğu (2B, gölgeli): sol uç x, eksen y, boy L, kalınlık t */
+function cubuk(u, x, y, L, t, renk) {
+  const id = u + 'cb' + Math.round(x) + '_' + Math.round(y);
+  return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".35" stop-color="${renk}"/><stop offset="1" stop-color="#5a4632"/></linearGradient></defs>` +
+    `<rect x="${f1(x)}" y="${f1(y - t / 2)}" width="${f1(L)}" height="${f1(t)}" rx="${f1(t / 2)}" fill="url(#${id})" stroke="#6b5640" stroke-width=".8"/>` +
+    `<ellipse cx="${f1(x + L)}" cy="${f1(y)}" rx="${f1(Math.max(1.6, t * 0.22))}" ry="${f1(t / 2)}" fill="${renk}" stroke="#6b5640" stroke-width=".8"/>`;
+}
+/* yatay ölçü oku */
+function olcuH(x1, x2, y, lab, o = {}) {
+  return `<g stroke="${P.ink2}" stroke-width="1.2"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line x1="${x1}" y1="${y - 5}" x2="${x1}" y2="${y + 5}"/><line x1="${x2}" y1="${y - 5}" x2="${x2}" y2="${y + 5}"/></g>` +
+    `<polygon points="${x1},${y} ${x1 + 7},${y - 3.2} ${x1 + 7},${y + 3.2}" fill="${P.ink2}"/><polygon points="${x2},${y} ${x2 - 7},${y - 3.2} ${x2 - 7},${y + 3.2}" fill="${P.ink2}"/>` +
+    T((x1 + x2) / 2, o.alt ? y + 17 : y - 7, lab, { size: o.size || 12.5, anchor: 'middle', weight: 700, fill: INK });
+}
+
+/* ================= NOT ŞEKİLLERİ ================= */
+/* Direnç neye bağlı: aynı madde, boy 2 kat, kesit 2 kat, özdirenç büyük */
+BFY_FIG_EKLE('kY71_direnc_genis', function (u) {
+  const Wd = 560, H = 196, CU = '#c9793f', NI = '#9aa3a8', CR = '#7d6e86';
+  let s = zemin(Wd, H);
+  const pan = (x0, baslik, ciz, sonuc) => panel(x0, 10, 130, 176) + T(x0 + 65, 32, baslik, { size: 12.5, anchor: 'middle', weight: 800, fill: P.green }) + ciz(x0) + T(x0 + 65, 170, sonuc, { size: 14, anchor: 'middle', weight: 800, fill: RC });
+  s += pan(10, 'Temel tel', x0 => cubuk(u, x0 + 25, 82, 70, 9, NI) + olcuH(x0 + 25, x0 + 95, 112, 'L', { alt: true }) + T(x0 + 25, 64, 'kesit A', { size: 12, weight: 700, fill: P.ink2 }) + T(x0 + 65, 146, 'madde: ρ', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }), 'R');
+  s += pan(150, 'Boy 2 katı', x0 => cubuk(u, x0 + 12, 82, 104, 9, NI) + olcuH(x0 + 12, x0 + 116, 112, '2L', { alt: true }) + T(x0 + 12, 64, 'kesit A', { size: 12, weight: 700, fill: P.ink2 }) + T(x0 + 65, 146, 'madde: ρ', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }), '2R');
+  s += pan(290, 'Kesit 2 katı', x0 => cubuk(u, x0 + 25, 82, 70, 13, NI) + olcuH(x0 + 25, x0 + 95, 112, 'L', { alt: true }) + T(x0 + 25, 62, 'kesit 2A', { size: 12, weight: 700, fill: P.ink2 }) + T(x0 + 65, 146, 'madde: ρ', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }), 'R/2');
+  s += pan(430, 'Özdirenç büyük', x0 => cubuk(u, x0 + 25, 82, 70, 9, CR) + olcuH(x0 + 25, x0 + 95, 112, 'L', { alt: true }) + T(x0 + 25, 64, 'kesit A', { size: 12, weight: 700, fill: P.ink2 }) + T(x0 + 65, 146, 'madde: ρ′ > ρ', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }), 'R′ > R');
+  return svg(Wd, H, s, u, 150);
+});
+
+/* Ölçü aletleri ve V-I grafiği */
+BFY_FIG_EKLE('kY71_ohm_genis', function (u) {
+  const Wd = 560, H = 236;
+  let s = zemin(Wd, H) + panel(10, 10, 270, 216) + panel(290, 10, 260, 216);
+  s += T(145, 32, 'Ampermetre seri, voltmetre paralel', { size: 12.5, anchor: 'middle', weight: 800, fill: P.green });
+  const xl = 44, xr = 246, yt = 112, yb = 196;
+  s += W([[xl, yb], [xl, 162]]) + W([[xl, 138], [xl, yt], [104, yt]]) + W([[186, yt], [xr, yt], [xr, yb], [150, yb]]) + W([[140, yb], [xl, yb]]);
+  s += olcer(xl, 150, 'A') + resH(104, 186, yt, '', {}) + T(145, yt + 26, 'R', { size: 13, anchor: 'middle', weight: 800, fill: RC });
+  s += W([[92, yt], [92, 66], [133, 66]]) + W([[157, 66], [198, 66], [198, yt]]) + dot(92, yt) + dot(198, yt) + olcer(145, 66, 'V');
+  s += cellH(145, yb, 1, '');
+  s += arrow(xr, 140, xr, 170, { color: P.coral, w: 2.2, head: 8, headW: 4.6 }) + T(xr - 10, 160, 'I', { size: 14, anchor: 'end', weight: 800, italic: true, fill: P.coral });
+  // grafik
+  const ox = 334, oy = 196, ex = 520, ey = 54;
+  s += T(420, 32, 'Sabit sıcaklıkta V-I grafiği', { size: 12.5, anchor: 'middle', weight: 800, fill: P.green });
+  s += eksen(ox, oy, ex, ey, 'I', 'V');
+  s += W([[ox, oy], [ox + 112, oy - 130]], { c: '#7d5aa6', w: 2.6 }) + W([[ox, oy], [ox + 170, oy - 92]], { c: '#2f7fb8', w: 2.6 });
+  s += T(ox + 116, oy - 134, 'R_1', { size: 13, weight: 800, fill: '#7d5aa6' }) + T(ox + 173, oy - 96, 'R_2', { size: 13, weight: 800, fill: '#2f7fb8' });
+  s += dashLine(ox + 60, oy, ox + 60, oy - 69.6, P.ink2, '3 3', 1) + dashLine(ox + 60, oy - 69.6, ox + 100, oy - 69.6, P.ink2, '3 3', 1) + dashLine(ox + 100, oy - 69.6, ox + 100, oy - 116, P.ink2, '3 3', 1);
+  s += T(ox + 81, oy - 57, 'ΔI', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(ox + 104, oy - 86, 'ΔV', { size: 12, weight: 700, fill: P.ink2 });
+  s += T(ox + 100, oy + 22, 'eğim = ΔV/ΔI = R', { size: 12.5, anchor: 'middle', weight: 800, fill: INK });
+  s += T(ox + 165, oy - 30, 'R_1 > R_2', { size: 12.5, anchor: 'middle', weight: 800, fill: RC });
+  return svg(Wd, H, s, u, 150);
+});
+
+/* Seri, paralel ve kısa devre */
+BFY_FIG_EKLE('kY71_bagla_genis', function (u) {
+  const Wd = 560, H = 226;
+  let s = zemin(Wd, H);
+  const pan = (x0, baslik) => panel(x0, 10, 176, 206) + T(x0 + 88, 32, baslik, { size: 13, anchor: 'middle', weight: 800, fill: P.green });
+  // seri
+  s += pan(10, 'Seri');
+  s += W([[34, 168], [34, 72], [52, 72]]) + resH(52, 98, 72, 'R_1') + W([[98, 72], [120, 72]]) + resH(120, 166, 72, 'R_2') + W([[166, 72], [176, 72], [176, 168], [103, 168]]) + W([[93, 168], [34, 168]]) + cellH(98, 168, 1, '');
+  s += T(98, 110, 'akım ortak: I', { size: 12.5, anchor: 'middle', weight: 800 }) + T(98, 130, 'V = V_1 + V_2', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(98, 204, 'R_{eş} = R_1 + R_2', { size: 12.5, anchor: 'middle', weight: 800, fill: RC });
+  // paralel
+  s += pan(194, 'Paralel');
+  s += W([[214, 178], [214, 70], [240, 70]]) + resH(240, 320, 70, 'R_1') + W([[320, 70], [354, 70], [354, 178], [289, 178]]) + W([[279, 178], [214, 178]]) + cellH(284, 178, 1, '');
+  s += W([[240, 70], [240, 110]]) + resH(240, 320, 110, '') + W([[320, 110], [320, 70]]) + dot(240, 70) + dot(320, 70) + T(280, 131, 'R_2', { size: 13, anchor: 'middle', weight: 800 });
+  s += T(284, 152, 'gerilim ortak: V', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += T(284, 204, '1/R_{eş} = 1/R_1 + 1/R_2', { size: 12.5, anchor: 'middle', weight: 800, fill: RC });
+  // kısa devre
+  s += pan(378, 'Kısa devre');
+  s += W([[400, 168], [400, 80], [416, 80]]) + resH(416, 462, 80, 'R_1') + W([[462, 80], [480, 80]]) + resH(480, 526, 80, '') + W([[526, 80], [540, 80], [540, 168], [471, 168]]) + W([[461, 168], [400, 168]]) + cellH(466, 168, 1, '');
+  s += W([[472, 80], [472, 112], [534, 112], [534, 80]], { c: SW, w: 2.4 }) + dot(472, 80) + dot(534, 80);
+  s += T(503, 66, 'R_2', { size: 13, anchor: 'middle', weight: 800 }) + T(503, 130, 'tel', { size: 12, anchor: 'middle', weight: 800, fill: SW });
+  s += T(466, 204, 'R_2 akım almaz', { size: 12.5, anchor: 'middle', weight: 800, fill: RC });
+  return svg(Wd, H, s, u, 150);
+});
+
+/* ================= ÇÖZÜMLÜ ÖRNEK ŞEKİLLERİ ================= */
+/* C1: köpük kesme telleri */
+BFY_FIG_EKLE('kY71_C1', function (u) {
+  const Wd = 320, H = 168, NI = '#8c7a95';
+  let s = zemin(Wd, H);
+  s += T(24, 34, '1. tel', { size: 13, weight: 800 }) + cubuk(u, 80, 30, 96, 5, NI) + olcuH(80, 176, 52, '30 cm', { alt: true }) + T(190, 34, 'çap 0,3 mm', { size: 12.5, weight: 700, fill: P.ink2 });
+  s += T(24, 112, '2. tel', { size: 13, weight: 800 }) + cubuk(u, 80, 108, 192, 10, NI) + olcuH(80, 272, 134, '60 cm', { alt: true }) + T(80, 92, 'çap 0,6 mm', { size: 12.5, weight: 700, fill: P.ink2 });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* C2: F, G, H lambaları; S1 orta noktayı negatif tele bağlar, S2 H kolunda */
+BFY_FIG_EKLE('kY71_C2', function (u) {
+  const Wd = 320, H = 210, yt = 40, yb = 182;
+  let s = zemin(Wd, H);
+  s += W([[36, 104], [36, yt], [268, yt], [268, 66]]) + W([[36, 116], [36, yb], [268, yb], [268, 160]]);
+  s += cellV(36, 110, 1, '', { side: 'sag' });
+  // 1. kol: F ve G
+  s += W([[118, yt], [118, 67]]) + lamba(118, 78, 'F', { lab: 'sol' }) + W([[118, 89], [118, 131]]) + lamba(118, 142, 'G', { lab: 'sol' }) + W([[118, 153], [118, yb]]) + dot(118, yt) + dot(118, yb);
+  s += dot(118, 110) + W([[118, 110], [160, 110]]) + anaH(160, 192, 110, false, 'S_1') + W([[192, 110], [206, 110], [206, yb]]) + dot(206, yb);
+  // 2. kol: S2 ve H
+  s += anaV(268, 66, 98, false, 'S_2', { side: 'sag' }) + W([[268, 98], [268, 131]]) + lamba(268, 142, 'H', { lab: 'sag' }) + W([[268, 153], [268, 160]]);
+  return svg(Wd, H, s, u, 70);
+});
+
+/* C3: bozuk lamba, iki bağlantı (beş lamba) */
+BFY_FIG_EKLE('kY71_C3_genis', function (u) {
+  const Wd = 560, H = 214;
+  let s = zemin(Wd, H) + panel(10, 10, 266, 194) + panel(284, 10, 266, 194);
+  const yt = 46, yb = 168;
+  // Şekil 1: L4 ana kolda; [(L1 ∥ L2) – L3] kolu ve L5 kolu
+  let x0 = 10, xl = x0 + 34, xa = x0 + 149, xp1 = x0 + 132, xp2 = x0 + 166, xb = x0 + 226;
+  s += W([[xl, 101], [xl, yt], [x0 + 82, yt]]) + lamba(x0 + 93, yt, 'L_4', { lab: 'ust', d: 4 }) + W([[x0 + 104, yt], [xb, yt], [xb, 96]]) + W([[xb, 118], [xb, yb], [xl, yb], [xl, 113]]);
+  s += cellV(xl, 107, 1, '', { side: 'sag' });
+  s += W([[xa, yt], [xa, 58]]) + W([[xp1, 58], [xp2, 58]]) + W([[xp1, 58], [xp1, 69]]) + lamba(xp1, 80, 'L_1', { lab: 'sol' }) + W([[xp1, 91], [xp1, 102], [xp2, 102], [xp2, 91]]) + lamba(xp2, 80, 'L_2', { lab: 'sag' }) + W([[xp2, 69], [xp2, 58]]);
+  s += W([[xa, 102], [xa, 125]]) + lamba(xa, 136, 'L_3', { lab: 'sol' }) + W([[xa, 147], [xa, yb]]);
+  s += lamba(xb, 107, 'L_5', { lab: 'sag' });
+  s += dot(xa, yt) + dot(xa, 58) + dot(xa, 102) + dot(xa, yb) + T(x0 + 133, 196, 'Şekil 1', { size: 13, anchor: 'middle', weight: 800, fill: P.green });
+  // Şekil 2: L2 ana kolda; L1, L3 ve (L5 – L4) kolları
+  x0 = 284; xl = x0 + 34;
+  const x1 = x0 + 130, x3 = x0 + 176, xc = x0 + 226;
+  s += W([[xl, 101], [xl, yt], [x0 + 82, yt]]) + lamba(x0 + 93, yt, 'L_2', { lab: 'ust', d: 4 }) + W([[x0 + 104, yt], [xc, yt], [xc, 69]]) + W([[xc, 147], [xc, yb], [xl, yb], [xl, 113]]);
+  s += cellV(xl, 107, 1, '', { side: 'sag' });
+  s += W([[x1, yt], [x1, 96]]) + lamba(x1, 107, 'L_1', { lab: 'sol' }) + W([[x1, 118], [x1, yb]]);
+  s += W([[x3, yt], [x3, 96]]) + lamba(x3, 107, 'L_3', { lab: 'sol' }) + W([[x3, 118], [x3, yb]]);
+  s += lamba(xc, 80, 'L_5', { lab: 'sag' }) + W([[xc, 91], [xc, 125]]) + lamba(xc, 136, 'L_4', { lab: 'sag' });
+  s += dot(x1, yt) + dot(x3, yt) + dot(x1, yb) + dot(x3, yb) + T(x0 + 133, 196, 'Şekil 2', { size: 13, anchor: 'middle', weight: 800, fill: P.green });
+  return svg(Wd, H, s, u, 150);
+});
+
+/* C4: harf verme; R4'ün altından dolaşan tel */
+BFY_FIG_EKLE('kY71_C4', function (u) {
+  const Wd = 320, H = 236, yt = 40, yb = 166;
+  let s = zemin(Wd, H);
+  s += W([[30, 97], [30, yt], [58, yt]]) + olcer(70, yt, 'A') + W([[82, yt], [92, yt]]) + resH(92, 146, yt, 'R_1') + W([[146, yt], [286, yt], [286, 76]]);
+  s += cellV(30, 103, 1, '', { side: 'sag' }) + T(42, 140, '12 V', { size: 12.5, anchor: 'start', weight: 800, fill: VC });
+  s += dot(176, yt) + W([[176, yt], [176, 76]]) + resV(176, 76, 130, 'R_2', { side: 'sag' }) + W([[176, 130], [176, yb]]) + dot(176, yb);
+  s += resV(286, 76, 130, 'R_3', { side: 'sol' }) + W([[286, 130], [286, yb], [176, yb]]);
+  s += W([[176, yb], [146, yb]]) + resH(92, 146, yb, 'R_4', { lab: 'alt' }) + W([[92, yb], [30, yb], [30, 109]]);
+  s += W([[160, yb], [160, 214], [76, 214], [76, yb]], { c: SW, w: 2.4 }) + dot(160, yb) + dot(76, yb);
+  s += T(118, 230, 'bağlantı teli', { size: 12, anchor: 'middle', weight: 800, fill: SW });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* ================= SORU ŞEKİLLERİ ================= */
+/* 01: ev maketi: P ana kolda, R; S1–T kolu; S2 a–b arasında */
+BFY_FIG_EKLE('kY71_maket', function (u) {
+  const Wd = 320, H = 200, yt = 44, yb = 170;
+  let s = zemin(Wd, H);
+  s += W([[30, 101], [30, yt], [83, yt]]) + lamba(94, yt, 'P', { lab: 'ust' }) + W([[105, yt], [226, yt]]) + anaH(226, 258, yt, false, 'S_1') + W([[258, yt], [292, yt], [292, 96]]);
+  s += cellV(30, 107, 1, '', { side: 'sag' });
+  s += lamba(292, 107, 'T', { lab: 'sag' }) + W([[292, 118], [292, yb], [30, yb], [30, 113]]);
+  s += dot(150, yt) + nok(150, yt, 'a', -9, -8) + W([[150, yt], [150, 96]]) + lamba(150, 107, 'R', { lab: 'sol' }) + W([[150, 118], [150, yb]]) + dot(150, yb) + T(150, yb + 18, 'b', { size: 12.5, anchor: 'middle', weight: 700, italic: true, fill: P.ink2 });
+  s += dot(204, yt) + W([[204, yt], [204, 92]]) + anaV(204, 92, 124, false, 'S_2', { side: 'sag' }) + W([[204, 124], [204, yb]]) + dot(204, yb);
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 02: seri zincir L1–L2–L3; S2 a'yı c'ye, S1 b'yi d'ye bağlar */
+BFY_FIG_EKLE('kY71_zincir', function (u) {
+  const Wd = 340, H = 200, y = 96, yb = 176, yu = 40;
+  let s = zemin(Wd, H);
+  s += W([[30, 130], [30, y], [93, y]]) + lamba(104, y, 'L_1', { lab: 'alt', d: -6 }) + W([[115, y], [190, y]]) + lamba(201, y, 'L_2', { lab: 'alt', d: -6 }) + W([[212, y], [271, y]]) + lamba(282, y, 'L_3', { lab: 'alt', d: -6 }) + W([[293, y], [316, y], [316, yb], [30, yb], [30, 142]]);
+  s += cellV(30, 136, 1, '', { side: 'sag' });
+  s += dot(56, y) + nok(56, y, 'a', -9, 18) + dot(150, y) + nok(150, y, 'b', 9, 18, 'start') + dot(244, y) + nok(244, y, 'c', 9, 18, 'start');
+  s += W([[56, y], [56, yu], [136, yu]]) + anaH(136, 168, yu, false, 'S_2') + W([[168, yu], [244, yu], [244, y]]);
+  s += W([[150, y], [150, 126]]) + anaV(150, 126, 156, false, 'S_1', { side: 'sol' }) + W([[150, 156], [150, yb]]) + dot(150, yb) + T(176, yb + 18, 'd', { size: 12.5, anchor: 'middle', weight: 700, italic: true, fill: P.ink2 }) + dot(176, yb);
+  return svg(Wd, H, s, u, 72);
+});
+
+/* 03: fotoğraf stüdyosu, iki bağlantı */
+BFY_FIG_EKLE('kY71_stud_genis', function (u) {
+  const Wd = 560, H = 224;
+  let s = zemin(Wd, H) + panel(10, 10, 266, 204) + panel(284, 10, 266, 204);
+  // Şekil 1: 1 ana kolda; (2–3), 4, 5 paralel kollar
+  let x0 = 10, xl = x0 + 30, xr = x0 + 228, yt = 46, yb = 176;
+  s += W([[xl, 105], [xl, yt], [x0 + 70, yt]]) + lamba(x0 + 81, yt, '1', { lab: 'ust' }) + W([[x0 + 92, yt], [xr, yt], [xr, 98]]) + W([[xr, 120], [xr, yb], [xl, yb], [xl, 117]]);
+  s += cellV(xl, 111, 1, '', { side: 'sag' });
+  s += W([[x0 + 128, yt], [x0 + 128, 68]]) + lamba(x0 + 128, 79, '2', { lab: 'sol' }) + W([[x0 + 128, 90], [x0 + 128, 128]]) + lamba(x0 + 128, 139, '3', { lab: 'sol' }) + W([[x0 + 128, 150], [x0 + 128, yb]]);
+  s += W([[x0 + 180, yt], [x0 + 180, 98]]) + lamba(x0 + 180, 109, '4', { lab: 'sol' }) + W([[x0 + 180, 120], [x0 + 180, yb]]);
+  s += lamba(xr, 109, '5', { lab: 'sol' });
+  s += [128, 180].map(x => dot(x0 + x, yt) + dot(x0 + x, yb)).join('') + T(x0 + 133, 204, 'Şekil 1', { size: 13, anchor: 'middle', weight: 800, fill: P.green });
+  // Şekil 2: üretecin uçlarına iki kol: [(1 ∥ 4) + 3] ve [2 + 5]
+  x0 = 284; xl = x0 + 30;
+  const xa = x0 + 112, xp1 = x0 + 86, xp2 = x0 + 138, xb = x0 + 204;
+  s += W([[xl, 105], [xl, yt], [xb, yt], [xb, 77]]) + W([[xl, 117], [xl, yb], [xb, yb], [xb, 149]]) + cellV(xl, 111, 1, '', { side: 'sag' });
+  s += W([[xa, yt], [xa, 58]]) + W([[xp1, 58], [xp2, 58]]) + W([[xp1, 58], [xp1, 69]]) + lamba(xp1, 80, '1', { lab: 'sol' }) + W([[xp1, 91], [xp1, 102], [xp2, 102], [xp2, 91]]) + lamba(xp2, 80, '4', { lab: 'sag' }) + W([[xp2, 69], [xp2, 58]]);
+  s += W([[xa, 102], [xa, 127]]) + lamba(xa, 138, '3', { lab: 'sol' }) + W([[xa, 149], [xa, yb]]);
+  s += lamba(xb, 88, '2', { lab: 'sag' }) + W([[xb, 99], [xb, 127]]) + lamba(xb, 138, '5', { lab: 'sag' });
+  s += dot(xa, yt) + dot(xa, 58) + dot(xa, 102) + dot(xa, yb);
+  s += T(x0 + 133, 204, 'Şekil 2', { size: 13, anchor: 'middle', weight: 800, fill: P.green });
+  return svg(Wd, H, s, u, 150);
+});
+
+/* 04: X ana kolda; Y, Z ve S–T kolları */
+BFY_FIG_EKLE('kY71_salon', function (u) {
+  const Wd = 320, H = 196, yt = 42, yb = 168, xk = 226;
+  let s = zemin(Wd, H);
+  s += W([[30, 99], [30, yt], [73, yt]]) + lamba(84, yt, 'X', { lab: 'ust' }) + W([[95, yt], [xk, yt], [xk, 57]]);
+  s += cellV(30, 105, 1, '', { side: 'sag' });
+  s += W([[140, yt], [140, 94]]) + lamba(140, 105, 'Y', { lab: 'sol' }) + W([[140, 116], [140, yb]]);
+  s += lamba(xk, 68, 'Z', { lab: 'sol' }) + W([[xk, 79], [xk, 93]]) + lamba(xk, 104, 'U', { lab: 'sol' }) + W([[xk, 115], [xk, 129]]) + lamba(xk, 140, 'T', { lab: 'sol' }) + W([[xk, 151], [xk, yb]]);
+  s += dot(xk, 122) + W([[xk, 122], [250, 122]]) + anaH(250, 282, 122, false, 'S') + W([[282, 122], [298, 122], [298, yb], [30, yb], [30, 111]]);
+  s += dot(140, yt) + dot(140, yb) + dot(xk, yb);
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 06: telde sağdan sola giden elektronlar */
+BFY_FIG_EKLE('kY71_elektron', function (u) {
+  const Wd = 320, H = 126, CU = '#c9793f';
+  let s = zemin(Wd, H) + cubuk(u, 24, 64, 268, 34, CU);
+  s += `<ellipse cx="160" cy="64" rx="7" ry="17" fill="#f5d6b8" stroke="#8a5a33" stroke-width="1.4" stroke-dasharray="3 2"/>`;
+  [[52, 57], [88, 72], [124, 58], [196, 70], [232, 56], [268, 70]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="5.4" fill="#2f6fb8" stroke="#fff" stroke-width="1"/>` + T(x, y + 3.6, '−', { size: 10, anchor: 'middle', weight: 800, fill: '#fff', halo: false }); });
+  s += arrow(236, 24, 92, 24, { color: '#2f6fb8', w: 2.4, head: 9, headW: 5 }) + T(164, 18, 'elektronların hareketi', { size: 12, anchor: 'middle', weight: 800, fill: '#2f6fb8' }).replace('y="18"', 'y="16"');
+  s += T(160, 106, 'kesit', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(24, 106, 'sol', { size: 12, weight: 700, fill: P.ink2 }) + T(296, 106, 'sağ', { size: 12, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 07: tuzlu su hücresi */
+BFY_FIG_EKLE('kY71_hucre', function (u) {
+  const Wd = 320, H = 200;
+  let s = zemin(Wd, H);
+  s += `<rect x="70" y="96" width="180" height="88" rx="6" fill="#d6ecf6" stroke="#6f8f9f" stroke-width="1.6"/><rect x="72" y="104" width="176" height="78" fill="#a9d3ea" opacity=".75"/><line x1="72" y1="104" x2="248" y2="104" stroke="#5d8fa8" stroke-width="1.2"/>`;
+  s += `<rect x="104" y="80" width="10" height="94" rx="2" fill="url(#${u}metal)" stroke="#5b646b" stroke-width="1.1"/><rect x="206" y="80" width="10" height="94" rx="2" fill="url(#${u}metal)" stroke="#5b646b" stroke-width="1.1"/>`;
+  s += T(160, 148, 'tuzlu su', { size: 12.5, anchor: 'middle', weight: 700, fill: '#1d5a86' });
+  s += `<rect x="120" y="18" width="80" height="34" rx="6" fill="#39434b"/>` + T(160, 40, 'DA kaynağı', { size: 12, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  s += W([[109, 80], [109, 35], [120, 35]], { c: '#b5651d', w: 2.6 }) + W([[211, 80], [211, 35], [200, 35]], { c: '#b5651d', w: 2.6 });
+  s += T(96, 30, '+', { size: 15, anchor: 'middle', weight: 800 }) + T(224, 30, '−', { size: 16, anchor: 'middle', weight: 800 });
+  s += T(52, 70, 'bakır kablo', { size: 12, anchor: 'middle', weight: 700, fill: '#8a5a33' });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 08: aspiratör motoru I-t */
+BFY_FIG_EKLE('kY71_It', function (u) {
+  const Wd = 320, H = 196, ox = 50, oy = 160, sx = 21, sy = 26;
+  let s = zemin(Wd, H) + eksen(ox, oy, 262, 30, 't (s)', 'I (A)');
+  const X = t => ox + t * sx, Y = i => oy - i * sy;
+  s += W([[X(0), Y(4)], [X(2), Y(4)], [X(2), Y(1.5)], [X(10), Y(1.5)]], { c: P.coral, w: 2.8 });
+  s += dashLine(ox, Y(1.5), X(2), Y(1.5), P.ink2, '3 3', 1) + dashLine(X(2), Y(1.5), X(2), oy, P.ink2, '3 3', 1) + dashLine(X(10), Y(1.5), X(10), oy, P.ink2, '3 3', 1);
+  s += T(ox - 7, Y(4) + 4.5, '4', { size: 12, anchor: 'end', fill: P.ink2 }) + T(ox - 7, Y(1.5) + 4.5, '1,5', { size: 12, anchor: 'end', fill: P.ink2 });
+  s += T(X(2), oy + 17, '2', { size: 12, anchor: 'middle', fill: P.ink2 }) + T(X(10), oy + 17, '10', { size: 12, anchor: 'middle', fill: P.ink2 });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 12: üç grafik */
+BFY_FIG_EKLE('kY71_graf_genis', function (u) {
+  const Wd = 560, H = 180;
+  let s = zemin(Wd, H);
+  const g = (x0, no, xl, yl, egri) => {
+    const ox = x0 + 36, oy = 140, ex = x0 + 148, ey = 40;
+    return panel(x0, 10, 178, 160) + T(x0 + 14, 32, no, { size: 13.5, weight: 800, fill: P.green }) + eksen(ox, oy, ex, ey, xl, yl) + egri(ox, oy);
+  };
+  s += g(10, 'I.', 'A', 'R', (ox, oy) => W([[ox, oy], [ox + 100, oy - 84]], { c: RC, w: 2.6 }));
+  s += g(191, 'II.', 'L', 'R', (ox, oy) => W([[ox, oy], [ox + 104, oy - 80]], { c: RC, w: 2.6 }));
+  s += g(372, 'III.', 'L', 'I', (ox, oy) => { let d = ''; for (let i = 0; i <= 30; i++) { const L = 0.14 + i * 0.86 / 30, x = ox + 8 + L * 100, y = oy - 11.5 / L; d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(y); } return `<path d="${d}" fill="none" stroke="${RC}" stroke-width="2.6"/>`; });
+  return svg(Wd, H, s, u, 150);
+});
+
+/* 15: seri 4 Ω ve 12 Ω, 12 Ω'a paralel voltmetre */
+BFY_FIG_EKLE('kY71_seri', function (u) {
+  const Wd = 320, H = 186, yt = 96, yb = 160;
+  let s = zemin(Wd, H);
+  s += W([[40, yb], [40, yt], [62, yt]]) + resH(62, 122, yt, '4 Ω', { lab: 'alt' }) + W([[122, yt], [168, yt]]) + resH(168, 238, yt, '12 Ω', { lab: 'alt' }) + W([[238, yt], [280, yt], [280, yb], [165, yb]]) + W([[155, yb], [40, yb]]);
+  s += cellH(160, yb, 1, '');
+  s += dot(150, yt) + dot(256, yt) + W([[150, yt], [150, 42], [191, 42]]) + W([[215, 42], [256, 42], [256, yt]]) + olcer(203, 42, 'V') + T(203, 24, '9 V', { size: 13, anchor: 'middle', weight: 800, fill: VC });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 16: üç paralel direnç, raylardaki ampermetreler */
+BFY_FIG_EKLE('kY71_raylar', function (u) {
+  const Wd = 330, H = 200, yt = 40, yb = 166;
+  let s = zemin(Wd, H);
+  s += W([[30, 97], [30, yt], [126, yt]]) + olcer(140, yt, 'A_1', { r: 14, size: 12, dx: 2 }) + W([[154, yt], [296, yt], [296, 76]]);
+  s += cellV(30, 103, 1, '', { side: 'sag' }) + T(42, 140, '12 V', { size: 12.5, weight: 800, fill: VC });
+  s += W([[30, 109], [30, yb], [216, yb]]) + olcer(230, yb, 'A_2', { r: 14, size: 12, dx: 2 }) + W([[244, yb], [296, yb], [296, 130]]);
+  s += W([[100, yt], [100, 76]]) + resV(100, 76, 130, '6 Ω', { side: 'sag' }) + W([[100, 130], [100, yb]]) + dot(100, yt) + dot(100, yb);
+  s += W([[190, yt], [190, 76]]) + resV(190, 76, 130, '12 Ω', { side: 'sag' }) + W([[190, 130], [190, yb]]) + dot(190, yt) + dot(190, yb);
+  s += resV(296, 76, 130, '4 Ω', { side: 'sol' });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 17: R1 ana kolda, R2 ve S–R3 kolları */
+BFY_FIG_EKLE('kY71_ekle', function (u) {
+  const Wd = 320, H = 196, yt = 42, yb = 168;
+  let s = zemin(Wd, H);
+  s += W([[30, 99], [30, yt], [66, yt]]) + resH(66, 126, yt, 'R_1') + W([[126, yt], [270, yt], [270, 58]]);
+  s += cellV(30, 105, 1, '', { side: 'sag' });
+  s += W([[176, yt], [176, 80]]) + resV(176, 80, 136, 'R_2', { side: 'sag' }) + W([[176, 136], [176, yb]]) + dot(176, yt) + dot(176, yb);
+  s += anaV(270, 58, 88, false, 'S', { side: 'sag' }) + W([[270, 88], [270, 96]]) + resV(270, 96, 146, 'R_3', { side: 'sag' }) + W([[270, 146], [270, yb], [30, yb], [30, 111]]);
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 18: X–Y arası, 4 Ω'u kısa devre eden dolaşan tel */
+BFY_FIG_EKLE('kY71_XY', function (u) {
+  const Wd = 320, H = 196, y = 66;
+  let s = zemin(Wd, H);
+  const uc = (x, yy, a) => `<circle cx="${x}" cy="${yy}" r="5" fill="#fff" stroke="${INK}" stroke-width="2"/>` + T(x, yy - 12, a, { size: 13.5, anchor: 'middle', weight: 800 });
+  s += uc(24, y, 'X') + W([[29, y], [52, y]]) + resH(52, 112, y, '4 Ω') + W([[112, y], [140, y]]) + dot(140, y) + nok(140, y, 'a', 0, -10);
+  s += W([[140, y], [166, y]]) + resH(166, 226, y, '6 Ω') + W([[226, y], [270, y]]) + dot(250, y) + uc(275, y, 'Y');
+  s += W([[140, y], [140, 118], [166, 118]]) + resH(166, 226, 118, '12 Ω', { lab: 'alt' }) + W([[226, 118], [250, 118], [250, y]]);
+  s += W([[38, y], [38, 168], [140, 168], [140, 118]], { c: SW, w: 2.4 }) + dot(38, y) + dot(140, 118);
+  s += T(89, 184, 'bağlantı teli', { size: 12, anchor: 'middle', weight: 800, fill: SW });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 19: iki kol, orta noktalar arasında voltmetre; üreteç sol kenarda üst ve alt rayı besler */
+BFY_FIG_EKLE('kY71_orta', function (u) {
+  const Wd = 300, H = 224, xl = 118, xr = 238, yt = 30, yb = 196, ym = 112;
+  let s = zemin(Wd, H);
+  s += W([[32, 106], [32, yt], [xr, yt]]) + W([[32, 118], [32, yb], [xr, yb]]) + cellV(32, 112, 1, '', { side: 'sag' }) + T(44, 150, '12 V', { size: 12.5, weight: 800, fill: VC });
+  s += W([[xl, yt], [xl, 44]]) + resV(xl, 44, 96, '2 Ω', { side: 'sol' }) + W([[xl, 96], [xl, 128]]) + resV(xl, 128, 180, '4 Ω', { side: 'sol' }) + W([[xl, 180], [xl, yb]]) + dot(xl, yt) + dot(xl, yb);
+  s += W([[xr, yt], [xr, 44]]) + resV(xr, 44, 96, '4 Ω', { side: 'sag' }) + W([[xr, 96], [xr, 128]]) + resV(xr, 128, 180, '2 Ω', { side: 'sag' }) + W([[xr, 180], [xr, yb]]);
+  s += dot(xl, ym) + dot(xr, ym) + W([[xl, ym], [166, ym]]) + W([[190, ym], [xr, ym]]) + olcer(178, ym, 'V');
+  return svg(Wd, H, s, u, 66);
+});
+
+/* 21: deney seti: pil, S, R, lamba ve lambaya paralel voltmetre */
+BFY_FIG_EKLE('kY71_ariza', function (u) {
+  const Wd = 320, H = 190, yt = 96, yb = 164;
+  let s = zemin(Wd, H);
+  s += W([[36, yb], [36, yt], [64, yt]]) + anaH(64, 98, yt, true, 'S') + W([[98, yt], [120, yt]]) + resH(120, 176, yt, 'R', { lab: 'alt' }) + W([[176, yt], [214, yt]]) + lamba(225, yt, '', {}) + W([[236, yt], [284, yt], [284, yb], [165, yb]]) + W([[155, yb], [36, yb]]);
+  s += cellH(160, yb, 1, '');
+  s += dot(200, yt) + dot(256, yt) + W([[200, yt], [200, 44], [216, 44]]) + W([[240, 44], [256, 44], [256, yt]]) + olcer(228, 44, 'V') + T(228, 26, '0', { size: 13, anchor: 'middle', weight: 800, fill: VC });
+  s += T(225, yt + 30, 'lamba', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 22: ölçü aleti konumları */
+BFY_FIG_EKLE('kY71_konum', function (u) {
+  const Wd = 330, H = 200, xp = 80, yt = 40, yb = 172;
+  let s = zemin(Wd, H);
+  s += W([[xp, 100], [xp, yt], [114, yt]]) + konum(126, yt, '1') + W([[138, yt], [300, yt], [300, 62]]);
+  s += cellV(xp, 106, 1, '', { side: 'sag' }) + W([[xp, 112], [xp, yb], [300, yb], [300, 142]]);
+  s += dot(xp, 70) + dot(xp, 142) + W([[xp, 70], [36, 70], [36, 94]]) + konum(36, 106, '4') + W([[36, 118], [36, 142], [xp, 142]]);
+  s += dot(210, yt) + W([[210, yt], [210, 95]]) + lamba(210, 106, 'K', { lab: 'sag' }) + W([[210, 117], [210, yb]]) + dot(210, yb);
+  s += dot(210, 70) + dot(210, 142) + W([[210, 70], [168, 70], [168, 94]]) + konum(168, 106, '2') + W([[168, 118], [168, 142], [210, 142]]);
+  s += konum(300, 74, '3') + W([[300, 86], [300, 100]]) + lamba(300, 111, 'M', { lab: 'sol' }) + W([[300, 122], [300, 142]]);
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 23: 4 Ω ana kolda; 12 Ω (ampermetreli) ∥ 6 Ω; 12 Ω'a paralel voltmetre */
+BFY_FIG_EKLE('kY71_kopuk', function (u) {
+  const Wd = 330, H = 200, yt = 40, yb = 172;
+  let s = zemin(Wd, H);
+  s += W([[30, 100], [30, yt], [60, yt]]) + resH(60, 120, yt, '4 Ω') + W([[120, yt], [286, yt], [286, 80]]);
+  s += cellV(30, 106, 1, '', { side: 'sag' }) + T(42, 144, '12 V', { size: 12.5, weight: 800, fill: VC });
+  s += W([[30, 112], [30, yb], [286, yb], [286, 134]]);
+  s += W([[176, yt], [176, 58]]) + olcer(176, 70, 'A') + W([[176, 82], [176, 92]]) + resV(176, 92, 146, '12 Ω', { side: 'sag' }) + W([[176, 146], [176, yb]]) + dot(176, yt) + dot(176, yb);
+  s += dot(176, 88) + dot(176, 156) + W([[176, 88], [138, 88], [138, 107]]) + olcer(138, 119, 'V') + W([[138, 131], [138, 156], [176, 156]]);
+  s += resV(286, 80, 134, '6 Ω', { side: 'sol' });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 24: üçgen: X (R) A–B, Y (2R) B–C, Z (2R) A–C; üreteç A ve C'ye */
+BFY_FIG_EKLE('kY71_ucgen', function (u) {
+  const Wd = 300, H = 214;
+  let s = zemin(Wd, H);
+  const A = [150, 34], B = [250, 150], C = [50, 150];
+  const egik = (p, q, lab, side) => {
+    const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2, dx = q[0] - p[0], dy = q[1] - p[1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+    const a = [mx - ux * 22, my - uy * 22], b = [mx + ux * 22, my + uy * 22], nx = -uy, ny = ux;
+    let d = `M${f1(a[0])} ${f1(a[1])}`;
+    for (let i = 0; i < 6; i++) { const t = (i + 0.5) / 6, sg = i % 2 ? 6 : -6; d += ` L${f1(a[0] + (b[0] - a[0]) * t + nx * sg)} ${f1(a[1] + (b[1] - a[1]) * t + ny * sg)}`; }
+    d += ` L${f1(b[0])} ${f1(b[1])}`;
+    return W([p, a]) + W([b, q]) + `<path d="${d}" fill="none" stroke="${RC}" stroke-width="2" stroke-linejoin="round"/>` + T(mx + nx * side * 26, my + ny * side * 26 + 4.5, lab, { size: 13, anchor: 'middle', weight: 800 });
+  };
+  s += egik(A, B, 'X: R', -1) + egik(B, C, 'Y: 2R', -1) + egik(A, C, 'Z: 2R', 1);
+  s += dot(...A) + dot(...B) + dot(...C);
+  s += W([[A[0], A[1]], [A[0], 14], [24, 14], [24, 72]]) + cellV(24, 78, 1, '', { side: 'sag' }) + W([[24, 84], [24, 150], [C[0], C[1]]]);
+  s += T(A[0] + 10, A[1] + 4, '', {});
+  return svg(Wd, H, s, u, 66);
+});
+
+/* 28: tel halka; M ve N arasında kısa yay çevrenin dörtte biri */
+BFY_FIG_EKLE('kY71_halka', function (u) {
+  const Wd = 300, H = 210, cx = 170, cy = 112, r = 66;
+  let s = zemin(Wd, H);
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#8c7a95" stroke-width="6"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#c3b6cc" stroke-width="1.6"/>`;
+  const M = [cx - r, cy], N = [cx, cy - r];
+  s += `<path d="M${M[0]} ${M[1]} A${r} ${r} 0 0 1 ${N[0]} ${N[1]}" fill="none" stroke="${RC}" stroke-width="2.4" stroke-dasharray="5 4"/>`;
+  s += dot(...M, 4) + dot(...N, 4) + T(M[0] + 12, M[1] + 5, 'M', { size: 13.5, weight: 800 }) + T(N[0] + 12, N[1] + 18, 'N', { size: 13.5, weight: 800 });
+  s += W([[M[0], M[1]], [44, M[1]], [44, 130]]) + cellV(44, 136, 1, '', { side: 'sol' }) + W([[44, 142], [44, 196], [282, 196], [282, 18], [N[0], 18], [N[0], N[1]]]);
+  s += T(60, 166, '12 V', { size: 12.5, weight: 800, fill: VC });
+  return svg(Wd, H, s, u, 66);
+});
+
+/* 29: gaz boşalma tüpü */
+BFY_FIG_EKLE('kY71_tup', function (u) {
+  const Wd = 320, H = 150;
+  let s = zemin(Wd, H);
+  s += `<rect x="40" y="52" width="240" height="56" rx="28" fill="#e9e1f7" stroke="#8a7aa8" stroke-width="1.8"/><rect x="58" y="58" width="204" height="12" rx="6" fill="#fff" opacity=".55"/>`;
+  s += `<rect x="50" y="62" width="8" height="36" rx="2" fill="#7d868e"/><rect x="262" y="62" width="8" height="36" rx="2" fill="#7d868e"/>`;
+  [[110, 84], [150, 92], [190, 82]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="6" fill="#c8412b" stroke="#fff" stroke-width="1"/>` + T(x, y + 3.8, '+', { size: 10.5, anchor: 'middle', weight: 800, fill: '#fff', halo: false }); });
+  [[96, 70], [136, 76], [172, 68], [214, 92], [232, 74]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="4.6" fill="#2f6fb8" stroke="#fff" stroke-width="1"/>`; });
+  s += arrow(108, 30, 208, 30, { color: '#c8412b', w: 2.4, head: 9, headW: 5 }) + T(100, 34, 'pozitif iyonlar', { size: 12, anchor: 'end', weight: 800, fill: '#c8412b' });
+  s += arrow(208, 128, 108, 128, { color: '#2f6fb8', w: 2.4, head: 9, headW: 5 }) + T(216, 132, 'elektronlar', { size: 12, weight: 800, fill: '#2f6fb8' });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* 30: yerleri karışmış ölçü aletleri: voltmetre 6 Ω'a seri, ampermetre 3 Ω'a paralel */
+BFY_FIG_EKLE('kY71_takas', function (u) {
+  const Wd = 340, H = 200, yt = 40, yb = 172, xv = 176, xr = 272, xa = 314;
+  let s = zemin(Wd, H);
+  s += W([[30, 100], [30, yt], [60, yt]]) + resH(60, 120, yt, '2 Ω') + W([[120, yt], [xr, yt], [xr, 82]]);
+  s += cellV(30, 106, 1, '', { side: 'sag' }) + T(42, 144, '12 V', { size: 12.5, weight: 800, fill: VC });
+  s += W([[30, 112], [30, yb], [xr, yb], [xr, 136]]);
+  s += W([[xv, yt], [xv, 58]]) + olcer(xv, 70, 'V') + W([[xv, 82], [xv, 92]]) + resV(xv, 92, 146, '6 Ω', { side: 'sag' }) + W([[xv, 146], [xv, yb]]) + dot(xv, yt) + dot(xv, yb);
+  s += resV(xr, 82, 136, '3 Ω', { side: 'sol' });
+  s += dot(xr, 62) + dot(xr, 154) + W([[xr, 62], [xa, 62], [xa, 97]]) + olcer(xa, 109, 'A') + W([[xa, 121], [xa, 154], [xr, 154]]);
+  return svg(Wd, H, s, u, 70);
+});
+
+/* ================= 3B İZOMETRİK ÇİZİMLER ================= */
+const I0 = window.BFY_ISO;
+const { sahne, kutu, plaka, etiket, yazi, N } = I0;
+const EF = (u, f, o = {}) => sahne(u, f, Object.assign({ w: 220, h: 110, oy: 72, mm: 62 }, o));
+const izoTel = (I, pts, c = '#2a3330', w = 1.6) => `<polyline points="${pts.map(p => I.p(...p).join(',')).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+/* yassı pil (kutu biçimli): köşe (x, y), boy w, en d, yükseklik h */
+function yassiPil(I, x, y, w, d, h) {
+  let s = kutu(I, x, y, 0, w, d, h, '#2f3a3f') + kutu(I, x, y, h, w, d, 1.2, '#c9a33a', { cizgi: '#8a6d1c' });
+  const [ax, ay] = I.p(x + w - 6, y + 4, h + 1.2), [bx, by] = I.p(x + 6, y + 4, h + 1.2);
+  s += `<rect x="${f1(ax - 2.5)}" y="${f1(ay - 4)}" width="5" height="4" fill="#b0b8be" stroke="#6c757c" stroke-width=".6"/><rect x="${f1(bx - 2.5)}" y="${f1(by - 4)}" width="5" height="4" fill="#b0b8be" stroke="#6c757c" stroke-width=".6"/>`;
+  return s;
+}
+/* ampul (ekran): taban (x, y); yanık oranı k */
+function ampul(u, x, y, k = 1, r = 9) {
+  let s = k > 0 ? `<circle cx="${x}" cy="${f1(y - r * 1.6)}" r="${f1(r * (1.4 + 1.2 * k))}" fill="#ffd95a" opacity="${f1(0.12 + 0.2 * k)}"/>` : '';
+  return s + N.ampul(u, x, y, r, k > 0).replace(/<circle[^>]*opacity=".22"\/>/, '');
+}
+const duyAmpul = (u, I, a, k = 1, r = 8) => { const [x, y] = I.p(...a); return `<rect x="${f1(x - 6)}" y="${f1(y - 3)}" width="12" height="5" rx="2" fill="#9aa5ad" stroke="#5f6a70" stroke-width=".7"/>` + ampul(u, x, y - 1, k, r); };
+const akimOk = (I, a, b, c = '#c8412b') => I0.izoOk(I, a, b, { renk: c, w: 1.7, bas: 5.5, basG: 3.2 });
+/* ölçü aleti kutusu (izometrik): köşe (x, y), harf */
+function aletKutu(I, x, y, harf, renk = '#e8ebee') {
+  let s = kutu(I, x, y, 0, 16, 12, 12, renk);
+  const [cx, cy] = I.p(x + 8, y + 12, 7);
+  s += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="5.4" fill="#fff" stroke="#2a3330" stroke-width="1"/>` + yazi(cx, cy + 3.3, harf, { size: 8.5, haleW: 0 });
+  return s;
+}
+
+/* Tanım: pil, ampermetre, tel tahtasındaki nikelin tel ve voltmetre */
+BFY_FIG_EKLE('iY71_tanim', u => sahne(u, I => {
+  let s = plaka(I, -74, -50, 150, 94, '#dfe8e1');
+  // teller (kutuların arkasında kalanlar önce)
+  s += izoTel(I, [[-48, -20, 13.2], [-40, -36, 0.5], [16, -36, 0.5], [16, -28, 0.5]]);
+  s += izoTel(I, [[56, 10, 8], [66, 10, 0.5], [66, -44, 0.5], [-58, -44, 0.5], [-58, -20, 13.2]]);
+  s += izoTel(I, [[20, -16, 0.5], [20, -2, 0.5], [-16, -2, 0.5], [-16, 10, 8]]);
+  s += izoTel(I, [[-16, 10, 8], [-16, 30, 0.5], [14, 30, 0.5]]) + izoTel(I, [[56, 10, 8], [56, 30, 0.5], [30, 30, 0.5]]);
+  // pil, ampermetre
+  s += yassiPil(I, -64, -24, 22, 14, 12) + aletKutu(I, 12, -28, 'A');
+  // tel tahtası ve nikelin tel
+  s += kutu(I, -22, 4, 0, 84, 12, 4, '#d9b98c');
+  s += izoTel(I, [[-16, 10, 6.5], [56, 10, 6.5]], '#8f969b', 2.6);
+  s += kutu(I, -19, 7, 4, 5, 6, 4, '#7d868e') + kutu(I, 53, 7, 4, 5, 6, 4, '#7d868e');
+  // voltmetre
+  s += aletKutu(I, 14, 24, 'V', '#eef1f3');
+  s += akimOk(I, [20, -12, 1], [20, -4, 1]);
+  const [tx, ty] = I.p(62, 16, 0), [px, py] = I.p(-64, -10, 6);
+  s += etiket(tx + 30, ty + 6, 'nikelin tel: R', { size: 9.5, renk: '#7d5aa6' }) + etiket(px - 22, py + 4, 'üreteç', { size: 9.5 });
+  return s;
+}, { w: 320, h: 150, mm: 110, ox: 158, oy: 74 }));
+
+/* Efsane 1: seri lambalarda akım her yerde aynı */
+BFY_FIG_EKLE('iY71_efsane_1', u => EF(u, I => {
+  let s = plaka(I, -46, -26, 92, 50);
+  s += izoTel(I, [[-26, -12, 11.2], [-20, -20, 0.5], [-6, -20, 0.5]]) + izoTel(I, [[2, -20, 0.5], [34, -20, 0.5], [34, 8, 0.5]]);
+  s += izoTel(I, [[34, 16, 0.5], [34, 20, 0.5], [-36, 20, 0.5], [-34, -12, 11.2]]);
+  s += yassiPil(I, -40, -16, 20, 14, 10);
+  s += duyAmpul(u, I, [-2, -20, 0], 0.7, 7) + duyAmpul(u, I, [34, 12, 0], 0.7, 7);
+  s += akimOk(I, [10, -20, 2], [24, -20, 2]) + akimOk(I, [34, -14, 2], [34, -2, 2]) + akimOk(I, [16, 20, 2], [0, 20, 2]);
+  s += etiket(178, 22, 'aynı akım', { size: 9.5, renk: '#c8412b' });
+  return s;
+}, { oy: 62 }));
+
+/* Efsane 2: alan hızlı kurulur, elektronlar yavaş sürüklenir */
+BFY_FIG_EKLE('iY71_efsane_2', u => EF(u, I => {
+  let s = plaka(I, -52, -20, 104, 40);
+  s += izoTel(I, [[-30, -6, 9.5], [-30, -14, 0.5], [44, -14, 0.5], [44, 0, 0.5]], '#c9793f', 2.2) + izoTel(I, [[44, 6, 0.5], [44, 12, 0.5], [-40, 12, 0.5], [-40, -6, 9.5]], '#c9793f', 2.2);
+  s += yassiPil(I, -46, -12, 18, 12, 8);
+  s += duyAmpul(u, I, [44, 2, 0], 1, 7);
+  [[-10, -14], [6, -14], [22, -14], [0, 12], [-18, 12], [18, 12]].forEach(([x, y]) => { const [ex, ey] = I.p(x, y, 1.6); s += `<circle cx="${f1(ex)}" cy="${f1(ey)}" r="2.4" fill="#2f6fb8"/>`; });
+  s += etiket(70, 18, 'sürüklenme: mm/s', { size: 9.5, renk: '#2f6fb8' }) + etiket(150, 96, 'lamba hemen yanar', { size: 9.5, renk: '#a8701c' });
+  return s;
+}, { oy: 62 }));
+
+/* Efsane 3: direnç potansiyel farka bağlı değil */
+BFY_FIG_EKLE('iY71_efsane_3', u => EF(u, I => {
+  let s = plaka(I, -40, -18, 80, 36);
+  s += kutu(I, -24, -6, 0, 48, 10, 6, '#d9b98c') + izoTel(I, [[-20, -1, 7], [20, -1, 7]], '#8f969b', 2.4);
+  s += etiket(48, 22, '6 V → 0,2 A', { size: 9.5 }) + etiket(172, 22, '12 V → 0,4 A', { size: 9.5 }) + etiket(110, 96, 'R = 30 Ω (değişmez)', { size: 9.5, renk: '#c8412b' });
+  return s;
+}, { oy: 66 }));
+
+/* Efsane 4: saf su çok zayıf iletir, tuzlu su iyi iletir */
+BFY_FIG_EKLE('iY71_efsane_4', u => EF(u, I => {
+  let s = '';
+  const duzen = (x, yanik, sivi, ad) => {
+    let t = `<ellipse cx="${x}" cy="88" rx="30" ry="5" fill="#0b1f18" opacity=".12"/>` + N.beher(x, 86, 40, 42, 0.65, sivi);
+    t += `<rect x="${x - 11}" y="40" width="4" height="40" fill="#7d868e"/><rect x="${x + 7}" y="40" width="4" height="40" fill="#7d868e"/>`;
+    t += `<path d="M${x - 9} 40 V30 H${x - 4}" fill="none" stroke="#2a3330" stroke-width="1.5"/><path d="M${x + 4} 30 H${x + 30}" fill="none" stroke="#2a3330" stroke-width="1.5"/><path d="M${x + 9} 40 V37 H${x + 47} V24 H${x + 44}" fill="none" stroke="#2a3330" stroke-width="1.5"/>`;
+    t += ampul(u, x, 32, yanik, 6.5) + `<rect x="${x + 30}" y="14" width="14" height="18" rx="2" fill="#2f3a3f"/><rect x="${x + 30}" y="14" width="14" height="5" rx="1" fill="#c9a33a"/>`;
+    return t + yazi(x, 104, ad, { size: 9.5 });
+  };
+  s += duzen(62, 0, '#d8eef8', 'saf su') + duzen(152, 1, '#8fc6e6', 'tuzlu su');
+  return s;
+}, { oy: 70, zemin: null }));
+
+/* Efsane 5: pil sabit akım vermez; direnç büyüyünce akım küçülür */
+BFY_FIG_EKLE('iY71_efsane_5', u => EF(u, I => {
+  let s = plaka(I, -50, -22, 100, 44);
+  s += yassiPil(I, -44, -16, 18, 12, 8);
+  s += izoTel(I, [[-28, -12, 9.5], [-28, -20, 0.5], [10, -20, 0.5]]) + kutu(I, 10, -22, 0, 18, 4, 4, '#c8412b') + izoTel(I, [[28, -20, 0.5], [40, -20, 0.5], [40, 16, 0.5], [-38, 16, 0.5], [-38, -12, 9.5]]);
+  s += kutu(I, 10, 12, 0, 18, 8, 6, '#c8412b').replace(/.*/, '');
+  s += etiket(150, 20, 'R büyük → I küçük', { size: 9.5, renk: '#c8412b' }) + etiket(64, 96, 'V sabit kalır', { size: 9.5 });
+  return s;
+}, { oy: 64 }));
+
+/* Efsane 6: seri bağlı voltmetre, lamba yanmaz */
+BFY_FIG_EKLE('iY71_efsane_6', u => EF(u, I => {
+  let s = plaka(I, -46, -22, 92, 44);
+  s += yassiPil(I, -40, -16, 18, 12, 8);
+  s += izoTel(I, [[-24, -12, 9.5], [-24, -20, 0.5], [2, -20, 0.5], [2, -18, 4]]);
+  s += aletKutu(I, 2, -26, 'V');
+  s += izoTel(I, [[18, -20, 4], [32, -20, 0.5], [32, 0, 0.5]]) + izoTel(I, [[32, 8, 0.5], [32, 16, 0.5], [-34, 16, 0.5], [-34, -12, 9.5]]);
+  s += duyAmpul(u, I, [32, 4, 0], 0, 7);
+  s += etiket(160, 22, 'V ≈ pilin gerilimi', { size: 9.5 }) + etiket(150, 98, 'lamba yanmaz', { size: 9.5, renk: '#c8412b' });
+  return s;
+}, { oy: 64 }));
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · İçerik bankası
+   Y.7 Elektrik ve Manyetizma · Y.7.1 Elektrik Akımı, Direnç ve Ohm Yasası
+   Kapsam: 2018 fizik öğretim programı 10.1.1.1 (yük hareketiyle elektrik akımı; katı, sıvı, gaz ve plazmada iletim;
+   direnç ve potansiyel farkı kavramları), 10.1.1.2 (katı bir iletkenin direncinin boy, kesit ve maddeye bağlılığı;
+   matematiksel model verilir, hesaplamalara girilmez; sıcaklık ve renk kodu yok) ve 10.1.2.1 (voltmetre ve
+   ampermetrenin direnç özellikleri ve görevleri, Ohm yasası, eşdeğer direnç, potansiyel fark ve akım hesapları).
+   Gösterim: I = q/t, R = ρ · L/A (yalnız oran), V = I · R, seri ve paralel eşdeğer direnç.
+   Sorular: 4 çıkmış soru benzeri (2019/5 ve 2020/5 kalıplarına ikişer benzer; cikmis: { yil, no, kalip }) + 26 çıkma
+   ihtimali yüksek soru (tahmin). Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı alınmıştır.
+   ============================================================ */
+(function () {
+const r = String.raw;
+const OSYM = {
+  2019: 'https://dokuman.osym.gov.tr/pdfdokuman/2019/YKS/TSK/tyt_yks_2019_web.pdf',
+  2020: 'https://dokuman.osym.gov.tr/pdfdokuman/2020/YKS/TSK/tyt_yks_2020.pdf'
+};
+const kay = (yil, sayfa) => OSYM[yil] + '#page=' + sayfa;
+const Y3 = [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`];
+
+const KONU = {
+  id: 'Y.7.1',
+  ad: 'Elektrik Akımı, Direnç ve Ohm Yasası',
+  kisa: 'Akım, Direnç, Ohm',
+  kaynak: ['10.1.1', '10.1.2'],
+  ciktilar: ['10.1.1.1', '10.1.1.2', '10.1.2.1'],
+  unvanlar: ['Akım Çırağı', 'Ohm Ustası', 'Devre Dedektifi', 'Kısa Devre Avcısı'],
+  renk: '#3a6ea5',
+  baglamlar: [
+    'tanım çizimi: yassı pil, ampermetre, tel tahtasında nikelin tel ve voltmetre', 'not: katı, sıvı, gaz, plazma yük taşıyıcıları tablosu (bakır kablo, tuzlu su, neon tabela, şimşek)',
+    'not: temel tel, boy 2 katı, kesit 2 katı, özdirenci büyük tel panelleri', 'not: ampermetre seri, voltmetre paralel devre ve iki direncin V-I doğruları',
+    'not: seri, paralel ve kısa devre panelleri', 'simülasyon 1: 2 V güç kaynağı, nikelin ve krom-nikel tel, 50–200 cm, 0,1 ve 0,2 mm², R-L grafiği',
+    'simülasyon 2: 9 V, özdeş 6 Ω K, L, M lambaları; K ana kolda ve S₁ ile kısa devre, M kolunda S₂, bozuk lamba seçici',
+    'çözümlü 1: model uçak kulübünde strafor köpük kesme telleri 30 cm 0,3 mm ve 60 cm 0,6 mm', 'çözümlü 2: oyuncak itfaiye aracının ışık panosu, F–G seri kol ve orta noktayı negatife bağlayan S₁, H kolunda S₂',
+    'çözümlü 3: ışıklı tabela ustası, L₁…L₅, Şekil 1: L₄ ana kol, (L₁ ∥ L₂)–L₃ ve L₅; Şekil 2: L₂ ana kol, L₁, L₃, L₅–L₄; 4 ve 3 lamba, bozuk L₅', 'çözümlü 4: 12 V, A, R₁ 2 Ω, R₂ 6 Ω ∥ R₃ 3 Ω, R₄ 2 Ω altından dolaşan telle kısa devre',
+    'efsane: seri lambalarda akım azalmaz, elektron sürüklenmesi yavaş, direnç potansiyel farka bağlı değil, saf su zayıf tuzlu su iyi iletir (gerçek), pil sabit akım vermez, seri voltmetre lambayı söndürür (gerçek)',
+    'mimarlık öğrencisi ev maketi: P ana kolda, R, S₁–T kolu, S₂ a–b arasında', 'elektrik deney kutusu: L₁–L₂–L₃ seri zincir, S₂ a ile c, S₁ b ile d',
+    'fotoğraf stüdyosu ışık panosu: 1–5 lambalar iki bağlantı (Şekil 2: [(1 ∥ 4)–3] ve [2–5] kolları), 3 ve 2 lamba, bozuk 3', 'düğün salonu giriş kemeri: X ana kol, Y kolu, Z–U–T seri kolu, S U–T arasını alt raya bağlar, 2 ve 2 lamba (olabilir)',
+    'ortam–yük taşıyıcı eşleştirme: priz kablosu, akü asidi, floresan tüp, kaynak arkı, alüminyum hat', 'scooter fren lambası teli: 4 s, 5·10¹⁹ elektron sağdan sola',
+    'yüzme havuzu tuzlu su arıtma hücresi: levhalar, DA kaynağı, bakır kablolar', 'mutfak aspiratörü motoru I-t: 0–2 s 4 A, 2–10 s 1,5 A',
+    'sera ısıtma kablosunun direncini artırma: potansiyel fark, kesit, özdirenç', 'teknisyenin üç nikelin teli: yarıya kesme, ikiye katlama, boyu 2 katına çekme',
+    'Yağmur: kesitin etkisi için tel seçimi tablosu (nikelin, konstantan)', 'R–A, R–L ve I–L grafiklerinden doğruları seçme',
+    'kablo fabrikası kalite kontrol: X kesiti 2 katı, boyu yarısı, eşit akım (kesinlikle)', 'banyo aynası buğu önleyici folyo: 2,4/4,8/7,2 V ve 0,16/0,32/0,48 A',
+    'hobi elektronik seti: 4 Ω ve 12 Ω seri, voltmetre 9 V', 'paralel 6, 12, 4 Ω, 12 V, raylardaki A₁ ve A₂',
+    'R₁ ana kolda, R₂ ve S–R₃ kolları: S kapanınca üç nicelik', 'deney kartı X–Y: 4 Ω, 6 Ω ∥ 12 Ω, 4 Ω\'u kısa devre eden dolaşan tel',
+    '12 V, iki kol 2–4 Ω ve 4–2 Ω, orta noktalar arası voltmetre', 'silinmiş devre şeması: eşit akım ve eşit potansiyel fark (kesinlikle)',
+    'deney seti: pil, S, R, lamba ve voltmetre 0 (olabilir)', 'iki lambalı devrede 1–4 numaralı ölçü aleti konumları',
+    '12 V, 4 Ω ana kolda, 12 Ω (A ve V) ∥ 6 Ω; 6 Ω\'un teli kopuyor', 'R, 2R, 2R üçgeni, üreteç iki köşede: gerilim sıralaması',
+    'nikelin makarası: beş denemenin boy, kesit, V, I tablosu, hatalı kayıt', 'kütleleri eşit X ve Y, X boyu 2 katı: akım oranı',
+    '32 Ω tel halka, M–N kısa yay dörtte bir, 12 V', 'gaz boşalma tüpü: 2 s, 3·10¹⁸ iyon sağa, 5·10¹⁸ elektron sola',
+    'yerleri karışmış ölçü aletleri: 12 V, 2 Ω ana kolda, voltmetre 6 Ω\'a seri, ampermetre 3 Ω\'a paralel', 'ideal ampermetre ve voltmetre yargıları'
+  ],
+
+  /* ---------------- KONU NOTU ---------------- */
+  not: [
+    {
+      tur: 'tanim',
+      sekil: 'iY71_tanim',
+      baslik: 'Elektrik akımı, direnç ve Ohm yasası konusunun özü',
+      metin: r`Bir iletkenin uçları arasında **potansiyel fark** ($V$) oluşturulunca serbest yükler belirli bir yönde hareket eder. Bir kesitten birim zamanda geçen yük miktarına **elektrik akımı** ($I$) denir.
+
+- **Akım:** $I = \dfrac{q}{t}$; birimi amperdir ($1\ \text{A} = 1\ \text{C/s}$). Akımın yönü pozitif yüklerin hareket yönüdür; metal telde elektronlar akıma zıt yönde ilerler.
+- **İletim:** Metallerde serbest elektronlar, çözeltilerde pozitif ve negatif iyonlar, iyonlaşmış gazda ve plazmada iyonlar ve elektronlar akım taşır.
+- **Direnç:** İletkenin akıma karşı gösterdiği zorluktur. Katı bir telin direnci boyuyla doğru, kesit alanıyla ters orantılıdır ve maddesine bağlıdır: $R = \rho \cdot \dfrac{L}{A}$.
+- **Ohm yasası:** Sıcaklığı sabit bir iletkende $\dfrac{V}{I}$ oranı sabittir ve direnci verir: $V = I \cdot R$.
+- **Devre:** Seri bağlı elemanlardan aynı akım geçer; paralel bağlı elemanların uçları arasındaki potansiyel fark eşittir. Ampermetre seri, voltmetre paralel bağlanır.`,
+      kutu: { etiket: 'ÖSYM gözüyle', metin: r`2018–2026 TYT'lerinde bu konudan 2 soru çıktı (2019 ve 2020); ikisi de özdeş lambalı bir devrede anahtarın kısa devre ettiği ya da bozuk lambanın kestiği kolları bulup ışık veren lambaları belirlemeyi ölçtü. Sayısal Ohm ya da eşdeğer direnç hesabı sorulmadı. 2023 ve 2024'teki güç ve parlaklık sorularının ilk adımı da bu konudaki devre okuma becerisiydi.` }
+    },
+    {
+      tur: 'ikili',
+      sol: {
+        baslik: 'Akım nasıl oluşur, neyle taşınır?',
+        metin: r`- Serbest yükler iletkenin içinde her zaman düzensiz hareket eder. Uçlar arasına potansiyel fark uygulanınca bu harekete belirli bir yönde bir **sürüklenme** eklenir; akımı bu sürüklenme oluşturur.
+- Akımın yönü pozitif yükün hareket yönü olarak kabul edilir. Negatif yükler bunun tersine hareket eder.
+- Bir çözeltide pozitif iyonlar bir yöne, negatif iyonlar zıt yöne gider. İki hareketin akıma katkısı aynı yöndedir; kesitten geçen yükler toplanır.
+- Normalde yalıtkan olan bir gaz, yeterince büyük potansiyel farkta iyonlaşıp iletken hâle gelebilir. Plazma, iyonlaşmış gazdır.`
+      },
+      sag: {
+        baslik: 'Ortama göre yük taşıyıcıları',
+        tablo: [['Ortam', 'Örnek', 'Yük taşıyıcı'], ['Katı (metal)', 'Bakır kablo', 'Serbest elektronlar'], ['Sıvı (çözelti)', 'Tuzlu su', 'Pozitif ve negatif iyonlar'], ['Gaz (iyonlaşmış)', 'Neon tabela', 'İyonlar ve elektronlar'], ['Plazma', 'Şimşek', 'İyonlar ve elektronlar']],
+        dip: 'Metalde pozitif iyonlar kristal örgüde yerlerinde titreşir; akıma katılmaz. Yalıtkanlarda serbest yük taşıyıcısı yok denecek kadar azdır.'
+      }
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY71_direnc_genis',
+      baslik: 'Direnç neye bağlı?',
+      metin: r`- Aynı maddeden yapılmış tellerde direnç boyla doğru, kesit alanıyla ters orantılıdır: $R \propto \dfrac{L}{A}$.
+- Boyutları aynı iki telden özdirenci ($\rho$) büyük olan maddeden yapılanın direnci büyüktür. Bakırın özdirenci küçük, nikelin ve krom-nikel gibi alaşımlarınki büyüktür; bu yüzden kablolar bakırdan, ısıtıcı telleri alaşımlardan yapılır.
+- Kesit alanı çapın karesiyle orantılıdır: Çapı 2 katına çıkan telin kesit alanı 4 katına çıkar.
+- Bir teli kesmek, katlamak ya da hacmini değiştirmeden çekmek boyu ve kesiti birlikte değiştirebilir; ikisinin etkisini ayrı ayrı yaz.`
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY71_ohm_genis',
+      baslik: 'Ohm yasası ve ölçü aletleri',
+      metin: r`- Ampermetre, akımını ölçtüğü kola **seri**; voltmetre, potansiyel farkını ölçtüğü elemana **paralel** bağlanır.
+- İdeal ampermetrenin direnci sıfır kabul edilir; devrede bir bağlantı teli gibi davranır. İdeal voltmetrenin direnci çok büyüktür; üzerinden akım geçmez, kopuk bir kol gibi davranır.
+- Sıcaklığı sabit bir dirençte potansiyel fark kaç katına çıkarsa akım da o kadar katına çıkar. $V$-$I$ grafiği orijinden geçen bir doğrudur ve eğimi direnci verir.
+- Akımın düşey eksende olduğu $I$-$V$ grafiğinde eğim $\dfrac{1}{R}$'dir: Eğimi büyük olan doğrunun direnci küçüktür.`
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY71_bagla_genis',
+      baslik: 'Seri, paralel ve kısa devre',
+      metin: r`- **Seri:** Elemanlar tek bir yol üzerindedir; hepsinden aynı akım geçer. $R_{\text{eş}} = R_1 + R_2 + \dots$ ve potansiyel fark dirençlerle orantılı paylaşılır.
+- **Paralel:** Elemanların uçları aynı iki noktaya bağlıdır; potansiyel farkları eşittir. $\dfrac{1}{R_{\text{eş}}} = \dfrac{1}{R_1} + \dfrac{1}{R_2} + \dots$; akım dirençlerle ters orantılı paylaşılır ve eşdeğer direnç en küçük dirençten de küçüktür.
+- **Kısa devre:** Bir elemanın iki ucu direnci önemsiz bir telle birleştirilirse uçları arasındaki potansiyel fark sıfır olur; o elemandan akım geçmez.
+- **Açık devre:** Kopuk tel, açık anahtar ya da teli kopmuş lamba bulunduğu kolu keser; o koldaki seri elemanların hiçbirinden akım geçmez.`
+    },
+    {
+      tur: 'formul',
+      baslik: 'Matematiksel modeller',
+      alt: r`Akım, Ohm yasası ve eşdeğer direnç bağıntılarıyla hesap yapılır. Telin direncinin bağlı olduğu değişkenler için program yalnız modeli verir ve hesaplamaya girmez; bu modeli karşılaştırma ve oran kurmak için kullan.`,
+      kolonlar: [
+        { baslik: 'Akım', not: 'Kesitten geçen yük', satirlar: [r`I = \dfrac{q}{t}`, r`q = N \cdot e`] },
+        { baslik: 'Telin direnci', not: 'Katı tel, sabit sıcaklık', satirlar: [r`R = \rho \cdot \dfrac{L}{A}`] },
+        { baslik: 'Ohm yasası', not: 'Sabit sıcaklıkta', satirlar: [r`V = I \cdot R`, r`\dfrac{V}{I} = R = \text{sabit}`] },
+        { baslik: 'Eşdeğer direnç', not: 'Seri ve paralel', satirlar: [r`R_{\text{eş}} = R_1 + R_2 + R_3`, r`\dfrac{1}{R_{\text{eş}}} = \dfrac{1}{R_1} + \dfrac{1}{R_2} + \dfrac{1}{R_3}`] }
+      ],
+      dip: r`$e = 1,6 \cdot 10^{-19}\ \text{C}$ bir elektronun yükünün büyüklüğüdür; $N$ kesitten geçen taşıyıcı sayısıdır. $L$ telin boyu, $A$ kesit alanı, $\rho$ maddenin özdirencidir (birimi $\Omega \cdot \text{m}$). Kesit alanı çapın karesiyle orantılıdır. Birimler: $1\ \text{mA} = 10^{-3}\ \text{A}$, $1\ \text{k}\Omega = 1000\ \Omega$, $1\ \text{mm}^2 = 10^{-6}\ \text{m}^2$. Akım yönü elektronların hareket yönünün tersidir.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY71_C1', zorluk: 1,
+      baslik: 'Köpük kesme telleri',
+      metin: r`Bir model uçak kulübü, strafor köpük kesmek için aynı krom-nikel alaşımından iki ısıtma teli deniyor. 1. telin boyu $30\ \text{cm}$, çapı $0,3\ \text{mm}$; 2. telin boyu $60\ \text{cm}$, çapı $0,6\ \text{mm}$'dir. Tellerin sıcaklıkları eşittir.
+
+{{sekil}}
+
+1. telin direncinin 2. telin direncine oranı $\dfrac{R_1}{R_2}$ kaçtır?`,
+      sekil: 'kY71_C1',
+      secenekler: [r`$\dfrac{1}{4}$`, r`$\dfrac{1}{2}$`, r`$1$`, r`$2$`, r`$4$`],
+      dogru: 3,
+      cozum: [
+        r`Aynı maddeden tellerde $R \propto \dfrac{L}{A}$'dır. Kesit alanı çapın karesiyle orantılı olduğundan $R \propto \dfrac{L}{d^2}$ yazılır.`,
+        r`2. telin boyu 2 katı olduğu için direnci 2 katına çıkar; çapı 2 katı, yani kesiti 4 katı olduğu için direnci 4'te 1'ine iner. Sonuçta $R_2 = R_1 \cdot \dfrac{2}{4} = \dfrac{R_1}{2}$ olur.`,
+        r`$\dfrac{R_1}{R_2} = 2$.`,
+        r`{{S2}} kesiti çapla orantılı sanır; böylece boydaki 2 kat ile kesitteki 2 katı birbirini götürür. {{S1}} yalnız boyları karşılaştırır ve kesit farkını unutur. {{S4}} yalnız kesit farkını kullanır, boyun 2 katına çıktığını unutur. {{S0}} boyu unutup kesiti büyük telin direncini büyük sanır.`
+      ],
+      ipucu: r`Kesit alanı çapın karesiyle büyür.`,
+      tuzak: r`Çapı kesit alanı gibi kullanmak. Çap 2 katına çıkınca kesit 4 katına çıkar ve direnç 4'te 1'ine iner.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY71_C2', zorluk: 2, cikmis: { yil: 2019, no: 5, kalip: 'Anahtar konumlarına göre ışık veren lambaları belirleme (I-II-III)' },
+      baslik: 'Hangi durumda iki lamba yanar?',
+      metin: r`Bir oyuncak itfaiye aracının ışık panosunda iç direnci önemsiz bir üreteç, özdeş F, G ve H lambaları ile $S_1$ ve $S_2$ anahtarları şekildeki gibi bağlıdır. $S_1$, F ile G'nin arasındaki noktayı üretecin negatif kutbuna giden tele bağlayabilir; $S_2$ ise H'nin kolundadır. Akım geçen her lamba ışık vermektedir.
+
+Anahtarlar sırayla şu konumlara getiriliyor:
+
+I. $S_1$ açık, $S_2$ açık
+II. $S_1$ kapalı, $S_2$ açık
+III. $S_1$ kapalı, $S_2$ kapalı
+
+Bu durumlardan hangilerinde tam olarak iki lamba ışık verir?`,
+      sekil: 'kY71_C2',
+      secenekler: [Y3[0], Y3[2], Y3[3], Y3[4], Y3[5]],
+      dogru: 3,
+      cozum: [
+        r`Kapalı anahtarı direnci sıfır bir tel, açık anahtarı kopukluk olarak düşün.`,
+        r`I. $S_2$ açık olduğu için H'nin kolu kesiktir. F ve G seri bir kolda üretece bağlıdır; ikisi de ışık verir. **İki lamba.**`,
+        r`II. $S_1$ kapalıyken F ile G'nin arasındaki nokta negatif kutupla aynı potansiyeldedir. G'nin iki ucu aynı potansiyelde kalır; G kısa devredir. Yalnız F ışık verir. **Bir lamba.**`,
+        r`III. G yine kısa devredir; F ışık verir. $S_2$ kapalı olduğu için H doğrudan üretecin uçlarına bağlıdır ve o da ışık verir. **İki lamba.**`,
+        r`{{S0}} III'te H'nin kolunun da kapandığını gözden kaçırır. {{S1}} I'de F ile G'nin seri kolunun kapalı bir yol olduğunu görmez. {{S2}} II'de kısa devre olan G'nin de ışık vereceğini sanır ve III'ü atlar. {{S4}} II'de G'nin kısa devre olduğunu görmez, I'de de seri iki lambanın yanmayacağını sanır.`
+      ],
+      ipucu: r`$S_1$ kapanınca G'nin iki ucu hangi noktalara bağlı olur?`,
+      tuzak: r`Kısa devre olan lambayı "sönük yanar" sanmak. Uçları arasında potansiyel fark kalmayan lambadan hiç akım geçmez.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY71_C3', zorluk: 2, cikmis: { yil: 2020, no: 5, kalip: 'İki bağlantıdaki gözlemden bozuk lambayı belirleme' },
+      baslik: 'Bozuk lambayı bul',
+      metin: r`Işıklı tabela ustası Cem'in elindeki beş özdeş lambadan ($L_1$, $L_2$, $L_3$, $L_4$, $L_5$) birinin teli kopmuştur ama hangisi olduğu belli değildir. Cem, lambaları ideal bir pile iki farklı düzende takarak deniyor: Şekil 1'deki düzende dört lamba, Şekil 2'deki düzende üç lamba yanıyor.
+
+{{sekil}}
+
+Teli sağlam olan ve içinden akım geçen her lamba yandığına göre teli kopuk lamba hangisidir?`,
+      sekil: 'kY71_C3_genis',
+      secenekler: [r`$L_1$`, r`$L_2$`, r`$L_3$`, r`$L_4$`, r`$L_5$`],
+      dogru: 4,
+      cozum: [
+        r`Bozuk lamba bulunduğu seri kolun tamamını keser; o koldaki öbür lambalar da söner. Ana koldaki lamba bozuksa hiçbir lamba yanmaz. Birbirine paralel iki lambadan biri bozulursa öbürü yanmaya devam eder.`,
+        r`Şekil 1'de $L_4$ ana koldadır. Bir kolda birbirine paralel $L_1$ ve $L_2$ ile bunlara seri $L_3$, öbür kolda $L_5$ vardır. $L_1$, $L_2$ ya da $L_5$ bozuksa yalnız o lamba söner ve 4 lamba yanar. $L_3$ bozuksa paralel çift de söner ve 2 lamba, $L_4$ bozuksa hiç lamba yanmaz. Adaylar: $L_1$, $L_2$ ve $L_5$.`,
+        r`Şekil 2'de $L_2$ ana koldadır; $L_1$ bir kolda, $L_3$ bir kolda, $L_5$ ile $L_4$ seri olarak öbür koldadır. $L_5$ ya da $L_4$ bozuksa bu kol söner ve $L_2$, $L_1$, $L_3$ yanar: 3 lamba. $L_1$ ya da $L_3$ bozuksa 4 lamba yanar. $L_2$ bozuksa hiçbiri yanmaz.`,
+        r`İki gözlemi birlikte sağlayan tek lamba $L_5$'tir.`,
+        r`{{S0}} Şekil 1'e uyar; ama $L_1$ bozuk olsaydı Şekil 2'de yalnız $L_1$'in kolu söner ve 4 lamba yanardı. {{S1}} Şekil 1'e uyar; ama $L_2$ Şekil 2'de ana koldadır, bozuk olsaydı hiçbir lamba yanmazdı. {{S2}} $L_3$ bozuk olsaydı Şekil 1'de paralel çiftle birlikte bütün kol söner ve yalnız 2 lamba yanardı. {{S3}} Şekil 2'ye uyar; ama $L_4$ Şekil 1'de ana koldadır, bozuk olsaydı hiçbir lamba yanmazdı.`
+      ],
+      ipucu: r`Her aday lamba için iki şekilde kaç lambanın yanacağını say.`,
+      tuzak: r`Yalnız bir şekli kontrol edip orada uygun olan ilk lambayı seçmek. Cevap, iki gözlemi birden sağlamalıdır.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY71_C4', zorluk: 3,
+      baslik: 'Önce noktalara harf ver',
+      metin: r`İç direnci önemsiz $12\ \text{V}$'luk bir üreteç, ideal bir ampermetre, $R_1 = 2\ \Omega$, $R_2 = 6\ \Omega$, $R_3 = 3\ \Omega$ ve $R_4 = 2\ \Omega$'luk dirençler ile direnci önemsiz bir bağlantı teli şekildeki gibi bağlanıyor.
+
+Ampermetre kaç amper gösterir?`,
+      sekil: 'kY71_C4',
+      secenekler: [r`$1,5$`, r`$2$`, r`$3$`, r`$4$`, r`$6$`],
+      dogru: 2,
+      cozum: [
+        r`Aynı tel üzerindeki noktalara aynı harfi ver. $R_4$'ün iki ucu, altından dolaşan bağlantı teliyle birleştirilmiştir; iki ucu aynı harfi alır. $R_4$ kısa devredir ve akım almaz.`,
+        r`$R_2$'nin ve $R_3$'ün uçları aynı iki noktaya bağlıdır: Bu iki direnç paraleldir. $R_{23} = \dfrac{6 \cdot 3}{6 + 3} = 2\ \Omega$.`,
+        r`$R_1$ ana koldadır: $R_{\text{eş}} = 2 + 2 = 4\ \Omega$ ve $I = \dfrac{12}{4} = 3\ \text{A}$.`,
+        r`{{S1}} $R_4$'ü ana kola seri sayar: $R_{\text{eş}} = 6\ \Omega$ ve $2\ \text{A}$. {{S0}} $R_3$'ün kolunu görmeyip yalnız $R_1$ ile $R_2$'yi seri alır: $\dfrac{12}{8} = 1,5\ \text{A}$. {{S3}} $R_4$'ü $R_2$ ve $R_3$'e paralel sanır: $R_{\text{eş}} = 2 + 1 = 3\ \Omega$ ve $4\ \text{A}$. {{S4}} $R_2$ ile $R_3$'ü de kısa devre sanıp yalnız $R_1$'i bırakır: $6\ \text{A}$.`
+      ],
+      ipucu: r`Bağlantı telinin iki ucu hangi noktalara bağlı? O noktalar arasındaki elemanın potansiyel farkı nedir?`,
+      tuzak: r`Şekilde yan yana duran dirençleri seri, alt alta duranları paralel sanmak. Bağlantı türünü şeklin görünüşü değil, uçların bağlandığı noktalar belirler.`
+    },
+    {
+      tur: 'efsane',
+      baslik: 'Efsane mi, gerçek mi?',
+      kartlar: [
+        { sekil: 'iY71_efsane_1', iddia: 'Seri bağlı iki lambadan ilkine giren akımın bir kısmı o lambada harcanır; ikinci lambaya daha küçük bir akım ulaşır.', karar: false, aciklama: 'Akım devrede tükenmez. Seri bir kolun her kesitinden aynı anda aynı akım geçer; ilk lambadan çıkan akım girene eşittir. Lambalarda harcanan, yüklerin taşıdığı elektrik enerjisidir; yüklerin kendisi değil.' },
+        { sekil: 'iY71_efsane_2', iddia: 'Anahtar kapanınca lamba hemen yanar; çünkü elektronlar telde ışık hızına yakın bir hızla koşar.', karar: false, aciklama: 'Elektronların teldeki sürüklenme hızı saniyede milimetreler mertebesindedir. Anahtar kapanınca devrenin her yerinde elektrik alanı çok kısa sürede kurulur ve teldeki bütün serbest elektronlar aynı anda sürüklenmeye başlar. Lamba, uzaktaki elektronlar ona ulaştığı için değil, kendi telindeki elektronlar hareket ettiği için hemen yanar.' },
+        { sekil: 'iY71_efsane_3', iddia: 'Bir telin uçlarındaki potansiyel fark artırılırsa telin direnci de artar; çünkü direnç potansiyel farkın akıma oranıdır.', karar: false, aciklama: 'Sıcaklığı sabit bir telde potansiyel fark kaç katına çıkarsa akım da o kadar katına çıkar; oran değişmez. Telin direnci boyuna, kesit alanına ve maddesine bağlıdır. Ohm yasası direnci ölçmenin yolunu verir; direnci potansiyel farkın belirlediğini söylemez.' },
+        { sekil: 'iY71_efsane_4', iddia: 'Saf (damıtılmış) su elektriği çok zayıf iletir; içinde tuz çözününce iyi bir iletken olur.', karar: true, aciklama: 'Sıvıda akımı iyonlar taşır. Saf suda iyon sayısı çok azdır; bu yüzden saf su çok zayıf bir iletkendir ve şekildeki lamba yanmaz. Tuz suda çözününce pozitif ve negatif iyonlar oluşur ve akım geçer. Musluk suyunda da çözünmüş tuzların iyonları vardır; ıslak elle elektrikli cihazlara dokunmanın tehlikeli olmasının bir nedeni budur.' },
+        { sekil: 'iY71_efsane_5', iddia: 'Bir pil devreye her zaman aynı akımı verir; devreye ne bağlanırsa bağlansın pilden çekilen akım değişmez.', karar: false, aciklama: 'İç direnci önemsiz bir üretecin uçları arasındaki potansiyel fark sabit kalır; akımı devrenin eşdeğer direnci belirler: $I = \dfrac{V}{R_{\text{eş}}}$. Devreye seri direnç eklenirse akım azalır, paralel kol eklenirse artar.' },
+        { sekil: 'iY71_efsane_6', iddia: 'İdeal bir voltmetre bir lambaya seri bağlanırsa lamba neredeyse hiç ışık vermez.', karar: true, aciklama: 'İdeal voltmetrenin direnci çok büyüktür; seri bağlanınca devrenin akımı neredeyse sıfıra iner ve lamba yanmaz. Bu durumda üretecin potansiyel farkının hemen hepsi voltmetrenin uçları arasına düşer ve voltmetre yaklaşık üretecin potansiyel farkını gösterir.' }
+      ]
+    },
+    {
+      tur: 'kartlar',
+      baslik: 'Kısa yollar ve ÖSYM tuzakları',
+      alt: 'Önce ön yüzdeki soruyu kendin cevapla, sonra açıklamayı oku.',
+      kartlar: [
+        { on: 'Önce noktalara harf ver', ipucu: 'Şeklin görünüşüne aldanma.', arka: 'Direnci önemsiz bir tel üzerindeki bütün noktalara aynı harfi ver. Uçları aynı iki harfe bağlı elemanlar paraleldir. İki ucu aynı harfi alan eleman kısa devredir ve akım almaz.' },
+        { on: 'Bozuk lamba sorusunda dene ve ele', ipucu: 'Her aday için say.', arka: 'Teli kopuk lamba yalnız bulunduğu seri kolu keser; ana koldaysa bütün devre söner. Her aday lamba için kaç lambanın yanacağını hesapla. Bütün gözlemleri birlikte sağlayan aday cevaptır.' },
+        { on: 'Paralelde kısa yollar', ipucu: 'İki direnç, n özdeş direnç.', arka: r`İki direnç için $R_{\text{eş}} = \dfrac{R_1 \cdot R_2}{R_1 + R_2}$, n özdeş direnç için $\dfrac{R}{n}$. Paralel eşdeğer en küçük dirençten de küçük, seri eşdeğer en büyük dirençten de büyüktür.` },
+        { on: 'Seride gerilim, paralelde akım paylaşılır', ipucu: 'Oranı hangi yönde kurarsın?', arka: r`Seri dirençlerde potansiyel farklar dirençlerle doğru orantılıdır: $V_1 : V_2 = R_1 : R_2$. Paralel kollarda akımlar dirençlerle ters orantılıdır: $I_1 : I_2 = R_2 : R_1$.` },
+        { on: 'Çap mı, kesit mi?', ipucu: 'Kare unutulmasın.', arka: r`Kesit alanı çapın karesiyle büyür. Hacmi değişmeden n katı uzunluğa çekilen telin kesiti n'de 1'e iner; direnci $n^2$ katına çıkar. Ortadan katlanan telin boyu yarıya iner, kesiti 2 katına çıkar; direnci 4'te 1'ine iner.` },
+        { on: 'Ana kolda direnç varsa paralel kol eklemek', ipucu: 'Kim artar, kim azalır?', arka: 'Paralel kol eklenince eşdeğer direnç azalır ve ana kol akımı artar. Ana koldaki direncin potansiyel farkı artar, paralel grubun potansiyel farkı azalır. Kollar doğrudan ideal üretece bağlıysa eski kolların akımı değişmez.' },
+        { on: 'İki yönde giden taşıyıcılar', ipucu: 'Çözeltide ve gazda yükler toplanır mı, çıkarılır mı?', arka: 'Pozitif yüklerin bir yöne, negatif yüklerin zıt yöne hareketi akıma aynı yönde katkı yapar. Kesitten geçen toplam yük, iki taşıyıcının taşıdığı yüklerin toplamıdır; farkı değildir.' }
+      ]
+    },
+    {
+      tur: 'cikmis',
+      baslik: 'ÖSYM bu konuyu nasıl sordu?',
+      metin: r`2018–2026 arasında TYT'de bu konudan **2 soru** çıktı: 2019 ve 2020'de Fen Bilimleri testinin 5. sorusu. İkisi de özdeş lambalı bir devrede hangi lambaların ışık verdiğini soruyordu: 2019'da anahtarların kısa devre ettiği ve açtığı kollar, 2020'de iki farklı bağlantıda bozuk lambanın kestiği kollar. Sayısal Ohm ya da eşdeğer direnç hesabı sorulmadı. Sonraki yıllarda 5. soru 2021, 2023 ve 2024'te güç, enerji ve parlaklık sorusuna; 2022'de elektriksel kuvvete, 2025–2026'da elektriklenmeye döndü. 2023 ve 2024'teki parlaklık sorularının da ilk adımı devre okumaydı. Son 9 yılın verisine göre önceliği devreyi doğru okumaya (seri, paralel, kısa devre, açık devre) ver; Ohm yasasını ve eşdeğer direnç hesabını bu okumanın aracı olarak hazır tut.`,
+      yillar: { 2018: 0, 2019: 1, 2020: 1, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0, 2026: 0 },
+      kaliplar: [['Şekilde karşılaştırma', 2], ['I-II-III yargı', 1], ['Kavramsal', 1]],
+      kartlar: [
+        { yil: 2019, no: 5, olcen: r`Anahtarlı bir lamba devresinde hangi lambaların kısa devre olduğunu, hangi kolların açık kaldığını belirleyip ışık veren lambaları bulmayı.`,
+          kalip: r`Anahtar konumlarına göre ışık veren lambalarla ilgili yargılar (I-II-III).`,
+          adimlar: [r`Bağlantı noktalarını harflerle adlandır; kapalı anahtarı tel, açık anahtarı kopukluk say.`, r`Her yargıdaki anahtar durumu için iki ucu aynı noktaya bağlanan (kısa devre) lambaları ve kesik kolları işaretle.`, r`Üretece kapalı bir yolla bağlı ve uçları arasında potansiyel fark olan lambaların ışık verdiğini söyle.`],
+          tuzak: r`Kapalı bir anahtarın bir lambayı kısa devre ettiğini gözden kaçırıp bütün anahtarlar kapalıyken her lambanın yandığını sanmak.`, kaynak: kay(2019, 36), benzer: ['kY71_01', 'kY71_02', 'kY71_C2'] },
+        { yil: 2020, no: 5, olcen: r`Aynı lambaların iki farklı bağlantısında ışık veren lamba sayılarından bozuk (teli kopuk) lambayı bulmayı.`,
+          kalip: r`İki bağlantıdaki gözlemle bozuk lambayı belirleme (tek seçim).`,
+          adimlar: [r`Bozuk lambanın yalnız kendi seri kolunu kestiğini hatırla.`, r`Her aday lamba için iki bağlantıda kaç lambanın yanacağını say.`, r`İki gözlemi birlikte sağlayan adayı seç.`],
+          tuzak: r`Yalnız bir bağlantıyı kontrol edip iki gözlemi birden sağlamayan lambayı seçmek.`, kaynak: kay(2020, 37), benzer: ['kY71_03', 'kY71_04', 'kY71_C3'] }
+      ]
+    },
+    {
+      tur: 'ozet',
+      baslik: 'Kontrol listesi',
+      maddeler: [
+        'Elektrik akımını yük hareketiyle açıklayabilir; katı, sıvı, gaz ve plazmada akımı taşıyan yükleri ayırt edebilirim.',
+        r`$I = \dfrac{q}{t}$ bağıntısıyla akımı ve yükü bulup akımın yönünü yüklerin hareket yönünden çıkarabilirim.`,
+        'Katı bir telin direncinin boyuna, kesit alanına ve maddesine nasıl bağlı olduğunu oran düzeyinde karşılaştırabilirim.',
+        'Ampermetre ve voltmetrenin devreye bağlanışını ve ideal kabul edilen dirençlerini açıklayabilirim.',
+        r`Ohm yasasını ($V = I \cdot R$) ve seri, paralel eşdeğer direnç bağıntılarını kullanarak devrelerde akım ve potansiyel fark hesaplayabilirim.`,
+        'Anahtarların kısa devre ettiği ve bozuk lambaların kestiği kolları belirleyip hangi lambaların ışık vereceğini bulabilirim.'
+      ]
+    }
+  ],
+
+  /* ---------------- SORULAR ---------------- */
+  sorular: [
+    {
+      id: 'kY71_01', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Devre okuma', cikmis: { yil: 2019, no: 5, kalip: 'Anahtar konumlarına göre ışık veren lambalarla ilgili yargılar' },
+      metin: r`Mimarlık öğrencisi Defne, ev maketinin aydınlatması için iç direnci önemsiz bir pil, özdeş P, R ve T lambaları ile $S_1$ ve $S_2$ anahtarlarından şekildeki devreyi kuruyor. Akım geçen her lamba ışık vermektedir.
+
+Buna göre,
+
+I. $S_1$ ve $S_2$ kapalıyken yalnız P lambası ışık verir.
+II. $S_1$ kapalı, $S_2$ açıkken üç lamba da ışık verir.
+III. $S_1$ açık, $S_2$ kapalıyken P ve R lambaları ışık verir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY71_maket',
+      secenekler: [Y3[0], Y3[1], Y3[3], Y3[4], Y3[5]],
+      dogru: 2,
+      cozum: [
+        r`P ana koldadır. P'den sonraki a noktası ile pilin negatif kutbuna giden b noktası arasında üç yol vardır: R lambası, $S_1$ ile T'nin bulunduğu kol ve $S_2$ anahtarı.`,
+        r`I. $S_2$ kapalıyken a ile b arasında direnci sıfır bir yol oluşur. R'nin ve T'nin kolunun uçları aynı potansiyelde kalır; ikisinden de akım geçmez. Yalnız P ışık verir. **Doğru.**`,
+        r`II. $S_2$ açık, $S_1$ kapalıyken R ile T birbirine paralel, ikisi birlikte P'ye seridir; üçünden de akım geçer. **Doğru.**`,
+        r`III. $S_2$ kapalıyken R yine kısa devredir ve ışık vermez; $S_1$ açık olduğu için T'nin kolu da kesiktir. Yalnız P ışık verir. **Yanlış.**`,
+        r`{{S0}} II'de T'nin kolunun R'yi devre dışı bıraktığını sanır; oysa paralel iki koldan da akım geçer. {{S1}} $S_2$ kapanınca pilin kısa devre olduğunu ve hiçbir lambanın yanmadığını sanır; oysa P ana kolda olduğu için pil kısa devre olmaz. {{S3}} III'te kapalı $S_2$'nin R'yi kısa devre ettiğini görmez ve II'yi de dışarıda bırakır. {{S4}} kısa devre olan R'nin yine ışık vereceğini sanır ve bu yüzden I'i yanlış sayar.`
+      ]
+    },
+    {
+      id: 'kY71_02', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.2.1', beceri: 'Devre okuma', cikmis: { yil: 2019, no: 5, kalip: 'Anahtar konumlarına göre ışık veren lambalarla ilgili yargılar' },
+      metin: r`Kaan'ın deney kutusunda ideal bir pile özdeş $L_1$, $L_2$, $L_3$ lambaları sırayla (seri) takılmıştır; ayrıca iki anahtar şekilde gösterilen noktaları birleştirebiliyor. Başlangıçta iki anahtar da açıktır. İçinden akım geçen lamba yanar.
+
+Kaan'ın denemeleriyle ilgili,
+
+I. Yalnız $S_1$ kapatılırsa $L_2$ ve $L_3$ yanmaz.
+II. Yalnız $S_2$ kapatılırsa yalnız $L_1$ yanar.
+III. $S_1$ ile $S_2$ birlikte kapatılırsa üç lamba da yanar.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY71_zincir',
+      secenekler: [Y3[0], Y3[2], Y3[3], Y3[4], Y3[5]],
+      dogru: 3,
+      cozum: [
+        r`a üretecin pozitif kutbuna, d negatif kutbuna bağlıdır. $S_1$ b noktasını d'ye, $S_2$ a noktasını c'ye bağlar.`,
+        r`I. $S_1$ kapalıyken b ile d aynı potansiyeldedir. Uçları b ile d arasında kalan $L_2$ ve $L_3$ kısa devre olur; yalnız $L_1$ yanar. **Doğru.**`,
+        r`II. $S_2$ kapalıyken a ile c aynı potansiyeldedir. Uçları a ile c arasında kalan $L_1$ ve $L_2$ kısa devre olur; yalnız $L_3$ yanar. **Yanlış.**`,
+        r`III. İki anahtar kapalıyken a ile c bir nokta, b ile d başka bir nokta olur. $L_1$ a ile b, $L_2$ b ile c, $L_3$ c ile d arasındadır; her lambanın bir ucu pozitif, öbür ucu negatif kutba bağlanmış olur. Üç lamba üretece paralel bağlıdır ve üçü de ışık verir. Üreteç kısa devre olmaz; çünkü a'dan d'ye direnci sıfır bir yol yoktur. **Doğru.**`,
+        r`{{S0}} iki anahtar birlikte kapanınca üretecin kısa devre olduğunu sanır ve III'ü atlar. {{S1}} I'de b ile d'nin aynı noktaya dönüştüğünü görmez. {{S2}} $S_2$'nin a ile c arasındaki $L_1$ ve $L_2$'yi değil, yalnız $L_2$ ve $L_3$'ü devre dışı bıraktığını sanır ve III'ü atlar. {{S4}} $S_2$'nin kısa devre ettiği lambaları karıştırır ve I'i atlar.`
+      ]
+    },
+    {
+      id: 'kY71_03', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Gözlemden çıkarım', cikmis: { yil: 2020, no: 5, kalip: 'İki bağlantıdaki gözlemle bozuk lambayı belirleme' },
+      metin: r`Fotoğrafçı Selin, stüdyosundaki ışık panosu için aldığı özdeş 1, 2, 3, 4 ve 5 numaralı lambalardan yalnız birinin bozuk (telinin kopuk) olduğunu biliyor. Lambaları iç direnci önemsiz bir üretece önce Şekil 1'deki, sonra Şekil 2'deki gibi bağlıyor. Şekil 1'de toplam 3 lamba, Şekil 2'de toplam 2 lamba ışık veriyor.
+
+{{sekil}}
+
+Akım geçen her sağlam lambanın ışık verdiğine göre bozuk lamba hangisidir?`,
+      sekil: 'kY71_stud_genis',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 2,
+      cozum: [
+        r`Bozuk lamba bulunduğu seri kolun tamamını keser; paralel öbür kollar etkilenmez.`,
+        r`Şekil 1'de 1 numaralı lamba ana koldadır; 2 ile 3 seri bir kolda, 4 ve 5 ayrı kollardadır. 3 lambanın yanması için 2–3 kolunun sönmesi gerekir: Bozuk lamba 2 ya da 3'tür. (1 bozuksa hiçbir lamba, 4 ya da 5 bozuksa 4 lamba yanardı.)`,
+        r`Şekil 2'de iki kol doğrudan üretecin uçlarına bağlıdır: Birinci kolda birbirine paralel 1 ve 4 ile bunlara seri 3, ikinci kolda seri 2 ve 5 vardır. 2 lambanın yanması için birinci kolun tamamen sönmesi gerekir; bu da ancak 3 bozuksa olur. 2 bozuk olsaydı 1, 4 ve 3 yanardı.`,
+        r`İki gözlemi birlikte sağlayan lamba 3'tür.`,
+        r`{{S0}} 1 numaralı lamba bozuk olsaydı Şekil 1'de ana kol kesilir, hiçbir lamba yanmazdı. {{S1}} yalnız Şekil 1'e bakar; 2 bozuk olsaydı Şekil 2'de 3 lamba yanardı. {{S3}} 4 bozuk olsaydı Şekil 1'de 4 lamba yanardı. {{S4}} 5 bozuk olsaydı Şekil 1'de 4 lamba yanardı; Şekil 2'de de ikinci kol söner ve birinci koldaki 3 lamba yanardı.`
+      ]
+    },
+    {
+      id: 'kY71_04', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Olasılık değerlendirme', cikmis: { yil: 2020, no: 5, kalip: 'İki bağlantıdaki gözlemle bozuk lambayı belirleme' },
+      metin: r`Bir düğün salonunun giriş kemerinde iç direnci önemsiz bir üreteç, özdeş X, Y, Z, U ve T lambaları ile S anahtarı şekildeki gibi bağlıdır. Lambalardan yalnız biri bozuktur (teli kopuktur). S açıkken 2 lamba ışık veriyor; S kapatılınca da yine 2 lamba ışık veriyor.
+
+Buna göre bozuk lamba,
+
+I. Z
+II. T
+III. U
+
+lambalarından hangileri olabilir?`,
+      sekil: 'kY71_salon',
+      secenekler: [Y3[0], Y3[1], Y3[4], Y3[5], Y3[6]],
+      dogru: 2,
+      cozum: [
+        r`X ana koldadır. Y bir koldadır; Z, U ve T seri olarak öbür koldadır. S kapanınca U ile T'nin arasındaki nokta üretecin negatif kutbuna bağlanır ve T kısa devre olur.`,
+        r`S açıkken bütün lambalar sağlam olsaydı 5 lamba yanardı. X bozuk olsaydı hiçbir lamba, Y bozuk olsaydı 4 lamba yanardı. Z, U ya da T bozuksa üçlü kolun tamamı söner; yalnız X ile Y yanar: 2 lamba. Birinci gözleme göre adaylar Z, U ve T'dir.`,
+        r`S kapalıyken Z ya da U bozuksa üçlü kol yine kesiktir; T'nin kısa devre olması bir şey değiştirmez ve yalnız X ile Y yanar: 2 lamba. T bozuksa akım T'ye uğramadan Z, U ve S üzerinden geçer; X, Y, Z ve U yanar: 4 lamba. Bu, ikinci gözlemle çelişir.`,
+        r`I. Z olabilir. II. T olamaz. III. U olabilir.`,
+        r`{{S0}} Z ile U'nun aynı seri kolda olduğunu, bu yüzden ikisinin de aynı sonucu verdiğini görmez ve U'yu dışarıda bırakır. {{S1}} bozuk lambayı yalnız anahtarın yanındaki lambada arar; T bozuk olsaydı S kapanınca 4 lamba yanardı. {{S3}} T'yi aday sayar ve Z'yi dışarıda bırakır; T bozuk olsaydı S kapanınca 4 lamba yanardı, Z ise U ile aynı seri koldadır. {{S4}} yalnız birinci gözlemi kullanır; S kapanınca T kısa devre olur ve T bozuksa Z ile U yanacağı için T elenir.`
+      ]
+    },
+    {
+      id: 'kY71_05', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.1.1', beceri: 'Kavramsal ayırt etme',
+      tahmin: { gerekce: r`10.1.1.1 kazanımı katı, sıvı, gaz ve plazmada iletime açıkça değinilmesini ister; bu alt başlık 2018–2026 TYT'lerinde hiç sorulmadı. ÖSYM'nin kısa kavramsal "hangisi yanlıştır" kalıbına uygun, kolay bir giriş sorusu olarak gelebilir.` },
+      metin: r`Elektrik akımı, farklı ortamlarda farklı yük taşıyıcılarının hareketiyle oluşur. Aşağıda bazı ortamlar ve bu ortamlarda akımı oluşturan yük taşıyıcıları verilmiştir.
+
+Hangi eşleştirme **yanlıştır?**`,
+      secenekler: ['Bakır priz kablosu: serbest elektronlar', 'Otomobil aküsündeki asitli çözelti: pozitif ve negatif iyonlar', 'Floresan lambanın tüpündeki iyonlaşmış gaz: iyonlar ve elektronlar', 'Kaynak makinesinin oluşturduğu ark (plazma): iyonlar ve elektronlar', 'Alüminyum yüksek gerilim hattı: pozitif metal iyonları ve serbest elektronlar'],
+      dogru: 4,
+      cozum: [
+        r`Metallerde akımı yalnız serbest elektronlar taşır. Pozitif metal iyonları kristal örgüde yerlerinde titreşir; akıma katılmaz. Alüminyum hattaki eşleştirme yanlıştır.`,
+        r`Çözeltilerde (akü asidi) pozitif ve negatif iyonlar, iyonlaşmış gazda (floresan tüp) ve plazmada (ark) iyonlar ve elektronlar akım taşır.`,
+        r`{{S0}} doğru bir eşleştirmedir; bakır kabloda akımı serbest elektronlar taşır. {{S1}} doğru bir eşleştirmedir; akü asidinde iki yönde hareket eden iyonlar akım taşır. {{S2}} doğru bir eşleştirmedir; floresan tüpte gaz iyonlaşmıştır ve iyonlarla elektronlar birlikte iletir. {{S3}} doğru bir eşleştirmedir; ark bir plazmadır ve akımı iyonlarla elektronlar taşır.`
+      ]
+    },
+    {
+      id: 'kY71_06', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.1.1', beceri: 'Hesaplama ve yön',
+      tahmin: { gerekce: r`Akımın yük hareketiyle tanımı ve yönü programın ilk kazanımıdır; 9 yılda TYT'de doğrudan sorulmadı. Elektron sayısından akımı ve elektronların hareketinden akım yönünü bulmak, tek işlemli ama yön tuzağı olan tipik bir kolay sorudur.` },
+      metin: r`Bir elektrikli scooter'ın fren lambasına giden bakır telin bir kesitinden $4\ \text{s}$'de $5 \cdot 10^{19}$ tane elektron şekildeki gibi sağdan sola doğru geçiyor.
+
+Bir elektronun yükünün büyüklüğü $1,6 \cdot 10^{-19}\ \text{C}$ olduğuna göre teldeki akımın büyüklüğü ve yönü nedir?`,
+      sekil: 'kY71_elektron',
+      secenekler: [r`$8\ \text{A}$, soldan sağa`, r`$2\ \text{A}$, sağdan sola`, r`$2\ \text{A}$, soldan sağa`, r`$0,5\ \text{A}$, soldan sağa`, r`$8\ \text{A}$, sağdan sola`],
+      dogru: 2,
+      cozum: [
+        r`Kesitten geçen yük: $q = N \cdot e = 5 \cdot 10^{19} \cdot 1,6 \cdot 10^{-19} = 8\ \text{C}$.`,
+        r`Akım: $I = \dfrac{q}{t} = \dfrac{8}{4} = 2\ \text{A}$.`,
+        r`Akımın yönü elektronların hareket yönünün tersidir: soldan sağa.`,
+        r`{{S1}} akımın yönünü elektronların hareket yönü sanır. {{S0}} kesitten geçen yükü bulup süreye bölmeyi unutur. {{S3}} oranı ters kurar: $\dfrac{t}{q} = \dfrac{4}{8} = 0,5$. {{S4}} hem süreye bölmeyi unutur hem de yönü elektronların yönü sanır.`
+      ]
+    },
+    {
+      id: 'kY71_07', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.1.1', beceri: 'Kavramsal çıkarım',
+      tahmin: { gerekce: r`Sıvılarda iyonlarla iletim ve iki yönde hareket eden taşıyıcılar programda vardır ama 9 yılda sorulmadı. ÖSYM'nin günlük hayat bağlamlı I-II-III kalıbına uyar; pozitif iyonun yönü sık yapılan bir hatadır.` },
+      metin: r`Bir yüzme havuzunun tuzlu su arıtma sisteminde havuz suyu, iki metal levhanın arasından geçerek bir hücreden akar. Levhalar, bakır kablolarla bir doğru akım kaynağının kutuplarına şekildeki gibi bağlıdır ve hücredeki tuzlu sudan akım geçmektedir.
+
+Buna göre,
+
+I. Hücredeki tuzlu suda akımı hem pozitif hem negatif iyonlar taşır.
+II. Pozitif iyonlar, kaynağın pozitif kutbuna bağlı levhaya doğru hareket eder.
+III. Bakır kablolarda akımı serbest elektronlar taşır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY71_hucre',
+      secenekler: [Y3[0], Y3[2], Y3[3], Y3[4], Y3[6]],
+      dogru: 3,
+      cozum: [
+        r`I. Tuzlu suda çözünmüş tuzun pozitif ve negatif iyonları vardır; ikisi de zıt yönlerde hareket ederek akım taşır. **Doğru.**`,
+        r`II. Pozitif iyonlar, pozitif levhadan itilir ve negatif kutba bağlı levhaya doğru hareket eder. **Yanlış.**`,
+        r`III. Kablolar metaldir; metallerde akımı serbest elektronlar taşır. **Doğru.**`,
+        r`{{S0}} kablolarda da iyonların hareket ettiğini sanır ve III'ü atlar. {{S1}} sıvıda akımı yalnız bir tür iyonun taşıdığını sanır. {{S2}} pozitif iyonların pozitif levhaya çekildiğini sanır ve III'ü atlar. {{S4}} pozitif iyonların pozitif levhaya gittiğini sanır; aynı cins yükler birbirini iter.`
+      ]
+    },
+    {
+      id: 'kY71_08', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.1.1', beceri: 'Grafik yorumlama',
+      tahmin: { gerekce: r`Akım-zaman grafiğinin altındaki alanın kesitten geçen yükü vermesi $I = \dfrac{q}{t}$ modelinin grafik hâlidir; TYT'de 9 yılda sorulmadı. ÖSYM'nin sevdiği grafik okuma kalıbına uyar ve "akımların ortalaması" tuzağı içerir.` },
+      metin: r`Bir mutfak aspiratörünün motoru çalıştırıldığı anda kısa bir süre büyük akım çeker, sonra akımı azalıp sabitlenir. Motorun kablosundan geçen akımın zamana bağlı grafiği şekildeki gibi basitleştirilmiştir.
+
+$0$–$10\ \text{s}$ aralığında kablonun bir kesitinden geçen toplam yük ve bu aralıktaki ortalama akım nedir?`,
+      sekil: 'kY71_It',
+      secenekler: [r`$23\ \text{C}$; $2,3\ \text{A}$`, r`$20\ \text{C}$; $2,75\ \text{A}$`, r`$27,5\ \text{C}$; $2,75\ \text{A}$`, r`$40\ \text{C}$; $4\ \text{A}$`, r`$20\ \text{C}$; $2\ \text{A}$`],
+      dogru: 4,
+      cozum: [
+        r`Akım-zaman grafiğinin altındaki alan kesitten geçen yüktür: $q = 4 \cdot 2 + 1,5 \cdot 8 = 8 + 12 = 20\ \text{C}$.`,
+        r`Ortalama akım: $I = \dfrac{q}{t} = \dfrac{20}{10} = 2\ \text{A}$.`,
+        r`{{S1}} ortalama akımı iki akım değerinin aritmetik ortalaması sanır: $\dfrac{4 + 1,5}{2} = 2,75$; oysa iki akım farklı sürelerde geçer. {{S2}} iki akımın aritmetik ortalamasını bütün süreye uygular: $2,75 \cdot 10 = 27,5\ \text{C}$. {{S3}} en büyük akımı bütün süreye uygular: $4 \cdot 10 = 40\ \text{C}$. {{S0}} $1,5\ \text{A}$'lik akımı ilk 2 saniyeye de uygular ve üstüne kalkış payını ekler: $8 + 1,5 \cdot 10 = 23\ \text{C}$; ilk 2 saniyeyi iki kez sayar.`
+      ]
+    },
+    {
+      id: 'kY71_09', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.1.2', beceri: 'Değişken belirleme',
+      tahmin: { gerekce: r`Telin direncinin bağlı olduğu değişkenler 10.1.1.2'nin özüdür ve 9 yılda doğrudan sorulmadı. Program bu kazanımda hesap istemediği için ÖSYM'nin soracağı en olası biçim, değişkenleri ayıran kısa bir kavramsal sorudur; "potansiyel fark direnci değiştirir" yanılgısı güçlü bir çeldiricidir.` },
+      metin: r`Bir sera ısıtma kablosunun içindeki iletken telin direncini artırmak isteyen bir teknisyen aşağıdaki değişiklikleri düşünüyor. Telin sıcaklığı her durumda aynı kalacaktır.
+
+I. Telin uçları arasındaki potansiyel farkı artırmak.
+II. Aynı boyda, kesit alanı daha büyük bir tel kullanmak.
+III. Aynı boy ve kesitte, özdirenci daha büyük bir alaşımdan tel kullanmak.
+
+Bu değişikliklerden hangileri telin direncini artırır?`,
+      secenekler: [Y3[0], Y3[2], Y3[3], Y3[4], Y3[5]],
+      dogru: 1,
+      cozum: [
+        r`Telin direnci $R = \rho \cdot \dfrac{L}{A}$ modeline göre maddesine, boyuna ve kesit alanına bağlıdır.`,
+        r`I. Potansiyel fark artınca akım artar; $\dfrac{V}{I}$ oranı, yani direnç değişmez. **Artırmaz.**`,
+        r`II. Kesit alanı büyüyünce direnç azalır. **Artırmaz.**`,
+        r`III. Özdirenci büyük maddeden yapılmış aynı boyutlu telin direnci büyüktür. **Artırır.**`,
+        r`{{S0}} direnci potansiyel farkın belirlediğini sanır ve III'ü atlar. {{S2}} hem potansiyel farkın hem kalın telin direnci artırdığını sanır. {{S3}} potansiyel farkın direnci artırdığını sanır. {{S4}} kalın telin daha "zor" ilettiğini sanır; kesit büyüdükçe direnç azalır.`
+      ]
+    },
+    {
+      id: 'kY71_10', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.1.2', beceri: 'Sıralama',
+      tahmin: { gerekce: r`Kesme, katlama ve çekme işlemlerinde boy ile kesitin birlikte değişmesi, programın "hesaplamalara girilmez" sınırında oran düzeyinde kalan klasik bir direnç karşılaştırmasıdır. 9 yılda sorulmadı; ÖSYM'nin sıralama kalıbına uyar.` },
+      metin: r`Bir elektrik teknisyeni, dirençleri $R$ olan özdeş üç nikelin tel parçasıyla şu işlemleri yapıyor:
+
+- Birinci teli ortasından kesip parçalardan birini alıyor; bu parçanın direnci $R_1$'dir.
+- İkinci teli ortasından ikiye katlayıp iki yarısını boydan boya birbirine sıkıca birleştiriyor; oluşan telin direnci $R_2$'dir.
+- Üçüncü teli, hacmi değişmeden boyu iki katına çıkacak biçimde çekip inceltiyor; oluşan telin direnci $R_3$'tür.
+
+Sıcaklık değişmediğine göre $R_1$, $R_2$ ve $R_3$ arasındaki ilişki nedir?`,
+      secenekler: [r`$R_2 > R_1 > R_3$`, r`$R_3 > R_1 = R_2$`, r`$R_2 = R_3 > R_1$`, r`$R_3 > R_1 > R_2$`, r`$R_3 > R_2 > R_1$`],
+      dogru: 3,
+      cozum: [
+        r`Aynı maddeden tellerde $R \propto \dfrac{L}{A}$'dır.`,
+        r`Kesilen parçanın boyu yarıya iner, kesiti aynı kalır: $R_1 = \dfrac{R}{2}$.`,
+        r`Katlanan telin boyu yarıya iner, kesiti 2 katına çıkar: $R_2 = R \cdot \dfrac{1/2}{2} = \dfrac{R}{4}$.`,
+        r`Hacim sabitken boy 2 katına çıkınca kesit yarıya iner: $R_3 = R \cdot \dfrac{2}{1/2} = 4R$. Sıralama: $R_3 > R_1 > R_2$.`,
+        r`{{S1}} katlanan telde yalnız boyun yarıya indiğini düşünür, kesitin 2 katına çıktığını unutur. {{S2}} direnci boy ile kesitin çarpımıyla orantılı sanır; böylece katlanan ve çekilen teli değişmemiş bulur. {{S0}} kalın telin direncini büyük, ince telinkini küçük sanır. {{S4}} katlanan telin madde miktarı değişmediği için direncinin de değişmediğini sanır.`
+      ]
+    },
+    {
+      id: 'kY71_11', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.1.2', beceri: 'Deney tasarımı',
+      tahmin: { gerekce: r`Program bu kazanımda değişkenler arasındaki ilişkinin deneyle belirlenmesini ister. Kontrol değişkeni seçtiren tablo soruları TYT'nin bilimsel süreç becerisi sorularına uyar; direnç bağlamında 9 yılda sorulmadı.` },
+      metin: r`Yağmur, bir telin direncinin kesit alanına bağlı olup olmadığını sınamak istiyor. Elindeki tellerin özellikleri tabloda verilmiştir.
+
+{{tablo}}
+
+Yağmur, sıcaklığı sabit tutarak hangi iki telin direncini karşılaştırmalıdır?`,
+      tablo: [['Tel', 'Madde', 'Boy (cm)', 'Kesit alanı (mm²)'], ['1', 'Nikelin', '50', '0,2'], ['2', 'Nikelin', '100', '0,2'], ['3', 'Nikelin', '50', '0,5'], ['4', 'Konstantan', '100', '0,5'], ['5', 'Konstantan', '50', '0,2']],
+      secenekler: [r`1 ve 2`, r`1 ve 3`, r`2 ve 4`, r`3 ve 4`, r`1 ve 5`],
+      dogru: 1,
+      cozum: [
+        r`Bir değişkenin etkisini sınamak için yalnız o değişken farklı, öbür değişkenler aynı olmalıdır.`,
+        r`1 ve 3 numaralı teller aynı maddeden ve aynı boydadır; yalnız kesit alanları farklıdır.`,
+        r`{{S0}} boyları farklı iki teli seçer; bu çift boyun etkisini sınar. {{S2}} maddesi ve kesiti birlikte değişen iki teli seçer. {{S3}} maddesi ve boyu birlikte değişen iki teli seçer. {{S4}} yalnız maddesi farklı iki teli seçer; bu çift maddenin etkisini sınar.`
+      ]
+    },
+    {
+      id: 'kY71_12', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.1.2', beceri: 'Grafik seçme',
+      tahmin: { gerekce: r`Direncin boyla doğru, kesitle ters orantısını ve sabit potansiyel farkta akımın boyla değişimini grafik diline çevirmek, programın modeli hesapsız kullanma beklentisine uyar. ÖSYM grafik seçme kalıbını sık kullanır; bu konuda 9 yılda sorulmadı.` },
+      metin: r`Aynı maddeden yapılmış, sıcaklıkları sabit tutulan tellerle ilgili üç grafik çiziliyor:
+
+I. Boyları eşit tellerde direncin kesit alanına bağlı grafiği
+II. Kesit alanları eşit tellerde direncin boya bağlı grafiği
+III. Kesit alanları eşit tellerin uçlarına aynı potansiyel fark uygulandığında akımın boya bağlı grafiği
+
+{{sekil}}
+
+Bu grafiklerden hangileri doğru çizilmiştir?`,
+      sekil: 'kY71_graf_genis',
+      secenekler: [Y3[0], Y3[1], Y3[3], Y3[4], Y3[5]],
+      dogru: 4,
+      cozum: [
+        r`I. Boy sabitken direnç kesit alanıyla ters orantılıdır; kesit büyüdükçe direnç azalmalıdır. Artan doğru **yanlıştır.**`,
+        r`II. Kesit sabitken direnç boyla doğru orantılıdır; orijinden geçen doğru **doğrudur.**`,
+        r`III. Potansiyel fark sabitken $I = \dfrac{V}{R}$ ve $R \propto L$ olduğundan akım boyla ters orantılıdır; boy arttıkça azalan eğri **doğrudur.**`,
+        r`{{S0}} kesit büyüdükçe direncin arttığını sanır ve doğru iki grafiği atlar. {{S1}} III'teki ters orantıyı görmez. {{S2}} kesit büyüdükçe direncin arttığını sanır ve III'ü atlar. {{S3}} kesit büyüdükçe direncin arttığını sanır ve II'yi atlar.`
+      ]
+    },
+    {
+      id: 'kY71_13', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.1.2', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Ölçülen eşit akımdan dirençlerin eşitliğine, oradan özdirenç oranına gitmek Ohm yasasını direnç modeliyle birleştirir. "Kesinlikle" kökü ÖSYM'nin sevdiği bir tuzaktır; bu konuda 9 yılda sorulmadı.` },
+      metin: r`Bir kablo fabrikasının kalite kontrol biriminde X ve Y tel numuneleri inceleniyor. X'in kesit alanı Y'ninkinin 2 katı, boyu ise Y'ninkinin yarısıdır. Sıcaklıkları eşit iki telin uçlarına ayrı ayrı aynı potansiyel fark uygulanınca tellerden eşit akım geçiyor.
+
+Buna göre,
+
+I. X ve Y'nin dirençleri eşittir.
+II. X'in yapıldığı maddenin özdirenci, Y'ninkinin 4 katıdır.
+III. X ve Y'nin kütleleri eşittir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [Y3[0], Y3[1], Y3[3], Y3[4], Y3[6]],
+      dogru: 2,
+      cozum: [
+        r`I. Aynı potansiyel farkta eşit akım geçiyorsa $R = \dfrac{V}{I}$ eşittir. **Kesinlikle doğru.**`,
+        r`II. $R_X = \rho_X \cdot \dfrac{L/2}{2A} = \dfrac{\rho_X \cdot L}{4A}$ ve $R_Y = \dfrac{\rho_Y \cdot L}{A}$. Dirençler eşit olduğundan $\rho_X = 4\rho_Y$. **Kesinlikle doğru.**`,
+        r`III. İki telin hacimleri eşittir: $\dfrac{L}{2} \cdot 2A = L \cdot A$. Ama teller farklı maddelerden yapılmıştır ve özkütleleri bilinmez; kütleler eşit olabilir de olmayabilir de. **Kesin değil.**`,
+        r`{{S0}} dirençler eşitken boyutlar farklıysa özdirençlerin farklı olması gerektiğini görmez. {{S1}} eşit akımın eşit direnç demek olduğunu görmez. {{S3}} eşit hacimli tellerin kütlelerini de eşit sayar ve II'yi atlar. {{S4}} eşit hacimli tellerin kütlelerini de eşit sayar; özkütleler bilinmez.`
+      ]
+    },
+    {
+      id: 'kY71_14', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.2.1', beceri: 'Tablo yorumlama',
+      tahmin: { gerekce: r`Ohm yasasının ölçüm tablosundan çıkarılması 10.1.2.1'in ana beklentisidir; TYT'de 9 yılda doğrudan sorulmadı. "Gerilim arttıkça direnç arttı" yanılgısını yoklayan tablolu I-II-III kalıbı ÖSYM tarzına uyar.` },
+      metin: r`Bir banyo aynasının arkasındaki buğu önleyici ısıtma folyosunun sıcaklığı sabit tutularak uçlarına farklı potansiyel farklar uygulanıyor ve folyodan geçen akımlar ölçülüyor.
+
+{{tablo}}
+
+Buna göre,
+
+I. Folyonun direnci $15\ \Omega$'dur.
+II. Uygulanan potansiyel fark arttıkça folyonun direnci artmıştır.
+III. Folyonun uçlarına $6\ \text{V}$ uygulanırsa folyodan $0,40\ \text{A}$ akım geçer.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Potansiyel fark (V)', '2,4', '4,8', '7,2'], ['Akım (A)', '0,16', '0,32', '0,48']],
+      secenekler: [Y3[0], Y3[2], Y3[3], Y3[4], Y3[5]],
+      dogru: 3,
+      cozum: [
+        r`Her ölçümde $\dfrac{V}{I} = \dfrac{2,4}{0,16} = \dfrac{4,8}{0,32} = \dfrac{7,2}{0,48} = 15\ \Omega$'dur. I **doğrudur.**`,
+        r`II. Oran her ölçümde aynıdır; potansiyel fark artınca akım da aynı oranda artmıştır. Direnç değişmemiştir. **Yanlış.**`,
+        r`III. $I = \dfrac{V}{R} = \dfrac{6}{15} = 0,40\ \text{A}$. **Doğru.**`,
+        r`{{S0}} III'te Ohm yasasını yeni değere uygulamayı atlar. {{S1}} III'ü orantıyla bulur ama aynı oranın direnci verdiğini kullanmaz ve I'i atlar. {{S2}} artan sayıları direncin arttığı biçiminde okur ve III'ü atlar. {{S4}} artan potansiyel farkı direncin artması sanır ve I'i atlar.`
+      ]
+    },
+    {
+      id: 'kY71_15', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.2.1', beceri: 'Hesaplama',
+      tahmin: { gerekce: r`Seri devrede bir direncin potansiyel farkından akımı, oradan üretecin potansiyel farkını bulmak programın açıkça istediği hesaptır. ÖSYM bu konuda 9 yılda sayısal soru sormadı; ama kolay bir sayısal soru olarak gelebilir.` },
+      metin: r`Emre'nin hobi setindeki devrede, iç direnci önemsiz bir pile $4\ \Omega$ ve $12\ \Omega$'luk iki direnç art arda (seri) takılmıştır. İdeal voltmetre $12\ \Omega$'luk direncin iki ucuna bağlanınca $9\ \text{V}$ okunuyor.
+
+Buna göre pilin gerilimi kaç volttur?`,
+      sekil: 'kY71_seri',
+      secenekler: [r`$3$`, r`$9$`, r`$12$`, r`$13$`, r`$36$`],
+      dogru: 2,
+      cozum: [
+        r`Seri devrede iki dirençten aynı akım geçer: $I = \dfrac{9}{12} = 0,75\ \text{A}$.`,
+        r`$4\ \Omega$'luk direncin potansiyel farkı $0,75 \cdot 4 = 3\ \text{V}$'tur. Pilin potansiyel farkı $9 + 3 = 12\ \text{V}$.`,
+        r`{{S0}} yalnız $4\ \Omega$'luk direncin potansiyel farkını bulup durur. {{S1}} voltmetrenin pilin potansiyel farkını gösterdiğini sanır. {{S3}} voltmetre okumasına direnç değerini ekler: $9 + 4$. {{S4}} oranı ters kurar: $4\ \Omega$'luk direncin potansiyel farkını $9 \cdot 3 = 27\ \text{V}$ sanıp $9 + 27 = 36\ \text{V}$ bulur.`
+      ]
+    },
+    {
+      id: 'kY71_16', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Devre okuma ve hesap',
+      tahmin: { gerekce: r`Paralel kollarda akım paylaşımı ve ampermetrenin hangi kolların akımını ölçtüğünü konumundan çıkarmak, devre okuma becerisinin sayısal hâlidir. 2023 ve 2024'teki devre soruları bu okumaya dayanıyordu; bu kalıp 9 yılda doğrudan sorulmadı.` },
+      metin: r`İç direnci önemsiz $12\ \text{V}$'luk bir üretecin uçlarına $6\ \Omega$, $12\ \Omega$ ve $4\ \Omega$'luk dirençler şekildeki gibi paralel bağlanıyor. $A_1$ ampermetresi üst telde, $A_2$ ampermetresi alt telde şekilde gösterilen yerlere bağlıdır.
+
+İdeal ampermetrelerin gösterdiği değerler kaç amperdir?`,
+      sekil: 'kY71_raylar',
+      secenekler: [r`$A_1$: $3$; $A_2$: $3$`, r`$A_1$: $4$; $A_2$: $3$`, r`$A_1$: $2$; $A_2$: $1$`, r`$A_1$: $4$; $A_2$: $1$`, r`$A_1$: $1$; $A_2$: $3$`],
+      dogru: 1,
+      cozum: [
+        r`Kolların hepsi doğrudan üretece bağlı olduğundan her direncin potansiyel farkı $12\ \text{V}$'tur. Kol akımları: $\dfrac{12}{6} = 2\ \text{A}$, $\dfrac{12}{12} = 1\ \text{A}$, $\dfrac{12}{4} = 3\ \text{A}$.`,
+        r`$A_1$, üst telde $6\ \Omega$'un kolundan sonra durur; $12\ \Omega$ ve $4\ \Omega$'luk kollara giden akımı taşır: $1 + 3 = 4\ \text{A}$.`,
+        r`$A_2$, alt telde $12\ \Omega$ ile $4\ \Omega$'luk kolların arasındadır; buradan yalnız $4\ \Omega$'luk koldan dönen akım geçer: $3\ \text{A}$.`,
+        r`{{S0}} $A_1$'in yalnız en sağdaki $4\ \Omega$'luk kolun akımını taşıdığını sanır; $12\ \Omega$'luk kola giden akım da $A_1$'den geçer. {{S2}} her ampermetrenin yalnız hemen solundaki direncin akımını gösterdiğini sanır. {{S3}} $A_2$'nin, solundaki $12\ \Omega$'luk kolun akımını gösterdiğini sanır; $A_2$'den $4\ \Omega$'luk koldan dönen akım geçer. {{S4}} $A_1$'in yalnız $12\ \Omega$'luk kolun akımını taşıdığını sanır.`
+      ]
+    },
+    {
+      id: 'kY71_17', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Değişim yorumlama',
+      tahmin: { gerekce: r`Devreye paralel kol eklenince eşdeğer direncin, akımların ve potansiyel farkların nasıl değiştiğini yorumlamak, 2023'teki anahtarlı parlaklık sorusunun ilk adımıdır. Bu konu adına 9 yılda sorulmadı; nitel değişim kalıbı ÖSYM tarzına uyar.` },
+      metin: r`İç direnci önemsiz bir üreteç, $R_1$, $R_2$ ve $R_3$ dirençleri ile S anahtarı şekildeki gibi bağlıdır. S açıkken $R_3$'ün kolundan akım geçmemektedir.
+
+S kapatılınca ana koldan geçen akım, $R_2$'den geçen akım ve $R_1$'in uçları arasındaki potansiyel fark, ilk duruma göre sırasıyla nasıl değişir?`,
+      sekil: 'kY71_ekle',
+      secenekler: ['Artar, artar, artar', 'Artar, değişmez, değişmez', 'Azalır, azalır, azalır', 'Artar, azalır, artar', 'Artar, azalır, azalır'],
+      dogru: 3,
+      cozum: [
+        r`S kapanınca $R_3$, $R_2$'ye paralel bağlanır; paralel grubun eşdeğer direnci $R_2$'den küçüktür. Devrenin eşdeğer direnci azalır ve ana kol akımı **artar.**`,
+        r`$R_1$ ana koldadır: $V_1 = I \cdot R_1$ büyür, yani $R_1$'in potansiyel farkı **artar.**`,
+        r`Üretecin potansiyel farkı sabittir; $R_1$'e düşen pay arttığı için paralel grubun potansiyel farkı azalır. $R_2$'den geçen akım **azalır.**`,
+        r`{{S1}} paralel kolların ideal üretece doğrudan bağlı olduğunu varsayar; burada ana kolda $R_1$ vardır. {{S2}} devreye direnç eklenince akımın azalacağını sanır; paralel eklenen direnç eşdeğeri küçültür. {{S0}} ana kol akımı artınca her şeyin arttığını sanır. {{S4}} ana kol akımı artarken $R_1$'in potansiyel farkının azaldığını sanır; aynı direnç için akım artarsa potansiyel fark da artar.`
+      ]
+    },
+    {
+      id: 'kY71_18', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Eşdeğer direnç',
+      tahmin: { gerekce: r`Bağlantı teliyle kısa devre edilen elemanı fark edip eşdeğer direnci bulmak, ÖSYM'nin 2019'daki kısa devre fikrinin sayısal hâlidir. Program eşdeğer direnç hesabını açıkça ister; bu kalıp 9 yılda sorulmadı.` },
+      metin: r`Bir deney kartında X ve Y uçları arasına $4\ \Omega$, $6\ \Omega$ ve $12\ \Omega$'luk üç direnç lehimlenmiş; ayrıca kartın altından dolaşan, direnci ihmal edilebilen bir kablo şekilde gösterilen iki noktayı birleştiriyor.
+
+X ile Y arasındaki eşdeğer direnç kaç ohmdur?`,
+      sekil: 'kY71_XY',
+      secenekler: [r`$2$`, r`$4$`, r`$8$`, r`$12$`, r`$22$`],
+      dogru: 1,
+      cozum: [
+        r`Bağlantı teli X ucunu doğrudan a noktasına bağlar. $4\ \Omega$'luk direncin iki ucu da aynı potansiyelde kalır; bu direnç kısa devredir.`,
+        r`$6\ \Omega$ ve $12\ \Omega$'luk dirençler a ile Y arasında paraleldir: $R_{\text{eş}} = \dfrac{6 \cdot 12}{6 + 12} = 4\ \Omega$.`,
+        r`{{S0}} bağlantı telini üç direnci birden paralel bağlayan bir tel sanır: $4$, $6$ ve $12\ \Omega$'un paraleli $2\ \Omega$'dur. {{S2}} bağlantı telini görmez ve $4\ \Omega$'u seri ekler: $4 + 4 = 8\ \Omega$. {{S3}} paralel iki dirençten büyüğünü eşdeğer sanır. {{S4}} bütün dirençleri seri toplar.`
+      ]
+    },
+    {
+      id: 'kY71_19', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.2.1', beceri: 'Potansiyel fark analizi',
+      tahmin: { gerekce: r`Potansiyel farkın iki nokta arasında tanımlandığını ve seri dirençlerde orantılı paylaşıldığını birlikte kullanan bir zincirdir. Voltmetrenin iki kolun orta noktaları arasına bağlanması TYT'nin zor sorularındaki kavram zinciri tarzına uyar; 9 yılda sorulmadı.` },
+      metin: r`İç direnci önemsiz $12\ \text{V}$'luk bir üretece dirençler ve ideal bir voltmetre şekildeki gibi bağlanıyor. Voltmetre, iki koldaki dirençlerin aralarındaki noktalara bağlıdır.
+
+Voltmetre kaç volt gösterir?`,
+      sekil: 'kY71_orta',
+      secenekler: [r`$0$`, r`$2$`, r`$4$`, r`$6$`, r`$8$`],
+      dogru: 2,
+      cozum: [
+        r`İdeal voltmetreden akım geçmez; iki kol üretece ayrı ayrı paralel bağlıdır ve her kolun direnci $6\ \Omega$'dur. Her koldan $\dfrac{12}{6} = 2\ \text{A}$ geçer.`,
+        r`Üretecin negatif kutbunu $0\ \text{V}$ kabul et. Sol kolda alttaki $4\ \Omega$'un potansiyel farkı $8\ \text{V}$ olduğundan orta noktanın potansiyeli $8\ \text{V}$'tur.`,
+        r`Sağ kolda alttaki $2\ \Omega$'un potansiyel farkı $4\ \text{V}$'tur; orta noktanın potansiyeli $4\ \text{V}$'tur.`,
+        r`Voltmetre iki noktanın potansiyel farkını gösterir: $8 - 4 = 4\ \text{V}$.`,
+        r`{{S0}} iki kolda aynı dirençler bulunduğu için orta noktaların aynı potansiyelde olduğunu sanır; dirençlerin sırası farklıdır. {{S1}} kol akımını ($2\ \text{A}$) voltmetre okuması sanır. {{S3}} potansiyel farkın her kolda dirençlere eşit paylaştırıldığını sanıp bir orta noktanın potansiyelini üretecin yarısı ($6\ \text{V}$) bulur ve bu değeri voltmetre okuması sanır. {{S4}} yalnız sol orta noktanın potansiyelini ($8\ \text{V}$) voltmetre okuması sanır.`
+      ]
+    },
+    {
+      id: 'kY71_20', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.2.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Seri ve paralel bağlamanın hangi niceliği ortak kıldığını iki yönden düşündüren bir "kesinlikle" sorusudur. Hesap istemez ama iki olası devreyi ayrı ayrı sınamayı gerektirir; TYT'nin kavram zinciriyle zorlaşan sorularına uyar ve 9 yılda sorulmadı.` },
+      metin: r`Bir öğrencinin deney raporunda, iç direnci önemsiz bir üreteç ile X ve Y dirençlerinden kurduğu devrenin şeması silinmiştir; devrede başka eleman yoktur ve iki dirençten de akım geçmektedir. Raporda kalan ölçümlere göre X'ten geçen akım Y'den geçen akıma, X'in uçları arasındaki potansiyel fark da Y'nin uçları arasındaki potansiyel farka eşittir.
+
+Buna göre,
+
+I. X ve Y'nin dirençleri eşittir.
+II. X ve Y birbirine seri bağlıdır.
+III. Üretecin potansiyel farkı, X'in uçları arasındaki potansiyel farkın 2 katıdır.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [Y3[0], Y3[1], Y3[3], Y3[4], Y3[6]],
+      dogru: 0,
+      cozum: [
+        r`İki direnç üretece ya seri ya da paralel bağlanmış olabilir. İki durumu da sına.`,
+        r`Seri bağlıysa akımlar zaten eşittir; potansiyel farkların eşit olması dirençlerin eşit olmasını gerektirir. Paralel bağlıysa potansiyel farklar zaten eşittir; akımların eşit olması yine dirençlerin eşit olmasını gerektirir. I **kesinlikle doğrudur.**`,
+        r`II. Dirençler eşit ve paralel bağlı olsaydı da iki ölçüm aynı çıkardı. **Kesin değil.**`,
+        r`III. Seri bağlamada üretecin potansiyel farkı $2V_X$, paralel bağlamada $V_X$ olur. **Kesin değil.**`,
+        r`{{S1}} eşit akımın yalnız seri bağlamada görüleceğini sanır ve I'i atlar. {{S2}} eşit akımdan seri bağlama sonucunu çıkarır; eşit dirençli paralel kollardan da eşit akım geçer. {{S3}} seri bağlamayı kesin sayıp III'ü de doğru kabul eder. {{S4}} bütün yargıları seri bağlama varsayımıyla değerlendirir.`
+      ]
+    },
+    {
+      id: 'kY71_21', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Arıza bulma',
+      tahmin: { gerekce: r`İdeal voltmetrenin okumasından devredeki arızayı çıkarmak, voltmetrenin görevini ve kısa devre ile açık devre farkını birlikte ölçer. "Olabilir" kökü ÖSYM'nin sevdiği bir kalıptır; bu konuda 9 yılda sorulmadı.` },
+      metin: r`Bir deney setinde iç direnci önemsiz bir pil, S anahtarı, R direnci ve bir lamba şekildeki gibi seri bağlıdır; lambanın uçlarına ideal bir voltmetre bağlıdır. S kapatıldığında lamba ışık vermiyor ve voltmetre $0$ gösteriyor. Devrede yalnız bir arıza vardır.
+
+Bu arıza,
+
+I. lambanın telinin kopmuş olması,
+II. lambanın içindeki iki bağlantı telinin birbirine değmesi (lambanın kısa devre olması),
+III. S anahtarının kapalı görünmesine rağmen kontak yapmaması
+
+durumlarından hangileri olabilir?`,
+      sekil: 'kY71_ariza',
+      secenekler: [Y3[0], Y3[1], Y3[4], Y3[5], Y3[6]],
+      dogru: 3,
+      cozum: [
+        r`I. Lambanın teli kopuksa devreden akım geçmez ve R'nin uçları arasında potansiyel fark oluşmaz. Voltmetre, R ve S üzerinden pilin uçlarına bağlanmış olur ve pilin potansiyel farkını gösterir; $0$ göstermez. **Olamaz.**`,
+        r`II. Lamba kısa devreyse uçları arasındaki potansiyel fark sıfırdır; akım R ve kısa devre yolundan geçer, lamba ışık vermez. **Olabilir.**`,
+        r`III. Anahtar kontak yapmıyorsa devre açıktır; voltmetrenin bağlı olduğu lambanın uçları üretece bağlanamaz ve voltmetre $0$ gösterir. **Olabilir.**`,
+        r`{{S0}} kopuk lambanın uçlarında potansiyel fark oluşmayacağını sanır; ideal voltmetre bu durumda pilin potansiyel farkını gösterir. {{S1}} açık anahtarın da voltmetreyi sıfırladığını görmez. {{S2}} kopuk lambada voltmetrenin sıfır göstereceğini sanır ve kısa devreyi atlar. {{S4}} kopuk lambayı da olası sayar; kopuk lambanın uçlarında pilin potansiyel farkı ölçülür.`
+      ]
+    },
+    {
+      id: 'kY71_22', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.2.1', beceri: 'Devre okuma',
+      tahmin: { gerekce: r`Programda voltmetre ve ampermetrenin devredeki görevleri ayrıca vurgulanır. Şekil üzerinde aletlerin konumunu seçtiren kısa bir soru TYT'nin kolay devre sorusu olarak gelebilir; 9 yılda sorulmadı.` },
+      metin: r`Bir öğrenci, iki lambalı bir devrede akımları ve potansiyel farkları ölçmek için dört ölçü aleti kullanacaktır. Aletlerin takılacağı yerler şekilde 1, 2, 3 ve 4 numaralı kesik çizgili dairelerle gösterilmiştir.
+
+Aletlerin doğru bağlanmış olması için hangi iki konuma voltmetre takılmalıdır?`,
+      sekil: 'kY71_konum',
+      secenekler: [r`1 ve 3`, r`2 ve 4`, r`1 ve 4`, r`2 ve 3`, r`3 ve 4`],
+      dogru: 1,
+      cozum: [
+        r`Voltmetre, potansiyel farkını ölçtüğü elemana paralel; ampermetre, akımını ölçtüğü kola seri bağlanır.`,
+        r`1 numaralı konum ana kolda, 3 numaralı konum M'nin kolunda seridir: Bu konumlara ampermetre takılır.`,
+        r`2 numaralı konum K lambasının, 4 numaralı konum üretecin uçlarına paraleldir: Bu konumlara voltmetre takılır.`,
+        r`{{S0}} seri konumlara voltmetre takılacağını sanır; seri bağlı voltmetre akımı neredeyse sıfıra indirir. {{S2}} ana koldaki seri konumu voltmetre yeri sanır. {{S3}} M'nin kolundaki seri konumu voltmetre yeri sanır. {{S4}} M'nin kolundaki seri konumu voltmetre yeri sanır ve K'ye paralel konumu atlar.`
+      ]
+    },
+    {
+      id: 'kY71_23', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.2.1', beceri: 'Değişim hesabı',
+      tahmin: { gerekce: r`Paralel kollardan biri kopunca öbür kolun potansiyel farkının ana koldaki direnç yüzünden değişmesi, 2020'deki açık devre fikrinin sayısal ve zor hâlidir. "Paralel kolun gerilimi hep sabittir" yanılgısı güçlü bir çeldiricidir; bu kalıp 9 yılda sorulmadı.` },
+      metin: r`İç direnci önemsiz $12\ \text{V}$'luk bir üretece $4\ \Omega$, $12\ \Omega$ ve $6\ \Omega$'luk dirençler, ideal bir voltmetre ve ideal bir ampermetre şekildeki gibi bağlıdır. Bir süre sonra $6\ \Omega$'luk direncin bağlantı teli kopuyor.
+
+Tel koptuktan sonra voltmetre ve ampermetre kaç gösterir?`,
+      sekil: 'kY71_kopuk',
+      secenekler: [r`$9\ \text{V}$; $1,5\ \text{A}$`, r`$6\ \text{V}$; $0,5\ \text{A}$`, r`$12\ \text{V}$; $1\ \text{A}$`, r`$18\ \text{V}$; $1,5\ \text{A}$`, r`$9\ \text{V}$; $0,75\ \text{A}$`],
+      dogru: 4,
+      cozum: [
+        r`Kopmadan önce: $12\ \Omega$ ile $6\ \Omega$ paraleldir ($4\ \Omega$), eşdeğer direnç $8\ \Omega$, ana kol akımı $1,5\ \text{A}$. Paralel grubun potansiyel farkı $6\ \text{V}$, ampermetre $0,5\ \text{A}$ gösteriyordu.`,
+        r`Koptuktan sonra $6\ \Omega$'un kolu açıktır; $4\ \Omega$ ile $12\ \Omega$ seri kalır: $R_{\text{eş}} = 16\ \Omega$ ve $I = \dfrac{12}{16} = 0,75\ \text{A}$.`,
+        r`Ampermetre $12\ \Omega$'un kolundadır: $0,75\ \text{A}$. Voltmetre $12\ \Omega$'un potansiyel farkını gösterir: $0,75 \cdot 12 = 9\ \text{V}$.`,
+        r`{{S1}} paralel kollardan biri kopunca öbürünün değişmeyeceğini sanır; ana kolda $4\ \Omega$ olduğu için değişir. {{S2}} kalan kolun üretecin bütün potansiyel farkını aldığını sanır ve $4\ \Omega$'u unutur. {{S3}} ana kol akımının $1,5\ \text{A}$'de kalıp tamamen $12\ \Omega$'dan geçeceğini sanır; bu, üretecin potansiyel farkından büyük bir değer verir. {{S0}} voltmetreyi doğru bulur ama ana kol akımının kopmadan önceki $1,5\ \text{A}$ değerinde kalacağını sanır; oysa $12\ \Omega$'dan $9\ \text{V}$'ta ancak $0,75\ \text{A}$ geçebilir.`
+      ]
+    },
+    {
+      id: 'kY71_24', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.2.1', beceri: 'Sıralama',
+      tahmin: { gerekce: r`Şeklin görünüşü ile bağlantı türü arasındaki farkı yoklayan potansiyel fark sıralaması, ÖSYM'nin 2024'teki sıralama kalıbına uyar. Bu konunun adıyla 9 yılda sorulmadı.` },
+      metin: r`Dirençleri $R$, $2R$ ve $2R$ olan X, Y ve Z dirençleri şekildeki gibi bir üçgenin kenarlarına bağlanmış; iç direnci önemsiz bir üretecin uçları üçgenin iki köşesine bağlanmıştır.
+
+X, Y ve Z'nin uçları arasındaki potansiyel farklar $V_X$, $V_Y$ ve $V_Z$ arasındaki ilişki nedir?`,
+      sekil: 'kY71_ucgen',
+      secenekler: [r`$V_Z > V_Y > V_X$`, r`$V_Y = V_Z > V_X$`, r`$V_X > V_Y = V_Z$`, r`$V_X = V_Y = V_Z$`, r`$V_Y > V_Z > V_X$`],
+      dogru: 0,
+      cozum: [
+        r`Üretecin uçları Z'nin iki ucuna bağlıdır; Z üretece doğrudan bağlıdır: $V_Z = V$.`,
+        r`X ve Y, üretecin uçları arasında seri bir yol oluşturur. Toplam $3R$ üzerinde potansiyel fark dirençlerle orantılı paylaşılır: $V_X = \dfrac{V}{3}$, $V_Y = \dfrac{2V}{3}$.`,
+        r`Sıralama: $V_Z > V_Y > V_X$.`,
+        r`{{S1}} eşit dirençlerin her durumda eşit potansiyel farka sahip olduğunu sanır; Y seri bir yolun parçasıdır. {{S2}} küçük dirence büyük potansiyel fark düştüğünü sanır. {{S3}} üçgen bağlamada bütün dirençlerin paralel olduğunu sanır. {{S4}} Z'nin potansiyel farkını Y'ninkinden küçük sanır; oysa Z üretecin iki ucuna doğrudan bağlıdır ve üretecin bütün potansiyel farkını alır.`
+      ]
+    },
+    {
+      id: 'kY71_25', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.1.2', beceri: 'Veri sorgulama',
+      tahmin: { gerekce: r`Direncin boy ve kesitle orantısını ölçüm verisiyle sınamak, programın deneyle model çıkarma beklentisine ve TYT'nin veri tutarlılığı sorgulayan sorularına uyar. Oran düzeyinde kalır; 9 yılda sorulmadı.` },
+      metin: r`Bir öğrenci, aynı nikelin makarasından kestiği tellerin uçlarına farklı potansiyel farklar uygulayıp akımları ölçüyor. Tellerin sıcaklıkları eşittir. Ölçümlerden yalnız birinin kaydı hatalıdır.
+
+{{tablo}}
+
+Hangi denemenin kaydı hatalıdır?`,
+      tablo: [['Deneme', 'Boy (cm)', 'Kesit alanı (mm²)', 'Potansiyel fark (V)', 'Akım (A)'], ['1', '50', '0,2', '4', '0,20'], ['2', '100', '0,2', '6', '0,15'], ['3', '50', '0,4', '3', '0,30'], ['4', '100', '0,4', '6', '0,15'], ['5', '150', '0,2', '9', '0,15']],
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 3,
+      cozum: [
+        r`Aynı maddeden tellerde $R \propto \dfrac{L}{A}$'dır. 1. denemede $R = \dfrac{4}{0,20} = 20\ \Omega$; bunu ölçü al.`,
+        r`2. tel: boy 2 katı, direnç $40\ \Omega$ olmalı: $\dfrac{6}{0,15} = 40$, tutarlı. 3. tel: kesit 2 katı, direnç $10\ \Omega$ olmalı: $\dfrac{3}{0,30} = 10$, tutarlı. 5. tel: boy 3 katı, direnç $60\ \Omega$ olmalı: $\dfrac{9}{0,15} = 60$, tutarlı.`,
+        r`4. tel: boy 2 katı ve kesit 2 katı; direnç 1. telinkine eşit, $20\ \Omega$ olmalı. $6\ \text{V}$'ta $0,30\ \text{A}$ geçmesi gerekirken $0,15\ \text{A}$ kaydedilmiştir. Hatalı kayıt 4. denemededir.`,
+        r`{{S0}} karşılaştırma için ölçü aldığı ilk denemeyi hatalı sayar; öbür dört kaydın üçü onunla tutarlıdır. {{S1}} 2. denemeyle 4. denemenin aynı değerleri taşımasını 2.'nin hatası sanır; 2. telin kesiti 1.'ninkiyle aynıdır. {{S2}} kesit 2 katına çıkınca direncin de 2 katına çıkacağını sanır. {{S4}} boyu 3 katı olan telde akımın da 3'te 1'e inmesi gerektiğini düşünür ama potansiyel farkın da 9 V'a çıktığını gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY71_26', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.1.2', beceri: 'Oran akıl yürütme',
+      tahmin: { gerekce: r`Kütle eşitliğinden hacim, oradan kesit ve direnç, en son da Ohm yasasıyla akım oranına giden zincir, programın "hesaplamaya girmeden" modeli oran düzeyinde kullanmasına uyan zor bir sorudur. TYT'nin zoru hesapla değil bu tür kavram zinciriyle gelir; 9 yılda sorulmadı.` },
+      metin: r`Aynı maddeden yapılmış X ve Y tellerinin kütleleri eşittir. X'in boyu Y'ninkinin 2 katıdır. Teller ayrı ayrı aynı potansiyel farka bağlanıyor; sıcaklıkları eşit ve sabittir.
+
+X'ten geçen akımın Y'den geçen akıma oranı $\dfrac{I_X}{I_Y}$ kaçtır?`,
+      secenekler: [r`$\dfrac{1}{4}$`, r`$\dfrac{1}{2}$`, r`$1$`, r`$2$`, r`$4$`],
+      dogru: 0,
+      cozum: [
+        r`Aynı maddeden ve eşit kütleli tellerin hacimleri eşittir: $L_X \cdot A_X = L_Y \cdot A_Y$. $L_X = 2L_Y$ olduğundan $A_X = \dfrac{A_Y}{2}$.`,
+        r`$R \propto \dfrac{L}{A}$: $\dfrac{R_X}{R_Y} = \dfrac{2}{1/2} = 4$.`,
+        r`Aynı potansiyel farkta akım dirençle ters orantılıdır: $\dfrac{I_X}{I_Y} = \dfrac{1}{4}$.`,
+        r`{{S1}} yalnız boy farkını kullanır, eşit kütlenin X'in kesitini yarıya indirdiğini unutur. {{S2}} eşit kütleli tellerin dirençlerinin de eşit olduğunu sanır. {{S3}} yalnız boyu kullanır ve akım oranını ters kurar. {{S4}} direnç oranını akım oranı sanır.`
+      ]
+    },
+    {
+      id: 'kY71_27', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.2.1', beceri: 'Kavramsal bilgi',
+      tahmin: { gerekce: r`2018 programı voltmetre ve ampermetrenin direnç özelliklerini ve devredeki görevlerini ayrı bir açıklama olarak yazar. Bu bilgiler 9 yılda TYT'de doğrudan sorulmadı; kısa bir I-II-III sorusu olarak gelebilir.` },
+      metin: r`İdeal kabul edilen ampermetre ve voltmetre ile ilgili,
+
+I. Ampermetre, akımını ölçtüğü kola seri bağlanır ve direnci sıfır kabul edilir.
+II. Voltmetre, potansiyel farkını ölçtüğü elemana paralel bağlanır ve üzerinden akım geçmediği kabul edilir.
+III. Voltmetre doğrudan bir üretecin uçlarına bağlanırsa üretecin uçları arasındaki potansiyel farkı gösterir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [Y3[0], Y3[3], Y3[4], Y3[5], Y3[6]],
+      dogru: 4,
+      cozum: [
+        r`I. Ampermetre seri bağlanır; direnci sıfır kabul edildiği için ölçtüğü akımı değiştirmez. **Doğru.**`,
+        r`II. Voltmetre paralel bağlanır; direnci çok büyük olduğu için devrenin akımını bozmaz. **Doğru.**`,
+        r`III. Voltmetre iki noktanın potansiyel farkını ölçer; üretecin uçlarına bağlanınca üretecin uçları arasındaki potansiyel farkı gösterir. **Doğru.**`,
+        r`{{S0}} voltmetrenin direncinin çok büyük olmasını ve üretece bağlanabileceğini görmez. {{S1}} voltmetrenin doğrudan üretece bağlanınca devreyi kısa devre edeceğini sanır; voltmetreden akım geçmez. {{S2}} voltmetreden de akım geçmesi gerektiğini sanır. {{S3}} ampermetrenin direncinin sıfır değil, çok büyük olması gerektiğini sanır.`
+      ]
+    },
+    {
+      id: 'kY71_28', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.2.1', beceri: 'Model kurma',
+      tahmin: { gerekce: r`Direncin boyla orantısını paralel bağlama ile birleştiren halka devresi, görünüşte farklı ama kavramca iki kollu paralel devredir. Program hem direnç modelini hem eşdeğer direnç hesabını içerir; TYT'nin bağlamı değiştirip kavramı yoklayan zor sorularına uyar ve 9 yılda sorulmadı.` },
+      metin: r`Direnci $32\ \Omega$ olan homojen bir nikelin tel, uçları birbirine kaynatılarak çember biçiminde bir halka yapılıyor. Halka üzerindeki M ve N noktaları arasındaki kısa yayın boyu çemberin çevresinin dörtte biridir. M ve N noktalarına iç direnci önemsiz $12\ \text{V}$'luk bir üretecin uçları bağlanıyor.
+
+Üreteçten çekilen akım kaç amperdir?`,
+      sekil: 'kY71_halka',
+      secenekler: [r`$0,375$`, r`$0,5$`, r`$0,75$`, r`$1,5$`, r`$2$`],
+      dogru: 4,
+      cozum: [
+        r`Telin direnci boyuyla orantılıdır. Kısa yay telin dörtte biri: $8\ \Omega$; uzun yay dörtte üçü: $24\ \Omega$.`,
+        r`M ile N arasında iki yay iki ayrı yoldur; paraleldir: $R_{\text{eş}} = \dfrac{8 \cdot 24}{8 + 24} = 6\ \Omega$.`,
+        r`$I = \dfrac{12}{6} = 2\ \text{A}$.`,
+        r`{{S0}} bütün telin direncini kullanır: $\dfrac{12}{32}$. {{S1}} yalnız uzun yayı kullanır: $\dfrac{12}{24}$. {{S2}} M ile N'yi çapın iki ucu sanıp iki yarımı $16\ \Omega$'luk tek yol gibi alır. {{S3}} yalnız kısa yayı kullanır: $\dfrac{12}{8}$; uzun yaydan da akım geçer.`
+      ]
+    },
+    {
+      id: 'kY71_29', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.1.1', beceri: 'Hesaplama ve yön',
+      tahmin: { gerekce: r`Gazlarda iletimde iki taşıyıcının zıt yönlü hareketinin akıma aynı yönde katkı yaptığı, 10.1.1.1'in "gaz ve plazmada iletim" açıklamasının en ayırt edici noktasıdır. Fark alma tuzağı ve yön tuzağı birlikte olduğu için zor sınıfta; 9 yılda sorulmadı.` },
+      metin: r`Bir gaz boşalma tüpünün iki ucundaki elektrotlar arasına yüksek potansiyel fark uygulanıyor. Tüpteki iyonlaşmış gazda $2\ \text{s}$'de, tüpün bir kesitinden $3 \cdot 10^{18}$ tane $+e$ yüklü pozitif iyon şekildeki gibi sağa, $5 \cdot 10^{18}$ tane elektron da sola doğru geçiyor.
+
+$e = 1,6 \cdot 10^{-19}\ \text{C}$ olduğuna göre tüpteki akımın büyüklüğü ve yönü nedir?`,
+      sekil: 'kY71_tup',
+      secenekler: [r`$0,64\ \text{A}$, sağa`, r`$0,16\ \text{A}$, sola`, r`$0,4\ \text{A}$, sola`, r`$0,64\ \text{A}$, sola`, r`$1,28\ \text{A}$, sağa`],
+      dogru: 0,
+      cozum: [
+        r`Pozitif iyonların sağa, elektronların sola hareketi, ikisi de sağa doğru bir akım demektir; katkılar toplanır.`,
+        r`Kesitten geçen toplam yük: $q = (3 \cdot 10^{18} + 5 \cdot 10^{18}) \cdot 1,6 \cdot 10^{-19} = 1,28\ \text{C}$.`,
+        r`$I = \dfrac{1,28}{2} = 0,64\ \text{A}$; yönü pozitif iyonların hareket yönü, yani sağadır.`,
+        r`{{S1}} zıt yönlü hareketlerin birbirini götürdüğünü sanıp sayıları çıkarır: $2 \cdot 10^{18}$ ile $0,16\ \text{A}$; yönü de çok olan elektronlara göre alır. {{S2}} yalnız elektronları sayar ve yönü onların yönü sanır. {{S3}} büyüklüğü doğru bulur ama akım yönünü elektronların yönü sanır. {{S4}} toplam yükü süreye bölmeyi unutur.`
+      ]
+    },
+    {
+      id: 'kY71_30', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.2.1', beceri: 'Ölçü aletlerini yorumlama',
+      tahmin: { gerekce: r`2018 programı voltmetre ve ampermetrenin direnç özelliklerini ve devredeki görevlerini ayrıca vurgular. Yerleri karışmış aletlerin ne göstereceğini bulmak, ideal ampermetreyi bağlantı teli, ideal voltmetreyi akım geçirmeyen bir kol gibi düşünmeyi ve kısa devreyi birlikte ister. Bu kalıp 9 yılda TYT'de sorulmadı; TYT'nin zoru hesapla değil bu tür kavram zinciriyle gelir.` },
+      metin: r`Bir öğrenci; iç direnci önemsiz $12\ \text{V}$'luk bir üreteç ile $2\ \Omega$, $6\ \Omega$ ve $3\ \Omega$'luk dirençlerden kurduğu devrede $6\ \Omega$'luk direncin akımını ideal bir ampermetreyle, $3\ \Omega$'luk direncin potansiyel farkını ideal bir voltmetreyle ölçmek istiyor. Ancak aletlerin yerlerini karıştırıp devreyi şekildeki gibi kuruyor.
+
+Buna göre voltmetre ve ampermetre kaç gösterir?`,
+      sekil: 'kY71_takas',
+      secenekler: [r`$0\ \text{V}$; $6\ \text{A}$`, r`$6\ \text{V}$; $1\ \text{A}$`, r`$12\ \text{V}$; $0\ \text{A}$`, r`$0\ \text{V}$; $2\ \text{A}$`, r`$12\ \text{V}$; $6\ \text{A}$`],
+      dogru: 0,
+      cozum: [
+        r`İdeal ampermetrenin direnci sıfırdır. $3\ \Omega$'luk dirence paralel bağlanınca bir bağlantı teli gibi davranır: Paralel grubun üst ucu ile alt ucu aynı potansiyelde olur.`,
+        r`Bu iki nokta arasındaki $3\ \Omega$'luk direnç de voltmetreli kol da kısa devre olur. Devrede yalnız $2\ \Omega$ kalır: $I = \dfrac{12}{2} = 6\ \text{A}$ ve bu akımın tamamı ampermetreden geçer.`,
+        r`Voltmetreli koldan akım geçmediği için $6\ \Omega$'luk direncin uçları arasında potansiyel fark yoktur. Voltmetrenin bir ucu paralel grubun üst ucuna, öbür ucu $6\ \Omega$ üzerinden alt uca bağlıdır; bu iki nokta aynı potansiyelde olduğundan voltmetre $0$ gösterir.`,
+        r`{{S1}} aletlerin yerlerinin değiştiğini hesaba katmaz ve doğru kurulmuş devrenin değerlerini yazar: $6\ \Omega$'un akımı $1\ \text{A}$, $3\ \Omega$'un potansiyel farkı $6\ \text{V}$. {{S2}} seri bağlı voltmetrenin bütün devrenin akımını kestiğini sanır; oysa ampermetrenin bulunduğu yol açıktır ve akım oradan geçer. {{S3}} ampermetrenin yalnız $3\ \Omega$'luk direncin doğru devredeki akımını ($2\ \text{A}$) göstereceğini sanır; ampermetre direnci kısa devre eder ve ana kol akımının tamamını taşır. {{S4}} seri bağlı voltmetrenin her durumda üretecin potansiyel farkını gösterdiğini sanır; burada voltmetrenin iki ucu ampermetre üzerinden aynı potansiyeldedir.`
+      ]
+    }
+  ],
+  setler: []
+};
+
+window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.7.1 Elektrik Akımı, Direnç ve Ohm Yasası: oynanan simülasyonlar
+   Yapabilirim 10'daki iki simülasyonun (src/konu/10_3_3/sim.js: ampermetre-voltmetre devresi ve grafik;
+   src/konu/10_3_4/sim.js: devre + çubuk paneli) çizim ve ölçüm yapısı, bu kitabın konusu, metinleri ve görevleriyle uyarlanmıştır.
+   1) kY71_sim1: 2,0 V'luk ayarlı güç kaynağına bağlı tel; madde (nikelin ρ = 0,40, krom-nikel ρ = 1,10 μΩ·m),
+      kesit (0,1 / 0,2 mm²) ve boy (50–200 cm). R = ρ · L / A (yalnız model; ölçüm kutusu R'yi V / I ile verir),
+      I = V / R; sağda R-L grafiği (dört doğru, seçili olan kalın).
+      2018 programı 10.1.1.2'de hesaplamaya girmez: denklem satırı Ohm yasasıyla ölçülen direnci gösterir.
+   2) kY71_sim2: 9 V ideal üreteç, özdeş 6 Ω K, L, M lambaları. K ana kolda ve S₁ ile kısa devre edilebilir;
+      L ve M paralel, M'nin kolunda S₂; bir lamba bozuk (teli kopuk) seçilebilir. Lamba direnci sabit kabul edilir.
+   Şablon ve kurallar: SIM_KILAVUZ.md
+   ============================================================ */
+(function () {
+window.BFY_SIM = window.BFY_SIM || {};
+const liste = window.BFY_SIM['Y.7.1'] = window.BFY_SIM['Y.7.1'] || [];
+const sayi = (x, o) => window.BFY_SIM_ARAC.sayi(x, o);
+const f1 = v => (+v).toFixed(1);
+
+/* 1) tel direnci: boy, kesit, madde */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const INK = P.ink, WIRE = '#2b3a36', CUR = P.coral, U = 2;
+const MAD = { 0.4: { ad: 'nikelin', renk: '#8f969b' }, 1.1: { ad: 'krom-nikel', renk: '#8c6f9a' } };
+const direnc = v => v.rho * (v.L / 100) / v.A;      // Ω (ρ: μΩ·m, L: cm, A: mm²)
+const akim = v => U / direnc(v);                     // A
+
+function devre(v, ox, oy) {
+  const X = x => ox + x, Y = y => oy + y, I = akim(v), m = MAD[v.rho];
+  const xl = 30, xr = 270, yt = 112, yb = 226, x0 = 60, xe = x0 + 0.95 * v.L;
+  const tel = pts => `<polyline points="${pts.map(p => f1(X(p[0])) + ',' + f1(Y(p[1]))).join(' ')}" fill="none" stroke="${WIRE}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  let s = '';
+  // tel tahtası ve tel
+  s += `<rect x="${X(x0 - 14)}" y="${Y(yt + 8)}" width="${f1(xr - x0 + 6)}" height="14" rx="3" fill="#e2c79c" stroke="#b08f5c" stroke-width="1"/>`;
+  s += tel([[xl, yb], [xl, 193]]) + tel([[xl, 167], [xl, yt], [x0, yt]]) + tel([[xe, yt], [xr, yt], [xr, yb], [160, yb]]) + tel([[150, yb], [xl, yb]]);
+  const t = v.A > 0.15 ? 6.5 : 3.6;
+  s += `<rect x="${X(x0)}" y="${f1(Y(yt) - t / 2)}" width="${f1(xe - x0)}" height="${f1(t)}" rx="${f1(t / 2)}" fill="${m.renk}" stroke="#4d4652" stroke-width=".7"/>`;
+  s += `<rect x="${X(x0 - 5)}" y="${Y(yt - 7)}" width="10" height="14" rx="2" fill="#5f6a70"/><rect x="${f1(X(xe) - 5)}" y="${Y(yt - 7)}" width="10" height="14" rx="2" fill="#5f6a70"/>`;
+  s += T(X(160), Y(yt + 36), `${m.ad}, ${sayi(v.L, 0)} cm, ${sayi(v.A, 1)} mm²`, { size: 12.5, anchor: 'middle', weight: 800, fill: '#4d4652' });
+  // voltmetre telin iki ucuna
+  const vy = 52, vx = (x0 + xe) / 2;
+  s += tel([[x0, yt - 7], [x0, vy], [vx - 13, vy]]) + tel([[vx + 13, vy], [xe, vy], [xe, yt - 7]]);
+  s += `<circle cx="${f1(X(vx))}" cy="${Y(vy)}" r="13" fill="#fff" stroke="${WIRE}" stroke-width="2"/>` + T(X(vx), Y(vy + 4.8), 'V', { size: 13.5, anchor: 'middle', weight: 800, halo: false });
+  s += T(X(vx), Y(vy - 20), `${sayi(U, 1)} V`, { size: 13, anchor: 'middle', weight: 800 });
+  // ampermetre sol kenarda
+  s += `<circle cx="${X(xl)}" cy="${Y(180)}" r="13" fill="#fff" stroke="${WIRE}" stroke-width="2"/>` + T(X(xl), Y(184.8), 'A', { size: 13.5, anchor: 'middle', weight: 800, halo: false });
+  s += T(X(xl + 20), Y(185), `${sayi(I, 2)} A`, { size: 13, weight: 800 });
+  // güç kaynağı
+  s += `<rect x="${X(115)}" y="${Y(yb - 18)}" width="70" height="36" rx="7" fill="#39434b"/><rect x="${X(122)}" y="${Y(yb - 11)}" width="56" height="20" rx="4" fill="#d6ead0"/>`;
+  s += T(X(150), Y(yb + 4), `${sayi(U, 1)} V`, { size: 13, anchor: 'middle', weight: 800, fill: '#1f3b2c', halo: false });
+  s += T(X(105), Y(yb - 8), '+', { size: 14, anchor: 'middle', weight: 800 }) + T(X(195), Y(yb - 8), '−', { size: 15, anchor: 'middle', weight: 800 });
+  const w = 1.6 + 1.6 * Math.min(I, 2);
+  s += arrow(X(xl), Y(140), X(xl), Y(124), { color: CUR, w, head: 8, headW: 4.6 });
+  s += arrow(X(xr), Y(150), X(xr), Y(178), { color: CUR, w, head: 8, headW: 4.6 }) + T(X(xr - 12), Y(170), 'I', { size: 14, anchor: 'middle', weight: 800, italic: true, fill: CUR });
+  return s;
+}
+
+function grafik(v, OX, OY, GX, GY) {
+  const gx = L => OX + L * GX, gy = R => OY - R * GY;
+  let s = '';
+  for (let L = 0.5; L <= 2.0001; L += 0.5) s += `<line x1="${f1(gx(L))}" y1="${OY}" x2="${f1(gx(L))}" y2="${f1(gy(23))}" stroke="#e1e9ee" stroke-width="1"/>`;
+  for (let R = 5; R <= 20; R += 5) s += `<line x1="${OX}" y1="${f1(gy(R))}" x2="${f1(gx(2.08))}" y2="${f1(gy(R))}" stroke="#e1e9ee" stroke-width="1"/>`;
+  const xe = gx(2.08) + 8, ye = gy(23) - 10;
+  s += `<line x1="${OX}" y1="${OY}" x2="${f1(xe)}" y2="${OY}" stroke="${INK}" stroke-width="1.4"/><polygon points="${f1(xe + 7)},${OY} ${f1(xe - 2)},${OY - 3.8} ${f1(xe - 2)},${OY + 3.8}" fill="${INK}"/>`;
+  s += `<line x1="${OX}" y1="${OY}" x2="${OX}" y2="${f1(ye)}" stroke="${INK}" stroke-width="1.4"/><polygon points="${OX},${f1(ye - 7)} ${OX - 3.8},${f1(ye + 2)} ${OX + 3.8},${f1(ye + 2)}" fill="${INK}"/>`;
+  s += T(xe - 6, OY - 8, 'L (m)', { size: 12.5, anchor: 'end', weight: 700 });
+  s += T(OX + 8, ye + 2, 'R (Ω)', { size: 12.5, weight: 700 });
+  s += T(OX - 5, OY + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  [1, 2].forEach(L => { s += T(gx(L), OY + 16, String(L), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 }); });
+  [10, 20].forEach(R => { s += T(OX - 6, gy(R) + 4.3, String(R), { size: 12, anchor: 'end', weight: 600, fill: P.ink2 }); });
+  const cizgi = (rho, A) => {
+    const k = rho / A, Lmax = Math.min(2, 22 / k), sec = rho === v.rho && A === v.A;
+    return `<line x1="${OX}" y1="${OY}" x2="${f1(gx(Lmax))}" y2="${f1(gy(k * Lmax))}" stroke="${MAD[rho].renk}" stroke-width="${sec ? 3.2 : 1.6}" stroke-linecap="round" opacity="${sec ? 1 : 0.4}"${A > 0.15 ? '' : ' stroke-dasharray="6 4"'}/>`;
+  };
+  s += cizgi(0.4, 0.2) + cizgi(0.4, 0.1) + cizgi(1.1, 0.2) + cizgi(1.1, 0.1);
+  const L = v.L / 100, R = direnc(v), px = gx(L), py = gy(R);
+  s += dashLine(px, py + 6, px, OY, P.ink2, '3 3', 1.1) + dashLine(OX, py, px - 6, py, P.ink2, '3 3', 1.1);
+  s += `<circle cx="${f1(px)}" cy="${f1(py)}" r="5.2" fill="${CUR}" stroke="#fff" stroke-width="1.6"/>`;
+  return s;
+}
+
+function lejant(x, y) {
+  return `<line x1="${x}" y1="${y}" x2="${x + 22}" y2="${y}" stroke="${INK}" stroke-width="2" stroke-dasharray="6 4"/>` + T(x + 28, y + 4.3, '0,1 mm²', { size: 12, weight: 700, fill: P.ink2 }) +
+    `<line x1="${x + 96}" y1="${y}" x2="${x + 118}" y2="${y}" stroke="${INK}" stroke-width="2"/>` + T(x + 124, y + 4.3, '0,2 mm²', { size: 12, weight: 700, fill: P.ink2 });
+}
+
+const GENIS = { W: 560, H: 320, dv: [0, 30], panel: [306, 12, 242, 296], OX: 346, OY: 268, GX: 88, GY: 9.6, lj: [336, 299], mm: 150 };
+const DAR = { W: 300, H: 580, dv: [-2, 10], panel: [10, 290, 280, 280], OX: 50, OY: 516, GX: 106, GY: 8.6, lj: [40, 556], mm: 80 };
+function sahne(v, u, o) {
+  const G = o && o.dar ? DAR : GENIS;
+  let s = `<rect class="bg" x="0" y="0" width="${G.W}" height="${G.H}" rx="14" fill="#f3f8fb"/>`;
+  s += `<rect class="bg" x="${G.panel[0]}" y="${G.panel[1]}" width="${G.panel[2]}" height="${G.panel[3]}" rx="12" fill="#fbfdfe" stroke="#dde7ee" stroke-width="1"/>`;
+  s += devre(v, G.dv[0], G.dv[1]) + grafik(v, G.OX, G.OY, G.GX, G.GY) + lejant(G.lj[0], G.lj[1]);
+  return svg(G.W, G.H, s, u, G.mm);
+}
+
+liste.push({
+  id: 'kY71_sim1',
+  baslik: 'Telin boyu, kesiti ve maddesi direnci nasıl değiştirir?',
+  sonra: 'Direnç neye bağlı?',
+  metin: 'Kaydırıcıyla telin boyunu, düğmelerle kesit alanını ve maddesini seç. Güç kaynağı telin uçlarına $2,0\\ \\text{V}$ uygular; telin sıcaklığı değişmiyor kabul edilir. Ampermetrenin gösterdiği akımdan telin direncini Ohm yasasıyla bul ($R = \\dfrac{V}{I}$) ve grafikte direncin boyla nasıl değiştiğini izle. Kesikli doğrular ince, düz doğrular kalın tellerindir; renkler maddeyi gösterir.',
+  pdfMetin: 'Şekilde $100\\ \\text{cm}$ boyunda, $0,1\\ \\text{mm}^2$ kesitli nikelin telin uçlarına $2,0\\ \\text{V}$ uygulanmış ve telden $0,5\\ \\text{A}$ akım geçiyor; telin direnci $4\\ \\Omega$\'dur. Grafikteki dört doğru nikelin ve krom-nikel tellerin iki kesitteki direnç-boy doğrularıdır: Boy arttıkça direnç doğru orantılı artar; kesit 2 katına çıkınca doğrunun eğimi yarıya iner; krom-nikelin doğruları nikelinkilerden diktir.',
+  kontroller: [
+    { ad: 'L', etiket: 'Telin boyu', min: 50, max: 200, adim: 10, deger: 100, birim: 'cm' },
+    { ad: 'A', etiket: 'Kesit alanı', deger: 0.1, secenekler: [{ deger: 0.1, etiket: 'İnce', alt: '0,1 mm²' }, { deger: 0.2, etiket: 'Kalın', alt: '0,2 mm²' }] },
+    { ad: 'rho', etiket: 'Madde', deger: 0.4, secenekler: [{ deger: 0.4, etiket: 'Nikelin', alt: 'ρ = 0,40 μΩ·m' }, { deger: 1.1, etiket: 'Krom-nikel', alt: 'ρ = 1,10 μΩ·m' }] }
+  ],
+  ciz: (v, u, o) => sahne(v, u, o),
+  olcumler: v => [
+    { etiket: 'Voltmetre', deger: U, birim: 'V', ondalik: 1 },
+    { etiket: 'Ampermetre', deger: akim(v), birim: 'A', ondalik: 3 },
+    { etiket: 'Direnç (V / I)', deger: direnc(v), birim: 'Ω', ondalik: 2 }
+  ],
+  denklem: v => `R = \\dfrac{V}{I} = \\dfrac{${sayi(U, 1)}}{${sayi(akim(v), 3)}} \\approx ${sayi(direnc(v), 2)}\\ \\Omega`,
+  gorev: 'İnce nikelin telle 100 cm\'de ölçtüğün direnci kalın nikelin telle elde etmek için telin boyunu kaç santimetre yapmalısın? Sonra maddeyi krom-nikel yap: Aynı boy ve kesitte direnç kaç katına çıkıyor? Önce tahmin et, sonra dene.',
+  gorevCevap: 'İnce nikelin tel 100 cm\'de $4\\ \\Omega$\'dur ve $0,5\\ \\text{A}$ akım geçer. Kesit 2 katına çıkınca aynı boyda direnç yarıya iner; aynı direnci elde etmek için boy 2 katına, yani 200 cm\'ye çıkmalıdır. O zaman ampermetre yine $0,5\\ \\text{A}$ gösterir. Krom-nikelin özdirenci nikelininkinin $\\dfrac{1,10}{0,40} = 2,75$ katıdır; aynı boy ve kesitte direnç de 2,75 katına çıkar ve akım aynı oranda azalır.'
+});
+})();
+
+/* 2) anahtar ve bozuk lamba: K ana kolda, L ve M paralel */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const INK = P.ink, WIRE = '#2b3a36', CUR = P.coral, SW = '#2f6fb8', U = 9, RL = 6;
+const AD = ['', 'K', 'L', 'M'];
+function coz(v) {
+  const kKisa = v.s1 === 1, Lok = v.boz !== 2, Mok = v.s2 === 1 && v.boz !== 3, Kok = v.boz !== 1;
+  const n = (Lok ? 1 : 0) + (Mok ? 1 : 0), Rp = n === 2 ? RL / 2 : n === 1 ? RL : Infinity;
+  const RK = kKisa ? 0 : Kok ? RL : Infinity, Reş = RK + Rp;
+  const I = isFinite(Reş) ? U / Reş : 0, Vp = isFinite(Rp) ? I * Rp : 0;
+  return { I, RK, Rp, Reş, IK: kKisa ? 0 : I, IL: Lok ? Vp / RL : 0, IM: Mok ? Vp / RL : 0 };
+}
+function lamba(x, y, ad, Iy, bozuk, lab) {
+  const k = Math.min(1, (Iy * Iy * RL) / 13.5);
+  let s = k > 0.001 ? `<circle cx="${x}" cy="${y}" r="${f1(13 + 14 * Math.sqrt(k))}" fill="#ffd95a" opacity="${f1(0.2 + 0.45 * Math.sqrt(k))}"/>` : '';
+  s += `<circle cx="${x}" cy="${y}" r="12" fill="${k > 0.001 ? '#fff3b8' : '#eef1f3'}" stroke="${INK}" stroke-width="1.9"/><path d="M${x - 8.5} ${y - 8.5} L${x + 8.5} ${y + 8.5} M${x - 8.5} ${y + 8.5} L${x + 8.5} ${y - 8.5}" stroke="${INK}" stroke-width="1.5"/>`;
+  if (bozuk) s += `<path d="M${x - 15} ${y - 15} L${x + 15} ${y + 15}" stroke="#c8412b" stroke-width="2.4" stroke-linecap="round"/>`;
+  const [tx, ty, an] = lab === 'ust' ? [x, y - 19, 'middle'] : lab === 'alt' ? [x, y + 30, 'middle'] : lab === 'sol' ? [x - 18, y + 4.5, 'end'] : [x + 18, y + 4.5, 'start'];
+  return s + T(tx, ty, ad + (bozuk ? ' (bozuk)' : ''), { size: 13, anchor: an, weight: 800, fill: bozuk ? '#c8412b' : INK });
+}
+function anahtar(x1, y1, x2, y2, kapali, ad, lx, ly) {
+  const ex = kapali ? x2 : x1 + (x2 - x1) * 0.85 + (y2 === y1 ? 0 : 14), ey = kapali ? y2 : y1 + (y2 - y1) * 0.85 - (y2 === y1 ? 14 : 0);
+  return `<line x1="${x1}" y1="${y1}" x2="${f1(ex)}" y2="${f1(ey)}" stroke="${SW}" stroke-width="2.8" stroke-linecap="round"/><circle cx="${x1}" cy="${y1}" r="3.4" fill="${INK}"/><circle cx="${x2}" cy="${y2}" r="3.6" fill="#fff" stroke="${INK}" stroke-width="1.6"/>` +
+    T(lx, ly, ad + (kapali ? ' kapalı' : ' açık'), { size: 12.5, anchor: 'middle', weight: 800, fill: SW });
+}
+function devre(v, ox, oy) {
+  const X = x => ox + x, Y = y => oy + y, c = coz(v);
+  const tel = pts => `<polyline points="${pts.map(p => f1(X(p[0])) + ',' + f1(Y(p[1]))).join(' ')}" fill="none" stroke="${WIRE}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  const xl = 30, xa = 150, xr = 270, yt = 92, yb = 238;
+  let s = '';
+  // ana kol: üreteç solda, ampermetre, K
+  s += tel([[xl, 160], [xl, 178]]) + tel([[xl, 150], [xl, yt], [72, yt]]) + tel([[96, yt], [xr, yt], [xr, 116]]) + tel([[xl, 202], [xl, yb], [xr, yb], [xr, 208]]);
+  s += `<line x1="${X(xl - 15)}" y1="${Y(150)}" x2="${X(xl + 15)}" y2="${Y(150)}" stroke="${INK}" stroke-width="2"/><line x1="${X(xl - 8)}" y1="${Y(160)}" x2="${X(xl + 8)}" y2="${Y(160)}" stroke="${INK}" stroke-width="5"/>`;
+  s += T(X(xl + 20), Y(148), '+', { size: 12, anchor: 'middle', weight: 800 }) + T(X(xl + 20), Y(168), '−', { size: 13, anchor: 'middle', weight: 800 }) + T(X(xl + 20), Y(186), '9 V', { size: 12.5, weight: 800, fill: '#a8402a' });
+  s += `<circle cx="${X(xl)}" cy="${Y(190)}" r="12" fill="#fff" stroke="${WIRE}" stroke-width="2"/>` + T(X(xl), Y(194.6), 'A', { size: 13, anchor: 'middle', weight: 800, halo: false });
+  s += T(X(xl + 18), Y(216), `${sayi(c.I, 2)} A`, { size: 12.5, weight: 800 });
+  s += lamba(X(84), Y(yt), 'K', c.IK, v.boz === 1, 'alt');
+  // S1: K'nin uçlarına paralel, altından
+  s += tel([[60, yt], [60, yt - 34], [72, yt - 34]]) + `<circle cx="${X(60)}" cy="${Y(yt)}" r="3" fill="${INK}"/><circle cx="${X(108)}" cy="${Y(yt)}" r="3" fill="${INK}"/>`;
+  s += tel([[108, yt], [108, yt - 34], [100, yt - 34]]) + anahtar(X(72), Y(yt - 34), X(100), Y(yt - 34), v.s1 === 1, 'S₁', X(86), Y(yt - 52));
+  // L kolu
+  s += tel([[xa, yt], [xa, 153]]) + tel([[xa, 177], [xa, yb]]) + lamba(X(xa), Y(165), 'L', c.IL, v.boz === 2, 'sol') + `<circle cx="${X(xa)}" cy="${Y(yt)}" r="3" fill="${INK}"/><circle cx="${X(xa)}" cy="${Y(yb)}" r="3" fill="${INK}"/>`;
+  // M kolu: S2 üstte
+  s += anahtar(X(xr), Y(116), X(xr), Y(144), v.s2 === 1, 'S₂', X(xr - 34), Y(126)) + tel([[xr, 144], [xr, 153]]) + lamba(X(xr), Y(165), 'M', c.IM, v.boz === 3, 'sol') + tel([[xr, 177], [xr, 208]]);
+  // akım oku
+  if (c.I > 0) s += arrow(X(xl), Y(140), X(xl), Y(118), { color: CUR, w: 1.6 + 1.2 * Math.min(c.I, 1.5), head: 8, headW: 4.6 });
+  return s;
+}
+function cubuklar(v, ox, oy, W) {
+  const c = coz(v), IM = 3;
+  const sat = (y, ad, deger) => {
+    const x0 = ox + 14, w = W - 28, d = Math.min(1, deger / IM) * w;
+    return T(x0, y, ad, { size: 12.5, weight: 800, fill: P.green }) +
+      `<rect x="${x0}" y="${y + 8}" width="${w}" height="14" rx="7" fill="#e6edf1" stroke="#cfdbe2" stroke-width=".8"/>` +
+      (deger > 1e-9 ? `<rect x="${x0}" y="${y + 8}" width="${f1(Math.max(d, 7))}" height="14" rx="7" fill="${CUR}"/>` : '') +
+      T(x0 + w, y + 40, `${sayi(deger, 2)} A`, { size: 12.5, anchor: 'end', weight: 800 });
+  };
+  return sat(oy + 26, 'Ana kol akımı', c.I) + sat(oy + 86, 'K lambasının akımı', c.IK) + sat(oy + 146, 'L lambasının akımı', c.IL) + sat(oy + 206, 'M lambasının akımı', c.IM);
+}
+const GENIS = { W: 560, H: 300, dv: [4, -20], panel: [318, 12, 230, 276], mm: 150 };
+const DAR = { W: 300, H: 540, dv: [-4, -10], panel: [10, 248, 280, 276], mm: 80 };
+function sahne(v, u, o) {
+  const G = o && o.dar ? DAR : GENIS;
+  let s = `<rect class="bg" x="0" y="0" width="${G.W}" height="${G.H}" rx="14" fill="#f3f8fb"/>`;
+  s += `<rect class="bg" x="${G.panel[0]}" y="${G.panel[1]}" width="${G.panel[2]}" height="${G.panel[3]}" rx="12" fill="#fbfdfe" stroke="#dde7ee" stroke-width="1"/>`;
+  s += devre(v, G.dv[0], G.dv[1]) + cubuklar(v, G.panel[0], G.panel[1], G.panel[2]);
+  return svg(G.W, G.H, s, u, G.mm);
+}
+liste.push({
+  id: 'kY71_sim2',
+  baslik: 'Anahtar ve bozuk lamba hangi lambaları söndürür?',
+  sonra: 'Seri, paralel ve kısa devre',
+  metin: 'Düğmelerle $S_1$ ve $S_2$ anahtarlarını aç ya da kapat, istersen lambalardan birini bozuk (teli kopuk) seç. Üreteç idealdir ve $9\\ \\text{V}$ verir; özdeş lambaların her birinin direnci $6\\ \\Omega$ kabul edilir. $S_1$, K lambasının iki ucunu birleştirir; $S_2$, M lambasının kolundadır. Ampermetrenin gösterdiği ana kol akımını ve her lambanın akımını izle.',
+  pdfMetin: 'Şekilde $S_1$ açık, $S_2$ kapalıdır ve bütün lambalar sağlamdır. K ana kolda, L ile M paraleldir: Eşdeğer direnç $6 + 3 = 9\\ \\Omega$, ana kol akımı ve K\'nin akımı $1\\ \\text{A}$, L ile M\'nin akımları $0,5\\ \\text{A}$\'dir. $S_1$ kapatılsaydı K kısa devre olur ve söner; eşdeğer direnç $3\\ \\Omega$\'a iner, L ile M\'den $1,5\\ \\text{A}$ geçerdi.',
+  kontroller: [
+    { ad: 's1', etiket: 'S₁ anahtarı', deger: 0, secenekler: [{ deger: 0, etiket: 'Açık' }, { deger: 1, etiket: 'Kapalı' }] },
+    { ad: 's2', etiket: 'S₂ anahtarı', deger: 1, secenekler: [{ deger: 0, etiket: 'Açık' }, { deger: 1, etiket: 'Kapalı' }] },
+    { ad: 'boz', etiket: 'Bozuk lamba', deger: 0, secenekler: [{ deger: 0, etiket: 'Yok' }, { deger: 1, etiket: 'K' }, { deger: 2, etiket: 'L' }, { deger: 3, etiket: 'M' }] }
+  ],
+  ciz: (v, u, o) => sahne(v, u, o),
+  olcumler: v => { const c = coz(v); return [
+    { etiket: 'Ana kol akımı', deger: c.I, birim: 'A', ondalik: 2 },
+    { etiket: 'K\'nin akımı', deger: c.IK, birim: 'A', ondalik: 2 },
+    { etiket: 'L\'nin akımı', deger: c.IL, birim: 'A', ondalik: 2 },
+    { etiket: 'M\'nin akımı', deger: c.IM, birim: 'A', ondalik: 2 }
+  ]; },
+  denklem: v => {
+    const c = coz(v);
+    if (!(c.I > 0)) return `\\text{Kapalı bir yol yok: } I = 0`;
+    return `R_{\\text{eş}} = ${sayi(c.RK, 0)} + ${sayi(c.Rp, 0)} = ${sayi(c.Reş, 0)}\\ \\Omega,\\quad I = \\dfrac{9}{${sayi(c.Reş, 0)}} = ${sayi(c.I, 2)}\\ \\text{A}`;
+  },
+  gorev: 'Bütün lambalar sağlamken $S_1$\'i kapat: K neden söner, L ile M\'nin akımları kaç katına çıkar? Sonra $S_1$ kapalıyken K\'yi bozuk seç: Hangi lambanın durumu değişir? Önce tahmin et, sonra dene.',
+  gorevCevap: '$S_1$ kapanınca K\'nin iki ucu aynı potansiyelde kalır; K kısa devre olur ve akım almaz. Eşdeğer direnç $9\\ \\Omega$\'dan $3\\ \\Omega$\'a iner, ana kol akımı $1\\ \\text{A}$\'den $3\\ \\text{A}$\'e çıkar. L ile M artık üretecin $9\\ \\text{V}$\'unu doğrudan alır; akımları $0,5\\ \\text{A}$\'den $1,5\\ \\text{A}$\'e, yani 3 katına çıkar. $S_1$ kapalıyken K\'nin bozulması hiçbir şeyi değiştirmez; çünkü kısa devre edilmiş K\'den zaten akım geçmiyordu.'
+});
+})();
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.7.2 Üreteçler, Elektrik Enerjisi ve Güç — şekiller
    Önek: kY72_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY72_ (tanım ve efsane çizimleri; 3B izometrik).
    Devre dili (2018 programı ders kitapları): pil sembolünde uzun ince çizgi (+), kısa kalın çizgi (−);
