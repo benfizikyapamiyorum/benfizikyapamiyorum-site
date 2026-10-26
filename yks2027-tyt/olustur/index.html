@@ -5054,6 +5054,1801 @@ BFY_SIM['Y.10.3'] = [
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.10.4 Kırılma ve Tam Yansıma — şekiller
+   Önek: kY104_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY104_ (tanım ve efsane çizimleri; 3B izometrik).
+   Kurallar: normal kesikli ve ayırma yüzeyine dik; açılar normalle ölçülür; ışın okları ilerleme yönünde;
+   kırılma yönleri ortamların kırıcılık sırasıyla tutarlı (açılar Snell Yasası ile hesaplanarak çizilir).
+   ============================================================ */
+(function () {
+const { P, T, svg, dashLine } = window.BFY_FIGLIB;
+const D = Math.PI / 180;
+const f1 = v => (+v).toFixed(1);
+const LZ = '#d6336c', NRM = '#56687a';
+const snell = (n1, n2, i) => { const s = n1 / n2 * Math.sin(i * D); return s > 1 ? null : Math.asin(s) / D; };
+const ORT = {
+  hava: ['#f8fbfe', '#eaf3f9', '#7d93a3'], su: ['#d3ecfa', '#a9d3ef', '#2f7fb8'], cam: ['#e8f5f1', '#c5e3d8', '#4f8a78'],
+  yag: ['#fbf1cf', '#efd98e', '#a8892c'], gli: ['#f5efdc', '#e4d9ad', '#9a8a4a'], deniz: ['#c6e5f6', '#78b8de', '#2a6f9e'],
+  A: ['#f6f2fb', '#e3d9f2', '#6b4fa8'], B: ['#eef7ee', '#cfe6cf', '#3f7d4f'], C: ['#fbf1ec', '#f0d3c4', '#a2553a']
+};
+let N = 0;
+const gid = (u, ad) => `${u}${ad}${++N}`;
+function lg(id, c, yon = 'y') {
+  const xy = yon === 'y' ? 'x1="0" y1="0" x2="0" y2="1"' : 'x1="0" y1="0" x2="1" y2="0"';
+  return `<defs><linearGradient id="${id}" ${xy}>${c.map((r, i) => `<stop offset="${f1(i / (c.length - 1))}" stop-color="${r}"/>`).join('')}</linearGradient></defs>`;
+}
+const bolge = (u, x, y, w, h, o) => { const id = gid(u, 'or'); return lg(id, [ORT[o][0], ORT[o][1]]) + `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" fill="url(#${id})"/>`; };
+const zemin = (W, H, c = '#f5f8fa') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${c}"/>`;
+/* ışın: çizgi + ortada ok başı */
+function ray(x1, y1, x2, y2, o = {}) {
+  const c = o.color || LZ, w = o.w || 2.2, t = o.at ?? 0.55;
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+  const mx = x1 + dx * t, my = y1 + dy * t, hl = 9, hw = 4.4, bx = mx - ux * hl, by = my - uy * hl;
+  const op = o.op ? ` opacity="${o.op}"` : '';
+  return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${o.dash ? ` stroke-dasharray="${o.dash}"` : ''}${op}/>` +
+    (o.ok === false ? '' : `<polygon points="${f1(mx + ux * 3)},${f1(my + uy * 3)} ${f1(bx - uy * hw)},${f1(by + ux * hw)} ${f1(bx + uy * hw)},${f1(by - ux * hw)}" fill="${c}"${op}/>`);
+}
+/* yay: ekran açısı (derece, y aşağı) a0 < a1 */
+function yay(cx, cy, r, a0, a1, c = P.ink2, w = 1.4) {
+  const x0 = cx + r * Math.cos(a0 * D), y0 = cy + r * Math.sin(a0 * D), x1 = cx + r * Math.cos(a1 * D), y1 = cy + r * Math.sin(a1 * D);
+  return `<path d="M${f1(x0)} ${f1(y0)} A${r} ${r} 0 0 1 ${f1(x1)} ${f1(y1)}" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+}
+const yayEt = (cx, cy, r, am, s, o = {}) => T(f1(cx + r * Math.cos(am * D)), f1(cy + r * Math.sin(am * D) + 4.5), s, { size: o.size || 13, anchor: 'middle', weight: 800, fill: o.fill || P.ink, italic: o.italic });
+const normal = (x, y1, y2) => dashLine(f1(x), f1(y1), f1(x), f1(y2), NRM, '6 4', 1.3);
+const cerceve = (x, y, w, h) => `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" rx="8" fill="none" stroke="#9fb0bc" stroke-width="1.2"/>`;
+
+/* İki ortamlı panel: üstte o.ust, altta o.alt; ışın üstten (s = +1 soldan, −1 sağdan) i açısıyla gelir.
+   o.r: kırılma açısı (null: tam yansıma, 90: yüzeyi yalama). Açı yayları ve etiketleri isteğe bağlı. */
+function gecis(u, x0, y0, w, h, o) {
+  const Y = y0 + h * (o.oran || 0.5), X = x0 + w / 2 + (o.dx || 0), s = o.s || 1, i = o.i, r = o.r;
+  const cid = gid(u, 'kp');
+  let q = `<defs><clipPath id="${cid}"><rect x="${f1(x0)}" y="${f1(y0)}" width="${f1(w)}" height="${f1(h)}" rx="8"/></clipPath></defs><g clip-path="url(#${cid})">`;
+  q += bolge(u, x0, y0, w, Y - y0, o.ustR) + bolge(u, x0, Y, w, y0 + h - Y, o.altR) + '</g>';
+  q += `<line x1="${f1(x0)}" y1="${f1(Y)}" x2="${f1(x0 + w)}" y2="${f1(Y)}" stroke="#6f8797" stroke-width="1.6"/>`;
+  q += cerceve(x0, y0, w, h);
+  q += normal(X, y0 + 8, y0 + h - 8);
+  const L1 = Math.min((Y - y0 - 8) / Math.cos(i * D), (w / 2 - 6) / Math.max(Math.sin(i * D), 0.01)) * 0.98;
+  q += ray(X - s * L1 * Math.sin(i * D), Y - L1 * Math.cos(i * D), X, Y, { at: 0.5 });
+  const L2 = (y0 + h - Y - 8);
+  if (o.devam !== false && r !== null) { const Ld = Math.min(L2, (w / 2 - 8) / Math.max(Math.tan(i * D), 0.01)); q += dashLine(f1(X), f1(Y), f1(X + s * Ld * Math.tan(i * D)), f1(Y + Ld), '#8a96a3', '3 4', 1.3); }
+  if (r === null) {
+    q += ray(X, Y, X + s * L1 * Math.sin(i * D), Y - L1 * Math.cos(i * D), { at: 0.6 });
+  } else if (r >= 89.9) {
+    q += ray(X, Y - 1.5, X + s * (w / 2 - 8), Y - 1.5, { at: 0.6 });
+  } else {
+    const L3 = Math.min(L2 / Math.cos(r * D), (w / 2 - 8) / Math.sin(r * D));
+    q += ray(X, Y, X + s * L3 * Math.sin(r * D), Y + L3 * Math.cos(r * D), { at: 0.6 });
+    if (o.yansiyan) q += ray(X, Y, X + s * L1 * 0.7 * Math.sin(i * D), Y - L1 * 0.7 * Math.cos(i * D), { op: 0.35, w: 1.6, at: 0.6 });
+  }
+  if (o.etI) {
+    const a0 = s > 0 ? -90 - i : -90, a1 = s > 0 ? -90 : -90 + i;
+    q += yay(X, Y, 26, a0, a1, '#9c2a5a') + yayEt(X, Y, 38, -90 - s * i / 2, o.etI, { fill: '#9c2a5a', italic: true });
+  }
+  if (o.etR && r !== null && r < 89.9) {
+    const a0 = s > 0 ? 90 - r : 90, a1 = s > 0 ? 90 : 90 + r;
+    q += yay(X, Y, 30, a0, a1, '#2b6c8f') + yayEt(X, Y, 42, 90 - s * r / 2, o.etR, { fill: '#2b6c8f', italic: true });
+  }
+  const ad = (t, y, sg) => T(x0 + (sg > 0 ? w - 8 : 8), y, t, { size: 12.5, weight: 800, anchor: sg > 0 ? 'end' : 'start', fill: '#35506a' });
+  q += ad(o.ust, y0 + 20, s) + ad(o.alt, y0 + h - 10, o.r === 90 ? s : -s);
+  if (o.normalEt) q += T(X + 5, y0 + 20, 'normal', { size: 11.5, weight: 700, fill: NRM, anchor: s > 0 ? 'start' : 'end' });
+  if (o.baslik) q += T(x0 + w / 2, y0 + h + 17, o.baslik, { size: 12.5, weight: 800, anchor: 'middle' });
+  return q;
+}
+
+/* ---------------- NOT: üç panel ---------------- */
+BFY_FIG_EKLE('kY104_kirilma_genis', function (u) {
+  const W = 560, H = 240;
+  let s = zemin(W, H);
+  s += gecis(u, 8, 10, 176, 196, { ustR: 'hava', altR: 'cam', ust: 'az kırıcı', alt: 'çok kırıcı', i: 50, r: snell(1, 1.5, 50), etI: 'i', etR: 'r', baslik: 'normale yaklaşır' });
+  s += gecis(u, 192, 10, 176, 196, { ustR: 'cam', altR: 'hava', ust: 'çok kırıcı', alt: 'az kırıcı', i: 30, r: snell(1.5, 1, 30), etI: 'i', etR: 'r', baslik: 'normalden uzaklaşır' });
+  /* su dalgası: üstten görünüş, derinden sığa */
+  const x0 = 376, y0 = 10, w = 176, h = 196, Y = y0 + 98, X0 = x0 + 70, th1 = 40, l1 = 24, l2 = 15;
+  const th2 = Math.asin(Math.sin(th1 * D) * l2 / l1) / D, cd = gid(u, 'c'), cs = gid(u, 'c');
+  s += `<defs><clipPath id="${cd}"><rect x="${x0}" y="${y0}" width="${w}" height="${Y - y0}"/></clipPath><clipPath id="${cs}"><rect x="${x0}" y="${Y}" width="${w}" height="${y0 + h - Y}"/></clipPath></defs>`;
+  s += lg(cd + 'g', ['#7fb6dc', '#a9d1ec']) + lg(cs + 'g', ['#cfe8f6', '#e3f2fa']);
+  s += `<rect x="${x0}" y="${y0}" width="${w}" height="${Y - y0}" fill="url(#${cd}g)" rx="8"/><rect x="${x0}" y="${Y}" width="${w}" height="${y0 + h - Y}" fill="url(#${cs}g)"/>`;
+  const tepe = (th, l, clip, n0, n1) => {
+    let q = `<g clip-path="url(#${clip})">`;
+    const kx = Math.sin(th * D), ky = Math.cos(th * D);
+    for (let n = n0; n <= n1; n++) { const cx = X0 + n * l * kx, cy = Y + n * l * ky; q += `<line x1="${f1(cx - 200 * ky)}" y1="${f1(cy + 200 * kx)}" x2="${f1(cx + 200 * ky)}" y2="${f1(cy - 200 * kx)}" stroke="#ffffff" stroke-width="2.4" opacity=".95"/>`; }
+    return q + '</g>';
+  };
+  s += tepe(th1, l1, cd, -12, 0) + tepe(th2, l2, cs, 0, 14);
+  s += `<line x1="${x0}" y1="${Y}" x2="${x0 + w}" y2="${Y}" stroke="#2a6f9e" stroke-width="1.6" stroke-dasharray="7 3"/>`;
+  s += cerceve(x0, y0, w, h) + normal(X0, y0 + 8, y0 + h - 8);
+  s += ray(X0 - 72 * Math.sin(th1 * D), Y - 72 * Math.cos(th1 * D), X0, Y, { color: '#173430', at: 0.5 }) + ray(X0, Y, X0 + 82 * Math.sin(th2 * D), Y + 82 * Math.cos(th2 * D), { color: '#173430', at: 0.6 });
+  s += T(x0 + w - 8, y0 + 20, 'derin', { size: 12.5, weight: 800, anchor: 'end', fill: '#174a73' }) + T(x0 + w - 8, y0 + h - 10, 'sığ', { size: 12.5, weight: 800, anchor: 'end', fill: '#174a73' });
+  s += T(x0 + w / 2, y0 + h + 17, 'su dalgası: λ kısalır', { size: 12.5, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 150);
+});
+
+/* ---------------- NOT: yarım daire cam blok, üç ışın ---------------- */
+BFY_FIG_EKLE('kY104_tam', function (u) {
+  const W = 320, H = 286, Ox = 160, Oy = 112, R = 120, n = 1.5, ts = Math.asin(1 / n) / D;
+  let s = zemin(W, H, '#f6f9fb');
+  s += bolge(u, 14, 14, 292, Oy - 14, 'hava');
+  const id = gid(u, 'cm');
+  s += lg(id, ['#e3f3ee', '#bfe0d4']) + `<path d="M${Ox - R} ${Oy} A${R} ${R} 0 0 0 ${Ox + R} ${Oy} Z" fill="url(#${id})" stroke="#4f8a78" stroke-width="1.6"/>`;
+  s += normal(Ox, 26, Oy + R - 4);
+  const ISIN = [{ i: 25, c: '#d6336c', ad: '1' }, { i: ts, c: '#e8590c', ad: '2' }, { i: 58, c: '#6741d9', ad: '3' }];
+  ISIN.forEach(k => {
+    const sx = Ox - R * Math.sin(k.i * D), sy = Oy + R * Math.cos(k.i * D);
+    s += ray(sx, sy, Ox, Oy, { color: k.c, at: 0.45 });
+    s += T(f1(sx - 8), f1(sy + 12), k.ad, { size: 13, weight: 800, anchor: 'middle', fill: k.c });
+    const r = snell(n, 1, k.i);
+    if (r === null) s += ray(Ox, Oy, Ox + R * 0.92 * Math.sin(k.i * D), Oy + R * 0.92 * Math.cos(k.i * D), { color: k.c, at: 0.6 });
+    else if (r > 89) s += ray(Ox, Oy - 1.6, Ox + 132, Oy - 1.6, { color: k.c, at: 0.7 });
+    else {
+      s += ray(Ox, Oy, Ox + 92 * Math.sin(r * D), Oy - 92 * Math.cos(r * D), { color: k.c, at: 0.6 });
+      s += ray(Ox, Oy, Ox + R * 0.8 * Math.sin(k.i * D), Oy + R * 0.8 * Math.cos(k.i * D), { color: k.c, op: 0.3, w: 1.6, at: 0.6 });
+    }
+  });
+  s += yay(Ox, Oy, 30, 90, 90 + ts, '#e8590c') + yayEt(Ox, Oy, 44, 90 + ts / 2, 'θ_s', { fill: '#b8480a', size: 12.5 });
+  s += T(22, 34, 'hava', { size: 12.5, weight: 800, fill: '#35506a' }) + T(Ox, Oy + R - 18, 'cam', { size: 12.5, weight: 800, anchor: 'middle', fill: '#2f6b59' });
+  s += T(22, 56, '1: kırılma', { size: 12, weight: 700, fill: '#d6336c' }) + T(22, 74, '2: yüzeyi yalama', { size: 12, weight: 700, fill: '#b8480a' }) + T(22, 92, '3: tam yansıma', { size: 12, weight: 700, fill: '#6741d9' });
+  return svg(W, H, s, u, 74);
+});
+
+/* ---------------- NOT: görünür uzaklık ---------------- */
+BFY_FIG_EKLE('kY104_gorunur', function (u) {
+  const W = 320, H = 280, Ys = 118, cx = 112, cy = 252, ex = 270, ey = 34, n = 1.33;
+  let s = zemin(W, H, '#f6f9fb');
+  s += bolge(u, 12, 12, 296, Ys - 12, 'hava') + bolge(u, 12, Ys, 296, H - 12 - Ys, 'su');
+  s += `<line x1="12" y1="${Ys}" x2="308" y2="${Ys}" stroke="#2f7fb8" stroke-width="1.6"/>`;
+  // kırılma noktası: sudan havaya, para → göz (sayısal çözüm)
+  let a = cx, b = ex;
+  const f = x => { const si = (x - cx) / Math.hypot(x - cx, cy - Ys), so = (ex - x) / Math.hypot(ex - x, Ys - ey); return n * si - so; };
+  for (let k = 0; k < 60; k++) { const m = (a + b) / 2; if (f(m) > 0) b = m; else a = m; }
+  const Sx = (a + b) / 2;
+  // görüntü: göz–S doğrusunun para düşeyiyle kesişimi
+  const t = (cx - ex) / (Sx - ex), iy = ey + t * (Ys - ey);
+  s += normal(Sx, Ys - 46, Ys + 46);
+  s += ray(cx, cy - 6, cx, Ys, { color: LZ, at: 0.5 }) + ray(cx, Ys, cx, Ys - 70, { color: LZ, at: 0.6 });
+  s += ray(cx + 4, cy - 5, Sx, Ys, { color: LZ, at: 0.5 }) + ray(Sx, Ys, ex - 8, ey + 8, { color: LZ, at: 0.55 });
+  s += dashLine(f1(Sx), Ys, f1(cx + 2), f1(iy + 1), '#5b6f7c', '4 3', 1.4);
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="13" ry="4.5" fill="#e0b54a" stroke="#a87a1c" stroke-width="1"/>`;
+  s += `<ellipse cx="${cx}" cy="${f1(iy)}" rx="13" ry="4.5" fill="#f2d27a" opacity=".6" stroke="#a87a1c" stroke-width="1" stroke-dasharray="2.5 2"/>`;
+  s += `<path d="M${ex - 14} ${ey} Q${ex} ${ey - 10} ${ex + 14} ${ey} Q${ex} ${ey + 10} ${ex - 14} ${ey}Z" fill="#fff" stroke="${P.ink}" stroke-width="1.5" transform="rotate(-38 ${ex} ${ey})"/><circle cx="${ex - 2}" cy="${ey + 2}" r="4.2" fill="#1c7ed6"/>`;
+  s += T(ex - 22, ey - 12, 'göz', { size: 12.5, weight: 800, anchor: 'end' });
+  s += T(cx - 20, cy + 4, 'gerçek konum', { size: 12, weight: 700, anchor: 'end' }) + T(cx - 20, f1(iy + 4), 'görünür konum', { size: 12, weight: 700, anchor: 'end', fill: '#5b6f7c' });
+  s += T(296, Ys - 10, 'hava', { size: 12.5, weight: 800, anchor: 'end', fill: '#35506a' }) + T(296, Ys + 22, 'su', { size: 12.5, weight: 800, anchor: 'end', fill: '#174a73' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- ÇÖZÜMLÜ 1: kıyıya dönen dalgalar (üstten görünüş) ---------------- */
+BFY_FIG_EKLE('kY104_C1', function (u) {
+  const W = 320, H = 260, yK = 214, th0 = 45 * D;
+  let s = zemin(W, H, '#f4f7f9');
+  const id = gid(u, 'dz');
+  s += lg(id, ['#2f78ad', '#5fa6d6', '#a9d6ef', '#d8eef8']) + `<rect x="12" y="12" width="296" height="${yK - 12}" fill="url(#${id})"/>`;
+  s += `<path d="M12 ${yK} H308 V${H - 12} H12 Z" fill="#ecd9a8"/><line x1="12" y1="${yK}" x2="308" y2="${yK}" stroke="#b8975a" stroke-width="1.6"/>`;
+  // hız: derinlikle azalır (kıyıya yaklaştıkça); dalga tepeleri = sabit faz eğrileri
+  const v = y => 1 - 0.68 * Math.pow((y - 12) / (yK - 12), 1.3);
+  const kx = Math.sin(th0) / v(12), G = [];
+  let g = 0; for (let y = 12; y <= yK - 2; y += 1) { G.push([y, g]); const ky = Math.sqrt(Math.max(0, 1 / (v(y) * v(y)) - kx * kx)); g += ky; }
+  const L = 34;
+  const cid = gid(u, 'cl'); s += `<defs><clipPath id="${cid}"><rect x="12" y="12" width="296" height="${yK - 12}"/></clipPath></defs><g clip-path="url(#${cid})">`;
+  for (let nn = -14; nn <= 8; nn++) {
+    let d = '';
+    G.forEach(([y, gg], k) => { const x = 160 + (nn * L - gg) / kx * 1 + 0; d += (k ? 'L' : 'M') + f1(x) + ' ' + y; });
+    s += `<path d="${d}" fill="none" stroke="#fff" stroke-width="2.4" opacity=".95"/>`;
+  }
+  s += '</g>';
+  // ilerleme doğrultusu (ışın)
+  let x = 70, y = 20, d = `M${x} ${y}`;
+  for (let k = 0; k < 170; k++) { const ky = Math.sqrt(Math.max(0, 1 / (v(y) * v(y)) - kx * kx)), nx = kx / Math.hypot(kx, ky), ny = ky / Math.hypot(kx, ky); x += nx; y += ny; if (y > yK - 8) break; d += ` L${f1(x)} ${f1(y)}`; }
+  s += `<path d="${d}" fill="none" stroke="#173430" stroke-width="2.4"/>` + `<polygon points="${f1(x)},${f1(y + 4)} ${f1(x - 4.5)},${f1(y - 6)} ${f1(x + 4.5)},${f1(y - 6)}" fill="#173430"/>`;
+  s += T(296, 32, 'derin', { size: 12.5, weight: 800, anchor: 'end', fill: '#fff', haloColor: '#2f78ad' }) + T(296, yK - 10, 'sığ', { size: 12.5, weight: 800, anchor: 'end', fill: '#174a73' });
+  s += T(160, yK + 26, 'kıyı (üstten görünüş)', { size: 12.5, weight: 800, anchor: 'middle', fill: '#6b5427' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- ÇÖZÜMLÜ 2: havuz lambası ve aydınlık daire ---------------- */
+BFY_FIG_EKLE('kY104_C2', function (u) {
+  const W = 320, H = 184, Ys = 70, Yt = 144, lx = 160, ts = Math.asin(1 / 1.33) / D, r = (Yt - 6 - Ys) * Math.tan(ts * D);
+  let s = zemin(W, H, '#eef2f6');
+  const gk = gid(u, 'gk'); s += lg(gk, ['#1e2a44', '#3b4d72']) + `<rect x="12" y="12" width="296" height="${Ys - 12}" fill="url(#${gk})"/>`;
+  s += bolge(u, 22, Ys, 276, Yt - Ys, 'su');
+  s += `<path d="M18 ${Ys - 10} V${Yt + 4} H302 V${Ys - 10}" fill="none" stroke="#8e9aa4" stroke-width="5" stroke-linejoin="round"/>`;
+  const gp = gid(u, 'gp'); s += `<defs><radialGradient id="${gp}" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff6c4" stop-opacity=".95"/><stop offset=".7" stop-color="#ffe680" stop-opacity=".6"/><stop offset="1" stop-color="#ffe680" stop-opacity="0"/></radialGradient></defs>`;
+  s += `<ellipse cx="${lx}" cy="${Ys}" rx="${f1(r + 6)}" ry="9" fill="url(#${gp})"/>`;
+  s += `<line x1="${f1(lx - r)}" y1="${Ys}" x2="${f1(lx + r)}" y2="${Ys}" stroke="#f5c518" stroke-width="4" stroke-linecap="round"/>`;
+  s += `<line x1="22" y1="${Ys}" x2="${f1(lx - r)}" y2="${Ys}" stroke="#2f7fb8" stroke-width="1.6"/><line x1="${f1(lx + r)}" y1="${Ys}" x2="298" y2="${Ys}" stroke="#2f7fb8" stroke-width="1.6"/>`;
+  s += `<circle cx="${lx}" cy="${Yt - 6}" r="16" fill="#ffe680" opacity=".45"/><rect x="${lx - 9}" y="${Yt - 9}" width="18" height="9" rx="3" fill="#6b737a"/><circle cx="${lx}" cy="${Yt - 9}" r="6" fill="#fff3a6" stroke="#c9a227" stroke-width="1"/>`;
+  s += T(lx, Ys - 16, 'aydınlık daire', { size: 12.5, weight: 800, anchor: 'middle', fill: '#fff6c4', haloColor: '#26324f' });
+  s += T(lx + 16, Yt - 14, 'lamba', { size: 12.5, weight: 800 }) + T(36, Ys + 22, 'su', { size: 12.5, weight: 800, fill: '#174a73' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------- ortak küçük çizimler (2B) ---------- */
+function insan(x, y, h, renk = '#3b5ba5', o = {}) {      // ayakta insan: ayak (x, y), boy h
+  const k = h / 60;
+  let q = `<circle cx="${f1(x)}" cy="${f1(y - 52 * k)}" r="${f1(7 * k)}" fill="#e8b892" stroke="#9c6b47" stroke-width=".8"/>`;
+  q += `<path d="M${f1(x - 8 * k)} ${f1(y - 44 * k)} h${f1(16 * k)} l${f1(2 * k)} ${f1(22 * k)} h${f1(-20 * k)} Z" fill="${renk}"/>`;
+  q += `<line x1="${f1(x - 4 * k)}" y1="${f1(y - 22 * k)}" x2="${f1(x - 5 * k)}" y2="${f1(y)}" stroke="#2d3a4a" stroke-width="${f1(4.2 * k)}" stroke-linecap="round"/><line x1="${f1(x + 4 * k)}" y1="${f1(y - 22 * k)}" x2="${f1(x + 5 * k)}" y2="${f1(y)}" stroke="#2d3a4a" stroke-width="${f1(4.2 * k)}" stroke-linecap="round"/>`;
+  if (o.kol !== false) q += `<line x1="${f1(x - 8 * k)}" y1="${f1(y - 42 * k)}" x2="${f1(x - 11 * k)}" y2="${f1(y - 25 * k)}" stroke="${renk}" stroke-width="${f1(3.6 * k)}" stroke-linecap="round"/><line x1="${f1(x + 8 * k)}" y1="${f1(y - 42 * k)}" x2="${f1(x + 11 * k)}" y2="${f1(y - 25 * k)}" stroke="${renk}" stroke-width="${f1(3.6 * k)}" stroke-linecap="round"/>`;
+  return q;
+}
+function dalgic(x, y, sc = 1, yon = 1) {            // yatay yüzen dalgıç: gövde merkezi (x, y)
+  const g = (a, b) => `${f1(x + yon * a * sc)} ${f1(y + b * sc)}`;
+  let q = `<path d="M${g(-30, -6)} Q${g(0, -10)} ${g(22, -6)} L${g(24, 5)} Q${g(0, 8)} ${g(-30, 5)} Z" fill="#253246"/>`;
+  q += `<rect x="${f1(x + (yon > 0 ? -18 : 4) * sc)}" y="${f1(y - 13 * sc)}" width="${f1(14 * sc)}" height="${f1(7 * sc)}" rx="${f1(3 * sc)}" fill="#e8a33b"/>`;
+  q += `<circle cx="${f1(x + yon * 30 * sc)}" cy="${f1(y - 1 * sc)}" r="${f1(7 * sc)}" fill="#253246"/><rect x="${f1(x + (yon > 0 ? 31 : -38) * sc)}" y="${f1(y - 5 * sc)}" width="${f1(7 * sc)}" height="${f1(6 * sc)}" rx="2" fill="#9fd3f2" stroke="#253246" stroke-width="1"/>`;
+  q += `<path d="M${g(-30, -3)} L${g(-50, -9)} L${g(-52, -1)} Z M${g(-30, 3)} L${g(-50, 9)} L${g(-52, 2)} Z" fill="#1c7ed6"/>`;
+  return q;
+}
+const yuzey = (x1, x2, y, c = '#2f7fb8') => `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${c}" stroke-width="1.6"/>`;
+function gokSu(u, W, H, Ys, o = {}) {
+  let q = zemin(W, H, '#f4f7f9');
+  const g = gid(u, 'gk'); q += lg(g, o.gok || ['#cfe5f4', '#f4f9fc']) + `<rect x="12" y="12" width="${W - 24}" height="${Ys - 12}" fill="url(#${g})"/>`;
+  const d = gid(u, 'dn'); q += lg(d, o.su || ['#9fd0ee', '#4f97c9']) + `<rect x="12" y="${Ys}" width="${W - 24}" height="${H - 12 - Ys}" fill="url(#${d})"/>`;
+  return q + yuzey(12, W - 12, Ys, '#2a6f9e');
+}
+
+/* ---------------- ÇÖZÜMLÜ 3: iskele, Mete ve kaplumbağa ---------------- */
+BFY_FIG_EKLE('kY104_C3', function (u) {
+  const W = 320, H = 240, Ys = 116;
+  let s = gokSu(u, W, H, Ys);
+  s += `<rect x="12" y="${Ys - 18}" width="112" height="9" fill="#b98a52" stroke="#7e5a2e" stroke-width="1"/>`;
+  [28, 72, 112].forEach(x => { s += `<rect x="${x}" y="${Ys - 9}" width="7" height="${H - 12 - Ys + 9}" fill="#8a6233"/>`; });
+  s += insan(70, Ys - 18, 58, '#2f9e44');
+  const tx = 228, ty = 186;
+  s += `<ellipse cx="${tx}" cy="${ty}" rx="27" ry="13" fill="#5c8a3a" stroke="#34531f" stroke-width="1.2"/><path d="M${tx - 16} ${ty - 4} Q${tx} ${ty - 14} ${tx + 16} ${ty - 4}" fill="none" stroke="#9fc27a" stroke-width="1.4"/>`;
+  s += `<ellipse cx="${tx + 33}" cy="${ty - 3}" rx="8" ry="5.5" fill="#86a65f" stroke="#34531f" stroke-width="1"/><path d="M${tx + 8} ${ty + 9} l14 10 l-4 -12 Z M${tx - 12} ${ty + 9} l-12 10 l4 -12 Z M${tx + 10} ${ty - 10} l16 -9 l-6 12 Z" fill="#86a65f" stroke="#34531f" stroke-width=".8"/>`;
+  s += T(70, Ys - 86, 'Mete', { size: 12.5, weight: 800, anchor: 'middle' }) + T(tx, ty + 32, 'kaplumbağa', { size: 12.5, weight: 800, anchor: 'middle', fill: '#fff', haloColor: '#2f6f9e' });
+  s += T(296, Ys - 10, 'hava', { size: 12.5, weight: 800, anchor: 'end', fill: '#35506a' }) + T(296, Ys + 22, 'deniz', { size: 12.5, weight: 800, anchor: 'end', fill: '#fff', haloColor: '#2f6f9e' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- ÇÖZÜMLÜ 4 ve SORU 1: iki geçiş şekli ---------------- */
+BFY_FIG_EKLE('kY104_C4_genis', function (u) {
+  const W = 560, H = 234;
+  let s = zemin(W, H);
+  s += gecis(u, 24, 10, 240, 196, { ustR: 'A', altR: 'B', ust: 'X', alt: 'Y', i: 40, r: snell(1.4, 1.1, 40), etI: 'α', normalEt: true, baslik: 'Şekil I' });
+  s += gecis(u, 296, 10, 240, 196, { ustR: 'B', altR: 'C', ust: 'Y', alt: 'Z', i: 40, r: snell(1.1, 1.5, 40), etI: 'α', normalEt: true, baslik: 'Şekil II' });
+  return svg(W, H, s, u, 140);
+});
+BFY_FIG_EKLE('kY104_01_genis', function (u) {
+  const W = 560, H = 234;
+  let s = zemin(W, H);
+  s += gecis(u, 24, 10, 240, 196, { s: -1, ustR: 'C', altR: 'A', ust: 'P', alt: 'R', i: 36, r: snell(1.3, 1.0, 36), etI: 'α', normalEt: true, baslik: 'Şekil I' });
+  s += gecis(u, 296, 10, 240, 196, { s: -1, ustR: 'B', altR: 'C', ust: 'S', alt: 'P', i: 36, r: snell(1.6, 1.3, 36), etI: 'α', normalEt: true, baslik: 'Şekil II' });
+  return svg(W, H, s, u, 140);
+});
+
+/* ---------------- SORU 2: kalın cam levha, X ve Y sıvıları ---------------- */
+BFY_FIG_EKLE('kY104_02_genis', function (u) {
+  const W = 560, H = 236;
+  let s = zemin(W, H);
+  [[24, 'X sıvısı', 'gli', null, 'Şekil I'], [296, 'Y sıvısı', 'yag', 76, 'Şekil II']].forEach(([x0, ad, or, r, bas]) => {
+    const w = 240, y0 = 10, h = 196, Y = y0 + 112, X = x0 + w / 2, th = 58;
+    const cid = gid(u, 'kp');
+    s += `<defs><clipPath id="${cid}"><rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="8"/></clipPath></defs><g clip-path="url(#${cid})">` + bolge(u, x0, y0, w, Y - y0, 'cam') + bolge(u, x0, Y, w, y0 + h - Y, or) + '</g>';
+    s += `<line x1="${x0}" y1="${Y}" x2="${x0 + w}" y2="${Y}" stroke="#4f8a78" stroke-width="1.8"/>` + cerceve(x0, y0, w, h) + normal(X, y0 + 8, y0 + h - 8);
+    const L = 112;
+    s += ray(X - L * Math.sin(th * D), Y - L * Math.cos(th * D), X, Y, { at: 0.5 });
+    if (r === null) s += ray(X, Y, X + L * Math.sin(th * D), Y - L * Math.cos(th * D), { at: 0.6 });
+    else { s += ray(X, Y, X + 100 * Math.sin(r * D), Y + 100 * Math.cos(r * D), { at: 0.6 }) + ray(X, Y, X + 80 * Math.sin(th * D), Y - 80 * Math.cos(th * D), { op: 0.32, w: 1.6, at: 0.6 }); }
+    s += yay(X, Y, 28, -90 - th, -90, '#9c2a5a') + yayEt(X, Y, 41, -90 - th / 2, 'θ', { fill: '#9c2a5a', italic: true });
+    s += T(x0 + 10, y0 + 22, 'cam', { size: 12.5, weight: 800, fill: '#2f6b59' }) + T(x0 + 10, y0 + h - 12, ad, { size: 12.5, weight: 800, fill: '#6b5a1f' });
+    s += T(x0 + w / 2, y0 + h + 17, bas, { size: 12.5, weight: 800, anchor: 'middle' });
+  });
+  return svg(W, H, s, u, 140);
+});
+
+/* ---------------- SORU 3: dron ve dalış robotu ---------------- */
+BFY_FIG_EKLE('kY104_dron', function (u) {
+  const W = 320, H = 290, Ys = 140;
+  let s = gokSu(u, W, H, Ys);
+  s += `<path d="M12 ${H - 30} Q90 ${H - 40} 160 ${H - 32} T308 ${H - 34} V${H - 12} H12 Z" fill="#c9b38a"/>`;
+  const dx = 160, dy = 48;
+  s += `<rect x="${dx - 18}" y="${dy - 6}" width="36" height="13" rx="5" fill="#4b5563"/><line x1="${dx - 18}" y1="${dy - 2}" x2="${dx - 40}" y2="${dy - 12}" stroke="#4b5563" stroke-width="3"/><line x1="${dx + 18}" y1="${dy - 2}" x2="${dx + 40}" y2="${dy - 12}" stroke="#4b5563" stroke-width="3"/>`;
+  s += `<ellipse cx="${dx - 42}" cy="${dy - 15}" rx="17" ry="3.5" fill="#9aa5ad" opacity=".8"/><ellipse cx="${dx + 42}" cy="${dy - 15}" rx="17" ry="3.5" fill="#9aa5ad" opacity=".8"/><circle cx="${dx}" cy="${dy + 10}" r="5" fill="#1f2937"/>`;
+  const ry = 232;
+  s += `<rect x="${dx - 26}" y="${ry - 12}" width="52" height="24" rx="5" fill="#f2b134" stroke="#9a6b12" stroke-width="1.2"/><rect x="${dx - 34}" y="${ry - 6}" width="8" height="12" rx="2" fill="#4b5563"/><rect x="${dx + 26}" y="${ry - 6}" width="8" height="12" rx="2" fill="#4b5563"/><circle cx="${dx}" cy="${ry - 14}" r="5" fill="#1f2937"/>`;
+  s += dashLine(dx, dy + 18, dx, ry - 22, '#5b6f7c', '4 4', 1.2);
+  s += T(dx + 50, dy + 4, 'dron', { size: 12.5, weight: 800 }) + T(dx + 42, ry + 4, 'dalış robotu', { size: 12.5, weight: 800, fill: '#fff', haloColor: '#3d7fb0' });
+  s += T(296, Ys - 10, 'hava', { size: 12.5, weight: 800, anchor: 'end', fill: '#35506a' }) + T(296, Ys + 22, 'göl suyu', { size: 12.5, weight: 800, anchor: 'end', fill: '#fff', haloColor: '#3d7fb0' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 4: mercan resifi ---------------- */
+BFY_FIG_EKLE('kY104_resif', function (u) {
+  const W = 320, H = 260, Ys = 88;
+  let s = gokSu(u, W, H, Ys);
+  s += `<path d="M12 ${H - 26} Q60 ${H - 44} 100 ${H - 30} Q160 ${H - 20} 220 ${H - 34} Q270 ${H - 44} 308 ${H - 30} V${H - 12} H12 Z" fill="#d8c08f"/>`;
+  [[40, '#e8590c'], [252, '#d6336c'], [282, '#f08c00']].forEach(([x, c]) => { s += `<path d="M${x} ${H - 30} q-6 -16 -2 -26 M${x} ${H - 30} q6 -18 3 -30 M${x} ${H - 30} q0 -14 -10 -20" stroke="${c}" stroke-width="4" fill="none" stroke-linecap="round"/>`; });
+  s += `<path d="M28 ${H - 30} Q34 ${H - 76} 70 ${H - 70} Q88 ${H - 44} 80 ${H - 30} Z" fill="#7b8794"/>`;
+  s += dalgic(118, 172, 0.95, 1);
+  const ox = 236, oy = 172;
+  s += `<ellipse cx="${ox}" cy="${oy - 6}" rx="14" ry="12" fill="#c2255c"/><circle cx="${ox - 5}" cy="${oy - 8}" r="2.2" fill="#fff"/><circle cx="${ox + 5}" cy="${oy - 8}" r="2.2" fill="#fff"/>`;
+  for (let k = 0; k < 6; k++) { const a = -14 + k * 5.6; s += `<path d="M${ox + a * 0.8} ${oy + 3} q${f1(a * 0.4)} 10 ${f1(a * 0.9)} 18" stroke="#c2255c" stroke-width="3" fill="none" stroke-linecap="round"/>`; }
+  const bx = 262;
+  s += `<path d="M${bx - 14} ${Ys + 2} Q${bx} ${Ys + 14} ${bx + 14} ${Ys + 2} Z" fill="#e03131"/><rect x="${bx - 2}" y="${Ys - 40}" width="4" height="42" fill="#868e96"/>`;
+  s += `<path d="M${bx - 4} ${Ys - 42} q8 -9 18 -6 q-6 2 -8 6 Z" fill="#f1f3f5" stroke="#495057" stroke-width=".9"/><path d="M${bx} ${Ys - 46} q-14 -10 -24 -2 q10 -1 18 6 Z" fill="#dee2e6" stroke="#495057" stroke-width=".9"/><circle cx="${bx + 13}" cy="${Ys - 47}" r="3.4" fill="#f1f3f5" stroke="#495057" stroke-width=".8"/><path d="M${bx + 16} ${Ys - 47} l5 1 l-5 1.6 Z" fill="#f59f00"/>`;
+  s += T(bx - 30, Ys - 52, 'martı', { size: 12.5, weight: 800, anchor: 'end' }) + T(118, 150, 'Defne', { size: 12.5, weight: 800, anchor: 'middle', fill: '#fff', haloColor: '#3d7fb0' }) + T(ox, oy + 36, 'ahtapot', { size: 12.5, weight: 800, anchor: 'middle', fill: '#fff', haloColor: '#3d7fb0' });
+  s += T(24, Ys - 10, 'hava', { size: 12.5, weight: 800, fill: '#35506a' }) + T(24, Ys + 22, 'deniz', { size: 12.5, weight: 800, fill: '#fff', haloColor: '#3d7fb0' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 9: çölde serap ---------------- */
+BFY_FIG_EKLE('kY104_serap', function (u) {
+  const W = 320, H = 228, Yg = 150;
+  let s = zemin(W, H, '#f6f3ea');
+  const g = gid(u, 'g'); s += lg(g, ['#9ccbea', '#e6f1f7']) + `<rect x="12" y="12" width="296" height="${Yg - 12}" fill="url(#${g})"/>`;
+  const k = gid(u, 'k'); s += lg(k, ['#e9cf94', '#d9b46b']) + `<rect x="12" y="${Yg}" width="296" height="${H - 12 - Yg}" fill="url(#${k})"/>`;
+  s += `<circle cx="64" cy="40" r="14" fill="#ffd43b"/>`;
+  const palm = (x, y, sc, ters) => {
+    const t = ters ? -1 : 1, q = (a, b) => `${f1(x + a * sc)} ${f1(y - t * b * sc)}`;
+    let p = `<path d="M${q(-3, 0)} Q${q(-6, 30)} ${q(2, 62)} L${q(6, 62)} Q${q(2, 30)} ${q(4, 0)} Z" fill="#8a6233"/>`;
+    [[-30, 52], [30, 54], [-22, 72], [24, 74], [0, 80]].forEach(([a, b]) => { p += `<path d="M${q(4, 62)} Q${q(a * 0.5, b + 4)} ${q(a, b - 8)}" stroke="#2b8a3e" stroke-width="${f1(5 * sc)}" fill="none" stroke-linecap="round"/>`; });
+    return p;
+  };
+  s += palm(248, Yg, 1, false);
+  s += `<ellipse cx="236" cy="${Yg + 9}" rx="58" ry="7" fill="#a9d4f0" opacity=".85"/>`;
+  s += `<g opacity=".45">${palm(248, Yg + 3, 0.6, true)}</g>`;
+  for (let i = 0; i < 4; i++) s += `<path d="M${120 + i * 26} ${Yg - 6} q4 -4 8 0 t8 0" stroke="#c99a4a" stroke-width="1.2" fill="none" opacity=".7"/>`;
+  s += insan(48, Yg + 30, 52, '#e8590c');
+  s += T(48, Yg + 50, 'gezgin', { size: 12.5, weight: 800, anchor: 'middle' }) + T(236, Yg + 62, '"su birikintisi"', { size: 12.5, weight: 800, anchor: 'middle', fill: '#2f6f9e' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 14: paralel katmanlar ---------------- */
+BFY_FIG_EKLE('kY104_katman', function (u) {
+  const W = 320, H = 290, Y1 = 98, Y2 = 188, aK = 38, aL = 26, aM = 52, X1 = 108;
+  let s = zemin(W, H);
+  s += bolge(u, 12, 12, 296, Y1 - 12, 'A') + bolge(u, 12, Y1, 296, Y2 - Y1, 'C') + bolge(u, 12, Y2, 296, H - 12 - Y2, 'B');
+  s += yuzey(12, 308, Y1, '#7d6a9a') + yuzey(12, 308, Y2, '#7d6a9a') + cerceve(12, 12, 296, H - 24);
+  const X2 = X1 + (Y2 - Y1) * Math.tan(aL * D), Ye = H - 20, Xe = X2 + (Ye - Y2) * Math.tan(aM * D);
+  const Xs = X1 - (Y1 - 22) * Math.tan(aK * D);
+  s += normal(X1, Y1 - 52, Y1 + 46) + normal(X2, Y2 - 46, Y2 + 52);
+  s += ray(Xs, 22, X1, Y1, { at: 0.5 }) + ray(X1, Y1, X2, Y2, { at: 0.55 }) + ray(X2, Y2, Xe, Ye, { at: 0.5 });
+  s += yay(X1, Y1, 30, -90 - aK, -90, '#9c2a5a') + yay(X1, Y1, 30, 90 - aL, 90, '#9c2a5a') + yay(X2, Y2, 30, 90 - aM, 90, '#9c2a5a');
+  s += T(24, 38, 'K', { size: 15, weight: 800 }) + T(24, Y1 + 26, 'L', { size: 15, weight: 800 }) + T(24, Y2 + 26, 'M', { size: 15, weight: 800 });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 15: kano ve kürek ---------------- */
+BFY_FIG_EKLE('kY104_kurek', function (u) {
+  const W = 320, H = 236, Ys = 108;
+  let s = gokSu(u, W, H, Ys);
+  s += `<path d="M14 ${Ys - 16} Q70 ${Ys + 12} 150 ${Ys - 16} Q80 ${Ys - 2} 14 ${Ys - 16} Z" fill="#e8590c" stroke="#a63f08" stroke-width="1.2"/>`;
+  s += `<circle cx="84" cy="${Ys - 50}" r="7.5" fill="#e8b892" stroke="#9c6b47" stroke-width=".8"/><path d="M76 ${Ys - 42} h16 l3 28 h-22 Z" fill="#2f9e44"/>`;
+  const ax = 104, ay = Ys - 60, bx = 236, by = 196;
+  s += `<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#7e5226" stroke-width="5" stroke-linecap="round"/>`;
+  const ang = Math.atan2(by - ay, bx - ax) / D;
+  s += `<ellipse cx="${bx}" cy="${by}" rx="20" ry="7" fill="#c9955a" stroke="#7e5226" stroke-width="1.2" transform="rotate(${f1(ang)} ${bx} ${by})"/>`;
+  s += `<line x1="88" y1="${Ys - 38}" x2="${f1(ax + 8)}" y2="${f1(ay + 8 * (by - ay) / (bx - ax))}" stroke="#2f9e44" stroke-width="3.5" stroke-linecap="round"/><line x1="90" y1="${Ys - 30}" x2="${f1(ax + 24)}" y2="${f1(ay + 24 * (by - ay) / (bx - ax))}" stroke="#2f9e44" stroke-width="3.5" stroke-linecap="round"/>`;
+  s += T(84, Ys - 66, 'Zeynep', { size: 12.5, weight: 800, anchor: 'middle' }) + T(296, Ys - 10, 'hava', { size: 12.5, weight: 800, anchor: 'end', fill: '#35506a' }) + T(296, Ys + 22, 'göl suyu', { size: 12.5, weight: 800, anchor: 'end', fill: '#fff', haloColor: '#3d7fb0' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 16: gün batımı ---------------- */
+BFY_FIG_EKLE('kY104_gunes', function (u) {
+  const W = 320, H = 220, Yh = 146;
+  let s = zemin(W, H, '#f6f1ea');
+  const g = gid(u, 'g'); s += lg(g, ['#6d7fb8', '#f4a36b', '#ffd8a0']) + `<rect x="12" y="12" width="296" height="${Yh - 12}" fill="url(#${g})"/>`;
+  const d = gid(u, 'd'); s += lg(d, ['#3f6f96', '#24496b']) + `<rect x="12" y="${Yh}" width="296" height="${H - 12 - Yh}" fill="url(#${d})"/>`;
+  const cid = gid(u, 'c'); s += `<defs><clipPath id="${cid}"><rect x="12" y="12" width="296" height="${Yh - 12}"/></clipPath></defs><circle cx="214" cy="${Yh}" r="22" fill="#ff922b" clip-path="url(#${cid})"/>`;
+  for (let i = 0; i < 4; i++) s += `<line x1="${196 + i * 4}" y1="${Yh + 10 + i * 9}" x2="${232 - i * 4}" y2="${Yh + 10 + i * 9}" stroke="#ffb066" stroke-width="2.4" opacity=".7"/>`;
+  s += yuzey(12, 308, Yh, '#1e3a56');
+  s += `<path d="M12 ${H - 34} Q60 ${H - 44} 104 ${H - 30} V${H - 12} H12 Z" fill="#d8c08f"/>`;
+  s += insan(56, H - 40, 50, '#7048e8');
+  s += T(56, H - 96, 'Eylül', { size: 12.5, weight: 800, anchor: 'middle' }) + T(214, Yh - 30, 'Güneş', { size: 12.5, weight: 800, anchor: 'middle', fill: '#7a2e00' }) + T(296, Yh - 8, 'ufuk', { size: 12, weight: 700, anchor: 'end', fill: '#fff', haloColor: '#6b5a7a' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 17: dipteki sikke ---------------- */
+BFY_FIG_EKLE('kY104_sikke', function (u) {
+  const W = 320, H = 256, Ys = 92;
+  let s = gokSu(u, W, H, Ys);
+  s += `<path d="M12 ${H - 28} Q120 ${H - 38} 200 ${H - 30} T308 ${H - 32} V${H - 12} H12 Z" fill="#cdb789"/>`;
+  s += `<path d="M18 ${Ys - 12} H132 L120 ${Ys + 10} H30 Z" fill="#f1f3f5" stroke="#495057" stroke-width="1.2"/>`;
+  s += insan(70, Ys - 12, 50, '#1971c2', { kol: false });
+  const ax = 238, ay = H - 27;
+  s += `<ellipse cx="${ax}" cy="${ay - 2}" rx="8" ry="3" fill="#b07d3a" stroke="#6b4a1f" stroke-width="1"/><ellipse cx="${ax - 2}" cy="${ay - 3}" rx="3" ry="1" fill="#e0b876" opacity=".8"/>`;
+  s += T(70, Ys - 70, 'Selim', { size: 12.5, weight: 800, anchor: 'middle' }) + T(ax - 2, ay - 14, 'sikke', { size: 12.5, weight: 800, anchor: 'middle' });
+  s += T(296, Ys - 10, 'hava', { size: 12.5, weight: 800, anchor: 'end', fill: '#35506a' }) + T(296, Ys + 22, 'deniz', { size: 12.5, weight: 800, anchor: 'end', fill: '#fff', haloColor: '#3d7fb0' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 19: fotoğraf makinesi ve kap ---------------- */
+BFY_FIG_EKLE('kY104_kamera', function (u) {
+  const W = 300, H = 290, kx = 150;
+  let s = zemin(W, H, '#f6f8fa');
+  s += `<rect x="20" y="20" width="10" height="${H - 46}" fill="#868e96"/><rect x="20" y="20" width="${kx - 6}" height="8" fill="#868e96"/>`;
+  s += `<rect x="${kx - 26}" y="30" width="52" height="30" rx="5" fill="#343a40"/><rect x="${kx - 12}" y="60" width="24" height="16" rx="3" fill="#495057"/><circle cx="${kx}" cy="45" r="8" fill="#74c0fc" stroke="#1c7ed6" stroke-width="1.4"/>`;
+  const x0 = 80, x1 = 220, yt = 146, yb = 262, ys = 196;
+  s += `<rect x="${x0}" y="${ys}" width="${x1 - x0}" height="${yb - ys}" fill="#a9d3ef" opacity=".85"/>` + yuzey(x0, x1, ys);
+  [[100, 7], [122, 9], [146, 6], [168, 10], [196, 7], [112, 5], [182, 6]].forEach(([x, r], i) => { s += `<ellipse cx="${x}" cy="${yb - r * 0.7 - (i > 4 ? 6 : 0)}" rx="${r + 3}" ry="${r * 0.7}" fill="${['#adb5bd', '#ced4da', '#868e96', '#a5a29a', '#c8bfae', '#b8b2a7', '#9a958d'][i]}" stroke="#6c757d" stroke-width=".8"/>`; });
+  s += `<path d="M${x0 - 3} ${yt} V${yb + 3} H${x1 + 3} V${yt}" fill="none" stroke="#5d7d8f" stroke-width="3" stroke-linejoin="round"/>`;
+  s += `<rect x="40" y="${yb + 3}" width="220" height="7" rx="2" fill="#e3d2b0" stroke="#c9a76c" stroke-width=".8"/>`;
+  s += dashLine(kx, 78, kx, yb - 14, '#5b6f7c', '4 4', 1.2);
+  s += T(kx + 32, 50, 'fotoğraf', { size: 12, weight: 800 }) + T(kx + 32, 65, 'makinesi', { size: 12, weight: 800 });
+  s += T(x1 - 8, ys + 18, 'su', { size: 12.5, weight: 800, anchor: 'end', fill: '#174a73' }) + T(x1 + 8, yt + 14, 'cam kap', { size: 12, weight: 700, fill: '#4b6059' });
+  return svg(W, H, s, u, 68);
+});
+
+/* ---------------- SORU 21: L'den K'ye kırılma ve üç grafik ---------------- */
+BFY_FIG_EKLE('kY104_grafik_genis', function (u) {
+  const W = 560, H = 214;
+  let s = zemin(W, H);
+  /* Işın paneli yok: tek bir (i, r) çifti sınır açısını belirleyeceği için cevabı ölçülebilir kılardı. */
+  const graf = (x0, ad, fn, son) => {
+    const ox = x0 + 24, oy = 176, E = 88, gx = a => ox + a / 90 * E, gy = a => oy - a / 90 * E;
+    let q = `<line x1="${ox}" y1="${oy}" x2="${ox + E + 14}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox + E + 20},${oy} ${ox + E + 11},${oy - 3.8} ${ox + E + 11},${oy + 3.8}" fill="${P.ink}"/>`;
+    q += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - E - 14}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${oy - E - 20} ${ox - 3.8},${oy - E - 11} ${ox + 3.8},${oy - E - 11}" fill="${P.ink}"/>`;
+    q += dashLine(ox, oy, f1(gx(90)), f1(gy(90)), '#b7c4cd', '4 4', 1.2) + dashLine(ox, f1(gy(90)), f1(gx(90)), f1(gy(90)), '#d0d9df', '2 3', 1) + dashLine(f1(gx(90)), oy, f1(gx(90)), f1(gy(90)), '#d0d9df', '2 3', 1);
+    let d = '';
+    for (let k = 0; k <= 60; k++) { const a = son * k / 60, r = fn(a); d += (k ? 'L' : 'M') + f1(gx(a)) + ' ' + f1(gy(r)); }
+    q += `<path d="${d}" fill="none" stroke="${LZ}" stroke-width="2.6" stroke-linecap="round"/>`;
+    q += T(ox - 5, oy + 14, '0', { size: 12, anchor: 'end', fill: P.ink2 }) + T(f1(gx(90)), oy + 16, '90°', { size: 12, anchor: 'middle', fill: P.ink2 }) + T(ox - 6, f1(gy(90) + 4), '90°', { size: 12, anchor: 'end', fill: P.ink2 });
+    q += T(ox + E + 23, oy + 5, 'i', { size: 13, weight: 800, italic: true }) + T(ox + 8, oy - E - 10, 'r', { size: 13, weight: 800, italic: true });
+    q += T(ox + E / 2 + 6, 22, ad, { size: 14, weight: 800, anchor: 'middle' });
+    return q;
+  };
+  const ust = ts => a => Math.asin(Math.min(1, Math.sin(a * D) / Math.sin(ts * D))) / D;
+  s += graf(40, 'I', ust(46), 46) + graf(220, 'II', a => Math.asin(Math.sin(a * D) / 1.45) / D, 90) + graf(400, 'III', ust(70), 70);
+  return svg(W, H, s, u, 150);
+});
+
+/* ---------------- SORU 23: ışıklı süs çeşmesi ---------------- */
+BFY_FIG_EKLE('kY104_fiskiye', function (u) {
+  const W = 320, H = 230;
+  let s = zemin(W, H, '#e9edf3');
+  const g = gid(u, 'g'); s += lg(g, ['#1b2238', '#33406a']) + `<rect x="12" y="12" width="296" height="${H - 24}" rx="4" fill="url(#${g})"/>`;
+  s += `<path d="M20 ${H - 40} H300 V${H - 14} H20 Z" fill="#5c7a96"/><rect x="20" y="${H - 46}" width="280" height="8" fill="#9aa5ad"/>`;
+  const x0 = 62, y0 = H - 54, x1 = 262, y1 = H - 46, cx = 150, cy = 22;
+  const yol = `M${x0} ${y0} Q${cx} ${cy} ${x1} ${y1}`;
+  s += `<path d="${yol}" fill="none" stroke="#ffe066" stroke-width="16" opacity=".18"/><path d="${yol}" fill="none" stroke="#a5d8ff" stroke-width="8" opacity=".85"/><path d="${yol}" fill="none" stroke="#fff3bf" stroke-width="3" opacity=".9"/>`;
+  s += `<rect x="${x0 - 7}" y="${y0}" width="14" height="10" fill="#495057"/><circle cx="${x0}" cy="${y0 + 3}" r="12" fill="#ffe066" opacity=".35"/><circle cx="${x0}" cy="${y0 + 3}" r="4.5" fill="#fff3bf"/>`;
+  s += T(x0 + 18, y0 + 22, 'lamba', { size: 12.5, weight: 800, fill: '#fff3bf', haloColor: '#1b2238' }) + T(cx + 6, 70, 'su jeti', { size: 12.5, weight: 800, fill: '#d0ebff', haloColor: '#1b2238' });
+  return svg(W, H, s, u, 72);
+});
+
+/* ---------------- SORU 24: teknenin cam tabanı ---------------- */
+BFY_FIG_EKLE('kY104_bolme_genis', function (u) {
+  const W = 560, H = 300, i = 70, nD = 1.34, nC = 1.52, rW = snell(1, nD, i), rC = snell(1, nC, i), Hc = H - 26;
+  let s = zemin(W, H);
+  /* sol: cam yokken */
+  const a0 = 12, aw = 214, Ya = 84, Xa = 82;
+  s += bolge(u, a0, 12, aw, Ya - 12, 'hava') + bolge(u, a0, Ya, aw, Hc - Ya, 'deniz') + yuzey(a0, a0 + aw, Ya, '#2a6f9e') + cerceve(a0, 12, aw, Hc - 12);
+  s += normal(Xa, 20, Hc - 8);
+  const L1 = 70;
+  s += ray(Xa - L1 * Math.sin(i * D), Ya - L1 * Math.cos(i * D), Xa, Ya, { at: 0.5 }) + ray(Xa, Ya, Xa + 170 * Math.sin(rW * D), Ya + 170 * Math.cos(rW * D), { at: 0.6 });
+  s += T(a0 + aw / 2, H - 6, 'cam yokken', { size: 12.5, weight: 800, anchor: 'middle' });
+  s += T(a0 + aw - 8, 30, 'hava', { size: 12.5, weight: 800, anchor: 'end', fill: '#35506a' }) + T(a0 + 8, Hc - 10, 'deniz suyu', { size: 12.5, weight: 800, fill: '#174a73' });
+  /* sağ: cam pencereli */
+  const b0 = 244, bw = 304, Y1 = 64, Y2 = 104, X1 = 298, X2 = X1 + (Y2 - Y1) * Math.tan(rC * D);
+  s += bolge(u, b0, 12, bw, Y1 - 12, 'hava') + bolge(u, b0, Y1, bw, Y2 - Y1, 'cam') + bolge(u, b0, Y2, bw, Hc - Y2, 'deniz');
+  s += yuzey(b0, b0 + bw, Y1, '#4f8a78') + yuzey(b0, b0 + bw, Y2, '#4f8a78') + cerceve(b0, 12, bw, Hc - 12);
+  s += normal(X1, 18, Y2 + 10) + normal(X2, Y1 - 10, Hc - 8);
+  const L2 = 54;
+  s += ray(X1 - L2 * Math.sin(i * D), Y1 - L2 * Math.cos(i * D), X1, Y1, { at: 0.5 }) + ray(X1, Y1, X2, Y2, { at: 0.6, ok: false });
+  const ADAY = [[rW, '1', 9], [i, '2', 0], [rC, '3', -9], [20, '4', 0], [0, '5', 0]], LL = 150;
+  ADAY.forEach(([a, ad, kx]) => {
+    const L = a > 60 ? 120 : LL, ex = X2 + L * Math.sin(a * D), ey = Y2 + L * Math.cos(a * D);
+    s += `<line x1="${f1(X2)}" y1="${Y2}" x2="${f1(ex)}" y2="${f1(ey)}" stroke="#2b4a8b" stroke-width="1.9"/>`;
+    s += T(f1(X2 + (L + 12) * Math.sin(a * D) + kx), f1(Y2 + (L + 12) * Math.cos(a * D) + 5), ad, { size: 13.5, weight: 800, anchor: 'middle', fill: '#2b4a8b' });
+  });
+  s += T(b0 + bw - 8, 30, 'hava', { size: 12.5, weight: 800, anchor: 'end', fill: '#35506a' }) + T(b0 + bw - 8, Y1 + 25, 'cam', { size: 12.5, weight: 800, anchor: 'end', fill: '#2f6b59' }) + T(b0 + bw - 8, Hc - 10, 'deniz suyu', { size: 12.5, weight: 800, anchor: 'end', fill: '#174a73' });
+  s += T(b0 + bw / 2, H - 6, 'cam pencereli', { size: 12.5, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 150);
+});
+
+/* ---------------- SORU 25: akvaryum köşesi (üstten görünüş) ---------------- */
+BFY_FIG_EKLE('kY104_akvaryum', function (u) {
+  const W = 320, H = 268, x0 = 30, y0 = 26, x1 = 222, y1 = 196;
+  let s = zemin(W, H);
+  s += bolge(u, x0, y0, x1 - x0, y1 - y0, 'su');
+  s += `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" fill="none" stroke="#5d7d8f" stroke-width="4"/>`;
+  const fx = 130, fy = 110;
+  s += `<path d="M${fx - 18} ${fy} Q${fx} ${fy - 12} ${fx + 18} ${fy} Q${fx} ${fy + 12} ${fx - 18} ${fy} Z M${fx - 18} ${fy} l-12 -8 v16 Z" fill="#f08c00" stroke="#a65f00" stroke-width="1"/><circle cx="${fx + 10}" cy="${fy - 2}" r="2" fill="#212529"/>`;
+  const ex = 282, ey = 242;
+  s += `<circle cx="${ex}" cy="${ey}" r="13" fill="#e8b892" stroke="#9c6b47" stroke-width="1"/><path d="M${ex - 9} ${ey - 9} q9 -8 18 0" fill="#5c3d2e"/><circle cx="${ex - 5}" cy="${ey - 6}" r="2" fill="#212529"/><circle cx="${ex - 9}" cy="${ey - 1}" r="2" fill="#212529"/>`;
+  s += T(fx, fy + 26, 'balık', { size: 12.5, weight: 800, anchor: 'middle', fill: '#174a73' }) + T(ex - 18, ey + 6, 'İlker', { size: 12.5, weight: 800, anchor: 'end' });
+  s += T((x0 + x1) / 2, y1 + 20, 'ön cam', { size: 12.5, weight: 800, anchor: 'middle', fill: '#4b6059' });
+  s += `<text x="${x1 + 18}" y="${(y0 + y1) / 2}" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="12.5" font-weight="800" fill="#4b6059" text-anchor="middle" transform="rotate(90 ${x1 + 18} ${(y0 + y1) / 2})">yan cam</text>`;
+  s += T(W - 14, 26, 'üstten', { size: 12, weight: 700, anchor: 'end', fill: P.ink2 }) + T(W - 14, 41, 'görünüş', { size: 12, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* ---------------- SORU 28: yüzeyi yalayan ışın ---------------- */
+BFY_FIG_EKLE('kY104_yalama', function (u) {
+  const W = 320, H = 226;
+  let s = zemin(W, H);
+  s += gecis(u, 12, 10, 296, 200, { ustR: 'C', altR: 'A', ust: 'K', alt: 'L', i: 48, r: 90, etI: 'α', normalEt: true, dx: -30, devam: false });
+  return svg(W, H, s, u, 72);
+});
+
+/* ================= 3B İZOMETRİK ÇİZİMLER ================= */
+const I0 = window.BFY_ISO;
+const { sahne, kutu, plaka, kure, etiket, yazi, ton, yatSilindir } = I0;
+const CAMI = '#8aaebf', SU = '#7cc3e8';
+const poly = (I, a, fill, o = {}) => `<polygon points="${I.pts(a)}" fill="${fill}" stroke="${o.st || 'none'}" stroke-width="${o.sw || 0.8}" stroke-linejoin="round"/>`;
+function Rot(I, a = 30) {
+  const c = Math.cos(a * D), sn = Math.sin(a * D);
+  const p = (x, y, z = 0) => I.p(x * c + y * sn, -x * sn + y * c, z);
+  return { p, pts: arr => arr.map(q => p(...q).join(',')).join(' '), s: I.s, C: I.C, S: I.S };
+}
+function tank(I, x, y, w, d, h, hs, renk = SU) {
+  const arka = poly(I, [[x, y, 0], [x + w, y, 0], [x + w, y + d, 0], [x, y + d, 0]], '#dcebf2', { st: CAMI }) +
+    poly(I, [[x, y, 0], [x, y + d, 0], [x, y + d, h], [x, y, h]], 'rgba(206,229,240,.6)', { st: CAMI }) +
+    poly(I, [[x, y, 0], [x + w, y, 0], [x + w, y, h], [x, y, h]], 'rgba(190,220,236,.6)', { st: CAMI });
+  const sivi = hs > 0 ? `<g opacity=".45">${kutu(I, x + 0.5, y + 0.5, 0, w - 1, d - 1, hs, renk, { cizgi: 'none', sw: 0, ust: ton(renk, 0.3), sol: ton(renk, -0.02), sag: ton(renk, -0.16) })}</g>` : '';
+  const on = poly(I, [[x + w, y, 0], [x + w, y + d, 0], [x + w, y + d, h], [x + w, y, h]], 'rgba(255,255,255,.08)', { st: CAMI, sw: 1.1 }) +
+    poly(I, [[x, y + d, 0], [x + w, y + d, 0], [x + w, y + d, h], [x, y + d, h]], 'rgba(255,255,255,.12)', { st: CAMI, sw: 1.1 }) +
+    poly(I, [[x, y, h], [x + w, y, h], [x + w, y + d, h], [x, y + d, h]], 'none', { st: ton(CAMI, -0.15), sw: 1.4 });
+  return { arka, sivi, on };
+}
+const izoIsin = (I, a, b, renk = LZ, o = {}) => { const [x1, y1] = I.p(...a), [x2, y2] = I.p(...b); return ray(x1, y1, x2, y2, { color: renk, w: o.w || 1.9, at: o.at ?? 0.55, op: o.op }); };
+const EF = (u, f, o = {}) => sahne(u, f, Object.assign({ w: 220, h: 110, oy: 74, mm: 62 }, o));
+
+/* Tanım: tanktaki lambadan üç ışın (ön yüz eğik izdüşümle: açılar gerçek görünür) */
+const KX = 1 / (Math.cos(45 * D) * 2 * Math.cos(30 * D));   // ön düzlemde x ölçeğini 1'e indirir
+BFY_FIG_EKLE('iY104_tanim', u => sahne(u, I0_ => {
+  const I = Rot(I0_, 45), hs = 40, lx = -44 / KX * KX, lz = 4, n = 1.33;
+  const X = x => x * KX;                                       // gerçek yatay uzaklık → dünya x
+  let s = plaka(I, X(-104), -24, X(208), 40, '#dfe8e1');
+  const Tk = tank(I, X(-96), -16, X(192), 24, 56, hs);
+  s += Tk.arka + Tk.sivi;
+  const L0 = -62, [kx, ky] = I.p(X(L0), 7.5, lz);
+  s += `<circle cx="${kx}" cy="${ky}" r="9" fill="#ffe066" opacity=".45"/>` + kure(u, kx, ky, 4.2, '#ffd43b', { golge: false });
+  const ts = Math.asin(1 / n) / D, H = hs - lz, nok = a => L0 + H * Math.tan(a * D);
+  const P3 = (x, z) => [X(x), 7.5, z];
+  const x1 = nok(18), r1 = Math.asin(n * Math.sin(18 * D)) / D;
+  s += izoIsin(I, P3(L0, lz), P3(x1, hs), '#d6336c') + izoIsin(I, P3(x1, hs), P3(x1 + 22 * Math.tan(r1 * D), hs + 22), '#d6336c', { at: 0.7 });
+  const x2 = nok(ts);
+  s += izoIsin(I, P3(L0, lz), P3(x2, hs), '#e8590c') + izoIsin(I, P3(x2, hs + 0.7), P3(x2 + 42, hs + 0.7), '#e8590c', { at: 0.7 });
+  const x3 = nok(64), x3e = 90, z3 = hs - (x3e - x3) / Math.tan(64 * D);
+  s += izoIsin(I, P3(L0, lz), P3(x3, hs), '#6741d9') + izoIsin(I, P3(x3, hs), P3(x3e, z3), '#6741d9', { at: 0.55 });
+  const [na, nb] = I.p(X(x2), 7.5, hs + 12), [nc, nd] = I.p(X(x2), 7.5, hs - 16);
+  s += dashLine(na, nb, nc, nd, NRM, '3 2', 1);
+  s += Tk.on;
+  const e = (x, z, ex, ey, t, c) => { const [a, b] = I.p(X(x), 7.5, z); return `<line x1="${f1(a)}" y1="${f1(b)}" x2="${ex}" y2="${ey + 9}" stroke="#7d8a91" stroke-width=".9"/>` + etiket(ex, ey, t, { size: 11, renk: c }); };
+  s += e(x1 + 16 * Math.tan(r1 * D), hs + 16, 52, 16, 'kırılma', '#d6336c') + e(x2 + 36, hs + 0.7, 140, 16, 'sınır açısı', '#b8480a') + e(84, z3 + 4, 210, 34, 'tam yansıma', '#6741d9');
+  s += yazi(kx - 6, ky + 18, 'lamba', { size: 10.5 });
+  return s;
+}, { w: 250, h: 172, mm: 110, ox: 125, oy: 132 }));
+
+/* Efsane 1: sudan yağa geçen ışık normale yaklaşır (yağ sudan hafif ama daha kırıcı) */
+BFY_FIG_EKLE('iY104_efsane_1', u => EF(u, I0_ => {
+  const I = Rot(I0_, 45), hs = 22, hy = 40, X = x => x * KX;
+  let s = plaka(I, X(-62), -16, X(124), 30);
+  const Tk = tank(I, X(-56), -10, X(112), 16, 46, hs);
+  s += Tk.arka + Tk.sivi + `<g opacity=".55">${kutu(I, X(-55.5), -9.5, hs, X(111), 15, hy - hs, '#f2c94c', { cizgi: 'none', sw: 0 })}</g>`;
+  const a = 50, b = Math.asin(1.33 / 1.47 * Math.sin(a * D)) / D, x0 = -40, xA = x0 + (hs - 3) * Math.tan(a * D), xB = xA + (hy - hs - 2) * Math.tan(b * D);
+  s += izoIsin(I, [X(x0), 5.5, 3], [X(xA), 5.5, hs], '#d6336c') + izoIsin(I, [X(xA), 5.5, hs], [X(xB), 5.5, hy - 2], '#d6336c', { at: 0.6 });
+  s += izoIsin(I, [X(xA), 5.5, hs], [X(xA + 18 * Math.tan(a * D)), 5.5, hs + 18], '#9aa5ad', { op: 0.9, w: 1.2 }).replace(/<polygon[^>]*>/, '');
+  const [p1, q1] = I.p(X(xA), 5.5, hs - 12), [p2, q2] = I.p(X(xA), 5.5, hy + 2);
+  s += dashLine(p1, q1, p2, q2, NRM, '3 2', 1);
+  s += Tk.on;
+  const [ya, yb] = I.p(X(56), 5.5, hy - 6), [sa, sb] = I.p(X(56), 5.5, 8);
+  s += yazi(ya + 16, yb, 'yağ', { size: 10, renk: '#a8892c', anchor: 'start' }) + yazi(sa + 16, sb, 'su', { size: 10, renk: '#2f7fb8', anchor: 'start' });
+  return s;
+}, { oy: 84 }));
+
+/* Efsane 2: kırıcılık indisi en az 1 */
+BFY_FIG_EKLE('iY104_efsane_2', u => EF(u, I0_ => {
+  const I = Rot(I0_, 30), k = 28;
+  let s = plaka(I, -58, -14, 116, 28);
+  const SUT = [['boşluk', 1.0, '#ced4da'], ['hava', 1.0003, '#a5d8ff'], ['su', 1.33, '#4dabf7'], ['cam', 1.52, '#63c2a3']];
+  SUT.forEach(([ad, n, c], j) => {
+    const x = -50 + j * 27;
+    s += kutu(I, x, -6, 0, 16, 12, n * k, c);
+    const [a, b] = I.p(x + 8, 6, 0); s += yazi(a, b + 12, ad, { size: 9 });
+  });
+  const [a, b] = I.p(-54, -6, k), [c, d] = I.p(58, -6, k);
+  s += dashLine(a, b, c, d, '#d9573b', '4 3', 1.2) + yazi(c + 4, d - 4, 'n = 1', { size: 9.5, renk: '#d9573b', anchor: 'start' });
+  return s;
+}, { oy: 82 }));
+
+/* Efsane 3: tam yansımada ışığın tamamı içeride kalır */
+BFY_FIG_EKLE('iY104_efsane_3', u => EF(u, I0_ => {
+  const I = Rot(I0_, 30);
+  let s = plaka(I, -60, -14, 120, 28);
+  s += `<g opacity=".8">${yatSilindir(I, u, -52, 0, 12, 9, 104, '#bfe2f2')}</g>`;
+  const [ax, ay] = I.p(-52, 0, 12), [bx, by] = I.p(52, 0, 12), n = 6;
+  let d = `M${f1(ax)} ${f1(ay)}`;
+  for (let k = 1; k <= n; k++) { const t = k / n, x = ax + (bx - ax) * t, y = ay + (by - ay) * t + (k % 2 ? -7 : 7) * (k < n ? 1 : 0); d += ` L${f1(x)} ${f1(y)}`; }
+  s += `<path d="${d}" fill="none" stroke="#d6336c" stroke-width="1.8" stroke-linejoin="round"/>`;
+  s += I0.ok(bx, by, bx + 18, by + 4, { renk: '#d6336c', w: 1.8, bas: 5, basG: 3 }) + `<circle cx="${bx + 22}" cy="${by + 5}" r="5" fill="#ffd8e4" opacity=".8"/>`;
+  s += yazi(110, 22, 'ışığın tamamı yansır', { size: 9.5, renk: '#d6336c' });
+  return s;
+}, { oy: 70 }));
+
+/* Efsane 4: akvaryumda su yüzeyi aşağıdan bakan göze ayna gibi */
+BFY_FIG_EKLE('iY104_efsane_4', u => EF(u, I0_ => {
+  const I = Rot(I0_, 45), hs = 34, X = x => x * KX;
+  let s = plaka(I, X(-66), -16, X(132), 30);
+  const Tk = tank(I, X(-60), -10, X(120), 16, 40, hs);
+  s += Tk.arka + Tk.sivi;
+  const balik = (x, z, op) => { const [a, b] = I.p(X(x), 5.5, z); return `<path d="M${f1(a - 7)} ${f1(b)} Q${f1(a)} ${f1(b - 4)} ${f1(a + 7)} ${f1(b)} Q${f1(a)} ${f1(b + 4)} ${f1(a - 7)} ${f1(b)} Z M${f1(a - 7)} ${f1(b)} l-5 -3 v6 Z" fill="#f08c00" stroke="#a65f00" stroke-width=".7" opacity="${op}"/>`; };
+  s += balik(-36, 14, 1);
+  const g = 66, xm = -36 + (hs - 14) * Math.tan(g * D), xe = xm + (hs - 6) * Math.tan(g * D);
+  s += izoIsin(I, [X(-31), 5.5, 14], [X(xm), 5.5, hs], '#d6336c', { w: 1.6 }) + izoIsin(I, [X(xm), 5.5, hs], [X(xe), 5.5, 6], '#d6336c', { w: 1.6 });
+  const [n1, m1] = I.p(X(xm), 5.5, hs + 6), [n2, m2] = I.p(X(xm), 5.5, hs - 12);
+  s += dashLine(n1, m1, n2, m2, NRM, '3 2', 1);
+  s += Tk.on;
+  const [ga, gb] = I.p(X(xe + 8), 5.5, 4);
+  s += `<path d="M${f1(ga - 7)} ${f1(gb)} Q${f1(ga)} ${f1(gb - 6)} ${f1(ga + 7)} ${f1(gb)} Q${f1(ga)} ${f1(gb + 6)} ${f1(ga - 7)} ${f1(gb)} Z" fill="#fff" stroke="#173430" stroke-width="1"/><circle cx="${f1(ga - 1)}" cy="${f1(gb)}" r="2.4" fill="#1c7ed6"/>`;
+  const [ya, yb] = I.p(X(-60), -10, hs + 6); s += yazi(ya + 4, yb - 6, 'ayna gibi yüzey', { size: 9.5, renk: '#2f7fb8', anchor: 'start' });
+  return s;
+}, { oy: 80 }));
+
+/* Efsane 5: serabın fotoğrafı çekilebilir */
+BFY_FIG_EKLE('iY104_efsane_5', u => EF(u, I0_ => {
+  const I = Rot(I0_, 30);
+  let s = plaka(I, -60, -16, 120, 32, '#9aa1a8');
+  const [pa, pb] = I.p(30, 0, 0);
+  s += `<ellipse cx="${f1(pa - 4)}" cy="${f1(pb)}" rx="24" ry="5" fill="#a5d8ff" opacity=".7"/>`;
+  const [ta, tb] = I.p(44, -6, 0);
+  s += `<rect x="${f1(ta - 2)}" y="${f1(tb - 30)}" width="4" height="30" fill="#8a6233"/>` + kure(u, ta, tb - 34, 9, '#2b8a3e', { golge: false });
+  s += `<g opacity=".45"><rect x="${f1(pa - 6)}" y="${f1(pb - 3)}" width="3" height="3" fill="#8a6233"/><ellipse cx="${f1(pa - 4.5)}" cy="${f1(pb + 2)}" rx="5" ry="2.6" fill="#2b8a3e"/></g>`;
+  const [ca, cb] = I.p(-42, 0, 0), ct = cb - 22;
+  s += `<line x1="${f1(ca)}" y1="${f1(ct)}" x2="${f1(ca - 8)}" y2="${f1(cb)}" stroke="#495057" stroke-width="1.6"/><line x1="${f1(ca)}" y1="${f1(ct)}" x2="${f1(ca + 8)}" y2="${f1(cb)}" stroke="#495057" stroke-width="1.6"/><line x1="${f1(ca)}" y1="${f1(ct)}" x2="${f1(ca + 1)}" y2="${f1(cb + 3)}" stroke="#495057" stroke-width="1.6"/>`;
+  s += `<rect x="${f1(ca - 9)}" y="${f1(ct - 11)}" width="18" height="11" rx="2" fill="#343a40"/><circle cx="${f1(ca + 9)}" cy="${f1(ct - 5.5)}" r="3.2" fill="#74c0fc" stroke="#1c7ed6" stroke-width=".8"/>`;
+  s += yazi(110, 18, 'fotoğrafta da görünür', { size: 9.5, renk: '#2f7fb8' });
+  return s;
+}, { oy: 78 }));
+
+/* Efsane 6: camdan çıkan ışık yeniden havadaki hızıyla ilerler */
+BFY_FIG_EKLE('iY104_efsane_6', u => EF(u, I0_ => {
+  const I = Rot(I0_, 30);
+  let s = plaka(I, -60, -14, 120, 28);
+  s += `<g opacity=".75">${kutu(I, -14, -10, 0, 28, 20, 22, '#bfe2f2')}</g>`;
+  const [ax, ay] = I.p(-56, 0, 11), [bx, by] = I.p(56, 0, 11);
+  s += `<line x1="${f1(ax)}" y1="${f1(ay)}" x2="${f1(bx)}" y2="${f1(by)}" stroke="#d6336c" stroke-width="2"/>`;
+  const ok = (x0, x1, z, et) => { const [p1, q1] = I.p(x0, 0, z), [p2, q2] = I.p(x1, 0, z); return I0.ok(p1, q1, p2, q2, { renk: '#2b4a8b', w: 1.8, bas: 5, basG: 3 }) + yazi((p1 + p2) / 2, (q1 + q2) / 2 - 6, et, { size: 9.5, renk: '#2b4a8b' }); };
+  s += ok(-56, -24, 30, 'c') + ok(-7, 7, 30, 'yavaş') + ok(24, 56, 30, 'c');
+  return s;
+}, { oy: 80 }));
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · İçerik bankası
+   Y.10 Optik · Y.10.4 Kırılma ve Tam Yansıma
+   Kapsam: 2018 fizik öğretim programı 10.4.6.1 (ışığın kırılması, su dalgalarında kırılmayla ilişkisi; sapma miktarının
+   bağlı olduğu değişkenler; Snell Yasası'nın modeli verilir, hesaplamaya girilmez; kırıcılık indisi ışığın boşluktaki ve
+   ortamdaki hızıyla ilişkili bağıl değişken), 10.4.6.2 (tam yansıma ve sınır açısı; fiber optik, serap, havuz ışıklandırması;
+   hesaplamaya girilmez) ve 10.4.6.3 (görünür uzaklığı etkileyen sebepler; matematiksel model verilmez, hesaplamaya girilmez).
+   Gösterim (eski ders kitapları): kırıcılık indisi n = c/ϑ, gelme açısı i, kırılma açısı r, sınır açısı θ_s, n₁ · sin i = n₂ · sin r.
+   Sorular nitel, sıralama ve karşılaştırma düzeyindedir; hiçbir soru Snell Yasası ya da görünür uzaklıkla sayısal hesap istemez.
+   Sorular: 2 çıkmış soru benzeri (her ÖSYM sorusuna bir benzer; cikmis: { yil, no, kalip }) + 28 çıkma ihtimali yüksek soru (tahmin).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır.
+   ============================================================ */
+(function () {
+const r = String.raw;
+const OSYM = {
+  2018: 'https://dokuman.osym.gov.tr/pdfdokuman/2018/YKS/TYT_01072018.pdf',
+  2025: 'https://dokuman.osym.gov.tr/pdfdokuman/2025/YKS/TSK/yks_tyt_2025_kitapcik_d250.pdf'
+};
+const kay = (yil, sayfa) => OSYM[yil] + '#page=' + sayfa;
+
+const KONU = {
+  id: 'Y.10.4',
+  ad: 'Kırılma ve Tam Yansıma',
+  kisa: 'Kırılma ve Tam Yansıma',
+  kaynak: ['10.4.6'],
+  ciktilar: ['10.4.6.1', '10.4.6.2', '10.4.6.3'],
+  unvanlar: ['Işık Kırıcı', 'Normal Avcısı', 'Sınır Açısı Ustası', 'Serap Kaşifi'],
+  renk: '#3b5ba5',
+  baglamlar: [
+    'tanım çizimi: cam tankın tabanındaki lambadan üç ışın (kırılma, yüzeyi yalama, tam yansıma) (iso)',
+    'not: üç panel (az kırıcıdan çok kırıcıya, çok kırıcıdan az kırıcıya, su dalgası derinden sığa)', 'not: yarım daire cam blokta üç ışın, sınır açısı',
+    'not: havadan bakan göz ve sudaki bozuk para, görünür konum', 'simülasyon 1: hava/su/cam çiftleri ve camdan suya, gelme açısı 0–89°, r–i grafiği, sınır açısı (Snell hesabı yok)',
+    'simülasyon 2: kabın dibindeki para, gerçek derinlik 10–60 cm, boş kap/su/ayçiçek yağı, görünür derinlik grafiği',
+    'çözümlü 1: açık denizden sığlaşan kıyıya dönen dalga tepeleri', 'çözümlü 2: otel havuzunun tabanındaki lamba ve yüzeydeki aydınlık daire',
+    'çözümlü 3: kaplumbağa koruma alanında iskeledeki Mete ve su altındaki kaplumbağa (2025 benzeri)', 'çözümlü 4: X→Y uzaklaşır, Y→Z yaklaşır; X→Z için tam yansıma olamaz (2018 benzeri)',
+    'efsane: özkütle-kırıcılık (sıvı yağ), n < 1, tam yansımada kayıp, akvaryum yüzeyi ayna gibi, serabın fotoğrafı, sudan çıkan ışığın hızı',
+    'optik laboratuvarı: P→R ve S→P aynı α ile normalden uzaklaşma, S→R olası yollar (2018 benzeri, olabilir)',
+    'optik sensör: kalın cam levha alt yüzü X sıvısında tam yansıma, Y sıvısında kırılma; açı küçülünce kesin/belirsiz (kesinlikle)',
+    'baraj gölü: dalış robotu ve tam üstündeki dron, dik bakışta görünür uzaklıklar (iki sütun)',
+    'mercan resifi: su altı fotoğrafçısı Defne, şamandıradaki martı, aynı derinlikte ahtapot (2025 benzeri)',
+    'optik malzeme kataloğu: buz, kuvars cam, safir, elmasta ışık hızları (km/s)', 'mağazada lazer uzaklık ölçer kalın cam vitrine dik',
+    'yeşil lazer su tankında, sapmayı değiştirmeyen değişiklik', 'hava, buz, su, gliserin indis tablosu, tam yansıma olabilecek geçiş',
+    'çölde palmiye serabı, kuma yakın sıcak katmanlar', 'kıyı mühendisliği liman maketi: K, L, M bölgeleri dalga boyu 4,0 / 2,4 / 3,0 cm',
+    'berrak dereden karşıya geçiş, dik ve eğik bakış', 'diş hekiminin ışıkla sertleştirme cihazındaki bükük ışık çubuğu',
+    'mücevher atölyesi: aynı kesimli elmas (2,42) ve cam taş (1,52)', 'paralel K, L, M katmanlarında ışın yolu, hız sıralaması',
+    'kanodaki Zeynep ve suya daldırılmış kürek', 'deniz kıyısında gün batımı, atmosferik kırılma',
+    'su altı arkeoloji: tekneden görülen dipteki bronz sikke, lazer, düz çubuk, gerçek konuma tutulan lazer', 'su tankının tabanındaki su geçirmez lazer, yüzeyi yalayan ışın',
+    'tam üstteki fotoğraf makinesi ve cam kaptaki çakıl taşları, su eklenince netleme', 'bilim şenliği: X sıvısındaki Y bloğundan sapmadan geçen lazer (olabilir)',
+    'L→K normalden uzaklaşma, r–i grafiklerinden olabilecekler', 'su parkı havuz projektörü giderek eğik, kırılma açısı ve sapma (iki sütun)',
+    'parkta ışıklı süs çeşmesi, su jetinde ilerleyen ışık', 'deniz araştırma teknesinin cam taban penceresi, lamba ışını, numaralı yollar',
+    'akvaryum köşesinde tek balığın iki görüntüsü', 'aynı 40° gelme açısıyla havadan suya, havadan cama, sudan cama sapma sıralaması',
+    'fotonik laboratuvarı: X→Y hız azalıyor (kesinlikle)', 'K→L yüzeyi yalayan ışın, α değişimi ve tersinirlik (kesinlikle)',
+    'iki özdeş kapta su ve gliserin, işaretler eşit görünür derinlikte (kesinlikle)', 'yarım daire plastik blokla sınır açısı ölçümü, değişkenler'
+  ],
+
+  /* ---------------- KONU NOTU ---------------- */
+  not: [
+    {
+      tur: 'tanim',
+      sekil: 'iY104_tanim',
+      baslik: 'Kırılma ve tam yansıma konusunun özü',
+      metin: r`Işık bir saydam ortamdan başka bir saydam ortama eğik geçerken ayırma yüzeyinde doğrultu değiştirir; bu olaya **kırılma** denir. Kırılmanın nedeni, ışığın iki ortamdaki hızlarının farklı olmasıdır.
+
+- **Kırıcılık indisi:** Işığın boşluktaki hızının ortamdaki hızına oranıdır: $n = \dfrac{c}{\vartheta}$. Işık hangi ortamda daha yavaşsa o ortam daha kırıcıdır.
+- **Normale göre yön:** Az kırıcı ortamdan çok kırıcı ortama geçen ışık normale yaklaşır; çok kırıcı ortamdan az kırıcı ortama geçen ışık normalden uzaklaşır. Yüzeye dik gelen ışık doğrultusunu değiştirmez ama hızı değişir.
+- **Sapma:** Gelme açısı büyüdükçe ve iki ortamın kırıcılıkları birbirinden farklılaştıkça ışın daha çok sapar.
+- **Tam yansıma:** Çok kırıcı ortamdan az kırıcı ortama giden ışığın gelme açısı sınır açısını aşarsa ışık ikinci ortama geçemez, tamamı yansır.
+- **Görünür uzaklık:** Başka bir ortamdaki cisme bakan göz, cismi gözüne gelen kırılmış ışının uzantısında, gerçek yerinden farklı bir yerde görür.`,
+      kutu: { etiket: 'ÖSYM gözüyle', metin: r`2018–2026 TYT'lerinde bu konudan 2 soru çıktı (2018 ve 2025); ikisi de Fen Bilimleri testinin optik sorusu olan 7. soruydu ve hiçbiri hesap istemedi. ÖSYM; kırılma şeklinden ortamların kırıcılık sırasını çıkarıp yeni bir geçişte ışığın izleyebileceği yolları sınamayı ve farklı ortamlardaki iki gözlemcinin birbirini nerede gördüğünü ölçtü. İki soru da "olabilir" mantığıyla kuruluydu.` }
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY104_kirilma_genis',
+      baslik: 'Işık ortam değiştirince',
+      metin: r`- Gelen ışın, normal ve kırılan ışın aynı düzlemdedir. Gelme açısı ($i$) ve kırılma açısı ($r$) yüzeyle değil, **normalle** ölçülür.
+- Kırılan ışın normale yaklaşıyorsa girdiği ortam daha kırıcıdır ve ışık orada daha yavaştır; normalden uzaklaşıyorsa girdiği ortam daha az kırıcıdır.
+- İki ortamın kırıcılık indisleri eşitse ışık hiçbir açıda doğrultu değiştirmez; ayırma yüzeyi neredeyse görünmez olur.
+- Su dalgaları derin bölgeden sığ bölgeye geçerken yavaşlar, dalga boyları kısalır ve normale yaklaşır; frekansı kaynak belirlediği için değişmez. Su dalgasının sığ bölgesi, ışığın çok kırıcı ortamı gibidir.
+- Işığın izlediği yol tersinirdir: Ters yönde gönderilen ışın aynı yolu geri izler.`
+    },
+    {
+      tur: 'sekilli',
+      sekil: 'kY104_tam',
+      baslik: 'Sınır açısı ve tam yansıma',
+      metin: r`Yarım daire biçimli cam bloğun eğri yüzünden merkeze doğru gönderilen ışın eğri yüzde kırılmaz; düz yüzde camdan havaya geçerken normalden uzaklaşır.
+
+- Gelme açısı büyüdükçe kırılan ışın yüzeye yaklaşır, yansıyan ışın parlaklaşır (1).
+- Kırılan ışının yüzeyi yaladığı, yani kırılma açısının $90°$ olduğu gelme açısına **sınır açısı** ($\theta_s$) denir (2).
+- Gelme açısı sınır açısından büyükse ışığın tamamı yansır: **tam yansıma** (3). Bunun için ışık çok kırıcı ortamdan az kırıcı ortama gitmelidir.
+- Sınır açısı yalnız iki ortamın cinsine bağlıdır. İki ortamın kırıcılık indisleri birbirine ne kadar yakınsa sınır açısı o kadar büyüktür.
+- Uygulamalar: fiber optik kablolar, serap, havuz ışıklandırması, elmasın parlaması.`
+    },
+    {
+      tur: 'sekilli',
+      sekil: 'kY104_gorunur',
+      baslik: 'Görünür uzaklık',
+      metin: r`- Göz, kendisine ulaşan ışınların geldiği doğrultuya bakar; cismi bu ışınların geriye doğru uzantılarının kesiştiği yerde görür.
+- Az kırıcı ortamdan (hava) çok kırıcı ortamdaki cisme (su) bakan göz cismi olduğundan **yakın** görür: Havuz göründüğünden derindir.
+- Çok kırıcı ortamdan az kırıcı ortamdaki cisme bakan göz cismi olduğundan **uzak** görür: Dalgıç, kıyıdaki ağacı olduğundan yukarıda görür.
+- Görünür uzaklığı etkileyenler: iki ortamın kırıcılık indisleri, cismin gerçek uzaklığı ve bakış doğrultusu. Su altındaki bir cisme eğik bakıldıkça cisim daha da yukarıda görünür.
+- Göz ile cisim aynı ortamdaysa kırılma olmaz; cisim olduğu yerde görülür.`
+    },
+    {
+      tur: 'formul',
+      baslik: 'Matematiksel modeller',
+      alt: r`Program modelleri verir, hesaplamaya girmez; ÖSYM de 2018–2026 arasında bu konuda sayısal hesap sormadı. Modelleri yön, sıralama ve karşılaştırma için kullan.`,
+      kolonlar: [
+        { baslik: 'Kırıcılık indisi', not: 'Boşluktaki hız / ortamdaki hız', satirlar: [r`n = \dfrac{c}{\vartheta}`, r`n_{\text{boşluk}} = 1,\quad n \geq 1`] },
+        { baslik: 'Snell Yasası', not: 'Model verilir, hesap yapılmaz', satirlar: [r`n_1 \cdot \sin i = n_2 \cdot \sin r`, r`n_1 < n_2 \Rightarrow r < i`, r`n_1 > n_2 \Rightarrow r > i`] },
+        { baslik: 'Tam yansıma', not: 'İki koşul birlikte', satirlar: [r`n_1 > n_2`, r`i > \theta_s`, r`i = \theta_s \Rightarrow r = 90°`] },
+        { baslik: 'Su dalgaları', not: 'Kırılmanın benzeri', satirlar: [r`\vartheta = \lambda \cdot f`, r`\text{derinden sığa: } \vartheta \downarrow,\ \lambda \downarrow,\ f \text{ sabit}`] }
+      ],
+      dip: r`Açılar ayırma yüzeyiyle değil, normalle ölçülür; yüzeyle yapılan açı verilmişse önce normale çevir. Tam yansıma için ışığın çok kırıcı ortamdan gelmesi şarttır; az kırıcı ortamdan gelen ışık her açıda ikinci ortama geçer. Kırıcılık indisinin birimi yoktur. Sınır açısı ışığın gelme açısına bağlı değildir; yalnız iki ortamın cinsine bağlıdır.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY104_C1', zorluk: 1,
+      baslik: 'Kıyıya dönen dalgalar',
+      metin: r`Açık denizden kıyıya eğik olarak ilerleyen dalgaların tepe çizgileri, kıyıya yaklaştıkça döner ve kıyı çizgisine neredeyse paralel hâle gelir. Deniz, kıyıya doğru giderek sığlaşmaktadır.
+
+Bu olayın nedeni aşağıdakilerden hangisidir?`,
+      sekil: 'kY104_C1',
+      secenekler: ['Dalgalar sığ suda yavaşlar ve ilerleme doğrultuları normale yaklaşacak biçimde kırılır.', 'Dalgaların frekansı kıyıya yaklaştıkça artar.', 'Dalgalar kıyıya yaklaştıkça hızlanır ve normalden uzaklaşacak biçimde kırılır.', 'Dalgalar kıyıdan yansıyarak geri döner ve kıyıya paralel olur.', 'Dalgaların dalga boyu kıyıya yaklaştıkça artar.'],
+      dogru: 0,
+      cozum: [
+        r`Su dalgalarının hızı suyun derinliğine bağlıdır: Sığlaşan suda dalgalar yavaşlar. Frekansı kaynak belirlediği için değişmez; hız azalınca dalga boyu kısalır.`,
+        r`Yavaşlayan dalganın ilerleme doğrultusu normale, yani kıyı çizgisine dik doğrultuya yaklaşır. İlerleme doğrultusu kıyıya dik hâle geldikçe tepe çizgileri kıyıya paralel olur.`,
+        r`Işık da az kırıcı ortamdan çok kırıcı ortama geçerken aynı biçimde yavaşlar ve normale yaklaşır.`,
+        r`{{S1}} ortam değişince frekansın değiştiğini sanır; frekansı kaynak belirler. {{S2}} sığ suda dalgaların hızlandığını sanır. {{S3}} dönmenin yansımadan kaynaklandığını sanır; dalgalar kıyıya varmadan, ilerlerken döner. {{S4}} sığ suda dalga boyunun uzadığını sanır; hız azalınca dalga boyu kısalır.`
+      ],
+      ipucu: r`Dalgaların hızı derin ve sığ suda aynı mıdır?`,
+      tuzak: r`Ortam değişince frekansın değiştiğini sanmak. Frekans kaynağa bağlıdır; ortam değişince hız ve dalga boyu birlikte değişir.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY104_C2', zorluk: 2,
+      baslik: 'Havuzun ışıklı dairesi',
+      metin: r`Gece, bir otel havuzunun tabanındaki küçük bir lamba yanınca durgun su yüzeyinde aydınlık bir daire oluşuyor; lambanın ışığı yüzeyin bu dairenin dışında kalan kısmından havaya çıkmıyor.
+
+Buna göre,
+
+I. Yüzeyin dairenin dışında kalan kısmına gelen ışınlar tam yansıma yapar.
+II. Dairenin kenarına gelen ışınlar havaya yüzeyi yalayarak çıkar.
+III. Lamba havuzun daha derin bir yerine konursa aydınlık daire küçülür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_C2',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Lambadan yüzeye gelen ışınların gelme açısı, lambanın tam üstünden uzaklaştıkça büyür.`,
+        r`I. Gelme açısı sınır açısını aşan ışınlar sudan havaya geçemez ve tam yansır; bu ışınlar dairenin dışına düşer. **Doğru.**`,
+        r`II. Dairenin kenarına gelen ışının gelme açısı tam sınır açısıdır; kırılma açısı $90°$ olur ve ışın yüzeyi yalar. **Doğru.**`,
+        r`III. Sınır açısı değişmez. Lamba derine inince bu açıyla gelen ışınlar yüzeye lambanın üstünden daha uzak noktalarda ulaşır; daire büyür. **Yanlış.**`,
+        r`{{S0}} dairenin kenarında ışının yüzeyi yaladığını görmez. {{S1}} dairenin dışındaki ışınların tam yansıdığını görmez. {{S3}} sınır açısıyla gelen ışının yüzeyi yaladığını atlar ve derinliğin etkisini ters kurar. {{S4}} lamba derine inince dairenin küçüleceğini sanır; aynı açıyla çıkan ışınlar yüzeye daha uzakta varır.`
+      ],
+      ipucu: r`Dairenin kenarına gelen ışının gelme açısı hangi özel açıdır?`,
+      tuzak: r`Lamba derine inince yüzeye daha az ışık ulaşacağı için dairenin küçüleceğini sanmak. Dairenin kenarını sınır açısı belirler; derinlik artınca daire büyür.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY104_C3', zorluk: 2, cikmis: { yil: 2025, no: 7, kalip: 'Farklı ortamlardaki iki gözlemcinin birbirini gördüğü konum' },
+      baslik: 'İskeledeki gönüllü ve kaplumbağa',
+      metin: r`Bir deniz kaplumbağası koruma alanında iskelede duran gönüllü Mete ile iskelenin ilerisinde, durgun suyun içinde yüzen bir kaplumbağa birbirini görüyor.
+
+Buna göre,
+
+I. Mete kaplumbağayı olduğundan daha yukarıda, su yüzeyine daha yakın görür.
+II. Kaplumbağa Mete'yi olduğundan daha aşağıda görür.
+III. İkisi de birbirini gerçek konumundan farklı bir yerde görür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_C3',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Her gözlemci için ışığın hangi ortamdan hangisine geçtiğini ayrı ayrı düşün ve ışını gözden geriye doğru uzat.`,
+        r`I. Kaplumbağadan Mete'ye gelen ışık sudan havaya geçerken normalden uzaklaşır. Gözden geriye uzatılan ışın kaplumbağanın üstünden geçer; Mete kaplumbağayı olduğundan yukarıda görür. **Doğru.**`,
+        r`II. Mete'den kaplumbağaya gelen ışık havadan suya geçerken normale yaklaşır. Kaplumbağanın gözünden geriye uzatılan ışın Mete'nin üstünden geçer; kaplumbağa Mete'yi olduğundan **yukarıda** görür. **Yanlış.**`,
+        r`III. İki gözlemci de farklı ortamdaki cisme baktığı için ikisi de birbirini gerçek yerinden farklı yerde görür. **Doğru.**`,
+        r`{{S0}} iki gözlemcinin de kaymış konum gördüğünü atlar. {{S1}} Mete'nin kaplumbağayı yüzeye daha yakın gördüğünü görmez. {{S2}} sudan bakan gözün havadaki cismi aşağıda gördüğünü sanır ve III'ü atlar. {{S4}} sudan bakan gözün havadaki cismi aşağıda gördüğünü sanır ve Mete'nin gördüğü konumu atlar.`
+      ],
+      ipucu: r`Sudan havaya ve havadan suya geçen ışık normale göre nasıl kırılır?`,
+      tuzak: r`İki gözlemcinin birbirini zıt yönlerde kaymış gördüğünü sanmak. Havadaki göz sudaki cismi, sudaki göz havadaki cismi yukarıda görür.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY104_C4', zorluk: 3, cikmis: { yil: 2018, no: 7, kalip: 'Kırılma şekillerinden kırıcılık karşılaştırması; yeni geçişte olası ışın yolları' },
+      baslik: 'Karşılaştırılamayan çift',
+      metin: r`Tek renkli bir ışık ışını, Şekil I'de saydam X ortamından Y ortamına, Şekil II'de Y ortamından Z ortamına aynı $\alpha$ gelme açısıyla gönderiliyor ve şekildeki yolları izliyor.
+
+{{sekil}}
+
+Aynı ışın X ortamından Z ortamına yine $\alpha$ gelme açısıyla gönderilirse,
+
+I. Işık normale yaklaşarak Z ortamına geçer.
+II. Işık normalden uzaklaşarak Z ortamına geçer.
+III. Işık tam yansıma yapar.
+
+yargılarından hangileri doğru olabilir?`,
+      sekil: 'kY104_C4_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Şekil I'de ışık X'ten Y'ye geçerken normalden uzaklaşıyor: $n_X > n_Y$. Şekil II'de Y'den Z'ye geçerken normale yaklaşıyor: $n_Z > n_Y$. X ile Z'nin karşılaştırması belirlenemez.`,
+        r`I. Z, X'ten kırıcıysa ışık normale yaklaşır. **Olabilir.**`,
+        r`II. Z, X'ten az kırıcıysa ışık normalden uzaklaşır. **Olabilir.**`,
+        r`III. Tam yansıma için Z, X'ten az kırıcı olmalıdır. Bu durumda bile Z, Y'den kırıcı olduğu için Z'nin indisi X'inkine Y'ninkinden daha yakındır; X–Z sınır açısı X–Y sınır açısından büyüktür. Şekil I'de ışık $\alpha$ ile Y'ye geçebildiğine göre $\alpha$, X–Y sınır açısından küçüktür; X–Z sınır açısından da küçüktür. Tam yansıma **olamaz.**`,
+        r`{{S0}} Z'nin X'ten az kırıcı olabileceğini görmez. {{S1}} ışığın Z'ye geçebileceğini görmez ve sınır açısı karşılaştırmasını atlar. {{S3}} Z'nin X'ten az kırıcı olabileceğini atlar ve sınır açılarını karşılaştırmadan tam yansımayı olası sayar. {{S4}} sınır açılarını karşılaştırmadan tam yansımayı da olası sayar.`
+      ],
+      ipucu: r`Hangi iki ortamın kırıcılığı karşılaştırılamıyor? Tam yansıma için sınır açılarını nasıl karşılaştırırsın?`,
+      tuzak: r`Karşılaştırılamayan bir çiftte bütün durumları olası saymak. Sınır açısı bilgisi, ilk şekildeki gözlemle birleşince tam yansımayı dışarıda bırakır.`
+    },
+    {
+      tur: 'efsane',
+      baslik: 'Efsane mi, gerçek mi?',
+      kartlar: [
+        { sekil: 'iY104_efsane_1', iddia: 'Bir maddenin özkütlesi ne kadar büyükse kırıcılık indisi de o kadar büyüktür.', karar: false, aciklama: 'Kırıcılığı belirleyen, ışığın o maddedeki hızıdır; özkütle değildir. Ayçiçek yağı suda yüzer, yani sudan hafiftir; ama kırıcılık indisi (yaklaşık 1,47) suyunkinden (1,33) büyüktür. Bu yüzden sudan yağa eğik geçen ışık normale yaklaşır.' },
+        { sekil: 'iY104_efsane_2', iddia: 'Cam, su ve plastik gibi saydam maddelerin bazılarında görünür ışık boşluktakinden hızlı ilerler; bu maddelerin kırıcılık indisi 1\'den küçüktür.', karar: false, aciklama: 'Kırıcılık indisi, ışığın boşluktaki hızının maddedeki hızına oranıdır. Görünür ışık cam, su, plastik ya da hava gibi saydam maddelerin hiçbirinde boşluktakinden hızlı ilerlemez; bu yüzden bu maddelerin indisi 1\'den büyüktür. Havanınki 1\'e çok yakındır (yaklaşık 1,0003).' },
+        { sekil: 'iY104_efsane_3', iddia: 'Tam yansımada ışığın bir kısmı yine de ikinci ortama geçer; bu yüzden tam yansıma iyi bir aynadan daha az ışık yansıtır.', karar: false, aciklama: 'Tam yansımada ışığın tamamı ilk ortama geri döner; ikinci ortama ışık geçmez. Sıradan aynalar ışığın bir kısmını soğurur. Bu yüzden fiber optik kablolar ve bazı optik araçlar ayna yerine tam yansımayı kullanır.' },
+        { sekil: 'iY104_efsane_4', iddia: 'Akvaryumun yan camından su yüzeyine aşağıdan eğik bakınca yüzey ayna gibi parlar ve balıkların yansıması görülür.', karar: true, aciklama: 'Balıklardan su yüzeyine sınır açısından büyük açılarla gelen ışık havaya geçemez ve tam yansır. Bu açılardan bakan göz için su yüzeyi bir ayna gibidir; yüzeyde balıkların ters görüntüsü görülür.' },
+        { sekil: 'iY104_efsane_5', iddia: 'Serap, beynin uydurduğu bir hayaldir; fotoğraf makinesi seraptaki "suyu" kaydedemez.', karar: false, aciklama: 'Serapta ışık, sıcaklığı farklı hava katmanlarında gerçekten bükülür ve göze yerden geliyormuş gibi ulaşır. Yerde görülen "su", aslında gökyüzünün görüntüsüdür. Işık gerçek olduğu için fotoğraf makinesi de bu görüntüyü ve uzaktaki cisimlerin ters görüntüsünü kaydeder; yanılgı yalnız bu görüntüyü su sanmaktır.' },
+        { sekil: 'iY104_efsane_6', iddia: 'Suya giren ışık yavaşlar; sudan havaya çıktığında da hızını geri kazanamaz.', karar: false, aciklama: 'Işığın hızı bulunduğu ortama bağlıdır, daha önce hangi ortamlardan geçtiğine değil. Işık sudan havaya çıkınca yeniden havadaki hızıyla ilerler. Hız değişimi ortamın özelliğidir; ışık bir ortamdan geçerken "yorulmaz".' }
+      ]
+    },
+    {
+      tur: 'kartlar',
+      baslik: 'Kısa yollar ve ÖSYM tuzakları',
+      alt: 'Önce ön yüzdeki soruyu kendin cevapla, sonra açıklamayı oku.',
+      kartlar: [
+        { on: 'Normale yaklaştı mı, uzaklaştı mı?', ipucu: 'Kesikli devam çizgisiyle karşılaştır', arka: 'Kırılan ışını, gelen ışının kesikli devam çizgisiyle karşılaştır. Kırılan ışın devam çizgisi ile normal arasında kalıyorsa normale yaklaşmıştır: Girdiği ortam daha kırıcıdır ve ışık orada daha yavaştır.' },
+        { on: 'Tam yansımanın iki şartı', ipucu: 'Biri ortam, biri açı', arka: 'Işık çok kırıcı ortamdan az kırıcı ortama gitmeli ve gelme açısı sınır açısından büyük olmalıdır. Birinci şart yoksa hiçbir açıda tam yansıma olmaz; ikinci şart yoksa ışık kırılarak geçer.' },
+        { on: 'Gelme açısı sınır açısıyla karşılaştırılamıyorsa', ipucu: '"Olabilir" sorularında kaç ihtimal var?', arka: 'Çok kırıcı ortamdan az kırıcı ortama giden ışık için üç durum da mümkündür: normalden uzaklaşarak kırılma, yüzeyi yalama ve tam yansıma. Normale yaklaşma ise olamaz.' },
+        { on: 'Sınır açısı neye bağlı?', ipucu: 'Gelme açısına mı, ortamlara mı?', arka: 'Sınır açısı gelme açısına, ışığın parlaklığına ya da cismin boyutuna bağlı değildir; yalnız iki ortamın cinsine bağlıdır. Gelme açısını değiştirmek sınır açısını değiştirmez; yalnız sınır açısının aşılıp aşılmadığını belirler.' },
+        { on: 'Paralel katmanlarda son doğrultu', ipucu: 'Aradaki katman fark eder mi?', arka: 'Işık paralel yüzlü katmanlardan geçiyorsa son ortamdaki doğrultusu aradaki katmanlara bağlı değildir; ilk ortamdan son ortama doğrudan geçseydi alacağı doğrultuyu alır. Işık yeniden ilk ortama çıkarsa ilk doğrultusuna paralel ilerler.' },
+        { on: 'Görünür uzaklıkta önce gözün yeri', ipucu: 'Göz hangi ortamda?', arka: 'Göz az kırıcı ortamdaysa öbür ortamdaki cismi olduğundan yakın, çok kırıcı ortamdaysa olduğundan uzak görür. Göz ile cisim aynı ortamdaysa kırılma yoktur. Görünür konumu bulmak için gözüne gelen ışını geriye doğru uzat.' },
+        { on: 'Işığın yolu tersinirdir', ipucu: 'Yüzeyi yalayan ışık tersinden gelirse', arka: 'Işık bir yolu izleyerek A noktasından B noktasına gidiyorsa B\'den A\'ya gönderilen ışık aynı yolu geri izler. Sınır açısıyla gelen ışın yüzeyi yalar; yüzeyi yalayarak gelen ışın da öbür ortamda sınır açısıyla ilerler.' },
+        { on: 'Su dalgası ile ışık', ipucu: 'Hangi bölge hangi ortama benzer?', arka: 'Su dalgasında derin bölge az kırıcı ortama, sığ bölge çok kırıcı ortama benzer. İki durumda da frekans değişmez; hız ve dalga boyu birlikte değişir.' }
+      ]
+    },
+    {
+      tur: 'cikmis',
+      baslik: 'ÖSYM bu konuyu nasıl sordu?',
+      metin: r`2018–2026 arasında TYT'de bu konudan **2 soru** çıktı: 2018 ve 2025'te birer soru, ikisi de Fen Bilimleri testinin optik sorusu olan 7. soru. 2018'de iki kırılma şeklinden ortamların kırıcılık sırası çıkarılıp yeni bir geçişte ışığın izleyebileceği yollar sınandı; 2025'te biri havada, öbürü suda bulunan iki kişinin birbirini nerede gördüğü soruldu. İki soru da şekilli, kavramsal ve "olabilir" mantıklıydı; hiçbiri hesap istemedi. 7. soru her yıl optiğin başka bir alt konusundan geliyor. Son 9 yılın verisine göre önceliği kırıcılık sıralamasına, tam yansıma koşullarına ve görünür konuma ver; su dalgalarıyla ilişki ile fiber optik ve serap gibi uygulamalar programda olduğu hâlde henüz sorulmadı.`,
+      yillar: { 2018: 1, 2019: 0, 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 1, 2026: 0 },
+      kaliplar: [['Şekilde karşılaştırma', 2], ['Kavramsal', 2], ['Kesinlikle / olabilir', 2], ['I-II-III yargı', 1], ['Günlük hayat bağlamı', 1], ['İki sütunlu seçenek', 1]],
+      kartlar: [
+        { yil: 2018, no: 7, olcen: r`Normale yaklaşma ve uzaklaşmadan ortamların kırıcılık sırasını çıkarmayı; çok kırıcı ortamdan az kırıcı ortama geçişte gelme açısına göre kırılma, yüzeyi yalama ve tam yansımanın üçünün de olabileceğini görmeyi.`,
+          kalip: r`İki kırılma şeklinden kırıcılık sırası; yeni bir geçişte ışığın izleyebileceği yolları seçme (I-II-III, olabilir).`,
+          adimlar: [r`Her şekilde ışının normale yaklaşıp yaklaşmadığına bak; ortamları kırıcılığa göre sırala.`, r`Yeni geçişin az kırıcıdan çok kırıcıya mı, çok kırıcıdan az kırıcıya mı olduğunu belirle.`, r`Çok kırıcıdan az kırıcıya geçişte gelme açısı sınır açısıyla karşılaştırılamıyorsa kırılmayı, yüzeyi yalamayı ve tam yansımayı olası say; normale yaklaşan yolu ele.`],
+          tuzak: r`Gelme açısını sınır açısıyla karşılaştırılabilir sanıp yalnız bir durumu seçmek; normale yaklaşan yolu doğru saymak.`, kaynak: kay(2018, 36), benzer: ['kY104_01', 'kY104_C4'] },
+        { yil: 2025, no: 7, olcen: r`Farklı ortamlardaki iki gözlemcinin birbirini kırılma nedeniyle gerçek konumdan farklı yerde gördüğünü; havadakinin sudakini, sudakinin de havadakini olduğundan yukarıda gördüğünü.`,
+          kalip: r`Günlük hayat şekli; iki gözlemcinin gördüğü konumları iki sütunlu seçeneklerle eşleme (olabilir).`,
+          adimlar: [r`Her gözlemci için ışığın hangi ortamdan hangisine geçtiğini ayrı ayrı yaz.`, r`Sudan havaya giden ışın normalden uzaklaşır, havadan suya giden ışın normale yaklaşır.`, r`Gözüne gelen ışını geriye uzat; uzantının cismin üstünden mi altından mı geçtiğine bak.`],
+          tuzak: r`İki gözlemcinin birbirini zıt yönlerde kaymış gördüğünü sanmak; sudakinin havadakini aşağıda gördüğünü düşünmek.`, kaynak: kay(2025, 38), benzer: ['kY104_04', 'kY104_C3'] }
+      ]
+    },
+    {
+      tur: 'ozet',
+      baslik: 'Kontrol listesi',
+      maddeler: [
+        'Işığın kırılmasını iki ortamdaki hız farkıyla ve kırıcılık indisiyle açıklayabilirim.',
+        'Kırılan ışının normale yaklaşmasından ya da uzaklaşmasından ortamların kırıcılık sırasını çıkarabilirim.',
+        'Su dalgalarının derinden sığa geçişini ışığın kırılmasıyla ilişkilendirebilirim.',
+        'Tam yansımanın koşullarını ve sınır açısının neye bağlı olduğunu açıklayıp olası ışın yollarını sınayabilirim.',
+        'Fiber optik, serap ve havuz ışıklandırması gibi uygulamaları tam yansımayla açıklayabilirim.',
+        'Farklı ortamdaki bir cismin görünür uzaklığını etkileyen sebepleri açıklayabilirim.'
+      ]
+    }
+  ],
+
+  /* ---------------- SORULAR ---------------- */
+  sorular: [
+    {
+      id: 'kY104_01', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.2', beceri: 'Olasılık değerlendirme', cikmis: { yil: 2018, no: 7, kalip: 'Kırılma şekillerinden kırıcılık sırası; yeni geçişte olası ışın yolları' },
+      metin: r`Bir optik laboratuvarında saydam P, R ve S maddeleriyle çalışan Nisa, tek renkli bir ışık ışınını Şekil I'de P'den R'ye, Şekil II'de S'den P'ye aynı $\alpha$ gelme açısıyla gönderiyor. Işığın izlediği yollar şekildeki gibidir.
+
+{{sekil}}
+
+Nisa aynı ışını S'den R'ye yine $\alpha$ gelme açısıyla gönderirse,
+
+I. Işık R'ye geçmez, tamamı S'ye geri yansır.
+II. Işık normale yaklaşarak R'ye geçer.
+III. Işık S ile R'nin ayırma yüzeyini yalayarak ilerler.
+
+yargılarından hangileri doğru olabilir?`,
+      sekil: 'kY104_01_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Şekil I'de ışık P'den R'ye geçerken normalden uzaklaşıyor: $n_P > n_R$. Şekil II'de S'den P'ye geçerken de normalden uzaklaşıyor: $n_S > n_P$. Sıralama: $n_S > n_P > n_R$.`,
+        r`II. S'den R'ye giden ışık çok kırıcı ortamdan az kırıcı ortama gider; normale yaklaşamaz. **Olamaz.**`,
+        r`I ve III. S–R sınır açısı $\alpha$ ile karşılaştırılamaz. $\alpha$ sınır açısından büyükse tam yansıma, eşitse yüzeyi yalama, küçükse normalden uzaklaşarak kırılma olur. İkisi de **olabilir.**`,
+        r`{{S0}} gelme açısının sınır açısına eşit olabileceğini, yani ışının yüzeyi yalayabileceğini görmez. {{S1}} tam yansımanın da mümkün olduğunu görmez; $\alpha$'nın S–R sınır açısından büyük olup olmadığı bilinmemektedir. {{S2}} ışığın S'den R'ye normale yaklaşarak geçebileceğini sanır ve yüzeyi yalama durumunu atlar. {{S4}} normale yaklaşmayı da olası sayar; S, R'den daha kırıcıdır.`
+      ]
+    },
+    {
+      id: 'kY104_02', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.2', beceri: 'Kesin ve belirsiz durumu ayırma',
+      tahmin: { gerekce: r`2018'de kırılma şekillerinden olası ışın yolları istendi. Gözlenen bir tam yansımadan ve bir kırılmadan, gelme açısı değişince neyin kesin, neyin belirsiz olduğunu ayırmak aynı kazanımın henüz sorulmayan bir çeşitlemesidir; "kesinlikle" kökü TYT'nin sevdiği tuzağı taşır.` },
+      metin: r`Bir optik sensör tasarlayan Kaan, kalın cam bir levhanın içinden gönderdiği tek renkli ışının levhanın alt yüzeyindeki davranışını inceliyor. Levhanın alt yüzeyi Şekil I'de X sıvısına, Şekil II'de Y sıvısına değiyor; ışın iki durumda da alt yüzeye aynı $\theta$ gelme açısıyla geliyor. Işık X sıvısına hiç geçmeyip tamamen yansıyor, Y sıvısına ise kırılarak geçiyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. X sıvısının kırıcılık indisi camınkinden küçüktür.
+II. Işık camdan Y sıvısına $\theta$'dan küçük herhangi bir gelme açısıyla gönderilirse yine Y sıvısına geçer.
+III. Işık camdan X sıvısına $\theta$'dan biraz küçük bir gelme açısıyla gönderilirse X sıvısına geçer.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'kY104_02_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Tam yansıma yalnız ışık çok kırıcı ortamdan az kırıcı ortama giderken olur: $n_X < n_{\text{cam}}$. **Kesinlikle doğru.**`,
+        r`II. Işık $\theta$ ile Y'ye geçebildiğine göre $\theta$, cam–Y sınır açısından küçüktür. $\theta$'dan küçük her gelme açısı da bu sınırın altında kalır; ışık yine Y'ye geçer. **Kesinlikle doğru.**`,
+        r`III. Işık $\theta$ ile X'e geçemediğine göre $\theta$, cam–X sınır açısından büyüktür; ama ne kadar büyük olduğu bilinmiyor. Gelme açısı biraz küçültülünce sınır açısının altına inebilir de inmeyebilir de; ışık yine tam yansıma yapabilir. **Kesin değil.**`,
+        r`{{S0}} Y'ye geçen ışığın daha küçük açılarda da geçeceğini görmez. {{S1}} tam yansımanın ilk şartını, yani X'in camdan az kırıcı olması gerektiğini atlar. {{S3}} gelme açısı küçülünce ışığın mutlaka X'e geçeceğini sanır ve Y'deki durumu atlar; sınır açısının $\theta$'dan ne kadar küçük olduğu bilinmemektedir. {{S4}} gelme açısı biraz küçültülünce tam yansımanın mutlaka biteceğini sanır; cam–X sınır açısı $\theta$'nın çok altında olabilir.`
+      ]
+    },
+    {
+      id: 'kY104_03', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.3', beceri: 'Görünür konum belirleme',
+      tahmin: { gerekce: r`2025'te iki gözlemcinin birbirini yukarıda ya da aşağıda görmesi soruldu. Aynı fikrin dik bakışta "yakın ya da uzak" olarak sorulması, görünür uzaklığın ters iki yönünü birlikte yoklayan doğal bir çeşitlemedir; iki sütunlu seçenek kalıbı ÖSYM'nin bu konudaki biçimidir.` },
+      metin: r`Bir baraj gölünde çalışan bir dalış robotu, durgun ve berrak suyun içinde hareketsiz duruyor; kamerası tam yukarı bakıyor. Robotun tam üstünde, havada asılı duran bir dronun kamerası da tam aşağı bakıyor.
+
+{{sekil}}
+
+Dronun kamerasının robotu ve robotun kamerasının dronu gördüğü uzaklıklar, aralarındaki gerçek uzaklığa göre nasıldır?`,
+      sekil: 'kY104_dron',
+      secenekler: ['Dron robotu daha uzakta, robot dronu daha yakında görür.', 'İkisi de birbirini daha yakında görür.', 'Dron robotu daha yakında, robot dronu daha uzakta görür.', 'İkisi de birbirini daha uzakta görür.', 'İkisi de birbirini gerçek uzaklıkta görür.'],
+      dogru: 2,
+      cozum: [
+        r`Kameraya, tam dik doğrultuya çok yakın eğiklikte bir ışın demeti girer; görüntü bu ışınların geriye doğru uzantılarının kesiştiği yerdedir.`,
+        r`Robottan çıkan ışınlar sudan havaya geçerken normalden uzaklaşır; uzantıları robotun üstünde kesişir. Dron robotu yüzeye daha yakın, yani gerçek uzaklıktan **daha yakında** görür.`,
+        r`Drondan çıkan ışınlar havadan suya geçerken normale yaklaşır; robotun kamerasından geriye uzatılınca dronun üstünde kesişir. Robot dronu **daha uzakta** görür.`,
+        r`{{S0}} iki gözlemcinin durumlarını ters eşler. {{S1}} suyun her cismi yakın gösterdiğini sanır; sudan bakan göz havadaki cismi uzak görür. {{S3}} havadaki gözün sudaki cismi de uzak gördüğünü sanır. {{S4}} dik bakışta görünür uzaklığın değişmediğini sanır; göze giren dar ışın demetindeki ışınlar yüzeyde kırılır.`
+      ]
+    },
+    {
+      id: 'kY104_04', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.3', beceri: 'Görünür konum belirleme', cikmis: { yil: 2025, no: 7, kalip: 'Farklı ortamlardaki cisimlerin birbirini gördüğü konum' },
+      metin: r`Bir mercan resifinde su altı fotoğrafçısı Defne, suyun içinde bir kayanın yanında duruyor. Su yüzeyinin üstünde bir şamandıranın direğine konmuş bir martı, suyun içinde ise Defne ile aynı derinlikte, ondan biraz ileride bir ahtapot var. Su durgundur.
+
+{{sekil}}
+
+Buna göre,
+
+I. Defne martıyı olduğundan daha yukarıda görür.
+II. Martı ahtapotu olduğundan daha yukarıda görür.
+III. Defne ahtapotu olduğundan daha yukarıda görür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_resif',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. Martıdan Defne'ye gelen ışık havadan suya geçerken normale yaklaşır. Defne'nin gözünden geriye uzatılan ışın martının üstünden geçer; Defne martıyı olduğundan yukarıda görür. **Doğru.**`,
+        r`II. Ahtapottan martıya gelen ışık sudan havaya geçerken normalden uzaklaşır; uzantısı ahtapotun üstünden geçer. Martı ahtapotu olduğundan yukarıda, su yüzeyine daha yakın görür. **Doğru.**`,
+        r`III. Defne ile ahtapot aynı ortamdadır; aralarındaki ışık kırılmaz. Defne ahtapotu olduğu yerde görür. **Yanlış.**`,
+        r`{{S0}} martının ahtapotu yüzeye daha yakın gördüğünü atlar. {{S2}} aynı ortamdaki ahtapotun da kaymış göründüğünü sanır ve martının bakışını atlar. {{S3}} Defne'nin martıyı olduğundan aşağıda gördüğünü sanır ve aynı ortamdaki ahtapotu da kaymış sayar. {{S4}} aynı ortamda bulunan Defne ile ahtapot arasında da kırılma olduğunu sanır.`
+      ]
+    },
+    {
+      id: 'kY104_05', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.1', beceri: 'Tablo yorumlama',
+      tahmin: { gerekce: r`Program kırıcılık indisinin ışığın boşluktaki ve ortamdaki hızıyla ilişkili bağıl bir değişken olduğunun vurgulanmasını ister. Hız verisinden kırıcılık sırasına ve kırılma yönüne geçmek, 9 yılda sorulmamış ama hesapsız ve TYT'ye uygun bir kalıptır.` },
+      metin: r`Bir optik malzeme kataloğunda tek renkli ışığın bazı saydam maddelerdeki ortalama hızları tablodaki gibi verilmiştir.
+
+{{tablo}}
+
+Işık bu maddelerden birinden ötekine ayırma yüzeyine eğik gelerek geçtiğinde aşağıdaki geçişlerin hangisinde normale yaklaşarak kırılır?`,
+      tablo: [['Madde', 'Işığın hızı (km/s)'], ['Buz', '229 000'], ['Kuvars cam', '206 000'], ['Safir', '169 000'], ['Elmas', '124 000']],
+      secenekler: ['Elmastan safire', 'Kuvars camdan buza', 'Buzdan safire', 'Safirden kuvars cama', 'Elmastan buza'],
+      dogru: 2,
+      cozum: [
+        r`Kırıcılık indisi $n = \dfrac{c}{\vartheta}$ olduğundan ışığın daha yavaş ilerlediği madde daha kırıcıdır: $n_{\text{elmas}} > n_{\text{safir}} > n_{\text{kuvars}} > n_{\text{buz}}$.`,
+        r`Işık, ancak daha kırıcı (içinde daha yavaş ilerlediği) bir ortama geçerken normale yaklaşır. Seçeneklerde ışığın yavaşladığı tek geçiş buzdan safiredir.`,
+        r`{{S0}} elmastan safire geçişte ışığın hızlandığını, yani normalden uzaklaştığını görmez. {{S1}} hızlı ortamı daha kırıcı sanır; kuvars camdan buza geçen ışık hızlanır. {{S3}} safirden kuvars cama geçişte ışığın hızlandığını atlar. {{S4}} elmastan buza geçişte ışığın en çok hızlandığını, yani normalden en çok uzaklaştığını görmez.`
+      ]
+    },
+    {
+      id: 'kY104_06', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.1', beceri: 'Kavramsal ayırt etme',
+      tahmin: { gerekce: r`Dik gelen ışının kırılmayıp yine de yavaşlaması, "kırılma yoksa hız da değişmez" yanılgısını yoklar. Kolay düzeyde, günlük hayat bağlamlı tek seçimli bir TYT sorusu olarak gelebilir.` },
+      metin: r`Bir mağazada çalışan Ozan, lazerli bir uzaklık ölçeri kalın cam vitrinin yüzeyine dik tutarak vitrinin arkasındaki duvara olan uzaklığı ölçüyor. Lazer ışını vitrin camına dik girip camın öbür yüzünden çıkıyor.
+
+Lazer ışığının camın içindeki hareketiyle ilgili aşağıdakilerden hangisi doğrudur?`,
+      secenekler: ['Doğrultusu değişmez; hızı havadakiyle aynıdır.', 'Normale yaklaşarak kırılır; hızı havadakinden küçüktür.', 'Normalden uzaklaşarak kırılır; hızı havadakinden büyüktür.', 'Doğrultusu değişmez; hızı havadakinden büyüktür.', 'Doğrultusu değişmez; hızı havadakinden küçüktür.'],
+      dogru: 4,
+      cozum: [
+        r`Işın yüzeye dik geldiği için normal doğrultusundadır; gelme açısı sıfırdır ve ışın doğrultusunu değiştirmez.`,
+        r`Cam havadan kırıcıdır; ışığın hızı ortama bağlı olduğu için ışık camın içinde yine yavaşlar.`,
+        r`{{S0}} doğrultu değişmediği için hızın da değişmediğini sanır. {{S1}} dik gelen ışının da normale yaklaştığını düşünür; ışın zaten normal doğrultusundadır. {{S2}} camı havadan az kırıcı sanır ve dik gelen ışını da kırar. {{S3}} camı havadan az kırıcı sanır; ışık camda yavaşlar.`
+      ]
+    },
+    {
+      id: 'kY104_07', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.1', beceri: 'Değişken belirleme',
+      tahmin: { gerekce: r`Program, ortam değiştiren ışığın sapma miktarının bağlı olduğu değişkenlerin deney ya da simülasyonla belirlenmesini ister. Değişkeni ayıran tek seçimli bir deney sorusu 9 yılda sorulmadı ve TYT'nin deney ağırlığına uyar.` },
+      metin: r`Ece, su dolu cam bir tankın üstünden tanktaki suya eğik gönderdiği yeşil lazer ışınının su yüzeyinde kırılırken ne kadar saptığını, yani doğrultusunun ne kadar değiştiğini inceliyor.
+
+Aşağıdaki değişikliklerden hangisi ışının sapma miktarını **değiştirmez?**`,
+      secenekler: ['Aynı renkte fakat daha güçlü bir lazer kullanmak', 'Tanktaki suyu gliserinle değiştirmek', 'Gelme açısını artırmak', 'Lazeri tankın içine koyup ışını sudan havaya aynı gelme açısıyla göndermek', 'Işını su yüzeyine dik göndermek'],
+      dogru: 0,
+      cozum: [
+        r`Sapma miktarı, gelme açısına ve iki ortamın kırıcılık indislerine bağlıdır.`,
+        r`Aynı renkteki ışığın gücü, ışığın ortamlardaki hızını değiştirmez; sapma aynı kalır.`,
+        r`{{S2}} sapmanın gelme açısıyla değiştiğini görmez; gelme açısı büyüdükçe sapma artar. {{S1}} ikinci ortamın kırıcılığının sapmayı etkilediğini görmez; gliserin sudan kırıcıdır. {{S3}} ışığın hangi ortamdan geldiğinin önemsiz olduğunu sanır; sudan havaya geçen ışık normalden uzaklaşır ve sapma farklıdır. {{S4}} dik gönderilen ışının da aynı miktarda saptığını sanır; dik gelen ışın doğrultu değiştirmez, sapma sıfıra iner.`
+      ]
+    },
+    {
+      id: 'kY104_08', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.2', beceri: 'Koşul uygulama',
+      tahmin: { gerekce: r`Tam yansımanın "çok kırıcıdan az kırıcıya" şartı konunun temelidir ve 2018 sorusunun da arka planındadır. Buzun sudan hafif ve az kırıcı olması, katı maddeyi daha kırıcı sanma tuzağını taşıyan kolay bir sorudur.` },
+      metin: r`Bazı saydam maddelerin kırıcılık indisleri tabloda verilmiştir.
+
+{{tablo}}
+
+Uygun bir gelme açısıyla gönderilen tek renkli ışık, aşağıdaki geçişlerden hangisinde tam yansıma yapabilir?`,
+      tablo: [['Madde', 'Hava', 'Buz', 'Su', 'Gliserin'], ['Kırıcılık indisi', '1,00', '1,31', '1,33', '1,47']],
+      secenekler: ['Gliserinden suya', 'Buzdan suya', 'Sudan gliserine', 'Havadan buza', 'Havadan gliserine'],
+      dogru: 0,
+      cozum: [
+        r`Tam yansıma için ışık çok kırıcı ortamdan az kırıcı ortama gitmelidir; bu şart varsa gelme açısı büyütülerek sınır açısı aşılabilir.`,
+        r`Seçeneklerde kırıcılık indisinin azaldığı tek geçiş gliserinden suyadır.`,
+        r`{{S3}} havadan buza geçen ışığın tam yansıyabileceğini sanır; ışık az kırıcı ortamdan gelmektedir. {{S1}} buzu katı olduğu için sudan kırıcı sanır; buzun indisi suyunkinden küçüktür. {{S2}} sudan gliserine geçişi seçer; indisin arttığı geçişte tam yansıma olmaz. {{S4}} indis farkı en büyük geçişi seçer ama ışığın az kırıcı havadan geldiğini atlar.`
+      ]
+    },
+    {
+      id: 'kY104_09', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.2', beceri: 'Olayı açıklama',
+      tahmin: { gerekce: r`Program serabı tam yansıma örnekleri arasında açıkça sayar; 9 yılda sorulmadı. Sıcak katmanların kırıcılığını, ışığın normale göre kırılma yönünü ve tam yansımayı zincirleyen bir I-II-III sorusu TYT'ye uygundur.` },
+      metin: r`Sıcak bir yaz öğleninde çölde yürüyen bir gezgin, uzaktaki bir palmiye ağacının altında, kumun üzerinde bir su birikintisi ve bu "suda" ağacın ters görüntüsünü görüyor. Kumun hemen üstündeki hava, daha yukarıdaki havadan çok daha sıcaktır.
+
+{{sekil}}
+
+Bu serap olayıyla ilgili,
+
+I. Kuma yakın hava katmanlarının kırıcılık indisi, yukarıdaki katmanlarınkinden küçüktür.
+II. Ağacın tepesinden aşağı doğru eğik gelen ışık, kuma yaklaştıkça her katmanda normale yaklaşarak kırılır.
+III. Işık kuma yakın bir katmanda tam yansıma yaparak yukarı yönelir; gezgin bu ışığı yerden geliyormuş gibi algılar.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_serap',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Isınan hava genleşip seyrekleşir; ışık seyrek havada biraz daha hızlı ilerler. Kuma yakın sıcak katmanların kırıcılık indisi daha küçüktür. **Doğru.**`,
+        r`II. Aşağı inen ışık hep daha az kırıcı katmanlara geçer; her katmanda normalden uzaklaşarak kırılır ve giderek yataylaşır. **Yanlış.**`,
+        r`III. Yataylaşan ışığın gelme açısı sonunda sınır açısını aşar; ışık tam yansıma yapıp yukarı döner. Göz ışığı geldiği doğrultuda, yani yerden geliyormuş gibi algılar; gökyüzü ve ağacın ters görüntüsü yerde su gibi görünür. **Doğru.**`,
+        r`{{S0}} ışığın yukarı dönmesinin tam yansımayla olduğunu görmez. {{S1}} sıcak havanın kırıcılık indisinin küçük olduğunu görmez. {{S2}} ışığın sıcak katmanlarda normale yaklaştığını sanır ve tam yansımayı atlar. {{S4}} sıcak havayı daha kırıcı sanır ve ışığın normale yaklaştığını düşünür.`
+      ]
+    },
+    {
+      id: 'kY104_10', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.1', beceri: 'Tablo yorumlama',
+      tahmin: { gerekce: r`Kazanım, ışığın kırılmasını su dalgalarında kırılmayla ilişkilendirmeyi ister; bu ilişki 9 yılda sorulmadı. Ölçülen dalga boylarından derinlik ve kırılma yönü çıkarıp ışıkla eşleştiren tablo sorusu, hesap gerektirmeden iki konuyu birleştirir.` },
+      metin: r`Bir kıyı mühendisliği laboratuvarındaki liman maketinde tek bir dalga üreteci doğrusal su dalgaları oluşturuyor. Dalgalar bölgeler arasındaki sınırlara eğik gelerek K bölgesinden L bölgesine, oradan da M bölgesine geçiyor. Bölgelerde ölçülen dalga boyları tablodaki gibidir.
+
+{{tablo}}
+
+Buna göre,
+
+I. Su en derin K bölgesindedir.
+II. Dalgalar K'den L'ye geçerken normalden uzaklaşarak kırılır.
+III. Dalgaların L'den M'ye geçişi, ışığın sudan havaya geçişine benzer.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Bölge', 'K', 'L', 'M'], ['Dalga boyu (cm)', '4,0', '2,4', '3,0']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Dalgaları tek bir üreteç oluşturduğu için frekans her bölgede aynıdır; $\vartheta = \lambda \cdot f$ olduğundan dalga boyu büyük olan bölgede dalgalar hızlıdır. Su dalgaları derin suda hızlıdır.`,
+        r`I. Dalga boyu en büyük, dolayısıyla dalgaların en hızlı olduğu bölge K'dir; su en derin K'dedir. **Doğru.**`,
+        r`II. K'den L'ye geçen dalgalar yavaşlar ve normale yaklaşır. **Yanlış.**`,
+        r`III. L'den M'ye geçen dalgalar hızlanır ve normalden uzaklaşır; ışık da sudan (çok kırıcı) havaya (az kırıcı) geçerken hızlanır ve normalden uzaklaşır. **Doğru.**`,
+        r`{{S0}} L'den M'ye geçişin hızlanma olduğunu, yani ışığın çok kırıcıdan az kırıcıya geçişine benzediğini görmez. {{S1}} dalga boyu kısalan dalganın normalden uzaklaştığını sanır ve dalga boyu ile derinlik ilişkisini kullanmaz. {{S2}} K'den L'ye geçen dalganın yavaşlayıp normale yaklaştığını görmez ve III'ü atlar. {{S4}} dalga boyu kısalan dalganın normalden uzaklaştığını sanır ve K'nin en derin bölge olduğunu atlar.`
+      ]
+    },
+    {
+      id: 'kY104_11', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.3', beceri: 'Günlük hayat uygulaması',
+      tahmin: { gerekce: r`Görünür uzaklığı etkileyen sebeplerden bakış doğrultusu programda vardır ve günlük hayatta güvenlik açısından önemlidir; ÖSYM bu etkeni ayrıca sormadı. Kısa bir tek seçim sorusu olarak gelebilir.` },
+      metin: r`Berrak bir dereden karşıya yürüyerek geçmek isteyen Arda, durgun suyun tabanına önce tam yukarıdan, sonra ilerideki bir noktaya eğik olarak bakıyor.
+
+Arda'nın gözlemleriyle ilgili aşağıdakilerden hangisi doğrudur?`,
+      secenekler: ['Taban olduğundan daha derin görünür; eğik bakıldıkça daha da derin görünür.', 'Taban, tam yukarıdan bakınca gerçek derinliğinde, eğik bakınca daha sığ görünür.', 'Taban olduğundan daha sığ görünür; bakış doğrultusu görünür derinliği değiştirmez.', 'Taban, tam yukarıdan bakınca olduğundan daha sığ görünür; eğik bakıldıkça daha da sığ görünür.', 'Taban olduğundan daha sığ görünür; eğik bakıldıkça gerçek derinliğine yaklaşır.'],
+      dogru: 3,
+      cozum: [
+        r`Tabandan gelen ışık sudan havaya geçerken normalden uzaklaşır; gözden geriye uzatılan ışınlar tabanın üstünde kesişir. Taban olduğundan sığ görünür; bu, tam yukarıdan bakınca da geçerlidir.`,
+        r`Eğik bakıldıkça göze gelen ışınlar yüzeyde daha çok kırılır; taban daha da yukarıda, yani daha sığ görünür. Dere bu yüzden göründüğünden derindir.`,
+        r`{{S0}} havadan bakan gözün sudaki cismi uzak gördüğünü sanır. {{S1}} dik bakışta görünür derinliğin değişmediğini sanır; göze giren dar ışın demeti yine kırılır. {{S2}} bakış doğrultusunun etkisini atlar. {{S4}} eğik bakışta kırılmanın etkisinin azaldığını sanır; tersine artar.`
+      ]
+    },
+    {
+      id: 'kY104_12', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.2', beceri: 'İlkeyi olayla eşleme',
+      tahmin: { gerekce: r`Program tam yansımanın teknolojideki uygulamalarına yer verilmesini ister. Fiber optiğin dayandığı ilkeyi az bilinen bir cihazla soran kolay bir soru, ÖSYM'nin günlük hayat bağlamı tercihine uyar.` },
+      metin: r`Diş hekimlerinin dolgu malzemesini sertleştirmek için kullandığı ışık cihazında ışık, cihazın ucundaki ince, bükük ve saydam bir çubuğun içinde ilerleyip çubuğun ucundan çıkar. Işık, çubuğun yan yüzeylerinden dışarı çıkmadan çubuğun bükümünü izler.
+
+Bunun nedeni aşağıdakilerden hangisidir?`,
+      secenekler: ['Çubuğun kırıcılık indisi havanınkinden küçük olduğu için ışık havaya geçemez.', 'Işık, çubuğun yan yüzeylerine sınır açısından büyük açılarla gelip tam yansıma yapar.', 'Işık, çubuğun yan yüzeylerine dik gelir ve kırılmadan geri döner.', 'Işık çubuğun içinde hızlanır ve yan yüzeylere hiç çarpmaz.', 'Çubuğun yan yüzeyleri, ışığın bir kısmını geçirip kalanını yansıtan yarı saydam bir boyayla kaplıdır.'],
+      dogru: 1,
+      cozum: [
+        r`Çubuk havadan kırıcıdır. Çubuğun içindeki ışık yan yüzeylere büyük gelme açılarıyla çarpar; bu açılar sınır açısını aştığı için ışık her çarpmada tamamen yansır ve büküm boyunca ilerler.`,
+        r`{{S0}} tam yansımanın ışık az kırıcı ortamdan gelirken olacağını sanır; çubuk havadan kırıcıdır. {{S2}} dik gelen ışının geri döneceğini sanır; dik gelen ışın doğrultusunu değiştirmeden geçer. {{S3}} ışığın çubukta hızlandığını sanır; ışık çubukta yavaşlar ve büküm boyunca yan yüzeylere çarpar. {{S4}} yarı saydam bir kaplamanın ışığı taşıyabileceğini sanır; her çarpmada ışığın bir kısmı dışarı kaçar ve ışık uca ulaşmadan zayıflar.`
+      ]
+    },
+    {
+      id: 'kY104_13', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.2', beceri: 'Kavramsal karşılaştırma',
+      tahmin: { gerekce: r`Sınır açısının ortamların kırıcılığına bağlılığı programın "sınır açısını analiz eder" kazanımının özüdür; 9 yılda sorulmadı. Elmasın parlaklığı, bu ilişkiyi hesapsız yoklayan bilinen bir günlük hayat örneğidir.` },
+      metin: r`Bir mücevher atölyesinde aynı biçimde kesilmiş bir elmas ile cam bir taş yan yana inceleniyor. Elmasın kırıcılık indisi yaklaşık 2,42, camınki yaklaşık 1,52'dir. Elmas, aynı ışık altında camdan çok daha parlak görünüyor.
+
+Buna göre,
+
+I. Elmasın havaya göre sınır açısı, camınkinden küçüktür.
+II. Taşın içine giren ışığın taşın arka yüzeylerinde tam yansıma yapma olasılığı elmasta daha büyüktür.
+III. Işık elmasın içinde camın içindekinden daha hızlı ilerler.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Elmas ile hava arasındaki kırıcılık farkı, cam ile hava arasındakinden çok daha büyüktür. İki ortamın kırıcılıkları birbirinden uzaklaştıkça sınır açısı küçülür; elmasın havaya göre sınır açısı camınkinden küçüktür. **Doğru.**`,
+        r`II. Sınır açısı küçük olduğundan elmasın içinde arka yüzeylere gelen ışınların çoğu bu açıyı aşar ve tam yansır; ışık taşın ön yüzünden geri çıkar. **Doğru.**`,
+        r`III. Kırıcılık indisi büyük olan ortamda ışık daha yavaştır. **Yanlış.**`,
+        r`{{S0}} küçük sınır açısının tam yansımayı kolaylaştırdığını görmez. {{S1}} sınır açısının indis farkı büyüdükçe küçüldüğünü görmez. {{S3}} kırıcılığı büyük ortamda ışığın hızlandığını sanır ve tam yansımayı atlar. {{S4}} kırıcılığı büyük ortamda ışığın hızlandığını sanır ve sınır açısının küçüldüğünü görmez.`
+      ]
+    },
+    {
+      id: 'kY104_14', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.1', beceri: 'Şekilden sıralama',
+      tahmin: { gerekce: r`Işın yolundan kırıcılık ya da hız sıralaması kurmak 2018 sorusunun ilk adımıdır. Paralel katmanlarda ara katmanı atlayarak ilk ve son ortamı karşılaştırmak ise ÖSYM'nin zor soru tarzına uyan, hesapsız bir kavram zinciridir.` },
+      metin: r`Birbirine paralel yüzeylerle ayrılmış saydam K, L ve M ortamlarından geçen tek renkli bir ışık ışınının izlediği yol şekildeki gibidir.
+
+{{sekil}}
+
+Işığın K, L ve M ortamlarındaki hızları $\vartheta_K$, $\vartheta_L$ ve $\vartheta_M$ arasındaki ilişki nedir?`,
+      sekil: 'kY104_katman',
+      secenekler: [r`$\vartheta_K > \vartheta_M > \vartheta_L$`, r`$\vartheta_L > \vartheta_K > \vartheta_M$`, r`$\vartheta_M > \vartheta_L > \vartheta_K$`, r`$\vartheta_K > \vartheta_L > \vartheta_M$`, r`$\vartheta_M > \vartheta_K > \vartheta_L$`],
+      dogru: 4,
+      cozum: [
+        r`K'den L'ye geçen ışın normale yaklaşıyor: L, K'den kırıcıdır ve $\vartheta_L < \vartheta_K$'dir.`,
+        r`L'den M'ye geçen ışın normalden uzaklaşıyor: $\vartheta_M > \vartheta_L$.`,
+        r`K ile M'yi karşılaştırmak için ışının bu iki ortamdaki doğrultularına bak. Paralel katmanlarda son doğrultu aradaki katmana bağlı değildir; ışın, K'den doğrudan M'ye geçseydi alacağı doğrultuyu alır. Işının M'de normalle yaptığı açı K'dekinden büyüktür; demek ki K'den M'ye geçiş normalden uzaklaşma olurdu ve M, K'den az kırıcıdır: $\vartheta_M > \vartheta_K$.`,
+        r`Sonuç: $\vartheta_M > \vartheta_K > \vartheta_L$.`,
+        r`{{S0}} K ile M'yi yalnız L'ye göre karşılaştırır; ışının M'de normalden K'dekinden daha uzak olduğunu görmez. {{S1}} normale yaklaşan ışının hızlandığını sanır ve sıralamayı tersine kurar. {{S2}} K'den L'ye geçişte ışığın yavaşladığını görmez. {{S3}} her geçişte ışığın yavaşladığını sanır.`
+      ]
+    },
+    {
+      id: 'kY104_15', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.3', beceri: 'Günlük hayat uygulaması',
+      tahmin: { gerekce: r`Yarısı suda olan bir çubuğun kırık görünmesi, program metninin istediği "günlük hayatta gözlemlenen olaylarla ilişki" örneğidir. Görünür konum fikrini 2025'teki gibi şekille ama kolay düzeyde yoklar.` },
+      metin: r`Durgun bir gölde kanoyla ilerleyen Zeynep, küreğini şekildeki gibi eğik tutarak bir kısmını suya daldırıyor ve küreğe kanonun içinden bakıyor.
+
+{{sekil}}
+
+Zeynep'in gördüğü kürekle ilgili aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'kY104_kurek',
+      secenekler: ['Suyun içindeki kısmı su yüzeyinde kırılmış ve olduğundan daha dik görünür.', 'Kürek düz görünür; yalnız suyun içindeki kısmı daha soluk görünür.', 'Suyun içindeki kısmı olduğundan daha uzun görünür.', 'Kürek düz görünür ama bütünüyle olduğundan daha yukarıda görünür.', 'Suyun içindeki kısmı su yüzeyinde kırılmış ve olduğundan daha yatık görünür.'],
+      dogru: 4,
+      cozum: [
+        r`Küreğin suyun içindeki her noktasından gelen ışık sudan havaya geçerken normalden uzaklaşır; bu noktalar olduğundan yukarıda, yüzeye yakın görünür.`,
+        r`Su yüzeyinin üstündeki kısım olduğu yerde görülür. Suyun içindeki kısım yukarı kalkmış göründüğü için kürek yüzeyde kırılmış ve su altındaki kısmı daha yatık görünür.`,
+        r`{{S0}} havadan bakan gözün sudaki cismi daha derinde gördüğünü sanır. {{S1}} kırılmanın yalnız ışığın parlaklığını değiştirdiğini sanır. {{S2}} suyun cisimleri büyüttüğünü sanır; yüzeye yaklaşmış görünen kısım daha kısa görünür. {{S3}} havadaki kısmın da kaydığını sanır; havadaki kısımdan gelen ışık kırılmaz.`
+      ]
+    },
+    {
+      id: 'kY104_16', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.3', beceri: 'Olayı açıklama',
+      tahmin: { gerekce: r`Atmosferdeki kırılma nedeniyle Güneş'in ve yıldızların olduğundan yukarıda görülmesi eski ders kitaplarının görünür uzaklık örneklerindendir; 9 yılda sorulmadı. Katmanlı ortamda kırılma yönü ve görünür konumu birleştiren bir I-II-III sorusu olarak gelebilir.` },
+      metin: r`Deniz kıyısında gün batımını izleyen Eylül, Güneş'in ufkun hemen üstünde, yarısı denize girmiş gibi göründüğünü fark ediyor. Atmosferde yere yaklaştıkça hava yoğunlaşır ve kırıcılık indisi artar.
+
+{{sekil}}
+
+Buna göre,
+
+I. Güneş'ten gelen ışık atmosferde yere yaklaştıkça normale yaklaşarak kırılır.
+II. Eylül Güneş'i gerçek konumundan daha yukarıda görür; Güneş ufkun altına inmiş olsa da bir süre daha görülebilir.
+III. Dünya'nın atmosferi olmasaydı Eylül, Güneş'in batışını daha geç görürdü.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_gunes',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Işık seyrek üst katmanlardan yoğun alt katmanlara inerken her katmanda daha kırıcı bir ortama geçer ve normale yaklaşır; yolu yere doğru bükülür. **Doğru.**`,
+        r`II. Göz ışığı son geldiği doğrultuda görür; bu doğrultu Güneş'in gerçek yönünden daha yukarıdadır. Güneş ufkun biraz altındayken bile ışığı bükülerek göze ulaşabilir. **Doğru.**`,
+        r`III. Atmosfer olmasaydı ışık bükülmezdi; Güneş ufkun altına indiği anda görünmez olurdu ve batış daha erken görülürdü. **Yanlış.**`,
+        r`{{S0}} görünür konumun kaymasını atlar. {{S1}} ışığın yoğunlaşan havada normale yaklaştığını görmez. {{S3}} ışığın normale yaklaştığını görmez ve atmosferin batışı geciktirdiğini değil öne aldığını sanır. {{S4}} atmosfer olmasaydı batışın daha geç görüleceğini sanır.`
+      ]
+    },
+    {
+      id: 'kY104_17', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.3', beceri: 'Kavramı yeni duruma aktarma',
+      tahmin: { gerekce: r`Görünür konum fikri 2025'te soruldu; ışığın yolunun tersinirliğini ve kırılmayan bir çubukla ışını karşılaştırmayı işin içine katan bu çeşitleme, TYT'nin zor sorularındaki gibi hesapla değil kavram zinciriyle çözülür.` },
+      metin: r`Bir su altı arkeoloji ekibinde çalışan Selim, tekneden eğik olarak baktığında durgun suyun dibindeki küçük bir bronz sikkeyi görüyor. Sikkenin yerini işaretlemek için bazı yöntemler düşünüyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Lazer işaretçisini sikkeyi gördüğü doğrultuya tutarsa lazer ışığı sikkeye ulaşır.
+II. Uzun ve düz bir çubuğu sikkeyi gördüğü doğrultuda suya daldırırsa çubuk sikkeye değmez; sikkenin üstünden geçip ötesinde tabana ulaşır.
+III. Lazer işaretçisini kendi gözünden sikkenin gerçek konumuna uzanan düz çizgi boyunca tutarsa lazer ışığı sikkeye ulaşır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_sikke',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Sikkeden Selim'in gözüne gelen ışın sudan havaya geçerken normalden uzaklaşır. Selim sikkeyi bu ışının uzantısında, olduğundan yukarıda görür.`,
+        r`I. Işığın yolu tersinirdir: Göze gelen ışının yolu boyunca tersine gönderilen lazer ışığı aynı yolu geri izleyip sikkeye ulaşır. **Doğru.**`,
+        r`II. Çubuk kırılmaz, gördüğü doğrultuda düz gider. Bu doğrultu sikkenin görünen yerine, yani sikkenin üst tarafına yönelir; suyun içinde sikkeden gelen ışının yolundan daha yatıktır. Çubuk sikkenin üstünden geçer ve tabana sikkenin ötesinde ulaşır. **Doğru.**`,
+        r`III. Gerçek konuma uzanan düz çizgi boyunca gönderilen lazer ışığı suya girerken normale yaklaşarak kırılır ve daha dik ilerler; sikkenin berisindeki (Selim'e yakın) tabana ulaşır. **Yanlış.**`,
+        r`{{S0}} çubuğun suya girince ışık gibi kırılacağını sanır ve II'yi atlar; çubuk görülen doğrultuda düz ilerler. {{S1}} ışığın yolunun tersinir olduğunu görmez ve I'i atlar. {{S3}} gerçek konuma doğru tutulan ışığın da sikkeye gideceğini sanır ve II'yi atlar. {{S4}} lazerin görülen yere değil gerçek konuma doğru tutulması gerektiğini sanır.`
+      ]
+    },
+    {
+      id: 'kY104_18', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.6.2', beceri: 'Tanımı uygulama',
+      tahmin: { gerekce: r`Program tam yansımanın ve sınır açısının deney ya da simülasyonla yorumlanmasını ister. Sınır açısındaki "yüzeyi yalama" ile tam yansımayı ayırt ettiren kısa bir deney sorusu kolay düzeyde gelebilir.` },
+      metin: r`Bir fen öğretmeni, su dolu bir tankın tabanına yerleştirdiği su geçirmez bir lazerin ışınını su yüzeyine eğik gönderiyor. Gelme açısını yavaş yavaş artırırken bir an, kırılan ışının su yüzeyine paralel ilerlediğini görüyor.
+
+Bu andaki gelme açısı ve ışığın davranışıyla ilgili aşağıdakilerden hangisi doğrudur?`,
+      secenekler: ['Gelme açısı sınır açısına eşittir; açı biraz daha artırılırsa ışık havaya normale yaklaşarak geçer.', 'Gelme açısı 90°\'dir; ışık yüzeye paralel geldiği için kırılmaz.', 'Gelme açısı sınır açısından büyüktür; ışık tam yansıma yapmaktadır.', 'Gelme açısı sınır açısına eşittir; açı biraz daha artırılırsa ışığın tamamı suya geri yansır.', 'Gelme açısı sınır açısına eşittir; açı biraz daha artırılırsa sınır açısı da büyür.'],
+      dogru: 3,
+      cozum: [
+        r`Kırılma açısının $90°$ olduğu, yani kırılan ışının yüzeyi yaladığı gelme açısı sınır açısıdır.`,
+        r`Gelme açısı bu değeri aşınca ışık havaya geçemez, tamamı yansır: tam yansıma. Sınır açısı yalnız su ve havanın cinsine bağlıdır; gelme açısıyla değişmez.`,
+        r`{{S0}} gelme açısı artınca ışığın yeniden havaya geçeceğini sanır. {{S1}} $90°$ olanın kırılma açısı değil gelme açısı olduğunu sanır. {{S2}} yüzeyi yalayan ışını tam yansıma sanır; tam yansımada havaya ışık geçmez. {{S4}} sınır açısının gelme açısıyla değiştiğini sanır.`
+      ]
+    },
+    {
+      id: 'kY104_19', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.3', beceri: 'Çok adımlı akıl yürütme',
+      tahmin: { gerekce: r`Görünür uzaklığın gerçek uzaklığa ve ortamlara bağlılığı programdadır. Su eklenince "yüzeyden görünür derinlik" ile "gözden görünür uzaklık" farklı yönde değiştiği için soru hesap istemeden iki kavramı ayırt ettirir; 9 yılda sorulmadı.` },
+      metin: r`Fotoğraf meraklısı Umut, cam bir kabın tabanındaki çakıl taşlarını kabın tam üstüne sabitlediği bir fotoğraf makinesiyle çekiyor. Makine netlemeyi taşların görünür uzaklığına göre yapıyor. Kapta bir miktar su vardır.
+
+{{sekil}}
+
+Taşlar ve makine yerinden oynamadan,
+
+I. Makinenin netlediği uzaklık, makine ile taşlar arasındaki gerçek uzaklıktan küçüktür.
+II. Kaba bir miktar daha su eklenirse makine netlemeyi öncekinden daha yakın bir uzaklığa ayarlar.
+III. Kaba su eklendikçe taşların su yüzeyinden görünür derinliği azalır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_kamera',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Taşlardan gelen ışık sudan havaya geçerken normalden uzaklaşır; taşlar olduğundan yukarıda görünür. Makineye görünür uzaklık gerçek uzaklıktan küçüktür. **Doğru.**`,
+        r`II. Su eklenince makine ile taşlar arasındaki yolun havadaki kısmı kısalır, sudaki kısmı aynı miktarda uzar. Suyun içindeki bir yol havadan bakan göze olduğundan kısa görünür; bu yüzden toplam görünür uzaklık azalır ve netleme yakına kayar. **Doğru.**`,
+        r`III. Taşların su yüzeyinden gerçek derinliği arttığı için görünür derinliği de artar; yalnız yüzeyin kendisi makineye yaklaşmıştır. **Yanlış.**`,
+        r`{{S0}} eklenen suyun, havadan bakan göze olduğundan ince görünen bir katman olduğunu görmez. {{S1}} suyun taşları yakın gösterdiğini atlar. {{S3}} yüzeyden ölçülen görünür derinlik ile makineden ölçülen görünür uzaklığı karıştırır ve II'yi atlar. {{S4}} görünür derinliğin su eklendikçe azaldığını sanır; gerçek derinlik artınca görünür derinlik de artar.`
+      ]
+    },
+    {
+      id: 'kY104_20', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`2018 sorusu "olabilir" mantığıyla kuruldu. Işığın sapmadan geçmesini mümkün kılan iki ayrı durumu (dik gelme ve eşit indis) birlikte sınayan bu kalıp, aynı mantığın kırılma koşulları üzerinden kurulan çeşitlemesidir.` },
+      metin: r`Bir bilim şenliğinde Pınar, saydam bir X sıvısının içine yerleştirdiği saydam bir Y bloğuna tek renkli bir lazer ışını gönderiyor ve ışının X ile Y'nin ayırma yüzeyinden hiç doğrultu değiştirmeden geçtiğini görüyor.
+
+Buna göre,
+
+I. Işık ayırma yüzeyine dik gelmiştir.
+II. X ve Y'nin kırıcılık indisleri eşittir.
+III. Işığın X'teki hızı Y'dekinden büyüktür.
+
+yargılarından hangileri doğru olabilir?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Yüzeye dik gelen ışın, ortamların indisleri farklı olsa da doğrultu değiştirmez. **Olabilir.**`,
+        r`II. İndisler eşitse ışık hiçbir açıda doğrultu değiştirmez; böyle bir blok sıvının içinde neredeyse görünmez olur. **Olabilir.**`,
+        r`III. Işık dik gelmişse X ile Y'nin indisleri farklı olabilir; Y daha kırıcıysa ışık Y'de daha yavaştır. **Olabilir.**`,
+        r`{{S0}} indisleri eşit ortamlarda da kırılma olmadığını görmez. {{S1}} dik gelme durumunu düşünmez. {{S2}} dik gelen ışında ortamların farklı olabileceğini, dolayısıyla hızların da farklı olabileceğini görmez. {{S3}} indislerin eşit olabileceğini atlar.`
+      ]
+    },
+    {
+      id: 'kY104_21', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.2', beceri: 'Grafik seçme',
+      tahmin: { gerekce: r`Program kırılma ve tam yansımanın deney ya da simülasyonla yorumlanmasını ister; kırılma açısının gelme açısına göre grafiği bu yorumun dilidir. Verilmeyen sınır açısı yüzünden birden çok grafiğin "olabilir" olması, 2018'deki mantığın grafik biçimidir.` },
+      metin: r`Saydam L ortamından saydam K ortamına eğik gönderilen tek renkli bir ışığın normalden uzaklaşarak kırıldığı biliniyor. Öğrenciler, L'den K'ye geçişte kırılma açısının ($r$) gelme açısına ($i$) göre değişimini gösteren I, II ve III grafiklerini çiziyor.
+
+{{sekil}}
+
+Bu grafiklerden hangileri L'den K'ye geçiş için doğru olabilir?`,
+      sekil: 'kY104_grafik_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`L'den K'ye giden ışık normalden uzaklaşıyor: L daha kırıcıdır. Her gelme açısında kırılma açısı gelme açısından büyüktür; grafik $r = i$ doğrusunun üstünde kalmalıdır. II, bu doğrunun altında kaldığı için **olamaz.**`,
+        r`Çok kırıcıdan az kırıcıya geçişte gelme açısı sınır açısına ulaşınca kırılma açısı $90°$ olur; daha büyük gelme açılarında kırılan ışın yoktur. I ve III bu biçimdedir.`,
+        r`Sınır açısı iki ortamın indislerine bağlıdır; L ile K'nin indisleri verilmediği için sınır açısının değeri bilinemez. I ve III'ün her biri **olabilir.**`,
+        r`{{S0}} sınır açısının başka bir değerde olabileceğini görmez; III de olabilir. {{S1}} normalden uzaklaşan ışında kırılma açısını gelme açısından küçük sanır. {{S2}} I'deki sınır açısını fazla küçük bulup eler; indisler verilmediği için bu değer de olabilir. {{S4}} II'deki eğrinin $r = i$ doğrusunun altında kaldığını, yani normale yaklaşmayı gösterdiğini görmez.`
+      ]
+    },
+    {
+      id: 'kY104_22', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.1', beceri: 'Değişkenler arası ilişki',
+      tahmin: { gerekce: r`Sapma miktarının gelme açısına bağlılığı programda deneyle belirlenecek değişkenler arasındadır. İki niceliğin birlikte nasıl değiştiğini soran iki sütunlu seçenek, ÖSYM'nin optik sorularında kullandığı biçimdir.` },
+      metin: r`Bir su parkında havuzun kenarındaki bir projektörün ışık demeti, projektör döndürülerek durgun su yüzeyine giderek daha eğik gönderiliyor; demetin gelme açısı artıyor.
+
+Bu sırada suya giren ışığın kırılma açısı ve su yüzeyinde kırılırken sapma miktarı nasıl değişir?`,
+      secenekler: ['Kırılma açısı artar; sapma miktarı azalır.', 'Kırılma açısı artar; sapma miktarı artar.', 'Kırılma açısı azalır; sapma miktarı artar.', 'Kırılma açısı değişmez; sapma miktarı artar.', 'Kırılma açısı artar; sapma miktarı değişmez.'],
+      dogru: 1,
+      cozum: [
+        r`Gelme açısı artınca kırılma açısı da artar; su havadan kırıcı olduğu için kırılma açısı her zaman gelme açısından küçük kalır.`,
+        r`Sapma miktarı, gelme açısı ile kırılma açısı arasındaki farktır. Dik gelen ışın hiç sapmaz; gelme açısı büyüdükçe ışın yüzeyde daha çok kırılır ve sapma artar.`,
+        r`{{S0}} kırılma açısı arttığı için ışının daha az saptığını sanır; gelme açısı kırılma açısından daha hızlı artar. {{S2}} gelme açısı artınca kırılma açısının azaldığını sanır. {{S3}} kırılma açısının yalnız ortamlara bağlı olduğunu sanır. {{S4}} sapmanın yalnız ortamlara bağlı olduğunu sanır; gelme açısına da bağlıdır.`
+      ]
+    },
+    {
+      id: 'kY104_23', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.2', beceri: 'Günlük hayat uygulaması',
+      tahmin: { gerekce: r`Tam yansımanın uygulamaları programda açıkça istenir ama TYT'de sorulmadı. Işıklı fıskiye, fiber optiğin ilkesini görünür kılar ve büküm yerinde ışığın kaçmasıyla şartları sınayan zengin bir I-II-III sorusu kurdurur.` },
+      metin: r`Bir parktaki ışıklı süs çeşmesinde, fıskiyenin içine yerleştirilen bir lamba ışığını su jetinin içine gönderiyor. Gece bakıldığında ışık, eğri bir yol izleyen su jetinin içinde ilerliyor ve jet parlıyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Işık, jetin yüzeyine sınır açısından büyük açılarla geldiği için jetin içinde kalır.
+II. Jetin keskin büküldüğü yerlerde ışığın bir kısmı jetten dışarı çıkabilir.
+III. Işığın jetin içinde kalabilmesi için jetin çevresindeki ortamın kırıcılık indisi suyunkinden büyük olmalıdır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_fiskiye',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Su havadan kırıcıdır. Jetin içindeki ışık jet yüzeyine sınır açısından büyük açılarla gelir ve tam yansır; böylece jetin içinde kalır. **Doğru.**`,
+        r`II. Jet keskin büküldüğünde ışın jetin yüzeyine daha küçük bir gelme açısıyla çarpar; açı sınır açısının altına inerse ışığın bir kısmı havaya kırılarak çıkar. **Doğru.**`,
+        r`III. Tam yansıma için ışık çok kırıcı ortamdan az kırıcı ortama gitmelidir; jetin çevresindeki hava sudan az kırıcıdır. **Yanlış.**`,
+        r`{{S0}} büküm yerlerinde gelme açısının küçüldüğünü görmez. {{S1}} tam yansımanın şartını ters kurar. {{S3}} tam yansıma için çevre ortamın daha kırıcı olması gerektiğini sanır ve bükümü atlar. {{S4}} tam yansıma şartını ters kurar ve ışığın jette kalmasının nedenini görmez.`
+      ]
+    },
+    {
+      id: 'kY104_24', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.1', beceri: 'Işın çizimi',
+      tahmin: { gerekce: r`Program, ışığın izlediği yolun çizilmesini ister. Paralel yüzlü bir katmandan geçen ışının son doğrultusunu bulmak, iki kırılmayı ve kısa yolu birleştiren hesapsız bir kavram zinciridir; numaralı yollardan seçim TYT'nin şekil sorusu biçimidir.` },
+      metin: r`Bir deniz araştırma teknesinin tabanında, deniz yaşamını içeriden izlemek için kalın ve düz bir cam pencere vardır. Teknenin içindeki bir lambadan çıkan ışın havadan cama, oradan deniz suyuna geçiyor. Aynı lambadan aynı açıyla çıkan bir ışın, cam olmasaydı doğrudan havadan deniz suyuna geçecekti; bu durumdaki ışın yolu şeklin solunda gösterilmiştir.
+
+{{sekil}}
+
+Kırıcılık indisleri arasında $n_{\text{hava}} < n_{\text{deniz suyu}} < n_{\text{cam}}$ ilişkisi olduğuna göre, ışın deniz suyunda numaralanmış yollardan hangisini izler?`,
+      sekil: 'kY104_bolme_genis',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 0,
+      cozum: [
+        r`Işık havadan cama geçerken normale yaklaşır. Camdan deniz suyuna geçerken cam daha kırıcı olduğu için normalden uzaklaşır.`,
+        r`Pencerenin yüzeyleri paraleldir. Paralel katmanlarda son doğrultu aradaki katmana bağlı değildir; ışın deniz suyunda, cam yokken doğrudan havadan suya geçseydi izleyeceği yola paralel ilerler: 1 numaralı yol.`,
+        r`{{S1}} ışının deniz suyunda havadaki doğrultusunu koruduğunu sanır; ışık havadan çok daha kırıcı olan suya geçmektedir. {{S2}} camdan suya geçerken ışının kırılmadığını sanır. {{S3}} camdan suya geçerken ışının normale yaklaştığını sanır; cam sudan kırıcıdır. {{S4}} ışının normal doğrultusuna döndüğünü sanır.`
+      ]
+    },
+    {
+      id: 'kY104_25', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.3', beceri: 'Olayı açıklama',
+      tahmin: { gerekce: r`Program görünür uzaklıkta ışığın izlediği yolun çizilip günlük hayat olaylarıyla ilişkilendirilmesini ister. Akvaryum köşesinde tek balığın iki görüntüsü, iki farklı kırılma yolunu ve aynı ortamda kırılmanın olmadığını birlikte yoklar.` },
+      metin: r`Bir akvaryumun köşesine yakın duran İlker, akvaryumun ön ve yan camlarının birleştiği köşeye bakınca tek bir balığı iki ayrı yerde görüyor. Akvaryumun camları incedir; camların etkisi önemsizdir.
+
+{{sekil}}
+
+Buna göre,
+
+I. İlker'in gözüne ulaşan ışınların bir kısmı ön camdan, bir kısmı yan camdan çıkar.
+II. Balıktan gelip camlara eğik olarak çarpan ışınlar akvaryumdan havaya çıkarken normalden uzaklaşarak kırılır.
+III. Akvaryumun suyu boşaltılıp aynı yerde bir balık maketi bulunsaydı İlker maketi de iki ayrı yerde görürdü.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY104_akvaryum',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Balığın iki görüntüsü, göze iki ayrı yoldan gelen ışınlardan oluşur: Bir demet ön camdan, bir demet yan camdan çıkar. **Doğru.**`,
+        r`II. Işık sudan havaya, yani çok kırıcı ortamdan az kırıcı ortama geçer; eğik çarpan ışınlar normalden uzaklaşır. İki yüzeyin normalleri farklı doğrultuda olduğu için iki demet farklı biçimde kırılır ve iki ayrı görüntü oluşur. **Doğru.**`,
+        r`III. Su boşaltılınca ışınlar kırılmaz; maketten göze tek bir düz yol vardır ve maket olduğu yerde, tek görüntü olarak görülür. **Yanlış.**`,
+        r`{{S0}} ışınların sudan havaya geçerken kırıldığını atlar. {{S1}} iki görüntünün ışınların iki farklı yüzeyden çıkmasından oluştuğunu görmez. {{S2}} iki yüzeyden çıkan ışınları ve kırılmayı atlar, havadaki makette de iki görüntü oluşacağını sanır. {{S4}} ışınların iki ayrı yüzeyden geldiğini atlar ve havadaki makette de iki görüntü olacağını sanır.`
+      ]
+    },
+    {
+      id: 'kY104_26', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.1', beceri: 'Sıralama',
+      tahmin: { gerekce: r`Sapma miktarının ortamlara bağlılığı programın deneyle belirlenmesini istediği ilişkidir. Aynı gelme açısında üç geçişi sıralamak hesap gerektirmez; ÖSYM'nin sıralama kalıbına uyar ve 9 yılda sorulmadı.` },
+      metin: r`Bir laboratuvarda tek renkli ışık üç farklı durumda ayırma yüzeyine aynı $40°$'lik gelme açısıyla gönderiliyor. Kırıcılık indisleri havada 1,00, suda 1,33, camda 1,52'dir.
+
+{{tablo}}
+
+Işığın kırılırken sapma miktarları $\delta_1$, $\delta_2$ ve $\delta_3$ arasındaki ilişki nedir?`,
+      tablo: [['Durum', 'Işığın geçişi'], ['1', 'Havadan suya'], ['2', 'Havadan cama'], ['3', 'Sudan cama']],
+      secenekler: [r`$\delta_1 > \delta_2 > \delta_3$`, r`$\delta_2 > \delta_1 > \delta_3$`, r`$\delta_3 > \delta_2 > \delta_1$`, r`$\delta_2 > \delta_3 > \delta_1$`, r`$\delta_1 = \delta_2 > \delta_3$`],
+      dogru: 1,
+      cozum: [
+        r`Gelme açısı aynıyken ışığın girdiği ortam, geldiği ortamdan ne kadar kırıcıysa ışık o kadar çok sapar.`,
+        r`1. ve 2. durumda ışık havadan geliyor; cam sudan kırıcı olduğu için $\delta_2 > \delta_1$'dir.`,
+        r`3. durumda su ile camın kırıcılıkları birbirine çok yakındır; ışık en az burada sapar. Sonuç: $\delta_2 > \delta_1 > \delta_3$.`,
+        r`{{S0}} camın sudan kırıcı olduğunu kullanmaz. {{S2}} sudan cama geçişte iki kırıcı ortam bulunduğu için sapmanın en büyük olacağını sanır. {{S3}} sudan cama geçişte indisler birbirine yakın olduğu için sapmanın en küçük olacağını görmez. {{S4}} ışığın havadan geldiği iki durumda sapmanın eşit olacağını sanır.`
+      ]
+    },
+    {
+      id: 'kY104_27', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Kırıcılık indisinin hızla ilişkisi programın vurgusudur. "Kesinlikle" kökü, dik gelen ışının kırılmaması yüzünden kesin olmayan bir yargıyı ayıklattığı için ÖSYM'nin klasik "verilmeyen bilgiyi varsaydırma" tuzağını taşır.` },
+      metin: r`Bir fotonik laboratuvarında tek renkli bir ışığın X ortamından Y ortamına geçerken hızının azaldığı ölçülüyor.
+
+Buna göre,
+
+I. Işık X'ten Y'ye geçerken normale yaklaşarak kırılır.
+II. Y'nin kırıcılık indisi X'inkinden büyüktür.
+III. Işık X'ten Y'ye geçerken hiçbir gelme açısında tam yansıma yapmaz.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`II. Kırıcılık indisi $n = \dfrac{c}{\vartheta}$'dir; ışığın daha yavaş olduğu Y daha kırıcıdır. **Kesinlikle doğru.**`,
+        r`III. Işık az kırıcı ortamdan çok kırıcı ortama geçiyor; bu geçişte hiçbir açıda tam yansıma olmaz. **Kesinlikle doğru.**`,
+        r`I. Işık yüzeye eğik gelirse normale yaklaşır; ama dik gelirse doğrultusunu değiştirmez. Işığın geliş doğrultusu verilmediği için **kesin değil.**`,
+        r`{{S0}} ışığın yüzeye dik gelirse kırılmadığını atlar ve kesin olan iki yargıyı dışarıda bırakır. {{S1}} tam yansımanın ancak çok kırıcıdan az kırıcıya geçişte olduğunu kullanmaz. {{S2}} kırıcılık indisinin hızla ilişkisini kullanmaz ve II'yi atlar. {{S3}} dik gelen ışının kırılmadığını atlar ve III'ü görmez.`
+      ]
+    },
+    {
+      id: 'kY104_28', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.2', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Sınır açısının tanımı ve ışığın yolunun tersinirliği programın "tam yansımayı ve sınır açısını analiz eder" kazanımının çekirdeğidir. Yüzeyi yalayan ışından üç ayrı kesin sonuç çıkartmak, 2018 sorusunun bir adım ötesine geçen zor bir çeşitlemedir.` },
+      metin: r`Tek renkli bir ışık ışını K ortamından L ortamına $\alpha$ gelme açısıyla gönderildiğinde şekildeki gibi ayırma yüzeyini yalayarak ilerliyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. $\alpha$ biraz küçültülürse ışık L ortamına normalden uzaklaşarak geçer.
+II. $\alpha$ biraz büyütülürse ışık L ortamına geçemez, tamamı K'ye yansır.
+III. Işık L'den K'ye hangi gelme açısıyla gönderilirse gönderilsin, K ortamındaki kırılma açısı $\alpha$'dan büyük olamaz.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'kY104_yalama',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 4,
+      cozum: [
+        r`Işının yüzeyi yalaması, gelme açısının sınır açısına eşit olduğunu gösterir: $\alpha = \theta_s$. Sınır açısı yalnız çok kırıcıdan az kırıcıya geçişte vardır; K, L'den kırıcıdır.`,
+        r`I. Gelme açısı sınır açısından küçükse ışık L'ye geçer ve az kırıcı ortama girdiği için normalden uzaklaşır. **Kesinlikle doğru.**`,
+        r`II. Gelme açısı sınır açısını aşarsa tam yansıma olur. **Kesinlikle doğru.**`,
+        r`III. Işığın yolu tersinirdir: L'de yüzeyi yalayarak gelen ışın K'de $\alpha$ açısıyla ilerler. L'den K'ye geçen ışın normale yaklaşır; gelme açısı en büyük değerinde (yüzeyi yalarken) bile kırılma açısı $\alpha$ olur, daha büyük olamaz. **Kesinlikle doğru.**`,
+        r`{{S0}} gelme açısı sınır açısını aşınca tam yansıma olacağını ve tersinirliği atlar. {{S1}} gelme açısı küçülünce ışığın L'ye kırılarak geçeceğini ve tersinirliği görmez. {{S2}} ışığın yolunun tersinir olduğunu kullanmaz ve III'ü atlar. {{S3}} gelme açısı küçülünce ışığın L'ye geçeceğini görmez.`
+      ]
+    },
+    {
+      id: 'kY104_29', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.6.3', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Görünür uzaklığın ortamın kırıcılığına ve gerçek derinliğe bağlılığı programdadır. Eşit görünen iki derinlikten gerçek derinlikleri karşılaştırmak, matematiksel model kullanmadan iki etkeni birlikte düşündüren bir "kesinlikle" sorusudur; 9 yılda sorulmadı.` },
+      metin: r`Elif, tabanlarında birer işaret bulunan iki özdeş cam kaptan birine su, ötekine gliserin koyuyor. Kaplara tam üstten bakınca iki işareti de sıvı yüzeyinden aynı derinlikte görüyor. Gliserinin kırıcılık indisi suyunkinden büyüktür.
+
+Buna göre,
+
+I. Gliserinin kaptaki yüksekliği suyunkinden büyüktür.
+II. Gliserinli kaptaki işaret, sulu kaptakinden daha fazla yükselmiş görünür.
+III. Sıvıların yükseklikleri eşitlenirse iki işaret yine aynı derinlikte görünür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 3,
+      cozum: [
+        r`Havadan bakan göz için kırıcılığı büyük sıvıdaki işaret daha çok yükselmiş görünür. Gerçek derinlikler aynı olsaydı gliserindeki işaret daha yukarıda görünürdü.`,
+        r`I. Görünür derinlikler eşit olduğuna göre gliserinin gerçek yüksekliği daha büyük olmalıdır. **Kesinlikle doğru.**`,
+        r`II. Yükselme miktarı, gerçek derinlik ile görünür derinlik arasındaki farktır. Görünür derinlikler eşit, gliserinin gerçek derinliği büyük olduğundan gliserindeki işaret daha çok yükselmiş görünür. **Kesinlikle doğru.**`,
+        r`III. Yükseklikler eşit olursa gliserindeki işaret daha yukarıda görünür; görünür derinlikler eşit olmaz. **Yanlış.**`,
+        r`{{S0}} yükselme miktarını gerçek ve görünür derinliklerle karşılaştırmayı atlar. {{S1}} görünür derinlikler eşitken gerçek derinliklerin farklı olması gerektiğini görmez. {{S2}} görünür derinliğin sıvının cinsine bağlı olmadığını sanır ve gerçek derinlikleri karşılaştırmaz. {{S4}} yükseklikler eşitlenince görünür derinliklerin de eşit kalacağını sanır ve yükselme miktarlarını karşılaştırmayı atlar.`
+      ]
+    },
+    {
+      id: 'kY104_30', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.6.2', beceri: 'Değişken belirleme',
+      tahmin: { gerekce: r`Program sınır açısının deney ya da simülasyonla yorumlanmasını ister. Sınır açısının ışığa ya da bloğun boyutuna değil, ortamlara bağlı olduğunu ayırt ettiren bir deney sorusu 9 yılda sorulmadı ve TYT'nin değişken belirleme kalıbına uyar.` },
+      metin: r`Melis, yarım daire biçimli saydam plastik bir bloğun eğri yüzünden bloğun merkezine doğru tek renkli ışık göndererek ışığın bloğun düz yüzünden havaya geçerken sınır açısını ölçüyor.
+
+Buna göre,
+
+I. Işığın düz yüze gelme açısı artırılırsa ölçülen sınır açısı küçülür.
+II. Bloğun düz yüzü havaya değil de başka bir saydam ortama değdirilirse sınır açısı değişebilir.
+III. Aynı plastikten yapılmış daha büyük bir blok kullanılırsa sınır açısı değişmez.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Sınır açısı, ışığın gelme açısına bağlı bir değer değildir; ortam çiftinin özelliğidir. Gelme açısı değiştirilerek yalnız sınır açısı bulunur. **Yanlış.**`,
+        r`II. Sınır açısı iki ortamın kırıcılık indislerine bağlıdır; ikinci ortam değişirse sınır açısı da değişebilir. **Doğru.**`,
+        r`III. Bloğun boyutu malzemenin kırıcılığını değiştirmez; sınır açısı aynı kalır. **Doğru.**`,
+        r`{{S0}} sınır açısını gelme açısına bağlı sanır ve ortamların etkisini görmez. {{S1}} bloğun boyutunun sınır açısını etkilemediğini görmez. {{S2}} ikinci ortamın cinsinin sınır açısını değiştirebileceğini görmez. {{S3}} sınır açısını gelme açısına bağlı sanır ve ortamın cinsinin etkisini atlar.`
+      ]
+    }
+  ],
+  setler: []
+};
+
+window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.10.4 Kırılma ve Tam Yansıma: oynanan simülasyonlar
+   Yapabilirim 11'deki iki simülasyonun (src/konu/11_3_4/sim.js ve 11_3_5/sim.js) çizim ve modeli, bu kitabın
+   metinleri, görevleri ve ölçüm kutularıyla uyarlanmıştır. 2018 programı Snell Yasası, sınır açısı ve görünür uzaklıkla
+   hesaplamaya girmediği için canlı denklem satırı yoktur; sim1'in ölçüm kutuları açıları yalnız okuma olarak verir; sim2 görünür derinlik için sayı ya da model vermez (nitel karşılaştırma paneli).
+   1) kY104_sim1: ortam çifti ve gelme açısı; kırılan, yansıyan ışın, r–i grafiği, sınır açısı (iç model: Snell).
+   2) kY104_sim2: kabın dibindeki para; görüntü yalnız ışın çiziminden, üç ortamın nitel karşılaştırması (iç model: dar ışın demetinin ışın izlemesi).
+   Şablon ve kurallar: SIM_KILAVUZ.md
+   ============================================================ */
+(function () {
+/* 1) kırılma ve tam yansıma */
+(function () {
+const { P, T, svg, dashLine } = window.BFY_FIGLIB;
+const sayi = (x, o) => window.BFY_SIM_ARAC.sayi(x, o);
+const D = Math.PI / 180;
+const f1 = v => (+v).toFixed(1);
+const LZ = '#d6336c', NRM = '#56687a';
+
+/* ortam çiftleri: üstteki (gelinen) ve alttaki ortam */
+const CIFT = {
+  1: { ust: 'Hava', n1: 1.00, alt: 'Su', n2: 1.33, g1: 'hava', g2: 'su' },
+  2: { ust: 'Hava', n1: 1.00, alt: 'Cam', n2: 1.50, g1: 'hava', g2: 'cam' },
+  3: { ust: 'Su', n1: 1.33, alt: 'Hava', n2: 1.00, g1: 'su', g2: 'hava' },
+  4: { ust: 'Cam', n1: 1.50, alt: 'Hava', n2: 1.00, g1: 'cam', g2: 'hava' },
+  5: { ust: 'Cam', n1: 1.50, alt: 'Su', n2: 1.33, g1: 'cam', g2: 'su' }
+};
+const sinR = v => CIFT[v.c].n1 / CIFT[v.c].n2 * Math.sin(v.i * D);
+const kirilma = v => { const s = sinR(v); return s > 1 ? null : Math.asin(s) / D; };   // derece ya da null
+const sinir = v => { const c = CIFT[v.c]; return c.n1 > c.n2 ? Math.asin(c.n2 / c.n1) / D : null; };
+
+/* yerleşim: geniş 560 × 316 (sahne solda, grafik sağda); dar 300 × 560 (grafik altta) */
+const GENIS = { W: 560, H: 316, cx: 152, cy: 158, R: 128, OX: 352, OY: 268, G: 1.98, panel: [306, 12, 244, 292] };
+const DAR = { W: 300, H: 560, cx: 150, cy: 150, R: 124, OX: 66, OY: 520, G: 2.18, panel: [10, 306, 280, 244] };
+
+function yayCiz(cx, cy, r, a0, a1, c) {      // a: ekran açısı (derece, y aşağı)
+  const x0 = cx + r * Math.cos(a0 * D), y0 = cy + r * Math.sin(a0 * D), x1 = cx + r * Math.cos(a1 * D), y1 = cy + r * Math.sin(a1 * D);
+  return `<path d="M${f1(x0)} ${f1(y0)} A${r} ${r} 0 0 ${a1 > a0 ? 1 : 0} ${f1(x1)} ${f1(y1)}" fill="none" stroke="${c}" stroke-width="1.5"/>`;
+}
+function isin(x1, y1, x2, y2, o = {}) {
+  const c = o.color || LZ, w = o.w || 2.4, t = o.at || 0.55, op = o.op ?? 1;
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+  const mx = x1 + dx * t, my = y1 + dy * t, hl = 10, hw = 4.8, bx = mx - ux * hl, by = my - uy * hl;
+  return `<g opacity="${op}"><line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>` +
+    `<polygon points="${f1(mx + ux * 3)},${f1(my + uy * 3)} ${f1(bx - uy * hw)},${f1(by + ux * hw)} ${f1(bx + uy * hw)},${f1(by - ux * hw)}" fill="${c}"/></g>`;
+}
+
+function sahne(v, u, o) {
+  const G = o && o.dar ? DAR : GENIS, { W, H, cx, cy, R, OX, OY } = G, c = CIFT[v.c];
+  const r = kirilma(v), ts = sinir(v), tam = r === null;
+  let s = `<defs>
+  <linearGradient id="${u}su" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d3ecfa"/><stop offset="1" stop-color="#a9d3ef"/></linearGradient>
+  <linearGradient id="${u}hava" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7fbfe"/><stop offset="1" stop-color="#eaf3f9"/></linearGradient>
+  <linearGradient id="${u}cam" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6f4f0"/><stop offset="1" stop-color="#c7e3da"/></linearGradient>
+  <clipPath id="${u}kp"><rect x="${cx - R - 10}" y="${cy - R - 10}" width="${2 * R + 20}" height="${2 * R + 20}" rx="14"/></clipPath></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7fa"/>`;
+  s += `<rect class="bg" x="${G.panel[0]}" y="${G.panel[1]}" width="${G.panel[2]}" height="${G.panel[3]}" rx="12" fill="#fbfdfe" stroke="#dde7ee" stroke-width="1"/>`;
+
+  /* --- iki ortam --- */
+  const x0 = cx - R - 10, w0 = 2 * R + 20;
+  s += `<g clip-path="url(#${u}kp)"><rect x="${x0}" y="${cy - R - 10}" width="${w0}" height="${R + 10}" fill="url(#${u}${c.g1})"/>` +
+    `<rect x="${x0}" y="${cy}" width="${w0}" height="${R + 10}" fill="url(#${u}${c.g2})"/></g>`;
+  s += `<line x1="${x0}" y1="${cy}" x2="${x0 + w0}" y2="${cy}" stroke="#7d93a3" stroke-width="1.6"/>`;
+  s += T(x0 + 8, cy - R + 8, `${c.ust} (n = ${sayi(c.n1, 2)})`, { size: 12.5, weight: 800, fill: '#35506a' });
+  s += T(x0 + 8, cy + R + 2, `${c.alt} (n = ${sayi(c.n2, 2)})`, { size: 12.5, weight: 800, fill: '#35506a' });
+
+  /* --- normal --- */
+  s += dashLine(cx, cy - R + 18, cx, cy + R - 16, NRM, '6 4', 1.3);
+  s += T(cx + 6, cy - R + 26, 'normal', { size: 12, weight: 700, fill: NRM });
+
+  /* --- ışınlar (ekran açıları: yukarı −90°) --- */
+  const L = R - 8, ai = v.i * D;
+  const gx = cx - L * Math.sin(ai), gy = cy - L * Math.cos(ai);
+  s += isin(gx, gy, cx, cy, { at: 0.5 });
+  // yansıyan ışın: kısmi yansımada soluk, tam yansımada parlak
+  s += isin(cx, cy, cx + L * Math.sin(ai), cy - L * Math.cos(ai), { op: tam ? 1 : 0.32, at: 0.6 });
+  if (!tam) { const ar = r * D; s += isin(cx, cy, cx + L * Math.sin(ar), cy + L * Math.cos(ar), { at: 0.6 }); }
+  s += `<circle cx="${cx}" cy="${cy}" r="3.4" fill="${P.ink}"/>`;
+
+  /* --- açı yayları ve etiketler --- */
+  const yI = 34, yR = 40;
+  if (v.i >= 3) {
+    s += yayCiz(cx, cy, yI, -90 - v.i, -90, '#9c2a5a');
+    const m = (-90 - v.i / 2) * D, rr = v.i >= 18 ? yI + 12 : yI + 14;
+    s += T(f1(cx + rr * Math.cos(m) - (v.i < 18 ? 8 : 0)), f1(cy + rr * Math.sin(m) + 4.5), 'i', { size: 15, anchor: 'middle', weight: 800, fill: '#9c2a5a', italic: true });
+  }
+  if (!tam && r >= 3) {
+    s += yayCiz(cx, cy, yR, 90 - r, 90, '#2b6c8f');
+    const m = (90 - r / 2) * D, rr = yR + 12;
+    s += T(f1(cx + rr * Math.cos(m) + (r < 18 ? 8 : 0)), f1(cy + rr * Math.sin(m) + 5), 'r', { size: 15, anchor: 'middle', weight: 800, fill: '#2b6c8f', italic: true });
+  }
+  if (tam) s += T(cx + 10, cy + 34, 'Tam yansıma:', { size: 13, weight: 800, fill: '#9c2a5a' }) + T(cx + 10, cy + 51, 'ışık alta geçemez.', { size: 13, weight: 800, fill: '#9c2a5a' });
+
+  /* --- r̂–î grafiği --- */
+  const gX = a => OX + a * G.G, gY = a => OY - a * G.G, E = 90 * G.G;
+  for (let a = 30; a <= 90; a += 30) s += `<line x1="${f1(gX(a))}" y1="${OY}" x2="${f1(gX(a))}" y2="${f1(gY(92))}" stroke="#e1e9ee"/><line x1="${OX}" y1="${f1(gY(a))}" x2="${f1(gX(92))}" y2="${f1(gY(a))}" stroke="#e1e9ee"/>`;
+  s += dashLine(OX, OY, f1(gX(90)), f1(gY(90)), '#b7c4cd', '4 4', 1.2);
+  const xe = OX + E + 12, ye = OY - E - 12;
+  s += `<line x1="${OX}" y1="${OY}" x2="${f1(xe)}" y2="${OY}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${f1(xe + 7)},${OY} ${f1(xe - 2)},${OY - 3.8} ${f1(xe - 2)},${OY + 3.8}" fill="${P.ink}"/>`;
+  s += `<line x1="${OX}" y1="${OY}" x2="${OX}" y2="${f1(ye)}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${OX},${f1(ye - 7)} ${OX - 3.8},${f1(ye + 2)} ${OX + 3.8},${f1(ye + 2)}" fill="${P.ink}"/>`;
+  s += T(f1(xe - 2), OY - 10, 'i (°)', { size: 13, weight: 700, anchor: 'end' });
+  s += T(OX + 8, f1(ye + 4), 'r (°)', { size: 13, weight: 700 });
+  s += T(OX - 5, OY + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  for (let a = 30; a <= 90; a += 30) s += T(f1(gX(a)), OY + 17, String(a), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 }) + T(OX - 7, f1(gY(a) + 4.3), String(a), { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  let d = '', son = 90;
+  if (ts !== null) son = ts;
+  for (let k = 0; k <= 60; k++) { const a = son * k / 60, rr = Math.asin(Math.min(1, c.n1 / c.n2 * Math.sin(a * D))) / D; d += (k ? 'L' : 'M') + f1(gX(a)) + ' ' + f1(gY(rr)); }
+  s += `<path d="${d}" fill="none" stroke="${LZ}" stroke-width="2.6" stroke-linecap="round"/>`;
+  if (ts !== null) {
+    s += dashLine(f1(gX(ts)), OY, f1(gX(ts)), f1(gY(90)), '#9c2a5a', '3 3', 1.3);
+    s += T(f1(gX(ts) + 5), f1(gY(37)), 'θ', { size: 13, weight: 800, fill: '#9c2a5a' }) + T(f1(gX(ts) + 13), f1(gY(37) + 4), 's', { size: 10, weight: 800, fill: '#9c2a5a' });
+    const sg = ts > 55, tx = f1(gX(ts) + (sg ? -6 : 6)), an = sg ? 'end' : 'start';
+    s += T(tx, f1(gY(sg ? 88 : 20)), 'tam', { size: 12, weight: 800, fill: '#9c2a5a', anchor: an }) + T(tx, f1(gY(sg ? 88 : 20) + 15), 'yansıma', { size: 12, weight: 800, fill: '#9c2a5a', anchor: an });
+  }
+  if (!tam) s += `<circle cx="${f1(gX(v.i))}" cy="${f1(gY(r))}" r="5.2" fill="${LZ}" stroke="#fff" stroke-width="1.6"/>`;
+  else s += `<circle cx="${f1(gX(v.i))}" cy="${OY}" r="5.2" fill="#fff" stroke="#9c2a5a" stroke-width="2"/>`;
+  return svg(W, H, s, u, o && o.dar ? 80 : 150);
+}
+
+window.BFY_SIM = window.BFY_SIM || {};
+const liste = window.BFY_SIM['Y.10.4'] = window.BFY_SIM['Y.10.4'] || [];
+liste.push(
+  {
+    id: 'kY104_sim1',
+    baslik: 'Gelme açısı büyüyünce kırılan ışına ne olur?',
+    sonra: 'Sınır açısı ve tam yansıma',
+    metin: 'Düğmelerle ışığın hangi ortamdan hangi ortama geçtiğini seç, kaydırıcıyla gelme açısını ($i$) değiştir. Kırılan ışını, soluk çizilen yansıyan ışını ve grafikteki noktayı izle. Grafikteki kesikli eğik doğru, kırılma açısının gelme açısına eşit olduğu ($r = i$) durumu gösterir; eğri bu doğrunun altındaysa ışık normale yaklaşıyor, üstündeyse normalden uzaklaşıyordur. Kırıcılık indisleri: hava 1,00; su 1,33; cam 1,50.',
+    pdfMetin: 'Şekilde ışık sudan havaya $40°$\'lik gelme açısıyla geçiyor ve normalden uzaklaşarak kırılıyor; ışığın bir kısmı da yansıyor. Grafik, sudan havaya geçişte kırılma açısının gelme açısıyla nasıl arttığını gösterir: Eğri $r = i$ doğrusunun üstündedir ve gelme açısı sınır açısına ulaşınca kırılma açısı $90°$ olur. Daha büyük gelme açılarında ışık tam yansıma yapar. Kırıcılık indisleri: hava 1,00; su 1,33.',
+    kontroller: [
+      { ad: 'i', etiket: 'Gelme açısı (i)', min: 0, max: 89, adim: 1, deger: 40, birim: '°' },
+      { ad: 'c', etiket: 'Ortam çifti', deger: 3, secenekler: [
+        { deger: 1, etiket: 'Havadan suya', alt: '1,00 → 1,33' },
+        { deger: 2, etiket: 'Havadan cama', alt: '1,00 → 1,50' },
+        { deger: 3, etiket: 'Sudan havaya', alt: '1,33 → 1,00' },
+        { deger: 4, etiket: 'Camdan havaya', alt: '1,50 → 1,00' },
+        { deger: 5, etiket: 'Camdan suya', alt: '1,50 → 1,33' }
+      ] }
+    ],
+    ciz: (v, u, o) => sahne(v, u, o),
+    olcumler: v => {
+      const r = kirilma(v), ts = sinir(v), m = [{ etiket: 'Gelme açısı (i)', deger: v.i, birim: '°', ondalik: 0 }];
+      if (r !== null) m.push({ etiket: 'Kırılma açısı (r)', deger: r, birim: '°', ondalik: 1 }, { etiket: 'Sapma miktarı', deger: Math.abs(r - v.i), birim: '°', ondalik: 1 });
+      if (ts !== null) m.push({ etiket: 'Sınır açısı (θs)', deger: ts, birim: '°', ondalik: 1 });
+      return m;
+    },
+    gorev: 'Sudan havaya geçişi seç ve gelme açısını yavaş yavaş artır: Kırılan ışın hangi açıdan sonra kaybolur, kaybolmadan hemen önce nasıl ilerler? Aynı denemeyi camdan havaya ve camdan suya geçişte de yap: Üç sınır açısını sırala ve sıralamayı kırıcılık indisleriyle açıkla. Önce tahmin et, sonra dene.',
+    gorevCevap: 'Sudan havaya geçişte gelme açısı yaklaşık $48{,}8°$\'yi aşınca kırılan ışın kaybolur; hemen önce yüzeyi yalayarak ilerler (kırılma açısı $90°$\'ye yaklaşır). Camdan havaya geçişte sınır açısı yaklaşık $41{,}8°$, camdan suya geçişte yaklaşık $62{,}5°$\'dir. Sıralama: cam–su > su–hava > cam–hava. İki ortamın kırıcılık indisleri birbirine ne kadar yakınsa sınır açısı o kadar büyüktür; havadan suya, havadan cama geçişte ise ışık az kırıcı ortamdan geldiği için hiçbir açıda tam yansıma olmaz.'
+  });
+})();
+
+/* 2) görünür derinlik */
+(function () {
+const { P, T, svg, dashLine } = window.BFY_FIGLIB;
+const sayi = (x, o) => window.BFY_SIM_ARAC.sayi(x, o);
+const D = Math.PI / 180;
+const f1 = v => (+v).toFixed(1);
+const RAY = '#e8590c', EXT = '#5b6f7c';
+
+const ORTAM = {
+  100: { ad: 'Hava (boş kap)', n: 1.00, d: ['#f7fbfe', '#eef5fa'], cizgi: '#9aa9b6' },
+  133: { ad: 'Su', n: 1.33, d: ['#bfe3f4', '#7db8da'], cizgi: '#2f7fb8' },
+  147: { ad: 'Ayçiçek yağı', n: 1.47, d: ['#fbe7a0', '#eec862'], cizgi: '#b07d0b' }
+};
+/* görünür derinlik: tam üstten bakan göze gelen çok dar ışın demetinin uzantılarının kesiştiği derinlik.
+   (Işın izleme: yüzeyde Snell Yasası; açılar sıfıra giderken kesişim noktası.) */
+const gorunur = v => { if (v.o === 100) return v.h; const a = 0.2 * D, aw = Math.asin(Math.sin(a) / ORTAM[v.o].n); return v.h * Math.tan(aw) / Math.tan(a); };
+
+/* yerleşim: geniş 560 × 320 (kap solda, karşılaştırma paneli sağda), dar 300 × 556 (panel altta) */
+const GENIS = { W: 560, H: 320, k: 3.4, cx: 132, yb: 290, x0: 52, x1: 212, OX: 330, OY: 280, G: 3.5, panel: [282, 12, 266, 296], gozY: 30 };
+const DAR = { W: 300, H: 556, k: 3.4, cx: 150, yb: 290, x0: 70, x1: 230, OX: 64, OY: 518, G: 2.75, panel: [10, 318, 280, 230], gozY: 30 };
+
+function goz(x, y) {   // aşağı bakan göz
+  return `<path d="M${x - 13} ${y} Q${x} ${y - 10} ${x + 13} ${y} Q${x} ${y + 10} ${x - 13} ${y}Z" fill="#fff" stroke="${P.ink}" stroke-width="1.5"/>` +
+    `<circle cx="${x}" cy="${y + 2}" r="4.6" fill="#1c7ed6"/><circle cx="${x}" cy="${y + 2.6}" r="2" fill="${P.ink}"/>`;
+}
+
+function sahne(v, u, o) {
+  const G = o && o.dar ? DAR : GENIS, { W, H, k, cx, yb, x0, x1, OX, OY } = G, or = ORTAM[v.o];
+  const ys = yb - v.h * k, hg = gorunur(v), yg = yb - (v.h - hg) * k;   // yüzey ve görüntünün ekran y'si
+  let s = `<defs><linearGradient id="${u}sv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${or.d[0]}"/><stop offset="1" stop-color="${or.d[1]}"/></linearGradient>` +
+    `<linearGradient id="${u}cn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbe6a2"/><stop offset=".55" stop-color="#d9ad45"/><stop offset="1" stop-color="#a87a1c"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7fa"/>`;
+  s += `<rect class="bg" x="${G.panel[0]}" y="${G.panel[1]}" width="${G.panel[2]}" height="${G.panel[3]}" rx="12" fill="#fbfdfe" stroke="#dde7ee" stroke-width="1"/>`;
+  // kap ve ortam
+  const yt = yb - 64 * k;
+  s += `<rect x="${x0}" y="${f1(ys)}" width="${x1 - x0}" height="${f1(yb - ys)}" fill="url(#${u}sv)"/>`;
+  if (v.o !== 100) s += `<line x1="${x0}" y1="${f1(ys)}" x2="${x1}" y2="${f1(ys)}" stroke="${or.cizgi}" stroke-width="1.8"/>`;
+  else s += dashLine(x0, f1(ys), x1, f1(ys), or.cizgi, '5 4', 1.2);
+  s += `<path d="M${x0 - 3} ${f1(yt)} V${yb + 3} H${x1 + 3} V${f1(yt)}" fill="none" stroke="#7a8a95" stroke-width="3" stroke-linejoin="round"/>`;
+  s += T((x0 + x1) / 2, yb + 20, `${or.ad}`, { size: 12.5, anchor: 'middle', weight: 800, fill: or.cizgi === '#9aa9b6' ? P.ink2 : or.cizgi });
+
+  // ışınlar: paradan iki yana (havada ±8°), yüzeyde kırılır; uzantılar görüntüde birleşir
+  const a = 8 * D, aw = Math.asin(Math.sin(a) / or.n), xs = v.h * k * Math.tan(aw), yG = G.gozY + 14;
+  const yUz = yb - (v.h - v.h * Math.tan(aw) / Math.tan(a)) * k;            // bu ışınlar için uzantı kesişimi
+  [-1, 1].forEach(sg => {
+    const Sx = cx + sg * xs, ex = Sx + sg * (ys - yG) * Math.tan(a);
+    s += `<line x1="${cx}" y1="${yb - 4}" x2="${f1(Sx)}" y2="${f1(ys)}" stroke="${RAY}" stroke-width="1.8"/>`;
+    s += `<line x1="${f1(Sx)}" y1="${f1(ys)}" x2="${f1(ex)}" y2="${f1(yG)}" stroke="${RAY}" stroke-width="1.8"/>`;
+    // ok başı havadaki parçanın ortasında
+    const mx = (Sx + ex) / 2, my = (ys + yG) / 2, L = Math.hypot(ex - Sx, yG - ys), ux = (ex - Sx) / L, uy = (yG - ys) / L;
+    if (L > 30) s += `<polygon points="${f1(mx + ux * 5)},${f1(my + uy * 5)} ${f1(mx - ux * 4 - uy * 4)},${f1(my - uy * 4 + ux * 4)} ${f1(mx - ux * 4 + uy * 4)},${f1(my - uy * 4 - ux * 4)}" fill="${RAY}"/>`;
+    if (v.o !== 100) s += dashLine(f1(Sx), f1(ys), cx, f1(yUz), EXT, '4 3', 1.2);
+  });
+  // para ve görüntüsü
+  s += `<ellipse cx="${cx}" cy="${yb - 4}" rx="11" ry="3.6" fill="url(#${u}cn)" stroke="#a87a1c" stroke-width=".8"/>`;
+  if (v.o !== 100) s += `<ellipse cx="${cx}" cy="${f1(yg)}" rx="11" ry="3.6" fill="#f2d27a" opacity=".55" stroke="#a87a1c" stroke-width=".8" stroke-dasharray="2 1.5"/>`;
+  s += goz(cx, G.gozY);
+  // derinlik okları: gerçek (solda), görünür (sağda)
+  const ok = (x, y1, y2, c, lab, sol) => {
+    let t = `<line x1="${x}" y1="${f1(y1 + 6)}" x2="${x}" y2="${f1(y2 - 6)}" stroke="${c}" stroke-width="1.4"/>` +
+      `<polygon points="${x},${f1(y1)} ${x - 3.2},${f1(y1 + 7)} ${x + 3.2},${f1(y1 + 7)}" fill="${c}"/><polygon points="${x},${f1(y2)} ${x - 3.2},${f1(y2 - 7)} ${x + 3.2},${f1(y2 - 7)}" fill="${c}"/>`;
+    return t + T(sol ? x - 7 : x + 7, f1((y1 + y2) / 2 + 4.5), lab, { size: 13, anchor: sol ? 'end' : 'start', weight: 800, fill: c });
+  };
+  s += ok(x0 - 14, ys, yb - 4, P.ink, 'h', true);
+  if (v.o !== 100) {
+    s += dashLine(cx + 13, f1(yg), x1 + 8, f1(yg), EXT, '3 3', 1);
+    s += ok(x1 + 14, ys, yg, EXT, 'h′', false);
+  }
+
+  // nitel karşılaştırma paneli: aynı gerçek derinlikte üç ortamda para nerede görünür (sayı ve ölçek yok)
+  const [px, py, pw, ph] = G.panel, yT = py + 46, yB = py + ph - 40, kk = (yB - yT) / 64;
+  s += T(px + pw / 2, py + 26, 'Aynı derinlikte para nerede görünür?', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+  [100, 133, 147].forEach((key, j) => {
+    const om = ORTAM[key], sec = key === v.o, xc = px + pw * (2 * j + 1) / 6, bw = Math.min(46, pw / 3 - 26);
+    const yz = yT + v.h * kk, hgj = gorunur({ h: v.h, o: key }), yi = yT + hgj * kk;
+    if (sec) s += `<rect x="${f1(xc - pw / 6 + 5)}" y="${f1(yT - 12)}" width="${f1(pw / 3 - 10)}" height="${f1(yB - yT + 46)}" rx="9" fill="#fff4e6" stroke="${RAY}" stroke-width="1.4"/>`;
+    s += `<rect x="${f1(xc - bw / 2)}" y="${f1(yT)}" width="${f1(bw)}" height="${f1(v.h * kk)}" fill="${om.d[1]}" opacity="${key === 100 ? 1 : 0.75}"/>`;
+    s += `<line x1="${f1(xc - bw / 2 - 4)}" y1="${f1(yT)}" x2="${f1(xc + bw / 2 + 4)}" y2="${f1(yT)}" stroke="${om.cizgi}" stroke-width="1.8"/>`;
+    s += `<path d="M${f1(xc - bw / 2)} ${f1(yT - 6)} V${f1(yz + 3)} H${f1(xc + bw / 2)} V${f1(yT - 6)}" fill="none" stroke="#7a8a95" stroke-width="2"/>`;
+    s += `<ellipse cx="${f1(xc)}" cy="${f1(yz - 3)}" rx="9" ry="3" fill="url(#${u}cn)" stroke="#a87a1c" stroke-width=".8"/>`;
+    if (key !== 100) {
+      s += `<ellipse cx="${f1(xc)}" cy="${f1(yi)}" rx="9" ry="3" fill="#f2d27a" opacity=".6" stroke="#a87a1c" stroke-width=".8" stroke-dasharray="2 1.5"/>`;
+      if (yz - 3 - yi > 14) s += `<line x1="${f1(xc)}" y1="${f1(yz - 8)}" x2="${f1(xc)}" y2="${f1(yi + 9)}" stroke="${EXT}" stroke-width="1.3"/><polygon points="${f1(xc)},${f1(yi + 4)} ${f1(xc - 3.2)},${f1(yi + 10)} ${f1(xc + 3.2)},${f1(yi + 10)}" fill="${EXT}"/>`;
+    }
+    s += T(f1(xc), f1(yB + 22), key === 100 ? 'Boş kap' : key === 133 ? 'Su' : 'Yağ', { size: 12.5, anchor: 'middle', weight: sec ? 800 : 600, fill: sec ? P.ink : P.ink2 });
+  });
+  return svg(W, H, s, u, o && o.dar ? 80 : 150);
+}
+
+window.BFY_SIM = window.BFY_SIM || {};
+const liste = window.BFY_SIM['Y.10.4'] = window.BFY_SIM['Y.10.4'] || [];
+liste.push(
+  {
+    id: 'kY104_sim2',
+    baslik: 'Kabın dibindeki para ne kadar yukarıda görünür?',
+    sonra: 'Görünür uzaklık',
+    metin: 'Kaydırıcıyla kaptaki saydam sıvının yüksekliğini (gerçek derinlik $h$), düğmelerle sıvının cinsini değiştir. Göz paraya tam üstten bakıyor. Paradan çıkan iki ışın yüzeyde kırılır; kesikli uzantıları, soluk çizilen görüntünün yerinde birleşir. Karşılaştırma paneli, aynı derinlikte boş kapta, suda ve yağda paranın nerede göründüğünü yan yana gösterir.',
+    pdfMetin: 'Şekilde kabın dibindeki paraya tam üstten bakılıyor; kapta 40 cm yüksekliğinde su vardır. Paradan çıkan ışınlar yüzeyde normalden uzaklaşarak kırılır; uzantıları paranın üstünde birleşir ve para olduğundan daha yukarıda görünür. Karşılaştırma paneli, aynı derinlikte boş kapta, suda ve ayçiçek yağında paranın nerede göründüğünü karşılaştırır.',
+    kontroller: [
+      { ad: 'h', etiket: 'Gerçek derinlik (h)', min: 10, max: 60, adim: 2, deger: 40, birim: 'cm' },
+      { ad: 'o', etiket: 'Kaptaki ortam', deger: 133, secenekler: [
+        { deger: 100, etiket: 'Boş kap', alt: 'hava' },
+        { deger: 133, etiket: 'Su', alt: 'n = 1,33' },
+        { deger: 147, etiket: 'Ayçiçek yağı', alt: 'n = 1,47' }
+      ] }
+    ],
+    ciz: (v, u, o) => sahne(v, u, o),
+    olcumler: v => [
+      { etiket: 'Gerçek derinlik', deger: v.h, birim: 'cm', ondalik: 0 },
+      { etiket: 'Kaptaki ortamın kırıcılık indisi', deger: ORTAM[v.o].n, birim: '', ondalik: 2 }
+    ],
+    gorev: 'Su seçiliyken gerçek derinliği 20 cm\'den 60 cm\'ye çıkar: Para hep olduğundan yukarıda mı görünüyor, gerçek ve görünür konum arasındaki fark büyüyor mu, küçülüyor mu? Sonra aynı derinlikte ayçiçek yağını ve boş kabı seç: Hangisinde para en yukarıda görünür? Önce tahmin et, sonra dene.',
+    gorevCevap: 'Su doluyken para her derinlikte olduğundan yukarıda görünür ve gerçek derinlik arttıkça paranın yukarı kayma miktarı da artar. Aynı derinlikte ayçiçek yağında para daha da yukarıda görünür, çünkü yağın kırıcılık indisi suyunkinden büyüktür. Boş kapta ışınlar kırılmaz ve para olduğu yerde görülür.'
+  });
+})();
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.2.1 Madde ve Özkütle — şekiller
    Önek: kY21_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY21_ (tanım ve efsane çizimleri; 3B izometrik).
    Kurallar: sıvı yüzeyleri yatay; dereceli kapların çizgileri eşit aralıklı ve okunur; grafiklerde eksen adı okun
