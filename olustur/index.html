@@ -435,7 +435,7 @@ table.etk-sn.g2 th:first-child{width:52%} table.etk-sn.g3 th:first-child{width:4
 .dn-son{border-top:1.5px solid var(--ink);padding-top:8px;margin-top:2px}
 .ds-yazi{text-align:center;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
 .ds-optik{display:flex;align-items:center;gap:12px;border:1.4px solid #9fb0a8;border-radius:10px;padding:7px 10px}
-.ds-et{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);width:62px;flex:none}
+.ds-et{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--ink2);width:auto;white-space:nowrap;flex:none}
 .ds-izg{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:6px 10px;flex:1}
 .ds-s{display:flex;align-items:center;gap:3px}
 .ds-s i{font-style:normal;font-weight:800;font-size:11.5px;min-width:17px}
@@ -113379,7 +113379,7 @@ function dnDagilim(ts) {
 function dnBasBlok(t, harf, ab) {
   return `<div class="blk dn-bas">
     <div class="db-ust"><span class="db-marka">${UR.ad.toLocaleUpperCase('tr-TR')}</span><span class="db-kod">${esc(t.id)}${ab ? ` <b>${harf} KİTAPÇIĞI</b>` : ''}</span></div>
-    <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${dnTarama(t) ? 'Ünite taraması' : 'Temel Yeterlilik Testi – Fen Bilimleri: Fizik'}${S.mod === 'ogretmen' && S.okul.trim() ? ' – ' + esc(S.okul.trim()) : ''}</div></div>
+    <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${dnTarama(t) ? 'Ünite taraması' : (UR.sinav === 'AYT' ? 'Alan Yeterlilik Testi – Fen Bilimleri: Fizik' : 'Temel Yeterlilik Testi – Fen Bilimleri: Fizik')}${S.mod === 'ogretmen' && S.okul.trim() ? ' – ' + esc(S.okul.trim()) : ''}</div></div>
       <div class="db-sure"><b>${dnSure(t)}</b><span>dakika</span></div></div>
     <table class="db-tab"><tr><th>Adı Soyadı</th><td class="db-genis">${S.mod === 'ogrenci' && S.ad.trim() ? esc(S.ad.trim()) : ''}</td><th>Sınıfı / No</th><td class="db-orta-h"></td><th>D</th><td class="db-k"></td><th>Y</th><td class="db-k"></td><th>Net</th><td class="db-k"></td></tr></table>
     <div class="db-yon"><span>Bu testte <b>${t.sorular.length} soru</b> vardır. Her sorunun tek doğru cevabı vardır. Net = D − Y ÷ 4.</span><span class="db-saat">Başlama <i></i> Bitiş <i></i></span></div>
@@ -113398,7 +113398,8 @@ function dnSoruHTML(q, no, tam) {
     if (uzun) tablo = tablo.replace('class="vt yatay"', 'class="vt yatay genis"');
   }
   const ctx = { tablo, sekil: fig ? `<div class="dn-sekil">${fig}</div>` : '' };
-  const ops = q.sira.map(i => q.secenekler[i]), maxL = Math.max(...ops.map(plainLen));
+  // Yerleşim uzunluğu: formül dışındaki boşluklar da sayılır ki "10 ve 3" gibi ikili şıklar dar sütuna konup bölünmesin.
+  const ops = q.sira.map(i => q.secenekler[i]), maxL = Math.max(...ops.map(o => plainLen(o) + (String(o).replace(/\$[^$]*\$/g, 'x').match(/ /g) || []).length));
   const kol = tam ? (maxL <= 9 ? 'k5' : maxL <= 26 ? 'k2' : 'k1') : maxL <= 5 ? 'k5' : 'k1';
   return `<div class="blk dn-soru${tam ? ' tam' : ''}"><div class="dn-no">${no}.</div><div class="dn-ic"><div class="q-metin">${md(metin, ctx)}</div><ol class="sec dn-sec ${kol}">${ops.map((o, i) => `<li><b>${HARF[i]})</b><span>${inline(o)}</span></li>`).join('')}</ol></div></div>`;
 }
