@@ -23060,6 +23060,1543 @@ liste.push({
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.7.3 Mıknatıslar, Akım ve Manyetik Alan — şekiller
+   Önek: kY73_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY73_ (tanım ve efsane çizimleri; 3B izometrik).
+   Kurallar: üstten görünüşlerde kuzey sayfanın üstüdür (K oku); ⊙ sayfa düzleminden dışarı, ⊗ içeri.
+   Mıknatıs: N kırmızı, S mavi; kutbu bilinmeyen mıknatıs gri. Pusula iğnesinin kırmızı ucu N ucudur.
+   Alan çizgileri ve pusula yönleri elle değil, kutup modelinden (B ∝ q r̂ / r²) ya da düz telin
+   alanından (B = I × r̂) hesaplanarak çizilir. Doğrulama için SVG'ye data-pusula, data-tel, data-nokta, data-ok
+   öznitelikleri yazılır (qa/Y.7.3/dogrula.py şekildeki çizimi okur).
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f4f7f9', NK = '#d24b3e', SK = '#2f6fb8', GRI = '#8d98a0', ALAN = '#2f7fb8', AKIM = '#d9573b', TEL = '#b8743f';
+const D2R = Math.PI / 180;
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+let NN = 0;
+const yeniId = (u, ad) => `${u}${ad}${++NN}`;
+
+/* ---------- pusula: merkez (cx, cy), yarıçap r, N ucunun ekrandaki yönü a (derece; 0 = sağ/doğu, 90 = yukarı/kuzey) ---------- */
+function pusula(u, cx, cy, r, a, o = {}) {
+  const id = yeniId(u, 'pu'), ux = Math.cos(a * D2R), uy = -Math.sin(a * D2R), px = -uy, py = ux, L = r * 0.8, w = r * 0.2;
+  let s = `<g data-pusula="${f1(cx)},${f1(cy)},${f1(a)}"${o.ad ? ` data-ad="${o.ad}"` : ''}>`;
+  s += `<defs><radialGradient id="${id}" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3e9ee"/></radialGradient></defs>`;
+  s += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${r}" fill="url(#${id})" stroke="#55626b" stroke-width="1.5"/>`;
+  s += `<polygon points="${f1(cx + ux * L)},${f1(cy + uy * L)} ${f1(cx + px * w)},${f1(cy + py * w)} ${f1(cx - px * w)},${f1(cy - py * w)}" fill="${NK}" stroke="#8a2716" stroke-width=".6"/>`;
+  s += `<polygon points="${f1(cx - ux * L)},${f1(cy - uy * L)} ${f1(cx + px * w)},${f1(cy + py * w)} ${f1(cx - px * w)},${f1(cy - py * w)}" fill="#e9edf0" stroke="#55626b" stroke-width=".6"/>`;
+  s += `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(Math.max(1.6, r * 0.1))}" fill="#55626b"/>`;
+  return s + '</g>';
+}
+/* ⊙ ve ⊗ (akım ya da alan) */
+function odot(x, y, r, c, data) {
+  return `<g${data ? ` ${data}` : ''}><circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="#fff" stroke="${c}" stroke-width="1.8"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r * 0.28)}" fill="${c}"/></g>`;
+}
+function otimes(x, y, r, c, data) {
+  const k = r * 0.58;
+  return `<g${data ? ` ${data}` : ''}><circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="#fff" stroke="${c}" stroke-width="1.8"/><path d="M${f1(x - k)} ${f1(y - k)} L${f1(x + k)} ${f1(y + k)} M${f1(x + k)} ${f1(y - k)} L${f1(x - k)} ${f1(y + k)}" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/></g>`;
+}
+/* sayfaya dik tel kesiti: bakır daire ve akım işareti */
+function telKesit(x, y, yon, r = 9) {
+  const d = `data-tel="${f1(x)},${f1(y)},${yon}"`;
+  return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r + 3}" fill="${TEL}" opacity=".35"/>` + (yon === 'disari' ? odot(x, y, r, AKIM, d) : yon === 'iceri' ? otimes(x, y, r, AKIM, d) : `<g ${d}><circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${TEL}" stroke="#7d4a27" stroke-width="1.4"/></g>`);
+}
+/* yatay çubuk mıknatıs: sol üst (x, y), boy L, kalınlık h; sol: 'N' | 'S' | null (gri, kutbu bilinmiyor) */
+function cubuk(u, x, y, L, h, sol, o = {}) {
+  const id = yeniId(u, 'cb');
+  let s = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient></defs>`;
+  if (!sol) {
+    s += `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(L)}" height="${f1(h)}" rx="3" fill="${o.renk || GRI}" stroke="#4f5a62" stroke-width="1.2"/>`;
+  } else {
+    const c1 = sol === 'N' ? NK : SK, c2 = sol === 'N' ? SK : NK, k1 = sol, k2 = sol === 'N' ? 'S' : 'N';
+    s += `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(L / 2)}" height="${f1(h)}" rx="3" fill="${c1}" stroke="${o.kenar || '#3d1a14'}" stroke-width="1.1"/>`;
+    s += `<rect x="${f1(x + L / 2)}" y="${f1(y)}" width="${f1(L / 2)}" height="${f1(h)}" rx="3" fill="${c2}" stroke="${o.kenar || '#123f66'}" stroke-width="1.1"/>`;
+    if (o.etiket !== false) {
+      s += T(x + L * 0.16, y + h / 2 + 5, k1, { size: o.ks || 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+      s += T(x + L * 0.84, y + h / 2 + 5, k2, { size: o.ks || 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+    }
+  }
+  return `<g data-miknatis="${f1(x)},${f1(y)},${f1(L)},${f1(h)},${sol || '?'}">` + s + `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(L)}" height="${f1(h)}" rx="3" fill="url(#${id})"/></g>`;
+}
+/* kutup modeli: kutuplar [{x, y, q}] (q = +1 N, −1 S); ekran koordinatında B (y aşağı) */
+function alanK(px, py, K) {
+  let bx = 0, by = 0;
+  for (const k of K) { const dx = px - k.x, dy = py - k.y, r2 = dx * dx + dy * dy, r3 = Math.pow(r2, 1.5) || 1e-9; bx += k.q * dx / r3; by += k.q * dy / r3; }
+  return [bx, by];
+}
+const acisi = (bx, by) => Math.atan2(-by, bx) / D2R;   // ekran vektörünün açısı (y yukarı pozitif)
+/* alan çizgisi izleme (RK2); kutup çevresinden başlar, S kutbuna (ya da kenara) varınca durur */
+function izle(x0, y0, K, sinir, o = {}) {
+  const h = o.adim || 2, yon = o.geri ? -1 : 1, pts = [[x0, y0]];
+  let x = x0, y = y0;
+  for (let i = 0; i < (o.max || 900); i++) {
+    let [bx, by] = alanK(x, y, K); let n = Math.hypot(bx, by) || 1;
+    const mx = x + yon * h / 2 * bx / n, my = y + yon * h / 2 * by / n;
+    [bx, by] = alanK(mx, my, K); n = Math.hypot(bx, by) || 1;
+    x += yon * h * bx / n; y += yon * h * by / n;
+    pts.push([x, y]);
+    if (x < sinir[0] || x > sinir[2] || y < sinir[1] || y > sinir[3]) break;
+    if (K.some(k => (o.geri ? k.q > 0 : k.q < 0) && Math.hypot(x - k.x, y - k.y) < (o.dur || 5))) break;
+  }
+  return pts;
+}
+const yol = pts => pts.map((p, i) => (i ? 'L' : 'M') + f1(p[0]) + ' ' + f1(p[1])).join(' ');
+/* çizginin uzunluğunun t kesrindeki noktaya, çizgi yönünde ok başı */
+function okBasi(pts, t, c, b = 6) {
+  let L = 0; const d = [0];
+  for (let i = 1; i < pts.length; i++) { L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); d.push(L); }
+  const hedef = L * t; let i = d.findIndex(v => v >= hedef); if (i < 1) i = 1;
+  const [x1, y1] = pts[i - 1], [x2, y2] = pts[i], dx = x2 - x1, dy = y2 - y1, n = Math.hypot(dx, dy) || 1, ux = dx / n, uy = dy / n;
+  return `<polygon points="${f1(x2 + ux * b * 0.6)},${f1(y2 + uy * b * 0.6)} ${f1(x2 - ux * b * 0.7 - uy * b * 0.55)},${f1(y2 - uy * b * 0.7 + ux * b * 0.55)} ${f1(x2 - ux * b * 0.7 + uy * b * 0.55)},${f1(y2 - uy * b * 0.7 - ux * b * 0.55)}" fill="${c}"/>`;
+}
+/* bir mıknatısın N kutbundan çıkan çizgiler: açılar (derece, ekranda), ok konumu */
+function cizgiler(K, n, sinir, o = {}) {
+  let s = '';
+  for (const k of (o.kaynak || K).filter(k => (o.ters ? k.q < 0 : k.q > 0))) {
+    for (const a of o.acilar || Array.from({ length: n }, (_, i) => 360 * i / n)) {
+      const x0 = k.x + 6 * Math.cos(a * D2R), y0 = k.y - 6 * Math.sin(a * D2R);
+      const pts = izle(x0, y0, K, sinir, { geri: o.ters, dur: o.dur, max: o.max });
+      if (pts.length < 4) continue;
+      s += `<path d="${yol(pts)}" fill="none" stroke="${o.renk || ALAN}" stroke-width="${o.w || 1.3}" stroke-linecap="round"${o.kesik ? ` stroke-dasharray="${o.kesik}"` : ''} opacity="${o.op || 0.85}"/>`;
+      if (o.ok !== false) s += okBasi(o.ters ? pts.slice().reverse() : pts, o.okT || 0.5, o.renk || ALAN);
+    }
+  }
+  return s;
+}
+const kuzey = (x, y) => `<g>${arrow(x, y + 18, x, y - 6, { color: P.ink, w: 1.8, head: 7, headW: 4 })}${T(x, y + 32, 'K', { size: 12, anchor: 'middle', weight: 800 })}</g>`;
+const nokta = (ad, x, y, o = {}) => `<g data-nokta="${ad},${f1(x)},${f1(y)}"><circle cx="${f1(x)}" cy="${f1(y)}" r="${o.r || 3.4}" fill="${o.c || P.ink}"/></g>` + (o.et === false ? '' : T(x + (o.dx ?? 8), y + (o.dy ?? -6), ad, { size: o.size || 13, weight: 800, anchor: o.anchor || 'start', fill: o.c || P.ink }));
+const okD = (ad, x1, y1, x2, y2, c, o = {}) => `<g data-ok="${ad},${f1(x1)},${f1(y1)},${f1(x2)},${f1(y2)}">${arrow(f1(x1), f1(y1), f1(x2), f1(y2), Object.assign({ color: c, w: 2.2, head: 8, headW: 4.6 }, o))}</g>`;
+
+/* ================= NOT ŞEKİLLERİ ================= */
+/* Çubuk mıknatısın alan çizgileri ve pusulalar (sol); karşılıklı aynı ve zıt kutuplar (sağ) */
+BFY_FIG_EKLE('kY73_cubuk_genis', function (u) {
+  const W = 560, H = 252;
+  let s = zemin(W, H) + `<rect class="bg" x="292" y="10" width="258" height="232" rx="12" fill="#fbfdfe" stroke="#dde7ee"/>`;
+  /* sol: N solda, S sağda; kapanan çizgiler N'den, kenara kaçanlar hem N'den hem (geriye doğru) S'den izlenir */
+  const K = [{ x: 104, y: 116, q: 1 }, { x: 196, y: 116, q: -1 }], sn = [10, 12, 282, 212];
+  [40, 75, 110, 140, 165].forEach(a => [a, -a].forEach(b => {
+    const pts = izle(104 + 6 * Math.cos(b * D2R), 116 - 6 * Math.sin(b * D2R), K, sn);
+    s += `<path d="${yol(pts)}" fill="none" stroke="${ALAN}" stroke-width="1.3" opacity=".85"/>` + okBasi(pts, a > 150 ? 0.3 : 0.5, ALAN);
+    const son = pts[pts.length - 1];
+    if (Math.hypot(son[0] - 196, son[1] - 116) > 8) {   // kaçtı: S tarafının ayna çizgisini geriye doğru izle
+      const g = izle(196 - 6 * Math.cos(b * D2R), 116 - 6 * Math.sin(b * D2R), K, sn, { geri: true });
+      s += `<path d="${yol(g)}" fill="none" stroke="${ALAN}" stroke-width="1.3" opacity=".85"/>` + okBasi(g.slice().reverse(), 0.7, ALAN);
+    }
+  }));
+  s += `<path d="M118 116 L182 116" stroke="${ALAN}" stroke-width="1.3" opacity=".85"/>`;
+  s += cubuk(u, 92, 104, 116, 24, 'N');
+  s += pusula(u, 36, 116, 13, acisi(...alanK(36, 116, K)), { ad: 'sol' }) + pusula(u, 150, 36, 13, acisi(...alanK(150, 36, K)), { ad: 'ust' }) + pusula(u, 264, 116, 13, acisi(...alanK(264, 116, K)), { ad: 'sag' });
+  s += T(150, 236, 'Dışarıda N → S, içeride S → N', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  /* sağ üst: zıt kutuplar karşılıklı */
+  const Z = [{ x: 330, y: 62, q: -1 }, { x: 392, y: 62, q: 1 }, { x: 448, y: 62, q: -1 }, { x: 510, y: 62, q: 1 }];
+  s += cizgiler(Z, 0, [298, 18, 544, 104], { kaynak: [Z[1]], acilar: [-60, -30, 0, 30, 60], okT: 0.5, w: 1.2 });
+  s += cubuk(u, 318, 52, 86, 20, 'S', { ks: 12 }) + cubuk(u, 436, 52, 86, 20, 'S', { ks: 12 });
+  s += T(421, 118, 'zıt kutuplar: çizgiler birleşir (çeker)', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  /* sağ alt: aynı kutuplar karşılıklı */
+  const A = [{ x: 330, y: 178, q: -1 }, { x: 392, y: 178, q: 1 }, { x: 448, y: 178, q: 1 }, { x: 510, y: 178, q: -1 }], sa = [298, 132, 544, 218];
+  s += cizgiler(A, 0, sa, { kaynak: [A[1]], acilar: [-55, -30, -10, 10, 30, 55], okT: 0.45, w: 1.2 });
+  s += cizgiler(A, 0, sa, { kaynak: [A[2]], acilar: [125, 150, 170, 190, 210, 235], okT: 0.45, w: 1.2 });
+  s += cubuk(u, 318, 168, 86, 20, 'S', { ks: 12 }) + cubuk(u, 436, 168, 86, 20, 'N', { ks: 12 });
+  s += T(421, 234, 'aynı kutuplar: çizgiler ayrışır (iter)', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 150);
+});
+
+/* Akım geçen düz telin alanı: karton üzerinde dairesel çizgiler (sol), ⊙ ⊗ gösterimi ve sayfa düzlemindeki tel (sağ) */
+BFY_FIG_EKLE('kY73_tel_genis', function (u) {
+  const W = 560, H = 236;
+  let s = zemin(W, H) + `<rect class="bg" x="292" y="10" width="258" height="216" rx="12" fill="#fbfdfe" stroke="#dde7ee"/>`;
+  /* sol: eğik görünüşte yatay karton ve düşey tel (akım yukarı) */
+  const cx = 146, cy = 140, k = 0.36;
+  s += `<polygon points="30,${cy + 34} 72,${cy - 38} 262,${cy - 38} 220,${cy + 34}" fill="#fbf6ea" stroke="#c9b48a" stroke-width="1.2"/>`;
+  s += `<line x1="${cx}" y1="${cy}" x2="${cx}" y2="${H - 8}" stroke="${TEL}" stroke-width="5" stroke-linecap="round" opacity=".55"/>`;
+  [26, 50, 74].forEach((r, i) => {
+    s += `<ellipse cx="${cx}" cy="${cy}" rx="${r * 1.25}" ry="${f1(r * 1.25 * k)}" fill="none" stroke="${ALAN}" stroke-width="1.5"/>`;
+    // üstten bakınca saat yönünün tersi: önde (aşağıda) sağa, arkada (yukarıda) sola
+    const ox = cx, oy = cy + r * 1.25 * k, ay = cy - r * 1.25 * k;
+    s += `<polygon points="${ox + 6},${f1(oy)} ${ox - 3},${f1(oy - 3.6)} ${ox - 3},${f1(oy + 3.6)}" fill="${ALAN}"/>`;
+    if (i === 2) s += `<polygon points="${ox - 6},${f1(ay)} ${ox + 3},${f1(ay - 3.6)} ${ox + 3},${f1(ay + 3.6)}" fill="${ALAN}"/>`;
+  });
+  s += `<line x1="${cx}" y1="18" x2="${cx}" y2="${cy}" stroke="${TEL}" stroke-width="5" stroke-linecap="round"/>`;
+  s += arrow(cx + 14, 92, cx + 14, 40, { color: AKIM, w: 2.4, head: 8, headW: 4.6 }) + T(cx + 22, 64, 'I', { size: 15, weight: 800, fill: AKIM, italic: true });
+  s += T(232, 196, 'B', { size: 15, weight: 800, fill: ALAN, italic: true }) + T(40, 40, 'karton', { size: 12, weight: 700, fill: P.ink2 });
+  s += T(146, 228, 'Çizgiler teli saran çemberlerdir', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  /* sağ üst: kesit görünüşleri */
+  const kes = (x, y, yon) => {
+    let t = '';
+    [20, 34].forEach(r => {
+      t += `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${ALAN}" stroke-width="1.4"/>`;
+      // ⊙: saat yönünün tersi (sağda yukarı); ⊗: saat yönünde (sağda aşağı)
+      const ax = x + r, d = yon === 'disari' ? -1 : 1;
+      t += `<polygon points="${ax},${y + d * 6} ${ax - 3.6},${y - d * 3} ${ax + 3.6},${y - d * 3}" fill="${ALAN}"/>`;
+    });
+    return t + telKesit(x, y, yon, 8);
+  };
+  s += kes(360, 62, 'disari') + kes(482, 62, 'iceri');
+  s += T(360, 116, '⊙ akım dışarı', { size: 12, anchor: 'middle', weight: 800, fill: P.ink }) + T(482, 116, '⊗ akım içeri', { size: 12, anchor: 'middle', weight: 800, fill: P.ink });
+  /* sağ alt: sayfa düzlemindeki tel, akım sağa */
+  s += `<line x1="306" y1="178" x2="536" y2="178" stroke="${TEL}" stroke-width="4.5" stroke-linecap="round"/>`;
+  s += arrow(400, 178, 446, 178, { color: AKIM, w: 2.6, head: 9, headW: 5 }) + T(452, 172, 'I', { size: 15, weight: 800, fill: AKIM, italic: true });
+  [330, 380, 480, 520].forEach(x => { s += odot(x, 150, 7, ALAN); s += otimes(x, 206, 7, ALAN); });
+  s += T(430, 154, 'üstte ⊙', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(430, 210, 'altta ⊗', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 150);
+});
+
+/* Dünya'nın manyetik alanı: içte hayalî çubuk mıknatıs (S coğrafi kuzeye yakın), eğik manyetik eksen */
+function dunyaCiz(u, W, H, cx, cy, R, egik, o = {}) {
+  let s = '';
+  const t = egik * D2R, ex = Math.sin(t), ey = -Math.cos(t);       // manyetik eksenin kuzey ucu yönü (ekran)
+  /* dipol alan çizgileri r = L R sin²θ (θ manyetik eksenden) */
+  const Ls = o.L || [1.45, 1.9, 2.6];
+  Ls.forEach((Lk, j) => [1, -1].forEach(yan => {
+    const pts = [];
+    for (let i = 0; i <= 180; i++) {
+      const th = i / 180 * Math.PI, r = Lk * R * Math.sin(th) ** 2; if (r < R * 0.999) continue;
+      // yerel: eksen boyunca cosθ, dik yönde sinθ*yan
+      const a = r * Math.cos(th), b = r * Math.sin(th) * yan;
+      pts.push([cx + a * ex + b * (-ey), cy + a * ey + b * ex]);
+    }
+    if (pts.length > 2) {
+      s += `<path d="${yol(pts)}" fill="none" stroke="${ALAN}" stroke-width="1.3" opacity=".8"/>`;
+      if (o.ok !== false) { const rv = pts.slice().reverse(); s += okBasi(rv, 0.5, ALAN, 6.5); }   // güneyden kuzeye
+    }
+  }));
+  s += `<defs><radialGradient id="${u}dn" cx="38%" cy="32%" r="80%"><stop offset="0" stop-color="#9fd0f0"/><stop offset=".6" stop-color="#3f8fd0"/><stop offset="1" stop-color="#25618f"/></radialGradient></defs>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${u}dn)" stroke="#1d4f73" stroke-width="1.2"/>`;
+  s += `<g fill="#6fb86f" opacity=".85"><path d="M${cx - R * 0.55} ${cy - R * 0.35} q${R * 0.35} ${-R * 0.3} ${R * 0.62} ${-R * 0.05} t${R * 0.1} ${R * 0.42} q${-R * 0.42} ${R * 0.18} ${-R * 0.72} ${-R * 0.05}z"/><path d="M${cx + R * 0.05} ${cy + R * 0.18} q${R * 0.42} ${-R * 0.12} ${R * 0.55} ${R * 0.25} t${-R * 0.25} ${R * 0.38} q${-R * 0.3} ${-R * 0.18} ${-R * 0.3} ${-R * 0.63}z"/></g>`;
+  return s;
+}
+BFY_FIG_EKLE('kY73_dunya', function (u) {
+  const W = 320, H = 250, cx = 160, cy = 126, R = 54, egik = 11;
+  let s = zemin(W, H) + dunyaCiz(u, W, H, cx, cy, R, egik);
+  /* coğrafi eksen (düşey, kesikli) ve manyetik eksen (eğik) */
+  s += dashLine(cx, cy - R - 26, cx, cy + R + 26, P.ink, '5 4', 1.3);
+  s += T(cx, 16, 'coğrafi kuzey', { size: 11.5, anchor: 'middle', weight: 800 }) + T(cx, H - 6, 'coğrafi güney', { size: 11.5, anchor: 'middle', weight: 800 });
+  const t = egik * D2R, ex = Math.sin(t), ey = -Math.cos(t), m = 30, k = 9;
+  /* hayalî mıknatıs: kuzey ucu S (mavi), güney ucu N (kırmızı) */
+  const p = (a, b) => [cx + a * ex - b * ey, cy + a * ey + b * ex];
+  const q = (a1, a2) => [p(a1, -k / 2), p(a2, -k / 2), p(a2, k / 2), p(a1, k / 2)].map(v => v.map(f1).join(',')).join(' ');
+  s += `<polygon points="${q(0, m)}" fill="${SK}" stroke="#123f66"/><polygon points="${q(-m, 0)}" fill="${NK}" stroke="#3d1a14"/>`;
+  const [sx, sy] = p(m * 0.55, 0), [nx, ny] = p(-m * 0.55, 0);
+  s += T(sx, sy + 4, 'S', { size: 11, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) + T(nx, ny + 4, 'N', { size: 11, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  s += `<line x1="${f1(cx + ex * (R + 30))}" y1="${f1(cy + ey * (R + 30))}" x2="${f1(cx - ex * (R + 30))}" y2="${f1(cy - ey * (R + 30))}" stroke="${SK}" stroke-width="1" opacity=".6"/>`;
+  s += T(cx + ex * (R + 34) + 6, cy + ey * (R + 34) + 2, 'manyetik eksen', { size: 11, weight: 700, fill: SK });
+  /* sapma açısı yayı */
+  s += `<path d="M${cx} ${cy - R - 16} A${R + 16} ${R + 16} 0 0 1 ${f1(cx + ex * (R + 16))} ${f1(cy + ey * (R + 16))}" fill="none" stroke="${P.coral}" stroke-width="1.6"/>`;
+  s += T(cx - 6, cy - R - 22, '≈ 11°', { size: 11, anchor: 'end', weight: 800, fill: P.coral });
+  return svg(W, H, s, u, 72);
+});
+
+/* Elektromıknatıs: demir çivi, sarım, pil, anahtar ve ataşlar */
+BFY_FIG_EKLE('kY73_elektro', function (u) {
+  const W = 320, H = 196;
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="168" width="300" height="8" rx="2" fill="#e3d2b0" stroke="#c9a76c" stroke-width=".8"/>`;
+  /* çivi */
+  s += `<rect x="58" y="70" width="170" height="12" rx="2" fill="#9aa4ab" stroke="#5f6a72"/><polygon points="228,70 252,76 228,82" fill="#9aa4ab" stroke="#5f6a72"/><rect x="50" y="64" width="10" height="24" rx="2" fill="#7d8a91" stroke="#5f6a72"/>`;
+  /* sarımlar */
+  for (let x = 82; x <= 200; x += 7) s += `<path d="M${x} 64 q4 12 0 24" fill="none" stroke="#c9793f" stroke-width="3" stroke-linecap="round"/>`;
+  /* teller, pil ve anahtar */
+  s += `<path d="M82 88 V140 H118" fill="none" stroke="#c9793f" stroke-width="2.2"/><path d="M200 88 V140 H178" fill="none" stroke="#c9793f" stroke-width="2.2"/>`;
+  s += `<rect x="118" y="128" width="60" height="24" rx="4" fill="#2b3330"/><rect x="178" y="134" width="5" height="12" rx="1" fill="#c9a33a"/>`;
+  s += T(148, 145, 'pil', { size: 11.5, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  /* ataşlar */
+  const atas = (x, y, a) => `<g transform="rotate(${a} ${x} ${y})"><rect x="${x - 4}" y="${y}" width="8" height="20" rx="4" fill="none" stroke="#5f6a72" stroke-width="1.6"/><rect x="${x - 2}" y="${y + 4}" width="4" height="12" rx="2" fill="none" stroke="#5f6a72" stroke-width="1.3"/></g>`;
+  s += atas(250, 83, 4) + atas(254, 104, -6) + atas(240, 82, 18);
+  s += T(140, 56, 'demir çekirdek ve sarımlar', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(262, 140, 'ataşlar', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 72);
+});
+
+/* ================= ÇÖZÜMLÜ ÖRNEK ŞEKİLLERİ ================= */
+/* C1: N solda, S sağda çubuk mıknatıs ve dört pusula (3 numara yanlış çizilmiş) */
+BFY_FIG_EKLE('kY73_C1', function (u) {
+  const W = 320, H = 196;
+  let s = zemin(W, H);
+  s += cubuk(u, 105, 86, 110, 24, 'N');
+  const yer = [[1, 50, 98, 180], [2, 160, 38, 0], [3, 270, 98, 0], [4, 160, 158, 0]];
+  yer.forEach(([n, x, y, a]) => { s += pusula(u, x, y, 18, a, { ad: String(n) }); });
+  s += T(50, 132, '1', { size: 13, anchor: 'middle', weight: 800 }) + T(186, 42, '2', { size: 13, weight: 800 }) + T(270, 132, '3', { size: 13, anchor: 'middle', weight: 800 }) + T(186, 162, '4', { size: 13, weight: 800 });
+  return svg(W, H, s, u, 76);
+});
+/* C2: üstten görünüş; pusulanın hemen üstünden geçen kuzey-güney doğrultulu tel, akım kuzeye */
+BFY_FIG_EKLE('kY73_C2', function (u) {
+  const W = 300, H = 200;
+  let s = zemin(W, H) + `<rect class="bg" x="40" y="22" width="190" height="160" rx="6" fill="#f3ead6" stroke="#c9b48a"/>`;
+  s += pusula(u, 135, 102, 30, 90, { ad: 'P' });
+  s += `<line x1="135" y1="14" x2="135" y2="190" stroke="${TEL}" stroke-width="6" stroke-linecap="round" opacity=".45" data-tel="135,102,kuzey"/>`;
+  s += arrow(150, 66, 150, 30, { color: AKIM, w: 2.4, head: 8, headW: 4.6 }) + T(158, 48, 'I', { size: 15, weight: 800, fill: AKIM, italic: true });
+  s += kuzey(270, 36) + T(250, 176, 'tel pusulanın', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(250, 190, 'üstünde', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+/* C3: aynı yönde ve eşit akım taşıyan iki paralel tel (⊙ ⊙) ve K, O, L noktaları */
+BFY_FIG_EKLE('kY73_C3', function (u) {
+  const W = 320, H = 130;
+  let s = zemin(W, H) + dashLine(20, 70, 300, 70, '#9fb0bb', '4 4', 1);
+  s += nokta('K', 60, 70, { dy: -12, dx: -4 }) + telKesit(110, 70, 'disari') + nokta('O', 160, 70, { dy: -12, dx: -4 }) + telKesit(210, 70, 'disari') + nokta('L', 260, 70, { dy: -12, dx: -4 });
+  s += T(110, 104, 'X', { size: 13, anchor: 'middle', weight: 800 }) + T(210, 104, 'Y', { size: 13, anchor: 'middle', weight: 800 });
+  s += T(160, 122, 'KX = XO = OY = YL', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 76);
+});
+/* C4: üstten görünüş; doğu-batı doğrultusunda kutbu işaretsiz mıknatıs, tam kuzeyindeki P'de pusula kuzeybatıya sapmış */
+BFY_FIG_EKLE('kY73_C4', function (u) {
+  const W = 300, H = 200;
+  let s = zemin(W, H);
+  s += cubuk(u, 80, 140, 120, 22, null);
+  s += T(70, 156, '1', { size: 14, anchor: 'end', weight: 800 }) + T(210, 156, '2', { size: 14, weight: 800 });
+  const K = [{ x: 195, y: 151, q: 1 }, { x: 85, y: 151, q: -1 }];
+  const [bx, by] = alanK(140, 62, K), n = Math.hypot(bx, by), E = 1.2 * n;   // Dünya'nın alanı kuzeye
+  s += pusula(u, 140, 62, 26, acisi(bx, by - E), { ad: 'P' }) + T(174, 52, 'P', { size: 14, weight: 800 });
+  s += kuzey(262, 30);
+  return svg(W, H, s, u, 70);
+});
+
+/* ================= SORU ŞEKİLLERİ ================= */
+/* Q02: bir bölgedeki alan çizgileri; K sık, M seyrek bölgede */
+BFY_FIG_EKLE('kY73_cizgi', function (u) {
+  const W = 320, H = 190, y0 = 95;
+  let s = zemin(W, H);
+  const ofs = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
+  ofs.forEach(k => {
+    const pts = []; for (let i = 0; i <= 40; i++) { const x = 22 + i * 7, sp = 4.2 + 0.08 * (x - 22); pts.push([x, y0 + k * sp]); }
+    s += `<path d="${yol(pts)}" fill="none" stroke="${ALAN}" stroke-width="1.4"/>` + okBasi(pts, 0.64, ALAN, 6);
+  });
+  /* noktalar iki çizginin tam ortasında; L ve M etiketleri aynı aralıkta sağda, K'ninki dar aralık yüzünden kılavuz çizgiyle */
+  const sp = x => 4.2 + 0.08 * (x - 22), yk = y0 + 0.5 * sp(70), yl = y0 - 1.5 * sp(150), ym = y0 + 1.5 * sp(262);
+  s += `<line x1="66" y1="${f1(yk + 3)}" x2="44" y2="150" stroke="${P.ink2}" stroke-width="1"/>` + nokta('K', 70, yk, { et: false, r: 2.6 }) + T(40, 164, 'K', { size: 13, weight: 800, anchor: 'middle' });
+  s += nokta('L', 150, yl, { r: 2.6, dx: 7, dy: 4.6 }) + nokta('M', 262, ym, { r: 2.6, dx: 7, dy: 4.6 });
+  return svg(W, H, s, u, 76);
+});
+/* Q05: sayfa düzleminde yatay tel, akım sola; K üstte, L altta */
+BFY_FIG_EKLE('kY73_yatay', function (u) {
+  const W = 300, H = 170;
+  let s = zemin(W, H) + `<rect class="bg" x="14" y="14" width="272" height="142" rx="8" fill="#fbfdfe" stroke="#dde7ee"/>`;
+  s += `<line x1="30" y1="86" x2="270" y2="86" stroke="${TEL}" stroke-width="4.5" stroke-linecap="round" data-tel-duz="30,86,270,86,sol"/>`;
+  s += arrow(200, 86, 140, 86, { color: AKIM, w: 2.6, head: 9, headW: 5 }) + T(134, 78, 'I', { size: 15, weight: 800, fill: AKIM, italic: true, anchor: 'end' });
+  s += nokta('K', 90, 40, { dx: 9, dy: 5 }) + nokta('L', 210, 128, { dx: 9, dy: 5 });
+  s += T(278, 150, 'sayfa düzlemi', { size: 11, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+/* Q09: kolları sağa bakan U mıknatıs (kutupları işaretsiz), kollar arasında pusula; N ucu 1 numaralı kola dönük */
+BFY_FIG_EKLE('kY73_U', function (u) {
+  const W = 300, H = 190;
+  let s = zemin(W, H);
+  const c = '#9a6e66';
+  s += `<path d="M232 30 H96 A62 62 0 0 0 96 160 H232 V128 H96 A33 33 0 0 1 96 62 H232 Z" fill="${c}" stroke="#4f3530" stroke-width="1.4"/>`;
+  s += `<rect x="216" y="30" width="16" height="32" fill="#7a5049"/><rect x="216" y="128" width="16" height="32" fill="#7a5049"/>`;
+  s += T(248, 52, '1', { size: 14, weight: 800 }) + T(248, 150, '2', { size: 14, weight: 800 });
+  s += pusula(u, 196, 95, 20, 90, { ad: 'P' });
+  return svg(W, H, s, u, 68);
+});
+/* Q10: özdeş iki mıknatısın karşılıklı 1 ve 2 uçları; demir tozlarının oluşturduğu desen (yönsüz) */
+BFY_FIG_EKLE('kY73_toz', function (u) {
+  const W = 320, H = 184;
+  let s = zemin(W, H) + `<rect class="bg" x="12" y="12" width="296" height="160" rx="6" fill="#fbf8ef" stroke="#d9cfb6"/>`;
+  const K = [{ x: 8, y: 92, q: -1 }, { x: 108, y: 92, q: 1 }, { x: 212, y: 92, q: 1 }, { x: 312, y: 92, q: -1 }];
+  const sinir = [14, 14, 306, 170];
+  let t = '';
+  [K[1], K[2]].forEach((k, j) => {
+    const sg = j ? 1 : -1;
+    [-78, -60, -44, -30, 30, 44, 60, 78].forEach(a => {
+      const aa = j ? 180 - a : a;
+      const pts = izle(k.x + 7 * Math.cos(aa * D2R), k.y - 7 * Math.sin(aa * D2R), K, sinir, { dur: 6 });
+      t += `<path d="${yol(pts)}" fill="none" stroke="#4a4f52" stroke-width="1.6" stroke-dasharray="2.2 3.2" stroke-linecap="round"/>`;
+    });
+    void sg;
+  });
+  s += t + cubuk(u, 14, 80, 94, 24, null) + cubuk(u, 212, 80, 94, 24, null);
+  s += T(98, 72, '1', { size: 14, anchor: 'middle', weight: 800 }) + T(222, 72, '2', { size: 14, anchor: 'middle', weight: 800 });
+  return svg(W, H, s, u, 76);
+});
+/* Q12: bir kablonun kesiti; alan çizgileri saat yönünde (akım içeri), P telin sağında */
+BFY_FIG_EKLE('kY73_kesit', function (u) {
+  const W = 300, H = 200, cx = 130, cy = 100;
+  let s = zemin(W, H);
+  [28, 52, 76].forEach((r, i) => {
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ALAN}" stroke-width="1.4"/>`;
+    // saat yönünde: tepede sağa, solda yukarı
+    s += `<polygon points="${cx + 6},${cy - r} ${cx - 3},${cy - r - 3.6} ${cx - 3},${cy - r + 3.6}" fill="${ALAN}"/>`;
+    if (i === 1) s += `<polygon points="${cx - r},${cy - 6} ${cx - r - 3.6},${cy + 3} ${cx - r + 3.6},${cy + 3}" fill="${ALAN}"/>`;
+  });
+  s += `<circle cx="${cx}" cy="${cy}" r="11" fill="${TEL}" stroke="#7d4a27" stroke-width="1.4" data-tel="${cx},${cy},bilinmiyor" data-dolanim="saat"/>`;
+  s += nokta('P', cx + 52, cy, { dx: 8, dy: 18 });
+  s += T(286, 190, 'sayfa düzlemi', { size: 11, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+/* Q13: üstten görünüş; N ucu doğuya sapmış pusula ve telin geçtiği kuzey-güney doğrultusu (kesikli) */
+BFY_FIG_EKLE('kY73_orsted', function (u) {
+  const W = 300, H = 190;
+  let s = zemin(W, H) + `<rect class="bg" x="40" y="20" width="190" height="150" rx="6" fill="#f3ead6" stroke="#c9b48a"/>`;
+  s += dashLine(135, 12, 135, 178, TEL, '7 5', 2.4);
+  s += pusula(u, 135, 95, 32, 90 - 48, { ad: 'P' });
+  s += kuzey(268, 32) + T(150, 184, 'telin doğrultusu', { size: 11.5, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 68);
+});
+/* Q15: B–I grafiği; K ve L noktaları */
+BFY_FIG_EKLE('kY73_grafik', function (u) {
+  const W = 300, H = 200, OX = 46, OY = 168;
+  let s = zemin(W, H);
+  s += `<line x1="${OX}" y1="${OY}" x2="262" y2="${OY}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="270,${OY} 261,${OY - 3.8} 261,${OY + 3.8}" fill="${P.ink}"/>`;
+  s += `<line x1="${OX}" y1="${OY}" x2="${OX}" y2="22" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${OX},14 ${OX - 3.8},23 ${OX + 3.8},23" fill="${P.ink}"/>`;
+  s += T(276, OY + 5, 'I', { size: 14, weight: 800, italic: true }) + T(OX + 9, 26, 'B', { size: 14, weight: 800, italic: true });
+  s += T(OX - 6, OY + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  s += `<line x1="${OX}" y1="${OY}" x2="190" y2="40" stroke="${P.coral}" stroke-width="2.6" stroke-linecap="round" data-ok="K,${OX},${OY},190,40"/>`;
+  s += `<line x1="${OX}" y1="${OY}" x2="246" y2="104" stroke="${P.blue}" stroke-width="2.6" stroke-linecap="round" data-ok="L,${OX},${OY},246,104"/>`;
+  s += T(196, 44, 'K', { size: 14, weight: 800, fill: P.coral }) + T(250, 100, 'L', { size: 14, weight: 800, fill: P.blue });
+  return svg(W, H, s, u, 68);
+});
+/* Q20: basitleştirilmiş Dünya (eksenler çakışık, hayalî mıknatıs ve alan çizgileri çizilmez); ekvatorda yer yüzeyindeki P ve 1–4 okları */
+BFY_FIG_EKLE('kY73_dunya2', function (u) {
+  const W = 320, H = 230, cx = 130, cy = 116, R = 70;
+  let s = zemin(W, H) + dunyaCiz(u, W, H, cx, cy, R, 0, { L: [], ok: false });
+  s += dashLine(cx, cy - R - 22, cx, cy + R + 22, P.ink, '5 4', 1.2);
+  s += T(cx, 16, 'coğrafi kuzey', { size: 11.5, anchor: 'middle', weight: 800 }) + T(cx, H - 6, 'coğrafi güney', { size: 11.5, anchor: 'middle', weight: 800 });
+  s += dashLine(cx - R, cy, cx + R, cy, '#ffffff', '4 4', 1.2) + T(cx - R + 4, cy - 6, 'ekvator', { size: 10.5, weight: 700, fill: '#ffffff', halo: false });
+  const px = cx + R, py = cy, L = 40;
+  /* 1 güneye, 2 kuzeye, 3 Dünya'dan dışarı, 4 Dünya'nın merkezine doğru */
+  s += `<line x1="${px}" y1="${py}" x2="${px - L + 6}" y2="${py}" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`;
+  [['1', 0, 1], ['2', 0, -1], ['3', 1, 0], ['4', -1, 0]].forEach(([ad, dx, dy]) => {
+    s += okD(ad, px, py, px + dx * L, py + dy * L, '#2b3a42', { w: 2.2, head: 8, headW: 4.6 });
+    const lx = dx ? px + dx * (L + 12) : px + 12, ly = dy ? py + dy * (L + 4) + 4.5 + (dy > 0 ? 8 : 0) : py - 8;
+    s += T(lx, ly, ad, { size: 13, anchor: 'middle', weight: 800 });
+  });
+  s += `<circle cx="${px}" cy="${py}" r="4" fill="${P.coral}" stroke="#fff" stroke-width="1.4" data-nokta="P,${px},${py},0"/>` + T(px + 10, py + 18, 'P', { size: 13, weight: 800, fill: P.coral });
+  return svg(W, H, s, u, 72);
+});
+/* Q21: üstten görünüş; kartondan düşey geçen tel (akım yukarı, ⊙), demir tozu halkaları ve telin kuzeyindeki pusula (batıyı gösteriyor) */
+BFY_FIG_EKLE('kY73_halka', function (u) {
+  const W = 300, H = 228, cx = 150, cy = 108;
+  let s = zemin(W, H) + `<rect class="bg" x="40" y="12" width="220" height="190" rx="6" fill="#f3ead6" stroke="#c9b48a"/>`;
+  [24, 38, 54, 72].forEach(r => { s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#4a4f52" stroke-width="1.6" stroke-dasharray="2.2 3.4" stroke-linecap="round" opacity=".85"/>`; });
+  s += telKesit(cx, cy, 'disari', 9);
+  s += pusula(u, cx, cy - 46, 16, 180, { ad: 'P' });
+  s += kuzey(282, 30) + T(cx, 220, 'demir tozu halkaları', { size: 11, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+/* Q23: N kutbu aşağıda düşey mıknatısa asılı üç ataşlık zincir */
+BFY_FIG_EKLE('kY73_zincir', function (u) {
+  const W = 260, H = 210;
+  let s = zemin(W, H) + `<rect class="bg" x="20" y="14" width="220" height="10" rx="3" fill="#8b98a2"/>`;
+  s += `<rect x="112" y="24" width="36" height="40" fill="${SK}" stroke="#123f66"/><rect x="112" y="64" width="36" height="40" fill="${NK}" stroke="#3d1a14"/>`;
+  s += T(130, 49, 'S', { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) + T(130, 90, 'N', { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  const atas = (x, y) => `<rect x="${x - 6}" y="${y}" width="12" height="30" rx="6" fill="none" stroke="#5f6a72" stroke-width="2"/><rect x="${x - 3}" y="${y + 5}" width="6" height="19" rx="3" fill="none" stroke="#5f6a72" stroke-width="1.5"/>`;
+  s += atas(130, 104) + atas(132, 135) + atas(129, 166);
+  s += T(150, 122, '1. ataş', { size: 12, weight: 700, fill: P.ink2 }) + T(150, 184, '3. ataş', { size: 12, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 60);
+});
+/* Q24: üstten görünüş; kâğıdın altında görünmeyen bir çubuk mıknatıs (N doğuda) ve dört pusula */
+BFY_FIG_EKLE('kY73_gizli', function (u) {
+  const W = 320, H = 220;
+  let s = zemin(W, H);
+  const K = [{ x: 205, y: 110, q: 1 }, { x: 115, y: 110, q: -1 }];
+  s += `<rect x="96" y="76" width="128" height="68" rx="4" fill="#e9e3d2" stroke="#b8ab88" stroke-width="1.2"/>`;
+  s += T(160, 115, 'kâğıt', { size: 12, anchor: 'middle', weight: 700, fill: '#8a7d5c', halo: false });
+  [['A', 160, 34], ['B', 278, 110], ['C', 160, 186], ['D', 42, 110]].forEach(([ad, x, y]) => {
+    s += pusula(u, x, y, 18, acisi(...alanK(x, y, K)), { ad });
+    s += T(x + (ad === 'D' ? -24 : ad === 'B' ? 24 : 26), y + (ad === 'A' || ad === 'C' ? 5 : -16), ad, { size: 13, anchor: 'middle', weight: 800 });
+  });
+  s += kuzey(296, 166);
+  return svg(W, H, s, u, 76);
+});
+/* Q25: üstten görünüş; içinde gizli düzenek bulunan kutu ve tam kuzeyindeki pusula (N ucu kuzeydoğuya sapmış) */
+BFY_FIG_EKLE('kY73_kutu', function (u) {
+  const W = 300, H = 200;
+  let s = zemin(W, H);
+  s += `<rect x="92" y="112" width="96" height="62" rx="5" fill="#c9a77a" stroke="#7d5c36" stroke-width="1.4"/><rect x="92" y="112" width="96" height="10" rx="3" fill="#b38f5f"/>`;
+  s += T(140, 152, 'kutu', { size: 12.5, anchor: 'middle', weight: 800, fill: '#4b3520', halo: false });
+  s += pusula(u, 140, 60, 26, 90 - 38, { ad: 'P' }) + T(174, 46, 'P', { size: 14, weight: 800 });
+  s += kuzey(262, 30);
+  return svg(W, H, s, u, 70);
+});
+/* Q30: üstten görünüş; kartondan düşey geçen tel (akım aşağı, ⊗) ve akım yokken kuzeyi gösteren dört pusula */
+BFY_FIG_EKLE('kY73_dikey', function (u) {
+  const W = 320, H = 220, cx = 150, cy = 110;
+  let s = zemin(W, H) + `<rect class="bg" x="40" y="16" width="220" height="188" rx="6" fill="#f3ead6" stroke="#c9b48a"/>`;
+  s += telKesit(cx, cy, 'iceri', 9);
+  [['A', cx, cy - 64], ['B', cx + 72, cy], ['C', cx, cy + 64], ['D', cx - 72, cy]].forEach(([ad, x, y]) => {
+    s += pusula(u, x, y, 17, 90, { ad }) + T(x + 24, y + (ad === 'A' ? -10 : ad === 'C' ? 18 : -12), ad, { size: 13, weight: 800 });
+  });
+  s += kuzey(292, 30);
+  return svg(W, H, s, u, 76);
+});
+
+/* ================= 3B İZOMETRİK ÇİZİMLER ================= */
+const I0 = window.BFY_ISO;
+const { sahne, kutu, plaka, kure, izoOk, etiket, yazi, ton, silindir } = I0;
+const EF = (u, f, o = {}) => sahne(u, f, Object.assign({ w: 220, h: 110, oy: 70, mm: 62 }, o));
+const miknatisI = (I, x, y, z, L, k, o = {}) => (o.ters ? kutu(I, x, y, z, L / 2, k, k, SK) + kutu(I, x + L / 2, y, z, L / 2, k, k, NK) : kutu(I, x, y, z, L / 2, k, k, NK) + kutu(I, x + L / 2, y, z, L / 2, k, k, SK));
+/* yatay izometrik daire (z düzleminde), yönlü: +1 üstten bakınca saat yönünün tersi */
+function izoDaire(I, cx, cy, z, r, renk, o = {}) {
+  const pts = []; for (let i = 0; i <= 72; i++) { const a = i / 72 * Math.PI * 2; pts.push(I.p(cx + r * Math.cos(a), cy + r * Math.sin(a), z)); }
+  let s = `<path d="${yol(pts)}" fill="none" stroke="${renk}" stroke-width="${o.w || 1.4}"/>`;
+  if (o.yon) {
+    // dünya: x sağ-ön, y sol-ön, z yukarı. Üstten bakış (−z) solak görünür; yönü dünya vektöründen hesapla
+    const a = o.okA ?? 0.6, p = [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+    // I yukarı (+z) ise B = ẑ × r̂ = (−sin a, cos a); yon = +1 akım yukarı
+    const t = [Math.sin(a) * o.yon, -Math.cos(a) * o.yon];   // izdüşüm solak: ekranda doğru dolanım için işaret ters
+    const [x1, y1] = I.p(p[0] - t[0] * 4, p[1] - t[1] * 4, z), [x2, y2] = I.p(p[0] + t[0] * 4, p[1] + t[1] * 4, z);
+    s += I0.ok(x1, y1, x2, y2, { renk, w: 1.6, bas: 6, basG: 3.6 });
+  }
+  return s;
+}
+/* izometrik pusula: yatay düzlemde, merkez (x, y, z), yarıçap r, N ucunun dünya açısı wa (derece; 0 = +x, 90 = +y) */
+function izoPusula(I, x, y, z, r, wa) {
+  const pts = []; for (let i = 0; i <= 36; i++) { const a = i / 36 * Math.PI * 2; pts.push(I.p(x + r * Math.cos(a), y + r * Math.sin(a), z)); }
+  const c = Math.cos(wa * D2R), sn = Math.sin(wa * D2R), L = r * 0.8, w = r * 0.2;
+  const P_ = (a, b) => I.p(x + a, y + b, z + 0.3).join(',');
+  return `<path d="${yol(pts)}Z" fill="#f5f7f8" stroke="#55626b" stroke-width="1"/>` +
+    `<polygon points="${P_(c * L, sn * L)} ${P_(-sn * w, c * w)} ${P_(sn * w, -c * w)}" fill="${NK}" stroke="#8a2716" stroke-width=".4"/>` +
+    `<polygon points="${P_(-c * L, -sn * L)} ${P_(-sn * w, c * w)} ${P_(sn * w, -c * w)}" fill="#d5dce1" stroke="#55626b" stroke-width=".4"/>`;
+}
+const izoYol = (I, arr) => yol(arr.map(q => I.p(...q)));
+/* Tanım: çubuk mıknatıs ve pusulalar; kartondan geçen akımlı tel ve dairesel alan çizgileri */
+BFY_FIG_EKLE('iY73_tanim', u => sahne(u, I => {
+  let s = plaka(I, -100, -30, 186, 60, '#dfe8e1');
+  /* sol: mıknatıs x boyunca, N küçük x ucunda; pusulalar kutup modelinden */
+  s += miknatisI(I, -80, -5, 0, 48, 10);
+  const K = [{ x: -76, y: 0, q: 1 }, { x: -36, y: 0, q: -1 }];
+  [[-93, 0], [-56, -22], [-56, 22], [-19, 0]].forEach(([x, y]) => {
+    const [bx, by] = alanK(x, y, K); s += izoPusula(I, x, y, 0, 8, Math.atan2(by, bx) / D2R);
+  });
+  /* sağ: düşey tel, akım yukarı; çizgiler üstten bakınca saat yönünün tersine */
+  const tx = 48, ty = 0;
+  s += izoDaire(I, tx, ty, 0, 14, ALAN, { yon: 1, okA: 2.2 }) + izoDaire(I, tx, ty, 0, 25, ALAN, { yon: 1, okA: 2.4 });
+  const [bx, by] = I.p(tx, ty, -6), [ux, uy] = I.p(tx, ty, 62);
+  s += `<line x1="${bx}" y1="${by}" x2="${ux}" y2="${uy}" stroke="${TEL}" stroke-width="4.5" stroke-linecap="round"/>`;
+  s += I0.ok(ux + 10, uy + 34, ux + 10, uy + 6, { renk: AKIM, w: 2, bas: 6, basG: 3.6 }) + yazi(ux + 20, uy + 18, 'I', { size: 11, renk: AKIM });
+  const [lx, ly] = I.p(tx + 25, ty + 8, 0); s += yazi(lx + 8, ly + 12, 'B', { size: 11, renk: ALAN });
+  s += etiket(70, 20, 'mıknatıs', { size: 9.5 }) + etiket(196, 20, 'akım geçen tel', { size: 9.5 });
+  return s;
+}, { w: 260, h: 172, mm: 110, ox: 134, oy: 100 }));
+
+/* Efsane 1: mıknatıs demiri ne kadar çekiyorsa demir de mıknatısı o kadar çeker (iki araba) */
+BFY_FIG_EKLE('iY73_efsane_1', u => EF(u, I => {
+  let s = plaka(I, -62, -16, 124, 32, '#e6eef2');
+  s += kutu(I, -52, -8, 0, 30, 16, 5, '#c9955a') + miknatisI(I, -48, -4, 5, 22, 8);
+  s += kutu(I, 22, -8, 0, 30, 16, 5, '#c9955a') + kutu(I, 30, -5, 5, 14, 10, 10, '#7d8a91');
+  s += izoOk(I, [-40, 0, 24], [-20, 0, 24], { renk: P.coral, w: 2, bas: 6, basG: 3.6 }) + izoOk(I, [42, 0, 24], [22, 0, 24], { renk: P.coral, w: 2, bas: 6, basG: 3.6 });
+  const [a, b] = I.p(-30, 0, 30), [c, d] = I.p(32, 0, 30);
+  s += yazi(a, b - 4, 'F', { size: 10, renk: P.coral }) + yazi(c, d - 4, 'F', { size: 10, renk: P.coral });
+  const [m1, m2] = I.p(-37, 14, 0), [n1, n2] = I.p(37, 14, 0);
+  s += yazi(m1 - 6, m2 + 16, 'mıknatıs', { size: 9 }) + yazi(n1 - 4, n2 + 16, 'demir', { size: 9 });
+  return s;
+}, { oy: 58 }));
+/* Efsane 4: ısıtılan mıknatıs ataşları bırakır */
+BFY_FIG_EKLE('iY73_efsane_4', u => EF(u, I => {
+  let s = plaka(I, -54, -22, 108, 44, '#e6eef2');
+  s += kutu(I, -40, -6, 0, 10, 10, 30, '#8b98a2') + kutu(I, -40, -6, 30, 44, 10, 4, '#8b98a2');
+  s += miknatisI(I, 0, -4, 18, 24, 7, { ters: true });
+  const [fx, fy] = I.p(12, 0, 0); s += I0.N.alev(u, fx, fy, 22);
+  const [px, py] = I.p(30, 4, 0); s += `<rect x="${px - 3}" y="${py - 8}" width="6" height="12" rx="3" fill="none" stroke="#5f6a72" stroke-width="1.4" transform="rotate(70 ${px} ${py})"/><rect x="${px + 8}" y="${py - 4}" width="6" height="12" rx="3" fill="none" stroke="#5f6a72" stroke-width="1.4" transform="rotate(20 ${px + 11} ${py + 2})"/>`;
+  s += yazi(170, 100, 'ataşlar düştü', { size: 9 });
+  return s;
+}, { oy: 70 }));
+
+if (typeof window !== 'undefined') window.BFY_Y73_ARAC = { alanK, acisi };
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · İçerik bankası
+   Y.7 Elektrik ve Manyetizma · Y.7.3 Mıknatıslar, Akım ve Manyetik Alan
+   Kapsam: 2018 fizik öğretim programı 10.1.3.1 (mıknatısların manyetik alanı, alan çizgileri; itme-çekme kuvvetleriyle
+   ilgili hesap yok), 10.1.4.1 (akım geçen düz telin manyetik alanını etkileyen değişkenler, sağ el kuralı, yüksek gerilim
+   hatları, elektromıknatıs; alanın yönü ve şiddetiyle ilgili hesap yok), 10.1.4.2 (Dünya'nın manyetik alanının sonuçları,
+   pusula ile yön bulma, canlıların yön bulması).
+   Gösterim: nitel ilişki (akım artınca alan artar, uzaklık artınca azalır; oran ve sayı yok), tesla (T), ⊙ sayfa düzleminden dışarı, ⊗ içeri; akım I (2018 programı ve
+   10. sınıf kitaplarındaki gibi). Tele ve yüke etki eden manyetik kuvvet, akım makarası ve indüksiyon 11. sınıf konusudur; kullanılmaz.
+   ÖSYM 2018–2026 TYT'de bu konuda soru sormadı; 30 sorunun hepsi çıkma ihtimali yüksek (tahmin) sorusudur.
+   Metinler, sayılar ve şekiller özgündür.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+const KONU = {
+  id: 'Y.7.3',
+  ad: 'Mıknatıslar, Akım ve Manyetik Alan',
+  kisa: 'Manyetik Alan',
+  kaynak: ['10.1.3', '10.1.4'],
+  ciktilar: ['10.1.3.1', '10.1.4.1', '10.1.4.2'],
+  unvanlar: ['Pusula Taşıyan', 'Ørsted Çırağı', 'Alan Çizgisi Ustası', 'Sağ El Kaptanı'],
+  renk: '#b23a48',
+  baglamlar: [
+    'tanım çizimi: masada çubuk mıknatıs ve dört pusula, kartondan geçen akımlı tel ve dairesel alan çizgileri',
+    'not: çubuk mıknatısın alan çizgileri ve üç pusula; karşılıklı zıt ve aynı kutuplar',
+    'not: karton üzerinde düşey telin dairesel çizgileri, ⊙ ⊗ kesitleri, sayfa düzlemindeki telin iki yanı',
+    'not: Dünya içinde eğik hayalî mıknatıs (S kuzeyde), manyetik ve coğrafi kutupların farkı', 'not: demir çivi elektromıknatıs, pil, ataşlar; yüksek gerilim hattı',
+    'simülasyon: masadan düşey geçen tel, telin kuzeyinde pusula, 0–4 A, 2–6 cm, alan vektörleri ve sayı içermeyen B–d grafiği (nitel)',
+    '3B: sağ el düz teli kavrıyor (sagel_tel)',
+    'çözümlü 1: çubuk mıknatıs çevresinde dört pusula, biri yanlış çizilmiş',
+    'çözümlü 2: pusulanın üstünden kuzeye akım taşıyan tel (Ørsted)', 'çözümlü 3: eşit ve aynı yönlü akımlı iki tel, K, O, L noktalarında alanların yönü (yalnız yön)',
+    'çözümlü 4: doğu-batı doğrultusunda kutbu işaretsiz mıknatıs, tam kuzeyindeki pusula kuzeybatıya sapıyor',
+    'efsane: iki arabada mıknatıs ve demir, demir tozu deseni ve yön, bakır tel ve alan, ısıtılan mıknatıs, ters bağlı elektromıknatıs',
+    'hobi atölyesinde düşüp üç parçaya ayrılan ferrit mıknatıs', 'bir bölgede yelpaze biçimli alan çizgileri, K, L, M sıklık sıralaması',
+    'plastik kesme tahtasının altındaki mıknatıs ve üstündeki çelik ataş, alüminyum levha', 'sensörle düz tel yakınında P noktası: akım, kalın kesit, yaklaşma',
+    'sayfa düzleminde sola akımlı tel, üstte K, altta L (iki sütun)', 'elektromıknatıs kullanılmayan düzenek: MR, zil, röle, kalem kutusu mıknatısı, elektromanyetik kilit',
+    'kampta pusula ve Dünya’nın manyetik kutupları', 'Dünya’nın manyetik alanının sonucu olmayan olay: gelgit',
+    'kolları sağa bakan işaretsiz U mıknatıs, kollar arasında pusula', 'özdeş iki işaretsiz mıknatısın karşılıklı uçları ve demir tozu deseni (kesinlikle)',
+    'K, L, M çubuklarının uçlarına pusula yaklaştırma tablosu (kesinlikle)', 'kablo kesiti, saat yönünde alan çizgileri, P noktası (iki sütun)',
+    'Ørsted: N ucu doğuya sapan pusula, telin üstte ya da altta olması (olabilir)', 'X, Y, Z telleri: akım ve uzaklık tablosu (kesinlikle)',
+    'K ve L sensörlerinin B–I grafiği', 'elektromıknatıs deney tasarımı: sarım, akım, çekirdek tablosu',
+    'çivi elektromıknatısın P ucunda pusula, pil ters, sarım artırma', 'oyun parkı ve yüksek gerilim hattı',
+    'kapalı kafeste göçmen kuşlar, sarımlarla döndürülen manyetik alan', 'basitleştirilmiş Dünya, ekvatorda yer yüzeyindeki P ve 4 ok',
+    'kartondan geçen düşey tel, demir tozu halkaları ve pusula (akım ters, teğet, tele yaklaşma)', 'mıknatıslanmış dikiş iğnesi, köpük disk ve su kabı (yanlış olan)',
+    'tavandaki mıknatısın N kutbuna asılı üç ataşlık zincir', 'kâğıdın altında gizli mıknatıs ve dört pusula',
+    'kutudaki gizli düzenek: düşey tel ya da çubuk mıknatıs, kuzeydoğuya sapan pusula (olabilir)', 'Ørsted deney tablosu: 2–4 A, 2–4 cm, 39°, 58°, 39°, 22°',
+    'X ve Y çubukları: uç-orta denemesiyle mıknatısı bulma', 'geri dönüşüm tesisinde doğru akımla çalışan elektromıknatıslı ayırıcı (olabilir)',
+    'eşit boy ve kesitte bakır ve konstantan tel, aynı kaynak ve seri direnç', 'kartondan düşey geçen ⊗ akımlı tel ve A, B, C, D pusulaları, Dünya’nın alanı'
+  ],
+
+  /* ---------------- KONU NOTU ---------------- */
+  not: [
+    {
+      tur: 'tanim',
+      sekil: 'iY73_tanim',
+      baslik: 'Mıknatıslar, akım ve manyetik alanın özü',
+      metin: r`Mıknatısların, akım geçen tellerin ve Dünya'nın çevresinde **manyetik alan** ($\vec{B}$) vardır. Manyetik alan vektörel bir büyüklüktür; birimi **tesla (T)**'dır.
+
+- **Mıknatıs:** Her mıknatısın N ve S kutbu vardır. Aynı kutuplar birbirini iter, zıt kutuplar çeker. Mıknatıs kaç parçaya bölünürse bölünsün her parçanın iki kutbu olur. Demir, nikel ve kobalt gibi maddeleri mıknatıslayarak çeker.
+- **Alan çizgileri:** Mıknatısın dışında N'den S'ye gider ve birbirini kesmez; sık oldukları yerde alan büyüktür. Pusulanın N ucu, bulunduğu yerdeki alanın yönünü gösterir.
+- **Akım geçen düz tel:** Elektrik akımı manyetik alan oluşturur. Alan çizgileri teli saran çemberlerdir; yön sağ el kuralıyla bulunur. Alan, akım arttıkça artar, telden uzaklaştıkça azalır.
+- **Elektromıknatıs:** Demir çekirdeğe sarılan telden akım geçince güçlü bir mıknatıs oluşur; akım kesilince mıknatıslığın büyük kısmı kaybolur.
+- **Dünya:** İçinde dev bir çubuk mıknatıs varmış gibi davranır; coğrafi kuzeye yakın manyetik kutbu S kutbudur. Pusula ve bazı canlılar bu alanla yön bulur.`,
+      kutu: { etiket: 'ÖSYM gözüyle', metin: r`2018–2026 TYT'lerinde bu konudan hiç soru çıkmadı; elektrik başlığındaki soruların hepsi devre ve enerji sorusuydu. Konu programda olduğu için sorulabilir. Gelirse program hesaba izin vermediğinden büyük olasılıkla kavramsal olur: pusula iğnesinin yönü, sağ el kuralı, alanın akım ve uzaklıkla değişimi, mıknatısla demiri ayırt etme ve "kesinlikle / olabilir" kurgusu.` }
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY73_cubuk_genis',
+      baslik: 'Mıknatıslar ve manyetik alan çizgileri',
+      metin: r`- Alan çizgileri mıknatısın dışında N kutbundan çıkıp S kutbuna girer, mıknatısın içinde S'den N'ye devam eder; **kapalı eğrilerdir** ve birbirini kesmez.
+- Bir noktadaki alan, oradan geçen çizgiye **teğettir**. O noktaya konan pusulanın N ucu alanın yönünü gösterir: N kutbunun önünde mıknatıstan uzaklaşan, S kutbunun önünde mıknatısa yönelen, mıknatısın yanında ise N'den S'ye doğru.
+- Çizgilerin **sık** olduğu yerde alan büyüktür; alan kutupların yakınında en büyüktür, mıknatısın orta bölgesinin hemen yanında çok zayıftır.
+- Karşılıklı **zıt** kutuplar arasında çizgiler birleşir ve mıknatıslar birbirini çeker; **aynı** kutuplar arasında çizgiler birbirinden ayrışır, ortada alanın sıfır olduğu bir nokta oluşur ve mıknatıslar birbirini iter.
+- Mıknatısın alanı kâğıt, cam, plastik ve alüminyum gibi manyetik olmayan maddelerin içinden geçer. Demir tozu ve pusula, alanı gözlemenin iki yoludur: Tozlar çizgilerin **biçimini**, pusula **yönünü** gösterir.`
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY73_tel_genis',
+      baslik: 'Akım geçen düz telin manyetik alanı',
+      metin: r`- Akım geçen bir telin yanındaki pusula iğnesinin saptığını ilk kez 1820'de Ørsted gözledi: **Elektrik akımı manyetik alan oluşturur.** Bunun için telin manyetik bir maddeden yapılmış olması gerekmez; bakır tel de alan oluşturur.
+- Uzun düz telin alan çizgileri, teli merkez alan ve tele dik düzlemlerde bulunan **çemberlerdir**.
+- **Sağ el kuralı:** Sağ elin başparmağı akımın yönünü gösterecek biçimde tel kavranırsa dört parmağın kıvrılma yönü alan çizgilerinin dolanım yönünü verir. Sayfa düzlemine dik telde akım dışarı ($\odot$) ise çizgiler saat yönünün tersine, içeri ($\otimes$) ise saat yönünde dolanır.
+- Sayfa düzlemindeki bir telin bir yanında alan sayfadan dışarı, öbür yanında içeri doğrudur.
+- Alanın büyüklüğü teldeki **akım arttıkça artar**, tele olan **uzaklık arttıkça azalır**. Program bu ilişkiyi yalnız nitel kullanır; alanın büyüklüğü hesaplanmaz. Telin kalınlığı ya da yapıldığı madde, akım aynı kaldıkça telin dışındaki alanı değiştirmez.`
+    },
+    {
+      tur: 'sekilli',
+      sekil: 'kY73_dunya',
+      baslik: "Dünya'nın manyetik alanı ve pusula",
+      metin: r`- Dünya, içinde dev bir çubuk mıknatıs varmış gibi bir manyetik alana sahiptir. Bu hayalî mıknatısın **S kutbu coğrafi kuzeye**, N kutbu coğrafi güneye yakındır; pusulanın N ucu bu yüzden kuzeyi gösterir.
+- Manyetik eksen, Dünya'nın dönme eksenine göre yaklaşık 11° eğiktir ve manyetik kutuplar zamanla yer değiştirir. Bu yüzden pusulanın gösterdiği kuzey coğrafi kuzeyle tam çakışmaz; Türkiye'de aradaki fark birkaç derecedir ve günlük yön bulmada iğnenin N ucu kuzey kabul edilir.
+- Yatay tutulan pusulanın iğnesi serbestçe döner ve Dünya'nın alanının etkisiyle kuzey-güney doğrultusunda durur. Yakındaki demir eşyalar, mıknatıslar ve akım geçen kablolar iğneyi saptırabileceği için pusula bunlardan uzakta kullanılır.
+- Göçmen kuşlar, deniz kaplumbağaları, arılar ve bazı büyükbaş hayvanlar yön bulurken bu alandan yararlanır. Alan, Güneş'ten gelen yüklü parçacıkların büyük kısmını saptırarak canlıları korur; kutup ışıkları da bu etkileşimin sonucudur.`
+    },
+    {
+      tur: 'sekilli',
+      sekil: 'kY73_elektro',
+      baslik: 'Elektromıknatıs ve yüksek gerilim hatları',
+      metin: r`- Demir bir çekirdeğin üzerine sarılan yalıtılmış telden akım geçirilince çekirdek mıknatıslanır ve güçlü bir **elektromıknatıs** oluşur.
+- Elektromıknatısın etkisi **akım** ve **sarım sayısı** arttıkça artar; demir çekirdek alanı büyük ölçüde güçlendirir.
+- Akım kesilince yumuşak demir çekirdek mıknatıslığının büyük kısmını kaybeder; akımın yönü değiştirilince kutuplar yer değiştirir. Kutuplar değişse de elektromıknatıs demir parçaları yine çeker.
+- Kullanım alanları: hurda ve atık ayırma vinçleri, elektrikli zil, röle, elektromanyetik kapı kilitleri, çoğu MR cihazı, hızlı trenlerde manyetik kaldırma sistemleri.`,
+      kutu: { etiket: 'Yüksek gerilim hatları', metin: r`Hat tellerinden geçen akım çevrede manyetik alan oluşturur. Alan, akım arttıkça büyür ve hattan uzaklaştıkça azalır. Uzun süreli yüksek alanın canlılar üzerindeki etkileri araştırıldığı için yerleşim yerleri, okullar ve parklar hatlardan uzak tutulur. Telleri saran plastik yalıtkan elektrik çarpmasına karşı korur; manyetik alanı ortadan kaldırmaz.` }
+    },
+    {
+      tur: 'formul',
+      baslik: 'Matematiksel modeller ve kurallar',
+      alt: r`Program manyetik alanın büyüklüğü ve yönüyle ilgili hesaplamaya girmez. Bu ilişkileri yalnız karşılaştırma yapmak ve yön bulmak için kullan.`,
+      kolonlar: [
+        { baslik: 'Düz telin alanı', not: 'Nitel ilişki', satirlar: [r`I \uparrow \ \Rightarrow\ B \uparrow`, r`d \uparrow \ \Rightarrow\ B \downarrow`] },
+        { baslik: 'Yön', not: 'Sağ el kuralı', satirlar: [r`\odot:\ \text{saat yönünün tersi}`, r`\otimes:\ \text{saat yönü}`] },
+        { baslik: 'Alan çizgileri', not: 'Mıknatısın dışında', satirlar: [r`\text{N} \rightarrow \text{S}`] },
+        { baslik: 'Birim', not: 'Tesla', satirlar: [r`[B] = \text{T}`] }
+      ],
+      dip: r`Telin alanı yalnız "artar, azalır, büyüktür" diye karşılaştırılır; oran ve sayı hesabı yapılmaz. Akım ile uzaklık birlikte değişiyorsa bilgi yetmeyebilir; karar vermeden önce iki değişikliğin alanı aynı yönde mi değiştirdiğine bak. Pusulanın N ucu bulunduğu yerdeki **bileşke** alanın yönünü gösterir; mıknatısın N kutbunu göstermez. $\odot$ sayfa düzleminden dışarı, $\otimes$ içeri demektir.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY73_C1', zorluk: 1,
+      baslik: 'Hangi pusula yanlış?',
+      metin: r`Kutupları şekildeki gibi olan bir çubuk mıknatısın çevresine dört pusula konuyor ve iğneleri şekildeki gibi çiziliyor. Pusulaların kırmızı uçları N uçlarıdır. Dünya'nın manyetik alanının etkisi önemsizdir.
+
+Hangi pusulanın iğnesi yanlış çizilmiştir?`,
+      sekil: 'kY73_C1',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, 'Hiçbiri'],
+      dogru: 2,
+      cozum: [
+        r`Pusulanın N ucu alanın yönünü gösterir. Mıknatısın dışında alan N'den çıkıp S'ye girer.`,
+        r`1: N kutbunun önündedir; alan mıknatıstan uzaklaşır, N ucu sola bakar. 2 ve 4: Mıknatısın yanındadır; alan N'den S'ye, yani sağa doğrudur. İkisi de doğru çizilmiştir.`,
+        r`3: S kutbunun önündedir; alan S kutbuna girer, yani mıknatısa doğru sola bakar. İğnenin N ucu sağa çizildiği için 3 numaralı pusula yanlıştır.`,
+        r`{{S0}} N kutbunun önündeki iğnenin mıknatısa dönmesi gerektiğini sanır; N ucunu N kutbu iter. {{S1}} mıknatısın yanında alanın mıknatısa paralel ve N'den S'ye olduğunu görmez. {{S3}} alttaki iğnenin üsttekinin tersine bakması gerektiğini sanır; mıknatısın iki yanında alan aynı yöndedir. {{S4}} S kutbunun önündeki iğnenin de mıknatıstan uzaklaşan yönü göstereceğini sanır; N ucunu S kutbu çeker.`
+      ],
+      ipucu: r`Her pusula için "N ucunu hangi kutup iter, hangi kutup çeker?" diye sor.`,
+      tuzak: r`Mıknatısın iki ucundaki pusulaların zıt yönleri göstereceğini sanmak. Eksen üzerinde iki uçta da iğneler aynı yöne bakar.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY73_C2', zorluk: 2,
+      baslik: 'Ørsted deneyi',
+      metin: r`Masada yatay duran bir pusulanın iğnesi kuzeyi gösteriyor. Uzun düz bir tel, pusulanın hemen üstünden iğneye paralel, yani kuzey-güney doğrultusunda geçecek biçimde tutuluyor ve telden güneyden kuzeye doğru akım geçiriliyor. Şekil, düzeneğin üstten görünüşüdür.
+
+Buna göre,
+
+I. İğnenin N ucu batıya doğru sapar.
+II. Akım artırılırsa iğnenin sapma açısı büyür ama iğne hiçbir zaman tam batıyı göstermez.
+III. Tel pusulanın altına alınır ve akım yine güneyden kuzeye geçirilirse iğnenin N ucu yine batıya doğru sapar.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY73_C2',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Başparmak kuzeyi gösterecek biçimde tel kavranırsa parmaklar telin altında batıya doğru kıvrılır: Telin altındaki pusulanın yerinde telin alanı batıya doğrudur. İğne, kuzeye doğru olan Dünya'nın alanı ile batıya doğru olan telin alanının bileşkesi yönünde durur; N ucu batıya doğru sapar. **Doğru.**`,
+        r`II. Akım artınca telin alanı büyür ve bileşke batıya daha çok yaklaşır. Ama Dünya'nın alanı hep var olduğu için bileşke hiçbir zaman tam batıya bakmaz. **Doğru.**`,
+        r`III. Tel pusulanın altındayken pusula telin üstünde kalır; parmaklar telin üstünde doğuya doğru kıvrılır. İğne bu kez doğuya sapar. **Yanlış.**`,
+        r`{{S0}} akım artınca sapmanın büyüdüğünü ama Dünya'nın alanı yüzünden tam batıya ulaşamadığını görmez. {{S1}} sapmanın yönünü sağ el kuralıyla bulmayı atlar. {{S3}} telin üstte ya da altta olmasının alanın yönünü değiştirmediğini sanır ve II'yi atlar. {{S4}} telin pusulanın altına alınmasıyla alanın yönünün tersine döndüğünü görmez.`
+      ],
+      ipucu: r`Pusula telin altında mı, üstünde mi? Başparmağı akım yönüne çevirip parmakların o noktada hangi yöne kıvrıldığına bak.`,
+      tuzak: r`Telin pusulanın üstünde ya da altında olmasını önemsiz saymak. Akım aynıyken telin iki yanında alan zıt yöndedir.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY73_C3', zorluk: 2,
+      baslik: 'İki telin alanları nerede zıt yönlü?',
+      metin: r`Sayfa düzlemine dik, uzun ve paralel X ile Y tellerinden eşit büyüklükte ve sayfa düzleminden dışarı doğru akım geçiyor. K, O ve L noktaları tellerle aynı doğru üzerindedir ve aralarındaki uzaklıklar şekilde verilmiştir. Dünya'nın manyetik alanı önemsizdir.
+
+{{sekil}}
+
+Tellerin K, O ve L noktalarında ayrı ayrı oluşturduğu manyetik alanların yönleriyle ilgili aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'kY73_C3',
+      secenekler: ['O noktasında iki telin alanları zıt yönlüdür; K noktasında ikisi de sayfa düzleminde aşağı doğrudur.', 'O noktasında iki telin alanları zıt yönlüdür; K noktasında ikisi de sayfa düzleminde yukarı doğrudur.', 'K, O ve L noktalarının üçünde de iki telin alanları zıt yönlüdür.', 'O noktasında iki telin alanları aynı yönlüdür; K noktasında zıt yönlüdür.', 'K noktasında iki telin alanı da sayfa düzleminden dışarı doğrudur.'],
+      dogru: 0,
+      cozum: [
+        r`Akım dışarı ($\odot$) olduğu için iki telin alan çizgileri de saat yönünün tersine dolanır. Bir telin sağındaki noktada alan yukarı, solundaki noktada aşağı doğrudur.`,
+        r`O noktası X'in sağında, Y'nin solundadır: X'in alanı yukarı, Y'nin alanı aşağı doğrudur. Alanlar **zıt yönlüdür**.`,
+        r`K noktası iki telin de solundadır; ikisinin alanı da K'de **aşağı** doğrudur. L iki telin de sağındadır; ikisinin alanı da yukarı doğrudur. K ve L'de alanlar aynı yönlüdür.`,
+        r`{{S1}} dışarı akımın alanını saat yönünde dolandırır. {{S2}} eşit akımlı tellerin alanlarının her noktada zıt yönlü olduğunu sanır. {{S3}} aynı yönlü akımların alanlarının tellerin arasında aynı yönde, dışında zıt yönde olduğunu sanır; bu, zıt yönlü akımlar için doğrudur. {{S4}} manyetik alanın akımla aynı yönde olduğunu sanır; alan çizgileri teli dolanır.`
+      ],
+      ipucu: r`Her noktada iki telin alanını ayrı ayrı sağ el kuralıyla bul; sonra aynı yönlü mü, zıt yönlü mü olduklarına bak.`,
+      tuzak: r`"Aynı yönlü akımların alanları her yerde aynı yöndedir" sanmak. Aynı yönlü akımlarda alanlar tellerin arasında zıt, dışında aynı yönlüdür. Program alanın büyüklüğünü hesaplatmaz; burada yalnız yön karşılaştırılır.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY73_C4', zorluk: 3,
+      baslik: 'Mıknatısın yanındaki pusula',
+      metin: r`Masada doğu-batı doğrultusunda duran, kutupları işaretlenmemiş bir çubuk mıknatısın tam kuzeyindeki P noktasına bir pusula konuyor. Mıknatıs yokken kuzeyi gösteren iğnenin N ucu, mıknatıs konunca şekildeki gibi kuzeybatıya doğru sapıyor. Pusula yalnız Dünya'nın ve mıknatısın alanının etkisindedir. Şekil, düzeneğin üstten görünüşüdür.
+
+Buna göre,
+
+I. Mıknatısın 2 numaralı ucu N kutbudur.
+II. Mıknatıs, doğrultusu değişmeden P'den uzaklaştırılırsa iğnenin kuzeyden sapma açısı azalır.
+III. Mıknatıs, uçları yer değiştirecek biçimde çevrilirse iğnenin N ucu yine kuzeybatıya doğru sapar.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY73_C4',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`İğne batıya doğru saptığına göre mıknatısın P'deki alanı batıya doğrudur.`,
+        r`I. P, mıknatısın tam yanındadır. Mıknatısın yanında alan mıknatısa paraleldir ve N kutbundan S kutbuna doğrudur. Alan batıya doğru olduğuna göre N kutbu doğudaki 2 numaralı uçtur. **Doğru.**`,
+        r`II. Mıknatıs uzaklaşınca P'deki alanı küçülür; Dünya'nın alanı değişmediği için bileşke kuzeye yaklaşır ve sapma azalır. **Doğru.**`,
+        r`III. Uçlar yer değiştirince mıknatısın P'deki alanı doğuya döner; iğne kuzeydoğuya sapar. **Yanlış.**`,
+        r`{{S0}} mıknatıs uzaklaşınca alanının küçüleceğini ve sapmanın azalacağını görmez. {{S1}} sapmanın yönünden kutbu bulmayı atlar. {{S3}} kutupların yer değiştirmesinin alanın yönünü tersine çevirdiğini görmez ve I'i atlar. {{S4}} kutupları ters çevrilen mıknatısın da iğneyi aynı yöne saptıracağını sanır.`
+      ],
+      ipucu: r`Mıknatısın tam yanındaki noktada alan N'den S'ye doğrudur. İğnenin hangi yana saptığından P'deki alanın yönünü bul.`,
+      tuzak: r`İğnenin N ucunun mıknatısın N kutbuna doğru döndüğünü sanmak. Yandaki noktada iğne, N kutbunu değil, alanın N'den S'ye olan yönünü izler.`
+    },
+    {
+      tur: 'efsane',
+      baslik: 'Efsane mi, gerçek mi?',
+      kartlar: [
+        { sekil: 'iY73_efsane_1', iddia: 'Mıknatıs demiri çeker ama demir mıknatısı çekmez.', karar: false, aciklama: 'Etki-tepki ilkesine göre mıknatıs demire ne kadar kuvvet uygularsa demir de mıknatısa o kadar ve zıt yönde kuvvet uygular. Mıknatıs ile demir iki ayrı araba üzerine konup serbest bırakılırsa iki araba da birbirine doğru hareket eder.' },
+        { iddia: 'Demir tozlarının oluşturduğu desen, manyetik alan çizgilerinin hem biçimini hem de yönünü gösterir.', karar: false, aciklama: 'Demir tozları alanda küçük mıknatıslara dönüşüp çizgiler boyunca dizilir; desen çizgilerin yalnız biçimini gösterir. Bir tozun hangi ucunun N olduğu görülmediği için yön anlaşılmaz. Yönü bulmak için pusula gerekir.' },
+        { iddia: 'Bakır manyetik bir madde olmadığı için akım geçen bakır telin çevresinde manyetik alan oluşmaz.', karar: false, aciklama: 'Manyetik alanı telin maddesi değil, teldeki akım oluşturur. Akım geçen bakır telin yanındaki pusula iğnesi sapar; elektromıknatısların sarımları da bu yüzden bakırdan yapılır.' },
+        { sekil: 'iY73_efsane_4', iddia: 'Bir mıknatıs çok ısıtılır ya da sert darbelere uğrarsa mıknatıslığını kaybedebilir.', karar: true, aciklama: 'Mıknatısın içindeki küçük mıknatıslanmış bölgeler aynı yönde dizildiği için mıknatıs güçlüdür. Yüksek sıcaklık ve sert darbeler bu düzeni bozar; mıknatısın etkisi azalır, yeterince ısıtılınca tamamen kaybolur.' },
+        { iddia: 'Elektromıknatısın pili ters bağlanırsa elektromıknatıs demir parçaları itmeye başlar.', karar: false, aciklama: 'Pil ters bağlanınca akımın yönü, dolayısıyla elektromıknatısın kutupları yer değiştirir. Demir parça her iki kutupta da kendisi mıknatıslanarak çekilir; bu yüzden elektromıknatıs demiri yine çeker.' }
+      ]
+    },
+    {
+      tur: 'kartlar',
+      baslik: 'Kısa yollar ve ÖSYM tuzakları',
+      alt: 'Önce ön yüzdeki soruyu kendin cevapla, sonra açıklamayı oku.',
+      kartlar: [
+        { on: 'Sağ el kuralı tek cümlede', ipucu: 'Düz telde başparmak neyi gösterir?', arka: r`Başparmak akımı, kıvrılan dört parmak alan çizgilerinin dolanım yönünü gösterir. Bir noktadaki alanın yönü, o noktada parmakların hareket ettiği yöndür. Sayfaya dik telde $\odot$ ise saat yönünün tersi, $\otimes$ ise saat yönü.` },
+        { on: 'Telin iki yanı zıttır', ipucu: 'Sayfa düzlemindeki telin üstü ve altı', arka: r`Sayfa düzlemindeki bir telin bir yanında alan sayfadan dışarı, öbür yanında içeri doğrudur. Akım yönü değişince iki yan da tersine döner. Pusula telin üstünde ya da altında olunca da sapma yönü değişir.` },
+        { on: 'Pusulanın N ucu neyi gösterir?', ipucu: 'Mıknatısın N kutbunu mu?', arka: 'Bulunduğu yerdeki bileşke manyetik alanın yönünü gösterir. N ucunu mıknatısın S kutbu çeker, N kutbu iter. Mıknatısın yanında iğne mıknatısa paralel ve N kutbundan S kutbuna doğru durur.' },
+        { on: 'İtme kanıttır, çekme değildir', ipucu: 'Bir çubuğun mıknatıs olduğunu ne kesinleştirir?', arka: 'Demir hem mıknatısın N hem de S kutbuna çekilir; çekme gözlemi çubuğun mıknatıs olduğunu kanıtlamaz. İtme ise yalnız iki mıknatısın aynı kutupları arasında olur. Pusulanın N ucunu iten çubuk kesinlikle mıknatıstır.' },
+        { on: 'Artar ama doğru orantılı değil', ipucu: 'Akım iki katına çıkınca pusulanın sapma açısı?', arka: 'Akım artınca telin alanı artar; iğnenin sapması ise telin alanı ile Dünya\'nın alanının birlikte etkisine bağlıdır. Akım artınca sapma artar ama akımla aynı oranda artmaz ve iğne hiçbir zaman tam doğuyu ya da batıyı göstermez.' },
+        { on: 'Demir tozu mu, pusula mı?', ipucu: 'Akım ters çevrilince hangisi değişir?', arka: 'Demir tozları alan çizgilerinin yalnız biçimini gösterir; akım ters çevrilince halkalar aynı kalır. Yönü pusulanın N ucu gösterir; akım ters çevrilince iğne de ters döner. Telin yanındaki iğne tele doğru dönmez, halkaya teğet durur.' },
+        { on: 'İki değişken birlikte değişirse', ipucu: 'Akım da uzaklık da artarsa alan?', arka: 'Akımın artması alanı büyütür, uzaklığın artması küçültür. İkisi birlikte artarsa sonuç bilinmeden karar verilemez; "kesinlikle" sorusunda bu tuzak sık kurulur. İki değişiklik aynı yönde etki ediyorsa karar kesindir.' },
+        { on: 'Dünya: coğrafi kuzeyde S var', ipucu: 'Kuzey yarım kürede çizgiler', arka: 'Dünya\'nın coğrafi kuzeye yakın manyetik kutbu S kutbudur; pusulanın N ucu bu yüzden kuzeye döner. Dünya\'yı içinde dev bir çubuk mıknatıs varmış gibi düşün: Ekvator bu mıknatısın yanıdır ve orada alan güneyden kuzeye doğrudur.' }
+      ]
+    },
+    {
+      tur: 'cikmis',
+      baslik: 'ÖSYM bu konuyu nasıl sordu?',
+      metin: r`2018–2026 arasında TYT'de bu konudan **hiç soru çıkmadı**; elektrik ve manyetizma başlığından gelen 6 sorunun hepsi devre, akım ve enerji sorusuydu. Mıknatıslar, akımın manyetik alanı ve Dünya'nın manyetik alanı 2018 programında 10. sınıf kazanımı olduğu için 2027 TYT'nin de kapsamındadır. Program alanın büyüklüğü ve yönüyle ilgili hesaba girmediğinden gelebilecek bir soru büyük olasılıkla kavramsal olur: pusula iğnesinin yönü, sağ el kuralı, alanın akım ve uzaklıkla değişimi, mıknatısla demiri ayırt etme. Bu yüzden bu bölümdeki 30 sorunun hepsi tahmin sorusudur. Son 9 yılın verisine göre bu konunun önceliği düşüktür; ama hiç sorulmamış olması sorulmayacağı anlamına gelmez.`,
+      yillar: { 2018: 0, 2019: 0, 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0, 2026: 0 },
+      kaliplar: [],
+      kartlar: []
+    },
+    {
+      tur: 'ozet',
+      baslik: 'Kontrol listesi',
+      maddeler: [
+        'Mıknatısın kutuplarını, itme-çekme özelliklerini ve bölündüğünde her parçanın iki kutuplu olduğunu açıklayabilirim.',
+        'Alan çizgilerinden alanın yönünü ve büyüklüğünü yorumlayıp bir noktadaki pusula iğnesinin yönünü bulabilirim.',
+        r`Sağ el kuralıyla düz telin alanının yönünü bulabilir, $\odot$ ve $\otimes$ gösterimini doğru kullanabilirim.`,
+        'Düz telin alanının akım ve uzaklıkla nasıl değiştiğini açıklayabilir, iki değişken birlikte değişince kesin karar verilip verilemeyeceğini ayırt edebilirim.',
+        'Elektromıknatısın yapısını ve kullanım alanlarını, yüksek gerilim hatlarının oluşturduğu alanı açıklayabilirim.',
+        "Dünya'nın manyetik alanını, pusulayla yön bulmayı ve canlıların bu alandan yararlanmasını açıklayabilirim."
+      ]
+    }
+  ],
+
+  /* ---------------- SORULAR ---------------- */
+  sorular: [
+    {
+      id: 'kY73_01', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.3.1', beceri: 'Kavramsal çıkarım',
+      tahmin: { gerekce: r`Mıknatısın kutup özellikleri 10.1.3.1'in temelidir ve 9 yılda TYT'de hiç sorulmadı. Kırılan mıknatısta tek kutup oluşmaması, öğrencilerin en yaygın yanılgılarından biridir; kısa ve hesapsız bir I-II-III sorusuna elverişlidir.` },
+      metin: r`Bir hobi atölyesinde Selim'in elinden kayan ferrit bir çubuk mıknatıs yere düşüp üç parçaya ayrılıyor. Uçları N ve S ile işaretli parçalar iki yanda, işaretsiz parça ortada kalıyor.
+
+Buna göre,
+
+I. Ortadaki parçanın da bir N bir S kutbu vardır.
+II. Parçalar, kırık yüzeyleri birbirine bakacak biçimde eski sıralarıyla yan yana getirilirse birbirini çeker.
+III. N işaretli uç parçanın yalnız N kutbu vardır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Bir mıknatıs kaç parçaya bölünürse bölünsün her parçanın bir N bir S kutbu olur. **Doğru.**`,
+        r`II. Mıknatısın içinde kutuplar sırayla dizildiği için her kırık yüzeyde karşılıklı zıt kutuplar oluşur. Parçalar eski sırasıyla birleştirilince birbirini çeker. **Doğru.**`,
+        r`III. Uç parçanın da kırık yüzeyinde bir S kutbu oluşmuştur; tek kutuplu mıknatıs yoktur. **Yanlış.**`,
+        r`{{S0}} kırık yüzeylerde zıt kutuplar oluştuğunu görmez ve II'yi atlar. {{S1}} tek kutuplu mıknatıs olabileceğini sanır. {{S3}} ortadaki parçayı iki kutuplu sayar ama uç parçaların tek kutuplu kaldığını sanır ve II'yi atlar. {{S4}} uç parçaların da iki kutuplu olduğunu gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY73_02', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.3.1', beceri: 'Şekil yorumlama',
+      tahmin: { gerekce: r`Alan çizgilerinin sıklığıyla alanın büyüklüğünü ilişkilendirmek programın "alan çizgileriyle temsil" vurgusudur. ÖSYM'nin şekilden sıralama isteyen kısa sorularına uygun, hesapsız bir kalıptır; 9 yılda sorulmadı.` },
+      metin: r`Bir mıknatısın yakınındaki bir bölgede manyetik alan çizgileri şekildeki gibi çizilmiştir. Şekil sayfa düzlemindedir.
+
+K, L ve M noktalarındaki manyetik alanların büyüklükleri $B_K$, $B_L$ ve $B_M$ arasındaki ilişki nedir?`,
+      sekil: 'kY73_cizgi',
+      secenekler: [r`$B_K > B_L > B_M$`, r`$B_M > B_L > B_K$`, r`$B_K = B_L = B_M$`, r`$B_K > B_L = B_M$`, r`$B_K = B_L > B_M$`],
+      dogru: 0,
+      cozum: [
+        r`Alan çizgilerinin sık olduğu yerde alan büyük, seyrek olduğu yerde küçüktür.`,
+        r`Çizgiler soldan sağa doğru açılıyor: K'nin bulunduğu yerde çizgiler en sık, L'de daha seyrek, M'de en seyrektir. Sonuç: $B_K > B_L > B_M$.`,
+        r`{{S1}} alanın çizgilerin gösterdiği yönde ilerledikçe büyüdüğünü sanır. {{S2}} bir mıknatısın alanının her yerde aynı büyüklükte olduğunu sanır. {{S3}} L ile M'nin ikisinin de çizgilerin seyrek olduğu sağ bölgede bulunduğuna bakıp alanlarını eşit sayar; çizgiler L'den M'ye doğru da açılmaya devam eder. {{S4}} çizgilerin K'den L'ye kadar seyrekleştiğini fark etmez.`
+      ]
+    },
+    {
+      id: 'kY73_03', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.3.1', beceri: 'Günlük hayat uygulaması',
+      tahmin: { gerekce: r`Mıknatısın alanının manyetik olmayan maddelerden geçmesi ve demirin mıknatıslanarak çekilmesi deneyle incelenmesi istenen temel özelliklerdir. "Metal her şeyi engeller" yanılgısını yoklayan bir günlük hayat sorusu 9 yılda sorulmadı.` },
+      metin: r`Mutfakta Irmak, plastik bir kesme tahtasının üstüne çelik bir ataş koyuyor. Tahtanın altında tuttuğu küçük bir mıknatısı hareket ettirince ataş da tahtanın üstünde mıknatısla birlikte hareket ediyor.
+
+Buna göre,
+
+I. Mıknatısın manyetik alanı plastik tahtanın içinden geçer.
+II. Ataş, mıknatısın alanında mıknatıslandığı için çekilir.
+III. Tahtanın yerine aynı kalınlıkta alüminyum bir levha konulsaydı mıknatıs ataşı hiç çekemezdi.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Plastik manyetik bir madde değildir; mıknatısın alanı içinden geçer ve ataşa ulaşır. **Doğru.**`,
+        r`II. Çelik ataş mıknatısın alanında mıknatıslanır; mıknatısa yakın ucunda mıknatısın kutbuna zıt bir kutup oluşur ve çekilir. **Doğru.**`,
+        r`III. Alüminyum da manyetik olmayan bir maddedir; mıknatısın alanı alüminyum levhadan da geçer ve ataş yine çekilir. **Yanlış.**`,
+        r`{{S0}} ataşın kendisinin mıknatıslanarak çekildiğini görmez. {{S1}} alanın plastikten geçtiğini atlar. {{S3}} her metalin manyetik alanı engellediğini sanır ve plastikten geçişi atlar. {{S4}} alüminyumun da manyetik olmayan bir madde olduğunu gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY73_04', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.4.1', beceri: 'Değişken belirleme',
+      tahmin: { gerekce: r`10.1.4.1 kazanımı düz telin alanını etkileyen değişkenlerin belirlenmesini ister ve hesaba girmez. Değişkenleri ayrı ayrı sınayan kısa bir I-II-III sorusu, programın bu konudaki en doğrudan ölçme biçimidir; 9 yılda sorulmadı.` },
+      metin: r`Bir öğrenci, güç kaynağına bağlı uzun düz bir telin yakınındaki P noktasında telin oluşturduğu manyetik alanı bir sensörle ölçüyor. P noktası telin dışındadır.
+
+Aşağıdaki değişikliklerden hangileri tek başına yapıldığında P noktasındaki manyetik alanın büyüklüğü artar?
+
+I. Telden geçen akımı artırmak.
+II. Akım aynı kalacak biçimde, aynı yerde duran daha kalın kesitli bir tel kullanmak.
+III. P noktasını tele yaklaştırmak.`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`Düz telin dışındaki bir noktada alan, akım arttıkça artar, tele olan uzaklık arttıkça azalır.`,
+        r`I. Akım artarsa alan artar. III. Uzaklık azalırsa alan artar. II. Akım ve uzaklık aynı kaldıkça telin kalınlığı telin dışındaki alanı değiştirmez.`,
+        r`{{S0}} P'yi tele yaklaştırmanın alanı büyüttüğünü atlar. {{S1}} telin kalınlığının alanı belirlediğini sanır; alanı belirleyen kalınlık değil, akımdır. {{S2}} akımın etkisini atlar. {{S3}} kalın telin daha büyük alan oluşturduğunu sanır ve uzaklığın etkisini atlar.`
+      ]
+    },
+    {
+      id: 'kY73_05', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.4.1', beceri: 'Kural uygulama',
+      tahmin: { gerekce: r`Sağ el kuralı programda açıkça verilir ve yön bulma hesap içermez. Akımın sola çizildiği bir şekil, kuralı ezberleyip uygulamayan öğrenciyi ayırt eder; TYT'de hiç sorulmadı.` },
+      metin: r`Sayfa düzleminde bulunan uzun düz bir telden şekilde gösterilen yönde akım geçiyor. K noktası telin üstünde, L noktası altındadır ve ikisi de sayfa düzlemindedir.
+
+Telin K ve L noktalarında oluşturduğu manyetik alanın yönü aşağıdakilerden hangisinde doğru verilmiştir?`,
+      sekil: 'kY73_yatay',
+      secenekler: ["K'de sayfa düzleminden dışarı, L'de sayfa düzleminden içeri", "K'de sayfa düzleminden içeri, L'de sayfa düzleminden dışarı", "K'de ve L'de sayfa düzleminden dışarı", "K'de sayfa düzleminde yukarı, L'de sayfa düzleminde aşağı", "K'de ve L'de sayfa düzleminde, akımla aynı yönde"],
+      dogru: 1,
+      cozum: [
+        r`Sağ elin başparmağı akımın yönüne, yani sola çevrilip tel kavranırsa dört parmak telin üstünde sayfadan içeri, altında sayfadan dışarı doğru kıvrılır.`,
+        r`K'de alan içeri ($\otimes$), L'de dışarı ($\odot$) doğrudur.`,
+        r`{{S0}} akımın yönüne bakmadan "telin üstü dışarı" kalıbını ezberden kullanır; bu, akım sağa doğru olsaydı geçerliydi. {{S2}} telin iki yanında alanın aynı yönde olduğunu sanır. {{S3}} alan çizgilerinin telden dışarı doğru uzanan doğrular olduğunu sanır. {{S4}} manyetik alanın akımla aynı yönde olduğunu sanır; alan çizgileri teli dolanır.`
+      ]
+    },
+    {
+      id: 'kY73_06', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.4.1', beceri: 'Günlük hayat uygulaması',
+      tahmin: { gerekce: r`Programda "elektromıknatıs tanıtılarak kullanım alanlarına örnekler verilir" denir. Teknoloji örneklerini sınıflandıran tek seçimli sorular TYT'nin sevdiği bir biçimdir; bu konuda 9 yılda sorulmadı.` },
+      metin: r`Elektromıknatıs, akım geçtiğinde mıknatıslanan ve akım kesilince mıknatıslığının büyük kısmını kaybeden bir düzenektir.
+
+Aşağıdakilerden hangisinin çalışmasında elektromıknatıs kullanılmaz?`,
+      secenekler: ['Demir hurdaları kaldırıp taşıyan vinç', 'Okullardaki elektrikli zil', 'Küçük bir akımla büyük akımlı bir devreyi açıp kapatan röle', 'Kalem kutusunun kapağını kapalı tutan küçük mıknatıs', 'Akım verildiğinde kapıyı kilitleyen elektromanyetik kilit'],
+      dogru: 3,
+      cozum: [
+        r`Kalem kutusunun kapağındaki küçük mıknatıs sürekli bir mıknatıstır; çalışması için akım gerekmez.`,
+        r`Hurda vinci, zil, röle ve elektromanyetik kilit, akım geçen sarımlarla oluşturulan manyetik alanı kullanır.`,
+        r`{{S0}} vincin demiri sürekli bir mıknatısla tuttuğunu sanır; vinç akım kesilince yükü bırakabilsin diye elektromıknatıs kullanır. {{S1}} zilin tokmağının elektromıknatısın çekmesiyle hareket ettiğini bilmez. {{S2}} rölenin içindeki bobinin anahtarı çektiğini bilmez. {{S4}} kilidin yalnız mekanik olduğunu sanır; akım kesilince açılan kilit elektromıknatısla çalışır.`
+      ]
+    },
+    {
+      id: 'kY73_07', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.4.2', beceri: 'Kavramsal çıkarım',
+      tahmin: { gerekce: r`10.1.4.2 kazanımı pusula ile yön bulmayı ister. Coğrafi kuzeye yakın manyetik kutbun S olması, öğrencilerin en sık karıştırdığı bilgidir; 9 yılda TYT'de sorulmadı.` },
+      metin: r`Türkiye'de bir kamp alanında kuzeyi bulmak isteyen Arda, pusulasını yatay tutup iğnenin durmasını bekliyor.
+
+Buna göre,
+
+I. İğnenin N ucunun gösterdiği yön coğrafi kuzeye yakındır.
+II. Dünya'nın coğrafi kuzeye yakın olan manyetik kutbu N kutbudur.
+III. İğneyi bu yöne çeviren, bulunduğu yerdeki Dünya'nın manyetik alanıdır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Türkiye'de pusulanın gösterdiği kuzey ile coğrafi kuzey arasındaki açı birkaç derecedir; iğnenin N ucu coğrafi kuzeye yakın bir yönü gösterir. **Doğru.**`,
+        r`II. Pusulanın N ucunu çeken kutup S kutbudur. Coğrafi kuzeye yakın manyetik kutup bu yüzden S kutbudur. **Yanlış.**`,
+        r`III. Pusula iğnesi küçük bir mıknatıstır; onu kuzey-güney doğrultusuna çeviren Dünya'nın manyetik alanıdır. **Doğru.**`,
+        r`{{S0}} iğneyi Dünya'nın manyetik alanının döndürdüğünü atlar. {{S1}} N ucunu çeken kutbun N olduğunu sanır. {{S2}} iğneyi Dünya'nın alanının döndürdüğünü bilir ama Türkiye'de iğnenin gösterdiği yönün coğrafi kuzeye yakın olduğunu atlar. {{S3}} kuzeydeki manyetik kutbu adından dolayı N sanır ve III'ü atlar.`
+      ]
+    },
+    {
+      id: 'kY73_08', yks: true, zorluk: 1, tur: 'cs', cikti: '10.1.4.2', beceri: 'Olay ile neden eşleme',
+      tahmin: { gerekce: r`Programda Dünya'nın manyetik alanının sonuçları ve canlıların bu alandan yararlanması belirtilir. "Hangisi sonucu değildir?" kalıbı ÖSYM'nin olay-neden eşleştirmede sık kullandığı tek seçimli biçimdir; bu konuda hiç sorulmadı.` },
+      metin: r`Dünya, çevresinde içinde dev bir mıknatıs varmış gibi bir manyetik alan oluşturur.
+
+Aşağıdakilerden hangisi Dünya'nın manyetik alanının bir sonucu değildir?`,
+      secenekler: ['Göçmen kuşların uzun yolculuklarda yönlerini bulabilmesi', 'Kutup bölgelerine yakın yerlerde kutup ışıklarının görülmesi', "Türkiye'de yatay tutulan pusula iğnesinin kuzey-güney doğrultusunda durması", 'Okyanuslarda deniz seviyesinin gün içinde düzenli olarak yükselip alçalması', 'Bal arılarının yön bulurken yararlandığı ipuçlarından birini sağlaması'],
+      dogru: 3,
+      cozum: [
+        r`Deniz seviyesinin gün içinde yükselip alçalması (gelgit), Ay'ın ve Güneş'in kütle çekiminden kaynaklanır; manyetik alanla ilgisi yoktur.`,
+        r`Kuşların ve arıların yön bulması, pusulanın kuzeyi göstermesi ve kutup ışıkları Dünya'nın manyetik alanının sonuçlarıdır.`,
+        r`{{S0}} kuşların yalnız Güneş'e ve yıldızlara bakarak yön bulduğunu sanır; bazı kuşlar manyetik alanı da algılar. {{S1}} kutup ışıklarının manyetik alanla ilgisini bilmez; Güneş'ten gelen yüklü parçacıklar alan tarafından kutuplara yönlendirilir. {{S2}} pusula iğnesinin coğrafi yönleri kendiliğinden bildiğini sanır; iğneyi Dünya'nın alanı döndürür. {{S4}} arıların manyetik alandan yararlandığını bilmez.`
+      ]
+    },
+    {
+      id: 'kY73_09', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.3.1', beceri: 'Şekilden çıkarım',
+      tahmin: { gerekce: r`Pusuladan kutup bulmak, programın "deney ve simülasyonla manyetik alanı inceleme" vurgusunun doğrudan sınavıdır. İki adımlı (iğne → alan → kutup) kısa bir şekil sorusu TYT tarzına uyar; 9 yılda sorulmadı.` },
+      metin: r`Kolları sağa bakan, kutupları işaretlenmemiş U biçimli bir mıknatısın kolları arasına bir pusula konuyor. Pusula iğnesinin kırmızı ucu N ucudur ve iğne şekildeki gibi durmaktadır. Dünya'nın manyetik alanının etkisi önemsizdir.
+
+Buna göre 1 numaralı kolun kutbu ve kolların arasındaki alan çizgilerinin yönü için aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'kY73_U',
+      secenekler: ["1 S kutbudur; kolların arasında alan çizgileri 2'den 1'e doğrudur.", "1 N kutbudur; kolların arasında alan çizgileri 1'den 2'ye doğrudur.", "1 N kutbudur; kolların arasında alan çizgileri 2'den 1'e doğrudur.", "1 S kutbudur; kolların arasında alan çizgileri 1'den 2'ye doğrudur.", '1 ve 2 numaralı kolların kutupları pusulayla belirlenemez.'],
+      dogru: 0,
+      cozum: [
+        r`Pusulanın N ucu alanın yönünü gösterir. İğnenin N ucu 1 numaralı kola dönük olduğuna göre kollar arasındaki alan 2'den 1'e doğrudur.`,
+        r`Alan çizgileri mıknatısın dışında N kutbundan çıkıp S kutbuna girer. Çizgiler 1'e girdiğine göre 1 S kutbu, 2 N kutbudur.`,
+        r`{{S1}} pusulanın N ucunun mıknatısın N kutbunu gösterdiğini sanır; N ucunu S kutbu çeker. {{S2}} alanın yönünü doğru okur ama çizgilerin girdiği kutbu N sanır. {{S3}} 1'in S olduğunu bulur ama alan çizgilerinin S kutbundan çıktığını sanır. {{S4}} pusulanın yalnız Dünya'nın kuzeyini gösterdiğini sanır; mıknatısın yakınında iğne mıknatısın alanına yönelir.`
+      ]
+    },
+    {
+      id: 'kY73_10', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.3.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Demir tozu deseni programın önerdiği deneylerin en bilinenidir. Desenin yönü göstermediğini fark ettiren "kesinlikle" kökü, ÖSYM'nin verilmeyen bilgiyi varsaydırma tuzağını taşır; 9 yılda sorulmadı.` },
+      metin: r`Özdeş iki çubuk mıknatıs aynı doğru üzerinde, aralarında boşluk kalacak biçimde masaya konuyor. Üzerlerine yerleştirilen kâğıda serpilen demir tozları şekildeki deseni oluşturuyor. Mıknatısların kutupları işaretsizdir; 1 ve 2 karşılıklı uçlardır. Dünya'nın manyetik alanı önemsizdir.
+
+Buna göre,
+
+I. 1 ve 2 numaralı uçlar aynı cins kutuptur.
+II. 1 numaralı uç N kutbudur.
+III. 1 ve 2 numaralı uçların tam ortasındaki noktada mıknatısların oluşturduğu bileşke manyetik alan sıfırdır.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'kY73_toz',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Desende 1 ve 2 uçlarından çıkan çizgiler birbirine bağlanmıyor, birbirinden uzaklaşacak biçimde ayrışıyor. Bu, karşılıklı uçların aynı cins kutup olduğunu gösterir. **Kesinlikle doğru.**`,
+        r`II. Demir tozları çizgilerin yalnız biçimini gösterir, yönünü göstermez. İki uç N de olabilir, S de olabilir. **Kesin değil.**`,
+        r`III. Mıknatıslar özdeş ve karşılıklı uçlar aynı cins olduğu için tam ortadaki noktada iki mıknatısın alanları eşit büyüklükte ve zıt yönlüdür; bileşke sıfırdır. Desendeki ortadaki boş bölge de bunu gösterir. **Kesinlikle doğru.**`,
+        r`{{S0}} özdeş mıknatısların ortada alanlarının birbirini yok ettiğini görmez. {{S1}} demir tozlarının yönü de gösterdiğini sanır ve aynı cins kutupları görmez. {{S2}} desenden kutbun adının da okunabildiğini sanır ve III'ü atlar. {{S4}} desenden kutbun adının okunabildiğini sanır ve karşılıklı uçların aynı cins olduğunu atlar.`
+      ]
+    },
+    {
+      id: 'kY73_11', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.3.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`İtme-çekme gözlemlerinden mıknatısı ayırt etmek, hesapsız ve tablo yorumlu bir "kesinlikle" sorusu kurmaya çok uygundur. ÖSYM'nin özkütle sorularında kullandığı "gözlem tablosundan kesin sonuç" kalıbının bu konudaki karşılığıdır.` },
+      metin: r`Görünüşleri aynı K, L ve M çubuklarının her biri ya kutupları uçlarında olan bir çubuk mıknatıs ya da mıknatıslanmamış bir demir çubuktur. Aslı, bir pusulanın N ucunu çubukların uçlarına ayrı ayrı yaklaştırıp gözlemlerini tabloya yazıyor. Tablodaki çizgi o denemenin yapılmadığını gösteriyor.
+
+{{tablo}}
+
+Buna göre,
+
+I. K bir mıknatıstır.
+II. L bir mıknatıs değildir.
+III. M mıknatıslanmamış demirdir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Çubuk', '1. uç', '2. uç'], ['K', 'N ucunu çekti', 'N ucunu itti'], ['L', 'N ucunu çekti', 'N ucunu çekti'], ['M', 'N ucunu çekti', '—']],
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Pusulanın N ucunu hem mıknatısın S kutbu hem de demir çeker. İtme ise yalnız mıknatısın N kutbuyla olur.`,
+        r`I. K'nin 2. ucu N ucunu itiyor; K bir mıknatıstır. **Kesinlikle doğru.**`,
+        r`II. L mıknatıs olsaydı uçlarından biri N kutbu olur ve pusulanın N ucunu iterdi. İki uç da çektiğine göre L demirdir. **Kesinlikle doğru.**`,
+        r`III. M'nin denenen ucu N ucunu çekiyor; bu uç demirin ucu olabileceği gibi bir mıknatısın S kutbu da olabilir. **Kesin değil.**`,
+        r`{{S0}} iki ucu da çeken çubuğun mıknatıs olamayacağını görmez. {{S1}} çekmeyi demirin kesin kanıtı sayar; mıknatısın S kutbu da çeker. {{S3}} M'deki çekmeyi demirin kanıtı sayar ve L'yi atlar. {{S4}} K'deki itmenin kesin kanıt olduğunu atlar ve M'deki çekmeyi demirin kanıtı sayar.`
+      ]
+    },
+    {
+      id: 'kY73_12', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.1', beceri: 'Kural uygulama',
+      tahmin: { gerekce: r`Sağ el kuralının ters kullanımı (alan çizgilerinden akımın yönünü bulma) programdaki kuralın hesapsız bir uygulamasıdır. İki sütunlu seçenek biçimi ÖSYM'nin TYT'de sık kullandığı kalıptır; bu konuda 9 yılda sorulmadı.` },
+      metin: r`Şekil, sayfa düzlemine dik uzanan uzun düz bir kablonun kesitini ve kablodan geçen akımın oluşturduğu manyetik alan çizgilerini göstermektedir. P noktası sayfa düzleminde, kablonun sağındadır.
+
+Kablodaki akımın yönü ve P noktasındaki manyetik alanın yönü için aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'kY73_kesit',
+      secenekler: ["Akım sayfa düzleminden içeri doğrudur; P'deki alan telden uzaklaşan yönde, sağa doğrudur.", "Akım sayfa düzleminden dışarı doğrudur; P'deki alan sayfa düzleminde yukarı doğrudur.", "Akım sayfa düzleminden içeri doğrudur; P'deki alan sayfa düzleminde yukarı doğrudur.", "Akım sayfa düzleminden içeri doğrudur; P'deki alan sayfa düzleminde aşağı doğrudur.", "Akım sayfa düzleminden dışarı doğrudur; P'deki alan sayfa düzleminde aşağı doğrudur."],
+      dogru: 3,
+      cozum: [
+        r`Alan çizgileri saat yönünde dolanıyor. Sağ elin dört parmağı saat yönünde kıvrılınca başparmak sayfadan içeri bakar: Akım içeri ($\otimes$) doğrudur.`,
+        r`P, telin sağındadır. Saat yönünde dolanan çemberin sağ tarafında hareket aşağı doğrudur; P'deki alan sayfa düzleminde aşağı doğrudur.`,
+        r`{{S1}} sağ el kuralını ters uygular ve iki yönü birlikte ters bulur. {{S2}} akımın yönünü doğru bulur ama P'de saat yönünün tersine dolanımı kullanır. {{S0}} manyetik alanın telden dışarı uzanan doğrultuda olduğunu sanır; alan çizgilere teğettir. {{S4}} P'deki alanı şekilden doğru okur ama akımın yönünü ters bulur.`
+      ]
+    },
+    {
+      id: 'kY73_13', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.4.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Ørsted deneyi programın hem 10.1.4.1 hem de pusula (10.1.4.2) kazanımına bağlanır. Telin yerini ve akımın yönünü birlikte sınayan "olabilir" kökü, ÖSYM'nin 2026'da kaldırma kuvvetinde kullandığı olasılık değerlendirme kalıbının bu konudaki karşılığıdır.` },
+      metin: r`Masada yatay duran bir pusulanın iğnesi kuzeyi gösteriyor. Kuzey-güney doğrultusunda gerilmiş yatay, uzun ve düz bir tel, ya pusulanın hemen üstüne ya da masanın altından pusulanın hemen altına yerleştiriliyor. Telden akım geçince iğnenin N ucu şekildeki gibi doğuya doğru sapıyor. Şekil, düzeneğin üstten görünüşüdür.
+
+Buna göre,
+
+I. Tel pusulanın üstündedir ve akım kuzeyden güneye doğrudur.
+II. Tel pusulanın altındadır ve akım kuzeyden güneye doğrudur.
+III. Tel pusulanın altındadır ve akım güneyden kuzeye doğrudur.
+
+durumlarından hangileri olabilir?`,
+      sekil: 'kY73_orsted',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`İğne doğuya saptığına göre pusulanın yerinde telin alanı doğuya doğrudur.`,
+        r`I. Tel üstte, akım güneye: Başparmak güneyi gösterince parmaklar telin altında doğuya kıvrılır. **Olabilir.**`,
+        r`II. Tel altta, akım güneye: Pusula telin üstündedir; parmaklar telin üstünde batıya kıvrılır. İğne batıya sapardı. **Olamaz.**`,
+        r`III. Tel altta, akım kuzeye: Parmaklar telin üstünde doğuya kıvrılır. **Olabilir.**`,
+        r`{{S0}} telin pusulanın altında da olabileceğini düşünmez. {{S1}} telin üstte olduğu durumu denemez. {{S2}} telin üstte ya da altta olmasının alanın yönünü değiştirmediğini sanır. {{S4}} telin yeri değişince alanın yönünün tersine döndüğünü görmez ve I'i atlar.`
+      ]
+    },
+    {
+      id: 'kY73_14', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Program alan hesabına girmediği için akım ve uzaklığın birlikte değiştiği karşılaştırmalar ancak nitel yapılabilir. "İki değişken ters yönde etki ediyorsa karar verilemez" fikri, hesapsız ama ayırt edici bir "kesinlikle" sorusu kurar; 9 yılda sorulmadı.` },
+      metin: r`Bir laboratuvarda birbirinden uzaktaki uzun düz X, Y ve Z tellerinden doğru akım geçiyor. Her telin yakınında, yalnız o telin alanının ölçüldüğü bir nokta seçiliyor: $P_X$, $P_Y$ ve $P_Z$. Teldeki akımlar ve noktaların tellere uzaklıkları X teline göre tabloda verilmiştir.
+
+{{tablo}}
+
+Buna göre,
+
+I. $P_Y$'deki manyetik alan $P_X$'tekinden büyüktür.
+II. $P_Z$'deki manyetik alan $P_X$'tekinden büyüktür.
+III. $P_Y$'deki manyetik alan $P_Z$'dekinden büyüktür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Tel', 'Akım', 'Noktanın tele uzaklığı'], ['X', r`$I$`, r`$d$`], ['Y', r`$I$'dan büyük`, r`$d$'den küçük`], ['Z', r`$I$'dan büyük`, r`$d$'den büyük`]],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`Düz telin alanı akım arttıkça artar, uzaklık arttıkça azalır. Program hesaba girmediği için yalnız bu nitel ilişki kullanılır.`,
+        r`I. Y'de akım büyük, uzaklık küçüktür; iki değişiklik de alanı büyütür. **Kesinlikle doğru.**`,
+        r`II. Z'de akım büyüktür ama uzaklık da büyüktür; biri alanı büyütür, öbürü küçültür. Hangisinin ağır bastığı bilinmez. **Kesin değil.**`,
+        r`III. Y ve Z'nin akımları birbirine göre bilinmiyor; Z'nin akımı çok büyükse $P_Z$'deki alan daha büyük olabilir. **Kesin değil.**`,
+        r`{{S1}} yalnız akıma bakar ve Y'deki kesin artışı atlar. {{S2}} akımı büyük olan telin alanının her durumda büyük olduğunu sanır. {{S3}} Y ile Z'nin akımlarını eşit sayar; tabloda yalnız X'e göre karşılaştırma verilmiştir. {{S4}} uzaklığın etkisini hiç hesaba katmaz.`
+      ]
+    },
+    {
+      id: 'kY73_15', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.1', beceri: 'Grafik yorumlama',
+      tahmin: { gerekce: r`Programda telin alanını etkileyen değişkenlerin deney ve simülasyonla belirlenmesi istenir; ölçüm grafiğini yorumlatmak bunun sınav biçimidir. TYT'nin grafik yorumlama kalıbına uyan hesapsız bir sorudur.` },
+      metin: r`Uzun düz bir telin yakınındaki K ve L noktalarına iki sensör yerleştiriliyor. Teldeki akım değiştirilerek sensörlerin ölçtüğü, telin oluşturduğu manyetik alanın büyüklüğü ($B$) ile teldeki akım ($I$) arasındaki grafik çiziliyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. K noktası tele L noktasından daha yakındır.
+II. Aynı akımda K noktasındaki manyetik alan L noktasındakinden büyüktür.
+III. Akımın yönü ters çevrilirse K ve L noktalarındaki alanların büyüklükleri değişir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY73_grafik',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Grafikte aynı akım değerinde K'nin doğrusu L'ninkinden yukarıdadır. Aynı akımda alanı büyük olan nokta tele daha yakındır. **Doğru.**`,
+        r`II. Aynı akım değerinde K'nin doğrusu daha yukarıda olduğu için K'deki alan L'dekinden büyüktür. **Doğru.**`,
+        r`III. Akımın yönü değişince alanın yönü değişir, büyüklüğü değişmez. **Yanlış.**`,
+        r`{{S0}} grafikten iki noktadaki alanları doğrudan karşılaştırmayı atlar. {{S1}} alanın büyük olmasının noktanın tele yakın olmasından kaynaklandığını görmez. {{S2}} akımın yönünün alanın büyüklüğünü değiştirdiğini sanır ve grafiği yorumlamayı atlar. {{S4}} akımın yönünün alanın büyüklüğünü de değiştirdiğini sanır.`
+      ]
+    },
+    {
+      id: 'kY73_16', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.1', beceri: 'Deney tasarımı',
+      tahmin: { gerekce: r`Programda elektromıknatıs tanıtılır ve değişkenlerin deneyle belirlenmesi istenir. Kontrol değişkeni seçtiren tablo soruları TYT'nin deney ağırlıklı yapısına uyar; bu konuda hiç sorulmadı.` },
+      metin: r`Defne, demir ya da tahta bir çekirdeğe yalıtılmış tel sararak beş elektromıknatıs hazırlıyor. Düzeneklerin özellikleri tabloda verilmiştir.
+
+{{tablo}}
+
+Defne, elektromıknatısın kaldırabildiği ataş sayısının sarım sayısına bağlı olup olmadığını incelemek istiyor. Bu amaçla hangi iki düzeneği karşılaştırmalıdır?`,
+      tablo: [['Düzenek', 'Sarım sayısı', 'Akım (A)', 'Çekirdek'], ['1', '50', '0,5', 'Demir'], ['2', '100', '0,5', 'Tahta'], ['3', '100', '1,0', 'Demir'], ['4', '100', '0,5', 'Demir'], ['5', '50', '1,0', 'Tahta']],
+      secenekler: ['1. ve 2. düzenekler', '1. ve 4. düzenekler', '3. ve 4. düzenekler', '2. ve 5. düzenekler', '1. ve 3. düzenekler'],
+      dogru: 1,
+      cozum: [
+        r`Bir değişkenin etkisi incelenirken yalnız o değişken farklı, öbürleri aynı olmalıdır.`,
+        r`1. ve 4. düzeneklerde akım ($0{,}5$ A) ve çekirdek (demir) aynı, yalnız sarım sayısı farklıdır (50 ve 100).`,
+        r`{{S0}} çekirdeğin de değiştiğini gözden kaçırır; fark sarımdan mı çekirdekten mi, anlaşılamaz. {{S2}} sarım sayısı aynı olan düzenekleri seçer; bu iki düzenek akımın etkisini inceler. {{S3}} hem sarım sayısının hem akımın değiştiğini görmez. {{S4}} akımın da iki katına çıktığını gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY73_17', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.1', beceri: 'Kavramsal çıkarım',
+      tahmin: { gerekce: r`Elektromıknatısın kutuplarının akım yönüyle değişmesi ve pusulayla bulunması programdaki tanıtımın sınavlık yönüdür. Kutup adını sağ el kuralı yerine gözlemden çıkartan bu kalıp 10. sınıf kapsamında kalır; 9 yılda sorulmadı.` },
+      metin: r`Bir demir çivinin üzerine yalıtılmış tel sarılıyor ve tel bir pile bağlanarak elektromıknatıs yapılıyor. Çivinin P ucuna yaklaştırılan pusulanın N ucu P'ye doğru dönüyor.
+
+Buna göre,
+
+I. P ucu S kutbu gibi davranır.
+II. Pil ters bağlanırsa pusulanın N ucu P'den uzaklaşacak biçimde döner.
+III. Akım aynı yönde kalmak koşuluyla sarım sayısı artırılırsa P ucu N kutbu olur.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Pusulanın N ucunu çeken kutup S kutbudur. **Doğru.**`,
+        r`II. Pil ters bağlanınca akımın yönü, dolayısıyla elektromıknatısın kutupları değişir; P ucu N kutbu olur ve pusulanın N ucunu iter. **Doğru.**`,
+        r`III. Sarım sayısı elektromıknatısın gücünü artırır; kutupları değiştirmez. **Yanlış.**`,
+        r`{{S0}} akımın yönü değişince kutupların da değiştiğini görmez. {{S1}} N ucunu çeken kutbu N sanır ama ters bağlamanın kutupları değiştirdiğini bilir. {{S3}} sarım sayısının kutupları değiştirdiğini sanır ve II'yi atlar. {{S4}} sarım sayısının yalnız gücü değiştirdiğini gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY73_18', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.1', beceri: 'Günlük hayat uygulaması',
+      tahmin: { gerekce: r`Program "yüksek gerilim hatlarının geçtiği alanlarda oluşan manyetik alanın canlılar üzerindeki etkilerine değinilir" der. Bu açıklama günlük hayat bağlamlı, hesapsız bir TYT sorusuna doğrudan dönüşebilir; 9 yılda sorulmadı.` },
+      metin: r`Bir belediye, yüksek gerilim hattının geçtiği bir arazide oyun parkı yapmayı planlıyor. Uzmanlar, hat tellerinden geçen akımın parkta oluşturacağı manyetik alanı değerlendiriyor.
+
+Buna göre,
+
+I. Parkı hattan daha uzağa kurmak, parktaki manyetik alanı azaltır.
+II. Elektrik tüketiminin arttığı saatlerde hattan geçen akım arttığı için parktaki aynı noktada manyetik alan da artar.
+III. Hat tellerinin etrafı kalın bir plastik yalıtkanla kaplanırsa tellerin çevresinde manyetik alan oluşmaz.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Telin oluşturduğu alan uzaklık arttıkça azalır. **Doğru.**`,
+        r`II. Alan teldeki akımla artar; tüketim arttıkça hattan geçen akım ve aynı noktadaki alan artar. **Doğru.**`,
+        r`III. Manyetik alanı akım oluşturur; plastik yalıtkan akımı değiştirmez ve alanı engellemez. Yalıtkan yalnız elektrik çarpmasına karşı korur. **Yanlış.**`,
+        r`{{S0}} hattaki akımın gün içinde değişebileceğini ve alanı değiştirdiğini görmez. {{S1}} yalıtkanın manyetik alanı da durdurduğunu sanır. {{S3}} yalıtkanın alanı engellediğini sanır ve akımın etkisini atlar. {{S4}} elektrik çarpmasına karşı korumayı manyetik alana karşı koruma sanır.`
+      ]
+    },
+    {
+      id: 'kY73_19', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.2', beceri: 'Deney yorumlama',
+      tahmin: { gerekce: r`Programda göçmen kuşlar gibi canlıların yerin manyetik alanından yararlanarak yön bulduğu açıkça belirtilir. Bu bilgiyi bir araştırmanın sonucunu yorumlatarak soran kısa ve hesapsız bir soru, TYT'nin deney ve günlük hayat ağırlıklı yapısına uyar; 9 yılda sorulmadı.` },
+      metin: r`Göçmen kuşlarla yapılan bir araştırmada, göç mevsiminde kuşlar Güneş'i ve yıldızları göremeyecekleri kapalı bir kafese konuyor. Kuşlar kafeste, doğada göç ettikleri yöne bakan kenarda toplanıyor. Ardından kafesin çevresine sarılmış tellerden akım geçirilerek kafesteki manyetik alanın büyüklüğü değiştirilmeden yatay yönü $90°$ döndürülüyor; öbür bütün koşullar aynı tutuluyor. Bu kez kuşlar da toplandıkları kenarı aynı yönde yaklaşık $90°$ değiştiriyor.
+
+Bu gözlem en çok aşağıdakilerden hangisini destekler?`,
+      secenekler: ['Bu kuşlar yön bulurken manyetik alanın yönünden yararlanır.', "Bu kuşlar yön bulurken yalnız Güneş'in ve yıldızların konumundan yararlanır.", 'Akım geçen teller kafeste manyetik alan oluşturmaz; kuşların davranışı rastlantıyla değişmiştir.', 'Bu kuşların yön seçimi kafesteki manyetik alandan bağımsızdır.', 'Bu kuşlar manyetik alanın yönünü değil, yalnız büyüklüğünü algılar.'],
+      dogru: 0,
+      cozum: [
+        r`Kafes kapalı olduğu için kuşlar Güneş'i ve yıldızları göremez. İki gözlem arasında değişen tek koşul, kafesteki manyetik alanın yönüdür.`,
+        r`Akım geçen teller manyetik alan oluşturur ve kafesteki alanın yönünü değiştirir. Alanın yönü döndürülünce kuşların yöneldiği kenar da aynı açıyla döndüğüne göre bu kuşlar yön bulurken manyetik alanın yönünden yararlanır.`,
+        r`{{S1}} kapalı kafeste Güneş'in ve yıldızların görülmediğini ve değişen tek koşulun manyetik alan olduğunu gözden kaçırır. {{S2}} akım geçen telin manyetik alan oluşturduğunu bilmez ve alanla birlikte düzenli dönen davranışı rastlantıya bağlar. {{S3}} kuşların yön seçiminin alanla birlikte değiştiğini görmez; seçim alandan bağımsız olsaydı değişmezdi. {{S4}} deneyde alanın büyüklüğünün değil, yalnız yönünün değiştirildiğini gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY73_20', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.2', beceri: 'Model kullanma',
+      tahmin: { gerekce: r`Dünya'nın manyetik alanının çubuk mıknatıs modeliyle açıklanması ve pusula ile yön bulma kazanımın özüdür. Mıknatısın yanındaki alanın yönünü Dünya'ya taşıtan numaralı ok sorusu, TYT'nin şekilden seçim kalıbına uyar ve hesap içermez; 9 yılda sorulmadı.` },
+      metin: r`Şekilde Dünya, dönme ekseni ile manyetik ekseni çakışık kabul edilerek basitleştirilmiş biçimde gösterilmiştir. P noktası ekvator üzerinde, yer yüzeyindedir. Şekilde 3 numaralı ok Dünya'dan dışarı, 4 numaralı ok Dünya'nın merkezine doğrudur.
+
+{{sekil}}
+
+P noktasında Dünya'nın manyetik alanının yönü aşağıdakilerden hangisidir?`,
+      sekil: 'kY73_dunya2',
+      secenekler: [r`1 yönünde`, "P noktasında Dünya'nın manyetik alanı yoktur.", r`3 yönünde`, r`4 yönünde`, r`2 yönünde`],
+      dogru: 4,
+      cozum: [
+        r`Dünya, içinde coğrafi kuzeye yakın ucu S kutbu olan dev bir çubuk mıknatıs varmış gibi davranır. Ekvator, bu hayalî mıknatısın orta bölgesinin hizasıdır; P mıknatısın tam yanındadır.`,
+        r`Mıknatısın yanında alan mıknatısa paraleldir ve N kutbundan S kutbuna doğrudur. Hayalî mıknatısın N kutbu coğrafi güneyde, S kutbu coğrafi kuzeyde olduğu için P'deki alan coğrafi kuzeye doğrudur: 2 yönü. Ekvatorda yatay tutulan pusulanın N ucunun kuzeyi göstermesi de bunu doğrular.`,
+        r`{{S0}} coğrafi kuzeye yakın manyetik kutbu N sanır ve alanı kuzeyden güneye alır. {{S1}} ekvatorun iki manyetik kutuptan eşit uzaklıkta olduğu için alanın orada sıfır olduğunu sanır; ekvatorda da alan vardır ve pusula çalışır. {{S2}} alan çizgilerinin Dünya'dan dışarı doğru, ışınsal uzandığını sanır. {{S3}} manyetik alanı Dünya'nın merkezine doğru sanır; Dünya'nın merkezine doğru olan, kütle çekim kuvvetidir.`
+      ]
+    },
+    {
+      id: 'kY73_21', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.4.1', beceri: 'Deney yorumlama',
+      tahmin: { gerekce: r`Programda telin alanının deneyle incelenmesi istenir; kartondan geçen tel, demir tozu ve pusula bu deneyin bilinen düzeneğidir. Tozların biçimi, pusulanın yönü gösterdiğini ve alanın teli dolandığını birlikte yoklayan hesapsız bir kavram zinciri TYT'nin zor soru tarzına uyar; 9 yılda sorulmadı.` },
+      metin: r`Yatay bir kartonun ortasındaki delikten düşey, uzun ve düz bir tel geçiriliyor. Kartona demir tozu serpiliyor ve telin kuzeyine bir pusula konuyor. Telden yukarı doğru akım geçirilip kartona hafifçe vurulunca tozlar telin çevresinde halkalar oluşturuyor; pusula iğnesi de şekildeki gibi duruyor. Pusulanın bulunabileceği yerlerde telin alanı Dünya'nınkinden çok büyüktür. Şekil, düzeneğin üstten görünüşüdür.
+
+{{sekil}}
+
+Buna göre,
+
+I. Akımın yönü ters çevrilirse tozların oluşturduğu halkaların biçimi değişmez, pusula iğnesi ise ters yöne döner.
+II. Pusula, telden aynı uzaklıkta kalacak biçimde telin çevresinde dolaştırılırsa iğne her yerde halkalara teğet durur.
+III. Pusula tele yaklaştırıldıkça iğnenin N ucu tele doğru döner.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY73_halka',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. Demir tozları alan çizgilerinin yalnız biçimini gösterir; akım ters çevrilince çizgiler yine teli saran çemberlerdir ve halkalar değişmez. Alanın dolanım yönü ise tersine döner; telin kuzeyinde batıya olan alan doğuya döner ve pusula iğnesi ters yöne çevrilir. **Doğru.**`,
+        r`II. Alan çizgileri teli saran çemberlerdir ve bir noktadaki alan çizgiye teğettir. Telin alanı Dünya'nınkinden çok büyük olduğu için iğne her yerde halkaya teğet durur. **Doğru.**`,
+        r`III. Telin alanı telden dışarı uzanmaz, teli dolanır. Pusula tele yaklaşınca alan büyür ama yönü yine halkaya teğettir; iğne tele doğru dönmez. **Yanlış.**`,
+        r`{{S0}} iğnenin her yerde tozların çizdiği halkalar boyunca durduğunu görmez ve II'yi atlar. {{S2}} telin, bir mıknatısın kutbu gibi iğneyi kendine doğru çevirdiğini sanır ve II'yi atlar. {{S3}} demir tozlarının da alanın yönünü gösterdiğini, akım ters çevrilince desenin değişeceğini sanır ve I'i atlar. {{S4}} iğnenin tele yaklaştıkça tele doğru döneceğini sanır; iğne her yerde alan çizgisine teğettir.`
+      ]
+    },
+    {
+      id: 'kY73_22', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.2', beceri: 'Deney yorumlama',
+      tahmin: { gerekce: r`Basit pusula yapımı programdaki "pusula ile yön bulma" kazanımının deneysel karşılığıdır. "Hangisi yanlıştır?" kökü, mıknatıslanabilen ve mıknatıslanamayan maddeleri ayırt ettirir; 9 yılda sorulmadı.` },
+      metin: r`Batu, bir dikiş iğnesini çubuk mıknatısın bir kutbuyla hep aynı yönde birkaç kez sıvazlayarak mıknatıslıyor. İğneyi ince bir köpük diske yapıştırıp durgun su dolu bir kaba bırakıyor; disk serbestçe dönebiliyor. Bir süre sonra iğne kuzey-güney doğrultusunda duruyor.
+
+Bu deneyle ilgili aşağıdakilerden hangisi yanlıştır?`,
+      secenekler: ['İğnenin kuzeyi gösteren ucu, iğnenin N kutbu gibi davranır.', "İğne, Dünya'nın manyetik alanının etkisiyle bu doğrultuya yönelmiştir.", 'Kabın yakınına çelik bir makas getirilirse iğnenin yönü değişebilir.', 'İğne yerine aynı biçimde sıvazlanmış ince bir bakır tel kullanılsaydı o da kuzey-güney doğrultusunda dururdu.', 'Köpük diskin suda yüzmesi, iğnenin kolayca dönebilmesini sağlar.'],
+      dogru: 3,
+      cozum: [
+        r`Bakır manyetik bir madde değildir; mıknatısla sıvazlanınca mıknatıslanmaz ve Dünya'nın alanında belirli bir doğrultuya yönelmez. Bu yargı yanlıştır.`,
+        r`Mıknatıslanan çelik iğne küçük bir pusula gibi davranır; Dünya'nın alanında kuzeyi gösteren ucu N kutbudur. Yakına getirilen çelik makas iğneyi çekip yönünü değiştirebilir; köpük disk sürtünmeyi azaltır.`,
+        r`{{S0}} coğrafi kuzeydeki manyetik kutbun S olmasından yola çıkıp kuzeyi gösteren ucu S sanır; oysa N ucunu S kutbu çektiği için kuzeyi gösteren uç N kutbudur. {{S1}} iğnenin kendiliğinden yön bildiğini sanır; doğrultuyu Dünya'nın alanı belirler. {{S2}} mıknatıslanmış iğnenin yalnız mıknatıslardan etkilendiğini sanır; çelik makas da iğneyi çeker. {{S4}} yüzen diskin yalnız iğneyi taşıdığını düşünür; disk iğnenin sürtünmesiz dönmesini sağlar ve bu yargı doğrudur.`
+      ]
+    },
+    {
+      id: 'kY73_23', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.3.1', beceri: 'Kavramsal çıkarım',
+      tahmin: { gerekce: r`Demirin mıknatıs alanında mıknatıslanması programdaki "mıknatısların özellikleri"nin deneysel yüzüdür. Ataş zincirinde kutup belirleme, şekilli ve hesapsız bir I-II-III sorusuna uygundur; 9 yılda sorulmadı.` },
+      metin: r`Bir askıya tutturulmuş çubuk mıknatısın aşağıdaki N kutbuna çelik bir ataş değdiriliyor. Bu ataşın alt ucuna ikinci, onun altına üçüncü ataş asılabiliyor ve şekildeki zincir oluşuyor.
+
+Buna göre,
+
+I. 1. ataşın mıknatısa değen üst ucu S kutbu gibi davranır.
+II. Ataşlar, mıknatısın alanının etkisiyle mıknatıslanmıştır.
+III. Mıknatıs ters çevrilip zincir S kutbuna kurulmaya çalışılsaydı ataşlar birbirini iterdi.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY73_zincir',
+      secenekler: [r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. 1. ataş mıknatısın N kutbuna çekiliyor; ona değen ucunda zıt kutup, yani S kutbu oluşur. **Doğru.**`,
+        r`II. Çelik ataşlar mıknatısın alanında mıknatıslanır; her biri bir alttakini çeker. **Doğru.**`,
+        r`III. Ataşlar S kutbunun alanında da mıknatıslanır; yalnız kutupları tersine döner. Her ataş yine bir alttakini çeker ve zincir oluşur. **Yanlış.**`,
+        r`{{S0}} ataşların S kutbunda birbirini iteceğini sanır; ataşların mıknatıslandığını ve N kutbuna değen ucun S olduğunu görmez. {{S2}} mıknatıs ters çevrilince ataşların birbirini iteceğini sanır ve ataşların mıknatıslanmasını atlar. {{S3}} ataşların mıknatıslandığını görür ama N kutbuna değen ucun S olduğunu atlar ve III'ü doğru sayar. {{S4}} demirin her iki kutba da çekildiğini gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY73_24', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.3.1', beceri: 'Şekilden çıkarım',
+      tahmin: { gerekce: r`Pusulalarla mıknatısın yerini ve kutuplarını bulmak, programın "manyetik alanı deney ve simülasyonla inceleme" önerisinin en kapsamlı uygulamasıdır. Mıknatısın uçlarında ve yanında alanın zıt yönlü olduğunu kullanan bu kavram zinciri, TYT'nin zor soru tarzına uyar.` },
+      metin: r`Masadaki bir kâğıdın altına bir çubuk mıknatıs gizleniyor ve kâğıdın çevresine A, B, C ve D pusulaları konuyor. Mıknatıs kâğıdın ortasındadır ve kâğıdın kenarlarından birine paraleldir. Pusulaların bulunduğu yerlerde mıknatısın alanı Dünya'nınkinden çok büyüktür. Şekil, pusula iğnelerinin durduğu yönleri üstten göstermektedir; kırmızı uçlar N uçlarıdır.
+
+{{sekil}}
+
+Buna göre mıknatısın konumu için aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'kY73_gizli',
+      secenekler: ['Mıknatıs doğu-batı doğrultusundadır; N kutbu doğu tarafındadır.', 'Mıknatıs doğu-batı doğrultusundadır; N kutbu batı tarafındadır.', 'Mıknatıs kuzey-güney doğrultusundadır; N kutbu kuzey tarafındadır.', 'Mıknatıs kuzey-güney doğrultusundadır; N kutbu güney tarafındadır.', 'Pusulaların bu yönleri tek bir çubuk mıknatısla oluşamaz.'],
+      dogru: 0,
+      cozum: [
+        r`Mıknatısın ekseni üzerindeki iki noktada (iki ucun önünde) alan aynı yöndedir ve eksene paraleldir. Mıknatısın tam yanlarındaki iki noktada da alan eksene paraleldir ama ters yöndedir.`,
+        r`D ve B'deki iğneler doğuya, A ve C'dekiler batıya bakıyor. Mıknatıs kuzey-güney doğrultusunda olsaydı iğnelerin hepsi kuzey-güney doğrultusunda dururdu. Mıknatıs doğu-batı doğrultusundadır; D ve B uçların önünde, A ve C yanlardadır.`,
+        r`Uçların önünde alan S'den N'ye bakan yöndedir: N kutbunun önünde mıknatıstan uzaklaşır, S kutbunun önünde mıknatısa girer. D ve B'de alan doğuya doğru olduğuna göre N kutbu doğu tarafındadır. Yanlarda alan N'den S'ye, yani batıya doğrudur; A ve C bunu doğrular.`,
+        r`{{S1}} D'deki iğnenin N ucunun mıknatısa döndüğünü görüp yakındaki batı ucunu N sanır; oysa iğnenin N ucunu çeken kutup S kutbudur. {{S2}} A ve C'deki iğneleri mıknatısın uçlarının önündeki pusulalar sanır ve iğnelerin doğu-batı doğrultusunda durmasını gözden kaçırır. {{S3}} mıknatısı kuzey-güney doğrultusunda sanır; bu durumda dört iğne de kuzey-güney doğrultusunda dururdu. {{S4}} mıknatısın yanlarındaki alanın uçların önündeki alana zıt yönlü olduğunu bilmediği için yönleri çelişkili sanır.`
+      ]
+    },
+    {
+      id: 'kY73_25', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.4.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Akım geçen düz telin alanı ile çubuk mıknatısın alanını aynı pusula gözleminde karşılaştırmak 10.1.3.1 ile 10.1.4.1'i birleştiren hesapsız bir yön sorusudur. Gizli kaynağın ne olabileceğini sorgulayan "olabilir" kökü, ÖSYM'nin 2026'da kullandığı olasılık kalıbının bu konudaki karşılığıdır.` },
+      metin: r`Masadaki kapalı bir kutunun içinde, kutunun ortasında gizli bir düzenek vardır. Kutunun tam kuzeyindeki P noktasına bir pusula konuyor. Kutu yokken kuzeyi gösteren iğnenin N ucu, kutu yerleştirilince şekildeki gibi kuzeydoğuya doğru sapıyor. Şekil, düzeneğin üstten görünüşüdür.
+
+{{sekil}}
+
+Buna göre kutudaki düzenek aşağıdakilerden hangisi olabilir?`,
+      sekil: 'kY73_kutu',
+      secenekler: ['Kuzey-güney doğrultusunda duran ve N kutbu kuzeye bakan bir çubuk mıknatıs', 'Kuzey-güney doğrultusunda duran ve S kutbu kuzeye bakan bir çubuk mıknatıs', 'Kutunun ortasından düşey olarak geçen ve akımı aşağıdan yukarı doğru olan uzun, düz bir tel', 'Kutunun ortasından düşey olarak geçen ve akımı yukarıdan aşağı doğru olan uzun, düz bir tel', 'Doğu-batı doğrultusunda duran ve N kutbu doğuya bakan bir çubuk mıknatıs'],
+      dogru: 3,
+      cozum: [
+        r`İğne kuzeydoğuya saptığına göre düzeneğin P'deki alanı doğuya doğrudur; Dünya'nın alanı kuzeye doğrudur.`,
+        r`Akım aşağı ($\otimes$) olan düşey telin alan çizgileri üstten bakınca saat yönünde dolanır; telin kuzeyindeki P'de alan doğuya doğrudur. Bu düzenek **olabilir**.`,
+        r`Kuzey-güney doğrultusundaki mıknatısın ekseni üzerindeki P'de alan kuzeye ya da güneye doğrudur; doğuya doğru bir alan oluşturamaz. Akımı yukarı olan telin alanı P'de batıya, N kutbu doğuya bakan doğu-batı mıknatısının alanı ise P'de (mıknatısın yanında, N'den S'ye) batıya doğrudur; ikisi de iğneyi kuzeybatıya saptırır.`,
+        r`{{S0}} N kutbunun önündeki iğnenin saptığını sanır; orada mıknatısın alanı Dünya'nınkiyle aynı yönde, kuzeye doğrudur. {{S1}} S kutbunun önünde alanın güneye, mıknatısa doğru olduğunu görmez; bu alan iğneyi saptıramaz, yalnız Dünya'nın alanını azaltır ya da yenerse iğneyi ters çevirir. {{S2}} akım yönünü sağ el kuralında ters alır; yukarı akımın alanı telin kuzeyinde batıya doğrudur. {{S4}} mıknatısın yanındaki alanın N kutbuna doğru olduğunu sanır; yanda alan N kutbundan S kutbuna, yani bu durumda batıya doğrudur.`
+      ]
+    },
+    {
+      id: 'kY73_26', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.4.1', beceri: 'Tablo yorumlama',
+      tahmin: { gerekce: r`Ørsted deneyinin ölçüm tablosunu yorumlatmak, programdaki "değişkenleri deneyle belirleme" vurgusunun sınav biçimidir. "Artar ama doğru orantılı değil" ayrımı hesapsız ama zor bir kavram zinciridir; TYT'nin deney ve tablo yorumu kalıbına uyar.` },
+      metin: r`Uzun düz bir tel, masadaki pusulanın üstünden kuzey-güney doğrultusunda geçecek biçimde tutuluyor. Telin pusulaya uzaklığı ve teldeki akım değiştirilerek iğnenin kuzeyden sapma açısı ölçülüyor. Bütün ölçümler aynı yerde yapılmış, akım hep aynı yönde geçirilmiştir.
+
+{{tablo}}
+
+Buna göre,
+
+I. Uzaklık aynıyken akım arttıkça iğnenin sapma açısı artar.
+II. İğnenin sapma açısı teldeki akımla doğru orantılıdır.
+III. 1. ve 3. denemelerde telin, pusulanın bulunduğu yerde oluşturduğu manyetik alanın büyüklüğü eşittir.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Deneme', 'Akım (A)', 'Uzaklık (cm)', 'Sapma açısı'], ['1', '2', '2', '39°'], ['2', '4', '2', '58°'], ['3', '4', '4', '39°'], ['4', '2', '4', '22°']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. 1. ve 2. denemelerde uzaklık aynıdır; akım artınca sapma $39°$'den $58°$'ye çıkar. 3. ve 4. denemeler de aynı sonucu verir. **Doğru.**`,
+        r`II. Akım iki katına çıkınca sapma açısı iki katına çıkmıyor ($39°$ yerine $78°$ olmalıydı). İğne, telin alanı ile Dünya'nın alanının bileşkesi yönünde durduğu için açı akımla orantılı artmaz. **Yanlış.**`,
+        r`III. Ölçümler aynı yerde yapıldığı için Dünya'nın alanı her denemede aynıdır. Sapma açıları eşitse bileşkenin yönü, dolayısıyla telin alanının büyüklüğü de eşittir. **Doğru.**`,
+        r`{{S0}} eşit sapmanın eşit tel alanı anlamına geldiğini görmez. {{S1}} sapma açısının akımla doğru orantılı olduğunu sanır. {{S2}} eşit sapmaların eşit tel alanı demek olduğunu görür ama uzaklık aynıyken akım artınca sapmanın arttığını tablodan okumayı atlar. {{S3}} "artar" ile "doğru orantılıdır" ifadelerini aynı sanır ve III'ü atlar.`
+      ]
+    },
+    {
+      id: 'kY73_27', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.3.1', beceri: 'Kavram zinciri',
+      tahmin: { gerekce: r`Mıknatısın kutuplarında güçlü, orta bölgesinde zayıf olması alan çizgileriyle açıklanan bir özelliktir. Aletsiz yapılan iki denemeden mıknatısı bulmak, hesapsız ama birkaç adımlı bir akıl yürütme ister; TYT'nin zor kavram sorularına uygundur.` },
+      metin: r`Görünüşleri aynı X ve Y çubuklarından biri mıknatıs, öbürü mıknatıslanmamış demirdir. Can, önce X'in bir ucunu Y'nin ortasına yaklaştırıyor ve güçlü bir çekme gözlüyor. Sonra Y'nin bir ucunu X'in ortasına yaklaştırıyor; bu kez hemen hemen hiç çekme olmuyor.
+
+Buna göre,
+
+I. X mıknatıstır.
+II. Y'nin iki ucu da X'in iki kutbu tarafından çekilir.
+III. Bir demir ataş, X'in ortasına X'in uçlarına olduğundan daha güçlü çekilir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Bir mıknatısın etkisi kutuplarında güçlü, ortasının yakınında çok zayıftır. Demirin her yeri ise mıknatısa çekilebilir.`,
+        r`I. 1. denemede X mıknatıs, Y demir olursa mıknatısın kutbu demirin ortasını güçlü çeker. 2. denemede Y'nin ucu X'in ortasına, yani mıknatısın zayıf bölgesine yaklaştırıldığı için çekme yok denecek kadar azdır. Tersi olsaydı (Y mıknatıs) 1. denemede çekme zayıf, 2. denemede güçlü olurdu. **Doğru.**`,
+        r`II. Y demir olduğu için iki ucu da mıknatısın N ve S kutbuna çekilir. **Doğru.**`,
+        r`III. Mıknatısın etkisi ortada en zayıftır. **Yanlış.**`,
+        r`{{S0}} çekmenin zayıf olduğu denemeyi demirin kanıtı sayıp Y'yi mıknatıs sanır ve mıknatısın ortasının zayıf, uçlarının güçlü olduğunu tersine çevirir. {{S2}} mıknatısın ortasında etkinin en büyük olduğunu sanır ve II'yi atlar. {{S3}} hangi çubuğun mıknatıs olduğunu belirleyemez ve III'ü doğru sayar. {{S4}} mıknatısın orta bölgesinin zayıf olduğunu gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'kY73_28', yks: true, zorluk: 2, tur: 'cs', cikti: '10.1.4.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Elektromıknatısın günlük hayattaki kullanımı programda istenir. Hangi maddelerin çekildiğini ve akımın rolünü birlikte yoklayan "olabilir" kökü, nikelin de manyetik olduğunu bilmeyi gerektirir; 9 yılda sorulmadı.` },
+      metin: r`Bir geri dönüşüm tesisinde bant üzerinde ilerleyen karışık metal atıkların üzerinde, sarımlarından doğru akım geçirilen elektromıknatıslı bir ayırıcı çalışıyor. Ayırıcı, altından geçen bazı parçaları çekip banttan alıyor, bazılarını çekmiyor.
+
+Bir parçanın ayırıcıya çekilmemesinin nedeni aşağıdakilerden hangileri olabilir?
+
+I. Parça alüminyumdan yapılmış bir içecek kutusudur.
+II. Parça geçerken ayırıcının sarımlarından akım geçmiyordur.
+III. Parça, ayırıcının kolayca kaldırabileceği kadar hafif ve saf nikelden yapılmış küçük bir puldur.`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Alüminyum demir, nikel ve kobalt gibi mıknatısa çekilen bir madde değildir; doğru akımla çalışan elektromıknatıs onu çekmez. **Olabilir.**`,
+        r`II. Akım geçmiyorsa elektromıknatısın etkisi neredeyse yok olur ve demir parçalar da çekilmez. **Olabilir.**`,
+        r`III. Nikel, demir ve kobalt gibi mıknatısa çekilen bir maddedir; hafif bir nikel pul çekilir. **Olamaz.**`,
+        r`{{S0}} akımın kesilmesinin elektromıknatısı etkisiz bıraktığını görmez. {{S1}} alüminyumun mıknatısa çekilmediğini atlar. {{S3}} yalnız demirin mıknatısa çekildiğini sanır ve akımın kesilmesini atlar. {{S4}} nikelin de mıknatısa çekilen bir madde olduğunu bilmez.`
+      ]
+    },
+    {
+      id: 'kY73_29', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.4.1', beceri: 'Değişken kontrolü',
+      tahmin: { gerekce: r`Telin alanını etkileyen değişkenler deneyle belirlenirken tel maddesinin dolaylı etkisini ayırt etmek, Y.7.1'deki direnç bilgisiyle birleşen bir kavram zinciridir. ÖSYM'nin deney yorumunda sık kurduğu "kontrol edilmeyen değişken" tuzağını taşır.` },
+      metin: r`Nehir, eşit uzunlukta ve eşit kesitli bakır ve konstantan telleri sırayla, aynı güç kaynağına ve kısa devreyi önlemek için aynı seri dirence bağlıyor. Her denemede tel düz ve gergin tutuluyor ve telden aynı uzaklıktaki bir noktada telin oluşturduğu manyetik alan ölçülüyor. Bakır tel bağlıyken ölçülen alan daha büyük çıkıyor. Konstantanın özdirenci bakırınkinden büyüktür.
+
+Buna göre,
+
+I. Bu deney, düz telin oluşturduğu manyetik alanın telin yapıldığı maddeye doğrudan bağlı olduğunu gösterir.
+II. Bakır telden geçen akım konstantan telden geçenden büyüktür.
+III. İki telden eşit akım geçirilseydi telden aynı uzaklıktaki noktalarda ölçülen alanlar eşit olurdu.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Teller aynı boyutta olduğu için özdirenci büyük olan konstantanın direnci büyüktür. Kaynak ve seri direnç aynı olduğundan devrenin toplam direnci konstantanda büyük, akımı küçüktür.`,
+        r`I. Alanın büyük çıkmasının nedeni bakır telden geçen akımın büyük olmasıdır; tel maddesi alanı yalnız akımı değiştirerek dolaylı etkiler. Deneyde akım sabit tutulmadığı için bu sonuç çıkarılamaz. **Yanlış.**`,
+        r`II. Bakır tel bağlıyken devrenin direnci küçük, akımı büyüktür. **Doğru.**`,
+        r`III. Akım ve uzaklık aynıysa telin dışındaki alan tel maddesine bağlı değildir. **Doğru.**`,
+        r`{{S0}} farklı sonucun nedenini doğrudan tel maddesine bağlar ve akımın değiştiğini görmez. {{S1}} akım eşit olunca alanların eşit olacağını atlar. {{S2}} tel maddesinin alanı doğrudan değiştirdiğini sanır ve akım farkını görmez. {{S4}} akımın kontrol edilmediğini gözden kaçırır ve I'i de doğru sayar.`
+      ]
+    },
+    {
+      id: 'kY73_30', yks: true, zorluk: 3, tur: 'cs', cikti: '10.1.4.2', beceri: 'Kavram zinciri',
+      tahmin: { gerekce: r`Telin alanı ile Dünya'nın alanının birlikte etkidiği pusula gözlemi, 10.1.4.1 ile 10.1.4.2'yi birleştiren hesapsız bir kavram zinciridir. Alanların zıt yönlü olduğu noktada "kesinlikle" tuzağı kurulabilir; TYT'nin zor soru tarzına uyar.` },
+      metin: r`Yatay bir kartonun ortasındaki küçük delikten düşey, uzun ve düz bir tel geçiriliyor. Telin çevresine, telden eşit uzaklıklara A, B, C ve D pusulaları konuyor. Telden akım geçmezken dört pusula da şekildeki gibi kuzeyi gösteriyor. Sonra telden aşağı doğru (şekilde $\otimes$) bir akım geçiriliyor. Şekil, düzeneğin üstten görünüşüdür.
+
+{{sekil}}
+
+Buna göre,
+
+I. D pusulasının iğnesi yönünü değiştirmez.
+II. A pusulasının iğnesinin N ucu doğuya doğru sapar.
+III. B pusulasının iğnesi, akım ne kadar büyük olursa olsun kuzeyi göstermeye devam eder.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY73_dikey',
+      secenekler: [r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Akım aşağı ($\otimes$) olduğu için üstten bakınca telin alan çizgileri saat yönünde dolanır: Telin batısındaki D'de alan kuzeye, kuzeyindeki A'da doğuya, doğusundaki B'de güneye doğrudur.`,
+        r`I. D'de telin alanı Dünya'nın alanıyla aynı yöndedir; bileşke yine kuzeye bakar. **Doğru.**`,
+        r`II. A'da telin alanı doğuya, Dünya'nınki kuzeye doğrudur; iğne doğuya doğru sapar. **Doğru.**`,
+        r`III. B'de telin alanı Dünya'nınkine zıttır. Telin alanı küçükse iğne kuzeyi göstermeye devam eder; akım büyüyüp telin alanı Dünya'nınkini aşarsa bileşke güneye döner ve iğne ters çevrilir. **Yanlış.**`,
+        r`{{S0}} D'de iki alanın aynı yönde olduğunu ve A'daki sapmayı atlar; B'deki iğnenin değişmeyeceğini sanır. {{S2}} B'de zıt yönlü alanların her zaman Dünya'nın alanı lehine sonuçlanacağını sanır ve A'daki doğuya sapmayı atlar. {{S3}} D'de telin alanının Dünya'nınkiyle aynı yönde olduğunu atlar ve B'deki iğnenin kesinlikle kuzeyi göstereceğini sanır. {{S4}} B'de telin alanının yeterince büyükse Dünya'nınkini aşabileceğini gözden kaçırır.`
+      ]
+    }
+  ],
+  setler: []
+};
+
+window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
+})();
+
+</script>
+<script>
+/* Y.7.3 (YKS 2027 TYT) – 3B animasyonun durağan karesi (PDF baskısı ve çevrimdışı yedek görüntü).
+   Kaynak: src/anim3b.js 'sagel_tel' sahnesinin kendi çizimi; qa/anim3b.py --kare ile yeniden üretilir. Poster verisi src/konu/11_2_2/anim3b.js ile aynıdır (aynı 'sagel_tel' sahnesi); elle düzenleme. */
+window.BFY_ANIM3B_VERI = Object.assign(window.BFY_ANIM3B_VERI || {}, {
+  sagel_tel: { poster: 'data:image/webp;base64,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', alt: 'Sağ el düz teli kavramış: başparmak akım yönünde, kıvrılan parmaklar alan çizgilerinin dolanım yönünde.' }
+});
+
+/* 3B not: bankayı değiştirmeden 'Akım geçen düz telin manyetik alanı' notundan sonra eklenir (derlemede YENI=0 ise bu dosya hiç girmez).
+   Akım makarası ve tele etki eden kuvvet sahneleri (sagel_makara, sagel_kuvvet) 2018 programında 10. sınıfta olmadığı için kullanılmaz. */
+(function () {
+  const K = window.BFY_BANK && window.BFY_BANK['Y.7.3']; if (!K || K.not.some(n => n.tur === 'anim3b')) return;
+  const i = K.not.findIndex(n => n.baslik === 'Akım geçen düz telin manyetik alanı');
+  K.not.splice(i < 0 ? K.not.length : i + 1, 0, { tur: 'anim3b', sahne: 'sagel_tel', baslik: '3B sağ el kuralı: Düz telin alanı hangi yönde dolanır?', metin: String.raw`Başparmağını teldeki akımın ($I$; sahnede $i$ ile gösterilmiştir) yönüne çevir ve dört parmağını teli saracak biçimde kıvır: Parmakların kıvrılma yönü, alan çizgilerinin teli dolanma yönüdür. Halkaların tele yakın olanlarının daha sık olduğuna dikkat et. Sayfa düzlemine dik tellerde aynı kural kâğıt üzerinde şöyle kullanılır: Akım sayfadan dışarı ($\odot$) ise çizgiler saat yönünün tersine, sayfadan içeri ($\otimes$) ise saat yönünde dolanır. Bu bölümdeki telle ilgili yön sorularının hepsi bu tek kurala dayanır.`, ipucu: String.raw`Akımı ters çevir: Başparmak öbür yönü gösterir, alanın dolanımı da tersine döner. Sonra kendine sor: Telin hemen sağındaki bir noktada alan hangi yöndedir?` });
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.7.3 Mıknatıslar, Akım ve Manyetik Alan: oynanan simülasyon
+   Yapabilirim 11'deki simülasyonun (src/konu/11_2_2/sim.js: düzgün alan, ⊙ ⊗ gösterimi, sağda grafik paneli,
+   geniş/dar yerleşim) çizim dili, 2018 programının 10. sınıf kapsamına uyarlanmıştır: tele etki eden kuvvet
+   (11. sınıf) yerine düz telin oluşturduğu alan ve bu alanın pusula iğnesine etkisi (Ørsted deneyi) gösterilir.
+   kY73_sim1: masadaki delikten düşey geçen uzun düz tel; pusula telin d kadar kuzeyinde.
+   Telin alanı B_tel = 2·10⁻⁷ · I / d (T) → d cm ve B μT iken B_tel = 20 · I / d; Dünya'nın alanının yatay bileşeni
+   kuzeye 25 μT (Türkiye için gerçekçi). İğne bileşke alan yönünde durur: sapma açısı tan α = B_tel / B_Dünya.
+   Akım yukarı (⊙): üstten bakınca alan saat yönünün tersine dolanır, telin kuzeyinde alan batıya → iğne batıya sapar.
+   Akım aşağı (⊗): doğuya sapar. 2018 programı alanın yönü ve şiddetiyle ilgili hesaba girmediği için model yalnız çizimde kullanılır:
+   ekranda ve PDF'te alan değeri (μT), sapma açısı ve denklem gösterilmez; grafik ekseni sayısızdır, ölçüm kutuları yalnız akım ve uzaklıktır.
+   Şablon ve kurallar: SIM_KILAVUZ.md
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const sayi = (x, o) => window.BFY_SIM_ARAC.sayi(x, o);
+const BE = 25;                                               // μT, Dünya'nın alanının yatay bileşeni (kuzeye)
+const Btel = v => 20 * v.I / v.d;                            // μT
+const sapma = v => Math.atan2(Btel(v), BE) * 180 / Math.PI;  // derece
+const f1 = x => (+x).toFixed(1);
+const ALAN = '#2f7fb8', AKIM = '#d9573b', DUNYA = '#2f8a57', TEL = '#b8743f', NK = '#d24b3e';
+
+/* ---------- ölçüler ----------
+   Sahne (iki yerleşimde aynı, 300 birim genişlik): üstten görünüş, tel (150, 236), pusula telin kuzeyinde.
+   Geniş: viewBox 560 × 320, grafik sağda. Dar: viewBox 300 × 552, grafik altta. */
+const WX = 150, WY = 236, S = 26;                            // tel, px/cm
+const GENIS = { W: 560, H: 320, OX: 342, OY: 272, GX: 26, GY: 4.8, panel: [300, 12, 256, 296] };
+const DAR = { W: 300, H: 552, OX: 50, OY: 520, GX: 31, GY: 4.2, panel: [10, 316, 280, 226] };
+
+function sahne(v, u, o) {
+  const G = o && o.dar ? DAR : GENIS, { W, H, OX, OY, GX, GY } = G;
+  const yon = v.y === 1 ? 1 : -1;                            // +1: akım yukarı (⊙), −1: aşağı (⊗)
+  const bt = Btel(v), a = sapma(v), cy = WY - v.d * S;
+  const ang = 90 + yon * a;                                  // N ucunun ekran açısı (90 = kuzey; ⊙ batıya)
+  let s = `<defs><clipPath id="${u}kt"><rect x="14" y="14" width="272" height="290" rx="8"/></clipPath></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f8fb"/>`;
+  s += `<rect class="bg" x="${G.panel[0]}" y="${G.panel[1]}" width="${G.panel[2]}" height="${G.panel[3]}" rx="12" fill="#fbfdfe" stroke="#dde7ee" stroke-width="1"/>`;
+  s += `<rect x="14" y="14" width="272" height="290" rx="8" fill="#f3ead6" stroke="#c9b48a" stroke-width="1.2"/>`;
+
+  /* --- telin alan çizgileri (akım varsa); ok uçları dolanım yönünde --- */
+  if (v.I > 0) {
+    let c = '';
+    [1, 2, 3, 4, 5, 6].forEach((k, i) => {
+      const r = k * S;
+      c += `<circle cx="${WX}" cy="${WY}" r="${r}" fill="none" stroke="${ALAN}" stroke-width="1.2" opacity=".55"/>`;
+      // ok: çemberin sağ alt bölgesinde (pusuladan uzak), dolanım yönünde
+      const t = (-40 - 8 * i) * Math.PI / 180, px = WX + r * Math.cos(t), py = WY - r * Math.sin(t);
+      const tx = -Math.sin(t) * yon, ty = -Math.cos(t) * yon;   // ekranda teğet (y aşağı)
+      c += `<polygon points="${f1(px + tx * 6)},${f1(py + ty * 6)} ${f1(px - tx * 4 - ty * 3.6)},${f1(py - ty * 4 + tx * 3.6)} ${f1(px - tx * 4 + ty * 3.6)},${f1(py - ty * 4 - tx * 3.6)}" fill="${ALAN}" opacity=".8"/>`;
+    });
+    s += `<g clip-path="url(#${u}kt)">${c}</g>`;
+  }
+  /* --- tel kesiti --- */
+  s += `<circle cx="${WX}" cy="${WY}" r="12" fill="${TEL}" opacity=".35"/><circle cx="${WX}" cy="${WY}" r="9" fill="#fff" stroke="${AKIM}" stroke-width="1.8"/>`;
+  s += yon > 0 ? `<circle cx="${WX}" cy="${WY}" r="2.6" fill="${AKIM}"/>` : `<path d="M${WX - 5} ${WY - 5} L${WX + 5} ${WY + 5} M${WX + 5} ${WY - 5} L${WX - 5} ${WY + 5}" stroke="${AKIM}" stroke-width="1.8" stroke-linecap="round"/>`;
+  s += T(WX + 16, WY + 22, yon > 0 ? 'akım yukarı (⊙)' : 'akım aşağı (⊗)', { size: 12, weight: 800, fill: AKIM });
+
+  /* --- uzaklık ölçüsü (telin solunda) --- */
+  const DX = WX - 34;
+  s += dashLine(WX - 12, WY, DX - 4, WY, P.ink2, '3 3', 1) + dashLine(WX - 20, cy, DX - 4, cy, P.ink2, '3 3', 1);
+  s += `<line x1="${DX}" y1="${cy + 6}" x2="${DX}" y2="${WY - 6}" stroke="${P.ink}" stroke-width="1.2"/><polygon points="${DX},${cy} ${DX - 3},${cy + 6} ${DX + 3},${cy + 6}" fill="${P.ink}"/><polygon points="${DX},${WY} ${DX - 3},${WY - 6} ${DX + 3},${WY - 6}" fill="${P.ink}"/>`;
+  s += T(DX - 6, (cy + WY) / 2 + 4.5, `d = ${sayi(v.d, v.d % 1 ? 1 : 0)} cm`, { size: 12.5, anchor: 'end', weight: 800 });
+
+  /* --- pusula --- */
+  const ux = Math.cos(ang * Math.PI / 180), uy = -Math.sin(ang * Math.PI / 180), px = -uy, py = ux, R = 18, L = 15, w = 3.6;
+  s += `<circle cx="${WX}" cy="${f1(cy)}" r="${R}" fill="#fdfdfd" stroke="#55626b" stroke-width="1.6"/>`;
+  s += `<line x1="${WX}" y1="${f1(cy - R + 2)}" x2="${WX}" y2="${f1(cy - R + 6)}" stroke="#55626b" stroke-width="1.2"/>`;
+  s += `<polygon points="${f1(WX + ux * L)},${f1(cy + uy * L)} ${f1(WX + px * w)},${f1(cy + py * w)} ${f1(WX - px * w)},${f1(cy - py * w)}" fill="${NK}" stroke="#8a2716" stroke-width=".6"/>`;
+  s += `<polygon points="${f1(WX - ux * L)},${f1(cy - uy * L)} ${f1(WX + px * w)},${f1(cy + py * w)} ${f1(WX - px * w)},${f1(cy - py * w)}" fill="#e9edf0" stroke="#55626b" stroke-width=".6"/><circle cx="${WX}" cy="${f1(cy)}" r="2" fill="#55626b"/>`;
+
+  /* --- yön gülü (sol üst) --- */
+  s += arrow(40, 70, 40, 34, { color: P.ink, w: 1.8, head: 7, headW: 4 }) + T(40, 86, 'K', { size: 12, anchor: 'middle', weight: 800 });
+  s += T(22, 56, 'B', { size: 11, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(58, 56, 'D', { size: 11, anchor: 'middle', weight: 700, fill: P.ink2 });
+
+  /* --- alan vektörleri kutusu (sağ üst): Dünya (kuzey), tel (doğu-batı), bileşke --- */
+  const k = 1.1, bx0 = 238, by0 = 96;
+  s += `<rect x="188" y="22" width="98" height="96" rx="8" fill="#fff" stroke="#c9b48a" stroke-width="1"/>`;
+  s += arrow(bx0, by0, bx0, by0 - BE * k, { color: DUNYA, w: 2.2, head: 7, headW: 4 }) + T(bx0, 36, 'Dünya', { size: 11, anchor: 'middle', weight: 800, fill: DUNYA });
+  if (bt > 0.01) {
+    const ex = bx0 - yon * bt * k;
+    s += arrow(bx0, by0, f1(ex), by0, { color: ALAN, w: 2.2, head: 7, headW: 4 }) + T(f1((ex + bx0) / 2), by0 + 14, 'tel', { size: 11, anchor: 'middle', weight: 800, fill: ALAN });
+    s += arrow(bx0, by0, f1(ex), f1(by0 - BE * k), { color: P.ink2, w: 1.6, head: 6, headW: 3.6, dash: '4 3' });
+  }
+
+  /* --- B_tel – d grafiği --- */
+  const gx = x => OX + x * GX, gy = b => OY - b * GY;
+  for (let x = 1; x <= 6; x++) s += `<line x1="${gx(x)}" y1="${OY}" x2="${gx(x)}" y2="${gy(45)}" stroke="#e1e9ee" stroke-width="1"/>`;
+  for (let b = 10; b <= 40; b += 10) s += `<line x1="${OX}" y1="${gy(b)}" x2="${gx(6) + 4}" y2="${gy(b)}" stroke="#e1e9ee" stroke-width="1"/>`;
+  const xe = gx(6) + 12, ye = gy(45) - 14;
+  s += `<line x1="${OX}" y1="${OY}" x2="${xe}" y2="${OY}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${xe + 7},${OY} ${xe - 2},${OY - 3.8} ${xe - 2},${OY + 3.8}" fill="${P.ink}"/>`;
+  s += `<line x1="${OX}" y1="${OY}" x2="${OX}" y2="${ye}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${OX},${ye - 7} ${OX - 3.8},${ye + 2} ${OX + 3.8},${ye + 2}" fill="${P.ink}"/>`;
+  s += T(xe + 9, OY + 4.5, 'd (cm)', { size: 12, weight: 700 });
+  s += T(OX + 8, ye + 4, 'B_{tel}', { size: 12.5, weight: 700 });
+  s += T(OX - 6, OY + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  for (let x = 1; x <= 6; x++) s += T(gx(x), OY + 17, String(x), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
+  s += dashLine(OX, gy(BE), gx(6) + 4, gy(BE), DUNYA, '6 4', 1.6) + T(gx(6) + 2, gy(BE) - 6, 'Dünya', { size: 11.5, anchor: 'end', weight: 800, fill: DUNYA });
+  if (v.I > 0) {
+    let d = '';
+    for (let x = 2; x <= 6.001; x += 0.1) d += (d ? ' L' : 'M') + `${f1(gx(x))} ${f1(gy(20 * v.I / x))}`;
+    s += `<path d="${d}" fill="none" stroke="${ALAN}" stroke-width="2.8" stroke-linecap="round"/>`;
+  } else s += `<line x1="${gx(2)}" y1="${OY}" x2="${gx(6)}" y2="${OY}" stroke="${ALAN}" stroke-width="2.8"/>`;
+  const qx = gx(v.d), qy = gy(bt);
+  if (bt > 0.5) s += dashLine(qx, qy + 6, qx, OY, P.ink2, '3 3', 1.1);
+  s += `<circle cx="${f1(qx)}" cy="${f1(qy)}" r="5.2" fill="${AKIM}" stroke="#fff" stroke-width="1.6"/>`;
+  return svg(W, H, s, u, o && o.dar ? 80 : 150);
+}
+
+window.BFY_SIM = window.BFY_SIM || {};
+BFY_SIM['Y.7.3'] = [
+  {
+    id: 'kY73_sim1',
+    baslik: 'Akım ve uzaklık pusula iğnesini nasıl saptırır?',
+    sonra: "Dünya'nın manyetik alanı ve pusula",
+    metin: 'Şekil, masadaki bir delikten düşey olarak geçen uzun düz telin ve telin $d$ kadar kuzeyine konan pusulanın üstten görünüşüdür. Kaydırıcılarla teldeki akımı ($I$) ve uzaklığı ($d$) değiştir, düğmelerle akımın yönünü seç. Akım yokken iğne yalnız Dünya\'nın manyetik alanının etkisindedir ve kuzeyi gösterir. Akım geçince iğne, Dünya\'nın alanı ile telin alanının bileşkesi yönünde durur; sağ üstteki kutu bu iki alanı ve bileşkeyi oklarla gösterir. Grafik, seçili akımda telin alanının uzaklık arttıkça nasıl azaldığını nitel olarak gösterir; kesikli çizgi Dünya\'nın alanıdır.',
+    pdfMetin: 'Şekil, masadaki bir delikten düşey olarak geçen uzun düz telin ve telin kuzeyine konan pusulanın üstten görünüşüdür. Telden yukarı doğru akım geçerken telin pusula yerindeki alanı batıya, Dünya\'nın alanı kuzeye doğrudur; iğne bu iki alanın bileşkesi yönünde durur ve N ucu kuzeyden batıya doğru sapar. Grafik, telin alanının uzaklık arttıkça azaldığını gösterir; kesikli çizgi Dünya\'nın alanıdır. Telin alanı Dünya\'nınkine eşit olduğunda iğne kuzeybatıyı gösterir.',
+    kontroller: [
+      { ad: 'I', etiket: 'Akım', min: 0, max: 4, adim: 0.5, deger: 2, birim: 'A' },
+      { ad: 'd', etiket: 'Pusulanın tele uzaklığı', min: 2, max: 6, adim: 0.5, deger: 2, birim: 'cm' },
+      { ad: 'y', etiket: 'Akımın yönü', deger: 1, secenekler: [
+          { deger: 1, etiket: 'Yukarı', alt: '⊙' }, { deger: -1, etiket: 'Aşağı', alt: '⊗' } ] }
+    ],
+    ciz: (v, u, o) => sahne(v, u, o),
+    olcumler: v => [
+      { etiket: 'Akım', deger: v.I, birim: 'A', ondalik: 1 },
+      { etiket: 'Pusulanın tele uzaklığı', deger: v.d, birim: 'cm', ondalik: 1 }
+    ],
+    gorev: 'Akımı artırıp azaltarak iğnenin sapmasını izle. Sonra akımı sabit tut ve pusulayı telden uzaklaştır. Akım iki katına çıkınca iğnenin kuzeyden sapması da iki katına çıkar mı? İğne hiç tam batıyı gösterir mi? Son olarak akımın yönünü değiştir. Önce tahmin et, sonra dene.',
+    gorevCevap: 'Akım arttıkça telin alanı büyür ve iğne batıya daha çok yaklaşır; pusula uzaklaştıkça telin alanı küçülür ve iğne kuzeye geri döner. Sapma akımla birlikte artar ama aynı oranda artmaz; örneğin $2$ cm\'de akım $2$ A\'den $4$ A\'e çıkınca sapma belirgin biçimde artar ama iki katına ulaşmaz. Dünya\'nın alanı hep var olduğu için iğne hiçbir zaman tam batıyı göstermez. Akım yukarıyken iğne batıya, aşağıyken doğuya sapar.'
+  }
+];
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.8.1 Katı, Sıvı ve Gaz Basıncı — şekiller
    Önek: kY81_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY81_ (tanım ve efsane çizimleri; 3B izometrik).
    Kurallar: sıvı yüzeyleri yatay; sıvının basınç kuvveti okları yüzeye dik; katı cisimler zemine oturur;
