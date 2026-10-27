@@ -50677,6 +50677,890 @@ window.BFY_TYT_TEST[TEST.id] = TEST;
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · YU1 (1. Tarama: Fizik Bilimine Giriş, Madde, Hareket ve Kuvvet)
+   14 soru, 20 dakika; yalnız Y.1–Y.3. Dağılım ÖSYM 2018–2026 TYT ağırlığıyla (Y.1.1: 2, Y.2.1: 4, Y.2.2: 1,
+   Y.3.1: 5, Y.3.2: 4, Y.3.3: 1; toplam 17): Y.1.1 ×2, Y.2.1 ×3, Y.2.2 ×1, Y.3.1 ×4, Y.3.2 ×3, Y.3.3 ×1.
+   Zorluk 4/6/4 (★/★★/★★★). Kapsam: 2018 fizik öğretim programı 9.1–9.3 (vektörlerde tek boyutta toplama;
+   ivme, eylemsizlik, etki-tepki ve sürtünmede hesap yok; Newton'un II. yasası yatayda tek kütle).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Çıkma ihtimali yüksek sorular tahmin alanı taşır.
+   Şekil anahtarları: YU1_ öneki. Soru kimlikleri: YU1_1 … YU1_14.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const MAV = '#2f7fb8', BAK = '#c25b2a', TEL = '#24302c';
+// Eksen takımı: (ox, oy) başlangıç, w genişlik, h yükseklik; yatay eksen adı ucun yanında, düşey eksen adı okun ucunda
+const eksen = (ox, oy, w, h, xAd, yAd) =>
+  `<line x1="${ox}" y1="${oy}" x2="${ox + w - 8}" y2="${oy}" stroke="${P.ink}" stroke-width="1.5"/>` +
+  `<polygon points="${ox + w},${oy} ${ox + w - 9},${oy - 4} ${ox + w - 9},${oy + 4}" fill="${P.ink}"/>` +
+  `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - h + 8}" stroke="${P.ink}" stroke-width="1.5"/>` +
+  `<polygon points="${ox},${oy - h} ${ox - 4},${oy - h + 9} ${ox + 4},${oy - h + 9}" fill="${P.ink}"/>` +
+  T(ox + w + 4, oy + 4.5, xAd, { size: 12.5, weight: 700 }) + T(ox + 7, oy - h + 4, yAd, { size: 12.5, weight: 700 });
+
+// 8. soru: açık su parkurunda K ve L yüzücülerinin konum–zaman grafiği (ilk 80 s)
+BFY_FIG_EKLE('YU1_yuzucu', function (u) {
+  const ox = 52, oy = 206, sx = 2.6, sy = 0.95; // 80 s → 208 px, 180 m → 171 px
+  const X = t => ox + t * sx, Y = x => oy - x * sy;
+  let s = `<rect class="bg" x="0" y="0" width="330" height="238" rx="12" fill="#f6f9fb"/>`;
+  [[60, '60'], [120, '120'], [156, '156']].forEach(([v, et]) => { s += dashLine(ox, Y(v), X(80), Y(v), '#b7c6cf', '4 4', 1.1) + T(ox - 7, Y(v) + 4.5, et, { size: 12, anchor: 'end', weight: 700 }); });
+  s += dashLine(X(80), oy, X(80), Y(156), '#b7c6cf', '4 4', 1.1) + T(X(80), oy + 17, '80', { size: 12, anchor: 'middle', weight: 700 });
+  s += T(ox - 7, oy + 15, '0', { size: 12, anchor: 'end', weight: 700 });
+  s += eksen(ox, oy, 234, 196, 't (s)', 'x (m)');
+  s += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(80)}" y2="${Y(120)}" stroke="${MAV}" stroke-width="2.8" stroke-linecap="round"/>`;
+  s += `<line x1="${X(0)}" y1="${Y(60)}" x2="${X(80)}" y2="${Y(156)}" stroke="${BAK}" stroke-width="2.8" stroke-linecap="round"/>`;
+  s += T(X(80) + 8, Y(120) + 5, 'K', { size: 14, weight: 800, fill: MAV }) + T(X(80) + 8, Y(156) + 5, 'L', { size: 14, weight: 800, fill: BAK });
+  return svg(330, 238, s, u, 72);
+});
+
+// 9. soru: düz ray, istasyon binası O, doğu yönü ve lokomotifin son konumu (200 m doğu)
+BFY_FIG_EKLE('YU1_lokomotif', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="170" rx="12" fill="#f7f8f4"/>`;
+  // bina
+  s += `<rect x="54" y="38" width="72" height="44" rx="2" fill="#e9dcc4" stroke="#8a7458" stroke-width="1.4"/>` +
+    `<polygon points="48,40 90,20 132,40" fill="#b5654a" stroke="#7e4433" stroke-width="1.2"/>` +
+    `<rect x="82" y="58" width="16" height="24" fill="#8a7458"/>` + T(90, 16, 'istasyon binası', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // ray
+  s += `<line x1="16" y1="100" x2="324" y2="100" stroke="${TEL}" stroke-width="2.2"/><line x1="16" y1="108" x2="324" y2="108" stroke="${TEL}" stroke-width="2.2"/>`;
+  for (let x = 22; x < 324; x += 14) s += `<line x1="${x}" y1="96" x2="${x}" y2="112" stroke="#8a7458" stroke-width="2"/>`;
+  s += `<line x1="16" y1="100" x2="324" y2="100" stroke="${TEL}" stroke-width="2.2"/><line x1="16" y1="108" x2="324" y2="108" stroke="${TEL}" stroke-width="2.2"/>`;
+  // O noktası
+  s += `<line x1="90" y1="86" x2="90" y2="122" stroke="${P.ink}" stroke-width="1.4"/>` + T(90, 136, 'O', { size: 13, anchor: 'middle', weight: 800 });
+  // lokomotif son konumda (200 m doğu): uzun motor bölmesi ve bir uçta kabin
+  const xl = 262;
+  s += `<rect x="${xl - 34}" y="80" width="68" height="16" rx="3" fill="#e0b13a" stroke="#7a5d18" stroke-width="1.3"/>` +
+    `<rect x="${xl + 12}" y="62" width="22" height="34" rx="2" fill="#e0b13a" stroke="#7a5d18" stroke-width="1.3"/>` +
+    `<rect x="${xl + 16}" y="66" width="14" height="9" fill="#dfeef7" stroke="#7a5d18" stroke-width="0.8"/>` +
+    `<rect x="${xl - 30}" y="84" width="38" height="3" fill="#7a5d18"/>` +
+    `<rect x="${xl - 38}" y="92" width="76" height="5" fill="#4a5158"/>` +
+    [-24, -8, 8, 24].map(d => `<circle cx="${xl + d}" cy="99" r="4.5" fill="${TEL}"/>`).join('');
+  s += `<line x1="${xl}" y1="114" x2="${xl}" y2="124" stroke="${P.ink2}" stroke-width="1.2"/>`;
+  // ölçü: O → son konum 200 m
+  s += `<line x1="92" y1="122" x2="${xl - 2}" y2="122" stroke="${P.ink2}" stroke-width="1.2"/>` +
+    `<polygon points="90,122 97,118.8 97,125.2" fill="${P.ink2}"/><polygon points="${xl},122 ${xl - 7},118.8 ${xl - 7},125.2" fill="${P.ink2}"/>` +
+    T((90 + xl) / 2, 138, '200 m', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += arrow(256, 28, 316, 28, { color: P.green, w: 2.2, head: 9 }) + T(250, 32, 'doğu', { size: 12, anchor: 'end', weight: 800, fill: P.green });
+  s += T(330, 162, '(Ölçekli değildir; lokomotif son konumunda.)', { size: 10, anchor: 'end', weight: 600, fill: P.ink2 });
+  return svg(340, 170, s, u, 76);
+});
+
+// 12. soru: tavana çelik halatla asılı uçak maketi
+BFY_FIG_EKLE('YU1_maket', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="280" height="200" rx="12" fill="#f5f7fa"/>`;
+  s += `<rect x="20" y="14" width="240" height="14" fill="#d9dde2" stroke="#9aa3ab" stroke-width="1.2"/>`;
+  for (let x = 26; x < 260; x += 12) s += `<line x1="${x}" y1="14" x2="${x - 8}" y2="28" stroke="#9aa3ab" stroke-width="1"/>`;
+  s += T(30, 46, 'tavan', { size: 11.5, weight: 700, fill: P.ink2 });
+  // bağlantı plakası ve halat
+  s += `<rect x="132" y="28" width="16" height="6" fill="#7b858e"/>`;
+  s += `<line x1="140" y1="34" x2="140" y2="112" stroke="#5c6670" stroke-width="2"/>`;
+  s += T(148, 80, 'çelik halat', { size: 11.5, weight: 700, fill: P.ink2 });
+  // uçak maketi (yandan): gövde, kanat, kuyruk; halat gövdenin üstüne bağlı
+  s += `<path d="M70 132 Q80 118 120 116 L196 116 Q214 118 222 128 Q214 136 196 138 L110 140 Q80 140 70 132 Z" fill="#e8edf2" stroke="#4f5b66" stroke-width="1.6"/>`;
+  s += `<path d="M196 116 L214 92 L226 92 L216 120 Z" fill="#cfd8e0" stroke="#4f5b66" stroke-width="1.4"/>`;
+  s += `<path d="M128 132 L176 132 L150 164 L134 164 Z" fill="#cfd8e0" stroke="#4f5b66" stroke-width="1.4"/>`;
+  [96, 108, 120, 132, 144, 156, 168, 180].forEach(x => { s += `<circle cx="${x}" cy="125" r="2.6" fill="#7aa9c4"/>`; });
+  s += `<circle cx="140" cy="114" r="3.2" fill="#5c6670"/>`;
+  s += T(140, 188, 'uçak maketi', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(280, 200, s, u, 60);
+});
+}
+
+/* ---------- Tarama ---------- */
+const TEST = {
+  id: 'YU1', ad: '1. Tarama: Fizik Bilimine Giriş, Madde ve Özellikleri, Hareket ve Kuvvet', tur: 'tarama', sure: 1200,
+  aciklama: 'On dört soru, ilk üç ünite: niceliklerin sınıflandırılması, tek boyutta vektör toplama, özkütle, dayanıklılık, konum ve yer değiştirme, ortalama sürat, kuvvet ve hareket, etki-tepki, sürtünmenin yönü.',
+  baglamlar: [
+    'yat limanı bilgi panosu: deniz suyu sıcaklığı 14 °C, su derinliği 6 m, kuzeybatıdan 18 km/h rüzgâr, 1013 hPa (temel ve vektörel nicelik eşleştirmesi)',
+    'seyyar büfe işletmecisinin notları: 40 kg ve 25 kg un çuvalları, arabayı yerleştirirken uygulanan, yönü yazılmamış 250 N ve 150 N kuvvetler (kesinlikle; bileşke 400 ya da 100 N)',
+    'akü servisinde hidrometresiz ölçüm: 50 mL akü sıvısı, 32,0 g cam beher, 93,5 g toplam, 1,23 g/cm³ → %75 doluluk (sadeleştirilmiş özkütle çizelgesi)',
+    'kar suyu eşdeğeri: 40 cm² tüp, 60 cm kar, 0,3 g/cm³, eriyince 18 cm su (taban alanı gereksiz)',
+    'geri dönüşüm laboratuvarında eşit kollu terazi ve dereceli silindir: K–L dengede, M K\'den ağır; 6, 9, 9 mL (kesinlikle)',
+    'buz heykeli festivali: özdeş 100 × 50 × 25 cm buz blokları K (dik) ve L (yatık), M küp 50 cm; kesit alanı/hacim = 1/h, hacmi eşit bloklar (dayanıklılık)',
+    'havada yakıt ikmali: tanker ve yakıt alan uçak, yerdeki gözlemci (referans noktası, yanlış olan)',
+    'açık su yüzme parkurunda K (0 → 120 m) ve L (60 → 156 m) yüzücüleri, ilk 80 s x-t grafiği, 200. s kestirimi (kesinlikle)',
+    'istasyon binası önünden kalkan manevra lokomotifi: 10 dakikada 800 m yol, son konum 200 m doğu (olabilir)',
+    'spor salonunda 10 m arayla ışık kapıları: Ela\'nın 60 m koşusu 2,20 / 3,60 / 4,85 / 6,05 / 7,25 / 8,50 s',
+    'lojistik deposunda yatay zeminde üç otonom taşıma robotu: 80 kg 0,5 m/s² ile hızlanmaya başlayan (o anda 0,5 m/s), 120 kg sabit 1,5 m/s, 150 kg duran (net kuvvet sıralaması; sürat tuzağı)',
+    'bilim merkezinde tavana çelik halatla asılı uçak maketi: etki-tepki çiftini seçme',
+    'su kayağı: 60 kg kayakçı, ipin çekme kuvveti 360 N, toplam direnç 270 N, ivme 1,5 m/s²',
+    'köy yolunda traktör römorkundaki bağlanmamış domates kasası: hızlanırken, sabit hızda ve ani frende kayarken sürtünmenin yönü'
+  ],
+  sorular: [
+    {
+      id: 'YU1_1', konu: 'Y.1.1', yks: true, zorluk: 1, cikti: '9.1.3.1', beceri: 'Nicelikleri temel-türetilmiş ve skaler-vektörel diye sınıflandırma',
+      cikmis: { yil: 2020, no: 1, kalip: 'Günlük hayattan bir metindeki nicelikleri sınıflandırma (eşleştirme)' },
+      metin: r`Bir yat limanının girişindeki elektronik bilgi panosunda o sabaha ait ölçümler gösteriliyor.
+
+{{tablo}}
+
+Panodaki niceliklerden temel nicelik olanlar ve vektörel nicelik olanlar aşağıdakilerin hangisinde doğru verilmiştir?`,
+      tablo: [['Ölçüm', 'Değer'], ['Deniz suyu sıcaklığı', '14 °C'], ['Su derinliği', '6 m'], ['Rüzgâr hızı', 'kuzeybatıdan 18 km/h'], ['Hava basıncı', '1013 hPa']],
+      secenekler: [
+        'Temel: sıcaklık ve derinlik; vektörel: yalnız rüzgâr hızı',
+        'Temel: sıcaklık ve derinlik; vektörel: rüzgâr hızı ve basınç',
+        'Temel: yalnız derinlik; vektörel: yalnız rüzgâr hızı',
+        'Temel: derinlik ve basınç; vektörel: yalnız rüzgâr hızı',
+        'Temel: sıcaklık, derinlik ve rüzgâr hızı; vektörel: yalnız rüzgâr hızı'
+      ],
+      dogru: 0,
+      cozum: [
+        r`SI'daki yedi temel nicelik uzunluk, kütle, zaman, sıcaklık, elektrik akımı, madde miktarı ve ışık şiddetidir. Su derinliği bir uzunluktur, deniz suyu sıcaklığı da sıcaklıktır: İkisi de temel niceliktir. Hız (uzunluk ve zamandan) ve basınç (kuvvet ve alandan) türetilmiş niceliklerdir.`,
+        r`Rüzgâr hızı, yönüyle birlikte ("kuzeybatıdan") verildiğinde tam anlam kazanır: vektöreldir. Sıcaklık, derinlik ve basınç yalnız büyüklükleriyle tam ifade edilir: skalerdir.`,
+        r`{{S1}} basıncın kuvvetten türediğini görüp onu vektörel sanır; basıncın yönü yoktur, skalerdir. {{S2}} Celsius derecesiyle verilen sıcaklığı türetilmiş nicelik sanır; sıcaklık temel niceliktir (SI birimi kelvin). {{S3}} basıncı temel, sıcaklığı türetilmiş nicelik sanır; basınç kuvvet ve alandan türetilir. {{S4}} hızı temel nicelik sanır; hız uzunluk ve zamandan türetilir.`
+      ]
+    },
+    {
+      id: 'YU1_2', konu: 'Y.1.1', yks: true, zorluk: 2, cikti: '9.1.3.1', beceri: 'Skaler ve vektörel toplamayı karşılaştırma',
+      tahmin: { gerekce: r`2018–2026 TYT'lerinde vektörlerden müstakil soru gelmedi; programın 9.1.3.1 (ç) maddesi skaler ve vektörel niceliklerde tek boyutta toplamanın günlük hayattan örneklerle karşılaştırılmasını açıkça istiyor. Yönü verilmeyen aynı doğrultudaki iki kuvvetin bileşkesinin yalnız iki değer alabilmesi, ÖSYM'nin "kesinlikle" kalıbına uygun bir tuzaktır.` },
+      metin: r`Bir seyyar büfe işletmecisinin günlük notlarında şu iki kayıt var:
+
+- Büfe arabasına $40\ \text{kg}$ ve $25\ \text{kg}$ kütleli iki çuval un konuldu.
+- Büfe arabası yatay zeminde yerine yerleştirilirken iki kişi arabaya aynı doğrultuda yatay kuvvet uyguladı. Kuvvetlerin büyüklükleri $250\ \text{N}$ ve $150\ \text{N}$ olarak yazıldı; yönleri yazılmadı.
+
+Buna göre,
+
+I. Arabaya konulan çuvalların toplam kütlesi $65\ \text{kg}$'dır.
+II. İki kişinin arabaya uyguladığı kuvvetlerin bileşkesinin büyüklüğü $400\ \text{N}$'dur.
+III. İki kişinin arabaya uyguladığı kuvvetlerin bileşkesinin büyüklüğü $100\ \text{N}$'dan küçük değildir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Kütle skalerdir; skaler nicelikler doğrudan toplanır: $40 + 25 = 65\ \text{kg}$. **Kesinlikle doğru.**`,
+        r`II. Kuvvet vektöreldir. Aynı doğrultudaki iki kuvvet aynı yönlüyse bileşkenin büyüklüğü $250 + 150 = 400\ \text{N}$, zıt yönlüyse $250 - 150 = 100\ \text{N}$ olur. Yönler bilinmediği için **kesin değil.**`,
+        r`III. Bileşkenin büyüklüğü ya $400\ \text{N}$ ya da $100\ \text{N}$'dur; ikisi de $100\ \text{N}$'dan küçük değildir. **Kesinlikle doğru.**`,
+        r`{{S0}} bileşkenin alabileceği iki değerin de $100\ \text{N}$'dan küçük olmadığını görmez ve III'ü atlar. {{S1}} skaler niceliklerin doğrudan toplandığını unutur ve kesin olan I'i atlar. {{S3}} kuvvetleri kütleler gibi skaler sanıp doğrudan toplar, kesin olan I'i de dışarıda bırakır. {{S4}} yönleri yazılmamış kuvvetlerin aynı yönlü olduğunu varsayar.`
+      ]
+    },
+    {
+      id: 'YU1_3', konu: 'Y.2.1', yks: true, zorluk: 1, cikti: '9.2.1.2', beceri: 'Ölçümden özkütle hesaplayıp çizelgeyle karar verme',
+      tahmin: { gerekce: r`Özkütle 2019'da hesapla, 2022–2026'da yorumla geldi. Programın 9.2.1.2 kazanımı günlük hayatta karışımların özkütlesinden yararlanılan durumları istiyor; ölçümden özkütle hesaplayıp bir çizelgeyle karar vermek hem 9.2.1.1'deki hesabı hem bu kazanımı tek soruda birleştirir.` },
+      metin: r`Akü servisinde çalışan Ufuk, kurşun-asit akülerin doluluğunu akü sıvısının özkütlesinden anlıyor. Hidrometresi bozulduğu için koruyucu eldiven ve gözlük takarak akünün bir gözünden $50\ \text{mL}$ sıvı çekiyor ve sıvıyı kütlesi $32,0\ \text{g}$ olan boş bir cam behere koyuyor. Beher ile sıvının toplam kütlesi $93,5\ \text{g}$ ölçülüyor. Akü sıvısının özkütlesi ile akünün doluluğu arasındaki ilişki tabloda verilmiştir (değerler sadeleştirilmiştir).
+
+{{tablo}}
+
+Buna göre akünün doluluğu yüzde kaçtır?`,
+      tablo: [['Özkütle (g/cm³)', '1,27', '1,23', '1,19', '1,16', '1,12'], ['Doluluk (%)', '100', '75', '50', '25', '0']],
+      secenekler: [r`$0$`, r`$25$`, r`$50$`, r`$75$`, r`$100$`],
+      dogru: 3,
+      cozum: [
+        r`Sıvının kütlesi: $93,5 - 32,0 = 61,5\ \text{g}$. Hacmi: $50\ \text{mL} = 50\ \text{cm}^3$.`,
+        r`Özkütle: $d = \dfrac{m}{V} = \dfrac{61,5}{50} = 1,23\ \text{g/cm}^3$. Tabloda bu değer $\%75$ doluluğa karşılık gelir.`,
+        r`{{S4}} beherin kütlesini çıkarmadan $\dfrac{93,5}{50} = 1,87\ \text{g/cm}^3$ bulur; değer tablonun en büyüğünü de aştığı için aküyü tam dolu sanır. {{S0}} hacmi kütleye böler ($\dfrac{50}{61,5} \approx 0,81$) ve tablonun en küçük değerinin altında kaldığı için aküyü boş sanır. {{S1}} özkütleyi doğru bulur ama tabloyu ters okuyup $1,23$ değerini sondan ikinci doluluk değeriyle eşleştirir. {{S2}} tablonun ortasındaki değeri seçer; $\%50$ doluluk için $50\ \text{mL}$ sıvının kütlesi $59,5\ \text{g}$ olmalıydı, ölçülen ise $61,5\ \text{g}$'dır.`
+      ]
+    },
+    {
+      id: 'YU1_4', konu: 'Y.2.1', yks: true, zorluk: 2, cikti: '9.2.1.1', beceri: 'Kütlenin korunumuyla özkütle ve hacim ilişkisi',
+      tahmin: { gerekce: r`Özkütle hesabı yalnız 2019'da bir ölçüm sorusu olarak geldi. Hâl değişiminde kütlenin korunması ile özkütle-hacim ilişkisini birleştiren "kar suyu eşdeğeri", 9.2.1.1'in hesap istediği bir günlük hayat uygulamasıdır; verilen taban alanının gereksiz olması da ÖSYM'nin son yıllardaki gereksiz veri tuzağına uyar.` },
+      metin: r`Su kaynaklarını planlayan uzmanlar, dağlardaki karın eriyince ne kadar su vereceğini kar suyu eşdeğeriyle ifade eder. Bir ölçüm noktasında, taban alanı $40\ \text{cm}^2$ olan ince cidarlı, silindir biçimli bir tüp kara düşey olarak toprağa değene kadar itiliyor ve tüpü $60\ \text{cm}$ yüksekliğe kadar dolduran bir kar örneği alınıyor. Örnekteki karın özkütlesi $0,3\ \text{g/cm}^3$'tür. Örnek aynı tüpte, hiç su kaybı olmadan eritiliyor.
+
+Oluşan suyun tüpteki yüksekliği kaç cm olur? ($d_\text{su} = 1\ \text{g/cm}^3$)`,
+      secenekler: [r`$12$`, r`$18$`, r`$42$`, r`$60$`, r`$200$`],
+      dogru: 1,
+      cozum: [
+        r`Kar örneğinin hacmi $V = 40 \cdot 60 = 2400\ \text{cm}^3$, kütlesi $m = d \cdot V = 0,3 \cdot 2400 = 720\ \text{g}$'dır.`,
+        r`Kar eriyince kütle değişmez: $720\ \text{g}$ suyun hacmi $\dfrac{720}{1} = 720\ \text{cm}^3$'tür. Aynı tüpte yüksekliği $h = \dfrac{720}{40} = 18\ \text{cm}$ olur.`,
+        r`Kısa yol: Kütle ve taban alanı aynı kaldığından yükseklik özkütleyle ters orantılıdır: $h_\text{su} = 60 \cdot \dfrac{0,3}{1} = 18\ \text{cm}$. Taban alanı sonucu etkilemez.`,
+        r`{{S4}} oranı ters kurar: $\dfrac{60}{0,3} = 200\ \text{cm}$. {{S3}} kar eriyince hacmin değişmediğini sanır. {{S2}} karın içindeki havanın payını ($60 - 18$) su yüksekliği sanır. {{S0}} kar yüksekliği yerine tüpün taban alanını kullanır: $0,3 \cdot 40 = 12$.`
+      ]
+    },
+    {
+      id: 'YU1_5', konu: 'Y.2.1', yks: true, zorluk: 3, cikti: '9.2.1.1', beceri: 'Kütle ve hacim karşılaştırmasından kesin özkütle yargıları',
+      cikmis: { yil: 2022, no: 1, kalip: 'Kütle ve hacim bilgisinden özkütle hakkında kesin yargılar (I-II-III)' },
+      metin: r`Bir geri dönüşüm laboratuvarında Derya, içi dolu ve suda çözünmeyen K, L ve M metal parçalarını inceliyor. Eşit kollu bir terazide K ile L karşılıklı kefelere konunca terazi dengede kalıyor; M ile K karşılıklı konunca M'nin kefesi aşağı iniyor. Ardından her parçayı ayrı ayrı, içinde su bulunan dereceli bir silindire tamamen batırıyor ve su düzeyindeki artışı kaydediyor.
+
+{{tablo}}
+
+Buna göre,
+
+I. K'nın özkütlesi L'ninkinden küçüktür.
+II. M'nin özkütlesi K'nınkinden büyüktür.
+III. M'nin özkütlesi L'ninkinden büyüktür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Parça', 'K', 'L', 'M'], ['Su düzeyindeki artış (mL)', '6', '9', '9']],
+      secenekler: [r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`Su düzeyindeki artış parçanın hacmini verir: $V_K = 6\ \text{cm}^3$, $V_L = V_M = 9\ \text{cm}^3$. Terazi dengede kaldığı için $m_K = m_L$; M'nin kefesi indiği için $m_M > m_K$'dir.`,
+        r`I. K ile L'nin kütleleri eşit, K'nın hacmi küçük olduğundan $d_K > d_L$'dir; K'nın özkütlesi L'ninkinden büyüktür. **Yanlış.**`,
+        r`II. M'nin hem kütlesi hem hacmi K'nınkinden büyüktür. Örneğin $m_K = 54\ \text{g}$ için $d_K = 9\ \text{g/cm}^3$'tür; $m_M = 63\ \text{g}$ ise $d_M = 7$, $m_M = 90\ \text{g}$ ise $d_M = 10\ \text{g/cm}^3$ olur. Karşılaştırma belirlenemez. **Kesin değil.**`,
+        r`III. M ile L'nin hacimleri eşit, M'nin kütlesi büyüktür ($m_M > m_K = m_L$): $d_M > d_L$. **Kesinlikle doğru.**`,
+        r`{{S1}} hacmi büyük olanın özkütlesinin de büyük olduğunu sanır; kütleleri eşit iki cisimden hacmi küçük olanın özkütlesi büyüktür. {{S2}} kütleler eşitken hacmi küçük olan K'nın özkütlesini küçük sanır. {{S3}} kütlesi büyük olan M'nin özkütlesinin de K'nınkinden büyük olması gerektiğini sanır; M'nin hacmi de büyük olduğu için bu belirlenemez. {{S4}} hem K ile L'nin karşılaştırmasını ters kurar hem M ile K'nın özkütlelerini belirlenebilir sanır.`
+      ]
+    },
+    {
+      id: 'YU1_6', konu: 'Y.2.2', yks: true, zorluk: 2, cikti: '9.2.2.1', beceri: 'Kesit alanının hacme oranıyla dayanıklılığı karşılaştırma',
+      tahmin: { gerekce: r`Dayanıklılık (9.2.2.1) 2018–2026 TYT'lerinde hiç sorulmadı; Y.2.2'nin tek sorusu (2021) yüzey gerilimi üzerineydi. Program bu kazanımda yalnız küp, dikdörtgenler prizması, silindir ve kürenin kesit alanının hacme oranının hesaplanmasına izin veriyor. Aynı bloğun farklı duruşlarda farklı dayanıklılıkta olması ve hacmi eşit blokların eşit dayanıklı sanılması, bu dar hesap alanını kavramla birleştiren tuzaklardır.` },
+      metin: r`Bir buz heykeli festivalinde aynı buzdan kesilmiş üç blok zemine tabloda belirtildiği gibi yerleştiriliyor. K ile L özdeş bloklardır.
+
+{{tablo}}
+
+Buna göre,
+
+I. L'nin dayanıklılığı K'nınkinin $4$ katıdır.
+II. M'nin dayanıklılığı K'nınkinden büyüktür.
+III. K ile L'nin hacimleri eşit olduğundan dayanıklılıkları da eşittir.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Blok', 'Biçim ve boyutlar', 'Zemine duruşu'], ['K', 'dikdörtgenler prizması, 100 cm × 50 cm × 25 cm', '100 cm\'lik kenarı düşey'], ['L', 'dikdörtgenler prizması, 100 cm × 50 cm × 25 cm', '25 cm\'lik kenarı düşey'], ['M', 'küp, kenarı 50 cm', 'bir yüzü üzerinde']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Aynı maddeden yapılmış cisimlerde dayanıklılık, kesit alanının hacme oranıyla karşılaştırılır. Tabanı üzerinde duran bir prizmada bu oran $\dfrac{\text{taban alanı}}{\text{taban alanı} \cdot h} = \dfrac{1}{h}$'dir; yalnız düşey boyuta ($h$) bağlıdır.`,
+        r`I. K: $\dfrac{1}{100}$, L: $\dfrac{1}{25}\ \text{1/cm}$. L'nin oranı K'nınkinin $4$ katıdır. **Doğru.**`,
+        r`II. M: $\dfrac{50 \cdot 50}{50^3} = \dfrac{1}{50}\ \text{1/cm}$; bu, K'nın oranından ($\dfrac{1}{100}$) büyüktür. **Doğru.**`,
+        r`III. Hacimler eşittir ($125\,000\ \text{cm}^3$) ama oranlar farklıdır; dayanıklılık hacimle değil kesit alanının hacme oranıyla belirlenir. **Yanlış.**`,
+        r`{{S0}} aynı bloğun iki duruşunu doğru karşılaştırır ama küp ile dik duran prizmanın oranlarını ($\dfrac{1}{50}$ ve $\dfrac{1}{100}$) karşılaştırmayı atlar. {{S1}} bir blok yatırılınca dayanıklılığının değişmediğini sanır; oran düşey boyuta bağlıdır. {{S2}} dayanıklılığın hacimle belirlendiğini sanır; hacimleri eşit üç bloğu eşit dayanıklı sayar. {{S4}} L'nin oranını K'nınkinin $4$ katı bulduğu hâlde hacimleri eşit diye ikisini eşit dayanıklı sayar; I ile III birbiriyle çelişir.`
+      ]
+    },
+    {
+      id: 'YU1_7', konu: 'Y.3.1', yks: true, zorluk: 1, cikti: '9.3.1.6', beceri: 'Hareketin referansa göre değerlendirilmesi',
+      tahmin: { gerekce: r`9.3.1.6 (hareketin farklı referans noktalarına göre açıklanması) 2018–2026'da hiç sorulmayan üç doğrusal hareket kazanımından biridir. Birbirine göre durgun iki uçak ve yerdeki gözlemciyle kurulan olumsuz köklü kısa bir soru, ÖSYM'nin 2. soru yuvasına uyan kolay bir kalıptır.` },
+      metin: r`Havada yakıt ikmali sırasında tanker uçak ile yakıt alan uçak, aralarındaki yakıt hortumunun bağlantısı kopmasın diye düz bir rota boyunca aynı hızla, aralarındaki uzaklığı değiştirmeden uçar. Yerdeki bir gözlemci bu sırada iki uçağı izliyor.
+
+Bu durumla ilgili aşağıdaki ifadelerden hangisi yanlıştır?`,
+      secenekler: [
+        'Tanker uçağın pilotuna göre yakıt alan uçak durgundur.',
+        'Yerdeki gözlemciye göre iki uçak da hareketlidir.',
+        'Yakıt alan uçağın pilotuna göre yerdeki gözlemci hareketlidir.',
+        'Yakıt alan uçağın pilotuna göre tanker uçak, yerdeki gözlemcinin gördüğü hızla hareket eder.',
+        'Bir cismin hareketli ya da durgun olması, hangi referansa göre bakıldığına bağlıdır.'
+      ],
+      dogru: 3,
+      cozum: [
+        r`Bir cismin konumu seçilen referansa göre değişiyorsa cisim o referansa göre hareketli, değişmiyorsa durgundur; hareket görecelidir.`,
+        r`Uçaklar aynı hızla ve aralarındaki uzaklık değişmeden uçtuğu için her biri ötekine göre durgundur. Yere göre ise ikisi de hareketlidir; uçaktaki bir pilota göre de yer ve gözlemci geriye doğru hareket eder.`,
+        r`Yakıt alan uçağın pilotuna göre tanker durgundur; tanker yalnız yere göre hızla hareket eder. Yanlış olan ifade budur.`,
+        r`{{S0}} tanker pilotunun öbür uçağı da hareketli gördüğünü sanır; aralarındaki konum değişmediği için bu ifade doğrudur. {{S1}} yerdeki gözlemcinin iki uçaktan birini durgun görebileceğini sanır; iki uçağın da yere göre konumu değişir, ifade doğrudur. {{S2}} yerde duran gözlemcinin her referansa göre durgun olduğunu sanır; pilota göre gözlemcinin konumu değişir, ifade doğrudur. {{S4}} hareketin mutlak olduğunu düşünür; hareketli ya da durgun olmak seçilen referansa bağlıdır, ifade doğrudur.`
+      ]
+    },
+    {
+      id: 'YU1_8', konu: 'Y.3.1', yks: true, zorluk: 2, cikti: '9.3.1.3', beceri: 'Konum-zaman grafiğinden kesin çıkarımı kestirimden ayırma',
+      tahmin: { gerekce: r`Konum-zaman grafiği 2018–2019'dan sonra TYT'de hiç gelmedi; 9.3.1.3 kazanımı grafiklerden hareketin matematiksel modelini çıkarmayı istiyor. Grafiğin gösterdiği aralıkta kesin olanı, aralık dışına yapılan kestirimden ayırmak "kesinlikle" kökünün en sağlam kullanımlarından biridir.` },
+      metin: r`Açık su yüzme antrenmanında, şamandıralarla işaretlenmiş düz bir parkurda yüzen K ve L yüzücülerinin konum–zaman grafiği şekildedir. Başlangıç şamandırası referans noktası, ilerleme yönü (+) alınmıştır. Grafik antrenmanın ilk $80\ \text{s}$'sini göstermektedir.
+
+Buna göre,
+
+I. İlk $80\ \text{s}$'de K'nın sürati L'ninkinden büyüktür.
+II. $80.$ saniyede K ile L arasındaki uzaklık $36\ \text{m}$'dir.
+III. K, $200.$ saniyede L'ye yetişir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'YU1_yuzucu',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 3,
+      cozum: [
+        r`Konum-zaman grafiği doğrusal olduğundan iki yüzücü de ilk $80\ \text{s}$'de sabit süratle yüzer. K: $\vartheta_K = \dfrac{120 - 0}{80} = 1,5\ \text{m/s}$; L: $\vartheta_L = \dfrac{156 - 60}{80} = 1,2\ \text{m/s}$. I **kesinlikle doğru.**`,
+        r`II. $80.$ saniyede K $120\ \text{m}$'de, L $156\ \text{m}$'dedir; aralarındaki uzaklık $36\ \text{m}$'dir. **Kesinlikle doğru.**`,
+        r`III. Süratler aynı kalsaydı K, aradaki $36\ \text{m}$'yi $\dfrac{36}{1,5 - 1,2} = 120\ \text{s}$ daha sonra, yani $200.$ saniyede kapatırdı. Ancak grafik yalnız ilk $80\ \text{s}$'yi gösteriyor; sonrasında süratlerin değişmeyeceği bilinmiyor. **Kesin değil.**`,
+        r`{{S0}} iki konum değerini okuyup aradaki uzaklığı bulmayı atlar. {{S1}} uzaklığı okur ama doğruların eğimlerini karşılaştırıp süratleri sıralamayı atlar. {{S2}} grafiğin gösterdiği aralığın dışına yapılan kestirimi kesin sayar, aralığın içindeki kesin bilgileri atlar. {{S4}} ölçülmemiş aralıkta da süratlerin sabit kalacağını varsayar ve $80.$ saniyedeki uzaklığı okumaz.`
+      ]
+    },
+    {
+      id: 'YU1_9', konu: 'Y.3.1', yks: true, zorluk: 3, cikti: '9.3.1.2', beceri: 'Yol ve yer değiştirmeden olası hareketleri değerlendirme',
+      cikmis: { yil: 2023, no: 2, kalip: 'Alınan yol ile yer değiştirmenin karşılaştırılmasından hareket hakkında yargılar' },
+      metin: r`Bir tren istasyonunda manevra lokomotifi, düz bir rayda istasyon binasının önündeki O noktasından hareket ediyor. Lokomotif $10$ dakika sonra şekildeki gibi O'nun $200\ \text{m}$ doğusunda duruyor. Lokomotifin kayıt cihazına göre bu sürede aldığı yol $800\ \text{m}$'dir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Lokomotif bu sürede O'nun batısındaki bir noktadan geçmiş olabilir.
+II. Lokomotif bu sürede O'nun batısına hiç geçmemiş olabilir.
+III. Lokomotifin yer değiştirmesinin büyüklüğü $800\ \text{m}$ olabilir.
+
+yargılarından hangileri doğru olabilir?`,
+      sekil: 'YU1_lokomotif',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Yer değiştirme ilk konumdan son konuma çizilen vektördür: büyüklüğü $200\ \text{m}$, yönü doğudur. Alınan yol ($800\ \text{m}$) bundan büyük olduğuna göre lokomotif bu sürede en az bir kez yön değiştirmiştir. III **olamaz.**`,
+        r`I. Örneğin önce batıya $300\ \text{m}$, sonra doğuya $500\ \text{m}$ giderse yolu $800\ \text{m}$ olur ve O'nun $200\ \text{m}$ doğusunda durur; bu sırada O'nun batısından geçmiştir. **Olabilir.**`,
+        r`II. Önce doğuya $500\ \text{m}$ gidip sonra batıya $300\ \text{m}$ dönerse yine yolu $800\ \text{m}$ olur ve O'nun $200\ \text{m}$ doğusunda durur; hiç batıya geçmemiştir. **Olabilir.**`,
+        r`{{S0}} yön değiştirmenin doğuda da olabileceğini görmez. {{S1}} lokomotifin batıya da gitmiş olabileceğini görmez. {{S3}} yer değiştirmeyi alınan yolla karıştırır ve II'yi atlar. {{S4}} yer değiştirmenin yalnız ilk ve son konuma bağlı olduğunu unutur, I'i de atlar.`
+      ]
+    },
+    {
+      id: 'YU1_10', konu: 'Y.3.1', yks: true, zorluk: 3, cikti: '9.3.1.4', beceri: 'Ölçüm tablosundan ortalama sürat ve hızlanma-yavaşlama çıkarımı',
+      tahmin: { gerekce: r`Ortalama hız 2025'te sorulsa da ivme kazanımı (9.3.1.5) 2018–2026'da hiç ana kazanım olmadı. İvme hesabına girmeden, ölçüm tablosundaki ortalama süratlerden hızlanma ve yavaşlama çıkarmak programın sınırına uygundur; "en az bir an" mantığıyla kurulan zincir TYT'nin zor sorusu ayarındadır.` },
+      metin: r`Bir okulun spor salonundaki $60\ \text{m}$'lik koşu yolu boyunca $10\ \text{m}$ arayla ışık kapıları yerleştiriliyor. Ela, başlangıç çizgisinden $t = 0$ anında durgun hâlden koşmaya başlıyor; ışık kapılarının kaydettiği zamanlar tabloda verilmiştir.
+
+{{tablo}}
+
+Buna göre,
+
+I. Ela'nın $10\ \text{m}$'lik bölümlerdeki ortalama süratlerinin en büyüğü, son bölüm olan 50–60 m bölümündedir.
+II. Ela, 40. metreden sonra koşusunun bir bölümünde yavaşlamıştır.
+III. Ela'nın ilk $10\ \text{m}$'deki ortalama sürati, $60\ \text{m}$'nin tamamındaki ortalama süratinin yarısından küçüktür.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Konum (m)', '10', '20', '30', '40', '50', '60'], ['Zaman (s)', '2,20', '3,60', '4,85', '6,05', '7,25', '8,50']],
+      secenekler: [r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 0,
+      cozum: [
+        r`Bölüm süreleri sırasıyla $2,20$; $1,40$; $1,25$; $1,20$; $1,20$; $1,25\ \text{s}$'dir. Ortalama süratler ($\dfrac{10}{\Delta t}$) yaklaşık $4,5$; $7,1$; $8,0$; $8,3$; $8,3$; $8,0\ \text{m/s}$ olur. En büyükleri 30–40 m ve 40–50 m bölümlerindedir; son bölümdeki $8,0\ \text{m/s}$ bunlardan küçüktür. I **yanlış.**`,
+        r`II. 40–50 m bölümündeki ortalama sürat $8,3\ \text{m/s}$ ise Ela bu bölümde en az bir an bu kadar ya da daha hızlı koşmuştur. 50–60 m bölümündeki ortalama $8,0\ \text{m/s}$ ise o bölümde en az bir an bu kadar ya da daha yavaştır. Sonraki bir anda sürati daha küçük olduğuna göre Ela 40. metreden sonra bir süre yavaşlamıştır. **Doğru.**`,
+        r`III. İlk $10\ \text{m}$: $\dfrac{10}{2,20} \approx 4,5\ \text{m/s}$. Koşunun tamamı: $\dfrac{60}{8,50} \approx 7,1\ \text{m/s}$; yarısı yaklaşık $3,5\ \text{m/s}$'dir. İlk bölümdeki ortalama sürat bundan büyüktür. **Yanlış.**`,
+        r`{{S1}} ilk bölümün ortalama süratini hesaplamadan koşunun ortalamasının yarısından küçük sanır ve son bölümdeki yavaşlamayı görmez. {{S2}} yavaşlamayı doğru görür ama bölüm sürelerini karşılaştırmadan bitiş bölümünü en hızlı bölüm sanır; son bölümün süresi ($1,25\ \text{s}$), 30–50 m arasındaki bölümlerinkinden ($1,20\ \text{s}$) uzundur. {{S3}} hem son bölümü en hızlı sanır hem ilk bölümün ortalama süratini hesaplamadan küçük sayar. {{S4}} yavaşlamayı doğru görür ama ilk bölümün ortalama süratini ($4,5\ \text{m/s}$) koşunun ortalamasının yarısıyla ($3,5\ \text{m/s}$) karşılaştırmadan küçük sanır.`
+      ]
+    },
+    {
+      id: 'YU1_11', konu: 'Y.3.2', yks: true, zorluk: 1, cikti: '9.3.3.2', beceri: 'Hareket durumundan net kuvveti karşılaştırma',
+      cikmis: { yil: 2021, no: 2, kalip: 'Sabit hızlı, duran ve ivmeli cisimlerde net kuvvet sıralaması' },
+      metin: r`Bir lojistik deposunun düz ve yatay zemininde üç otonom taşıma robotu çalışıyor. Robotların yükleriyle birlikte kütleleri ve aynı bir andaki hareketleri tabloda verilmiştir.
+
+{{tablo}}
+
+Robotlara etki eden net kuvvetlerin büyüklükleri $F_K$, $F_L$ ve $F_M$ arasındaki ilişki nedir?`,
+      tablo: [['Robot', 'Kütle', 'Hareket'], ['K', '80 kg', 'Düz bir koridorda durgun hâlden büyüklüğü 0,5 m/s² olan ivmeyle hızlanmaya başlamış; o anda sürati 0,5 m/s.'], ['L', '120 kg', 'Düz bir koridorda 1,5 m/s sabit süratle ilerliyor.'], ['M', '150 kg', 'Şarj istasyonunda duruyor.']],
+      secenekler: [r`$F_K = F_L = F_M$`, r`$F_K > F_L = F_M$`, r`$F_M > F_L > F_K$`, r`$F_L > F_K > F_M$`, r`$F_K = F_L > F_M$`],
+      dogru: 1,
+      cozum: [
+        r`Sabit hızla giden ya da duran cisme etki eden kuvvetler dengelenmiştir: $F_\text{net} = 0$. L düz bir yolda sabit süratle gittiği, M durduğu için $F_L = F_M = 0$'dır.`,
+        r`K ivmeli hareket ediyor: $F_K = m \cdot a = 80 \cdot 0,5 = 40\ \text{N}$. Net kuvvet süratle değil ivmeyle ilgilidir. Sıralama $F_K > F_L = F_M$'dir.`,
+        r`{{S0}} bütün robotlarda kuvvetlerin dengelendiğini sanır; hızlanan K'de net kuvvet sıfır olamaz. {{S2}} net kuvveti robotun ağırlığı sanır ve kütleye göre sıralar. {{S3}} sürati büyük olana büyük net kuvvet etki ettiğini sanır ve süratlere göre sıralar; sabit süratli L'de net kuvvet sıfırdır. {{S4}} hareket eden her robota net kuvvet etki ettiğini sanır; sabit hızlı harekette net kuvvet sıfırdır.`
+      ]
+    },
+    {
+      id: 'YU1_12', konu: 'Y.3.2', yks: true, zorluk: 2, cikti: '9.3.3.3', beceri: 'Etki-tepki çiftini dengeleyen kuvvetlerden ayırma',
+      cikmis: { yil: 2022, no: 2, kalip: 'Duran bir cisimle ilgili kuvvetlerde etki-tepki çiftlerini ayırt etme' },
+      metin: r`Bir bilim merkezinin tavanına sabitlenmiş çelik bir halattan bir uçak maketi şekildeki gibi asılıdır ve hareketsiz durmaktadır.
+
+Buna göre aşağıdaki kuvvet çiftlerinden hangisi bir etki-tepki kuvvet çiftidir?`,
+      sekil: 'YU1_maket',
+      secenekler: [
+        'Maketin ağırlığı ile halatın maketi yukarı çektiği kuvvet',
+        'Halatın maketi yukarı çektiği kuvvet ile maketin halatı aşağı çektiği kuvvet',
+        'Maketin ağırlığı ile maketin halatı aşağı çektiği kuvvet',
+        'Tavanın halatı yukarı çektiği kuvvet ile maketin ağırlığı',
+        'Halatın tavanı aşağı çektiği kuvvet ile maketin halatı aşağı çektiği kuvvet'
+      ],
+      dogru: 1,
+      cozum: [
+        r`Etki-tepki kuvvetleri iki cismin birbirine uyguladığı kuvvetlerdir: Büyüklükleri eşit, yönleri zıttır, aynı türdendir ve **farklı cisimlere** etki ederler.`,
+        r`Halat maketi yukarı çeker; maket de halatı aynı büyüklükte aşağı çeker. Bu iki kuvvet, halat ile maket arasındaki etkileşimin etki-tepki çiftidir.`,
+        r`Maketin ağırlığı Dünya'nın maketi çektiği kuvvettir; onun tepkisi maketin Dünya'yı yukarı çektiği kuvvettir.`,
+        r`{{S0}} maketi dengeleyen iki kuvveti çift sanır; bu kuvvetlerin ikisi de makete etki eder ve türleri farklıdır. {{S2}} büyüklükleri eşit diye aynı yönlü iki kuvveti çift sanır; çiftin kuvvetleri zıt yönlüdür. {{S3}} büyüklükleri eşit ve yönleri zıt diye iki ayrı etkileşimin kuvvetlerini eşleştirir; tavan halata, Dünya makete etki eder. {{S4}} halata ve tavana etki eden aynı yönlü iki kuvveti çift sanır.`
+      ]
+    },
+    {
+      id: 'YU1_13', konu: 'Y.3.2', yks: true, zorluk: 2, cikti: '9.3.3.2', beceri: 'Net kuvvetten ivme hesabı',
+      cikmis: { yil: 2025, no: 1, kalip: 'Aynı doğrultudaki kuvvetler ve harekete karşı koyan kuvvetle net kuvvet hesabı' },
+      metin: r`Bir su kayağı gösterisinde $60\ \text{kg}$ kütleli bir kayakçı, sürat teknesine bağlı yatay bir iple düz bir doğru boyunca çekiliyor. Belirli bir anda ipin kayakçıyı hareket yönünde çektiği kuvvet $360\ \text{N}$, suyun ve havanın harekete karşı koyan toplam kuvveti $270\ \text{N}$'dur.
+
+Bu anda kayakçının ivmesinin büyüklüğü kaç $\text{m/s}^2$'dir?`,
+      secenekler: [r`$0,15$`, r`$1,5$`, r`$4,5$`, r`$6$`, r`$10,5$`],
+      dogru: 1,
+      cozum: [
+        r`Kuvvetler aynı doğrultuda ve zıt yönlüdür: $F_\text{net} = 360 - 270 = 90\ \text{N}$, hareket yönünde.`,
+        r`Newton'un II. yasası: $a = \dfrac{F_\text{net}}{m} = \dfrac{90}{60} = 1,5\ \text{m/s}^2$.`,
+        r`{{S3}} harekete karşı koyan kuvveti hesaba katmaz: $\dfrac{360}{60} = 6$. {{S4}} zıt yönlü kuvvetleri toplar: $\dfrac{360 + 270}{60} = 10,5$. {{S2}} yalnız karşı koyan kuvveti kütleye böler: $\dfrac{270}{60} = 4,5$. {{S0}} net kuvveti kütle yerine kayakçının ağırlığına böler: $\dfrac{90}{600} = 0,15$.`
+      ]
+    },
+    {
+      id: 'YU1_14', konu: 'Y.3.3', yks: true, zorluk: 3, cikti: '9.3.4.1', beceri: 'Statik ve kinetik sürtünmenin yönünü belirleme',
+      tahmin: { gerekce: r`Sürtünme 2018–2026'da yalnız bir kez (2024, duran cisimde statik sürtünmenin büyüklüğü) soruldu. Programın 9.3.4.1 (b, e) maddeleri statik-kinetik sürtünme karşılaştırmasını ve sürtünmenin yönünü istiyor; sürtünmenin hareketi sağlayan kuvvet olabildiği bu durum, "sürtünme hep harekete zıttır" ve "hareket için kuvvet gerekir" yanılgılarını birlikte yakalayan hesapsız bir kalıptır.` },
+      metin: r`Düz ve yatay bir köy yolunda giden bir traktörün römorkunda bağlanmamış bir kasa domates duruyor. Traktör önce hızlanıyor, sonra sabit hızla ilerliyor; kasa bu iki aşamada römork zeminine göre kaymıyor. Ardından traktör ani fren yapıyor ve kasa römork zemininde öne doğru kaymaya başlıyor. Hava direnci önemsizdir.
+
+Buna göre,
+
+I. Traktör hızlanırken kasaya etki eden sürtünme kuvveti, traktörün hareket yönündedir.
+II. Traktör sabit hızla giderken kasaya etki eden sürtünme kuvveti sıfırdır.
+III. Kasa römork zemininde öne doğru kayarken ona etki eden sürtünme kuvveti, traktörün hareket yönüne zıttır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Kasa kaymadan traktörle birlikte hızlanıyor; onu hızlandıran yatay kuvvet, römork zemininin uyguladığı statik sürtünme kuvvetidir. Hızlanma hareket yönünde olduğundan sürtünme de hareket yönündedir. **Doğru.**`,
+        r`II. Sabit hızda kasaya etki eden net kuvvet sıfırdır. Kasaya başka yatay kuvvet etki etmediği için sürtünme kuvveti de sıfırdır; hareketi sürdürmek için kuvvet gerekmez. **Doğru.**`,
+        r`III. Kayan cisme etki eden kinetik sürtünme, cismin yüzeye göre kayma yönüne zıttır. Kasa römork zeminine göre öne, yani hareket yönünde kaydığı için sürtünme geriye, hareket yönüne zıttır. **Doğru.**`,
+        r`{{S0}} kinetik sürtünmenin kayma yönüne zıt olduğunu kullanmaz ve sabit hızlı harekette kasayı ileri iten bir kuvvet gerektiğini sanır. {{S1}} sürtünmenin her zaman harekete zıt olduğunu sanır; hızlanan kasayı ileri götüren kuvvetin statik sürtünme olduğunu görmez ve sabit hızdaki durumu atlar. {{S2}} kayan kasaya etki eden sürtünmeyi de hareket yönünde sanır. {{S3}} sabit hızla giden kasaya hareket yönünde bir kuvvet etki etmesi gerektiğini sanır.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · YU2 (2. Tarama: Enerji, Isı ve Sıcaklık)
+   14 soru, 20 dakika; yalnız Y.4–Y.5. ÖSYM 2018–2026 TYT ağırlığı (Y.4.1: 1, Y.4.2: 0, Y.5.1: 2, Y.5.2: 2, Y.5.3: 4)
+   her konudan en az bir soru kuralıyla: Y.4.1 ×2, Y.4.2 ×1, Y.5.1 ×3, Y.5.2 ×3, Y.5.3 ×5. Zorluk 4/6/4 (★/★★/★★★).
+   Kapsam: 2018 fizik öğretim programı 9.4–9.5. İş ve güç hesabı yalnız hareketle aynı doğrultudaki kuvvetlerle (9.4.1.2);
+   mekanik enerji, korunum ve verimde hesap yok (9.4.2.1, 9.4.3.1); ısı hesabı yok (9.5.1.5), sıcaklık dönüşümü var (9.5.1.3);
+   hâl değişimi, ısıl denge, iletim hızı ve genleşmede hesap yok (9.5.2.1, 9.5.3.1, 9.5.4.2, 9.5.5.1).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Çıkma ihtimali yüksek sorular tahmin alanı taşır.
+   Şekil anahtarları: YU2_ öneki. Soru kimlikleri: YU2_1 … YU2_14.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const MAV = '#2f7fb8', BAK = '#c25b2a', TEL = '#24302c', SU = '#5aa9dc';
+const eksen = (ox, oy, w, h, xAd, yAd, sz = 12.5) =>
+  `<line x1="${ox}" y1="${oy}" x2="${ox + w - 8}" y2="${oy}" stroke="${P.ink}" stroke-width="1.5"/>` +
+  `<polygon points="${ox + w},${oy} ${ox + w - 9},${oy - 4} ${ox + w - 9},${oy + 4}" fill="${P.ink}"/>` +
+  `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - h + 8}" stroke="${P.ink}" stroke-width="1.5"/>` +
+  `<polygon points="${ox},${oy - h} ${ox - 4},${oy - h + 9} ${ox + 4},${oy - h + 9}" fill="${P.ink}"/>` +
+  T(ox + w + 3, oy + 4.5, xAd, { size: sz, weight: 700 }) + T(ox + 7, oy - h + 4, yAd, { size: sz, weight: 700 });
+const numara = (x, y, n) => `<circle cx="${x}" cy="${y}" r="9" fill="${P.copper}"/>` + T(x, y + 4.3, String(n), { size: 12, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+
+// 3. soru: dere suyuyla çalışan su hızarı (yandan, şematik)
+BFY_FIG_EKLE('YU2_hizar', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="236" rx="12" fill="#f4f8f3"/>`;
+  // ark
+  s += `<path d="M8 34 L118 46 L118 58 L8 46 Z" fill="#b48a5a" stroke="#7a5a36" stroke-width="1.3"/>`;
+  s += `<path d="M10 40 L116 50" stroke="${SU}" stroke-width="4" stroke-linecap="round"/>`;
+  s += T(40, 26, 'ark', { size: 12, weight: 800, fill: P.ink2 });
+  // düşen su
+  s += `<path d="M118 52 Q126 58 128 74" fill="none" stroke="${SU}" stroke-width="6" stroke-linecap="round"/>`;
+  // su çarkı
+  const cx = 134, cy = 128, R = 48;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#7a5a36" stroke-width="4"/>`;
+  for (let k = 0; k < 12; k++) {
+    const a = k * Math.PI / 6, x1 = cx + 12 * Math.cos(a), y1 = cy + 12 * Math.sin(a), x2 = cx + R * Math.cos(a), y2 = cy + R * Math.sin(a);
+    s += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#9a7348" stroke-width="2.4"/>`;
+    const px = cx + (R + 7) * Math.cos(a), py = cy + (R + 7) * Math.sin(a);
+    s += `<line x1="${x2.toFixed(1)}" y1="${y2.toFixed(1)}" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#7a5a36" stroke-width="5"/>`;
+  }
+  s += `<circle cx="${cx}" cy="${cy}" r="8" fill="#5b636b"/>`;
+  s += T(cx - 4, cy + R + 28, 'su çarkı', { size: 12, anchor: 'middle', weight: 800, fill: P.ink2 });
+  // dere
+  s += `<path d="M20 214 Q120 204 220 214 L220 226 L20 226 Z" fill="${SU}" opacity=".55"/>`;
+  // krank ve biyel
+  const kx = cx + 20, ky = cy - 14;
+  s += `<line x1="${cx}" y1="${cy}" x2="${kx}" y2="${ky}" stroke="#4a5158" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<line x1="${kx}" y1="${ky}" x2="262" y2="70" stroke="#4a5158" stroke-width="4" stroke-linecap="round"/>`;
+  // testere çerçevesi ve kütük
+  s += `<rect x="246" y="40" width="36" height="120" rx="3" fill="none" stroke="#6a4b2e" stroke-width="4"/>`;
+  s += `<line x1="264" y1="44" x2="264" y2="156" stroke="#9aa3ab" stroke-width="3"/>`;
+  for (let y = 60; y < 156; y += 8) s += `<path d="M264 ${y} l4 4 l-4 4" fill="none" stroke="#7b858e" stroke-width="1.2"/>`;
+  s += `<rect x="210" y="122" width="116" height="30" rx="14" fill="#c9965c" stroke="#7a5a36" stroke-width="1.6"/>`;
+  s += `<ellipse cx="320" cy="137" rx="7" ry="15" fill="#e2bf8c" stroke="#7a5a36" stroke-width="1.4"/>`;
+  s += T(264, 32, 'testere', { size: 12, anchor: 'middle', weight: 800, fill: P.ink2 }) + T(226, 172, 'kütük', { size: 12, anchor: 'middle', weight: 800, fill: P.ink2 });
+  s += T(330, 228, '(Şematik çizim.)', { size: 10, anchor: 'end', weight: 600, fill: P.ink2 });
+  return svg(340, 236, s, u, 74);
+});
+
+// 6. soru: Fahrenheit okuması–Celsius okuması grafiği
+BFY_FIG_EKLE('YU2_olcek', function (u) {
+  const ox = 60, oy = 214, sx = 2.0, sy = 0.86; // 100 °C → 200 px, 212 °F → 182 px
+  const X = c => ox + c * sx, Y = f => oy - f * sy;
+  let s = `<rect class="bg" x="0" y="0" width="330" height="250" rx="12" fill="#f7f8fb"/>`;
+  s += dashLine(ox, Y(212), X(100), Y(212), '#b7c6cf', '4 4', 1.1) + dashLine(X(100), oy, X(100), Y(212), '#b7c6cf', '4 4', 1.1);
+  s += T(ox - 7, Y(212) + 4.5, '212', { size: 12, anchor: 'end', weight: 700 }) + T(ox - 7, Y(32) + 4.5, '32', { size: 12, anchor: 'end', weight: 700 });
+  s += T(X(100), oy + 17, '100', { size: 12, anchor: 'middle', weight: 700 }) + T(ox - 7, oy + 15, '0', { size: 12, anchor: 'end', weight: 700 });
+  s += eksen(ox, oy, 222, 200, 'T_C (°C)', 'T_F (°F)');
+  s += `<line x1="${X(0)}" y1="${Y(32)}" x2="${X(100)}" y2="${Y(212)}" stroke="${MAV}" stroke-width="2.8" stroke-linecap="round"/>`;
+  s += `<circle cx="${X(0)}" cy="${Y(32)}" r="3.4" fill="${MAV}"/><circle cx="${X(100)}" cy="${Y(212)}" r="3.4" fill="${MAV}"/>`;
+  return svg(330, 250, s, u, 70);
+});
+
+// 8. soru: beş numaralı sıcaklık–zaman grafiği (saf altın, sabit güçlü alev)
+BFY_FIG_EKLE('YU2_altin_genis', function (u) {
+  const W = 111, H = 138;
+  // her grafik: zaman 0–10 birim, sıcaklık birimi: 0 = oda, 6 = 1064 °C, 9 = üst
+  const egriler = {
+    1: [[0, 0.4], [10, 9]],
+    2: [[0, 0.4], [4, 6], [10, 6]],
+    3: [[0, 0.4], [4, 6], [6.5, 6.9], [10, 9]],
+    4: [[0, 0.4], [4, 6], [7, 6], [10, 4.2]],
+    5: [[0, 0.4], [4, 6], [7, 6], [10, 8.6]]
+  };
+  let s = `<rect class="bg" x="0" y="0" width="566" height="${H + 8}" rx="12" fill="#f8f7f2"/>`;
+  [1, 2, 3, 4, 5].forEach((n, i) => {
+    const x0 = 2 + i * W, ox = x0 + 32, oy = H - 14, w = 70, h = 104;
+    const X = t => ox + t * 6.2, Y = v => oy - v * 10.2;
+    s += dashLine(ox, Y(6), X(10), Y(6), '#c9b98d', '3 3', 1.1) + T(ox - 4, Y(6) + 4, '1064', { size: 10.5, anchor: 'end', weight: 700 });
+    s += `<line x1="${ox}" y1="${oy}" x2="${ox + w + 6}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox + w + 13},${oy} ${ox + w + 5},${oy - 3.5} ${ox + w + 5},${oy + 3.5}" fill="${P.ink}"/>`;
+    s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - h + 7}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${oy - h} ${ox - 3.5},${oy - h + 8} ${ox + 3.5},${oy - h + 8}" fill="${P.ink}"/>`;
+    s += T(ox + 6, oy - h + 4, 'T (°C)', { size: 11, weight: 700 }) + T(ox + w + 6, oy + 14, 't', { size: 11.5, anchor: 'middle', weight: 700, italic: true });
+    s += `<polyline points="${egriler[n].map(([t, v]) => X(t).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')}" fill="none" stroke="${BAK}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s += `<circle cx="${x0 + W - 14}" cy="${oy - h + 6}" r="9" fill="${P.copper}"/>` + T(x0 + W - 14, oy - h + 10.3, String(n), { size: 12, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  });
+  return svg(566, H + 8, s, u, 170);
+});
+
+// 10. soru: döner ocağı, yandan görünüş; 1, 2, 3 numaralı enerji aktarımları
+BFY_FIG_EKLE('YU2_doner', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="240" rx="12" fill="#f8f6f2"/>`;
+  // davlumbaz
+  s += `<path d="M40 20 L280 20 L250 48 L70 48 Z" fill="#d6dadf" stroke="#7b858e" stroke-width="1.4"/>` + T(160, 38, 'davlumbaz', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // ısıtıcı panel
+  s += `<rect x="54" y="92" width="22" height="118" rx="3" fill="#e0603a" stroke="#8c3420" stroke-width="1.6"/>`;
+  for (let y = 100; y < 206; y += 12) s += `<line x1="58" y1="${y}" x2="72" y2="${y}" stroke="#ffb27a" stroke-width="2"/>`;
+  s += T(65, 226, 'ısıtıcı panel', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // şiş ve et
+  s += `<line x1="196" y1="70" x2="196" y2="224" stroke="#6b737a" stroke-width="3"/>`;
+  s += `<path d="M160 92 L232 92 L222 206 L170 206 Z" fill="#b5653f" stroke="#7a3f24" stroke-width="1.6"/>`;
+  s += `<path d="M160 92 L168 92 L176 206 L170 206 Z" fill="#8c4728"/>`;
+  s += T(240, 230, 'şişteki et', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // aktarım okları (aynı biçimde)
+  s += arrow(82, 150, 156, 150, { color: TEL, w: 2.2, head: 9 }) + numara(118, 136, 1);
+  s += arrow(170, 176, 192, 176, { color: TEL, w: 2.2, head: 8 }) + numara(181, 192, 2);
+  s += arrow(66, 86, 66, 54, { color: TEL, w: 2.2, head: 9 }) + numara(88, 72, 3);
+  return svg(320, 240, s, u, 70);
+});
+
+// 13. soru: kombili kapalı ısıtma devresi ve genleşme tankı
+BFY_FIG_EKLE('YU2_kombi', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="190" rx="12" fill="#f6f8fa"/><g transform="translate(0,-36)">`;
+  const boru = (d, c) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  // kombi
+  s += `<rect x="20" y="58" width="74" height="104" rx="6" fill="#fdfdfd" stroke="#6b737a" stroke-width="1.8"/>` +
+    `<rect x="34" y="72" width="46" height="18" rx="3" fill="#dfe8ef" stroke="#6b737a" stroke-width="1"/>` + T(57, 120, 'kombi', { size: 12.5, anchor: 'middle', weight: 800 });
+  // radyatör
+  s += `<rect x="228" y="70" width="88" height="66" rx="4" fill="#eef1f4" stroke="#6b737a" stroke-width="1.8"/>`;
+  for (let x = 238; x < 312; x += 10) s += `<line x1="${x}" y1="74" x2="${x}" y2="132" stroke="#b5bdc5" stroke-width="2"/>`;
+  s += T(272, 154, 'radyatör', { size: 12.5, anchor: 'middle', weight: 800 });
+  // gidiş (sıcak) ve dönüş borusu
+  s += boru('M94 74 L170 74 L170 84 L228 84', '#d0473a') + boru('M228 124 L190 124 L190 150 L94 150', MAV);
+  s += arrow(118, 64, 150, 64, { color: '#d0473a', w: 1.8, head: 7 }) + arrow(182, 140, 152, 140, { color: MAV, w: 1.8, head: 7 });
+  // genleşme tankı (dönüş borusuna bağlı)
+  s += boru('M140 150 L140 182', MAV);
+  s += `<rect x="112" y="176" width="56" height="34" rx="12" fill="#e9eef3" stroke="#6b737a" stroke-width="1.6"/>`;
+  s += `<path d="M114 196 Q140 188 166 196" fill="none" stroke="#3a4249" stroke-width="2"/>`;
+  s += T(176, 190, 'genleşme tankı', { size: 11.5, weight: 800 }) + T(176, 204, '(üstte su, altta hava; arada zar)', { size: 10, weight: 600, fill: P.ink2 });
+  s += `</g>`;
+  return svg(340, 190, s, u, 74);
+});
+}
+
+/* ---------- Tarama ---------- */
+const TEST = {
+  id: 'YU2', ad: '2. Tarama: Enerji, Isı ve Sıcaklık', tur: 'tarama', sure: 1200,
+  aciklama: 'On dört soru, iki ünite: iş ve güç, enerji dönüşümleri ve verim, sıcaklık ölçekleri, öz ısı ve ısı sığası, hâl değişimi ve ısıl denge, enerji aktarım yolları, iletim hızı, hissedilen sıcaklık ve genleşme.',
+  baglamlar: [
+    'tahıl silosunda düşey kovalı elevatör: dakikada 600 kg buğday, 20 m, motor etiketi 3 kW (gereksiz veri), 2000 W',
+    'maden ocağında 3000 kg asansör kafesi 2 m/s sabit süratle 60 m iniyor: yer çekimi +1800 kJ, halat −1800 kJ, 60 kW',
+    'dere suyuyla çalışan eski su hızarı: ark, su çarkı, krank, testere ve kütük; enerji dönüşümü, ısı ve ses, yağlama ile verim',
+    'WMO kaydındaki en düşük hava sıcaklığı −89,2 °C (Vostok İstasyonu, 1983): 184 K ve −129 °F (eksi işaret tuzağı)',
+    'serada ısı deposu: 200 kg su ve 1000 kg çakıl taşı (öz ısı c ve c/5), eşit ısı sığası (iki sütun)',
+    'Celsius ve Fahrenheit okumaları grafiği (0, 32) ve (100, 212): −40 eşitliği, 10 °C → 18 °F, 20 °C → 68 °F',
+    'eczane deposunda 18 °C ilaç kutuları ve 2 °C soğutucu paketler, yalıtımlı taşıma kutusu (kesinlikle; I iç enerji, II ısının yönü, III sıcaklık eşitliği)',
+    'kuyumcu potasında saf altın kırıntıları, 1064 °C, sabit güçlü alev: beş sıcaklık–zaman grafiği',
+    'kafede 25 °C limonata: 0 °C 50 g buz ve 0 °C 50 g su, son sıcaklıklar, 100 g buzda erime ısısı (oran), verilen ve alınan ısı',
+    'döner ocağı: kızgın panelden ete, etin yüzeyinden içine, panelin üstündeki havadan davlumbaza (aktarım yolu eşleştirmesi)',
+    'kutup denizinde balinanın yağ tabakası: 37 °C vücut, 0 °C ve 10 °C su, ısının yönü',
+    'muayene odasında stetoskobun metal göğüs parçası ve plastik hortumu: aynı sıcaklık, avuçta ısıtma (açıklama seçme)',
+    'kombili kalorifer tesisatında genleşme tankı: 15 → 70 °C su, sıvının borulardan çok genleşmesi, soğurken tanktan geri dönüş',
+    'şantiyede aynı malzemeden duvarlı iki konteyner ofis, K\'nın duvarı kalın, boyutlar bilinmiyor, iç 22 °C (olabilir)'
+  ],
+  sorular: [
+    {
+      id: 'YU2_1', konu: 'Y.4.1', yks: true, zorluk: 1, cikti: '9.4.1.2', beceri: 'Kaldırma işinden güç hesabı',
+      tahmin: { gerekce: r`9.4.1.2 (mekanik iş ve güç hesabı) 2018–2026'da hiç ana kazanım olarak sorulmadı; 2019'daki tek soru güç kavramını hesapsız ölçtü. Dakikada taşınan kütleden güç hesabı ve gereksiz "etiket gücü" verisi, ÖSYM'nin son yıllardaki gereksiz veri tuzaklarına uyar.` },
+      metin: r`Bir tahıl silosunda düşey kovalı bir elevatör, buğdayı silonun tepesine taşıyor. Elevatörün özellikleri tabloda verilmiştir.
+
+{{tablo}}
+
+Elevatör çalışırken buğdaya aktarılan ortalama güç kaç watt'tır? (Buğday sabit süratle taşınıyor; $g = 10\ \text{m/s}^2$)`,
+      tablo: [['Özellik', 'Değer'], ['Taşıma kapasitesi', 'dakikada 600 kg buğday'], ['Yükseltme yüksekliği', '20 m'], ['Motorun etiket gücü', '3 kW']],
+      secenekler: [r`$2$`, r`$200$`, r`$2000$`, r`$3000$`, r`$120\,000$`],
+      dogru: 2,
+      cozum: [
+        r`Buğday sabit süratle yükseldiği için bir dakikada buğdaya yapılan iş, buğdayın ağırlığı ile yüksekliğin çarpımıdır: $W = m \cdot g \cdot h = 600 \cdot 10 \cdot 20 = 120\,000\ \text{J}$.`,
+        r`Güç, birim zamanda yapılan iştir: $P = \dfrac{W}{t} = \dfrac{120\,000\ \text{J}}{60\ \text{s}} = 2000\ \text{W}$.`,
+        r`Motorun etiketindeki $3\ \text{kW}$, motorun çektiği güçtür; bunun bir kısmı sürtünme ve ısı olarak buğdaya aktarılmaz. Soru için gereksiz bir veridir.`,
+        r`{{S0}} kilovatla vatı karıştırır: $2\ \text{kW}$'ı $2\ \text{W}$ yazar. {{S1}} kütleyi ağırlık yerine kullanır: $\dfrac{600 \cdot 20}{60} = 200$. {{S3}} motorun etiketindeki gücü buğdaya aktarılan güç sanır. {{S4}} işi süreye bölmeyi unutur ve bir dakikadaki işi güç sanır.`
+      ]
+    },
+    {
+      id: 'YU2_2', konu: 'Y.4.1', yks: true, zorluk: 3, cikti: '9.4.1.2', beceri: 'Zıt yönlü kuvvetlerin işi ve güç',
+      tahmin: { gerekce: r`İşin işareti ve sıfır net iş, 2018–2026 TYT'lerinde hiç sorulmadı. 9.4.1.1–9.4.1.2 kazanımları aynı doğrultudaki kuvvetlerle iş ve güç hesabını istiyor; sabit süratle inen bir yükte iki kuvvetin zıt işaretli işleri ve gücün büyüklüğü, hesabı kavramla birleştiren bir kalıptır.` },
+      metin: r`Bir maden ocağında, içindeki işçilerle birlikte kütlesi $3000\ \text{kg}$ olan asansör kafesi, çelik bir halatla düşey doğrultuda $2\ \text{m/s}$ sabit süratle $60\ \text{m}$ aşağı indiriliyor.
+
+Bu iniş için,
+
+I. Kafese etki eden yer çekimi kuvvetinin yaptığı iş $-1800\ \text{kJ}$'dür.
+II. Halatın kafese uyguladığı kuvvetin yaptığı iş $-1800\ \text{kJ}$'dür.
+III. Halatın kafese uyguladığı kuvvetin gücünün büyüklüğü $60\ \text{kW}$'tır.
+
+yargılarından hangileri doğrudur? ($g = 10\ \text{m/s}^2$)`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Kafes sabit süratle indiği için net kuvvet sıfırdır; halatın kuvveti ağırlığa eşittir: $F = G = 3000 \cdot 10 = 30\,000\ \text{N}$.`,
+        r`I. Ağırlık aşağı yönlü, yer değiştirme de aşağı yönlüdür: $W_G = +30\,000 \cdot 60 = +1\,800\,000\ \text{J} = +1800\ \text{kJ}$. İş pozitiftir, $-1800\ \text{kJ}$ değildir. **Yanlış.**`,
+        r`II. Halatın kuvveti yukarı yönlü, yer değiştirme aşağı yönlüdür; kuvvet harekete zıt olduğundan iş negatiftir: $W_F = -1800\ \text{kJ}$. **Doğru.** Net iş sıfırdır; kafesin kinetik enerjisi değişmez.`,
+        r`III. İniş süresi $\dfrac{60}{2} = 30\ \text{s}$'dir. Gücün büyüklüğü $\dfrac{1\,800\,000\ \text{J}}{30\ \text{s}} = 60\,000\ \text{W} = 60\ \text{kW}$'tır (ya da $F \cdot \vartheta = 30\,000 \cdot 2$). **Doğru.**`,
+        r`{{S0}} kafes aşağı indiği için yer çekiminin işini negatif sanır; halatın işini ve gücü doğru değerlendirmez. {{S1}} gücü bulurken işi süre yerine yola böler ($\dfrac{1\,800\,000}{60} = 30\,000\ \text{W}$) ve III'ü yanlış sayar. {{S2}} yer çekiminin işini de negatif sanır ve gücü hesaplamaz. {{S4}} yer çekimi kuvvetinin hareket yönünde olduğunu ve pozitif iş yaptığını görmez.`
+      ]
+    },
+    {
+      id: 'YU2_3', konu: 'Y.4.2', yks: true, zorluk: 2, cikti: '9.4.3.1', beceri: 'Enerji dönüşümü, korunum ve verimi ayırt etme',
+      tahmin: { gerekce: r`Y.4.2'den (mekanik enerji, korunum, verim ve enerji kaynakları) 2018–2026'da hiç soru gelmedi; çıkmış soru analizi bu konuyu programda olup TYT'de açık kalan başlıklar arasında gösteriyor. Hesapsız (9.4.3.1 b) bir enerji dönüşüm zinciri, korunum ile "kayıp" dilini ayırt etmeyi ve verimi artıran bir öneriyi (9.4.4.2) tek soruda birleştirir.` },
+      metin: r`Bir köyde dere suyuyla çalışan eski bir su hızarında, ark ile getirilen su yüksekten su çarkının kanatlarına düşerek çarkı döndürür. Çarkın mili, bir krank ve kol düzeneğiyle testereyi aşağı yukarı hareket ettirir ve kütük biçilir. Çalışma sırasında testere, kütük ve mil yatakları ısınır; hızar gürültü çıkarır.
+
+{{sekil}}
+
+Bu hızarla ilgili aşağıdaki ifadelerden hangisi doğrudur?`,
+      sekil: 'YU2_hizar',
+      secenekler: [
+        'Arktan çarka düşen suyun yer çekimi potansiyel enerjisi azalırken kinetik enerjisi artar.',
+        'Testerenin ve mil yataklarının ısınması, hızarda toplam enerjinin korunmadığını gösterir.',
+        'Suyun çarka aktardığı enerjinin tamamı kütüğü biçmek için kullanılır.',
+        'Mil yatakları yağlansa bile aynı su akışıyla biçmeye aktarılan enerji değişmez.',
+        'Ark kısaltılıp su çarka daha alçaktan düşürülürse çarka aktarılan enerji artar.'
+      ],
+      dogru: 0,
+      cozum: [
+        r`Su düşerken yüksekliği azalır, sürati artar: Yer çekimi potansiyel enerjisi kinetik enerjiye dönüşür. Çarpan su enerjisinin bir kısmını çarka aktarır; çark ve testere bu enerjiyle kütüğü biçer.`,
+        r`Sürtünme yüzünden enerjinin bir kısmı ısıya ve sese dönüşür. Bu enerji yok olmaz, istenmeyen biçimlere geçer: Toplam enerji korunur ama tamamı biçmeye gitmez. Yağlama sürtünmeyi, dolayısıyla ısıya giden payı azaltarak verimi artırır.`,
+        r`{{S1}} istenmeyen ısıya dönüşen enerjiyi kaybolmuş sayar; enerji yok olmaz, biçim değiştirir. {{S2}} sürtünmenin, ısınmanın ve sesin enerji payını görmez. {{S3}} yağlamanın sürtünmeyi azaltıp ısıya giden payı küçülttüğünü, yani verimi artırdığını görmez. {{S4}} düşme yüksekliği ile potansiyel enerji ilişkisini ters kurar; su daha alçaktan düşerse çarka daha az enerji getirir.`
+      ]
+    },
+    {
+      id: 'YU2_4', konu: 'Y.5.1', yks: true, zorluk: 1, cikti: '9.5.1.3', beceri: 'Sıcaklık ölçekleri arasında dönüşüm',
+      tahmin: { gerekce: r`9.5.1.3 (sıcaklık birimleriyle hesap) ısı ünitesinde hesap isteyen tek kazanımdır; 2018–2026'da yalnız 2020'de yardımcı kazanım olarak dolaylı yer aldı. Tartışmasız bir WMO rekoruyla (eksi Celsius değeri) iki ölçeğe birden dönüşüm, Kelvin'de işaret ve Fahrenheit'te 32 tuzaklarını birlikte yoklar.` },
+      metin: r`Dünya Meteoroloji Örgütünün (WMO) kayıtlarına göre yeryüzünde ölçülmüş en düşük hava sıcaklığı $-89,2\ ^{\circ}\text{C}$'tır (Vostok İstasyonu, Antarktika, 21 Temmuz 1983).
+
+Bu sıcaklık Kelvin ve Fahrenheit ölçeklerinde yaklaşık kaçtır?`,
+      secenekler: [r`$184\ \text{K}$ ve $-161\ ^{\circ}\text{F}$`, r`$184\ \text{K}$ ve $-129\ ^{\circ}\text{F}$`, r`$184\ \text{K}$ ve $-103\ ^{\circ}\text{F}$`, r`$184\ \text{K}$ ve $-18\ ^{\circ}\text{F}$`, r`$362\ \text{K}$ ve $-129\ ^{\circ}\text{F}$`],
+      dogru: 1,
+      cozum: [
+        r`Kelvin ve Celsius ölçeklerinde bölmeler eşittir; yalnız sıfır noktaları farklıdır: $T_K = T_C + 273 = -89,2 + 273 = 183,8 \approx 184\ \text{K}$. Kelvin ölçeğinde eksi değer yoktur.`,
+        r`Celsius'taki $100$ bölmelik aralık (suyun donma ve kaynama noktaları arası) Fahrenheit'te $180$ bölmedir ve donma noktası $32\ ^{\circ}\text{F}$'tır: $T_F = 1,8 \cdot T_C + 32 = 1,8 \cdot (-89,2) + 32 = -128,56 \approx -129\ ^{\circ}\text{F}$.`,
+        r`{{S4}} Celsius değerinin eksi işaretini görmeden $273$'e ekler ($273 + 89,2 \approx 362$). {{S0}} Fahrenheit'e çevirirken $32$'yi eklemeyi unutur ($1,8 \cdot (-89,2) \approx -161$). {{S2}} $32$'yi çarpmadan önce ekler: $1,8 \cdot (-89,2 + 32) \approx -103$. {{S3}} dönüşüm oranını ters kullanır: $\dfrac{-89,2}{1,8} + 32 \approx -18$.`
+      ]
+    },
+    {
+      id: 'YU2_5', konu: 'Y.5.1', yks: true, zorluk: 2, cikti: '9.5.1.4', beceri: 'Öz ısı ve ısı sığasını kütleyle ilişkilendirme',
+      cikmis: { yil: 2025, no: 4, kalip: 'Öz ısı ve ısı sığasını kütle ile ilişkilendirip sıcaklık değişimini karşılaştırma' },
+      metin: r`Bir sera tasarımcısı, gündüz Güneş'ten gelen enerjiyi depolayıp gece serayı ılık tutmak için iki depo hazırlıyor. Depolar gün boyunca eşit miktarda ısı alıyor; gece ise eşit miktarda soğuyarak seraya ısı veriyor. Depolarda hâl değişimi olmuyor.
+
+{{tablo}}
+
+Gündüz depoların sıcaklık artışları $\Delta T_K$ ile $\Delta T_L$ ve gece eşit sıcaklık düşüşünde seraya verdikleri ısılar $Q_K$ ile $Q_L$ arasındaki ilişkiler hangisinde doğru verilmiştir?`,
+      tablo: [['Depo', 'Madde', 'Kütle', 'Öz ısı'], ['K', 'su', '200 kg', 'c'], ['L', 'çakıl taşı', '1000 kg', 'c/5']],
+      secenekler: [r`$\Delta T_K > \Delta T_L$; $Q_K < Q_L$`, r`$\Delta T_K < \Delta T_L$; $Q_K > Q_L$`, r`$\Delta T_K = \Delta T_L$; $Q_K = Q_L$`, r`$\Delta T_K = \Delta T_L$; $Q_K > Q_L$`, r`$\Delta T_K < \Delta T_L$; $Q_K = Q_L$`],
+      dogru: 2,
+      cozum: [
+        r`Isı sığası $C = m \cdot c$'dir: $C_K = 200 \cdot c$, $C_L = 1000 \cdot \dfrac{c}{5} = 200 \cdot c$. İki deponun ısı sığası eşittir.`,
+        r`Isı sığası, bir cismin sıcaklığını $1\ ^{\circ}\text{C}$ değiştirmek için gereken ısıdır. Eşit ısı alan ve ısı sığaları eşit iki depoda sıcaklık artışları eşittir: $\Delta T_K = \Delta T_L$. Eşit sıcaklık düşüşünde verilen ısılar da eşittir: $Q_K = Q_L$.`,
+        r`{{S1}} yalnız öz ısılara bakar, kütle farkını hesaba katmaz. {{S0}} yalnız kütlelere bakar, öz ısı farkını hesaba katmaz. {{S3}} sıcaklık artışlarını doğru karşılaştırır ama suyun öz ısısı büyük olduğu için her durumda daha çok ısı verdiğini sanır. {{S4}} verilen ısıları doğru karşılaştırır ama öz ısısı küçük olan taşın daha çok ısındığını sanır; ısı sığaları eşitse eşit ısıda sıcaklık artışları da eşittir.`
+      ]
+    },
+    {
+      id: 'YU2_6', konu: 'Y.5.1', yks: true, zorluk: 2, cikti: '9.5.1.3', beceri: 'Sıcaklık ölçekleri grafiğini yorumlama',
+      tahmin: { gerekce: r`Sıcaklık ölçekleri arasındaki doğrusal ilişkiyi grafikten okuyup değişimle değeri ayırt etmek (9.5.1.3) TYT'de hiç sorulmadı. İki ölçeğin aynı sayıyı gösterdiği tek sıcaklık ve "farka 32 eklenmez" tuzağı, hesap gerektiren bu kazanımın kavramsal yüzünü yoklar.` },
+      metin: r`Ece, bir Celsius termometresi ile bir Fahrenheit termometresini aynı ortamlara koyup okumalarını karşılaştırıyor. Okumalar arasındaki ilişki grafikteki doğruyla gösterilmiştir.
+
+{{sekil}}
+
+Buna göre,
+
+I. İki termometrenin aynı sayıyı gösterdiği bir sıcaklık vardır.
+II. Ortamın sıcaklığı $10\ ^{\circ}\text{C}$ artarsa Fahrenheit termometresinin gösterdiği değer $18$ artar.
+III. Celsius termometresinin $20$ gösterdiği ortamda Fahrenheit termometresi $40$ gösterir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YU2_olcek',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Grafikteki doğru $(0, 32)$ ve $(100, 212)$ noktalarından geçer: $T_F = 32 + \dfrac{212 - 32}{100} \cdot T_C = 1,8 \cdot T_C + 32$.`,
+        r`I. İki okumanın eşit olduğu $x$ değeri için $x = 1,8x + 32 \Rightarrow x = -40$ bulunur: $-40\ ^{\circ}\text{C} = -40\ ^{\circ}\text{F}$. **Doğru.**`,
+        r`II. Celsius'taki $1$ bölme Fahrenheit'te $1,8$ bölmedir; $10\ ^{\circ}\text{C}$'lik artış $18\ ^{\circ}\text{F}$'lık artıştır. Değişime $32$ eklenmez. **Doğru.**`,
+        r`III. $1,8 \cdot 20 + 32 = 68\ ^{\circ}\text{F}$'tır. **Yanlış.**`,
+        r`{{S0}} sıcaklık artışına da $32$ ekleyip $50$ bulur ve II'yi yanlış sayar. {{S1}} doğru sola uzatılınca iki okumanın eşitlendiği noktayı görmez. {{S3}} Fahrenheit değerini Celsius değerinin iki katı sanır ve II'yi atlar. {{S4}} hem okumaların eşitlendiği $-40$'ı görmez hem Fahrenheit değerini Celsius değerinin iki katı sanır.`
+      ]
+    },
+    {
+      id: 'YU2_7', konu: 'Y.5.2', yks: true, zorluk: 2, cikti: '9.5.3.1', beceri: 'Isıl dengede kesin olanı ayırt etme',
+      cikmis: { yil: 2024, no: 4, kalip: 'Yalıtılmış ortamda ısıl denge: ısının yönü, sıcaklık ve iç enerji hakkında kesin yargılar (I-II-III)' },
+      metin: r`Bir eczane deposunda $18\ ^{\circ}\text{C}$'de bekleyen ilaç kutuları, $2\ ^{\circ}\text{C}$'ye soğutulmuş soğutucu paketlerle birlikte ısı yalıtımlı bir taşıma kutusuna yerleştiriliyor. Soğutucu paketler donmuş değildir ve taşıma süresince hiçbir maddede hâl değişimi olmuyor. Kutu kapatıldıktan bir süre sonra kutudaki maddelerin sıcaklıkları değişmez hâle geliyor.
+
+Buna göre,
+
+I. Sıcaklıklar değişmez hâle geldiğinde ilaç kutuları ile soğutucu paketlerin iç enerjileri eşittir.
+II. Isı, ilaç kutularından soğutucu paketlere aktarılmıştır.
+III. Sıcaklıklar değişmez hâle geldiğinde ilaç kutuları ile soğutucu paketler aynı sıcaklıktadır.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. İç enerji, taneciklerin toplam enerjisidir ve sıcaklığın yanında madde miktarına ve cinsine de bağlıdır. Sıcaklıkları eşit iki maddenin iç enerjileri genellikle farklıdır. **Kesin değil.**`,
+        r`II. Isı, sıcaklığı yüksek olan maddeden düşük olana kendiliğinden akar: $18\ ^{\circ}\text{C}$'deki ilaç kutularından $2\ ^{\circ}\text{C}$'deki paketlere. Paketlerden ilaçlara "soğukluk" aktarılmaz. **Kesinlikle doğru.**`,
+        r`III. Sıcaklıklar değişmez hâle geldiğinde ısı akışı durmuştur; bu, maddelerin ısıl dengede, yani aynı sıcaklıkta olduğunu gösterir. **Kesinlikle doğru.**`,
+        r`{{S0}} ısının yönünü doğru bulur ama sıcaklıkların değişmez hâle gelmesinin ısıl denge, yani sıcaklık eşitliği demek olduğunu görmez. {{S1}} ısıl dengedeki sıcaklık eşitliğini görür ama ısının sıcak ilaçlardan soğuk paketlere aktığını kesin saymaz. {{S2}} ısıl dengede sıcaklık yerine iç enerjilerin eşitlendiğini sanır. {{S4}} sıcaklıkları eşit maddelerin iç enerjilerinin de eşit olduğunu sanır; iç enerji madde miktarına ve cinsine de bağlıdır.`
+      ]
+    },
+    {
+      id: 'YU2_8', konu: 'Y.5.2', yks: true, zorluk: 1, cikti: '9.5.2.1', beceri: 'Hâl değişiminde sıcaklık-zaman grafiği seçme',
+      tahmin: { gerekce: r`9.5.2.1 (hâl değişiminde gereken ısının bağlı olduğu değişkenler) 2018–2026'da hiç ana kazanım olarak sorulmadı; son yılların ısı soruları ise ısıl dengeye kaydı. Saf maddenin erirken sıcaklığının sabit kalmasını grafik seçme kalıbıyla soran kısa bir soru, 4. soru yuvasının kolay ucuna uyar.` },
+      metin: r`Bir kuyumcu, potadaki saf altın kırıntılarını oda sıcaklığından başlayarak sabit güçlü bir alevle ısıtıyor. Altının tamamı eridikten sonra eriyiği bir süre daha ısıtmayı sürdürüyor. Saf altının erime sıcaklığı $1064\ ^{\circ}\text{C}$'tır.
+
+Potadaki altının sıcaklık–zaman grafiği aşağıdaki numaralı grafiklerden hangisi gibi olabilir?
+
+{{sekil}}`,
+      sekil: 'YU2_altin_genis',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 4,
+      cozum: [
+        r`Katı altın ısı aldıkça sıcaklığı $1064\ ^{\circ}\text{C}$'ye kadar artar. Saf madde erirken aldığı ısı tanecikler arasındaki bağları gevşetmeye harcanır; erime bitene kadar sıcaklık sabit kalır (yatay bölüm).`,
+        r`Tamamı eridikten sonra eriyik ısı almayı sürdürdüğü için sıcaklığı yeniden artar. Bu üç aşamayı gösteren grafik 5 numaralıdır.`,
+        r`{{S0}} saf maddenin erirken de ısındığını sanır ve sabit sıcaklık bölümünü atlar. {{S1}} erime bittikten sonra da sıcaklığın sabit kalacağını sanır; ısı almayı sürdüren sıvının sıcaklığı artar. {{S2}} erime süresince sıcaklığın yavaş yavaş arttığını sanır; saf maddede erime sabit sıcaklıkta olur. {{S3}} ısıtma sürerken eriyiğin soğuyabileceğini sanır.`
+      ]
+    },
+    {
+      id: 'YU2_9', konu: 'Y.5.2', yks: true, zorluk: 3, cikti: '9.5.2.1', beceri: 'Erime ısısını ısıl dengeyle birleştirme',
+      tahmin: { gerekce: r`Isıl denge 2024 ve 2026'da sorulsa da hâl değiştiren bir maddenin ısıl dengedeki rolü hiç gelmedi. Aynı sıcaklıktaki buz ile suyun soğutma etkisini karşılaştırmak, hâl değişimi ısısını hesapsız (9.5.2.1, 9.5.3.1 b) düşündüren ve günlük hayattan bir zincirdir.` },
+      metin: r`Bir kafede özdeş iki bardakta $25\ ^{\circ}\text{C}$'de eşit miktarda limonata bulunuyor. Garson bardaklara tablodaki eklemeleri yapıyor. Bardakların aldığı ya da verdiği ısı ve bardaklar ile çevre arasındaki ısı alışverişi önemsizdir.
+
+{{tablo}}
+
+1. bardaktaki buzun tamamı eridikten ve iki bardakta da sıcaklıklar değişmez hâle geldikten sonra,
+
+I. 1. bardaktaki limonatanın son sıcaklığı, 2. bardaktakinden düşüktür.
+II. 1. bardağa $50\ \text{g}$ yerine $100\ \text{g}$ buz eklenseydi, buzun tamamının erimesi için gereken ısı iki katına çıkardı.
+III. 2. bardakta limonatanın verdiği ısı, eklenen suyun aldığı ısıya eşittir.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Bardak', 'Eklenen', 'Kütle', 'Sıcaklık'], ['1', 'buz', '50 g', '0 °C'], ['2', 'su', '50 g', '0 °C']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 4,
+      cozum: [
+        r`II. Erime sıcaklığındaki saf bir katının tamamını eritmek için gereken ısı, maddenin cinsine ve kütlesine bağlıdır; aynı madde için kütleyle doğru orantılıdır. Kütle iki katına çıkınca gereken ısı da iki katına çıkar. **Doğru.**`,
+        r`I. 2. bardakta $0\ ^{\circ}\text{C}$'deki su yalnız ısınmak için limonatadan ısı alır. 1. bardakta buz önce erimek için (bu sırada sıcaklığı $0\ ^{\circ}\text{C}$'de kalır), eridikten sonra da $0\ ^{\circ}\text{C}$'deki su olarak ısınmak için ısı alır. 1. bardaktaki limonata daha çok ısı verir ve daha çok soğur. **Doğru.**`,
+        r`III. Bardaklar ısı almadığı ve çevreyle ısı alışverişi olmadığı için 2. bardakta limonatanın verdiği ısının tamamını eklenen su alır. **Doğru.**`,
+        r`{{S0}} erime için gereken ısının kütleyle orantılı olduğunu ve yalıtılmış bardakta verilen ısının alınan ısıya eşit olduğunu görmez. {{S1}} buzun erimek için aldığı ek ısının limonatayı daha çok soğuttuğunu görmez ve ısı alışverişinin eşitliğini atlar. {{S2}} yalıtılmış bardakta limonatanın verdiği ısının suyun aldığı ısıya eşit olduğunu atlar. {{S3}} buzun erimek için aldığı ek ısının limonatayı daha çok soğuttuğunu görmez ve iki bardağın aynı sıcaklığa geleceğini sanır.`
+      ]
+    },
+    {
+      id: 'YU2_10', konu: 'Y.5.3', yks: true, zorluk: 1, cikti: '9.5.4.1', beceri: 'Enerji aktarım yollarını ayırt etme',
+      cikmis: { yil: 2023, no: 4, kalip: 'Günlük hayattaki bir durumda enerji aktarım yollarını ayırt etme' },
+      metin: r`Bir döner ocağında, şişteki etin birkaç santimetre uzağında kızgın bir ısıtıcı panel bulunuyor. Şekilde numaralarla üç enerji aktarımı gösterilmiştir:
+
+- 1: Kızgın panelden, havayla taşınmadan ve temas olmadan etin panele dönük yüzüne ulaşan enerji
+- 2: Etin ısınan dış yüzeyinden iç kısımlarına geçen enerji
+- 3: Panelin çevresinde ısınan havanın yükselerek davlumbaza taşıdığı enerji
+
+{{sekil}}
+
+Bu aktarımlar sırasıyla hangi yollarla gerçekleşir?`,
+      sekil: 'YU2_doner',
+      secenekler: ['1: iletim; 2: iletim; 3: konveksiyon', '1: konveksiyon; 2: iletim; 3: ışıma', '1: ışıma; 2: konveksiyon; 3: iletim', '1: ışıma; 2: iletim; 3: konveksiyon', '1: ışıma; 2: ışıma; 3: konveksiyon'],
+      dogru: 3,
+      cozum: [
+        r`1: Madde aracılığı ve temas gerektirmeden, elektromanyetik dalgalarla aktarılan enerji **ışıma** ile aktarılır.`,
+        r`2: Katı etin içinde enerji, taneciklerin birbirine çarpışmalarıyla, madde yer değiştirmeden aktarılır: **iletim**.`,
+        r`3: Isınan hava genleşip yükselir ve enerjiyi kendisiyle birlikte taşır; akışkanın yer değiştirmesiyle olan aktarım **konveksiyondur**.`,
+        r`{{S1}} panelden ete ulaşan enerjiyi hava taşıyor sanır ve yükselen sıcak havayı ışıma sanır. {{S2}} katının içindeki aktarımı konveksiyon, yükselen havayı iletim sanır; konveksiyon yalnız akışkanlarda olur. {{S0}} panelden ete giden enerjinin temas olmadan geldiğini gözden kaçırıp iletim sanır. {{S4}} etin içindeki aktarımı da ışıma sanır; katının içinde enerji iletimle yayılır.`
+      ]
+    },
+    {
+      id: 'YU2_11', konu: 'Y.5.3', yks: true, zorluk: 2, cikti: '9.5.4.2', beceri: 'İletim hızını etkileyen değişkenler ve ısının yönü',
+      cikmis: { yil: 2021, no: 4, kalip: 'Isı iletim hızını etkileyen etkenleri günlük hayat durumunda yorumlama (I-II-III)' },
+      metin: r`Kutup denizlerinde yaşayan balinaların derisinin altında kalın bir yağ tabakası bulunur. Bir balinanın vücut sıcaklığı yaklaşık $37\ ^{\circ}\text{C}$, çevresindeki deniz suyunun sıcaklığı yaklaşık $0\ ^{\circ}\text{C}$'dir. Yağın ısı iletim katsayısı deniz suyununkinden küçüktür.
+
+Buna göre,
+
+I. Yağ tabakası, vücuttan deniz suyuna birim zamanda iletilen enerjiyi azaltır.
+II. Balina $10\ ^{\circ}\text{C}$'lik bir denize geçerse, vücut sıcaklığı değişmediği sürece yağ tabakasından birim zamanda iletilen enerji artar.
+III. Isı, yağ tabakası boyunca deniz suyundan balinanın vücuduna doğru iletilir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`I. Isı iletim katsayısı küçük olan kalın bir tabaka, birim zamanda iletilen enerjiyi azaltır; yağ tabakası yalıtım sağlar. **Doğru.**`,
+        r`II. Katıdaki iletim hızı, iki yüzü arasındaki sıcaklık farkı büyüdükçe artar. $10\ ^{\circ}\text{C}$'lik suda vücut ile su arasındaki sıcaklık farkı küçülür; iletilen enerji artmaz, azalır. **Yanlış.**`,
+        r`III. Isı, sıcaklığı yüksek olan vücuttan sıcaklığı düşük olan suya doğru iletilir. Yağ tabakası soğuğun içeri girmesini değil, ısının dışarı çıkmasını yavaşlatır. **Yanlış.**`,
+        r`{{S1}} sıcaklık farkı küçülünce iletim hızının arttığını sanır ve yağın yalıtım etkisini atlar. {{S2}} iletim hızının sıcaklık farkı küçülünce azaldığını görmez. {{S3}} ısının yönünü ters kurar; ısı sıcak vücuttan soğuk suya akar. {{S4}} hem sıcaklık farkının etkisini hem ısının yönünü ters kurar.`
+      ]
+    },
+    {
+      id: 'YU2_12', konu: 'Y.5.3', yks: true, zorluk: 2, cikti: '9.5.4.4', beceri: 'Hissedilen sıcaklığı iletim hızıyla açıklama',
+      cikmis: { yil: 2022, no: 4, kalip: 'Aynı sıcaklıktaki farklı maddelerin farklı hissettirmesini iletim hızıyla açıklama' },
+      metin: r`Bazı doktorlar, muayeneden önce stetoskobun metal göğüs parçasını bir süre avuçlarında tutarak ısıtır. Muayene odasında uzun süredir duran stetoskobun metal göğüs parçası ile plastik hortumunun sıcaklıkları birbirine ve odanın sıcaklığına eşittir; ama metal parça cilde değince plastikten çok daha soğuk hissettirir.
+
+Metal parçanın daha soğuk hissettirmesi ve doktorun onu ısıtması en iyi hangisiyle açıklanır?`,
+      secenekler: [
+        'Metal parça hortumdan daha düşük sıcaklıktadır; avuçta ısıtılınca hortumla aynı sıcaklığa gelir.',
+        'Metal, ciltten enerjiyi plastikten çok daha hızlı iletir; ısıtılınca cilt ile arasındaki sıcaklık farkı azalır.',
+        'Metal cilde soğukluk aktarır; avuçta tutulunca içindeki soğukluk avuca geçer ve tükenir.',
+        'Metalin öz ısısı plastiğinkinden büyüktür; ısıtılınca depoladığı ısıyı hastaya verir.',
+        'Metal ısıyı iletmez; ciltten ısı alamadığı için soğuk kalır, avuçta ise dışarıdan ısınır.'
+      ],
+      dogru: 1,
+      cozum: [
+        r`Hissettiğimiz soğukluk, cildimizden birim zamanda giden enerjiyle ilgilidir. Aynı sıcaklıktaki metal ile plastikten metal, ısı iletim katsayısı çok büyük olduğu için ciltten enerjiyi çok daha hızlı alır; bu yüzden daha soğuk hissettirir.`,
+        r`Avuçta ısıtılan metalin sıcaklığı cildin sıcaklığına yaklaşır; sıcaklık farkı azaldıkça iletim hızı da azalır ve metal artık soğuk hissettirmez.`,
+        r`{{S0}} daha soğuk hissedilen metali gerçekten daha soğuk sanır; uzun süre aynı odada duran parçalar aynı sıcaklıktadır. {{S2}} soğukluğun bir maddeden ötekine aktarıldığını sanır; aktarılan, sıcak olandan soğuk olana akan ısıdır. {{S3}} hissedilen soğukluğu öz ısıyla açıklar ve cisimlerin ısı depoladığını sanır; belirleyici olan iletim hızıdır. {{S4}} metalleri yalıtkan sanır; metaller ısıyı çok iyi iletir.`
+      ]
+    },
+    {
+      id: 'YU2_13', konu: 'Y.5.3', yks: true, zorluk: 3, cikti: '9.5.5.1', beceri: 'Katı ve sıvı genleşmesinin günlük hayattaki sonuçları',
+      cikmis: { yil: 2019, no: 4, kalip: 'Genleşmenin günlük hayattaki sonuçlarını yorumlama (I-II-III)' },
+      metin: r`Kombili bir kalorifer tesisatında kombi, borular ve radyatörler kapalı bir devrede dolaşan suyla doludur. Tesisata bir genleşme tankı bağlıdır; tankın içindeki esnek bir zar, suyun girebildiği bölmeyi sıkıştırılabilen bir hava bölmesinden ayırır. Tesisat $15\ ^{\circ}\text{C}$'deki suyla doldurulup çalıştırılıyor ve su $70\ ^{\circ}\text{C}$'ye ısınıyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Su ısınırken tesisattaki suyun bir kısmı genleşme tankına geçer.
+II. Isınan çelik borular ve radyatörler de genleşir; ama suyun hacmindeki artış, tesisatın iç hacmindeki artıştan büyüktür.
+III. Kombi kapatılıp su $70\ ^{\circ}\text{C}$'den $20\ ^{\circ}\text{C}$'ye soğurken tanka su geçmeye devam eder.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YU2_kombi',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 3,
+      cozum: [
+        r`II. Isınan maddeler genleşir; aynı sıcaklık artışında sıvıların genleşmesi katılarınkinden çok büyüktür. Borular ve radyatörler genleşse de suyun hacmi tesisatın iç hacminden daha çok artar. **Doğru.**`,
+        r`I. Kapalı devreye sığmayan fazla su, zarı iterek hava bölmesini sıkıştırır ve genleşme tankına geçer. Tank olmasaydı basınç tehlikeli biçimde artabilirdi. **Doğru.**`,
+        r`III. Su soğurken büzülür ($20\ ^{\circ}\text{C}$, suyun en yoğun olduğu $4\ ^{\circ}\text{C}$'nin üstündedir). Hacmi azalan devreye, sıkışmış havanın ittiği su tanktan geri döner; tanka su geçmez. **Yanlış.**`,
+        r`{{S0}} sıvının katıdan çok genleştiğini, yani tankın neden gerektiğini açıklayan II'yi atlar. {{S1}} genleşen fazla suyun kapalı devreye sığmayıp tanka geçtiğini görmez. {{S2}} soğuyan suyun da genleştiğini sanır ve ısınan suyun tanka geçtiğini atlar. {{S4}} suyun soğurken de genleştiğini sanır ve II'yi atlar.`
+      ]
+    },
+    {
+      id: 'YU2_14', konu: 'Y.5.3', yks: true, zorluk: 3, cikti: '9.5.4.2', beceri: 'İletim hızında birden çok değişkeni birlikte değerlendirme',
+      tahmin: { gerekce: r`Isı iletim hızının alan, kalınlık, sıcaklık farkı ve maddeye bağlılığı (9.5.4.2) 2021 ve 2022'de malzeme tablosu ya da hissedilen sıcaklık üzerinden soruldu. "Birim alandan" ile "toplam" kaybı ayıran bir "olabilir" kurgusu, değişkenleri birlikte düşündüren hesapsız bir TYT kalıbıdır.` },
+      metin: r`Bir şantiyede iki konteyner ofis bulunuyor. İki ofisin dış duvarları aynı yalıtım malzemesinden yapılmıştır ve K ofisinin duvar kalınlığı L'ninkinden büyüktür. Ofislerin boyutları bilinmiyor. Kış boyunca ısıtıcılar iki ofisin içini de $22\ ^{\circ}\text{C}$'de tutuyor ve iki ofis de aynı dış havadadır.
+
+Buna göre,
+
+I. K ofisinin duvarlarının birim alanından birim zamanda iletilen enerji, L'ninkinden büyük olabilir.
+II. K ofisinden duvarlar yoluyla birim zamanda kaybedilen toplam enerji, L'ninkinden büyük olabilir.
+III. Dış hava soğudukça iki ofisin duvarlarından birim zamanda iletilen enerji azalabilir.
+
+yargılarından hangileri doğru olabilir?`,
+      secenekler: [r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 0,
+      cozum: [
+        r`I. Aynı malzemede ve aynı sıcaklık farkında, birim alandan birim zamanda iletilen enerji kalınlık arttıkça azalır. K'nın duvarı daha kalın olduğu için bu değer K'da kesinlikle daha küçüktür. **Olamaz.**`,
+        r`II. Toplam kayıp duvarların toplam alanına da bağlıdır. K ofisi L'den yeterince büyükse (duvar alanı fazlaysa) toplam kaybı L'ninkinden büyük olabilir. **Olabilir.**`,
+        r`III. İç sıcaklık sabitken dış hava soğursa içerisi ile dışarısı arasındaki sıcaklık farkı büyür; iletim hızı artar. **Olamaz.**`,
+        r`{{S1}} sıcaklık farkı büyüdükçe iletim hızının arttığını görmez ve toplam kaybın duvar alanına da bağlı olduğunu atlar. {{S2}} birim alandan iletilen enerjinin kalınlıkla kesin biçimde azaldığını görmez. {{S3}} hem kalınlığın hem sıcaklık farkının etkisini ters kurar, alanın etkisini de atlar. {{S4}} sıcaklık farkı büyüdükçe iletim hızının arttığını görmez.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY etkileşimli içerik türleri: eşleştir, sınıfla, sırala (soru ya da not içi mini oyun)
    ve kavram kartları. Oluşturucu (PDF), dijital uygulama ve QA araçları bu yardımcıları ortak kullanır.
    Veri biçimi için bkz. KILAVUZ9.md "Etkileşimli içerik türleri".
