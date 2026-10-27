@@ -10935,6 +10935,1811 @@ BFY_SIM['Y.10.5'] = [
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.10.6 Prizmalar ve Renk — şekiller
+   Önek: kY106_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY106_ (tanım ve efsane çizimleri; 3B izometrik).
+   Prizmalardaki ışın yolları Snell Yasası ve tam yansıma ile izlenerek çizilir (izle). Renk ayrışması görünsün diye
+   camın kırıcılığı renkler arasında abartılmıştır (kırmızı 1,45 … mor 1,615); sıra gerçektir: kırmızı en az, mor en çok kırılır.
+   Bütün tam yansımalı prizmalarda en küçük kırıcılık (1,45) için bile sınır açısı 45°'den küçüktür.
+   Doğru çizilen her ışın yolu window.BFY_Y106_GEO'ya yazılır; qa/Y.10.6/dogrula.py bu yolları yeniden denetler.
+   Renkli şekillerde renk adları ayrıca yazıyla da verilir (renk körlüğü için).
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f4f7f9', CAMK = '#5b86a3', NRM = '#6b7c88', GRI = '#7d8a91';
+const RK = { kirmizi: '#e03131', turuncu: '#f76707', sari: '#f2b705', yesil: '#2f9e44', mavi: '#1c6fd1', lacivert: '#3b3fb6', mor: '#8e3fc9', camgobegi: '#12b0c4', magenta: '#d6249f', beyaz: '#ffffff', siyah: '#1f2428' };
+const AD = { kirmizi: 'kırmızı', turuncu: 'turuncu', sari: 'sarı', yesil: 'yeşil', mavi: 'mavi', lacivert: 'lacivert', mor: 'mor', camgobegi: 'camgöbeği', magenta: 'magenta', beyaz: 'beyaz', siyah: 'siyah' };
+const TAYF = ['kirmizi', 'turuncu', 'sari', 'yesil', 'mavi', 'lacivert', 'mor'];
+const NR = { kirmizi: 1.45, turuncu: 1.475, sari: 1.50, yesil: 1.525, mavi: 1.555, lacivert: 1.585, mor: 1.615 };
+const D2R = Math.PI / 180;
+const yon = a => [Math.cos(a * D2R), Math.sin(a * D2R)];
+
+/* ---------- ışın izleme: çokgen prizma, (p0, d0) ışını, prizmanın ortama göre kırıcılığı n ----------
+   Her yüzeyde: içeriden dışarıya giderken gelme açısı sınır açısını aşarsa tam yansıma, yoksa Snell ile kırılma. */
+function izle(poly, p0, d0, n, maxO = 8) {
+  const m = poly.length, cx = poly.reduce((a, q) => a + q[0], 0) / m, cy = poly.reduce((a, q) => a + q[1], 0) / m;
+  const L0 = Math.hypot(d0[0], d0[1]);
+  let d = [d0[0] / L0, d0[1] / L0], p = p0.slice(), ic = false;
+  const yol = [p0.slice()], olay = [];
+  for (let k = 0; k < maxO; k++) {
+    let en = null;
+    for (let j = 0; j < m; j++) {
+      const a = poly[j], b = poly[(j + 1) % m], ex = b[0] - a[0], ey = b[1] - a[1], den = d[0] * ey - d[1] * ex;
+      if (Math.abs(den) < 1e-12) continue;
+      const t = ((a[0] - p[0]) * ey - (a[1] - p[1]) * ex) / den, s = ((a[0] - p[0]) * d[1] - (a[1] - p[1]) * d[0]) / den;
+      if (t > 1e-7 && s >= -1e-9 && s <= 1 + 1e-9 && (!en || t < en.t)) en = { t, j, a, ex, ey };
+    }
+    if (!en) break;
+    p = [p[0] + d[0] * en.t, p[1] + d[1] * en.t]; yol.push(p);
+    const L = Math.hypot(en.ex, en.ey); let no = [en.ey / L, -en.ex / L];
+    if ((en.a[0] + en.ex / 2 - cx) * no[0] + (en.a[1] + en.ey / 2 - cy) * no[1] < 0) no = [-no[0], -no[1]];
+    const N = (d[0] * no[0] + d[1] * no[1] < 0) ? no : [-no[0], -no[1]];
+    const ci = -(d[0] * N[0] + d[1] * N[1]), eta = ic ? n : 1 / n, kk = 1 - eta * eta * (1 - ci * ci);
+    if (kk < 0) { d = [d[0] + 2 * ci * N[0], d[1] + 2 * ci * N[1]]; olay.push({ p, tur: 'tam', N: no }); continue; }
+    const c2 = Math.sqrt(kk); d = [eta * d[0] + (eta * ci - c2) * N[0], eta * d[1] + (eta * ci - c2) * N[1]];
+    const l = Math.hypot(d[0], d[1]); d = [d[0] / l, d[1] / l];
+    olay.push({ p, tur: ci > 0.99999 ? 'dik' : 'kir', N: no }); ic = !ic;
+    if (!ic) return { yol, olay, d, cikti: true };
+  }
+  return { yol, olay, d, cikti: !ic };
+}
+/* kırılmayı istenen oranlarla zorlayan yardımcı (yalnız bilerek yanlış çizilen seçenek yolları için; kayda geçmez) */
+function kir(d, N, eta) {
+  const ci = -(d[0] * N[0] + d[1] * N[1]), kk = 1 - eta * eta * (1 - ci * ci), c2 = Math.sqrt(Math.max(0, kk));
+  const r = [eta * d[0] + (eta * ci - c2) * N[0], eta * d[1] + (eta * ci - c2) * N[1]], l = Math.hypot(r[0], r[1]);
+  return [r[0] / l, r[1] / l];
+}
+/* p'den d yönünde, x = xs düşey çizgisine (perde) kadar */
+const perdeye = (p, d, xs) => [xs, p[1] + d[1] * (xs - p[0]) / d[0]];
+const ileri = (p, d, L) => [p[0] + d[0] * L, p[1] + d[1] * L];
+
+/* doğrulama kaydı */
+window.BFY_Y106_GEO = window.BFY_Y106_GEO || {};
+const GEO = window.BFY_Y106_GEO;
+const kayit = (key, poly, n, yol, renk) => { (GEO[key] = GEO[key] || []).push({ poly: poly.map(q => q.slice()), n, yol: yol.map(q => q.slice()), renk }); };
+
+/* ---------- çizim yardımcıları ---------- */
+const zemin = (W, H, c = BG) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${c}"/>`;
+let NID = 0;
+const yid = (u, ad) => `${u}${ad}${++NID}`;
+function prizma(u, poly, o = {}) {
+  const id = yid(u, 'cam');
+  return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef7fc"/><stop offset="1" stop-color="#c9e1ef"/></linearGradient></defs>` +
+    `<polygon points="${poly.map(q => f1(q[0]) + ',' + f1(q[1])).join(' ')}" fill="${o.fill || `url(#${id})`}" fill-opacity="${o.op ?? 0.92}" stroke="${o.stroke || CAMK}" stroke-width="${o.w || 1.7}" stroke-linejoin="round"/>`;
+}
+/* ışın: kırık çizgi; beyaz ışık gri kenarlı beyaz şerit; ok başları istenen parçalarda */
+function isin(pts, renk, o = {}) {
+  const w = o.w || 2.2, d = pts.map((q, i) => (i ? 'L' : 'M') + f1(q[0]) + ' ' + f1(q[1])).join(' ');
+  let s = '';
+  if (renk === 'beyaz') s += `<path d="${d}" fill="none" stroke="#9aa6af" stroke-width="${w + 2.4}" stroke-linecap="round" stroke-linejoin="round"${o.kesik ? ` stroke-dasharray="${o.kesik}"` : ''}/><path d="${d}" fill="none" stroke="#ffffff" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else s += `<path d="${d}" fill="none" stroke="${RK[renk] || renk}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${o.kesik ? ` stroke-dasharray="${o.kesik}"` : ''}${o.op ? ` opacity="${o.op}"` : ''}/>`;
+  (o.oklar || []).forEach(i => { if (pts[i + 1]) s += okBas(pts[i], pts[i + 1], renk === 'beyaz' ? '#8a96a0' : (RK[renk] || renk), o.okT ?? 0.55, o.okB || 1); });
+  return s;
+}
+function okBas(a, b, c, t = 0.55, k = 1) {
+  const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, mx = a[0] + dx * t, my = a[1] + dy * t, hl = 8 * k, hw = 4 * k, bx = mx - ux * hl, by = my - uy * hl;
+  return `<polygon points="${f1(mx + ux * 2)},${f1(my + uy * 2)} ${f1(bx - uy * hw)},${f1(by + ux * hw)} ${f1(bx + uy * hw)},${f1(by - ux * hw)}" fill="${c}"/>`;
+}
+const normal = (p, N, L = 22) => dashLine(f1(p[0] - N[0] * L), f1(p[1] - N[1] * L), f1(p[0] + N[0] * L), f1(p[1] + N[1] * L), NRM, '4 3', 1.1);
+const tamIsaret = p => `<circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="3.6" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>`;
+/* lamba (yarıklı kutu) */
+function lamba(x, y, o = {}) {
+  const w = o.w || 26, h = o.h || 22, c = o.renk || '#4f5d66';
+  return `<rect x="${x - w}" y="${y - h / 2}" width="${w}" height="${h}" rx="4" fill="${c}" stroke="#2f3a40" stroke-width="1"/><rect x="${x - 3}" y="${y - 3}" width="3" height="6" fill="${o.isik || '#fff6c9'}"/>`;
+}
+/* düşey perde */
+const perde = (x, y1, y2) => `<rect x="${x}" y="${y1}" width="7" height="${y2 - y1}" rx="1.5" fill="#fbfbf8" stroke="#8a969e" stroke-width="1.2"/>`;
+/* renkli dikey filtre plakası */
+function filtre(x, y1, y2, renk) { return `<rect x="${x - 4}" y="${y1}" width="8" height="${y2 - y1}" rx="1.5" fill="${RK[renk]}" fill-opacity=".72" stroke="${RK[renk]}" stroke-width="1.2"/>`; }
+/* eşkenar prizma köşeleri: tepe (x, y), kenar a */
+const eskenar = (x, y, a) => [[x, y], [x - a / 2, y + a * Math.sqrt(3) / 2], [x + a / 2, y + a * Math.sqrt(3) / 2]];
+/* sol yüzün t oranındaki noktası */
+const solYuz = (E, t) => [E[0][0] + (E[1][0] - E[0][0]) * t, E[0][1] + (E[1][1] - E[0][1]) * t];
+/* göz simgesi (sağa bakar) */
+function goz(x, y, k = 1, yonS = 1) {
+  const s = k, g = yonS;
+  return `<path d="M${f1(x - 11 * s * g)} ${y} Q${f1(x)} ${f1(y - 9 * s)} ${f1(x + 11 * s * g)} ${y} Q${f1(x)} ${f1(y + 9 * s)} ${f1(x - 11 * s * g)} ${y} Z" fill="#fff" stroke="#3b4a52" stroke-width="1.2"/><circle cx="${f1(x - 2 * s * g)}" cy="${y}" r="${f1(4 * s)}" fill="#4a6b84"/><circle cx="${f1(x - 2 * s * g)}" cy="${y}" r="${f1(1.8 * s)}" fill="#1f2428"/>`;
+}
+/* elma (cx, cy, r), renk */
+function elma(u, cx, cy, r, renk) {
+  const id = yid(u, 'el'), koyu = renk === 'siyah';
+  return `<defs><radialGradient id="${id}" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="${koyu ? '#5a5f63' : '#ff8a80'}"/><stop offset=".5" stop-color="${koyu ? '#2b2f33' : '#e03131'}"/><stop offset="1" stop-color="${koyu ? '#121416' : '#8f1d1d'}"/></radialGradient></defs>` +
+    `<path d="M${cx} ${f1(cy - r * 0.78)} C${f1(cx + r * 0.5)} ${f1(cy - r * 1.15)} ${f1(cx + r * 1.12)} ${f1(cy - r * 0.6)} ${f1(cx + r * 0.98)} ${f1(cy + r * 0.15)} C${f1(cx + r * 0.85)} ${f1(cy + r * 0.85)} ${f1(cx + r * 0.3)} ${f1(cy + r * 1.05)} ${cx} ${f1(cy + r * 0.88)} C${f1(cx - r * 0.3)} ${f1(cy + r * 1.05)} ${f1(cx - r * 0.85)} ${f1(cy + r * 0.85)} ${f1(cx - r * 0.98)} ${f1(cy + r * 0.15)} C${f1(cx - r * 1.12)} ${f1(cy - r * 0.6)} ${f1(cx - r * 0.5)} ${f1(cy - r * 1.15)} ${cx} ${f1(cy - r * 0.78)} Z" fill="url(#${id})" stroke="${koyu ? '#0d0f10' : '#7a1717'}" stroke-width="1"/>` +
+    `<path d="M${cx} ${f1(cy - r * 0.78)} q2 -8 6 -11" fill="none" stroke="#6b4a2a" stroke-width="2.2" stroke-linecap="round"/>`;
+}
+
+/* simülasyon (sim.js) aynı ışın izleme ve çizim yardımcılarını kullanır */
+window.BFY_Y106 = { izle, isin, okBas, prizma, normal, tamIsaret, lamba, perde, filtre, eskenar, solYuz, perdeye, ileri, yon, RK, AD, TAYF, NR };
+
+/* ================= NOT ŞEKİLLERİ ================= */
+/* Işık prizmaları: a) eşkenar, b) TYP 90°, c) TYP 180°, d) beyaz ışık, e) saf sarı, f) karışım sarı */
+BFY_FIG_EKLE('kY106_prizma_genis', function (u) {
+  const KEY = 'kY106_prizma_genis'; GEO[KEY] = [];
+  const W = 560, H = 404;
+  let s = zemin(W, H);
+  s += `<line x1="190" y1="14" x2="190" y2="186" stroke="#dbe3e8"/><line x1="375" y1="14" x2="375" y2="186" stroke="#dbe3e8"/><line x1="14" y1="202" x2="546" y2="202" stroke="#dbe3e8"/><line x1="268" y1="216" x2="268" y2="390" stroke="#dbe3e8"/><line x1="413" y1="216" x2="413" y2="390" stroke="#dbe3e8"/>`;
+  const cap = (x, y, t) => T(x, y, t, { size: 12, weight: 800, anchor: 'middle', fill: P.ink });
+  /* a) eşkenar prizma, yeşil ışın */
+  {
+    const E = eskenar(100, 30, 116), giris = solYuz(E, 0.5), d0 = yon(-15), p0 = ileri(giris, d0, -62);
+    const z = izle(E, p0, d0, NR.yesil), son = ileri(z.yol[2], z.d, 54);
+    s += prizma(u, E);
+    s += dashLine(f1(giris[0]), f1(giris[1]), f1(giris[0] + d0[0] * 96), f1(giris[1] + d0[1] * 96), '#b9c4cb', '3 4', 1.1);
+    s += normal(z.yol[1], z.olay[0].N, 24) + normal(z.yol[2], z.olay[1].N, 24);
+    s += isin([p0, ...z.yol.slice(1), son], 'yesil', { oklar: [0, 2] });
+    kayit(KEY, E, NR.yesil, [p0, ...z.yol.slice(1), son], 'yesil');
+    s += T(100, 151, 'taban', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' }) + T(100, 24, 'tepe', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' });
+    s += T(14, 30, 'yeşil ışık', { size: 11, weight: 800, fill: RK.yesil });
+    s += cap(95, 182, 'a) Eşkenar prizma');
+  }
+  /* b) TYP: dik kenara dik giriş, 90° */
+  {
+    const Tp = [[225, 46], [225, 146], [325, 146]], p0 = [198, 72], z = izle(Tp, p0, [1, 0], NR.kirmizi), son = ileri(z.yol[3], z.d, 22);
+    s += prizma(u, Tp) + `<path d="M225 138 H233 V146" fill="none" stroke="${CAMK}" stroke-width="1.1"/>`;
+    s += normal(z.yol[2], z.olay[1].N, 20) + tamIsaret(z.yol[2]);
+    s += isin([p0, ...z.yol.slice(1), son], 'kirmizi', { oklar: [0, 2, 3] });
+    kayit(KEY, Tp, NR.kirmizi, [p0, ...z.yol.slice(1), son], 'kirmizi');
+    s += T(262, 56, 'tam yansıma', { size: 11, weight: 700, fill: '#c0392b' });
+    s += T(200, 30, 'kırmızı ışık', { size: 11, weight: 800, fill: RK.kirmizi });
+    s += cap(282, 182, 'b) 90° döner');
+  }
+  /* c) TYP: hipotenüse dik giriş, 180° */
+  {
+    const Tp = [[430, 42], [484, 96], [430, 150]], p0 = [392, 70], z = izle(Tp, p0, [1, 0], NR.mavi), son = ileri(z.yol[4], z.d, 40);
+    s += prizma(u, Tp) + `<path d="M476.5 103.5 L484 96 L476.5 88.5" fill="none" stroke="${CAMK}" stroke-width="1.1"/>`;
+    s += tamIsaret(z.yol[2]) + tamIsaret(z.yol[3]);
+    s += isin([p0, ...z.yol.slice(1), son], 'mavi', { oklar: [0, 4] });
+    kayit(KEY, Tp, NR.mavi, [p0, ...z.yol.slice(1), son], 'mavi');
+    s += T(500, 74, 'tam', { size: 11, weight: 700, fill: '#c0392b' }) + T(500, 87, 'yansıma', { size: 11, weight: 700, fill: '#c0392b' });
+    s += T(386, 30, 'mavi ışık', { size: 11, weight: 800, fill: RK.mavi });
+    s += cap(467, 182, 'c) 180° döner');
+  }
+  /* d) beyaz ışık renklerine ayrılır */
+  {
+    const E = eskenar(92, 224, 98), giris = solYuz(E, 0.5), d0 = yon(-15), p0 = ileri(giris, d0, -60), XP = 214;
+    s += prizma(u, E) + perde(XP, 232, 384);
+    s += isin([p0, giris], 'beyaz', { oklar: [0], w: 2.6 });
+    const uc = [];
+    TAYF.forEach(c => {
+      const z = izle(E, p0, d0, NR[c]), son = perdeye(z.yol[2], z.d, XP);
+      s += isin([z.yol[1], z.yol[2], son], c, { w: 1.7 });
+      kayit(KEY, E, NR[c], [p0, z.yol[1], z.yol[2], son], c); uc.push(son);
+    });
+    s += T(XP + 11, uc[0][1] + 1, 'kırmızı', { size: 11, weight: 800, fill: RK.kirmizi });
+    s += T(XP + 11, uc[6][1] + 8, 'mor', { size: 11, weight: 800, fill: RK.mor });
+    s += T(40, 232, 'beyaz ışık', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' });
+    s += T(XP + 4, 228, 'perde', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' });
+    s += cap(136, 398, 'd) Beyaz ışık');
+  }
+  /* e) saf sarı: tek çizgi; f) karışım sarı: iki çizgi */
+  const kucuk = (x0, renkler, etiket, xp, cizgiAd) => {
+    const E = eskenar(x0 + 50, 262, 62), giris = solYuz(E, 0.5), d0 = yon(-15), p0 = ileri(giris, d0, -24);
+    let t = prizma(u, E) + perde(xp, 262, 384) + lamba(p0[0] + 2, p0[1], { w: 18, h: 16 });
+    t += isin([p0, giris], 'sari', { oklar: [0], w: 2.6 });
+    const uc = [];
+    renkler.forEach(c => {
+      const z = izle(E, p0, d0, NR[c]), son = perdeye(z.yol[2], z.d, xp);
+      t += isin([z.yol[1], z.yol[2], son], c, { w: 2 });
+      kayit(KEY, E, NR[c], [p0, z.yol[1], z.yol[2], son], c); uc.push(son);
+      t += `<rect x="${xp}" y="${f1(son[1] - 2)}" width="7" height="4" fill="${RK[c]}"/>`;
+    });
+    t += T(x0 + 18, 238, etiket, { size: 11, weight: 800, fill: '#9a7400', anchor: 'start' });
+    cizgiAd.forEach(([m, i, dy]) => { t += T(xp - 4, uc[i][1] + dy, m, { size: 11, weight: 800, fill: i < 0 ? P.ink2 : (RK[renkler[i]] === RK.sari ? '#9a7400' : RK[renkler[i]]), anchor: 'end' }); });
+    return t;
+  };
+  s += kucuk(282, ['sari'], 'saf sarı', 398, [['sarı', 0, 18]]);
+  s += cap(344, 398, 'e) Saf sarı: tek çizgi');
+  s += kucuk(425, ['kirmizi', 'yesil'], 'kırmızı + yeşil', 540, [['kırmızı', 0, -14], ['yeşil', 1, 20]]);
+  s += cap(484, 398, 'f) Karışım sarı: iki çizgi');
+  return svg(W, H, s, u, 150);
+});
+
+/* Işığın ve boyanın renk çemberleri */
+BFY_FIG_EKLE('kY106_renk_genis', function (u) {
+  const W = 560, H = 256, R = 58;
+  let s = zemin(W, H);
+  const panel = (ox, koyu, renkler, ikili, orta, baslik) => {
+    const C = [[ox + 135, 92], [ox + 101, 150], [ox + 169, 150]];
+    const id = C.map((_, i) => yid(u, 'c' + i));
+    let t = `<rect x="${ox + 8}" y="10" width="254" height="236" rx="12" fill="${koyu ? '#1b2026' : '#ffffff'}" stroke="${koyu ? '#1b2026' : '#d6dee4'}"/>`;
+    t += `<defs>${C.map((c, i) => `<clipPath id="${id[i]}"><circle cx="${c[0]}" cy="${c[1]}" r="${R}"/></clipPath>`).join('')}</defs>`;
+    C.forEach((c, i) => { t += `<circle cx="${c[0]}" cy="${c[1]}" r="${R}" fill="${renkler[i][1]}"/>`; });
+    [[0, 1], [1, 2], [0, 2]].forEach(([a, b], k) => { t += `<g clip-path="url(#${id[a]})"><circle cx="${C[b][0]}" cy="${C[b][1]}" r="${R}" fill="${ikili[k][1]}"/></g>`; });
+    t += `<g clip-path="url(#${id[0]})"><g clip-path="url(#${id[1]})"><circle cx="${C[2][0]}" cy="${C[2][1]}" r="${R}" fill="${orta[1]}"/></g></g>`;
+    C.forEach(c => { t += `<circle cx="${c[0]}" cy="${c[1]}" r="${R}" fill="none" stroke="${koyu ? '#0f1316' : '#9aa6af'}" stroke-width="1"/>`; });
+    const G = [(C[0][0] + C[1][0] + C[2][0]) / 3, (C[0][1] + C[1][1] + C[2][1]) / 3];
+    const yaz = (x, y, m, acik) => T(f1(x), f1(y + 4), m, { size: 11, weight: 800, anchor: 'middle', fill: acik ? '#ffffff' : '#1f2428', haloColor: acik ? '#1f2428' : '#ffffff', haloW: 2.6 });
+    C.forEach((c, i) => { const v = [c[0] - G[0], c[1] - G[1]], l = Math.hypot(v[0], v[1]); t += yaz(G[0] + v[0] / l * 76, G[1] + v[1] / l * 76, renkler[i][0], renkler[i][2]); });
+    [[0, 1], [1, 2], [0, 2]].forEach(([a, b], k) => { const m = [(C[a][0] + C[b][0]) / 2, (C[a][1] + C[b][1]) / 2], v = [m[0] - G[0], m[1] - G[1]], l = Math.hypot(v[0], v[1]); t += yaz(G[0] + v[0] / l * 46, G[1] + v[1] / l * 46, ikili[k][0], ikili[k][2]); });
+    t += yaz(G[0], G[1], orta[0], orta[2]);
+    t += T(ox + 135, 236, baslik, { size: 12, weight: 800, anchor: 'middle', fill: koyu ? '#ffffff' : P.ink, haloColor: koyu ? '#1b2026' : '#ffffff' });
+    return t;
+  };
+  s += panel(4, true, [['kırmızı', '#ff2b2b', true], ['yeşil', '#25d050', false], ['mavi', '#3157ff', true]],
+    [['sarı', '#fff23a', false], ['camgöbeği', '#36f2ff', false], ['magenta', '#ff3ff0', false]], ['beyaz', '#ffffff', false], 'Işığın renkleri: toplama');
+  s += panel(284, false, [['sarı', '#ffe21a', false], ['camgöbeği', '#22c3e8', false], ['magenta', '#e4268f', true]],
+    [['yeşil', '#1fa64a', true], ['mavi', '#2a3fcf', true], ['kırmızı', '#e3241b', true]], ['siyah', '#141618', true], 'Boyanın renkleri: çıkarma');
+  return svg(W, H, s, u, 150);
+});
+
+/* Cisimler neden renkli görünür? a) beyaz ışıkta elma, b) yeşil ışıkta elma, c) kırmızı filtre */
+BFY_FIG_EKLE('kY106_cisim_genis', function (u) {
+  const W = 560, H = 226;
+  let s = zemin(W, H);
+  s += `<line x1="186" y1="14" x2="186" y2="200" stroke="#dbe3e8"/><line x1="374" y1="14" x2="374" y2="200" stroke="#dbe3e8"/>`;
+  const cap = (x, t) => T(x, 216, t, { size: 12, weight: 800, anchor: 'middle' });
+  const okR = (x1, y1, x2, y2, c) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: RK[c], w: 2.4, head: 8, headW: 4.4 });
+  /* a */
+  {
+    const ex = 96, ey = 138;
+    s += elma(u, ex, ey, 24, 'kirmizi');
+    s += isin([[22, 48], [ex - 20, ey - 24]], 'beyaz', { w: 3, oklar: [0] }) + T(14, 34, 'beyaz ışık', { size: 11, weight: 800, fill: P.ink });
+    s += okR(ex + 18, ey - 22, 152, 72, 'kirmizi') + goz(162, 62, 0.9, -1) + T(124, 84, 'kırmızı', { size: 11, weight: 800, fill: RK.kirmizi, anchor: 'end' });
+    s += T(96, 182, 'kırmızıyı yansıtır;', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(96, 196, 'yeşil ve maviyi soğurur', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+    s += cap(96, 'a) Beyaz ışıkta');
+  }
+  /* b */
+  {
+    const ex = 282, ey = 138;
+    s += elma(u, ex, ey, 24, 'siyah');
+    s += okR(206, 46, ex - 22, ey - 20, 'yesil') + T(204, 34, 'yeşil ışık', { size: 11, weight: 800, fill: RK.yesil });
+    s += goz(348, 62, 0.9, -1) + dashLine(ex + 18, ey - 22, 338, 72, '#b9c4cb', '3 4', 1.2) + T(318, 92, 'ışık yok', { size: 10.5, weight: 700, fill: P.ink2, anchor: 'middle' });
+    s += T(282, 182, 'yeşili soğurur;', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(282, 196, 'siyah görünür', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+    s += cap(280, 'b) Yeşil ışıkta');
+  }
+  /* c */
+  {
+    const fx = 470;
+    s += filtre(fx, 56, 150, 'kirmizi') + T(fx, 46, 'kırmızı filtre', { size: 11, weight: 800, anchor: 'middle', fill: RK.kirmizi });
+    s += isin([[392, 103], [fx - 5, 103]], 'beyaz', { w: 3, oklar: [0] }) + T(396, 92, 'beyaz ışık', { size: 11, weight: 800, fill: P.ink });
+    s += okR(fx + 6, 103, 544, 103, 'kirmizi') + T(510, 92, 'kırmızı', { size: 11, weight: 800, fill: RK.kirmizi, anchor: 'middle' });
+    s += T(467, 182, 'kırmızıyı geçirir;', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(467, 196, 'yeşil ve maviyi soğurur', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+    s += cap(467, 'c) Kırmızı filtre');
+  }
+  return svg(W, H, s, u, 150);
+});
+
+/* ================= ÇÖZÜMLÜ ÖRNEK ŞEKLİ ================= */
+/* C1: eşkenar prizmada beş olası yol */
+BFY_FIG_EKLE('kY106_C1_genis', function (u) {
+  const KEY = 'kY106_C1_genis'; GEO[KEY] = [];
+  const W = 560, H = 172, n = 1.5;
+  let s = zemin(W, H);
+  for (let k = 0; k < 5; k++) {
+    const ox = k * 112, E = eskenar(ox + 58, 42, 72), giris = solYuz(E, 0.5), d0 = yon(-15), p0 = ileri(giris, d0, -40);
+    if (k) s += `<line x1="${ox}" y1="16" x2="${ox}" y2="158" stroke="#dbe3e8"/>`;
+    s += prizma(u, E);
+    const Ns = [-0.8660254, -0.5];                       // sol yüzün dışa dönük normali
+    const Nr = [0.8660254, -0.5];                        // sağ yüzün dışa dönük normali
+    // girişteki kırılma (yanlış yollar için oran zorlanır)
+    const etaG = k === 0 ? 1 : k === 3 ? 1.22 : 1 / n;
+    const dI = kir(d0, Ns, etaG);
+    // sağ yüzle kesişim
+    let cik = null, dO;
+    { // içeride ilerleyen ışın sağ yüze ulaşır
+      const a = E[0], b = E[2], ex = b[0] - a[0], ey = b[1] - a[1], den = dI[0] * ey - dI[1] * ex, t = ((a[0] - giris[0]) * ey - (a[1] - giris[1]) * ex) / den;
+      cik = [giris[0] + dI[0] * t, giris[1] + dI[1] * t];
+    }
+    const dIn = [-Nr[0], -Nr[1]];
+    if (k === 0 || k === 4) dO = dI.slice();
+    else if (k === 1) dO = kir(dI, dIn, 1 / n);           // çıkışta normale yaklaşır (yanlış)
+    else dO = kir(dI, dIn, n);                           // çıkışta normalden uzaklaşır
+    const son = ileri(cik, dO, 40);
+    s += normal(giris, Ns, 16) + normal(cik, Nr, 16);
+    s += isin([p0, giris, cik, son], P.ink, { w: 2, oklar: [0, 2] });
+    if (k === 2) { const z = izle(E, p0, d0, n); kayit(KEY, E, n, [p0, ...z.yol.slice(1), ileri(z.yol[2], z.d, 40)], 'tek'); }
+    s += `<circle cx="${ox + 58}" cy="146" r="11" fill="${P.copper}"/>` + T(ox + 58, 150.5, String(k + 1), { size: 13, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  }
+  return svg(W, H, s, u, 150);
+});
+
+/* ================= SORU ŞEKİLLERİ ================= */
+/* Q1: tam yansımalı prizma, dik kenara dik giriş; K–P yolları */
+BFY_FIG_EKLE('kY106_typ90', function (u) {
+  const KEY = 'kY106_typ90'; GEO[KEY] = [];
+  const W = 300, H = 236, Tp = [[100, 40], [100, 150], [210, 150]];
+  let s = zemin(W, H) + prizma(u, Tp) + `<path d="M100 142 H108 V150" fill="none" stroke="${CAMK}" stroke-width="1.1"/>`;
+  const p0 = [30, 70], h = [130, 70], a = [130, 150];
+  s += normal(h, [0.7071, -0.7071], 24);
+  const yol = (b, c, ad, lx, ly) => dashLine(f1(b[0]), f1(b[1]), f1(c[0]), f1(c[1]), GRI, '6 4', 1.8) + okBas(b, c, GRI, 0.7) + T(lx, ly, ad, { size: 13, weight: 800, anchor: 'middle' });
+  s += yol(h, [214, 70], 'K', 226, 74);
+  s += yol(h, ileri(h, yon(15), 84), 'L', 222, 102);
+  s += yol(a, ileri(a, yon(115), 50), 'M', 104, 212);
+  s += yol(a, ileri(a, yon(65), 50), 'N', 156, 212);
+  s += yol(a, [130, 200], 'P', 130, 218);
+  s += isin([p0, [100, 70], h], 'yesil', { oklar: [0], w: 2.4 });
+  s += T(30, 60, 'lazer', { size: 11.5, weight: 700, fill: P.ink2 });
+  s += T(132, 132, 'cam', { size: 11.5, weight: 700, fill: CAMK, anchor: 'middle' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q9: dikey tarım serası, kırmızı ve mavi LED, siyah pano */
+BFY_FIG_EKLE('kY106_sera', function (u) {
+  const W = 300, H = 230;
+  const gid = yid(u, 'pl');
+  let s = zemin(W, H, '#eef1f4');
+  s += `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c2189d" stop-opacity=".30"/><stop offset="1" stop-color="#c2189d" stop-opacity="0"/></linearGradient></defs>`;
+  s += `<rect x="20" y="34" width="260" height="10" rx="3" fill="#59656d"/>`;
+  for (let i = 0; i < 16; i++) s += `<circle cx="${30 + i * 16}" cy="45" r="3.2" fill="${i % 2 ? RK.mavi : RK.kirmizi}"/>`;
+  s += `<path d="M24 47 L276 47 L292 200 L8 200 Z" fill="url(#${gid})"/>`;
+  s += T(150, 26, "kırmızı ve mavi LED'ler", { size: 12, weight: 800, anchor: 'middle' });
+  // raf ve saksılar (çizgi çizim)
+  s += `<rect x="16" y="168" width="268" height="8" rx="2" fill="#b8c2c9" stroke="#8a969e"/>`;
+  [40, 92, 208, 260].forEach(x => {
+    s += `<path d="M${x - 13} 146 L${x + 13} 146 L${x + 10} 168 L${x - 10} 168 Z" fill="#c9b8a6" stroke="#8a7a68" stroke-width="1"/>`;
+    s += `<path d="M${x} 146 C${x - 2} 128 ${x - 16} 118 ${x - 20} 108 M${x} 146 C${x + 2} 126 ${x + 14} 116 ${x + 19} 104 M${x} 146 L${x} 112" fill="none" stroke="#7f8b84" stroke-width="2.2" stroke-linecap="round"/>`;
+  });
+  // siyah pano ve boş yazı yerleri
+  s += `<rect x="118" y="96" width="64" height="40" rx="4" fill="#15181b" stroke="#000"/>`;
+  s += `<rect x="126" y="108" width="48" height="6" rx="2" fill="none" stroke="#6c757d" stroke-dasharray="3 3"/><rect x="126" y="120" width="34" height="6" rx="2" fill="none" stroke="#6c757d" stroke-dasharray="3 3"/>`;
+  s += `<line x1="150" y1="136" x2="150" y2="168" stroke="#6c757d" stroke-width="2"/>`;
+  s += T(150, 196, 'siyah pano', { size: 12, weight: 800, anchor: 'middle' });
+  s += T(150, 214, 'yazılar boya ile yazılacak', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q10: kırmızı, yeşil, mor ışıkların tek demeti; perdede K, L, M */
+BFY_FIG_EKLE('kY106_ekran', function (u) {
+  const KEY = 'kY106_ekran'; GEO[KEY] = [];
+  const W = 300, H = 226, XP = 250;
+  const E = eskenar(92, 36, 96), giris = solYuz(E, 0.5), d0 = yon(-15), p0 = ileri(giris, d0, -62);
+  let s = zemin(W, H) + prizma(u, E) + perde(XP, 40, 214);
+  s += isin([p0, giris], '#7d8a91', { w: 3.2, oklar: [0] });
+  const etk = ['K', 'L', 'M'];
+  ['kirmizi', 'yesil', 'mor'].forEach((c, i) => {
+    const z = izle(E, p0, d0, NR[c]), son = perdeye(z.yol[2], z.d, XP);
+    s += isin([z.yol[1], z.yol[2], son], GRI, { w: 1.5 });
+    kayit(KEY, E, NR[c], [p0, z.yol[1], z.yol[2], son], c);
+    s += `<circle cx="${XP}" cy="${f1(son[1])}" r="2.6" fill="${P.ink}"/>` + T(XP + 14, f1(son[1] + 4.5), etk[i], { size: 13, weight: 800 });
+  });
+  s += T(10, 146, 'üç ışın', { size: 11, weight: 700, fill: P.ink2 }) + T(10, 160, 'tek demette', { size: 11, weight: 700, fill: P.ink2 });
+  s += T(XP + 4, 32, 'perde', { size: 11.5, weight: 700, fill: P.ink2, anchor: 'middle' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q11: kapalı kutu */
+BFY_FIG_EKLE('kY106_kutu', function (u) {
+  const W = 300, H = 170;
+  let s = zemin(W, H);
+  s += `<rect x="36" y="28" width="168" height="116" rx="6" fill="#e3e8ec" stroke="#6b7c88" stroke-width="2"/>`;
+  s += `<rect x="198" y="52" width="12" height="16" fill="#e3e8ec"/><rect x="198" y="104" width="12" height="16" fill="#e3e8ec"/>`;
+  s += `<line x1="204" y1="52" x2="204" y2="68" stroke="#b9c4cb" stroke-width="2" stroke-dasharray="2 2"/><line x1="204" y1="104" x2="204" y2="120" stroke="#b9c4cb" stroke-width="2" stroke-dasharray="2 2"/>`;
+  s += T(120, 90, 'kapalı kutu', { size: 13, weight: 800, anchor: 'middle', fill: P.ink2 }) + T(120, 108, '?', { size: 16, weight: 800, anchor: 'middle', fill: P.ink2 });
+  s += isin([[288, 60], [206, 60]], 'kirmizi', { oklar: [0], w: 2.4 }) + isin([[206, 112], [288, 112]], 'kirmizi', { oklar: [0], w: 2.4 });
+  s += T(250, 50, 'giren ışın', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(250, 132, 'çıkan ışın', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q13: denizaltı periskobu; içerideki yol çizilmez */
+BFY_FIG_EKLE('kY106_periskop', function (u) {
+  const W = 300, H = 250;
+  let s = zemin(W, H);
+  // deniz
+  s += `<rect class="bg" x="8" y="118" width="284" height="124" rx="6" fill="#d7ecf8"/>`;
+  s += `<path d="M8 118 q12 -6 24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t24 0 t20 0" fill="none" stroke="#2a6f9e" stroke-width="1.5"/>`;
+  s += T(40, 138, 'deniz', { size: 11, weight: 700, fill: '#2a6f9e' });
+  // denizaltı gövdesi
+  s += `<path d="M96 196 H262 Q292 196 292 222 Q292 246 262 246 H96 Z" fill="#7b868e" stroke="#3b4a52" stroke-width="1.6"/><rect x="110" y="200" width="160" height="40" rx="8" fill="#eef1f3" stroke="#3b4a52"/>`;
+  s += T(270, 190, 'denizaltı', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
+  // tüp
+  s += `<path d="M120 40 H172 V196 H120 Z" fill="#cfd6db" stroke="#55626b" stroke-width="1.8"/>`;
+  s += `<rect x="117" y="46" width="6" height="48" fill="#f4f7f9"/>`;
+  s += `<path d="M120 196 V236 H172 V196" fill="#cfd6db" stroke="#55626b" stroke-width="1.8"/><rect x="169" y="200" width="6" height="32" fill="#eef1f3"/>`;
+  // prizmalar
+  s += prizma(u, [[124, 50], [124, 90], [164, 90]]) + prizma(u, [[124, 196], [164, 196], [164, 236]]);
+  // gemi
+  s += `<path d="M20 72 L84 72 L76 84 L28 84 Z" fill="#8a969e" stroke="#4f5d66"/><rect x="40" y="60" width="22" height="12" fill="#b0bac1" stroke="#4f5d66"/><rect x="48" y="50" width="4" height="10" fill="#4f5d66"/>`;
+  s += T(52, 102, 'gemi', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += isin([[88, 70], [124, 70]], 'beyaz', { oklar: [0], w: 2.4 });
+  s += goz(214, 218, 1, -1) + T(244, 222, 'göz', { size: 11, weight: 700, fill: P.ink2 });
+  s += T(196, 60, 'üst prizma', { size: 11, weight: 700, fill: P.ink2 }) + T(232, 162, 'alt prizma', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += `<line x1="218" y1="168" x2="160" y2="204" stroke="#8a969e" stroke-width="1"/><line x1="194" y1="62" x2="160" y2="74" stroke="#8a969e" stroke-width="1"/>`;
+  return svg(W, H, s, u, 70);
+});
+
+/* Q14: sarı ve camgöbeği filtreler */
+BFY_FIG_EKLE('kY106_filtreler', function (u) {
+  const W = 300, H = 170, y = 84;
+  let s = zemin(W, H);
+  // ampul
+  s += `<circle cx="34" cy="${y}" r="15" fill="#fff9d6" stroke="#b08a2a" stroke-width="1.4"/><rect x="14" y="${y - 6}" width="8" height="12" rx="2" fill="#8a969e"/>`;
+  s += isin([[50, y], [104, y]], 'beyaz', { w: 3, oklar: [0] });
+  s += filtre(110, 50, 118, 'sari') + filtre(170, 50, 118, 'camgobegi');
+  s += isin([[116, y], [164, y]], 'sari', { w: 3, oklar: [0] });
+  s += dashLine(176, y, 244, y, GRI, '5 4', 2.2) + okBas([176, y], [244, y], GRI, 0.6);
+  s += perde(250, 40, 128) + T(239, y + 5, '?', { size: 15, weight: 800, anchor: 'middle', fill: P.ink2 });
+  s += T(110, 136, 'sarı', { size: 11.5, weight: 800, anchor: 'middle', fill: '#9a7400' }) + T(110, 150, 'filtre', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(170, 136, 'camgöbeği', { size: 11.5, weight: 800, anchor: 'middle', fill: '#0b7d8c' }) + T(170, 150, 'filtre', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(254, 146, 'perde', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(34, 120, 'beyaz ışık', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q16: lambanın ışığı prizmada yeşil ve mavi iki çizgi */
+BFY_FIG_EKLE('kY106_cizgi', function (u) {
+  const KEY = 'kY106_cizgi'; GEO[KEY] = [];
+  const W = 300, H = 200, XP = 252, nS = { yesil: 1.47, mavi: 1.62 };
+  const E = eskenar(110, 34, 92), giris = solYuz(E, 0.5), d0 = yon(-15), p0 = ileri(giris, d0, -52);
+  let s = zemin(W, H) + prizma(u, E) + perde(XP, 36, 192) + lamba(p0[0] + 4, p0[1], { w: 24, h: 18 });
+  s += isin([p0, giris], '#8a969e', { w: 3, oklar: [0] });
+  const uc = {};
+  ['yesil', 'mavi'].forEach(c => {
+    const z = izle(E, p0, d0, nS[c]), son = perdeye(z.yol[2], z.d, XP);
+    s += isin([z.yol[1], z.yol[2], son], c, { w: 2 });
+    kayit(KEY, E, nS[c], [p0, z.yol[1], z.yol[2], son], c); uc[c] = son;
+    s += `<rect x="${XP}" y="${f1(son[1] - 2.5)}" width="7" height="5" fill="${RK[c]}"/>`;
+  });
+  s += T(XP + 11, f1(uc.yesil[1] + 4), 'yeşil', { size: 11.5, weight: 800, fill: RK.yesil }) + T(XP + 11, f1(uc.mavi[1] + 4), 'mavi', { size: 11.5, weight: 800, fill: RK.mavi });
+  s += T(p0[0] - 8, p0[1] + 26, 'lamba', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' }) + T(XP + 4, 30, 'perde', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q17: gizli mesaj kartı ve kırmızı camlı gözlük */
+BFY_FIG_EKLE('kY106_mesaj', function (u) {
+  const W = 300, H = 200;
+  let s = zemin(W, H);
+  s += `<rect x="20" y="20" width="200" height="130" rx="8" fill="#ffffff" stroke="#9aa6af" stroke-width="1.4"/>`;
+  // kırmızı karalama
+  let d = '';
+  for (let r = 0; r < 9; r++) { const y0 = 34 + r * 13; d += `M30 ${y0}`; for (let i = 0; i < 12; i++) d += ` q7 ${(i + r) % 2 ? -7 : 7} 15 0`; }
+  s += `<path d="${d}" fill="none" stroke="${RK.kirmizi}" stroke-width="1.6" opacity=".9"/>`;
+  s += `<text x="120" y="98" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="34" font-weight="800" fill="${RK.mavi}" stroke="none" text-anchor="middle" letter-spacing="3">EVET</text>`;
+  s += T(120, 168, 'kırmızı çizgiler ve mavi harfler', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // gözlük
+  s += `<rect x="232" y="110" width="22" height="16" rx="6" fill="${RK.kirmizi}" fill-opacity=".65" stroke="#3b4a52" stroke-width="1.6"/><rect x="262" y="110" width="22" height="16" rx="6" fill="${RK.kirmizi}" fill-opacity=".65" stroke="#3b4a52" stroke-width="1.6"/>`;
+  s += `<line x1="254" y1="116" x2="262" y2="116" stroke="#3b4a52" stroke-width="2"/>`;
+  s += T(258, 146, 'kırmızı camlı', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(258, 160, 'gözlük', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q18: kumaşın yansıtma oranları */
+BFY_FIG_EKLE('kY106_cubuk', function (u) {
+  const W = 300, H = 210, ox = 62, oy = 168, gy = v => oy - v * 120;
+  let s = zemin(W, H);
+  s += `<line x1="${ox}" y1="${oy}" x2="268" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><line x1="${ox}" y1="${oy}" x2="${ox}" y2="24" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},16 ${ox - 4},26 ${ox + 4},26" fill="${P.ink}"/>`;
+  [0.5, 1].forEach(v => { s += `<line x1="${ox}" y1="${gy(v)}" x2="262" y2="${gy(v)}" stroke="#dbe3e8"/>` + T(ox - 7, gy(v) + 4, v === 1 ? '1' : '0,5', { size: 11.5, anchor: 'end', fill: P.ink2 }); });
+  s += T(ox - 7, oy + 4, '0', { size: 11.5, anchor: 'end', fill: P.ink2 });
+  s += T(ox + 8, 22, 'yansıtma oranı', { size: 12, weight: 700 });
+  [['kirmizi', 0.9, 100], ['yesil', 0.9, 160], ['mavi', 0, 220]].forEach(([c, v, x]) => {
+    if (v > 0) s += `<rect x="${x - 18}" y="${gy(v)}" width="36" height="${oy - gy(v)}" fill="${RK[c]}" stroke="${P.ink}" stroke-width=".8"/>`;
+    else s += `<line x1="${x - 18}" y1="${oy - 1}" x2="${x + 18}" y2="${oy - 1}" stroke="${RK[c]}" stroke-width="3"/>` + T(x, oy - 8, '0', { size: 11.5, weight: 800, anchor: 'middle', fill: RK[c] });
+    s += T(x, oy + 18, AD[c], { size: 12, weight: 800, anchor: 'middle', fill: RK[c] });
+  });
+  s += T(268, oy + 34, 'ışığın rengi', { size: 11.5, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q21: ince cam levhalı içi boş üçgen kap */
+BFY_FIG_EKLE('kY106_bos', function (u) {
+  const W = 300, H = 200;
+  const E = eskenar(150, 30, 130), Ei = eskenar(150, 30 + 2 * 3.5, 130 - 2 * 3.5 * Math.sqrt(3));
+  let s = zemin(W, H);
+  s += `<polygon points="${E.map(q => f1(q[0]) + ',' + f1(q[1])).join(' ')}" fill="#d7e9f4" stroke="${CAMK}" stroke-width="1.6" stroke-linejoin="round"/>`;
+  s += `<polygon points="${Ei.map(q => f1(q[0]) + ',' + f1(q[1])).join(' ')}" fill="${BG}" stroke="${CAMK}" stroke-width="1.1" stroke-linejoin="round"/>`;
+  const giris = solYuz(E, 0.5), d0 = yon(-15), p0 = ileri(giris, d0, -78);
+  s += isin([p0, giris], 'kirmizi', { oklar: [0], w: 2.4 });
+  s += T(150, 128, 'hava', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(150, 162, 'ince cam levhalar', { size: 11, weight: 700, anchor: 'middle', fill: CAMK });
+  s += T(150, 188, 'taban', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(150, 22, 'tepe', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(28, p0[1] - 8, 'lazer', { size: 11, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Q23: beyaz ışık prizmada, kaynak döndürülüyor */
+BFY_FIG_EKLE('kY106_kayan', function (u) {
+  const KEY = 'kY106_kayan'; GEO[KEY] = [];
+  const W = 320, H = 214, XP = 256;
+  const E = eskenar(124, 30, 100), giris = solYuz(E, 0.45), d0 = yon(-14), p0 = ileri(giris, d0, -56);
+  let s = zemin(W, H) + prizma(u, E) + perde(XP, 36, 204);
+  s += lamba(p0[0] + 4, p0[1], { w: 22, h: 18 });
+  s += isin([p0, giris], 'beyaz', { oklar: [0], w: 2.6 });
+  const uc = [];
+  TAYF.forEach(c => {
+    const z = izle(E, p0, d0, NR[c]), son = perdeye(z.yol[2], z.d, XP);
+    s += isin([z.yol[1], z.yol[2], son], c, { w: 1.6 });
+    kayit(KEY, E, NR[c], [p0, z.yol[1], z.yol[2], son], c); uc.push(son);
+  });
+  s += T(XP + 11, uc[0][1] + 2, 'kırmızı', { size: 11, weight: 800, fill: RK.kirmizi }) + T(XP + 11, uc[6][1] + 6, 'mor', { size: 11, weight: 800, fill: RK.mor });
+  // döndürme oku
+  const cx = p0[0] - 6, cy = p0[1];
+  s += `<path d="M${cx - 6} ${cy - 22} A 22 22 0 0 0 ${cx - 6} ${cy + 22}" fill="none" stroke="${P.copper}" stroke-width="1.8"/>` + `<polygon points="${cx - 6},${cy + 27} ${cx - 11},${cy + 18} ${cx - 1},${cy + 19}" fill="${P.copper}"/>`;
+  s += T(44, cy + 44, 'kaynak', { size: 11, weight: 700, anchor: 'middle', fill: P.copper }) + T(44, cy + 57, 'döndürülüyor', { size: 11, weight: 700, anchor: 'middle', fill: P.copper });
+  s += T(108, 46, '1. yüzey', { size: 10.5, weight: 700, fill: P.ink2, anchor: 'end' }) + T(140, 46, '2. yüzey', { size: 10.5, weight: 700, fill: P.ink2 });
+  s += T(XP + 4, 30, 'perde', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q25: renkli gölgeler (üstten görünüş) */
+BFY_FIG_EKLE('kY106_golge_genis', function (u) {
+  const W = 560, H = 262, yD = 40, sx = 280, sy = 112, r = 8, yL = 228;
+  let s = zemin(W, H);
+  s += `<rect x="60" y="${yD - 12}" width="440" height="12" rx="2" fill="#fbfbf8" stroke="#8a969e" stroke-width="1.2"/>`;
+  s += T(280, yD - 18, 'beyaz duvar', { size: 12, weight: 800, anchor: 'middle', fill: P.ink2 });
+  const lambalar = [['kirmizi', 180], ['yesil', 280], ['mavi', 380]];
+  const gol = lambalar.map(([, xL]) => { const k = (yL - yD) / (yL - sy); return [xL + k * (sx - r - xL), xL + k * (sx + r - xL)]; }).sort((a, b) => a[0] - b[0]);
+  gol.forEach(([a, b], i) => { s += `<rect x="${f1(Math.min(a, b))}" y="${yD - 12}" width="${f1(Math.abs(b - a))}" height="12" fill="#9aa4ab"/>` + T(f1((a + b) / 2), yD + 20, String(i + 1), { size: 14, weight: 800, anchor: 'middle', fill: P.copper }); });
+  s += `<circle cx="${sx}" cy="${sy}" r="${r}" fill="#8b98a2" stroke="#4f5d66" stroke-width="1.2"/>` + T(sx + 14, sy + 4, 'sütun', { size: 12, weight: 700, fill: P.ink2 });
+  lambalar.forEach(([c, x]) => {
+    s += `<circle cx="${x}" cy="${yL}" r="9" fill="${RK[c]}" stroke="#2f3a40" stroke-width="1.2"/>`;
+    s += T(x, yL + 26, AD[c] + ' lamba', { size: 12, weight: 800, anchor: 'middle', fill: RK[c] });
+  });
+  s += T(530, 150, '(üstten', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 }) + T(530, 164, 'görünüş)', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 140);
+});
+
+/* Q29: filtre – kâğıt – filtre zinciri ve beş sütun grafiği */
+BFY_FIG_EKLE('kY106_zincir_genis', function (u) {
+  const W = 560, H = 318;
+  let s = zemin(W, H);
+  const y = 44, yk = 112, xk = 222;   // ışık yolu yüksekliği; kâğıt yüzeyi ve yansıma noktası
+  s += `<circle cx="40" cy="${y}" r="14" fill="#fff9d6" stroke="#b08a2a" stroke-width="1.4"/>` + T(40, y + 32, 'beyaz ışık', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += isin([[56, y], [114, y]], 'beyaz', { w: 3, oklar: [0] });
+  s += filtre(120, y - 30, y + 30, 'magenta') + T(120, y + 46, 'magenta', { size: 11.5, weight: 800, anchor: 'middle', fill: RK.magenta }) + T(120, y + 60, 'filtre', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // magenta filtreden kâğıda iner, kâğıttan yansıyıp camgöbeği filtreye çıkar (gelme açısı = yansıma açısı)
+  s += dashLine(126, y, xk, yk, GRI, '5 4', 2.2) + okBas([126, y], [xk, yk], GRI, 0.55);
+  s += `<rect x="186" y="${yk}" width="72" height="7" rx="1.5" fill="${RK.camgobegi}" fill-opacity=".85" stroke="#0b7d8c" stroke-width="1.2"/>`;
+  s += dashLine(f1(xk - 0.5), f1(yk - 30), f1(xk - 0.5), yk, NRM, '3 3', 1);
+  s += T(xk, yk + 23, 'camgöbeği kâğıt', { size: 11.5, weight: 800, anchor: 'middle', fill: '#0b7d8c' });
+  s += dashLine(xk, yk, 318, y, GRI, '5 4', 2.2) + okBas([xk, yk], [318, y], GRI, 0.55);
+  s += filtre(324, y - 30, y + 30, 'camgobegi') + T(324, y + 46, 'camgöbeği', { size: 11.5, weight: 800, anchor: 'middle', fill: '#0b7d8c' }) + T(324, y + 60, 'filtre', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += dashLine(330, y, 408, y, GRI, '5 4', 2.2) + okBas([330, y], [408, y], GRI, 0.6);
+  s += `<rect x="412" y="${y - 22}" width="70" height="44" rx="6" fill="#3b4a52"/><circle cx="424" cy="${y}" r="6" fill="#9fd3ff" stroke="#fff"/>` + T(447, y + 46, 'algılayıcı', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // grafikler
+  const vals = [[1, 0, 1], [0, 1, 1], [0, 0, 0], [0, 1, 0], [0, 0, 1]];
+  vals.forEach((v, k) => {
+    const x0 = 18 + k * 108, oy = 270, ox = x0 + 18;
+    s += `<rect class="bg" x="${x0}" y="146" width="98" height="140" rx="8" fill="#fff" stroke="#dbe3e8"/>`;
+    s += `<line x1="${ox}" y1="${oy}" x2="${x0 + 90}" y2="${oy}" stroke="${P.ink}" stroke-width="1.2"/><line x1="${ox}" y1="${oy}" x2="${ox}" y2="172" stroke="${P.ink}" stroke-width="1.2"/>`;
+    ['kirmizi', 'yesil', 'mavi'].forEach((c, i) => { const bx = ox + 8 + i * 22; if (v[i]) s += `<rect x="${bx}" y="${oy - 72}" width="15" height="72" fill="${RK[c]}" stroke="${P.ink}" stroke-width=".7"/>`; else s += `<line x1="${bx}" y1="${oy - 1}" x2="${bx + 15}" y2="${oy - 1}" stroke="${RK[c]}" stroke-width="2.6"/>`; });
+    s += T(ox + 4, 168, 'şiddet', { size: 10.5, weight: 700, fill: P.ink2 });
+    s += `<circle cx="${x0 + 84}" cy="162" r="9.5" fill="${P.copper}"/>` + T(x0 + 84, 166, String(k + 1), { size: 12, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  });
+  s += T(280, 306, 'Her grafikte sütunlar soldan sağa: kırmızı, yeşil, mavi.', { size: 11.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 150);
+});
+
+/* ================= 3B İZOMETRİK ÇİZİMLER ================= */
+const I0 = window.BFY_ISO;
+const { sahne, kutu, plaka, etiket, yazi, ton } = I0;
+const pg = (I, a, fill, o = {}) => `<polygon points="${I.pts(a)}" fill="${fill}" fill-opacity="${o.op ?? 1}" stroke="${o.st || 'none'}" stroke-width="${o.sw || 0.9}" stroke-linejoin="round"/>`;
+const cizgi = (I, a, b, renk, w = 1.6, ek = '') => { const [x1, y1] = I.p(...a), [x2, y2] = I.p(...b); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${renk}" stroke-width="${w}" stroke-linecap="round"${ek}/>`; };
+const beyazI = (I, a, b, w = 2.2) => cizgi(I, a, b, '#9aa6af', w + 2.2) + cizgi(I, a, b, '#ffffff', w);
+/* üçgen prizma (x–z düzleminde üçgen, y boyunca uzatılmış) */
+function prizma3(I, tri, y1, y2) {
+  const [A, B, C] = tri, P3 = (q, y) => [q[0], y, q[1]];
+  return pg(I, [P3(A, y1), P3(B, y1), P3(B, y2), P3(A, y2)], '#cfe6f2', { op: 0.55, st: '#5b86a3' }) +
+    pg(I, [P3(A, y1), P3(C, y1), P3(C, y2), P3(A, y2)], '#b6d6e8', { op: 0.55, st: '#5b86a3' }) +
+    pg(I, [P3(A, y2), P3(B, y2), P3(C, y2)], '#e3f1f8', { op: 0.6, st: '#5b86a3', sw: 1.2 });
+}
+const EF = (u, f, o = {}) => sahne(u, f, Object.assign({ w: 220, h: 110, oy: 72, mm: 62 }, o));
+
+/* Tanım: masada yarıklı lamba, cam prizma, perdede tayf */
+BFY_FIG_EKLE('iY106_tanim', u => sahne(u, I => {
+  let s = plaka(I, -112, -34, 214, 64, '#e7e1d6');
+  s += kutu(I, -108, -9, 0, 20, 18, 26, '#55626b');
+  const tri = [[-15, 44], [-40, 0], [10, 0]];
+  const ekranX = 70;
+  s += kutu(I, ekranX, -26, 0, 3, 52, 56, '#f7f6f0');
+  const giris = [-27.5, 0, 22], kaynak = [-88, 0, 20], cikis = [-2.5, 0, 22];
+  s += beyazI(I, kaynak, giris, 2.4);
+  s += prizma3(I, tri, -14, 14);
+  const zler = [30, 26, 22, 18, 14, 10, 6];
+  TAYF.forEach((c, i) => { s += cizgi(I, cikis, [ekranX, 0, zler[i]], RK[c], 1.5); });
+  s += beyazI(I, giris, cikis, 1.6);
+  const [kx, ky] = I.p(ekranX, 0, zler[0]), [mx, my] = I.p(ekranX, 0, zler[6]);
+  s += etiket(kx + 40, ky - 4, 'kırmızı', { size: 9.5, renk: RK.kirmizi }) + etiket(mx + 30, my + 14, 'mor', { size: 9.5, renk: RK.mor });
+  s += `<line x1="${kx + 2}" y1="${ky}" x2="${kx + 20}" y2="${ky - 4}" stroke="${RK.kirmizi}" stroke-width=".9"/><line x1="${mx + 2}" y1="${my}" x2="${mx + 16}" y2="${my + 11}" stroke="${RK.mor}" stroke-width=".9"/>`;
+  const [lx, ly] = I.p(-98, 0, 28); s += etiket(Math.max(48, lx - 6), ly - 20, 'beyaz ışık', { size: 9.5 });
+  const [px, py] = I.p(-15, -14, 46); s += etiket(px + 4, py - 14, 'prizma', { size: 9.5, renk: '#2f6f8f' });
+  const [sx, sy] = I.p(ekranX + 3, -26, 56); s += etiket(sx - 6, sy - 12, 'perde', { size: 9.5 });
+  return s;
+}, { w: 250, h: 172, mm: 110, ox: 120, oy: 110 }));
+
+/* Efsane 1: kırmızı, yeşil ve mavi ışıklar birlikte beyaz */
+BFY_FIG_EKLE('iY106_efsane_1', u => EF(u, I => {
+  let s = plaka(I, -52, -30, 104, 60, '#e6eef2');
+  const id = ['a', 'b', 'c'].map(k => yid(u, 'e1' + k));
+  const C = [[150, 36], [138, 56], [162, 56]], R = 17, renk = ['#ff2b2b', '#25d050', '#3157ff'];
+  s += `<rect x="118" y="10" width="76" height="72" rx="4" fill="#1b2026"/>`;
+  s += `<defs>${C.map((c, i) => `<clipPath id="${id[i]}"><circle cx="${c[0]}" cy="${c[1]}" r="${R}"/></clipPath>`).join('')}</defs>`;
+  C.forEach((c, i) => { s += `<circle cx="${c[0]}" cy="${c[1]}" r="${R}" fill="${renk[i]}"/>`; });
+  [[0, 1, '#fff23a'], [1, 2, '#36f2ff'], [0, 2, '#ff3ff0']].forEach(([a, b, c]) => { s += `<g clip-path="url(#${id[a]})"><circle cx="${C[b][0]}" cy="${C[b][1]}" r="${R}" fill="${c}"/></g>`; });
+  s += `<g clip-path="url(#${id[0]})"><g clip-path="url(#${id[1]})"><circle cx="${C[2][0]}" cy="${C[2][1]}" r="${R}" fill="#fff"/></g></g>`;
+  s += yazi(150, 99, 'üçü birlikte: beyaz', { size: 9.5 });
+  [[-30, -14, 'kirmizi'], [-30, 0, 'yesil'], [-30, 14, 'mavi']].forEach(([x, y, c]) => { s += kutu(I, x, y, 0, 8, 8, 8, RK[c]); });
+  s += yazi(52, 26, 'kırmızı, yeşil', { size: 9, renk: P.ink2 }) + yazi(52, 37, 've mavi lamba', { size: 9, renk: P.ink2 });
+  return s;
+}, { oy: 64 }));
+
+/* Efsane 2: sarı ve mavi ışık birlikte beyaz */
+BFY_FIG_EKLE('iY106_efsane_2', u => EF(u, I => {
+  let s = plaka(I, -52, -30, 104, 60, '#e6eef2');
+  const id = [yid(u, 'e2a'), yid(u, 'e2b')], C = [[138, 46], [164, 46]], R = 20;
+  s += `<rect x="108" y="12" width="86" height="68" rx="4" fill="#1b2026"/>`;
+  s += `<defs>${C.map((c, i) => `<clipPath id="${id[i]}"><circle cx="${c[0]}" cy="${c[1]}" r="${R}"/></clipPath>`).join('')}</defs>`;
+  s += `<circle cx="${C[0][0]}" cy="${C[0][1]}" r="${R}" fill="#fff23a"/><circle cx="${C[1][0]}" cy="${C[1][1]}" r="${R}" fill="#3157ff"/>`;
+  s += `<g clip-path="url(#${id[0]})"><circle cx="${C[1][0]}" cy="${C[1][1]}" r="${R}" fill="#fff"/></g>`;
+  s += yazi(122, 92, 'sarı', { size: 9.5, renk: '#9a7400' }) + yazi(151, 92, 'beyaz', { size: 9.5 }) + yazi(180, 92, 'mavi', { size: 9.5, renk: RK.mavi });
+  s += kutu(I, -30, -10, 0, 8, 8, 8, RK.sari) + kutu(I, -30, 8, 0, 8, 8, 8, RK.mavi);
+  s += yazi(50, 30, 'sarı ve mavi', { size: 9, renk: P.ink2 }) + yazi(50, 41, 'lamba', { size: 9, renk: P.ink2 });
+  return s;
+}, { oy: 64 }));
+
+/* Efsane 3: kırmızı filtre yalnız kırmızıyı geçirir */
+BFY_FIG_EKLE('iY106_efsane_3', u => EF(u, I => {
+  let s = plaka(I, -60, -26, 120, 52, '#e6eef2');
+  s += pg(I, [[0, -18, 0], [0, 18, 0], [0, 18, 34], [0, -18, 34]], RK.kirmizi, { op: 0.6, st: '#9b1c1c', sw: 1.1 });
+  [['kirmizi', 22], ['yesil', 16], ['mavi', 10]].forEach(([c, z]) => { s += cizgi(I, [-52, 0, z], [-1, 0, z], RK[c], 2); });
+  s += cizgi(I, [1, 0, 22], [46, 0, 22], RK.kirmizi, 2.2);
+  const [x1, y1] = I.p(-56, 0, 30); s += yazi(x1 + 14, y1 + 2, 'beyaz ışık', { size: 9.5 });
+  const [x2, y2] = I.p(0, -18, 40); s += yazi(x2 + 14, y2 - 4, 'kırmızı filtre', { size: 9.5, renk: RK.kirmizi });
+  const [x3, y3] = I.p(46, 0, 22); s += yazi(x3 - 4, y3 + 16, 'yalnız kırmızı', { size: 9.5, renk: RK.kirmizi });
+  return s;
+}, { oy: 68 }));
+
+/* Efsane 4: iki sarı ışık, prizmada tek çizgi ve iki çizgi */
+BFY_FIG_EKLE('iY106_efsane_4', u => EF(u, I => {
+  let s = '';
+  const satir = (y0, renkler, ad) => {
+    let t = `<rect x="12" y="${y0 - 7}" width="16" height="14" rx="3" fill="#4f5d66"/><circle cx="28" cy="${y0}" r="3" fill="#fff23a"/>`;
+    t += `<line x1="31" y1="${y0}" x2="90" y2="${y0}" stroke="${RK.sari}" stroke-width="2.4"/>`;
+    t += `<polygon points="98,${y0 - 18} 86,${y0 + 10} 110,${y0 + 10}" fill="#d6ebf5" stroke="#5b86a3" stroke-width="1.1"/><line x1="90.3" y1="${y0}" x2="104" y2="${y0 - 1}" stroke="${RK.sari}" stroke-width="1.8"/>`;
+    renkler.forEach(([c, dy]) => { t += `<line x1="104" y1="${y0 - 1}" x2="168" y2="${y0 + dy}" stroke="${RK[c]}" stroke-width="2"/>`; });
+    t += `<rect x="168" y="${y0 - 14}" width="5" height="36" fill="#fbfbf8" stroke="#8a969e"/>`;
+    t += yazi(198, y0 + 4, ad, { size: 9, renk: P.ink2 });
+    return t;
+  };
+  s += satir(30, [['sari', 10]], 'tek çizgi');
+  s += satir(78, [['kirmizi', 6], ['yesil', 14]], 'iki çizgi');
+  s += yazi(54, 20, 'saf sarı', { size: 9, renk: '#9a7400' }) + yazi(58, 68, 'kırmızı + yeşil', { size: 9, renk: '#9a7400' });
+  return s;
+}));
+
+/* Efsane 5: ters çevrilmiş ikinci prizma renkleri yeniden birleştirir */
+BFY_FIG_EKLE('iY106_efsane_5', u => EF(u, I => {
+  const KEY = 'iY106_efsane_5'; GEO[KEY] = [];
+  let s = '';
+  const A = [[82, 28], [62, 64], [102, 64]], B = [[112, 64], [92, 28], [132, 28]];
+  s += prizma(u, A, { op: 0.9 }) + prizma(u, B, { op: 0.9 });
+  const giris = solYuz(A, 0.5), d0 = yon(-12), p0 = ileri(giris, d0, -60);
+  s += isin([p0, giris], 'beyaz', { w: 2.2, oklar: [0], okB: 0.8 });
+  TAYF.forEach(c => {
+    const z1 = izle(A, p0, d0, NR[c]);
+    const z2 = izle(B, z1.yol[2], z1.d, NR[c]);
+    const son = ileri(z2.yol[2], z2.d, 60);
+    s += isin([z1.yol[1], z1.yol[2], z2.yol[1], z2.yol[2]], c, { w: 1.3 });
+    kayit(KEY, A, NR[c], [p0, z1.yol[1], z1.yol[2], z2.yol[1]], c);
+    kayit(KEY, B, NR[c], [z1.yol[2], z2.yol[1], z2.yol[2], son], c);
+  });
+  { const z1 = izle(A, p0, d0, NR.sari), z2 = izle(B, z1.yol[2], z1.d, NR.sari); s += isin([z2.yol[2], ileri(z2.yol[2], z2.d, 58)], 'beyaz', { w: 2.2, oklar: [0], okB: 0.8 }); }
+  s += yazi(30, 88, 'beyaz', { size: 9.5 }) + yazi(192, 88, 'yine beyaz', { size: 9.5 });
+  s += yazi(110, 100, 'ikinci prizma ters', { size: 9, renk: P.ink2 });
+  return s;
+}));
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · İçerik bankası
+   Y.10 Optik · Y.10.6 Prizmalar ve Renk
+   Kapsam: 2018 fizik öğretim programı 10.4.8.1 (tek renkli ışığın prizmadaki yolu, beyaz ışığın renklerine ayrılması,
+   ışık prizmalarının kullanım alanları; prizmalarla ilgili matematiksel model verilmez) ve 10.4.9.1 (ışık ve boya
+   renkleri; ana, ara, tamamlayıcı renkler; saf sarı ve karışım sarı; filtreden geçiş ve soğurma).
+   Sorular niteldir: tepe açısı, sapma açısı ve sayısal açı hesabı yoktur. Renk sorularında boyalar ve filtreler idealdir.
+   Renk adları: camgöbeği (turkuaz, cyan) ve magenta (eflatun); bu kitapta hep "camgöbeği" ve "magenta".
+   Sorular: 1 çıkmış soru benzeri (2019/7; cikmis: { yil, no, kalip }) + 29 çıkma ihtimali yüksek soru (tahmin).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorusundan yalnız soru kalıbı (yapı) örnek alınmıştır.
+   ============================================================ */
+(function () {
+const r = String.raw;
+const OSYM = {
+  2019: 'https://dokuman.osym.gov.tr/pdfdokuman/2019/YKS/TSK/tyt_yks_2019_web.pdf'
+};
+const kay = (yil, sayfa) => OSYM[yil] + '#page=' + sayfa;
+
+const KONU = {
+  id: 'Y.10.6',
+  ad: 'Prizmalar ve Renk',
+  kisa: 'Prizmalar ve Renk',
+  kaynak: ['10.4.8', '10.4.9'],
+  ciktilar: ['10.4.8.1', '10.4.9.1'],
+  unvanlar: ['Işık Avcısı', 'Tayf Okuru', 'Renk Ustası', 'Prizma Ustası'],
+  renk: '#7b4fb8',
+  baglamlar: [
+    'tanım çizimi: masada yarıklı lamba, cam prizma, perdede tayf (iso)',
+    'not: eşkenar prizmada tek renkli ışın, tam yansımalı prizmada 90° ve 180°, beyaz ışık tayfı, saf sarı tek çizgi, karışım sarı iki çizgi (genis şekil)',
+    'not: ışığın ve boyanın renk çemberleri; renk adları kutusu (camgöbeği, magenta)',
+    'not: beyaz ve yeşil ışık altında kırmızı elma, kırmızı filtre',
+    'simülasyon 1: eşkenar prizma ve tam yansımalı prizma (dik kenar, hipotenüs), kırmızı, yeşil, mor, beyaz ışık (sayısal açı yok)',
+    'simülasyon 2: beyaz, saf sarı, karışım sarı, camgöbeği ışık; filtre yok, kırmızı, yeşil, sarı; prizma ve perde',
+    'çözümlü 1: eşkenar prizmada tek renkli ışının beş olası yolu (1–5)',
+    'çözümlü 2: tiyatroda siyah fon, yeşil spot; kırmızı, sarı, camgöbeği kostümler (2019 kalıbı)',
+    'çözümlü 3: sodyum buharlı lamba ve kırmızı-yeşil LED lamba; prizma ve kırmızı filtre',
+    'çözümlü 4: tavan lambasında bozulan LED, sarı görünen duvar, camgöbeği yastık',
+    'efsane: ana renkler kırmızı-sarı-mavi, sarı + mavi ışık, filtre ışığı boyar mı, iki sarı ışık (gerçek), tayfın yeniden birleşmesi (gerçek)',
+    'lazer gösterisi: tam yansımalı prizmanın dik kenarına dik giriş, K–P yolları',
+    'ışık ve boya renkleri genel yargılar', 'telefon ekranı alt pikselleri: sarı ve camgöbeği bölgeler',
+    'periskop, tayfölçer, bisiklet reflektörü eşleştirmesi', 'öğrencinin renk sınıflandırma tablosu (camgöbeği satırında hata)',
+    'fen kulübü: yarıktan güneş ışığı, prizma, ikinci prizma', 'limon camgöbeği ve mavi ışık altında',
+    'renkli yazıcı mürekkepleri (camgöbeği, magenta, sarı)',
+    'dikey tarım serası: kırmızı ve mavi LED, siyah panoya etiket boyası (2019 benzeri)',
+    'optik laboratuvarı: kırmızı, yeşil, mor lazer tek demette prizmaya, perde K, L, M',
+    'optik yarışması kapalı kutu: ışın paralel ve ters yönde, kaydırılmış çıkıyor (olabilir)',
+    'saydam mürekkepli keçeli kalemler: sarı ve camgöbeği çizgilerin kesişimi',
+    'denizaltı periskobunda iki tam yansımalı prizma, gemiden gelen ışık',
+    'beyaz lamba önünde sarı ve camgöbeği filtre, perde; arkaya magenta filtre',
+    'kumaş: kırmızı ışıkta kırmızı, mavi ışıkta siyah (olabilir)',
+    'lamba ışığı prizmada yeşil ve mavi çizgi; filtreyle yalnız mavi (olabilir)',
+    'gizli mesaj kartı: kırmızı karalama, mavi harfler, kırmızı camlı gözlük',
+    'kumaş üreticisi: kırmızı, yeşil, mavi yansıtma oranı grafiği, camgöbeği ışık',
+    'fotoğraf stüdyosu: sarı, camgöbeği, magenta kutular, tek renkli lambalar',
+    'uzay aracı kamerası: kırmızı, yeşil, mavi filtreli üç çekim; sarı kaya, beyaz buz, camgöbeği sıvı',
+    'fen kulübü: ince cam levhalı içi boş üçgen kap, sonra su dolu',
+    'kütüphane vitrayı: kırmızı ve yeşil cam, beyaz duvarda lekeler, mavi vazo',
+    'karanlık oda: beyaz ışık prizmada, kaynak döndürülüyor, renkler birer birer kayboluyor',
+    'X, Y, Z kartları sarı, camgöbeği, magenta ışıklarda gözlem tablosu (kesinlikle)',
+    'bilim müzesi renkli gölgeler köşesi: kırmızı, yeşil, mavi lamba, sütun, üç gölge (üstten görünüş)',
+    'ressam iki ideal boyayı karıştırıyor: kırmızı ışıkta siyah, yeşil ışıkta yeşil (olabilir)',
+    '20 m derinlikte dalgıç: kırmızı mercan, beyaz yüzgeç, el feneri',
+    'X ve Y sarı lambaları, kırmızı elma ve yeşil yaprak tablosu (kesinlikle)',
+    'ışık algılayıcısı: magenta filtre, camgöbeği kâğıt, camgöbeği filtre; beş sütun grafiği',
+    'sunum projektörü camgöbeği boyalı duvarda: kırmızı yazı, beyaz zeminde camgöbeği yazı, sarı yazı'
+  ],
+
+  /* ---------------- KONU NOTU ---------------- */
+  not: [
+    {
+      tur: 'tanim',
+      sekil: 'iY106_tanim',
+      baslik: 'Prizmalar ve renk konusunun özü',
+      metin: r`Işığı kıran, yansıtan ya da renklerine ayıran saydam cisimlere **ışık prizması** denir. Cisimlerin rengi ise üzerlerine düşen ışıkla ve bu ışığın hangi bileşenlerini yansıttıklarıyla belirlenir.
+
+- **Prizmada ışığın yolu:** Havadaki cam prizmaya giren ışın girerken normale yaklaşır, çıkarken normalden uzaklaşır ve prizmanın **tabanına doğru** sapar. Yüzeye dik gelen ışın kırılmadan geçer.
+- **Tam yansımalı prizma:** Kesiti ikizkenar dik üçgen olan cam prizmadır; ışını tam yansımayla $90°$ ya da $180°$ döndürür. Periskop, dürbün ve reflektörlerde kullanılır.
+- **Renklere ayrılma:** Beyaz ışık prizmada renklerine ayrılır; **kırmızı en az, mor en çok** sapar. Tek renkli ışık yeniden renklere ayrılmaz.
+- **Işık ve boya renkleri:** Işıkta ana renkler kırmızı, yeşil ve mavi; boyada sarı, camgöbeği ve magentadır. Işıkta ana olan renk boyada ara, ışıkta ara olan renk boyada ana renktir.
+- **Cismin rengi ve filtre:** Cisim, üzerine düşen ışığın yalnız kendi rengindeki bileşenlerini yansıtır; filtre yalnız kendi rengindeki bileşenleri geçirir. Ortak bileşen yoksa cisim siyah görünür, filtreden ışık geçmez.`,
+      kutu: { etiket: 'ÖSYM gözüyle', metin: r`2018–2026 TYT'lerinde bu konudan yalnız 1 soru çıktı (2019): renkli ışıkla aydınlatılan boyalı yüzeylerin hangi renkte görüneceği. Prizmalardan 9 yılda soru gelmedi. Fen Bilimleri testinin son fizik sorusu her yıl optikten geldiği için bu konu da sırası gelince sorulabilir; ÖSYM'nin dili günlük hayat bağlamı, renk çemberi ve "hangi renkte görünür?" kalıbıdır.` }
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY106_prizma_genis',
+      baslik: 'Işık prizmaları',
+      metin: r`Şekildeki çizimler, tek renkli ışığın ve beyaz ışığın havadaki cam prizmalarda izlediği yolu gösterir; kesikli çizgiler yüzeylerin normalleridir. (Renklerin ayrışması görünsün diye abartılarak çizilmiştir.)
+
+- **a) Eşkenar prizma:** Havadan cama giren ışın normale yaklaşır, camdan havaya çıkan ışın normalden uzaklaşır. Işın iki yüzeyde de prizmanın **tabanına doğru** sapar.
+- **b, c) Tam yansımalı prizma:** Dik kenara dik gelen ışın kırılmadan girer ve hipotenüse $45°$ ile gelir. Bu açı camın sınır açısından büyük olduğu için ışın tam yansıma yapar ve **$90°$** döner (b). Hipotenüse dik gelen ışın iki dik kenarda tam yansıma yapar, **$180°$** döner ve geldiği yöne paralel olarak geri gider (c).
+- **d) Renklere ayrılma:** Camın kırıcılığı ışığın rengine göre biraz farklıdır; en küçük kırmızı, en büyük mor ışık içindir. Beyaz ışık eğik girdiği prizmada renklerine ayrılır; perdede **kırmızı, turuncu, sarı, yeşil, mavi, lacivert, mor** sırası oluşur ve kırmızı en az, mor en çok sapar. Kırıcılığı büyük olan mor ışık camda en yavaş ilerler.
+- **e, f) Saf sarı ve karışım sarı:** Göz, tek renkli **saf sarı** ışığı ve kırmızı ile yeşilin birleşimi olan **karışım sarı** ışığı aynı renkte görür. Prizma ikisini ayırt eder: Saf sarı tek çizgi, karışım sarı kırmızı ve yeşil iki çizgi verir. Tek renkli bir ışık prizmada kırılır ama başka renklere ayrılmaz.
+- **Kullanım alanları:** Periskop ve dürbünde ışığın yönünü değiştirmek, bisiklet reflektöründe ışığı geldiği yöne geri göndermek, tayfölçerde (spektroskop) ışığı renklerine ayırmak.`
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY106_renk_genis',
+      baslik: 'Işığın renkleri ve boyanın renkleri',
+      metin: r`- **Işıkta toplama:** Işığın ana renkleri **kırmızı, yeşil ve mavidir.** İki ana renk üst üste düşünce ara renk oluşur: kırmızı + yeşil = sarı, yeşil + mavi = camgöbeği, kırmızı + mavi = magenta. Üçü birlikte beyazı verir; ışıklar birleştikçe renk açılır.
+- **Boyada çıkarma:** Bir boya, beyaz ışıktan kendi rengindeki bileşenleri yansıtır, ötekileri soğurur. Boyanın ana renkleri **sarı, camgöbeği ve magentadır.** Karışımda yalnız iki boyanın da yansıttığı bileşen kalır: sarı + camgöbeği = yeşil, camgöbeği + magenta = mavi, sarı + magenta = kırmızı. Üçü birlikte siyahı verir; boyalar karıştıkça renk koyulaşır.
+- **Yer değiştirme:** Işıkta ana olan kırmızı, yeşil ve mavi boyada ara renktir; ışıkta ara olan sarı, camgöbeği ve magenta boyada ana renktir.
+- **Tamamlayıcı renkler:** Birleşince beyaz ışık veren iki ışık rengi birbirinin tamamlayıcısıdır: kırmızı ile camgöbeği, yeşil ile magenta, mavi ile sarı. Bu çiftlerin ideal boyaları karışınca siyah elde edilir.`,
+      kutu: { etiket: 'Renk adları', metin: r`Camgöbeği bazı kaynaklarda turkuaz ya da cyan, magenta ise eflatun adıyla geçer; ÖSYM 2019 sorusunda "cyan" ve "magenta" adlarını kullandı. Bu kitapta hep **camgöbeği** ve **magenta** yazılır.` }
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY106_cisim_genis',
+      baslik: 'Cisimler neden renkli görünür?',
+      metin: r`- Işık kaynağı olmayan bir cismi, üzerine düşüp gözümüze yansıyan ışıkla görürüz. Cisim gelen ışığın bir kısmını yansıtır, kalanını soğurur; **gördüğümüz renk, yansıyan ışığın rengidir.** Beyaz cisim bütün bileşenleri yansıtır, siyah cisim hepsini soğurur.
+- Kırmızı bir elma beyaz ışıktan yalnız kırmızı bileşeni yansıtır (a). Renkli ışık altında cisim, ışıkta bulunan bileşenlerden yalnız kendi yansıttıklarını geri gönderir; ortak bileşen yoksa **siyah** görünür. Yeşil ışık altında kırmızı elma siyah görünür (b).
+- **Filtre**, renkli saydam bir cisimdir: Kendi rengindeki bileşenleri geçirir, ötekileri soğurur (c). Filtre ışığa renk eklemez; geçen ışık gelen ışıktan azdır. Arka arkaya konan filtrelerden yalnız hepsinin ortak bileşeni geçer.
+- Sorularda boyalar ve filtreler **idealdir.** Gerçek boyalar ve filtreler öteki renklerden de bir miktar yansıtır ya da geçirir; gerçek bir kırmızı elma yeşil ışıkta tam siyah değil, çok koyu görünür.`
+    },
+    {
+      tur: 'formul',
+      baslik: 'Prizma ve renk kuralları',
+      alt: r`Program prizmalar için matematiksel model vermez. Bu blok sayısal formül değil, sınavda en çok kullanılan nitel kuralları toplar.`,
+      kolonlar: [
+        { baslik: 'Prizmada ışık', not: 'Havadaki cam prizma', satirlar: [r`\text{girerken: normale yaklaşır}`, r`\text{çıkarken: normalden uzaklaşır}`, r`\text{sapma: tabana doğru}`, r`\text{kırmızı en az, mor en çok}`] },
+        { baslik: 'Işıkta toplama', not: 'Ana: kırmızı, yeşil, mavi', satirlar: [r`\text{kırmızı} + \text{yeşil} = \text{sarı}`, r`\text{yeşil} + \text{mavi} = \text{camgöbeği}`, r`\text{kırmızı} + \text{mavi} = \text{magenta}`, r`\text{üçü birlikte} = \text{beyaz}`] },
+        { baslik: 'Boyada çıkarma', not: 'Ana: sarı, camgöbeği, magenta', satirlar: [r`\text{sarı} + \text{camgöbeği} = \text{yeşil}`, r`\text{camgöbeği} + \text{magenta} = \text{mavi}`, r`\text{sarı} + \text{magenta} = \text{kırmızı}`, r`\text{üçü birlikte} = \text{siyah}`] },
+        { baslik: 'Tamamlayıcı çiftler', not: 'Işıkta beyaz, boyada siyah', satirlar: [r`\text{kırmızı} \leftrightarrow \text{camgöbeği}`, r`\text{yeşil} \leftrightarrow \text{magenta}`, r`\text{mavi} \leftrightarrow \text{sarı}`] }
+      ],
+      dip: r`Görünen renk, gelen ışık ile cismin yansıttığı bileşenlerin **ortak** kısmıdır; filtreden geçen ışık da gelen ışık ile filtrenin geçirdiği bileşenlerin ortak kısmıdır. Ortak bileşen yoksa cisim siyah görünür, filtreden ışık geçmez. Işıkta "+" üst üste düşürmek, boyada "+" karıştırmak demektir; sonuçları farklıdır. Soruda "sarı ışık" geçiyorsa saf mı karışım mı olduğuna bak: İdeal kırmızı ya da yeşil filtre saf sarıyı geçirmez.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY106_C1', zorluk: 1,
+      baslik: 'Işın prizmadan nasıl geçer?',
+      metin: r`Havadaki cam bir prizmanın sol yüzüne tek renkli bir ışın eğik olarak gönderiliyor. Şekilde ışının prizmanın içinde ve dışında izleyebileceği beş yol (1–5) çizilmiştir; kesikli çizgiler yüzeylerin normalleridir.
+
+{{sekil}}
+
+Işın hangi yolu izler?`,
+      sekil: 'kY106_C1_genis',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 2,
+      cozum: [
+        r`Havadan cama, yani az kırıcı ortamdan çok kırıcı ortama geçen ışın **normale yaklaşır.** Girişte ışın normalden uzaklaşan 4. yol elenir; kırılmadan geçen 1. yol da elenir.`,
+        r`Camdan havaya eğik çıkan ışın **normalden uzaklaşarak** kırılır. Çıkışta normale yaklaşan 2. yol ile çıkışta hiç kırılmayan 5. yol elenir.`,
+        r`İki yüzeydeki kırılma da ışını prizmanın tabanına doğru saptırır: 3. yol.`,
+        r`{{S0}} ışının yüzeylerde kırılmadan geçtiğini sanır; eğik gelen ışın ortam değiştirirken kırılır. {{S1}} çıkışta da ışını normale yaklaştırır; camdan havaya geçen ışın normalden uzaklaşır. {{S3}} girişte ışını normalden uzaklaştırır; havadan cama geçen ışın normale yaklaşır. {{S4}} ışının ikinci yüzeyden kırılmadan çıktığını sanır; camdan havaya eğik geçen ışın normalden uzaklaşarak kırılır.`
+      ],
+      ipucu: r`Her yüzeyde "ışın hangi ortamdan hangi ortama geçiyor?" diye sor ve normale göre karar ver.`,
+      tuzak: r`Prizmanın içindeki doğru yolu görüp çıkışı kontrol etmemek. Çıkışta ışın normalden uzaklaşır; iki sapma da tabana doğrudur.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY106_C2', zorluk: 2, cikmis: { yil: 2019, no: 7, kalip: 'Renkli ışık altında boyalı yüzeyin görünen rengi ve siyah fonda kaybolması' },
+      baslik: 'Siyah fonda kaybolan kostüm',
+      metin: r`Bir tiyatro sahnesinin arka fonu siyah bir perdedir. Bir sahnede ortam yalnız yeşil ışık veren spotlarla aydınlatılıyor. Üç oyuncunun kostümleri sırasıyla kırmızı, sarı ve camgöbeği renkli kumaştan dikilmiştir; kumaşların boyaları idealdir.
+
+Buna göre,
+
+I. Kırmızı kostüm siyah görünür ve siyah fondan zor ayırt edilir.
+II. Sarı kostüm yeşil görünür.
+III. Camgöbeği kostüm mavi görünür.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Sahnede yalnız yeşil ışık vardır. Her kostüm, yeşil ışığı yansıtıyorsa yeşil, soğuruyorsa siyah görünür.`,
+        r`I. Kırmızı boya yalnız kırmızıyı yansıtır; yeşil ışığı soğurur. Kostüm siyah görünür ve siyah fonda zor ayırt edilir. **Doğru.**`,
+        r`II. Sarı boya kırmızı ve yeşili yansıtır; yeşil ışığı yansıtır ve yeşil görünür. **Doğru.**`,
+        r`III. Camgöbeği boya yeşil ve maviyi yansıtır. Işıkta mavi bileşen olmadığı için kostüm mavi değil, yeşil görünür. **Yanlış.**`,
+        r`{{S0}} sarı boyanın yeşil ışığı yansıttığını görmez. {{S1}} kırmızı boyanın yeşil ışığı soğurduğunu görmez. {{S3}} kırmızı kostümün yeşil ışığı soğurduğunu görmez ve camgöbeği kostümün mavi görünebileceğini sanır; ışıkta mavi bileşen yoktur. {{S4}} camgöbeği kostümün mavi görünebileceğini sanır; ışıkta mavi bileşen yoktur.`
+      ],
+      ipucu: r`Önce ışığın bileşenlerini, sonra her boyanın yansıttığı bileşenleri yaz; ortak olanı bul.`,
+      tuzak: r`Kostümün beyaz ışıktaki rengini sahnedeki rengi sanmak. Renkli ışık altında görülen renk, ışık ile boyanın ortak bileşenidir.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY106_C3', zorluk: 2,
+      baslik: 'Saf sarı mı, karışım sarı mı?',
+      metin: r`Bir fen kulübünde dışarıdan aynı sarı renkte görünen iki lamba inceleniyor: P lambası sodyum buharlı bir lambadır ve saf sarı ışık verir; R lambası ise birlikte yanan kırmızı ve yeşil LED'lerden oluşur. Lambaların ışığı sırayla dar bir yarıktan geçirilip aynı cam prizmaya, oradan perdeye gönderiliyor. Sonra her lambanın önüne ideal bir kırmızı filtre konup deney tekrarlanıyor.
+
+Perdede gözlenenlerle ilgili aşağıdakilerden hangisi doğrudur?`,
+      secenekler: [
+        'P: iki çizgi, filtreyle yalnız kırmızı çizgi kalır; R: tek sarı çizgi, filtreyle çizgi kaybolur.',
+        'P: tek sarı çizgi, filtreyle çizgi kırmızıya döner; R: kırmızı ve yeşil iki çizgi, filtreyle yalnız kırmızı çizgi kalır.',
+        'P: tek sarı çizgi, filtreyle çizgi kaybolur; R: kırmızı ve yeşil iki çizgi, filtreyle yalnız kırmızı çizgi kalır.',
+        'P ve R: tek sarı çizgi; filtreyle ikisinde de çizgi kaybolur.',
+        'P ve R: kırmızı ve yeşil iki çizgi; filtreyle ikisinde de yalnız kırmızı çizgi kalır.'
+      ],
+      dogru: 2,
+      cozum: [
+        r`P'nin saf sarı ışığı tek renklidir; prizmada kırılır ama renklere ayrılmaz ve perdede tek bir sarı çizgi oluşur. İdeal kırmızı filtre yalnız kırmızı ışığı geçirdiği için saf sarıyı soğurur; çizgi kaybolur.`,
+        r`R'nin ışığı kırmızı ve yeşil ışığın karışımıdır. Prizmada kırmızı daha az, yeşil daha çok sapar ve iki ayrı çizgi oluşur. Kırmızı filtre yeşil bileşeni soğurur; perdede yalnız kırmızı çizgi kalır.`,
+        r`{{S0}} iki lambayı ters eşler; saf sarı tek renklidir ve ayrışmaz. {{S1}} filtrenin saf sarıyı kırmızıya boyadığını sanır; filtre renk eklemez, yalnız kendi rengini geçirir. {{S3}} göze aynı görünen iki sarının prizmada da aynı davranacağını sanır. {{S4}} her sarı ışığı kırmızı ile yeşilin karışımı sayar; sodyum lambasının ışığı saf sarıdır.`
+      ],
+      ipucu: r`Göz iki sarıyı ayırt edemez; prizma ve filtre ayırt eder.`,
+      tuzak: r`"Sarı = kırmızı + yeşil" bilgisini her sarı ışığa uygulamak. Saf sarı tek renkli bir ışıktır.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY106_C4', zorluk: 3,
+      baslik: 'Bozulan LED',
+      metin: r`Bir odanın tavan lambası kırmızı, yeşil ve mavi ışık veren üç LED'den oluşuyor; üçü birlikte yanınca beyaz ışık elde ediliyor. LED'lerden biri bozulunca odadaki beyaz duvar sarı görünmeye başlıyor. Odadaki eşyaların boyaları idealdir ve odada başka ışık yoktur.
+
+Buna göre,
+
+I. Bozulan LED, mavi ışık veren LED'dir.
+II. Odadaki camgöbeği bir yastık yeşil görünür.
+III. Lambanın ışığı dar bir yarıktan geçirilip prizmaya gönderilirse perdede tek bir sarı çizgi oluşur.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Beyaz duvar gelen ışığın bütün bileşenlerini yansıtır; duvarın rengi lambanın ışığının rengidir. Işık sarı, yani kırmızı ve yeşilin karışımı olduğuna göre eksik olan mavidir. **Doğru.**`,
+        r`II. Camgöbeği boya yeşil ve maviyi yansıtır. Işıkta yalnız kırmızı ve yeşil olduğu için yastık yalnız yeşili yansıtır ve yeşil görünür. **Doğru.**`,
+        r`III. Lambanın sarı ışığı saf sarı değil, kırmızı ile yeşilin karışımıdır. Prizmada kırmızı ve yeşil iki ayrı çizgi oluşur. **Yanlış.**`,
+        r`{{S0}} camgöbeği yastığın, ışığın yeşil bileşenini yansıttığını görmez. {{S1}} duvarın renginin lambanın ışığını gösterdiğini kullanmaz ve bozulan LED'i belirlemez. {{S3}} karışım sarıyı tek renkli saf sarı sanar ve yastığın yeşil görüneceğini atlar. {{S4}} karışım sarının prizmada ayrışmayacağını sanır; bileşenleri kırmızı ve yeşildir.`
+      ],
+      ipucu: r`Beyaz duvar, üzerine düşen ışığın rengini "olduğu gibi" gösterir. Önce ışıkta hangi bileşenlerin kaldığını bul.`,
+      tuzak: r`Ekranlarda ve LED'lerde görülen sarıyı saf sarı sanmak. Kırmızı ve yeşil LED'lerden elde edilen sarı karışım sarıdır ve prizmada ikiye ayrılır.`
+    },
+    {
+      tur: 'efsane',
+      baslik: 'Efsane mi, gerçek mi?',
+      kartlar: [
+        { sekil: 'iY106_efsane_1', iddia: 'Işığın ana renkleri, resim dersindeki gibi kırmızı, sarı ve mavidir.', karar: false, aciklama: 'Işığın ana renkleri kırmızı, yeşil ve mavidir; üçü uygun oranlarda birleşince beyaz ve öteki bütün renkler elde edilir. Sarı, ışıkta kırmızı ile yeşilin birleşiminden oluşan bir ara renktir. "Kırmızı, sarı, mavi" eski bir boya geleneğidir; boyada da ana renkler aslında sarı, camgöbeği ve magentadır.' },
+        { sekil: 'iY106_efsane_2', iddia: 'Sarı ve mavi boya karışınca yeşil olduğuna göre sarı ve mavi ışık da üst üste düşünce yeşil görünür.', karar: false, aciklama: 'Sarı ışık kırmızı ile yeşilin birleşimidir; mavi ışık eklenince üç ana renk tamamlanır ve beyaz görülür. Sarı ile mavi ışıkta tamamlayıcı renklerdir. Boyada ise ideal sarı boya maviyi, ideal mavi boya kırmızı ile yeşili soğurur ve karışım siyaha yaklaşır; günlük hayatta yeşil veren "mavi" boya aslında camgöbeğine yakın bir boyadır.' },
+        { sekil: 'iY106_efsane_3', iddia: 'Kırmızı filtre, beyaz ışığı kırmızıya boyar.', karar: false, aciklama: 'Filtre ışığa renk eklemez; kendi rengindeki bileşeni geçirir, ötekileri soğurur. Beyaz ışık kırmızı filtreden geçerken yeşil ve mavi bileşenler tutulur; çıkan kırmızı ışık, gelen beyaz ışıktan daha az enerji taşır. Bu yüzden kırmızı filtrenin önüne yalnız mavi ışık gelirse filtreden hiç ışık çıkmaz.' },
+        { sekil: 'iY106_efsane_4', iddia: 'Gözümüze aynı sarı renkte görünen iki ışıktan biri prizmada renklere ayrılırken öbürü ayrılmayabilir.', karar: true, aciklama: 'Göz, saf sarı ışığı ve kırmızı ile yeşilin karışımından oluşan sarı ışığı aynı renkte algılar. Saf sarı tek renkli ışıktır; prizmadan geçince tek bir sarı çizgi verir. Karışım sarı ise kırmızı ve yeşil olmak üzere iki çizgiye ayrılır. Sodyum buharlı sokak lambalarının ışığı saf sarıya, telefon ekranındaki sarı ise karışım sarıya örnektir.' },
+        { sekil: 'iY106_efsane_5', iddia: 'Prizmanın renklerine ayırdığı ışık, ters çevrilmiş özdeş ikinci bir prizmadan geçirilerek yeniden beyaz ışık hâline getirilebilir.', karar: true, aciklama: 'İkinci prizma, ilk prizmanın her renge verdiği sapmayı ters yönde geri alır; renkler yeniden üst üste gelir ve beyaz ışık oluşur. Bu deney, renkleri prizmanın üretmediğini, beyaz ışığın içinde zaten bulunduklarını gösterir.' }
+      ]
+    },
+    {
+      tur: 'kartlar',
+      baslik: 'Kısa yollar ve ÖSYM tuzakları',
+      alt: 'Önce ön yüzdeki soruyu kendin cevapla, sonra açıklamayı oku.',
+      kartlar: [
+        { on: 'Kırmızı az, mor çok', ipucu: 'Prizmada hangisi daha çok sapar?', arka: 'Camın kırıcılığı mor ışık için en büyük, kırmızı ışık için en küçüktür. Prizmadan geçen ışıklardan mor en çok, kırmızı en az sapar; ikisi de tabana doğru sapar. Kırıcılığı büyük olan mor ışık camda en yavaş ilerler.' },
+        { on: 'Dik gelen ışın kırılmaz', ipucu: 'Tam yansımalı prizmada yol', arka: r`Yüzeye dik gelen ışın doğrultusunu değiştirmeden geçer. Tam yansımalı prizmada dik kenara dik gelen ışın $90°$, hipotenüse dik gelen ışın $180°$ döner. Işığı kaydırarak geri göndermek için hipotenüs ışına dik tutulur.` },
+        { on: 'Işıkta topla, boyada ortak olanı al', ipucu: 'Karışımın rengi', arka: 'Işıklar üst üste düşünce bileşenleri toplanır: kırmızı + yeşil = sarı. Boyalar karışınca yalnız iki boyanın da yansıttığı bileşen kalır: sarı (kırmızı, yeşil) ile magenta (kırmızı, mavi) karışınca kırmızı.' },
+        { on: 'Tamamlayıcı çift: eksik olanı tamamlar', ipucu: 'Kırmızının tamamlayıcısı?', arka: 'Bir ana rengin tamamlayıcısı, öteki iki ana rengin birleşimidir: kırmızı ile camgöbeği, yeşil ile magenta, mavi ile sarı. Tamamlayıcı ışıklar birleşince beyaz, tamamlayıcı ideal boyalar karışınca siyah elde edilir.' },
+        { on: 'Görünen renk = ortak bileşenler', ipucu: 'Renkli ışık altında cisim', arka: 'Cisim, üzerine düşen ışıktan yalnız kendi yansıttığı bileşenleri geri gönderir. Ortak bileşen yoksa cisim siyah görünür. Örnek: Kırmızı ışık altında beyaz bir gömlek kırmızı, yeşil bir yaprak siyah görünür.' },
+        { on: 'Filtre bir süzgeçtir', ipucu: 'Arka arkaya iki filtre', arka: 'İdeal filtre yalnız kendi bileşenlerini geçirir. Arka arkaya konan filtrelerden yalnız hepsinin ortak bileşeni geçer ve sıralarının önemi yoktur. Ortak bileşen yoksa ışık geçmez.' },
+        { on: 'Saf sarı mı, karışım sarı mı?', ipucu: 'Göz ayırt edemez', arka: 'Prizma ayırt eder: Saf sarı tek çizgi, karışım sarı kırmızı ve yeşil iki çizgi verir. İdeal kırmızı filtre saf sarıyı geçirmez, karışım sarının kırmızı bileşenini geçirir.' },
+        { on: 'Soruda "ideal" sözcüğünü ara', ipucu: 'Gerçek boyalar', arka: 'ÖSYM tarzı sorular boyaların, filtrelerin ve ışıkların ideal olduğunu kabul eder ya da ışığın bileşenlerini açıkça verir. Gerçek boyalar başka renklerden de az miktarda yansıtır; bu yüzden gerçek bir kırmızı elma yeşil ışıkta tam siyah değil, çok koyu görünür.' }
+      ]
+    },
+    {
+      tur: 'cikmis',
+      baslik: 'ÖSYM bu konuyu nasıl sordu?',
+      metin: r`2018–2026 arasında TYT'de bu konudan **1 soru** çıktı: 2019'da Fen Bilimleri testinin 7. sorusu. Soru renk kazanımındandı; renkli ışıkla aydınlatılan boyalı yüzeylerin hangi renkte görüneceğini ve siyah görünen yüzeyin siyah fonda kaybolacağını, ışığın ve boyanın renk çemberleri üzerinden ölçtü. Prizmalardan 9 yılda soru gelmedi. Fen testinin son fizik sorusu her yıl optikten (Y.10.2–Y.10.6) geldiği için konu sırası gelince yeniden sorulabilir. Son 9 yılın verisine göre önce renkli ışık altında cismin rengine ve filtrelere, sonra saf ve karışım sarıya, tam yansımalı prizmaya ve beyaz ışığın renklerine ayrılmasına çalış.`,
+      yillar: { 2018: 0, 2019: 1, 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0, 2026: 0 },
+      kaliplar: [['Günlük hayat bağlamı', 1], ['Kavramsal', 1], ['Renk çemberi şekli', 1]],
+      kartlar: [
+        { yil: 2019, no: 7, olcen: r`Renkli ışıkla aydınlatılan boyaların, ışığın hangi bileşenlerini yansıtıp hangilerini soğurduğunu belirleyerek ışığın bütün bileşenlerini soğuran boyanın siyah görüneceğini ve siyah fonda en zor fark edileceğini çıkarmayı.`,
+          kalip: r`Renkli ışık altında boyaların görünen rengi; ışığın ve boyanın renk çemberlerinden bileşen bulma (tek seçim, günlük hayat bağlamı).`,
+          adimlar: [r`Işığın hangi ana renklerden oluştuğunu yaz.`, r`Her boyanın beyaz ışıktan hangi ana renkleri yansıttığını çemberden oku.`, r`Işığın bütün bileşenlerini soğuran boyayı bul: O boya siyah görünür ve siyah fonda kaybolur.`],
+          tuzak: r`Işığın rengiyle aynı renkteki boyanın kaybolacağını sanmak; ışıkta ve boyada ana renkleri karıştırmak.`, kaynak: kay(2019, 37), benzer: ['kY106_09', 'kY106_C2'] }
+      ]
+    },
+    {
+      tur: 'ozet',
+      baslik: 'Kontrol listesi',
+      maddeler: [
+        'Tek renkli ışığın cam prizmada girerken normale yaklaşıp çıkarken uzaklaştığını ve tabana doğru saptığını çizerek gösterebilirim.',
+        r`Tam yansımalı prizmada ışının $90°$ ve $180°$ döndüğü yolları çizebilir, periskop, dürbün ve reflektördeki görevini açıklayabilirim.`,
+        'Beyaz ışığın prizmada renklerine ayrılmasını, kırmızının en az, morun en çok saptığını açıklayabilirim.',
+        'Işık ve boya renklerini ana, ara ve tamamlayıcı olarak sınıflandırabilir, toplama ile çıkarma farkını kullanabilirim.',
+        'Saf sarı ile karışım sarıyı prizma ve filtreyle ayırt edebilirim.',
+        'Renkli ışık altında ya da filtre arkasında bir cismin hangi renkte görüneceğini bulabilirim.'
+      ]
+    }
+  ],
+
+  /* ---------------- SORULAR ---------------- */
+  sorular: [
+    {
+      id: 'kY106_01', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.8.1', beceri: 'Işın yolu çizme',
+      tahmin: { gerekce: r`10.4.8.1 kazanımı tek renkli ışığın prizmadaki yolunun çizilmesini ister; tam yansımalı prizma TYT'de 9 yılda sorulmadı. Işın yolu seçtiren şekil sorusu, ÖSYM'nin optik sorularındaki çizim kalıbına uyar.` },
+      metin: r`Bir lazer gösterisinde Elif, ışının yönünü değiştirmek için kesiti ikizkenar dik üçgen olan cam bir prizma kullanıyor. Tek renkli lazer ışını, prizmanın dik kenarlarından birine şekildeki gibi dik olarak gönderiliyor. Bu camdan havaya geçişte sınır açısı $45°$'den küçüktür.
+
+{{sekil}}
+
+Işın prizmadan çıktıktan sonra K, L, M, N ve P yollarından hangisini izler?`,
+      sekil: 'kY106_typ90',
+      secenekler: ['K', 'L', 'M', 'N', 'P'],
+      dogru: 4,
+      cozum: [
+        r`Işın dik kenara dik geldiği için bu yüzeyde kırılmadan, doğrultusunu değiştirmeden cama girer.`,
+        r`Işın hipotenüse camın içinden $45°$'lik gelme açısıyla ulaşır. Bu açı sınır açısından büyük olduğu için ışın havaya geçemez; tam yansıma yapar ve $90°$ dönerek alttaki dik kenara yönelir.`,
+        r`Işın alttaki dik kenara da dik gelir ve kırılmadan çıkar: P yolu.`,
+        r`{{S0}} ışının hipotenüsten doğrultusunu koruyarak geçtiğini sanır; eğik gelen ışın ya kırılır ya yansır, burada gelme açısı sınır açısından büyüktür. {{S1}} ışının hipotenüsten normalden uzaklaşarak çıktığını düşünür; bu yalnız gelme açısı sınır açısından küçükken olur. {{S2}} yansıyan ışının alttaki yüzeyde sola kırıldığını sanır; ışın bu yüzeye dik geldiği için doğrultusunu değiştirmez. {{S3}} yansıyan ışının alttaki yüzeyde sağa kırıldığını sanır; ışın bu yüzeye dik geldiği için doğrultusunu değiştirmez.`
+      ]
+    },
+    {
+      id: 'kY106_02', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.9.1', beceri: 'Kavram ayırt etme',
+      tahmin: { gerekce: r`10.4.9.1 kazanımının (a) ve (b) maddeleri ışık ve boya renklerinin karşılaştırılmasını ve ana ile ara rengin ışıkta ve boyada yer değiştirdiğinin vurgulanmasını ister. ÖSYM 2019'da bu ayrımı bağlam içinde kullandı; kavramı doğrudan yoklayan kısa bir yargı sorusu kolay soru olarak gelebilir.` },
+      metin: r`Işık ve boya renkleriyle ilgili,
+
+I. İdeal camgöbeği ve magenta boyalar karıştırılırsa kırmızı boya elde edilir.
+II. Renkli ışıklar üst üste düşürüldükçe elde edilen renk açılır; boyalar karıştırıldıkça elde edilen renk koyulaşır.
+III. Işıkta ara renk olan sarı, boyada ana renktir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Camgöbeği boya yeşil ve maviyi, magenta boya kırmızı ve maviyi yansıtır. Karışımda yalnız ikisinin de yansıttığı mavi kalır; mavi boya elde edilir. **Yanlış.**`,
+        r`II. Işıklar birleşince bileşenler toplanır ve renk beyaza yaklaşır; boyalar karışınca her boya bazı bileşenleri soğurur ve renk siyaha yaklaşır. **Doğru.**`,
+        r`III. Işıkta sarı, kırmızı ile yeşilin birleşimi olan bir ara renktir; boyada ise ana renklerden biridir. **Doğru.**`,
+        r`{{S0}} I'i doğru sayar; camgöbeği ile magentanın ortak bileşeni mavidir, kırmızı değil. {{S1}} sarının ışıkta ara, boyada ana renk olduğunu görmez. {{S2}} boya karışımını yanlış kurar ve sarının iki ortamdaki sınıfını atlar. {{S4}} camgöbeği ve magenta karışımının kırmızı vereceğini sanır; kırmızı, sarı ile magenta karışımından elde edilir.`
+      ]
+    },
+    {
+      id: 'kY106_03', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.9.1', beceri: 'Günlük hayat uygulaması',
+      tahmin: { gerekce: r`Işıkta ara renklerin ana renklerden oluşması 10.4.9.1'in temelidir. Ekranların kırmızı, yeşil ve mavi alt piksellerle renk üretmesi bu bilginin en yaygın günlük hayat örneğidir ve ÖSYM'nin bağlam tercihine uyar.` },
+      metin: r`Bir telefon ekranındaki her piksel, kırmızı, yeşil ve mavi ışık veren üç küçük alt pikselden oluşur; alt piksellerin birlikte yanmasıyla ekranda farklı renkler görülür. Ekranda sarı ve camgöbeği renkli birer bölge görülüyor.
+
+Bu bölgelerdeki piksellerde hangi alt pikseller yanmaktadır?`,
+      secenekler: [
+        'Sarı: kırmızı ve yeşil; camgöbeği: kırmızı ve mavi',
+        'Sarı: kırmızı ve yeşil; camgöbeği: yeşil ve mavi',
+        'Sarı: yeşil ve mavi; camgöbeği: kırmızı ve yeşil',
+        'Sarı: kırmızı ve mavi; camgöbeği: yeşil ve mavi',
+        'Sarı: kırmızı, yeşil ve mavi; camgöbeği: yeşil ve mavi'
+      ],
+      dogru: 1,
+      cozum: [
+        r`Ekran ışık kaynağıdır; renkler ışıkların toplanmasıyla oluşur. Sarı ışık kırmızı ile yeşilin, camgöbeği ışık yeşil ile mavinin birleşimidir.`,
+        r`Sarı bölgede kırmızı ve yeşil, camgöbeği bölgede yeşil ve mavi alt pikseller yanar.`,
+        r`{{S0}} camgöbeğini magenta ile karıştırır; kırmızı ve mavi birlikte magenta verir. {{S2}} iki rengin bileşenlerini birbiriyle değiştirir. {{S3}} sarıyı magenta ile karıştırır; kırmızı ve mavi ışık birlikte magenta görünür. {{S4}} sarı için üç alt pikselin de yanması gerektiğini sanır; üçü birlikte beyaz verir.`
+      ]
+    },
+    {
+      id: 'kY106_04', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.8.1', beceri: 'İlkeyi kullanım alanıyla eşleme',
+      tahmin: { gerekce: r`10.4.8.1'in (c) maddesi ışık prizmalarının kullanım alanlarına örnek verilmesini ister. Prizmanın ışığı döndürme, geri gönderme ve renklere ayırma görevlerini ayırt ettiren bir eşleştirme 9 yılda sorulmadı.` },
+      metin: r`Işık prizmalarının bazı kullanım alanları ve prizmaların bu araçlardaki görevleri tabloda verilmiştir.
+
+{{tablo}}
+
+Araçlar ile prizmaların görevleri nasıl eşleşir?`,
+      tablo: [['Araç', 'Prizmanın görevi'], ['1. Denizaltı periskobu', 'a) Işığı tam yansımalarla geldiği yöne geri göndermek'], ['2. Tayfölçer (spektroskop)', 'b) Işığı iki kez 90° döndürüp gözlemciye ulaştırmak'], ['3. Bisiklet reflektörü', 'c) Beyaz ışığı renklerine ayırmak']],
+      secenekler: ['1 – a, 2 – c, 3 – b', '1 – a, 2 – b, 3 – c', '1 – c, 2 – b, 3 – a', '1 – b, 2 – a, 3 – c', '1 – b, 2 – c, 3 – a'],
+      dogru: 4,
+      cozum: [
+        r`Periskopta (1) iki tam yansımalı prizma ışını iki kez $90°$ döndürür; ışık aynı yönde ama daha alçaktan gözlemciye ulaşır: b.`,
+        r`Tayfölçerdeki (2) prizma, ışığı kırarken renklerine ayırır; renkler ayrı ayrı incelenir: c.`,
+        r`Reflektördeki (3) küçük prizmalar ışığı tam yansımalarla farın bulunduğu yöne geri gönderir: a.`,
+        r`{{S0}} periskop ile reflektörün görevlerini birbirine karıştırır. {{S1}} üç görevi de kaydırır: periskobu ışığı geri gönderen, tayfölçeri ışığı döndüren, reflektörü renklere ayıran araç sanır. {{S2}} periskopun ışığı renklerine ayırdığını, tayfölçerin ışığı döndürdüğünü sanır; periskopta ışık prizmalara dik girip çıktığı için ayrışma olmaz, renklere ayıran araç tayfölçerdir. {{S3}} tayfölçeri ışığı geri gönderen, reflektörü renklere ayıran araç sanır.`
+      ]
+    },
+    {
+      id: 'kY106_05', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.9.1', beceri: 'Sınıflandırma',
+      tahmin: { gerekce: r`Kazanımın (b) maddesi renklerin ışıkta ve boyada ana, ara ve tamamlayıcı olarak sınıflandırılmasını ister. Tablodaki hatayı buldurmak, bu sınıflandırmayı ezber yerine karşılaştırmayla yoklayan kısa bir sorudur.` },
+      metin: r`Bir öğrenci renkleri ışıkta ve boyada ana ya da ara renk olarak sınıflandırıp her rengin ışıktaki tamamlayıcısını da yazdığı tabloyu hazırlıyor.
+
+{{tablo}}
+
+Öğrenci tablonun hangi satırında hata yapmıştır?`,
+      tablo: [['Renk', 'Işıkta', 'Boyada', 'Işıktaki tamamlayıcısı'], ['Kırmızı', 'Ana', 'Ara', 'Camgöbeği'], ['Sarı', 'Ara', 'Ana', 'Mavi'], ['Camgöbeği', 'Ana', 'Ara', 'Kırmızı'], ['Yeşil', 'Ana', 'Ara', 'Magenta'], ['Magenta', 'Ara', 'Ana', 'Yeşil']],
+      secenekler: ['Kırmızı satırında', 'Sarı satırında', 'Camgöbeği satırında', 'Yeşil satırında', 'Magenta satırında'],
+      dogru: 2,
+      cozum: [
+        r`Işıkta ana renkler kırmızı, yeşil ve mavidir; sarı, camgöbeği ve magenta ışıkta ara renktir. Boyada durum tersidir.`,
+        r`Camgöbeği ışıkta yeşil ile mavinin birleşimidir; ışıkta **ara**, boyada **ana** renktir. Öğrenci bu satırı ters yazmıştır. Tamamlayıcısı (kırmızı) doğrudur.`,
+        r`Öteki satırlar doğrudur: Kırmızı ile camgöbeği, sarı ile mavi, yeşil ile magenta birleşince beyaz ışık verir.`,
+        r`{{S0}} kırmızının tamamlayıcısını resim dersindeki gibi yeşil sanır; ışıkta kırmızının tamamlayıcısı camgöbeğidir. {{S1}} sarıyı ışıkta da ana renk sanır; ışıkta sarı, kırmızı ile yeşilin birleşimidir. {{S3}} yeşili boyadaki gibi ara renk sanır; yeşil ışıkta ana renktir. {{S4}} magentanın tamamlayıcısını yanlış bilir; magenta (kırmızı ve mavi) ile yeşil birleşince beyaz elde edilir.`
+      ]
+    },
+    {
+      id: 'kY106_06', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.8.1', beceri: 'Gözlemden çıkarım',
+      tahmin: { gerekce: r`Beyaz ışığın prizmada renklerine ayrılması programda gözlem olarak istenir (10.4.8.1 b). Hiç sorulmayan bu gözlemin temel sonuçlarını ayırt ettiren bir yargı sorusu kolay soru olarak gelebilir.` },
+      metin: r`Bir fen kulübünde güneş ışığı karanlık bir odaya dar bir yarıktan alınıp cam bir prizmaya gönderiliyor; karşıdaki beyaz perdede renkli bir şerit gözleniyor. Kulüp üyeleri gözlemi şöyle yorumluyor:
+
+I. Beyaz ışık, farklı renklerdeki ışıkların karışımıdır.
+II. Prizmada kırmızı ışık, mor ışıktan daha çok kırılır.
+III. Şeritteki yeşil ışık dar bir yarıkla ayrılıp ikinci bir prizmadan geçirilirse yeniden renklere ayrılmaz.
+
+Buna göre hangi yorumlar doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Prizma renk üretmez; beyaz ışığın içindeki renkleri farklı miktarlarda kırarak birbirinden ayırır. **Doğru.**`,
+        r`II. Camın kırıcılığı mor ışık için en büyüktür; mor ışık en çok, kırmızı ışık en az kırılır. **Yanlış.**`,
+        r`III. Tek renkli ışık ikinci prizmada yine kırılır ama başka renklere ayrılmaz. **Doğru.**`,
+        r`{{S0}} tek renkli ışığın yeniden ayrışmadığını görmez. {{S1}} renklerin prizmada değil, ışığın içinde bulunduğunu atlar. {{S3}} kırmızının daha çok kırıldığını sanır ve beyaz ışığın bir karışım olduğunu atlar. {{S4}} kırmızının mordan çok kırıldığını sanır; perdede kırmızı, tabana en uzak renktir.`
+      ]
+    },
+    {
+      id: 'kY106_07', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.9.1', beceri: 'Renkli ışıkta cismin rengi',
+      tahmin: { gerekce: r`Renkli ışık altında cismin rengi, ÖSYM'nin 2019'da sorduğu kalıbın en kısa hâlidir. Ara renkteki bir ışık (camgöbeği) ile ana renkteki bir ışığı karşılaştırtan iki sütunlu seçenekler TYT'nin kolay soru tarzına uyar.` },
+      metin: r`Beyaz ışık altında sarı görünen bir limon, karanlık bir odada önce camgöbeği renkli ışıkla, sonra mavi ışıkla aydınlatılıyor. Limonun kabuğu ideal sarı boya gibi davranmaktadır.
+
+Limon bu iki ışık altında sırasıyla hangi renkte görünür?`,
+      secenekler: ['Camgöbeği ışıkta sarı; mavi ışıkta sarı', 'Camgöbeği ışıkta yeşil; mavi ışıkta siyah', 'Camgöbeği ışıkta camgöbeği; mavi ışıkta mavi', 'Camgöbeği ışıkta yeşil; mavi ışıkta yeşil', 'Camgöbeği ışıkta siyah; mavi ışıkta siyah'],
+      dogru: 1,
+      cozum: [
+        r`İdeal sarı boya beyaz ışıktan kırmızıyı ve yeşili yansıtır, maviyi soğurur.`,
+        r`Camgöbeği ışık yeşil ve maviden oluşur; limon yalnız yeşili yansıtır ve **yeşil** görünür. Mavi ışıkta limonun yansıtabileceği bileşen yoktur; limon **siyah** görünür.`,
+        r`{{S0}} cismin rengini ışıktan bağımsız sanır. {{S2}} cismin, üzerine düşen ışığın rengini aldığını sanır. {{S3}} boya karışımındaki "sarı + mavi = yeşil" düşüncesini ışığa uygular; mavi ışıkta sarı limonun yansıtacağı bileşen yoktur. {{S4}} camgöbeği ışığı limonun tamamen soğurduğunu sanır; ışıktaki yeşil bileşeni limon yansıtır.`
+      ]
+    },
+    {
+      id: 'kY106_08', yks: true, zorluk: 1, tur: 'cs', cikti: '10.4.9.1', beceri: 'Boya karışımı',
+      tahmin: { gerekce: r`Boyada ana renklerin sarı, camgöbeği ve magenta olduğu ve ara renklerin bunların karışımıyla elde edildiği programın vurguladığı bir bilgidir. Renkli yazıcı, bu bilgiyi günlük hayata taşıyan ve hiç sorulmamış bir bağlamdır.` },
+      metin: r`Renkli bir yazıcı, beyaz kâğıda camgöbeği, magenta ve sarı mürekkepleri gerektiğinde üst üste basarak renk oluşturur. Mürekkepler ideal boya gibi davranmaktadır.
+
+Buna göre,
+
+I. Beyaz bir bölge elde etmek için üç mürekkep eşit miktarda üst üste basılır.
+II. Kırmızı bir yazı için sarı ve magenta mürekkepler üst üste basılır.
+III. Mavi bir yazı için camgöbeği ve sarı mürekkepler üst üste basılır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve III`, r`II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Mürekkepler boya gibi davranır: Üst üste basılan mürekkeplerden yalnız hepsinin yansıttığı bileşen gözümüze gelir.`,
+        r`I. Üç mürekkep birlikte bütün bileşenleri soğurur ve siyah verir. Beyaz bölge için kâğıda hiç mürekkep basılmaz. **Yanlış.**`,
+        r`II. Sarı mürekkep kırmızı ve yeşili, magenta mürekkep kırmızı ve maviyi yansıtır; ortak bileşen kırmızıdır. **Doğru.**`,
+        r`III. Camgöbeği (yeşil, mavi) ile sarının (kırmızı, yeşil) ortak bileşeni yeşildir; yazı yeşil olur. Mavi için camgöbeği ve magenta basılır. **Yanlış.**`,
+        r`{{S0}} ışıktaki toplama kuralını mürekkebe uygular; üç ışık beyaz verir ama üç boya siyah verir. {{S2}} resim dersindeki "mavi ve sarıdan yeşil" düşüncesini tersine kurar; camgöbeği ile sarı yeşil verir. {{S3}} iki karışımı da yanlış kurar ve kırmızının sarı ile magentadan elde edildiğini atlar. {{S4}} camgöbeği ile sarının ortak bileşenini mavi sanır; ortak bileşen yeşildir.`
+      ]
+    },
+    {
+      id: 'kY106_09', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Renkli ışıkta görünürlük', cikmis: { yil: 2019, no: 7, kalip: 'Renkli ışık altında boyaların görünen rengi; siyah fonda en zor fark edilen boya' },
+      metin: r`Dikey tarım yapılan kapalı bir serada bitkiler yalnızca kırmızı ve mavi ışık veren LED'lerle aydınlatılıyor; serada başka ışık yoktur. Kaan, raflardaki bitki türlerini gösteren etiket yazılarını, ışığı neredeyse hiç yansıtmayan siyah panolara boya ile yazacak.
+
+{{sekil}}
+
+Boyaların ideal olduğu, yani beyaz ışık altında görünen renklerinin bileşenlerini yansıtıp ötekileri soğurduğu kabul ediliyor. Seradaki ışık altında aşağıdaki boyalardan hangisiyle yazılan yazılar siyah panoda en zor seçilir?`,
+      sekil: 'kY106_sera',
+      secenekler: ['Sarı', 'Yeşil', 'Camgöbeği', 'Magenta', 'Beyaz'],
+      dogru: 1,
+      cozum: [
+        r`Seradaki ışık yalnız kırmızı ve mavi bileşenlerden oluşur. Yazının siyah panodan zor ayırt edilmesi için boyanın bu iki bileşenin ikisini de soğurması, yani yazının da siyah görünmesi gerekir.`,
+        r`İdeal boyalar şu bileşenleri yansıtır: yeşil boya yalnız yeşili; sarı boya kırmızı ve yeşili; camgöbeği boya yeşil ve maviyi; magenta boya kırmızı ve maviyi; beyaz boya üçünü de.`,
+        r`Yeşil boya, seradaki kırmızı ve mavi ışığın ikisini de soğurur; yazılar siyah görünür ve siyah panoda neredeyse fark edilmez. Sarı boyalı yazı kırmızı, camgöbeği boyalı yazı mavi, magenta ve beyaz boyalı yazılar magenta görünür.`,
+        r`{{S0}} sarı boyanın bu ışıkta kaybolacağını sanır; sarı boya seradaki kırmızı ışığı yansıtır ve yazı kırmızı görünür. {{S2}} camgöbeği boyanın kırmızıyı soğurduğunu görür ama mavi ışığı yansıttığını atlar; yazı mavi görünür. {{S3}} ışığın rengindeki boyanın görünmez olacağını sanır; magenta boya iki bileşeni de yansıtır ve yazı magenta görünür. {{S4}} beyaz boyanın ışığın rengini alıp kaybolacağını düşünür; beyaz boya gelen ışığın tamamını yansıtır, yazı magenta görünür.`
+      ]
+    },
+    {
+      id: 'kY106_10', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.8.1', beceri: 'Şekilden çıkarım',
+      tahmin: { gerekce: r`Renklerin prizmada farklı sapması 10.4.8.1'in gözlem maddesidir ve kırılma indisinin hızla ilişkisi 10.4.6.1'de vurgulanır. Perde konumunu, renk sırasını ve camdaki sürat karşılaştırmasını birlikte yoklayan bir şekil sorusu 9 yılda sorulmadı.` },
+      metin: r`Bir optik laboratuvarında kırmızı, yeşil ve mor renkli üç lazerin ışınları birleştirilerek tek bir ince demet hâlinde cam bir prizmaya gönderiliyor. Prizmadan çıkan ışınlar beyaz bir perdenin şekildeki K, L ve M noktalarına düşüyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. K noktasına kırmızı ışık düşer.
+II. M noktasına düşen ışığın camdaki sürati, K noktasına düşen ışığınkinden büyüktür.
+III. Perde, kendisine paralel kalacak biçimde prizmadan biraz uzaklaştırılırsa perdedeki K ile M noktaları arasındaki uzaklık artar.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY106_ekran',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Işınlar prizmanın tabanına doğru sapar. Kırmızı en az, mor en çok sapar; tabandan en uzak K noktasına kırmızı, L'ye yeşil, M'ye mor ışık düşer.`,
+        r`I. **Doğru.**`,
+        r`II. Mor ışık en çok kırıldığına göre camın mor ışık için kırıcılığı en büyüktür; mor ışık camda en yavaş ilerler. M'deki ışığın sürati K'dekinden küçüktür. **Yanlış.**`,
+        r`III. Prizmadan çıkan renkli ışınlar birbirinden açılarak ilerler. Perde uzaklaşınca ışınlar arasındaki uzaklık artar. **Doğru.**`,
+        r`{{S0}} prizmadan çıkan ışınların birbirinden açıldığını görmez. {{S1}} renk sırasını ters kurar ve K'ye moru yerleştirir. {{S2}} çok kırılan ışığın camda daha hızlı ilerlediğini sanır ve perdenin uzaklaşmasının etkisini atlar. {{S4}} mor ışığın camda daha hızlı olduğunu sanır; kırıcılığı büyük olan ışık camda daha yavaştır.`
+      ]
+    },
+    {
+      id: 'kY106_11', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.8.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Tam yansımalı prizmanın ışığı geldiği yöne paralel olarak geri gönderdiği ve bunu ışını kaydırarak yaptığı, prizmaların kullanım alanlarının temelidir. Kapalı kutu biçimindeki "olabilir" sorusu, ÖSYM'nin optikte kullandığı kalıba uyar ve bu konuda hiç sorulmadı.` },
+      metin: r`Bir optik yarışmasında kapalı bir kutunun sağ yüzündeki bir pencereden tek renkli bir ışın kutuya gönderiliyor. Işın, şekildeki gibi aynı yüzdeki başka bir pencereden, gelen ışına paralel ve ters yönde çıkıyor. Kutunun içinde yalnız düzlem aynalar ya da kesiti ikizkenar dik üçgen olan cam tam yansımalı prizmalar bulunabilir.
+
+{{sekil}}
+
+Kutunun içinde,
+
+I. gelen ışına dik duran tek bir düzlem ayna,
+II. hipotenüs yüzü gelen ışına dik duran tek bir tam yansımalı prizma,
+III. her biri ışını $90°$ döndüren iki tam yansımalı prizma
+
+düzeneklerinden hangileri bulunuyor olabilir?`,
+      sekil: 'kY106_kutu',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`Çıkan ışın gelen ışına paralel ve ters yöndedir ama **başka bir pencereden**, yani kaydırılmış olarak çıkmaktadır.`,
+        r`I. Işına dik duran düzlem ayna ışını kendi üzerinden geri yollar; ışın girdiği pencereden çıkar, kayma olmaz. **Olamaz.**`,
+        r`II. Hipotenüse dik giren ışın iki dik kenarda tam yansıma yapar ve $180°$ döner. Işın, hipotenüsün orta noktasına göre girdiği yerin simetriğinden çıkar; kaydırılmış olarak geri gelir. **Olabilir.**`,
+        r`III. Işını iki kez $90°$ döndüren iki prizma, ışını ters yöne çevirir ve aradaki uzaklık kadar kaydırır. **Olabilir.**`,
+        r`{{S0}} dik duran aynanın ışını kendi üzerinden geri yolladığını, kaydırmadığını görmez. {{S1}} iki prizmayla da aynı sonucun elde edilebileceğini atlar. {{S2}} aynanın ışını kaydırabileceğini sanır ve iki prizmalı düzeneği atlar. {{S3}} aynanın ışını kaydırabileceğini sanır ve tek prizmanın ışını kaydırarak geri gönderdiğini atlar.`
+      ]
+    },
+    {
+      id: 'kY106_12', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Boya karışımı ve renkli ışık',
+      tahmin: { gerekce: r`Boyada karışımın, iki boyanın ortak yansıttığı bileşeni verdiği programın (a) ve (b) maddelerinin özüdür. Üst üste çizilen saydam mürekkepler, boya karışımını ve renkli ışığı birleştiren, hiç sorulmamış bir günlük hayat bağlamıdır.` },
+      metin: r`Mina, beyaz bir kâğıda saydam mürekkepli sarı ve camgöbeği keçeli kalemlerle birbirini kesen iki çizgi çiziyor; kesişim bölgesinde iki mürekkep üst üste biniyor. Mürekkepler ideal boya gibi davranmaktadır.
+
+Çizgilerin kesişim bölgesi, beyaz ışık altında ve karanlık bir odada kırmızı ışık altında sırasıyla hangi renkte görünür?`,
+      secenekler: ['Beyaz ışıkta beyaz; kırmızı ışıkta kırmızı', 'Beyaz ışıkta mavi; kırmızı ışıkta siyah', 'Beyaz ışıkta yeşil; kırmızı ışıkta kırmızı', 'Beyaz ışıkta yeşil; kırmızı ışıkta siyah', 'Beyaz ışıkta siyah; kırmızı ışıkta siyah'],
+      dogru: 3,
+      cozum: [
+        r`Sarı mürekkep kırmızı ve yeşili, camgöbeği mürekkep yeşil ve maviyi yansıtır. Üst üste binen mürekkeplerden yalnız ikisinin de yansıttığı yeşil bileşen geri döner: Kesişim bölgesi beyaz ışıkta **yeşil** görünür.`,
+        r`Kesişim bölgesi yalnız yeşili yansıttığı için kırmızı ışıkta yansıtacağı bileşen kalmaz; **siyah** görünür.`,
+        r`{{S0}} mürekkepleri ışık gibi toplar; sarı ve camgöbeği ışıklar birleşince beyaza yakın bir renk verir ama mürekkepler karışınca bileşen azalır. {{S1}} camgöbeği ile sarının ortak bileşenini mavi sanır. {{S2}} kesişimin rengini doğru bulur ama kırmızı ışıkta sarı mürekkebin kırmızıyı yansıtacağını düşünür; üstteki camgöbeği mürekkep kırmızıyı soğurur. {{S4}} iki mürekkebin her bileşeni soğurduğunu sanır; ortak bileşen yeşildir.`
+      ]
+    },
+    {
+      id: 'kY106_13', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.8.1', beceri: 'Düzenek yorumlama',
+      tahmin: { gerekce: r`Periskop, programın (c) maddesindeki kullanım alanlarının en bilinenidir. İki tam yansımalı prizmadaki ışın yolunu, yön değişimini ve renk ayrışmasının olmadığını birlikte yoklayan bir soru 9 yılda sorulmadı.` },
+      metin: r`Bir denizaltının periskobunda, kesiti ikizkenar dik üçgen olan iki cam prizma şekildeki gibi yerleştirilmiştir. Deniz yüzeyinin üstündeki bir gemiden gelen ışık, üstteki prizmanın dik kenarına dik olarak girer; prizmalardan geçip alttaki gözlemcinin gözüne ulaşır. Camdan havaya geçişte sınır açısı bütün renkler için $45°$'den küçüktür.
+
+{{sekil}}
+
+Buna göre,
+
+I. Işık her prizmada bir kez tam yansıma yapar.
+II. Gemiden gelen beyaz ışık prizmalardan geçerken renklerine ayrılmaz.
+III. Gözlemcinin gözüne giren ışın, üstteki prizmaya gelen ışına göre ters yönde ilerler.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY106_periskop',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. Işık dik kenara dik girer, hipotenüse $45°$ ile gelir ve tam yansıma yapar; aşağı döner. Alttaki prizmada da aynı biçimde bir kez tam yansıma yapıp yatay döner. **Doğru.**`,
+        r`II. Işık prizmalara dik girip dik çıkar; hiçbir yüzeyde eğik kırılma olmaz. Tam yansıma bütün renkler için aynı yönde olduğundan renkler ayrışmaz. **Doğru.**`,
+        r`III. Işık önce aşağı, sonra yeniden ilk yönüne döner; göze giren ışın gelen ışınla aynı yönde ilerler, yalnız daha alçaktadır. **Yanlış.**`,
+        r`{{S0}} beyaz ışığın her prizmada renklerine ayrıldığını sanır; ayrışma yalnız eğik kırılmada olur. {{S2}} iki $90°$'lik dönüşü toplayıp ışının ters döndüğünü sanır ve ayrışma olmadığını atlar. {{S3}} ışının ters yönde ilerlediğini sanır ve her prizmadaki tam yansımayı atlar. {{S4}} iki dönüşün birbirini götürdüğünü görmez; ışın ilk yönünde ilerler.`
+      ]
+    },
+    {
+      id: 'kY106_14', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Filtreden geçiş',
+      tahmin: { gerekce: r`Kazanımın (ç) maddesi ışığın filtreden geçişine ve soğurulmasına örnek istenmesini açıkça yazar. Arka arkaya filtreler ve sıranın etkisi, ÖSYM'nin henüz sormadığı ama ders kitaplarının işlediği tipik bir yargı sorusudur.` },
+      metin: r`Karanlık bir odada beyaz ışık veren bir lambanın önüne sırasıyla sarı ve camgöbeği renkli iki filtre şekildeki gibi konuyor; filtrelerden geçen ışık beyaz bir perdeye düşüyor. Filtreler idealdir: Beyaz ışık altında görünen renklerinin bileşenlerini geçirir, ötekileri soğurur.
+
+{{sekil}}
+
+Buna göre,
+
+I. Perdede yeşil bir leke oluşur.
+II. Filtrelerin yerleri değiştirilirse perdedeki lekenin rengi değişir.
+III. Camgöbeği filtrenin arkasına bir de magenta filtre konursa perdeye ışık ulaşmaz.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY106_filtreler',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Sarı filtre beyaz ışığın kırmızı ve yeşil bileşenlerini geçirir, maviyi soğurur. Camgöbeği filtre bunlardan yalnız yeşili geçirir. Perdede yeşil leke oluşur. **Doğru.**`,
+        r`II. Arka arkaya filtrelerden yalnız ikisinin de geçirdiği bileşen geçer; sıra değişse de ortak bileşen yeşildir. **Yanlış.**`,
+        r`III. Magenta filtre kırmızı ve maviyi geçirir, yeşili soğurur. Gelen yeşil ışık tutulur; perdeye ışık ulaşmaz. **Doğru.**`,
+        r`{{S0}} magenta filtrenin yeşili soğurduğunu görmez. {{S1}} sıranın önemli olduğunu sanır ve iki doğru yargıyı atlar. {{S2}} filtre sırasının sonucu değiştirdiğini sanır ve magenta filtrenin etkisini atlar. {{S4}} sıranın önemli olduğunu sanır ve perdedeki rengi yeşil bulamaz.`
+      ]
+    },
+    {
+      id: 'kY106_15', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Renkli ışık altındaki gözlemlerden cismin beyaz ışıktaki rengini çıkarmak, 2019 sorusunun ters yönden kurulmuş hâlidir. "Olabilir" mantığı ÖSYM'nin optik sorularında sık kullandığı bir yapıdır.` },
+      metin: r`Karanlık bir odada bir kumaş parçası kırmızı ışıkla aydınlatılınca kırmızı, mavi ışıkla aydınlatılınca siyah görünüyor. Kumaşın boyası idealdir.
+
+Buna göre kumaşın beyaz ışık altındaki rengi,
+
+I. kırmızı,
+II. sarı,
+III. magenta
+
+renklerinden hangileri olabilir?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Kırmızı ışıkta kırmızı görünen kumaş kırmızı bileşeni yansıtır. Mavi ışıkta siyah görünen kumaş mavi bileşeni yansıtmaz. Yeşil bileşen için gözlem yoktur.`,
+        r`I. Kumaş yalnız kırmızıyı yansıtıyorsa beyaz ışıkta kırmızı görünür. **Olabilir.**`,
+        r`II. Kumaş kırmızı ve yeşili yansıtıyorsa beyaz ışıkta sarı görünür; iki gözlem de sağlanır. **Olabilir.**`,
+        r`III. Magenta kumaş maviyi de yansıtır ve mavi ışıkta mavi görünürdü. **Olamaz.**`,
+        r`{{S0}} yeşil bileşen için bilgi olmadığını, sarı kumaşın da gözlemleri sağladığını görmez. {{S1}} mavi ışıkta siyah görünmenin maviyi dışladığını atlar ve kırmızıyı da dışarıda bırakır. {{S3}} magentanın mavi bileşen içerdiğini atlar ve sarıyı görmez. {{S4}} mavi ışıkta siyah görünen kumaşın magenta olabileceğini sanır.`
+      ]
+    },
+    {
+      id: 'kY106_16', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.8.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Prizmanın renklere ayırma özelliği ile filtrede soğurma (10.4.9.1 ç) birleşir. Perdedeki çizgilerden ışığın bileşenlerini, sonra filtreyi bulduran "olabilir" sorusu iki kazanımı birlikte yoklar ve 9 yılda sorulmadı.` },
+      metin: r`Bir laboratuvarda bir lambanın ışığı dar bir yarıktan geçirilip cam bir prizmaya gönderiliyor; perdede şekildeki gibi yalnız yeşil ve mavi renkli iki ince çizgi görülüyor. Lambanın önüne ideal bir filtre konunca perdede yalnız mavi çizgi kalıyor.
+
+{{sekil}}
+
+Buna göre lambanın önüne konan filtre,
+
+I. camgöbeği,
+II. mavi,
+III. magenta
+
+renklerinden hangileri olabilir?`,
+      sekil: 'kY106_cizgi',
+      secenekler: [r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Perdedeki çizgiler lambanın ışığının yeşil ve mavi bileşenlerden oluştuğunu gösterir. Filtre maviyi geçirmeli, yeşili soğurmalıdır.`,
+        r`I. Camgöbeği filtre yeşili de geçirir; iki çizgi de kalırdı. **Olamaz.**`,
+        r`II. Mavi filtre yalnız maviyi geçirir. **Olabilir.**`,
+        r`III. Magenta filtre kırmızı ve maviyi geçirir, yeşili soğurur. Işıkta kırmızı olmadığı için perdede yalnız mavi çizgi kalır. **Olabilir.**`,
+        r`{{S0}} magenta filtrenin de yeşili soğurup maviyi geçirdiğini görmez. {{S1}} mavi filtreyi atlar. {{S2}} camgöbeği filtrenin yeşili de geçirdiğini görmez ve magenta filtreyi atlar. {{S4}} camgöbeği filtrenin yeşil çizgiyi tutacağını sanır; camgöbeği filtre yeşili geçirir.`
+      ]
+    },
+    {
+      id: 'kY106_17', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Filtreyle gözlem',
+      tahmin: { gerekce: r`Filtreden bakıldığında cisimlerin görünen rengi, kazanımın (ç) maddesinin günlük hayattaki karşılığıdır. "Gizli mesaj" kartları ve renkli camlı gözlükler, ÖSYM'nin sevdiği türden özgün ve hiç kullanılmamış bir bağlamdır.` },
+      metin: r`Bir oyuncak kutusundaki gizli mesaj kartı beyaz kartona basılmıştır: Kartın her yeri kırmızı mürekkeple çizilmiş karışık çizgilerle doludur; mesajın harfleri bu çizgilerin arasına mavi mürekkeple yazılmıştır. Kart beyaz ışık altında, kutudan çıkan kırmızı camlı bir gözlükle inceleniyor. Gözlüğün camları ideal kırmızı filtre, mürekkepler ideal boya gibi davranmaktadır.
+
+{{sekil}}
+
+Buna göre,
+
+I. Kırmızı çizgiler, kartın boş kalan beyaz bölgeleriyle aynı renkte görünür.
+II. Mavi harfler mor görünür.
+III. Yeşil camlı bir gözlük kullanılsaydı kırmızı çizgiler ile mavi harfler aynı renkte görünürdü.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY106_mesaj',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Beyaz bölgeler bütün bileşenleri, kırmızı çizgiler yalnız kırmızıyı yansıtır. Kırmızı filtre yalnız kırmızıyı geçirdiği için ikisi de kırmızı görünür; çizgiler kaybolur. **Doğru.**`,
+        r`II. Mavi harfler yalnız maviyi yansıtır; kırmızı filtre maviyi soğurur. Harfler siyah görünür ve kırmızı zeminde okunur. **Yanlış.**`,
+        r`III. Yeşil filtre yalnız yeşili geçirir. Kırmızı çizgilerden de mavi harflerden de yeşil ışık gelmez; ikisi de siyah görünür. **Doğru.**`,
+        r`{{S0}} yeşil filtrenin kırmızı ve maviyi birlikte soğurduğunu görmez. {{S1}} filtreden bakınca rengin kırmızı ile mavinin karışımı gibi göründüğünü sanır; filtre maviyi geçirmez. {{S3}} mavi harflerin mor görüneceğini sanır ve kırmızı çizgilerin beyaz zeminden ayırt edilemeyeceğini atlar. {{S4}} mavi harflerin mor görüneceğini sanır; harflerden filtreye ışık geçmez ve harfler siyah görünür.`
+      ]
+    },
+    {
+      id: 'kY106_18', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Grafik okuma',
+      tahmin: { gerekce: r`Bir cismin hangi bileşenleri yansıttığını grafikten okuyup renkli ışık altındaki rengini bulmak, 10.4.9.1'i TYT'nin grafik yorumlama kalıbıyla birleştirir. Bu konuda grafikli bir soru 9 yılda sorulmadı.` },
+      metin: r`Bir kumaş üreticisi, bir kumaşın beyaz ışık altında kırmızı, yeşil ve mavi ışığı ne oranda yansıttığını ölçüp şekildeki grafiği çiziyor. Kumaşın, grafikte oranı sıfır olan ışığı hiç yansıtmadığı kabul ediliyor.
+
+{{sekil}}
+
+Bu kumaş karanlık bir odada camgöbeği ışıkla aydınlatılırsa hangi renkte görünür?`,
+      sekil: 'kY106_cubuk',
+      secenekler: ['Sarı', 'Yeşil', 'Camgöbeği', 'Mavi', 'Siyah'],
+      dogru: 1,
+      cozum: [
+        r`Grafiğe göre kumaş kırmızıyı ve yeşili yansıtır, maviyi hiç yansıtmaz; beyaz ışıkta sarı görünür.`,
+        r`Camgöbeği ışık yeşil ve maviden oluşur. Kumaş bunlardan yalnız yeşili yansıtır; **yeşil** görünür.`,
+        r`{{S0}} kumaşın beyaz ışıktaki rengini her ışıkta koruduğunu sanır. {{S2}} kumaşın ışığın rengini aldığını düşünür; kumaş maviyi yansıtmaz. {{S3}} yansıtılan bileşeni ters okur; grafikte mavinin oranı sıfırdır. {{S4}} camgöbeği ışığın kumaşın tamamlayıcısı olduğunu düşünüp ışığın tamamen soğurulacağını sanır; ışıktaki yeşil bileşeni kumaş yansıtır.`
+      ]
+    },
+    {
+      id: 'kY106_19', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Karşılaştırma',
+      tahmin: { gerekce: r`Ara renkteki cisimlerin farklı ışıklar altındaki görünüşünü karşılaştırtmak, 10.4.9.1'in (b) maddesindeki ana-ara renk bilgisini kullandırır. Seçenekleri tek tek denetletmesi bakımından TYT'nin orta zorluktaki soru tarzına uyar.` },
+      metin: r`Bir fotoğraf stüdyosunda sarı, camgöbeği ve magenta renkli üç plastik kutu yan yana diziliyor. Fotoğrafçı, karanlık stüdyoyu her çekimde tek bir lambayla aydınlatarak fotoğraf çekiyor. Lambalardan sarı ışık veren, kırmızı ve yeşil ışığı birlikte yayar. Kutuların boyaları idealdir.
+
+Aşağıdaki ışıklardan hangisinin altında kutulardan ikisi aynı renkte görünür?`,
+      secenekler: ['Sarı', 'Camgöbeği', 'Magenta', 'Beyaz', 'Mavi'],
+      dogru: 4,
+      cozum: [
+        r`Sarı kutu kırmızı ve yeşili, camgöbeği kutu yeşil ve maviyi, magenta kutu kırmızı ve maviyi yansıtır.`,
+        r`Mavi ışıkta sarı kutu siyah, camgöbeği ve magenta kutular mavi görünür; iki kutu aynı renktedir.`,
+        r`Öteki ışıklarda üç kutu üç farklı renkte görünür: Sarı ışıkta sarı, yeşil, kırmızı; camgöbeği ışıkta yeşil, camgöbeği, mavi; magenta ışıkta kırmızı, mavi, magenta; beyaz ışıkta sarı, camgöbeği, magenta.`,
+        r`{{S0}} sarı ışık altında bütün kutuların sarıya döneceğini sanır; kutular yeşil ve kırmızı bileşenleri farklı yansıtır. {{S1}} camgöbeği ışıkta camgöbeği kutu ile sarı kutunun aynı göründüğünü sanır; sarı kutu yeşil, camgöbeği kutu camgöbeği görünür. {{S2}} magenta ışıkta sarı kutunun da magenta görüneceğini sanır; sarı kutu yalnız kırmızıyı yansıtır. {{S3}} beyaz ışığın renkleri birbirine benzettiğini düşünür; beyaz ışıkta her kutu kendi renginde görünür.`
+      ]
+    },
+    {
+      id: 'kY106_20', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Filtreyle ölçüm yorumlama',
+      tahmin: { gerekce: r`Filtrelerin bileşen ayırması (10.4.9.1 ç), uzay araçlarının renkli fotoğrafı üç filtreyle çekmesi gibi bilim ve teknoloji bağlamlarına taşınabilir. Filtre kazanımı 9 yılda sorulmadı; teknoloji bağlamı ÖSYM'nin günlük hayat ve deney bağlamı tercihine uyar.` },
+      metin: r`Bazı uzay araçlarının kameraları siyah-beyaz görüntü alır. Renkli bir fotoğraf için aynı manzara kırmızı, yeşil ve mavi filtreler sırayla kameranın önüne konarak üç kez çekilir; bir cisimden filtreye ulaşıp filtreden geçen ışık ne kadar çoksa cisim o çekimde o kadar parlak görünür. Filtreler idealdir; manzaradaki cisimler beyaz ışıkla aydınlatılmıştır ve ideal boyalar gibi davranır.
+
+Buna göre,
+
+I. Camgöbeği renkli bir sıvı yüzeyi, kırmızı filtreli çekimde parlak görünür.
+II. Sarı bir kaya, kırmızı ve yeşil filtreli çekimlerde parlak, mavi filtreli çekimde karanlık görünür.
+III. Beyaz bir buz tabakası üç çekimde de parlak görünür.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Camgöbeği yüzey yeşil ve maviyi yansıtır, kırmızıyı soğurur. Kırmızı filtreden ışık geçmez; yüzey bu çekimde karanlık görünür. **Yanlış.**`,
+        r`II. Sarı kaya kırmızı ve yeşili yansıtır, maviyi soğurur. **Doğru.**`,
+        r`III. Beyaz buz üç bileşeni de yansıtır; üç filtreden de ışık geçer. **Doğru.**`,
+        r`{{S0}} beyaz cismin üç bileşeni de yansıttığını görmez. {{S1}} sarı kayanın kırmızı ve yeşili yansıttığını görmez. {{S2}} camgöbeği yüzeyin kırmızıyı da yansıttığını sanır ve beyaz buzu atlar. {{S3}} camgöbeği yüzeyin kırmızıyı da yansıttığını sanır ve sarı kayayı atlar.`
+      ]
+    },
+    {
+      id: 'kY106_21', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.8.1', beceri: 'Değişkenleri ayırt etme',
+      tahmin: { gerekce: r`Işının prizmada sapmasının prizmanın biçiminden değil, prizma ile ortamın kırıcılık farkından doğduğu, 10.4.8.1'i 10.4.6'daki kırılma bilgisiyle birleştirir. Hiç sorulmamış bu fikir, hesap gerektirmeyen bir deney sorusu olarak gelebilir.` },
+      metin: r`Fen kulübünde Deniz, ince ve paralel yüzlü cam levhalardan yapılmış, içi boş, üçgen kesitli bir kabı masaya koyuyor. Kabın bir yüzüne tek renkli bir lazer ışını şekildeki gibi eğik olarak gönderiyor ve kaptan çıkan ışının doğrultusunu işaretliyor. Sonra kabı suyla doldurup aynı ölçümü tekrarlıyor.
+
+Işının doğrultusu, kap boşken ve suyla doluyken nasıl değişir?`,
+      sekil: 'kY106_bos',
+      secenekler: ['Boşken tabana doğru sapar; doluyken doğrultusunu korur.', 'Boşken doğrultusunu korur; doluyken tabana doğru sapar.', 'Boşken tepeye doğru sapar; doluyken tabana doğru sapar.', 'Boşken doğrultusunu korur; doluyken tepeye doğru sapar.', 'Boşken tabana doğru sapar; doluyken daha çok tabana doğru sapar.'],
+      dogru: 1,
+      cozum: [
+        r`Kap boşken ışın her yüzde ince ve paralel yüzlü bir cam levhadan geçer; levhadan çıkan ışın girdiği doğrultuya paraleldir, yalnız çok az kayar. Kabın içi de dışı da hava olduğu için ışın **doğrultusunu korur.**`,
+        r`Kap suyla dolunca su, havadan daha kırıcı bir prizma gibi davranır. Işın girerken normale yaklaşır, çıkarken uzaklaşır ve **tabana doğru sapar.**`,
+        r`{{S0}} sapmayı prizmanın biçimine bağlar; boş kapta camın iki yüzü paralel olduğu için sapma oluşmaz. {{S2}} boş kabı havadan az kırıcı bir prizma sanır; kabın içindeki de hava olduğu için kırıcılık farkı yoktur. {{S3}} suyun ışığı tepeye doğru saptırdığını sanır; su havadan kırıcı olduğu için sapma tabana doğrudur. {{S4}} boş kabın da ışığı saptırdığını sanır; kabın içi ve dışı hava olduğu için boşken sapma yoktur.`
+      ]
+    },
+    {
+      id: 'kY106_22', yks: true, zorluk: 2, tur: 'cs', cikti: '10.4.9.1', beceri: 'Toplama ile süzme ayrımı',
+      tahmin: { gerekce: r`Renkli ışıkların üst üste düşünce toplandığı, filtrelerin ise ışığı süzdüğü programın (a) ve (ç) maddelerini birleştirir. Vitray penceresi, ikisini aynı sahnede karşılaştırtan ve ÖSYM'nin bağlam tarzına uyan bir örnektir.` },
+      metin: r`Bir kütüphanenin vitray penceresinde kırmızı ve yeşil renkli iki cam vardır. Güneş ışığı bu camlardan geçerek karşıdaki beyaz duvara kırmızı ve yeşil iki leke düşürüyor; lekelerin bir bölümü üst üste biniyor. Camlar ideal filtre gibi davranmaktadır ve güneş ışığı beyaz kabul ediliyor.
+
+Lekelerin üst üste bindiği bölge ve bu bölgeye konan mavi renkli bir vazo sırasıyla hangi renkte görünür? (Vazonun boyası idealdir.)`,
+      secenekler: ['Bölge siyah; vazo siyah', 'Bölge beyaz; vazo mavi', 'Bölge sarı; vazo siyah', 'Bölge sarı; vazo mavi', 'Bölge siyah; vazo mavi'],
+      dogru: 2,
+      cozum: [
+        r`Kırmızı camdan geçen kırmızı ışık ile yeşil camdan geçen yeşil ışık duvarda **üst üste düşer**; ışıklar toplanır ve bölge **sarı** görünür.`,
+        r`Bu bölgedeki ışıkta mavi bileşen yoktur. Mavi vazo yalnız maviyi yansıtabildiği için **siyah** görünür.`,
+        r`{{S0}} iki camı arka arkaya konmuş filtreler gibi düşünür; burada ışıklar ayrı camlardan geçip duvarda toplanır. {{S1}} iki renkli ışığın birleşince beyaz verdiğini sanır; beyaz için mavi de gerekir. {{S3}} bölgenin rengini doğru bulur ama vazonun rengini ışıktan bağımsız sanır. {{S4}} ışıkları boya gibi karıştırıp koyulaştırır ve vazonun rengini ışıktan bağımsız sanır.`
+      ]
+    },
+    {
+      id: 'kY106_23', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.8.1', beceri: 'Kavram zinciri',
+      tahmin: { gerekce: r`Renge göre kırıcılık farkını (10.4.8.1 b) tam yansıma ve sınır açısıyla (10.4.6.2) birleştiren nitel bir zincirdir. Hesap gerektirmeden kavramı zorladığı için ÖSYM'nin TYT'deki zor optik sorularına uyar; 9 yılda sorulmadı.` },
+      metin: r`Karanlık bir odada beyaz ışık, cam bir prizmanın birinci yüzeyinden girip ikinci yüzeyinden çıkıyor ve perdede renkli bir şerit oluşturuyor. Işık kaynağı, ışının birinci yüzeye gelme açısı azalacak biçimde yavaş yavaş döndürülüyor; bu sırada ışığın ikinci yüzeye camın içinden gelme açısı büyüyor ve perdedeki şeritten renkler birer birer kayboluyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Perdeden ilk kaybolan renk mordur.
+II. Perdeden kaybolan renkler ikinci yüzeyde tam yansıma yapar.
+III. Camdan havaya geçişte kırmızı ışığın sınır açısı, mor ışığınkinden küçüktür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY106_kayan',
+      secenekler: [r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Işık ikinci yüzeye camın içinden, yani çok kırıcı ortamdan az kırıcı ortama doğru gelir. Gelme açısı sınır açısını aşan renk havaya geçemez, tam yansıma yapar ve perdeye ulaşmaz. Camın kırıcılığı mor ışık için en büyüktür; kırıcılık farkı büyüdükçe sınır açısı küçülür.`,
+        r`I. Mor ışık hem girişte en çok kırılır hem de sınır açısı en küçüktür; gelme açısı büyürken sınır açısını ilk aşan mordur. Perdeden ilk mor kaybolur. **Doğru.**`,
+        r`II. Kaybolan renkler ikinci yüzeyde tam yansıma yapar. **Doğru.**`,
+        r`III. Mor ışığın sınır açısı en küçük, kırmızınınki en büyüktür. **Yanlış.**`,
+        r`{{S0}} kaybolma sırasının sınır açısına bağlı olduğunu görmez. {{S2}} sınır açısı sıralamasını ters kurar ve kaybolmanın nedeninin tam yansıma olduğunu atlar. {{S3}} kırmızının sınır açısının küçük olduğunu sanır ve ilk kaybolan rengi belirlemez. {{S4}} sınır açısı sıralamasını ters kurar; kırıcılığı büyük olan morun sınır açısı en küçüktür.`
+      ]
+    },
+    {
+      id: 'kY106_24', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.9.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Ara renkteki ışıklarla yapılan gözlemlerden cismin rengini çıkarmak, 2019 sorusundaki bileşen düşüncesini tersine çalıştırır. "Kesinlikle" kökü ve deneyi yapılmamış hücreler, ÖSYM'nin verilmeyen bilgiyi varsaydırma tuzağını taşır.` },
+      metin: r`Bir öğrenci, beyaz ışıktaki renklerini bilmediği ideal boyalı X, Y ve Z kartlarını karanlık bir odada sarı, camgöbeği ve magenta ışıklarla ayrı ayrı aydınlatıp gözlemlerini tabloya yazıyor. Sarı ışık kırmızı ve yeşilin, camgöbeği ışık yeşil ve mavinin, magenta ışık kırmızı ve mavinin karışımıdır. Tablodaki çizgi o deneyin yapılmadığını gösteriyor.
+
+{{tablo}}
+
+Buna göre,
+
+I. Z kartı beyaz ışık altında sarı görünür.
+II. X kartı beyaz ışık altında camgöbeği görünür.
+III. Y kartı mavi ışık altında siyah görünür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Kart', 'Sarı ışıkta', 'Camgöbeği ışıkta', 'Magenta ışıkta'], ['X', 'Yeşil', 'Camgöbeği', 'Mavi'], ['Y', 'Kırmızı', 'Siyah', 'Kırmızı'], ['Z', 'Sarı', '—', '—']],
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`X: Sarı ışıkta yeşil görünüyor; yeşili yansıtır, kırmızıyı yansıtmaz. Camgöbeği ışıkta camgöbeği görünüyor; yeşili ve maviyi yansıtır. X yalnız yeşil ve maviyi yansıtır; beyaz ışıkta camgöbeği görünür. II **kesinlikle doğru.**`,
+        r`Y: Sarı ve magenta ışıklarda kırmızı, camgöbeği ışıkta siyah görünüyor; yalnız kırmızıyı yansıtır. Mavi ışıkta siyah görünür. III **kesinlikle doğru.**`,
+        r`Z: Sarı ışıkta sarı göründüğüne göre kırmızıyı ve yeşili yansıtır; maviyi yansıtıp yansıtmadığı bilinmiyor. Z beyaz ışıkta sarı ya da beyaz görünebilir. I **kesin değil.**`,
+        r`{{S0}} yapılmayan deneyi varsayıp Z'yi kesin olarak sarı sayar ve X ile Y'yi atlar. {{S1}} X'in gözlemlerini birleştirmez. {{S2}} Z'nin mavi bileşenini bilinmiyor saymaz ve Y'yi atlar. {{S3}} Z'nin beyaz da olabileceğini görmez ve X'i atlar.`
+      ]
+    },
+    {
+      id: 'kY106_25', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.9.1', beceri: 'Geometri ve renk birleşimi',
+      tahmin: { gerekce: r`Renkli gölgeler, ışık renklerinin toplanmasını (10.4.9.1 a, b) aydınlanma ve gölge konusundaki doğrusal yayılma bilgisiyle birleştirir. Gölgelerin sırasını ve rengini birlikte buldurmak, kavram zinciriyle zorlaşan tipik bir TYT zor sorusudur.` },
+      metin: r`Bir bilim müzesindeki "renkli gölgeler" köşesinde beyaz bir duvarın önünde ince bir sütun durmaktadır. Duvarın karşısına, duvara paralel bir doğru üzerinde soldan sağa kırmızı, yeşil ve mavi ışık veren üç küçük lamba yerleştirilmiştir. Üç lamba yanınca duvarda sütunun birbirinden ayrı üç gölgesi oluşuyor; duvarın gölge düşmeyen kısımları beyaz görünüyor. Şekilde düzenek üstten görülmektedir.
+
+{{sekil}}
+
+Duvardaki 1, 2 ve 3 numaralı gölgeler sırasıyla hangi renkte görünür?`,
+      sekil: 'kY106_golge_genis',
+      secenekler: ['1: camgöbeği, 2: magenta, 3: sarı', '1: sarı, 2: magenta, 3: camgöbeği', '1: kırmızı, 2: yeşil, 3: mavi', '1: mavi, 2: yeşil, 3: kırmızı', '1: siyah, 2: siyah, 3: siyah'],
+      dogru: 1,
+      cozum: [
+        r`Her gölge, yalnız bir lambanın ışığının sütunla engellendiği bölgedir; oraya öteki iki lambanın ışığı ulaşır.`,
+        r`Işık doğrusal yayıldığı için soldaki lambanın gölgesi sütunun sağına, sağdaki lambanınki soluna düşer. 1 numaralı gölge sağdaki mavi lambanın, 2 ortadaki yeşil lambanın, 3 soldaki kırmızı lambanın gölgesidir.`,
+        r`1'e kırmızı ve yeşil ulaşır: sarı. 2'ye kırmızı ve mavi ulaşır: magenta. 3'e yeşil ve mavi ulaşır: camgöbeği.`,
+        r`{{S0}} renkleri doğru bulur ama gölgelerin lambalara göre ters sırada dizildiğini görmez. {{S2}} gölgenin, onu oluşturan lambanın renginde olduğunu sanır. {{S3}} gölgenin sırasını doğru kurar ama gölgenin rengini engellenen lambanın rengi sanır. {{S4}} gölgeye hiç ışık ulaşmadığını sanır; her gölgeye öteki iki lambanın ışığı ulaşır.`
+      ]
+    },
+    {
+      id: 'kY106_26', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.9.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Boya karışımının ortak bileşen kuralını renkli ışık gözlemiyle tersine çalıştırmak, kazanımın (a) ve (b) maddelerini birleştiren üst düzey bir sorudur. "Olabilir" kökü ve birden çok olası çift, ÖSYM'nin zor soru tarzına uyar.` },
+      metin: r`Bir ressam, ideal boyalardan ikisini karıştırıp bir kartı boyuyor. Kart karanlık bir odada kırmızı ışıkla aydınlatılınca siyah, yeşil ışıkla aydınlatılınca yeşil görünüyor.
+
+Buna göre ressamın karıştırdığı boyalar,
+
+I. sarı ve camgöbeği,
+II. yeşil ve camgöbeği,
+III. sarı ve mavi
+
+çiftlerinden hangileri olabilir?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Kart kırmızıyı yansıtmıyor, yeşili yansıtıyor. Karışımda yalnız iki boyanın ortak yansıttığı bileşenler kalır; ortak bileşenlerde yeşil bulunmalı, kırmızı bulunmamalıdır.`,
+        r`I. Sarı (kırmızı, yeşil) ile camgöbeğinin (yeşil, mavi) ortak bileşeni yeşildir. **Olabilir.**`,
+        r`II. Yeşil (yeşil) ile camgöbeğinin (yeşil, mavi) ortak bileşeni yeşildir. **Olabilir.**`,
+        r`III. Sarı (kırmızı, yeşil) ile mavinin (mavi) ortak bileşeni yoktur; kart her ışıkta siyah görünürdü. **Olamaz.**`,
+        r`{{S0}} yeşil boyanın da camgöbeğiyle yeşil karışım verdiğini görmez. {{S1}} boyada ana renk olan sarı ile camgöbeği karışımını atlar. {{S3}} resim dersindeki "sarı + mavi = yeşil" düşüncesini kullanır ve ilk çifti atlar. {{S4}} sarı ve mavi ideal boyaların karışımının yeşil vereceğini sanır; ortak bileşenleri yoktur.`
+      ]
+    },
+    {
+      id: 'kY106_27', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.9.1', beceri: 'Kavramı yeni duruma aktarma',
+      tahmin: { gerekce: r`Suyun derinlikle kırmızı ışığı soğurması, suyu doğal bir filtreye çevirir; 10.4.9.1 (ç) maddesini gerçek bir doğa olayına aktarır. Bilimsel bağlamı ve üç adımlı düşünme zinciriyle ÖSYM'nin zor soru tarzına uyar.` },
+      metin: r`Deniz suyu, içinden geçen güneş ışığının kırmızı bileşenini, yeşil ve mavi bileşenlerinden çok daha fazla soğurur. Yaklaşık $20\ \text{m}$ derinlikteki bir dalgıca ulaşan güneş ışığında kırmızı bileşenin kalmadığı, yeşil ve mavi bileşenlerin ise korunduğu kabul ediliyor. Dalgıç bu derinlikte, beyaz ışık altında kırmızı görünen bir mercanı ve kendi beyaz yüzgeçlerini inceliyor. Mercanın ve yüzgeçlerin renkleri ideal boyalar gibi davranmaktadır; dalgıcın beyaz ışıklı el fenerinin ışığının sudaki kısa yolunda soğurulması önemsizdir.
+
+Buna göre,
+
+I. Fener kapalıyken mercan dalgıca siyah görünür.
+II. Fener kapalıyken dalgıcın yüzgeçleri camgöbeği renkte görünür.
+III. Dalgıç mercanı fenerle yakından aydınlatırsa mercan kırmızı görünür.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 4,
+      cozum: [
+        r`Bu derinlikte ortamdaki ışık yeşil ve maviden oluşur; su, camgöbeği bir filtre gibi davranmıştır.`,
+        r`I. Kırmızı mercan yalnız kırmızıyı yansıtır; ışıkta kırmızı olmadığı için siyah görünür. **Doğru.**`,
+        r`II. Beyaz yüzgeç gelen ışığın bütün bileşenlerini yansıtır; yeşil ve mavi yansır, yüzgeç camgöbeği görünür. **Doğru.**`,
+        r`III. Fenerin beyaz ışığında kırmızı bileşen vardır; mercan onu yansıtır ve kırmızı görünür. **Doğru.**`,
+        r`{{S0}} beyaz yüzgecin ortamdaki ışığın rengini aldığını ve fenerin kırmızı bileşeni getirdiğini görmez. {{S1}} mercanın renginin derinlikte kalıcı olarak değiştiğini sanır; fener kırmızı bileşeni geri getirir. {{S2}} beyaz cismin her ortamda beyaz göründüğünü sanır; beyaz cisim gelen ışığın rengini gösterir. {{S3}} kırmızı mercanın yeşil ve mavi ışıkta da bir renk yansıtacağını sanır.`
+      ]
+    },
+    {
+      id: 'kY106_28', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.9.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Programın (c) maddesi saf sarı ile karışım sarı arasındaki farkın vurgulanmasını ister; bu ayrım 9 yılda TYT'de hiç sorulmadı. Gözlem tablosundan lambanın ışığını çıkartıp "kesinlikle" ile yoklamak, ÖSYM'nin bu maddeyi sorarken seçebileceği en olası kalıptır.` },
+      metin: r`Dışarıdan ikisi de sarı görünen X ve Y lambalarının her biri saf sarı ışık, kırmızı ile yeşilin karışımı olan sarı ışık ya da bu ikisini birlikte veriyor olabilir. Karanlık bir odada ideal kırmızı boyalı bir elma ve ideal yeşil boyalı bir yaprak, lambalarla ayrı ayrı aydınlatılıyor. İdeal kırmızı boya yalnız kırmızı ışığı, ideal yeşil boya yalnız yeşil ışığı yansıtır.
+
+{{tablo}}
+
+Buna göre,
+
+I. Y lambası yalnız saf sarı ışık verir.
+II. X lambası saf sarı ışık vermez.
+III. X lambasının ışığı ideal bir sarı filtreden geçer.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Lamba', 'Elma', 'Yaprak'], ['X', 'Kırmızı', 'Yeşil'], ['Y', 'Siyah', 'Siyah']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Y'nin ışığında elma kırmızıyı, yaprak yeşili bulamıyor; ışıkta kırmızı ve yeşil bileşen yoktur. Sarı görünen ama kırmızı ve yeşil içermeyen ışık saf sarıdır. **Kesinlikle doğru.**`,
+        r`II. X'in ışığında kırmızı ve yeşil bileşenler vardır; yani karışım sarı içerir. Bunun yanında saf sarı da içerip içermediği bu gözlemlerden anlaşılamaz. **Kesin değil.**`,
+        r`III. İdeal sarı filtre kırmızıyı, yeşili ve saf sarıyı geçirir. X'in ışığının bütün bileşenleri filtreden geçer. **Kesinlikle doğru.**`,
+        r`{{S0}} sarı filtrenin kırmızıyı ve yeşili geçirdiğini görmez. {{S1}} karışım sarı bulunmasını saf sarının bulunmadığı biçiminde yorumlar ve kesin olan iki yargıyı atlar. {{S2}} X'in saf sarı içermediğini kesin sanır ve filtre yargısını atlar. {{S4}} X'in saf sarı içermediğini kesin sanır; gözlemler bunu dışlamaz.`
+      ]
+    },
+    {
+      id: 'kY106_29', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.9.1', beceri: 'Grafik seçme',
+      tahmin: { gerekce: r`Filtre, boyalı yüzey ve ikinci filtreden oluşan bir zincir, 10.4.9.1'in (ç) maddesini çok adımlı düşünmeye çevirir. Doğru grafiği seçtirmek, ÖSYM'nin grafik seçme kalıbını bu konuya taşır.` },
+      metin: r`Bir deneyde beyaz ışık önce magenta bir filtreden geçiyor, sonra camgöbeği boyalı bir kâğıttan yansıyor, en son camgöbeği bir filtreden geçerek kırmızı, yeşil ve mavi ışığın şiddetini ayrı ayrı ölçen bir algılayıcıya ulaşıyor. Filtreler ve boya idealdir.
+
+{{sekil}}
+
+Algılayıcının ölçtüğü şiddetler numaralı grafiklerden hangisindeki gibidir?`,
+      sekil: 'kY106_zincir_genis',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 4,
+      cozum: [
+        r`Magenta filtre beyaz ışığın kırmızı ve mavi bileşenlerini geçirir, yeşili soğurur.`,
+        r`Camgöbeği kâğıt yeşil ve maviyi yansıtır. Gelen kırmızı ve maviden yalnız maviyi yansıtır.`,
+        r`Camgöbeği filtre maviyi geçirir. Algılayıcıya yalnız mavi ışık ulaşır: 5. grafik.`,
+        r`{{S0}} yalnız ilk filtreyi hesaba katar; kâğıt kırmızıyı soğurur. {{S1}} ilk filtreyi atlar; magenta filtre yeşili tutar. {{S2}} magenta ile camgöbeğinin bütün ışığı söndürdüğünü sanır; ikisinin ortak bileşeni mavidir. {{S3}} magentayı tamamlayıcısı olan yeşille karıştırıp ilk filtrenin yalnız yeşili geçirdiğini sanır; magenta filtre yeşili soğurur, kırmızıyı ve maviyi geçirir.`
+      ]
+    },
+    {
+      id: 'kY106_30', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.9.1', beceri: 'Renkli yüzeyde ışık',
+      tahmin: { gerekce: r`Renkli ışığın renkli bir yüzeyde görünüşü, 2019 sorusundaki "boyalı yüzeyi renkli ışıkla aydınlatma" fikrini ters çevirir: Bu kez yüzey sabit, ışık değişkendir. Yazı ile zemini karşılaştırtması bakımından ÖSYM'nin görünürlük kalıbına uyar.` },
+      metin: r`Bir toplantı odasında sunum, beyaz perde yerine camgöbeği boyalı bir duvara yansıtılıyor. Projektörün kırmızı, yeşil ve mavi ışıkları birleştirerek oluşturduğu görüntüde beyaz bir zemin üzerinde kırmızı, camgöbeği ve sarı yazılar vardır. Duvarın boyası idealdir ve odada başka ışık yoktur.
+
+Buna göre duvarda,
+
+I. kırmızı yazılar siyah görünür,
+II. camgöbeği yazılar, beyaz zeminden ayırt edilemez,
+III. sarı yazılar sarı görünür
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Camgöbeği duvar yeşil ve maviyi yansıtır, kırmızıyı soğurur. Duvarın her noktası, oraya düşen ışığın yalnız yeşil ve mavi bileşenlerini geri gönderir.`,
+        r`I. Kırmızı yazılara yalnız kırmızı ışık düşer; duvar bunu soğurur ve yazılar siyah görünür. **Doğru.**`,
+        r`II. Beyaz zemine düşen ışıktan yeşil ve mavi yansır; zemin camgöbeği görünür. Camgöbeği yazılardan da yeşil ve mavi yansır; yazılar zeminle aynı renkte görünür. **Doğru.**`,
+        r`III. Sarı yazılara kırmızı ve yeşil ışık düşer; duvar yalnız yeşili yansıtır ve yazılar yeşil görünür. **Yanlış.**`,
+        r`{{S0}} kırmızı ışığın camgöbeği duvarda soğurulduğunu görmez. {{S1}} yazıların renginin duvardan bağımsız olduğunu sanır. {{S3}} sarı yazıların renginin duvarda korunduğunu sanır ve zemin ile camgöbeği yazıların aynı göründüğünü atlar. {{S4}} sarı yazıların renginin korunduğunu sanır ve kırmızı yazıların siyah göründüğünü atlar.`
+      ]
+    }
+  ],
+  setler: []
+};
+
+window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.10.6 Prizmalar ve Renk: oynanan simülasyonlar
+   Yapabilirim 11'deki prizma simülasyonunun (src/konu/11_3_7/sim.js) ışın izleme modeli bu kitaba uyarlanmıştır.
+   2018 programı prizmalarda matematiksel model vermediği için (10.4.8.1 ç) açı değeri, sapma açısı ve Snell
+   hesabı gösterilmez; ölçüm kutuları yalnız sayım verir (kırılma, tam yansıma, renk sayısı).
+   1) kY106_sim1: eşkenar prizma ve tam yansımalı prizma (dik kenara dik, hipotenüse dik); kırmızı, yeşil, mor, beyaz ışık.
+   2) kY106_sim2: beyaz, saf sarı, karışım sarı ve camgöbeği ışık; filtre yok, ideal kırmızı, yeşil ve sarı filtre; prizma ve perde.
+   Işın yolları figs.js'teki izle() ile Snell Yasası ve tam yansımadan çizilir; camın renklere göre kırıcılık farkı
+   görünür olsun diye abartılmıştır (kırmızı 1,45 … mor 1,615), sıra gerçektir. Şablon ve kurallar: SIM_KILAVUZ.md
+   ============================================================ */
+(function () {
+window.BFY_SIM = window.BFY_SIM || {};
+const liste = window.BFY_SIM['Y.10.6'] = window.BFY_SIM['Y.10.6'] || [];
+const { P, T, svg } = window.BFY_FIGLIB;
+const O = window.BFY_Y106;
+if (!O) return;
+const { izle, isin, prizma, normal, tamIsaret, lamba, perde, filtre, eskenar, solYuz, perdeye, ileri, yon, RK, AD, TAYF, NR } = O;
+
+/* ortak: sahne koordinatlarını ölçekle ve kaydır */
+const olc = (G, q) => [G.ox + G.k * q[0], G.oy + G.k * q[1]];
+/* yarı doğruyu kutuya kadar uzat */
+function kutuya(p, d, k) {
+  let t = 1e9;
+  if (d[0] > 1e-9) t = Math.min(t, (k[2] - p[0]) / d[0]); if (d[0] < -1e-9) t = Math.min(t, (k[0] - p[0]) / d[0]);
+  if (d[1] > 1e-9) t = Math.min(t, (k[3] - p[1]) / d[1]); if (d[1] < -1e-9) t = Math.min(t, (k[1] - p[1]) / d[1]);
+  return [p[0] + d[0] * t, p[1] + d[1] * t];
+}
+function panelYaz(G, satirlar) {
+  const [px, py, pw, ph] = G.panel;
+  let s = `<rect class="bg" x="${px}" y="${py}" width="${pw}" height="${ph}" rx="12" fill="#fbfdfe" stroke="#dde7ee"/>`;
+  let y = py + 26;
+  satirlar.forEach(([m, c, w]) => { if (m) s += T(px + 12, y, m, { size: G.fs, weight: w || 700, fill: c || P.ink }); y += m ? G.sat : G.sat * 0.45; });
+  return s;
+}
+
+/* ---------- 1) Işık prizmada nasıl yol alır? ---------- */
+(function () {
+const GENIS = { W: 560, H: 300, k: 1, ox: 0, oy: 0, kut: [6, 6, 384, 294], panel: [392, 14, 156, 272], fs: 12.5, sat: 19.5 };
+const DAR = { W: 300, H: 528, k: 0.76, ox: 4, oy: 4, kut: [4, 4, 296, 232], panel: [10, 244, 280, 276], fs: 12.5, sat: 20 };
+const RENKLER = { 1: ['kirmizi'], 2: ['yesil'], 3: ['mor'], 4: TAYF };
+/* sahne (taban ölçek): eşkenar prizma; TYP dik kenar; TYP hipotenüs */
+const GEO = {
+  1: { poly: eskenar(190, 46, 176), p0: null, d0: yon(-15) },
+  2: { poly: [[120, 52], [120, 232], [300, 232]], p0: [14, 104], d0: [1, 0] },
+  3: { poly: [[150, 36], [264, 150], [150, 264]], p0: [14, 92], d0: [1, 0] }
+};
+{ const g = GEO[1], e = solYuz(g.poly, 0.5); g.p0 = ileri(e, g.d0, -128); }
+
+function hesap(v, G) {
+  const g = GEO[v.prizma], poly = g.poly.map(q => olc(G, q)), p0 = olc(G, g.p0);
+  const rk = RENKLER[v.isik];
+  const izler = rk.map(c => ({ c, z: izle(poly, p0, g.d0, NR[c]) }));
+  return { poly, p0, izler };
+}
+function sayim(v) {
+  const H = hesap(v, GENIS), z = H.izler[0].z;
+  const kir = z.olay.filter(o => o.tur === 'kir').length, tam = z.olay.filter(o => o.tur === 'tam').length;
+  const ayri = v.prizma === 1 ? RENKLER[v.isik].length : 1;
+  return { kir, tam, ayri };
+}
+function sahne(v, u, o) {
+  const G = o && o.dar ? DAR : GENIS, { W, H } = G;
+  const Hs = hesap(v, G), beyaz = v.isik === 4;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7fa"/>`;
+  s += prizma(u, Hs.poly);
+  if (v.prizma === 2) { const c = Hs.poly[1]; s += `<path d="M${c[0]} ${(c[1] - 9 * G.k).toFixed(1)} H${(c[0] + 9 * G.k).toFixed(1)} V${c[1]}" fill="none" stroke="#5b86a3" stroke-width="1.1"/>`; }
+  const z0 = Hs.izler[0].z;
+  // gelen ışın
+  s += isin([Hs.p0, z0.yol[1]], beyaz ? 'beyaz' : Hs.izler[0].c, { w: 2.6, oklar: [0] });
+  // normaller ve tam yansıma işaretleri (ilk rengin yolu; tam yansımalı prizmada bütün renkler aynı yolu izler)
+  z0.olay.forEach(e => { if (e.tur !== 'dik') s += normal(e.p, e.N, 26 * G.k); });
+  if (v.prizma === 1) {
+    Hs.izler.forEach(({ c, z }) => {
+      const son = kutuya(z.yol[z.yol.length - 1], z.d, G.kut);
+      s += isin([...z.yol.slice(1), son], c, { w: beyaz ? 1.7 : 2.4, oklar: beyaz ? [] : [1] });
+    });
+    if (beyaz) {
+      const zk = Hs.izler[0].z, zm = Hs.izler[6].z, a = kutuya(zk.yol[2], zk.d, G.kut), b = kutuya(zm.yol[2], zm.d, G.kut);
+      s += T((a[0] - 6).toFixed(1), (a[1] - 8).toFixed(1), 'kırmızı', { size: 12, weight: 800, fill: RK.kirmizi, anchor: 'end' });
+      s += T((b[0] - 10).toFixed(1), (b[1] + 2).toFixed(1), 'mor', { size: 12, weight: 800, fill: RK.mor, anchor: 'end' });
+    }
+  } else {
+    const z = z0, son = kutuya(z.yol[z.yol.length - 1], z.d, G.kut);
+    s += isin([...z.yol.slice(1), son], beyaz ? 'beyaz' : Hs.izler[0].c, { w: 2.6, oklar: [z.yol.length - 2] });
+    z.olay.filter(e => e.tur === 'tam').forEach(e => { s += tamIsaret(e.p); });
+  }
+  // bilgi paneli
+  const rAd = { 1: 'kırmızı', 2: 'yeşil', 3: 'mor', 4: 'beyaz' }[v.isik];
+  const L = [];
+  if (v.prizma === 1) {
+    L.push(['Eşkenar cam prizma', P.ink, 800], ['Işık: ' + rAd, beyaz ? P.ink2 : RK[RENKLER[v.isik][0]], 800], ['', 0], ['1. yüzey: normale', P.ink], ['yaklaşır.', P.ink], ['2. yüzey: normalden', P.ink], ['uzaklaşır.', P.ink], ['Sapma: tabana doğru.', '#2f7d4f', 800], ['', 0]);
+    if (beyaz) L.push(['Renkler ayrışır:', '#2f7d4f', 800], ['kırmızı en az, mor', P.ink], ['en çok sapar.', P.ink]);
+    else L.push(['Tek renkli ışık', P.ink], ['başka renklere', P.ink], ['ayrışmaz.', P.ink]);
+  } else {
+    L.push(['Tam yansımalı prizma', P.ink, 800], ['Işık: ' + rAd, beyaz ? P.ink2 : RK[RENKLER[v.isik][0]], 800], ['', 0]);
+    if (v.prizma === 2) L.push(['Dik kenara dik girer;', P.ink], ['kırılmadan geçer.', P.ink], ['Hipotenüste bir kez', '#c0392b'], ['tam yansıma yapar.', '#c0392b'], ['Işın 90° döner.', '#2f7d4f', 800]);
+    else L.push(['Hipotenüse dik girer;', P.ink], ['kırılmadan geçer.', P.ink], ['İki dik kenarda', '#c0392b'], ['tam yansıma yapar.', '#c0392b'], ['Işın 180° döner;', '#2f7d4f', 800], ['geri gider.', '#2f7d4f', 800]);
+    L.push(['', 0], ['Işık yüzeylere dik', P.ink], ['girip çıktığı için', P.ink], ['renkler ayrışmaz.', P.ink]);
+  }
+  s += panelYaz(G, L);
+  return svg(W, H, s, u, o && o.dar ? 80 : 150);
+}
+
+liste.push({
+  id: 'kY106_sim1',
+  baslik: 'Işık prizmada nasıl yol alır?',
+  sonra: 'Işık prizmaları',
+  metin: 'Düğmelerle prizmanın türünü ve ışığın rengini seç. Eşkenar prizmada ışık birinci yüzeye eğik girer; tam yansımalı prizmada (kesiti ikizkenar dik üçgen) ışık bir yüzeye dik girer. Kesikli çizgiler yüzeylerin normalleri, kırmızı halkalar tam yansıma noktalarıdır. Beyaz ışık yedi renk bandıyla gösterilir; renk ayrışması görünsün diye camın renklere göre kırıcılık farkı abartılarak çizilmiştir.',
+  pdfMetin: 'Şekilde beyaz ışık eşkenar bir cam prizmanın birinci yüzeyine eğik olarak giriyor. Işık girerken normale yaklaşır, çıkarken normalden uzaklaşır ve prizmanın tabanına doğru sapar; bu sırada renklerine ayrılır: Kırmızı en az, mor en çok sapar. Renk ayrışması görünsün diye abartılarak çizilmiştir.',
+  kontroller: [
+    { ad: 'prizma', etiket: 'Prizma', deger: 1, secenekler: [
+      { deger: 1, etiket: 'Eşkenar', alt: 'eğik giriş' },
+      { deger: 2, etiket: 'Tam yansımalı', alt: 'dik kenara dik' },
+      { deger: 3, etiket: 'Tam yansımalı', alt: 'hipotenüse dik' }
+    ] },
+    { ad: 'isik', etiket: 'Işık', deger: 4, secenekler: [
+      { deger: 1, etiket: 'Kırmızı' },
+      { deger: 2, etiket: 'Yeşil' },
+      { deger: 3, etiket: 'Mor' },
+      { deger: 4, etiket: 'Beyaz' }
+    ] }
+  ],
+  ciz: (v, u, o) => sahne(v, u, o),
+  olcumler: v => { const c = sayim(v); return [
+    { etiket: 'Yön değiştiren kırılma', deger: c.kir, birim: '', ondalik: 0 },
+    { etiket: 'Tam yansıma', deger: c.tam, birim: '', ondalik: 0 },
+    { etiket: 'Prizmadan çıkan renk bandı', deger: c.ayri, birim: '', ondalik: 0 }
+  ]; },
+  gorev: 'Tam yansımalı prizmada ışığı hipotenüse dik gönder: Işın hipotenüsün neresinden çıkıyor; geldiği doğrultunun üzerinden mi geri dönüyor? Sonra eşkenar prizmada ışığı kırmızıdan mora değiştir: Prizmadan çıkan ışın hangi yöne kayıyor? Önce tahmin et, sonra dene.',
+  gorevCevap: 'Işın hipotenüsün orta noktasına göre girdiği noktanın simetriğinden çıkar; geldiği doğrultuya paralel ama ondan kaymış bir yoldan geri gider, kendi üzerinden dönmez. Eşkenar prizmada mor ışık kırmızıdan daha çok kırıldığı için çıkan ışın prizmanın tabanına doğru kayar.'
+});
+})();
+
+/* ---------- 2) Filtre ve prizma: perdeye hangi renkler ulaşır? ---------- */
+(function () {
+const GENIS = { W: 560, H: 300, k: 1, ox: 0, oy: 0, xp: 446, fs: 12, et: 12 };
+const DAR = { W: 300, H: 290, k: 0.6, ox: 4, oy: 36, xp: 240, fs: 11.5, et: 11.5 };
+/* ışık kaynakları: bileşenler; görünen renk */
+const ISIK = {
+  1: { ad: 'beyaz ışık', bil: TAYF, gor: 'beyaz' },
+  2: { ad: 'saf sarı', bil: ['sari'], gor: 'sari' },
+  3: { ad: 'kırmızı + yeşil', bil: ['kirmizi', 'yesil'], gor: 'sari' },
+  4: { ad: 'yeşil + mavi', bil: ['yesil', 'mavi'], gor: 'camgobegi' }
+};
+/* ideal filtreler: geçirdiği bileşenler */
+const FILTRE = {
+  0: { ad: 'filtre yok', gec: null },
+  1: { ad: 'kırmızı filtre', gec: ['kirmizi'], renk: 'kirmizi' },
+  2: { ad: 'yeşil filtre', gec: ['yesil'], renk: 'yesil' },
+  3: { ad: 'sarı filtre', gec: ['kirmizi', 'turuncu', 'sari', 'yesil'], renk: 'sari' }
+};
+const gecen = v => { const f = FILTRE[v.filtre]; return ISIK[v.isik].bil.filter(c => !f.gec || f.gec.includes(c)); };
+/* geçen bileşenlerin göze görünen rengi (ışın çizimi için) */
+function gorunen(b) {
+  if (b.length === 7) return 'beyaz';
+  if (b.length === 1) return b[0];
+  const h = new Set(b);
+  if (h.has('kirmizi') && h.has('yesil') && !h.has('mavi')) return 'sari';
+  if (h.has('yesil') && h.has('mavi') && !h.has('kirmizi')) return 'camgobegi';
+  return 'sari';
+}
+/* taban ölçekli sahne: eşkenar prizma, giriş noktası, ışın doğrultusu */
+const E0 = eskenar(262, 56, 158), GIR0 = solYuz(E0, 0.5), D0 = yon(-15), P00 = ileri(GIR0, D0, -196), XF0 = 150;
+
+function sahne(v, u, o) {
+  const G = o && o.dar ? DAR : GENIS, { W, H } = G;
+  const E = E0.map(q => olc(G, q)), gir = olc(G, GIR0), p0 = olc(G, P00), xf = G.ox + G.k * XF0, yf = gir[1] + (gir[0] - xf) * Math.tan(15 * Math.PI / 180);
+  const L = ISIK[v.isik], F = FILTRE[v.filtre], gb = gecen(v);
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7fa"/>`;
+  s += prizma(u, E) + perde(G.xp, o && o.dar ? 30 : 22, H - 22);
+  s += lamba(p0[0] + 2, p0[1], { w: 22, h: 18 });
+  s += T(Math.max(8, p0[0] - 20).toFixed(1), (p0[1] - 18).toFixed(1), L.ad, { size: G.et, weight: 800, fill: L.gor === 'beyaz' ? P.ink : L.gor === 'sari' ? '#9a7400' : '#0b7d8c' });
+  // filtre öncesi ışın
+  const fA = [xf - 5, yf + 5 * Math.tan(15 * Math.PI / 180)], fB = [xf + 5, yf - 5 * Math.tan(15 * Math.PI / 180)];
+  s += isin([p0, fA], L.gor, { w: 3, oklar: [0] });
+  if (F.gec) s += filtre(xf, yf - 34 * Math.max(G.k, 0.7), yf + 34 * Math.max(G.k, 0.7), F.renk);
+  else s += `<rect x="${(xf - 4).toFixed(1)}" y="${(yf - 30).toFixed(1)}" width="8" height="60" rx="1.5" fill="none" stroke="#9aa6af" stroke-dasharray="3 3"/>`;
+  s += T(xf.toFixed(1), (yf + 34 * Math.max(G.k, 0.7) + 16).toFixed(1), F.ad, { size: G.et, weight: 800, anchor: 'middle', fill: F.gec ? (F.renk === 'sari' ? '#9a7400' : RK[F.renk]) : P.ink2 });
+  if (!gb.length) {
+    s += `<line x1="${fB[0].toFixed(1)}" y1="${fB[1].toFixed(1)}" x2="${gir[0].toFixed(1)}" y2="${gir[1].toFixed(1)}" stroke="#9aa6af" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+    s += T(((xf + gir[0]) / 2).toFixed(1), (gir[1] - 22).toFixed(1), 'ışık geçmez', { size: G.et, weight: 800, anchor: 'middle', fill: '#c0392b' });
+    return svg(W, H, s, u, o && o.dar ? 80 : 150);
+  }
+  s += isin([fB, gir], gorunen(gb), { w: 3 });
+  const uc = [];
+  gb.forEach(c => {
+    const z = izle(E, p0, D0, NR[c]), son = perdeye(z.yol[2], z.d, G.xp);
+    s += isin([z.yol[1], z.yol[2], son], c, { w: gb.length > 4 ? 1.7 : 2.4 });
+    s += `<rect x="${G.xp}" y="${(son[1] - 2.5).toFixed(1)}" width="7" height="5" fill="${RK[c]}"/>`;
+    uc.push([c, son]);
+  });
+  // perde etiketleri: en çok iki (uçlar); tek çizgide yalnız o renk
+  const et = uc.length > 2 ? [uc[0], uc[uc.length - 1]] : uc;
+  et.forEach(([c, p], i) => {
+    const dy = et.length === 2 ? (i ? 14 : -6) : 4;
+    s += T(G.xp + 11, (p[1] + dy).toFixed(1), AD[c], { size: G.et, weight: 800, fill: c === 'sari' ? '#9a7400' : RK[c] });
+  });
+  return svg(W, H, s, u, o && o.dar ? 80 : 150);
+}
+
+liste.push({
+  id: 'kY106_sim2',
+  baslik: 'Filtreden geçen ışık prizmada ne gösterir?',
+  sonra: 'Cisimler neden renkli görünür?',
+  metin: 'Düğmelerle ışık kaynağını ve kaynağın önüne konan filtreyi seç. Filtreden geçen ışık cam bir prizmada renklerine ayrılır ve perdeye düşer. Filtreler idealdir: Kendi rengindeki bileşenleri geçirir, ötekileri soğurur. Beyaz ışığın tayfı aslında kesintisizdir; burada kırmızıdan mora yedi renk bandı olarak gösterilir ve renk ayrışması görünsün diye abartılarak çizilmiştir.',
+  pdfMetin: 'Şekilde beyaz ışık sarı bir filtreden geçip cam prizmaya ulaşıyor. İdeal sarı filtre mavi, lacivert ve mor bileşenleri soğurur; perdede yalnız kırmızıdan yeşile kadar olan renkler görülür.',
+  kontroller: [
+    { ad: 'isik', etiket: 'Işık', deger: 1, secenekler: [
+      { deger: 1, etiket: 'Beyaz' },
+      { deger: 2, etiket: 'Saf sarı' },
+      { deger: 3, etiket: 'Karışım sarı', alt: 'kırmızı + yeşil' },
+      { deger: 4, etiket: 'Camgöbeği', alt: 'yeşil + mavi' }
+    ] },
+    { ad: 'filtre', etiket: 'Filtre', deger: 3, secenekler: [
+      { deger: 0, etiket: 'Yok' },
+      { deger: 1, etiket: 'Kırmızı' },
+      { deger: 2, etiket: 'Yeşil' },
+      { deger: 3, etiket: 'Sarı' }
+    ] }
+  ],
+  ciz: (v, u, o) => sahne(v, u, o),
+  olcumler: v => { const n0 = ISIK[v.isik].bil.length, n1 = gecen(v).length; return [
+    { etiket: 'Işıktaki renk bandı', deger: n0, birim: 'bant', ondalik: 0 },
+    { etiket: 'Filtreden geçen', deger: n1, birim: 'bant', ondalik: 0 },
+    { etiket: 'Filtrede soğurulan', deger: n0 - n1, birim: 'bant', ondalik: 0 }
+  ]; },
+  gorev: 'Beyaz ışığın önüne sırayla kırmızı, yeşil ve sarı filtreleri koy: Perdede hangi renkler kalıyor? Sonra filtreyi kaldırıp ışığı camgöbeği yap: Perdede hangi renkler görünüyor? Önce tahmin et, sonra dene.',
+  gorevCevap: 'Kırmızı filtrede yalnız kırmızı, yeşil filtrede yalnız yeşil kalır. Sarı filtre mavi, lacivert ve mor bileşenleri soğurur; kırmızıdan yeşile kadar olan renkler kalır. Camgöbeği ışık yeşil ve mavinin karışımıdır; perdede yeşil ve mavi iki ayrı çizgi görünür.'
+});
+})();
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.1.1 Fizik Bilimine Giriş ve Fiziksel Nicelikler — şekiller
    Önek: kY11_ (not, soru ve çözümlü örnek şekilleri; düz 2B), iY11_ (tanım ve efsane çizimleri; 3B izometrik).
    Kurallar: tek boyutta vektörler yatay doğrultuda, doğu sağa; kuvvet okları kırmızı/mavi, bileşke yeşil;
