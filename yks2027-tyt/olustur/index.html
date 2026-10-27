@@ -48907,6 +48907,1238 @@ BFY_SIM['Y.9.4'] = [
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · YD01 (TYT Fizik Denemesi 1, ücretsiz vitrin denemesi)
+   Gerçek TYT fen bölümünün fizik kısmı gibi 7 soru, 10 dakika; ÖSYM soru sırası.
+   Konu yuvaları: Y.2.1, Y.3.1, Y.8.3, Y.5.3, Y.7.2, Y.9.1, Y.10.2. Zorluk 2/3/2 (★/★★/★★★).
+   Kapsam: 2018 fizik öğretim programı (9 ve 10. sınıf); kazanım sınırlamalarına uyulmuştur
+   (kaldırma kuvveti, genleşme, dalga ve aynada hesap yok; devre ve güç karşılaştırması var).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Çıkmamış ya da az çıkmış kazanımlardan gelen sorular "tahmin" alanıyla işaretlidir.
+   Şekil anahtarları: YD01_ öneki. Soru kimlikleri: YD01_1 … YD01_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const TEL = '#24302c', MAV = '#2f7fb8', BAK = '#c25b2a', YES = '#2f8f5b';
+// Eksen: orijin (ox, oy), yatay uç ex, düşey uç ey; eksen adları okların ucunda
+const eksen = (ox, oy, ex, ey, xAd, yAd) =>
+  `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ex + 7},${oy} ${ex - 2},${oy - 3.8} ${ex - 2},${oy + 3.8}" fill="${P.ink}"/>` +
+  `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${ey - 7} ${ox - 3.8},${ey + 2} ${ox + 3.8},${ey + 2}" fill="${P.ink}"/>` +
+  T(ex - 2, oy + 20, xAd, { size: 12, weight: 700, anchor: 'end' }) + T(ox + 8, ey + 4, yAd, { size: 12, weight: 700 }) +
+  T(ox - 5, oy + 14, '0', { size: 11, anchor: 'end', fill: P.ink2 });
+
+// 1. soru: mayalanan hamur için öğrencinin çizdiği üç grafik
+BFY_FIG_EKLE('YD01_hamur_genis', function (u) {
+  const W = 560, H = 196;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f7f4ee"/>`;
+  const pan = (x0, no, xAd, yAd, ciz) => {
+    const ox = x0 + 40, oy = 156, ex = x0 + 156, ey = 44;
+    let t = `<rect class="bg" x="${x0}" y="10" width="174" height="176" rx="10" fill="#fff" stroke="#e3dccd"/>`;
+    t += T(x0 + 87, 30, no, { size: 14, weight: 800, anchor: 'middle', fill: P.green });
+    return t + eksen(ox, oy, ex, ey, xAd, yAd) + ciz(ox, oy);
+  };
+  const cz = d => `<path d="${d}" fill="none" stroke="${BAK}" stroke-width="2.8" stroke-linecap="round"/>`;
+  s += pan(10, 'I', 'Zaman', 'Kütle', (ox, oy) => cz(`M${ox + 2} ${oy - 62} L${ox + 104} ${oy - 62}`));
+  s += pan(193, 'II', 'Zaman', 'Özkütle', (ox, oy) => cz(`M${ox + 2} ${oy - 34} Q${ox + 52} ${oy - 50} ${ox + 104} ${oy - 84}`));
+  // III: özkütle–hacim, sabit kütlede azalan eğri (d·V sabit); başlangıç hacmi sıfırdan farklı
+  s += pan(376, 'III', 'Hacim', 'Özkütle', (ox, oy) => {
+    let d = '';
+    for (let i = 0; i <= 24; i++) { const V = 1 + 1.6 * i / 24, x = ox + 22 + (V - 1) * 52, y = oy - 92 / V + 4; d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(y); }
+    return cz(d) + dashLine(ox + 22, oy - 88, ox + 22, oy, P.ink2, '3 3', 1);
+  });
+  return svg(W, H, s, u, 150);
+});
+
+// 2. soru: kayak merkezi, üstten görünüş; kıvrımlı pist (A → B) ve düz teleferik hattı (B → A)
+BFY_FIG_EKLE('YD01_kayak', function (u) {
+  const W = 320, H = 236, A = [62, 54], B = [262, 186];
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f1f6fa"/>`;
+  // eş yükselti eğrileri (tepe A'nın çevresinde)
+  [[34, 26], [64, 50], [98, 78], [136, 108], [176, 140]].forEach(([rx, ry], i) => {
+    s += `<ellipse class="bg" cx="${A[0] + 6}" cy="${A[1] + 4}" rx="${rx}" ry="${ry}" fill="none" stroke="#c6d6e2" stroke-width="1.1" transform="rotate(${-14 + i * 2} ${A[0] + 6} ${A[1] + 4})"/>`;
+  });
+  // kayak pisti (kıvrımlı, kesikli)
+  s += `<path d="M${A[0]} ${A[1]} C 130 30, 150 70, 96 96 S 70 150, 150 140 S 250 120, 230 160 S 240 196, ${B[0]} ${B[1]}" fill="none" stroke="${MAV}" stroke-width="3" stroke-dasharray="7 5" stroke-linecap="round"/>`;
+  // teleferik hattı (düz) ve kabinler
+  s += `<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="${TEL}" stroke-width="1.8"/>`;
+  [0.3, 0.68].forEach(t => {
+    const x = A[0] + (B[0] - A[0]) * t, y = A[1] + (B[1] - A[1]) * t;
+    s += `<line x1="${f1(x)}" y1="${f1(y)}" x2="${f1(x)}" y2="${f1(y + 7)}" stroke="${TEL}" stroke-width="1.4"/><rect x="${f1(x - 7)}" y="${f1(y + 7)}" width="14" height="11" rx="3" fill="#e05a3a" stroke="#7d2a17" stroke-width="1"/>`;
+  });
+  // istasyonlar
+  [[A, 'A'], [B, 'B']].forEach(([p, ad]) => { s += `<rect x="${p[0] - 9}" y="${p[1] - 9}" width="18" height="18" rx="3" fill="#fff" stroke="${TEL}" stroke-width="1.8"/>` + T(p[0], p[1] + 5, ad, { size: 13, weight: 800, anchor: 'middle', halo: false }); });
+  s += T(A[0] + 14, A[1] - 16, 'A istasyonu (tepe)', { size: 11.5, weight: 700 });
+  s += T(B[0] - 14, B[1] + 28, 'B istasyonu', { size: 11.5, weight: 700, anchor: 'end' });
+  s += T(40, 150, 'kayak pisti', { size: 11.5, weight: 700, fill: MAV });
+  s += T(196, 118, 'teleferik hattı', { size: 11.5, weight: 700, anchor: 'start', fill: TEL });
+  s += T(W - 10, 20, '(Üstten görünüş)', { size: 10.5, weight: 600, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+// 5. soru: üreteç, doğrudan üretece bağlı L4, ana kolda L1, ardından L2 ile (S + L3) paralel
+BFY_FIG_EKLE('YD01_devre', function (u) {
+  const W = 344, H = 236, yT = 46, yB = 204, xP = 40, x4 = 100, x1 = 160, xN = 222, xS1 = 246, xS2 = 284, x3 = 306;
+  const tel = (a, b, c, d) => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="${TEL}" stroke-width="2" stroke-linecap="round"/>`;
+  const lamba = (x, y, ad, o = {}) => `<circle cx="${x}" cy="${y}" r="13" fill="#fffdf0" stroke="${TEL}" stroke-width="2"/>` +
+    `<line x1="${f1(x - 9)}" y1="${f1(y - 9)}" x2="${f1(x + 9)}" y2="${f1(y + 9)}" stroke="${TEL}" stroke-width="1.6"/><line x1="${f1(x - 9)}" y1="${f1(y + 9)}" x2="${f1(x + 9)}" y2="${f1(y - 9)}" stroke="${TEL}" stroke-width="1.6"/>` +
+    T(o.x ?? x + 19, o.y ?? y + 5, ad, { size: 13, weight: 800, anchor: o.anchor || 'start' });
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f6f8f7"/>`;
+  // üreteç (sol, dikey): uzun ince çizgi +, kısa kalın çizgi −
+  s += tel(xP, yT, xP, 116) + tel(xP, 130, xP, yB);
+  s += `<line x1="${xP - 15}" y1="116" x2="${xP + 15}" y2="116" stroke="${TEL}" stroke-width="2"/><line x1="${xP - 8}" y1="130" x2="${xP + 8}" y2="130" stroke="${TEL}" stroke-width="4.5"/>`;
+  s += T(xP - 18, 112, '+', { size: 13, weight: 800, anchor: 'end' }) + T(xP - 18, 140, '−', { size: 14, weight: 800, anchor: 'end' });
+  // raylar
+  s += tel(xP, yT, xS1, yT) + tel(xS2, yT, x3, yT) + tel(xP, yB, x3, yB);
+  // L4: doğrudan üretecin uçlarında
+  s += tel(x4, yT, x4, yB) + lamba(x4, 125, 'L_4');
+  // L1: ana kolda (üst ray)
+  s += lamba(x1, yT, 'L_1', { x: x1, y: yT - 20, anchor: 'middle' });
+  // L2 ve L3 kolları
+  s += tel(xN, yT, xN, yB) + lamba(xN, 125, 'L_2');
+  s += tel(x3, yT, x3, yB) + lamba(x3, 125, 'L_3', { x: x3 - 19, anchor: 'end' });
+  // S anahtarı (açık)
+  s += `<circle cx="${xS1}" cy="${yT}" r="3.2" fill="${TEL}"/><circle cx="${xS2}" cy="${yT}" r="3.2" fill="${TEL}"/>`;
+  s += `<line x1="${xS1}" y1="${yT}" x2="${xS2 - 4}" y2="${yT - 20}" stroke="${TEL}" stroke-width="2.2" stroke-linecap="round"/>`;
+  s += T((xS1 + xS2) / 2, yT + 22, 'S', { size: 13, weight: 800, anchor: 'middle' });
+  // düğüm noktaları
+  [[x4, yT], [x4, yB], [xN, yT], [xN, yB]].forEach(([a, b]) => { s += `<circle cx="${a}" cy="${b}" r="3.4" fill="${TEL}"/>`; });
+  return svg(W, H, s, u, 72);
+});
+
+// 6. soru: tribünde sağa ilerleyen seyirci dalgası; Mert tepede, Ece tepenin arkasında, Zeynep önünde
+BFY_FIG_EKLE('YD01_tribun', function (u) {
+  const W = 336, H = 214, y0 = 150, n = 13, dx = 24, x0 = 24;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#eef4f8"/>`;
+  // tribün basamağı
+  s += `<rect x="8" y="${y0}" width="${W - 16}" height="12" rx="2" fill="#b9c4cc" stroke="#7d8b95" stroke-width="1"/>`;
+  s += `<rect class="bg" x="8" y="${y0 + 12}" width="${W - 16}" height="10" fill="#d5dde3"/>`;
+  const f = i => Math.exp(-((i - 6) ** 2) / (2 * 1.55 * 1.55));
+  const renk = { 4: BAK, 6: YES, 8: MAV };
+  let zarf = '';
+  for (let i = 0; i < n; i++) {
+    const x = x0 + i * dx, h = f(i), ust = y0 - 26 - 46 * h, c = renk[i] || '#5d6d78';
+    // gövde ve baş
+    s += `<rect x="${f1(x - 7)}" y="${f1(ust)}" width="14" height="${f1(y0 - ust)}" rx="6" fill="${c}" opacity="${renk[i] ? 1 : 0.75}"/>`;
+    s += `<circle cx="${x}" cy="${f1(ust - 9)}" r="7.5" fill="#f2c9a5" stroke="#9a6b48" stroke-width="1"/>`;
+    if (h > 0.5) s += `<line x1="${x - 5}" y1="${f1(ust + 4)}" x2="${x - 9}" y2="${f1(ust - 18)}" stroke="${c}" stroke-width="3" stroke-linecap="round"/><line x1="${x + 5}" y1="${f1(ust + 4)}" x2="${x + 9}" y2="${f1(ust - 18)}" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+    zarf += (i ? 'L' : 'M') + f1(x) + ' ' + f1(ust - 21);
+  }
+  s += `<path d="${zarf}" fill="none" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  [[4, 'Ece'], [6, 'Mert'], [8, 'Zeynep']].forEach(([i, ad]) => {
+    const x = x0 + i * dx;
+    s += `<line x1="${x}" y1="${y0 + 24}" x2="${x}" y2="${y0 + 30}" stroke="${renk[i]}" stroke-width="1.6"/>` + T(x, y0 + 44, ad, { size: 12.5, weight: 800, anchor: 'middle', fill: renk[i] });
+  });
+  s += arrow(212, 26, 296, 26, { color: P.ink, w: 2.2, head: 10, headW: 5 }) + T(206, 31, 'dalganın ilerleme yönü', { size: 11.5, weight: 700, anchor: 'end' });
+  return svg(W, H, s, u, 70);
+});
+
+// 7. soru: kaputa yazılabilecek beş biçim (1: ayna simetriği, 2: düz, 3: harf sırası ters, 4: 180° döndürülmüş, 5: baş aşağı)
+BFY_FIG_EKLE('YD01_yazi', function (u) {
+  const W = 300, H = 262, cx = 172, ys = [44, 92, 140, 188, 236];
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f7f7f5"/>`;
+  const yazi = (y, metin, tr) => `<text x="${cx}" y="${y}" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="800" letter-spacing="2" fill="#c0262d" text-anchor="middle"${tr ? ` transform="${tr}"` : ''}>${metin}</text>`;
+  ys.forEach((y, i) => {
+    s += `<rect x="62" y="${y - 30}" width="220" height="40" rx="8" fill="#fff" stroke="#d6d2c8" stroke-width="1.2"/>`;
+    s += `<circle cx="32" cy="${y - 10}" r="13" fill="${P.green}"/>` + T(32, y - 5, String(i + 1), { size: 14, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  });
+  const yo = y => y - 9;  // yazının düşey ortası
+  s += yazi(ys[0], 'AMBULANS', `translate(${2 * cx} 0) scale(-1 1)`);
+  s += yazi(ys[1], 'AMBULANS');
+  s += yazi(ys[2], 'SNALUBMA');
+  s += yazi(ys[3], 'AMBULANS', `rotate(180 ${cx} ${yo(ys[3])})`);
+  s += yazi(ys[4], 'AMBULANS', `translate(0 ${2 * yo(ys[4])}) scale(1 -1)`);
+  return svg(W, H, s, u, 62);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'YD01', ad: 'TYT Fizik Denemesi 1', tur: 'deneme', sure: 600,
+  aciklama: 'Yedi soru, gerçek TYT sırası: mayalanan hamurdan kayak merkezine, dalgıcın kurşun kemerinden diş dolgusuna, stadyum dalgasından ambulansın ters yazısına. Ücretsiz vitrin denemesi.',
+  baglamlar: [
+    'fırında mayalanan ekmek hamuru: kütle sabit, hacim artıyor; kütle–zaman, özkütle–zaman, özkütle–hacim grafikleri (olabilir)',
+    'kayak merkezi üstten görünüş: Ali kıvrımlı pistten A → B, Ece düz teleferikle B → A; yer değiştirmenin yönü, ortalama sürat ve hız',
+    'tatlı su gölünden deniz suyuna geçen dalgıç: ağırlık kemeri, hava yelekli denge; askıda kalmada F_k = G',
+    'diş dolgu malzemeleri: mine 11, cam iyonomer 11, altın alaşımı 14, amalgam 25, kompozit reçine 40 (× 10⁻⁶ /°C); sıcak çay ve dondurma (kesinlikle)',
+    'üreteç, doğrudan üretece bağlı L4, ana kolda L1, L2 ile S + L3 paralel; S kapanınca parlaklık değişimi',
+    'stadyumda sağa ilerleyen seyirci dalgası: Ece tepenin arkasında, Mert tepede, Zeynep önünde',
+    'ambulansın ön kaputundaki ters yazı ve öndeki aracın düzlem dikiz aynası; beş yazı biçimi'
+  ],
+  sorular: [
+    {
+      id: 'YD01_1', konu: 'Y.2.1', yks: true, zorluk: 2, cikti: '9.2.1.1', beceri: 'Sabit kütlede özkütle grafiklerini yorumlama',
+      cikmis: { yil: 2019, no: 1, kalip: 'Bir gözlemden özkütle grafiğini seçme' },
+      metin: r`Bir fırında ekmek hamuru mayalanmaya bırakılıyor. Hamurun içinde oluşan gaz kabarcıkları hamurun hacmini zamanla artırıyor; mayalanma boyunca hamurun kütlesinin değişmediği kabul ediliyor. Fırıncı Elif, mayalanma süresince hamurla ilgili aşağıdaki I, II ve III grafiklerini çiziyor.
+
+{{sekil}}
+
+Bu grafiklerden hangileri hamurun mayalanma sürecine uygun olabilir?`,
+      sekil: 'YD01_hamur_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Mayalanmada hamurun kütlesi değişmiyor, hacmi artıyor. Özkütle $d = \dfrac{m}{V}$ olduğundan hacim arttıkça özkütle azalır.`,
+        r`I. Kütle sabit olduğundan kütle–zaman grafiği yatay bir doğrudur. **Uygun.**`,
+        r`II. Hamurun özkütlesi zamanla azalır; zamanla artan özkütle grafiği **uygun değildir.**`,
+        r`III. Kütle sabitken $d \cdot V = m$ çarpımı değişmez: hacim iki katına çıkınca özkütle yarıya iner. Özkütle–hacim grafiği, hamurun ilk hacminden başlayıp giderek azalan bir eğridir. **Uygun.**`,
+        r`Saf bir maddeden kesilen farklı büyüklükteki parçalarda özkütle–hacim grafiği yatay bir doğrudur. Burada ise aynı kütle giderek büyüyen bir hacme yayıldığı için grafik azalan bir eğridir.`,
+        r`{{S0}} özkütle–hacim grafiğini saf maddedeki gibi yatay olmak zorunda sanır ve III'ü eler. {{S1}} hamur kabardıkça özkütlenin arttığını sanır; oysa aynı kütle daha büyük hacme yayılır. {{S2}} kütlenin sabit kaldığını gösteren I. grafiği gözden kaçırır. {{S4}} kütlenin değişmediğini gösteren I'i atlar ve hacim artarken özkütlenin de arttığını sanır.`
+      ]
+    },
+    {
+      id: 'YD01_2', konu: 'Y.3.1', yks: true, zorluk: 1, cikti: '9.3.1.2', beceri: 'Yer değiştirmenin yönlü ve yoldan bağımsız olması',
+      cikmis: { yil: 2026, no: 2, kalip: 'Aynı iki nokta arasında farklı yollarda yer değiştirme karşılaştırması' },
+      metin: r`Bir kayak merkezinde Ali, tepedeki A istasyonundan kıvrımlı kayak pistini izleyerek aşağıdaki B istasyonuna kayıyor. Ece ise B istasyonundan teleferiğe binip A istasyonuna çıkıyor. Teleferik hattı, A ile B arasında düz bir doğru boyuncadır.
+
+{{sekil}}
+
+Buna göre,
+
+I. Ali'nin yer değiştirmesi, Ece'nin yer değiştirmesiyle aynı yöndedir.
+II. Ali'nin yer değiştirmesinin büyüklüğü, Ece'nin yer değiştirmesinin büyüklüğüne eşittir.
+III. Ali'nin bu hareketteki ortalama sürati, ortalama hızının büyüklüğünden büyüktür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YD01_kayak',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`Yer değiştirme, hareketin başladığı noktadan bittiği noktaya çizilen yönlü doğru parçasıdır; izlenen yola bağlı değildir.`,
+        r`I. Ali'nin yer değiştirmesi A'dan B'ye, Ece'ninki B'den A'ya doğrudur; iki vektör zıt yönlüdür. **Yanlış.**`,
+        r`II. İki yer değiştirmenin büyüklüğü de A ile B arasındaki doğrusal uzaklığa eşittir. **Doğru.**`,
+        r`III. Ali'nin kıvrımlı pistte aldığı yol, A ile B arasındaki doğrusal uzaklıktan büyüktür. Aynı süreye bölündüğünde ortalama sürat (yol / süre), ortalama hızın büyüklüğünden (yer değiştirme / süre) büyük çıkar. **Doğru.**`,
+        r`{{S0}} yer değiştirmenin yönünü izlenen yolun genel doğrultusuna göre belirler ve ikisinin zıt yönlü olduğunu görmez. {{S1}} kıvrımlı yolda alınan yolun yer değiştirmeden büyük olduğunu, dolayısıyla ortalama süratin ortalama hızdan büyük olduğunu atlar. {{S2}} büyüklükleri eşit iki yer değiştirmeyi aynı yönlü, yani eşit sanar ve III'ü atlar. {{S3}} Ali aşağı, Ece yukarı gittiği hâlde yer değiştirmelerin aynı yönlü olduğunu sanır ve büyüklüklerinin eşit olduğunu gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'YD01_3', konu: 'Y.8.3', yks: true, zorluk: 3, cikti: '10.2.2.2', beceri: 'Kaldırma kuvvetiyle günlük bir problemi çözme',
+      tahmin: { gerekce: r`10.2.2.2 kazanımı, kaldırma kuvvetiyle günlük hayattaki bir problemi çözmeyi ister ve 2018–2026 TYT'lerinde ana kazanım olarak hiç sorulmadı. Askıda kalan cisimde kaldırma kuvvetinin ağırlığa eşit olması ve ağırlık artınca bu kuvvetin de artması, ÖSYM'nin yüzen cisim sorularındaki "kuvvet sabit kalır" tuzağının ters yüzüdür.` },
+      metin: r`Dalgıçlar su altında askıda kalmak için kurşun ağırlıklı bir kemer ve içine hava doldurulup boşaltılabilen bir yelek kullanır. Tatlı su gölünde dalan Arda, kemerindeki kurşunlar ve yeleğindeki havayla suyun içinde askıda kalabiliyor. Arda aynı donanımla, özkütlesi tatlı sudan büyük olan deniz suyunda dalış yapacaktır. Arda'nın donanımıyla birlikte hacmi yalnız yelekteki hava miktarıyla değişmektedir.
+
+Buna göre,
+
+I. Yelekte aynı miktarda hava varken, tamamen su altındaki Arda'ya etki eden kaldırma kuvveti denizde göldekinden büyüktür.
+II. Arda, denizde askıda kalmak için yeleğindeki havanın bir kısmını boşaltabilir.
+III. Arda, yeleğindeki havayı değiştirmeden kemerine kurşun ekleyerek denizde askıda kalırsa, ona etki eden kaldırma kuvveti göldekine eşit olur.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. Kaldırma kuvveti $F_k = V_b \cdot d_s \cdot g$'dir. Batan hacim aynıyken deniz suyunun özkütlesi ($d_s$) büyük olduğundan kaldırma kuvveti büyür. **Doğru.**`,
+        r`Askıda kalan dalgıçta kaldırma kuvveti, dalgıcın donanımıyla birlikte ağırlığına eşittir: $F_k = G$. Denizde aynı donanımla $F_k > G$ olur ve Arda yükselmeye başlar.`,
+        r`II. Yelekteki havanın bir kısmı boşaltılınca toplam hacim, dolayısıyla kaldırma kuvveti azalır; $F_k = G$ eşitliği yeniden sağlanabilir. **Doğru.**`,
+        r`III. Kurşun eklenince toplam ağırlık artar. Arda askıda kaldığında kaldırma kuvveti bu yeni ağırlığa eşittir; yeni ağırlık göldeki ağırlıktan büyük olduğundan kaldırma kuvveti de göldekinden büyüktür. **Yanlış.**`,
+        r`{{S0}} yelekteki hava azalınca kaldırma kuvvetinin de azaldığını, böylece Arda'nın yeniden askıda kalabileceğini görmez. {{S2}} askıda kalan cisme etki eden kaldırma kuvvetinin her durumda aynı kaldığını sanır; oysa kuvvet ağırlığa eşittir ve kurşun eklenince ağırlık artmıştır. {{S3}} aynı hacme etki eden kaldırma kuvvetinin sıvının özkütlesiyle arttığını görmez ve kurşun eklenince askıdaki kaldırma kuvvetinin de arttığını atlar. {{S4}} kurşun eklenince askıda kalma koşulundaki kaldırma kuvvetinin de arttığını gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'YD01_4', konu: 'Y.5.3', yks: true, zorluk: 2, cikti: '9.5.5.1', beceri: 'Tablodan genleşmeyi karşılaştırıp kesin çıkarım yapma',
+      tahmin: { gerekce: r`9.5.5.1'den (genleşme) 9 yılda yalnız bir soru geldi (2019) ve o da olay tanıma düzeyindeydi. Programın "genleşmenin günlük hayattaki avantaj ve dezavantajları" vurgusu, gerçek bir malzeme seçimi probleminde katsayı tablosunu nitel karşılaştırmaya çok uygundur; hesap gerektirmeden "kesinlikle" tuzağı kurulabilir.` },
+      metin: r`Diş hekimleri dolgu malzemesi seçerken, malzemenin sıcaklıkla genleşme özelliğinin diş minesininkine yakın olmasına dikkat eder. Tabloda diş minesinin ve bazı dolgu malzemelerinin boyca genleşme katsayıları verilmiştir. Boyca genleşme katsayısı, sıcaklık $1\ ^\circ\text{C}$ değiştiğinde birim uzunluktaki uzama ya da kısalmadır.
+
+{{tablo}}
+
+Ağızdaki dolgu ve çevresindeki mine, sıcak ya da soğuk bir yiyecekle birlikte aynı miktarda ısınıp soğumaktadır. Dolgu ile mine parçasının boyutları eşit kabul ediliyor.
+
+Buna göre,
+
+I. Sıcak çay içilirken amalgam dolgu, mineden daha çok genleşir.
+II. Altın alaşımı dolgu, sıcak çay içilirken mineden daha az genleşir.
+III. Dondurma yenirken mine ile dolgu arasında aralık açılma eğilimi, kompozit reçine dolguda cam iyonomer dolgudakinden fazladır.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Malzeme', r`Boyca genleşme katsayısı ($\times 10^{-6}\ ^\circ\text{C}^{-1}$)`], ['Diş minesi', '11'], ['Cam iyonomer', '11'], ['Altın alaşımı', '14'], ['Amalgam', '25'], ['Kompozit reçine', '40']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Aynı sıcaklık değişiminde, eşit boyutlu iki parçadan boyca genleşme katsayısı büyük olan daha çok uzar; soğurken de daha çok kısalır.`,
+        r`I. Amalgamın katsayısı ($25$) mineninkinden ($11$) büyüktür; sıcakta amalgam daha çok genleşir. **Kesinlikle doğru.**`,
+        r`II. Altın alaşımının katsayısı ($14$) da mineninkinden büyüktür; altın alaşımı mineden daha az değil, daha çok genleşir. **Yanlış.**`,
+        r`III. Soğukta dolgu mineden çok büzülürse aralarında aralık açılmaya başlar. Kompozit reçinenin katsayısı mineninkinden çok büyüktür; cam iyonomerinki ise mineninkine eşittir. **Kesinlikle doğru.**`,
+        r`Bu yüzden ısıl genleşme bakımından mineyle en uyumlu dolgu, katsayısı mineninkine eşit olan cam iyonomerdir. (Değerler, kaynaklarda verilen aralıkların yaklaşık orta değerleridir.)`,
+        r`{{S0}} soğuk bir yiyecekte kompozit reçinenin mineden çok daha fazla büzüldüğünü atlar. {{S1}} altın alaşımının katsayısının mineninkinden küçük olduğunu sanır ve öteki iki karşılaştırmayı atlar. {{S3}} altın alaşımının katsayısını mineninkinden küçük okur ve amalgamın sıcakta mineden çok genleştiğini atlar. {{S4}} katsayısı mineninkinden büyük olan altın alaşımının mineden daha az genleşeceğini sanır.`
+      ]
+    },
+    {
+      id: 'YD01_5', konu: 'Y.7.2', yks: true, zorluk: 3, cikti: '10.1.2.3', beceri: 'Anahtar kapanınca lamba parlaklıklarının değişimini çözümleme',
+      cikmis: { yil: 2023, no: 5, kalip: 'Anahtar konumu değişince lamba parlaklıklarının değişimi' },
+      metin: r`Şekildeki devrede iç direnci önemsiz bir üreteç ve özdeş $L_1$, $L_2$, $L_3$, $L_4$ lambaları vardır. S anahtarı başlangıçta açıktır. Lambaların dirençleri değişmemektedir.
+
+{{sekil}}
+
+S anahtarı kapatılınca $L_1$, $L_2$ ve $L_4$ lambalarının parlaklıkları nasıl değişir?`,
+      sekil: 'YD01_devre',
+      secenekler: [
+        r`$L_1$: artar; $L_2$: artar; $L_4$: değişmez`,
+        r`$L_1$: azalır; $L_2$: azalır; $L_4$: değişmez`,
+        r`$L_1$: artar; $L_2$: azalır; $L_4$: azalır`,
+        r`$L_1$: artar; $L_2$: azalır; $L_4$: değişmez`,
+        r`$L_1$: değişmez; $L_2$: azalır; $L_4$: değişmez`
+      ],
+      dogru: 3,
+      cozum: [
+        r`Lambaların dirençleri $R$, üretecin gerilimi $V$ olsun. $L_4$ doğrudan üretecin uçlarına bağlıdır; S'nin konumu ne olursa olsun uçlarındaki gerilim $V$'dir. $L_4$'ün parlaklığı **değişmez.**`,
+        r`S açıkken $L_3$'ün kolundan akım geçmez; $L_1$ ile $L_2$ seri bağlıdır ve her birinin uçlarındaki gerilim $\dfrac{V}{2}$'dir.`,
+        r`S kapanınca $L_2$ ile $L_3$ paralel olur; eşdeğer dirençleri $\dfrac{R}{2}$'dir. $L_1$'in bulunduğu koldaki toplam direnç $R + \dfrac{R}{2} = \dfrac{3R}{2}$ olur ve bu koldan geçen akım artar.`,
+        r`Gerilim dirençlerle orantılı paylaşılır: $L_1$'in uçlarında $\dfrac{2V}{3}$, paralel kısmın uçlarında $\dfrac{V}{3}$ olur. $P = \dfrac{V^2}{R}$ olduğundan $L_1$'in parlaklığı **artar**, $L_2$'ninki **azalır.**`,
+        r`{{S0}} paralel kola yeni bir lamba eklenince bütün lambaların daha parlak yanacağını sanır. {{S1}} paralel kısmın eşdeğer direnci azalınca $L_1$'in bulunduğu koldaki akımın arttığını görmez. {{S2}} üreteçten çekilen toplam akım artınca $L_4$'ün de etkileneceğini sanır; iç direnç önemsiz olduğundan $L_4$'ün uçlarındaki gerilim değişmez. {{S4}} $L_1$'den geçen akımın değişmediğini sanır; oysa kolun toplam direnci azalmıştır.`
+      ]
+    },
+    {
+      id: 'YD01_6', konu: 'Y.9.1', yks: true, zorluk: 2, cikti: '10.3.1.1', beceri: 'İlerleyen atmada noktaların titreşim yönünü belirleme',
+      cikmis: { yil: 2024, no: 6, kalip: 'Bir andaki görünüm ve ilerleme yönünden noktaların titreşim yönü' },
+      metin: r`Bir stadyumda seyirciler, sırayla ayağa kalkıp yeniden oturarak tribün boyunca ilerleyen bir dalga oluşturuyor. Her seyirci yalnız kendi yerinde kalkıp oturur ve dalga tribünde sağa doğru ilerler. Şekilde dalganın bir andaki görünümü verilmiştir; bu anda Mert en yüksek konumundadır.
+
+{{sekil}}
+
+Bu anda Ece, Mert ve Zeynep'in düşey doğrultudaki hareketleri için aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'YD01_tribun',
+      secenekler: [
+        r`Ece yukarı kalkıyor; Mert o an duruyor; Zeynep aşağı iniyor`,
+        r`Ece aşağı iniyor; Mert yukarı kalkıyor; Zeynep yukarı kalkıyor`,
+        r`Ece aşağı iniyor; Mert o an duruyor; Zeynep yukarı kalkıyor`,
+        r`Üçü de dalgayla birlikte sağa doğru ilerliyor`,
+        r`Ece yukarı kalkıyor; Mert aşağı iniyor; Zeynep yukarı kalkıyor`
+      ],
+      dogru: 2,
+      cozum: [
+        r`Seyirci dalgası, gergin bir ipte ilerleyen bir atma gibidir: Her seyirci yalnız kendi yerinde aşağı yukarı hareket eder, ilerleyen şey dalganın biçimidir.`,
+        r`Dalga sağa ilerlediğine göre, biraz sonra her seyircinin durumunu, şu an hemen solundaki seyircinin durumu alır.`,
+        r`Zeynep'in solundaki seyirciler ondan daha yüksektedir; tepe Zeynep'e yaklaşmaktadır ve Zeynep **yukarı kalkıyor.** Ece'nin solundaki seyirciler ondan daha alçaktadır; tepe Ece'den uzaklaşmaktadır ve Ece **aşağı iniyor.**`,
+        r`Mert en yüksek konumdadır; en yüksek noktada yön değiştirdiği için bu anda düşey hızı sıfırdır: Mert **o an duruyor.**`,
+        r`{{S0}} titreşim yönlerini, dalga sola ilerliyormuş gibi bulur. {{S1}} en yüksek konumdaki Mert'in hâlâ yükseldiğini sanır ve tepenin Ece'den uzaklaştığını görmez. {{S4}} tepenin Ece'den uzaklaştığını görmez ve en yüksek konumdaki Mert'in düşey hızını sıfırdan farklı sanır. {{S3}} dalgayla birlikte seyircilerin de ilerlediğini sanır; dalga enerji taşır, seyirciler yerinde kalır.`
+      ]
+    },
+    {
+      id: 'YD01_7', konu: 'Y.10.2', yks: true, zorluk: 1, cikti: '10.4.4.1', beceri: 'Düzlem aynada görüntünün ayna simetriği olması',
+      tahmin: { gerekce: r`Düzlem ayna 2020 ve 2022'de bakış yönü ve ortam değişimiyle soruldu; görüntünün aynaya göre simetrik oluşması, yani yazıların aynada ters görünmesi hiç sorulmadı. 10.4.4.1'in "görüntü özellikleri çizimler üzerinden açıklanır" maddesine ve ÖSYM'nin günlük hayat bağlamı tercihine birebir uyar.` },
+      metin: r`Ambulansların ön kaputundaki yazı, öndeki aracın sürücüsü dikiz aynasından baktığında doğru okunacak biçimde yazılır. Öndeki aracın dikiz aynası bir düzlem aynadır. Şekilde, kaputa yazılabilecek beş biçim numaralandırılmıştır.
+
+{{sekil}}
+
+Öndeki sürücünün dikiz aynasında yazıyı "AMBULANS" olarak okuyabilmesi için kaputa hangi biçim yazılmalıdır?`,
+      sekil: 'YD01_yazi',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 0,
+      cozum: [
+        r`Düzlem aynada görüntü cisimle eşit boydadır ve düzdür (baş aşağı dönmez). Görüntü, aynaya göre cismin simetriğidir: Aynaya bakan kişi, aynanın karşısındaki bir yazının sağ ucunu solda, sol ucunu sağda görür.`,
+        r`Yazının aynada düz okunabilmesi için kaputa önceden ayna simetriği olarak yazılması gerekir: Harflerin sırası tersine döner ve her harf de sağ-sol ters çevrilir. Bu biçim 1'dir.`,
+        r`{{S1}} düz yazının aynada da düz okunacağını sanır; ayna yazının sağını ve solunu yer değiştirir. {{S2}} yalnız harflerin sırasını ters çevirir; oysa ayna her harfi de ters çevirir. {{S3}} yazıyı $180°$ döndürür; bu, harfleri baş aşağı da çevirir, oysa düzlem ayna görüntüyü baş aşağı çevirmez. {{S4}} görüntünün baş aşağı oluştuğunu sanır; düzlem aynada görüntü düzdür.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · YD02 (TYT Fizik Denemesi 2, ücretsiz vitrin denemesi)
+   Gerçek TYT fen bölümünün fizik kısmı gibi 7 soru, 10 dakika; ÖSYM soru sırası.
+   Konu yuvaları: Y.1.1, Y.3.2, Y.8.1, Y.5.1, Y.6.1, Y.9.2, Y.10.3. Zorluk 2/3/2 (★/★★/★★★).
+   Kapsam: 2018 fizik öğretim programı (9 ve 10. sınıf); kazanım sınırlamalarına uyulmuştur
+   (sıvı basıncında yalnız oran; etki-tepki, su dalgası, küresel ayna ve elektriklenmede hesap yok).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Çıkmamış ya da az çıkmış kazanımlardan gelen sorular "tahmin" alanıyla işaretlidir.
+   Şekil anahtarları: YD02_ öneki. Soru kimlikleri: YD02_1 … YD02_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const TEL = '#24302c', MAV = '#2f7fb8', BAK = '#c25b2a';
+// Düşey ölçü çizgisi (iki uçta ok ve sınır çizgisi)
+const olcuV = (x, y1, y2, et, o = {}) => {
+  const c = o.c || P.ink2;
+  return `<line x1="${x}" y1="${y1 + 1}" x2="${x}" y2="${y2 - 1}" stroke="${c}" stroke-width="1.2"/>` +
+    `<polygon points="${x},${y1} ${x - 3.2},${y1 + 7} ${x + 3.2},${y1 + 7}" fill="${c}"/><polygon points="${x},${y2} ${x - 3.2},${y2 - 7} ${x + 3.2},${y2 - 7}" fill="${c}"/>` +
+    `<line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}" stroke="${c}" stroke-width="1.1"/><line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}" stroke="${c}" stroke-width="1.1"/>` +
+    T(x + (o.sol ? -8 : 8), (y1 + y2) / 2 + 4.5, et, { size: o.size || 12, weight: 700, anchor: o.sol ? 'end' : 'start', fill: P.ink });
+};
+
+// 3. soru: çatıdaki su deposu, zemin kat ve 5 kat, her katta döşemeden 1 m yukarıda musluk (yandan, ölçeksiz)
+BFY_FIG_EKLE('YD02_bina', function (u) {
+  const W = 330, H = 266, yer = 236, k = 8, y = m => yer - m * k, xL = 92, xR = 212, xBoru = 228;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="url(#${u}grass)" opacity=".7"/>`;
+  // bina gövdesi
+  s += `<rect x="${xL}" y="${f1(y(18))}" width="${xR - xL}" height="${f1(18 * k)}" fill="url(#${u}facade)" stroke="#8a7a60" stroke-width="1.6"/>`;
+  const adlar = ['Zemin kat', '1. kat', '2. kat', '3. kat', '4. kat', '5. kat'];
+  for (let i = 0; i < 6; i++) {
+    const yd = y(3 * i);
+    if (i) s += `<line x1="${xL}" y1="${f1(yd)}" x2="${xR}" y2="${f1(yd)}" stroke="#8a7a60" stroke-width="1.2"/>`;
+    s += T(xL + 8, yd - 8, adlar[i], { size: 11, weight: 700, fill: i === 3 || i === 5 ? BAK : P.ink2 });
+    // musluk: döşemeden 1 m yukarıda
+    const ym = y(3 * i + 1);
+    s += `<line x1="${xBoru}" y1="${f1(ym)}" x2="${xR - 2}" y2="${f1(ym)}" stroke="#5f6b72" stroke-width="3"/>`;
+    s += `<path d="M${xR - 2} ${f1(ym - 3)} h-10 v8 h4" fill="none" stroke="${i === 3 || i === 5 ? BAK : '#5f6b72'}" stroke-width="3" stroke-linejoin="round"/>`;
+  }
+  // depo ve boru
+  const yTab = y(18.6), ySu = y(24.6), yUst = y(26.2);   // ölçek bilerek bozuk
+  s += `<rect x="${xBoru - 40}" y="${f1(yUst)}" width="58" height="${f1(yTab - yUst)}" rx="4" fill="#e9eef1" stroke="#5f6b72" stroke-width="1.6"/>`;
+  s += `<rect x="${xBoru - 38}" y="${f1(ySu)}" width="54" height="${f1(yTab - ySu - 2)}" fill="url(#${u}water)" opacity=".9"/>`;
+  s += `<line x1="${xBoru - 38}" y1="${f1(ySu)}" x2="${xBoru + 16}" y2="${f1(ySu)}" stroke="#1f5d8a" stroke-width="1.6"/>`;
+  s += `<line x1="${xBoru}" y1="${f1(yTab)}" x2="${xBoru}" y2="${f1(y(1))}" stroke="#5f6b72" stroke-width="4"/>`;
+  s += T(xBoru - 46, f1(yUst + 14), 'su deposu', { size: 11, weight: 700, anchor: 'end' });
+  // ölçüler
+  s += dashLine(xBoru + 18, ySu, 300, ySu, P.ink2, '3 3', 1);
+  s += olcuV(298, ySu, yer, '22 m', { sol: true });
+  s += olcuV(56, y(3), y(6), '3 m', { sol: true });
+  s += dashLine(60, y(3), xL, y(3), P.ink2, '2 3', 1) + dashLine(60, y(6), xL, y(6), P.ink2, '2 3', 1);
+  s += T(14, H - 8, '(Ölçekli değildir.)', { size: 10.5, weight: 600, fill: P.ink2 });
+  return svg(W, H, s, u, 68);
+});
+
+// 5. soru: yalıtkan platformda duran Ece, eli Van de Graaff üretecinin kubbesinde, saçları kabarık
+BFY_FIG_EKLE('YD02_vdg', function (u) {
+  const W = 300, H = 236, yer = 210;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f3f5f8"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="#d9d4ca"/>`;
+  // üreteç: ayak, sütun, kubbe
+  s += `<rect x="56" y="${yer - 12}" width="64" height="12" rx="3" fill="#5f6b72"/>`;
+  s += `<rect x="80" y="96" width="16" height="${yer - 108}" rx="4" fill="#d8e3ea" stroke="#7d93a0" stroke-width="1.2"/>`;
+  s += `<circle cx="88" cy="68" r="38" fill="url(#${u}metal)" stroke="#5f6b72" stroke-width="1.6"/>`;
+  ['+', '+', '+', '+', '+'].forEach((p, i) => { const a = (-150 + i * 30) * Math.PI / 180; s += T(f1(88 + 28 * Math.cos(a)), f1(72 + 28 * Math.sin(a)), p, { size: 13, weight: 800, anchor: 'middle', fill: BAK, halo: false }); });
+  s += T(88, 24, 'kubbe', { size: 11.5, weight: 700, anchor: 'middle' });
+  // yalıtkan platform
+  s += `<rect x="150" y="${yer - 16}" width="96" height="16" rx="4" fill="#3b4a55"/>`;
+  s += T(198, yer + 18, 'yalıtkan platform', { size: 11, weight: 700, anchor: 'middle' });
+  // Ece
+  const cx = 198, ayak = yer - 16;
+  s += `<line x1="${cx - 8}" y1="${ayak}" x2="${cx - 6}" y2="${ayak - 52}" stroke="#3b5a8a" stroke-width="7" stroke-linecap="round"/><line x1="${cx + 8}" y1="${ayak}" x2="${cx + 6}" y2="${ayak - 52}" stroke="#3b5a8a" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<rect x="${cx - 15}" y="${ayak - 104}" width="30" height="56" rx="10" fill="#d9573b"/>`;
+  s += `<line x1="${cx - 12}" y1="${ayak - 96}" x2="122" y2="74" stroke="#d9573b" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<circle cx="121" cy="74" r="5" fill="#f2c9a5"/>`;
+  // saçlar (kabarık) ve baş
+  const by = ayak - 122;
+  for (let i = 0; i < 13; i++) { const a = (-170 + i * 13.3) * Math.PI / 180; s += `<path d="M${cx} ${by} q ${f1(14 * Math.cos(a + 0.3))} ${f1(14 * Math.sin(a + 0.3))} ${f1(28 * Math.cos(a))} ${f1(28 * Math.sin(a))}" fill="none" stroke="#6b4423" stroke-width="2" stroke-linecap="round"/>`; }
+  s += `<circle cx="${cx}" cy="${by}" r="13" fill="#f2c9a5" stroke="#9a6b48" stroke-width="1"/>`;
+  s += T(cx + 34, by + 4, 'Ece', { size: 12.5, weight: 800 });
+  return svg(W, H, s, u, 64);
+});
+
+// 6. soru: dalga havuzu, üstten görünüş (tepeler plaja doğru sıklaşıyor) ve yandan kesit
+BFY_FIG_EKLE('YD02_havuz', function (u) {
+  const W = 340, H = 238, x0 = 30, x1 = 312, yU = 34, yA = 136;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f4f8fb"/>`;
+  s += T(W - 10, 22, 'Üstten görünüş', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += `<rect x="${x0}" y="${yU}" width="${x1 - x0}" height="${yA - yU}" fill="#cfe7f5" stroke="#5f8aa6" stroke-width="1.6"/>`;
+  s += `<rect x="262" y="${yU}" width="${x1 - 262}" height="${yA - yU}" fill="#ecdcb4"/>`;
+  s += T(287, yA - 8, 'plaj', { size: 11, weight: 700, anchor: 'middle' });
+  s += `<rect x="${x0 - 14}" y="${yU}" width="14" height="${yA - yU}" fill="#5f6b72"/>`;
+  // dalga tepeleri: aralık plaja doğru küçülüyor
+  let x = 52, d = 34;
+  while (x < 256) { s += `<line x1="${f1(x)}" y1="${yU + 4}" x2="${f1(x)}" y2="${yA - 4}" stroke="${MAV}" stroke-width="2.4"/>`; x += d; d = Math.max(11, d * 0.84); }
+  s += arrow(150, yA + 14, 210, yA + 14, { color: P.ink, w: 1.8, head: 8, headW: 4 }) + T(146, yA + 18, 'ilerleme yönü', { size: 11, weight: 700, anchor: 'end' });
+  s += T(x0 - 14, yU - 7, 'dalga üreteci', { size: 11, weight: 700 });
+  // yandan kesit
+  const yS = 176, yD = 222;
+  s += T(10, 166, 'Yandan kesit', { size: 11, weight: 700, fill: P.ink2 });
+  s += `<path d="M${x0} ${yS} L${x1} ${yS} L${x1} ${yS + 4} L262 ${yS + 4} L${x0} ${yD} Z" fill="#9ccfea" opacity=".85"/>`;
+  s += `<path d="M${x0} ${yD} L262 ${yS + 4} L${x1} ${yS + 4}" fill="none" stroke="#8a7a60" stroke-width="2"/>`;
+  s += `<line x1="${x0}" y1="${yS}" x2="${x1}" y2="${yS}" stroke="#1f5d8a" stroke-width="1.4"/>`;
+  s += T(52, yS + 18, 'derin', { size: 11, weight: 700 }) + T(287, yS + 22, 'sığ', { size: 11, weight: 700, anchor: 'middle' });
+  return svg(W, H, s, u, 70);
+});
+
+// 7. soru: iki yüzlü makyaj aynası (önden görünüş); küresel yüzde düz ve büyük göz görüntüsü
+BFY_FIG_EKLE('YD02_makyaj', function (u) {
+  const W = 300, H = 220, cx = 150, cy = 92, R = 66;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f6f2f4"/>`;
+  // ayak ve taşıyıcı çatal
+  s += `<ellipse cx="${cx}" cy="204" rx="58" ry="9" fill="#b9a9b0" stroke="#7d6b73" stroke-width="1.2"/>`;
+  s += `<rect x="${cx - 5}" y="${cy + R + 2}" width="10" height="${204 - cy - R - 6}" rx="3" fill="#c9bcc2" stroke="#7d6b73" stroke-width="1"/>`;
+  s += `<path d="M${cx - R - 10} ${cy} V${cy + R - 6} Q${cx - R - 10} ${cy + R + 8} ${cx - 40} ${cy + R + 8} H${cx + 40} Q${cx + R + 10} ${cy + R + 8} ${cx + R + 10} ${cy + R - 6} V${cy}" fill="none" stroke="#9c8a92" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<circle cx="${cx - R - 10}" cy="${cy}" r="4" fill="#7d6b73"/><circle cx="${cx + R + 10}" cy="${cy}" r="4" fill="#7d6b73"/>`;
+  // çerçeve ve cam
+  s += `<defs><radialGradient id="${u}mk" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#e3edf3"/><stop offset="1" stop-color="#b8cad6"/></radialGradient></defs>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R + 6}" fill="#d8c9cf" stroke="#7d6b73" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${u}mk)" stroke="#9c8a92" stroke-width="1.2"/>`;
+  // camda büyük ve düz göz görüntüsü (kaş üstte, göz altta)
+  s += `<path d="M${cx - 44} ${cy - 22} Q${cx} ${cy - 44} ${cx + 44} ${cy - 20}" fill="none" stroke="#6b4423" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<path d="M${cx - 50} ${cy + 8} Q${cx} ${cy - 26} ${cx + 50} ${cy + 8} Q${cx} ${cy + 36} ${cx - 50} ${cy + 8} Z" fill="#fffaf5" stroke="#5a3d2b" stroke-width="2.2"/>`;
+  s += `<circle cx="${cx}" cy="${cy + 6}" r="17" fill="#5d8a5a"/><circle cx="${cx}" cy="${cy + 6}" r="8" fill="#1d1d1d"/><circle cx="${cx - 6}" cy="${cy}" r="3.4" fill="#fff"/>`;
+  s += `<line x1="244" y1="32" x2="198" y2="52" stroke="${P.ink2}" stroke-width="1.2"/>` + T(W - 10, 26, 'küresel yüz', { size: 12, weight: 700, anchor: 'end' });
+  return svg(W, H, s, u, 60);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'YD02', ad: 'TYT Fizik Denemesi 2', tur: 'deneme', sure: 600,
+  aciklama: 'Yedi soru, gerçek TYT sırası: Eratosthenes\'in gölge ölçümünden uzay istasyonuna, apartman su deposundan çikolata ustasının mermer tezgâhına, Van de Graaff üretecinden dalga havuzuna ve makyaj aynasına. Ücretsiz vitrin denemesi.',
+  baglamlar: [
+    'Eratosthenes: Syene kuyusu, İskenderiye\'de 7,2° gölge açısı, paralel ışın ve küresel Dünya kabulü (bilimsel bilginin doğası)',
+    'Uluslararası Uzay İstasyonunda astronot kendisinden ağır kargo modülünü itiyor: etki-tepki kuvvetleri eşit, ivmelerin nitel karşılaştırması, ayrıldıktan sonra sabit hız',
+    'apartman çatısında su deposu: su yüzeyi zeminden 22 m, kat yüksekliği 3 m, musluk döşemeden 1 m; 5. kat musluğundaki basınç 3. katınkinin yarısı (oran)',
+    'çikolata ustası ısıttığı çikolatayı büyük mermer tezgâha döküyor: iç enerji ile sıcaklık (olabilir)',
+    'bilim merkezinde Van de Graaff üreteci, yalıtkan platformda Ece, kabaran saçlar, elektron aktarımı ve topraklama',
+    'su parkındaki dalga havuzu: sabit frekanslı üreteç, plaja doğru sığlaşan taban, tepeler sıklaşıyor',
+    'iki yüzlü makyaj aynası: küresel yüzde düz ve büyük görüntü; ayna türü, yüzün bölgesi, ayna uzaklaşınca düz görüntünün büyümesi (kesinlikle)'
+  ],
+  sorular: [
+    {
+      id: 'YD02_1', konu: 'Y.1.1', yks: true, zorluk: 1, cikti: '9.1.1.1', beceri: 'Bilimsel bilginin elde edilişini ve doğasını değerlendirme',
+      cikmis: { yil: 2018, no: 1, kalip: 'Bilimsel bilgiye ulaşma yollarını yargılarla değerlendirme' },
+      metin: r`Anlatılana göre MÖ 3. yüzyılda yaşayan Eratosthenes, yaz gündönümünde öğle vakti Syene kentinde (bugünkü Asvan) Güneş ışığının derin bir kuyunun dibine kadar ulaştığını biliyordu. Aynı gün ve saatte, kuzeydeki İskenderiye'de düşey bir çubuğun gölgesinden Güneş ışınlarının düşeyle yaklaşık $7,2°$'lik açı yaptığını ölçtü. Güneş ışınlarının Dünya'ya paralel geldiğini ve Dünya'nın küre biçiminde olduğunu kabul ederek bu açıyı iki kent arasındaki uzaklıkla birleştirdi ve Dünya'nın çevresini hesapladı.
+
+Buna göre,
+
+I. Eratosthenes sonuca yalnız gözlem yaparak ulaşmıştır.
+II. Güneş ışınlarının Dünya'ya paralel geldiği kabulü, Eratosthenes'in akıl yürütmesinin bir parçasıdır.
+III. Eratosthenes'in bulduğu değer, daha sonra yapılan daha duyarlı ölçümlerle düzeltilebilir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`II ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Eratosthenes gözlem ve ölçümün yanında geometrik akıl yürütmeyi de kullanmıştır: $7,2°$, tam çemberin ($360°$) $\dfrac{1}{50}$'sidir; öyleyse iki kent arasındaki uzaklık Dünya'nın çevresinin $\dfrac{1}{50}$'sidir. **Yanlış.**`,
+        r`II. Paralel ışın ve küresel Dünya kabulleri, ölçülen açıyı Dünya'nın büyüklüğüne bağlayan akıl yürütmenin temelidir. **Doğru.**`,
+        r`III. Bilimsel bilgi kesin ve değişmez değildir; daha duyarlı ölçümler ve yeni kanıtlarla düzeltilebilir. **Doğru.**`,
+        r`Bu çalışma, fiziğin evreni anlamadaki rolüne güzel bir örnektir: Dünya'nın büyüklüğü, Dünya'nın çevresinde dolaşmadan bulunmuştur.`,
+        r`{{S0}} açı ölçümünü tek başına yeterli sanır ve sonuca ulaştıran geometrik akıl yürütmeyi atlar. {{S1}} bilimsel bilginin yeni ölçümlerle düzeltilebileceğini atlar. {{S2}} paralel ışın kabulünün akıl yürütmenin bir parçası olduğunu görmez. {{S4}} ölçülen açıdan çevreye geçişte kullanılan akıl yürütmeyi göz ardı edip sonucun yalnız gözlemle elde edildiğini sanır.`
+      ]
+    },
+    {
+      id: 'YD02_2', konu: 'Y.3.2', yks: true, zorluk: 1, cikti: '9.3.3.3', beceri: 'Etki-tepki kuvvetlerini ve ivmeleri nitel karşılaştırma',
+      cikmis: { yil: 2020, no: 2, kalip: 'Etkileşen iki cisimde kuvvet eşitliği ve ivme karşılaştırması' },
+      metin: r`Uluslararası Uzay İstasyonunda, istasyona göre durgun olan bir astronot, yanında duran ve kütlesi kendi kütlesinden büyük olan bir kargo modülünü elleriyle itiyor. İtme kısa sürüyor ve astronot ile modül birbirinden ayrılıyor. Astronot ve modül istasyonun hiçbir yerine değmiyor; havanın direnci önemsizdir.
+
+Buna göre,
+
+I. İtme süresince astronotun ivmesinin büyüklüğü, modülün ivmesinin büyüklüğünden büyüktür.
+II. İtme süresince modülün astronota uyguladığı kuvvet, astronotun modüle uyguladığı kuvvetten küçüktür.
+III. Ayrıldıktan sonra modül, istasyona göre yavaşlayarak durur.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`II. Astronotun modüle uyguladığı kuvvet ile modülün astronota uyguladığı kuvvet etki-tepki çiftidir; büyüklükleri her an eşittir. **Yanlış.**`,
+        r`I. Astronota ve modüle etki eden kuvvetlerin büyüklükleri eşittir. $F = m \cdot a$ bağıntısına göre aynı büyüklükteki kuvvet, kütlesi küçük olan cisme daha büyük ivme kazandırır; kütlesi küçük olan astronotun ivmesi daha büyüktür. **Doğru.**`,
+        r`III. Ayrıldıktan sonra modüle, istasyona göre hareketini değiştirecek bir kuvvet etki etmez; modül istasyona göre sabit hızla hareketini sürdürür. **Yanlış.**`,
+        r`{{S1}} kütlesi küçük olan astronotun daha büyük kuvvet uyguladığını sanır ve ivmelerin karşılaştırmasını atlar. {{S2}} kütlesi büyük olan modülün daha küçük kuvvet uyguladığını sanır. {{S3}} hareketin sürmesi için kuvvet gerektiğini, kuvvet kalkınca cismin duracağını sanır. {{S4}} etki-tepki kuvvetlerini eşit saymaz ve ayrılan modülün kendiliğinden duracağını sanır.`
+      ]
+    },
+    {
+      id: 'YD02_3', konu: 'Y.8.1', yks: true, zorluk: 2, cikti: '10.2.1.1', beceri: 'Sıvı basıncını derinlikle oran düzeyinde karşılaştırma',
+      tahmin: { gerekce: r`Sıvı basıncı 2018–2026 TYT'lerinde yalnız nitel olarak (2020 gaz, 2021 katı basıncı) soruldu. Program sayısal basınç hesabı istemez; sıvı basıncının yüzeyden derinlikle orantılı olduğunu bir apartman tesisatında "neyin derinliği?" tuzağıyla oran düzeyinde yoklamak hiç gelmedi.` },
+      metin: r`Bir apartmanın çatısındaki su deposu, binadaki musluklara borularla bağlıdır. Depodaki su yüzeyi zeminden $22\ \text{m}$ yüksektedir. Bina, zemin kat ile birlikte altı kattır; katlar arasındaki yükseklik $3\ \text{m}$'dir ve her kattaki musluk o katın döşemesinden $1\ \text{m}$ yüksektedir.
+
+{{sekil}}
+
+Musluklar kapalıyken 3. kattaki musluğun ağzında suyun oluşturduğu basınç $P$'dir. Buna göre 5. kattaki musluğun ağzında suyun oluşturduğu basınç kaç $P$'dir?`,
+      sekil: 'YD02_bina',
+      secenekler: [r`$0,5$`, r`$0,6$`, r`$1$`, r`$1,6$`, r`$2$`],
+      dogru: 0,
+      cozum: [
+        r`Durgun suyun bir noktada oluşturduğu basınç, o noktanın su yüzeyinden olan derinliğiyle doğru orantılıdır ($P = h \cdot d \cdot g$). Boruların biçimi ve uzunluğu basıncı değiştirmez.`,
+        r`3. katın döşemesi zeminden $3 \cdot 3 = 9\ \text{m}$, musluğu $10\ \text{m}$ yüksektedir; bu musluğun su yüzeyinden derinliği $22 - 10 = 12\ \text{m}$'dir.`,
+        r`5. katın döşemesi zeminden $5 \cdot 3 = 15\ \text{m}$, musluğu $16\ \text{m}$ yüksektedir; bu musluğun derinliği $22 - 16 = 6\ \text{m}$'dir.`,
+        r`Derinlik yarıya indiği için basınç da yarıya iner: 5. kattaki musluğun ağzındaki basınç $0,5P$'dir.`,
+        r`{{S1}} zemin katı 1. kat sayar; muslukların derinliklerini $15\ \text{m}$ ve $9\ \text{m}$ alıp oranı $\dfrac{9}{15} = 0,6$ bulur. {{S2}} aynı depoya bağlı bütün musluklarda basıncın eşit olduğunu sanır; oysa basınç musluğun su yüzeyinden derinliğine bağlıdır. {{S3}} basıncı derinlikle değil, musluğun zeminden yüksekliğiyle orantılı sanır ($\dfrac{16}{10} = 1,6$). {{S4}} oranı ters kurar ($\dfrac{12}{6} = 2$).`
+      ]
+    },
+    {
+      id: 'YD02_4', konu: 'Y.5.1', yks: true, zorluk: 3, cikti: '9.5.1.1', beceri: 'Sıcaklık, ısı ve iç enerjiyi ayırt etme',
+      tahmin: { gerekce: r`9.5.1.1 (ısı, sıcaklık, iç enerji) 2018–2026 TYT'lerinde ana kazanım olarak hiç sorulmadı. İç enerjinin kütleye bağlı olması nedeniyle "soğuk cismin iç enerjisi daha büyük olabilir" çıkarımı, ÖSYM'nin "olabilir" kalıbına çok uygun bir kavram yanılgısı sorusudur.` },
+      metin: r`Bir çikolata ustası, eritip ısıttığı bir miktar çikolatayı soğutmak için oda sıcaklığındaki büyük bir mermer tezgâhın üzerine döküyor. Bir süre boyunca çikolatadan mermere enerji aktarılıyor; bu sürede çikolata katılaşmıyor.
+
+Enerji aktarımı sürerken çikolata ve mermerle ilgili aşağıdakilerden hangisi olabilir?`,
+      secenekler: [
+        r`Mermerin sıcaklığı çikolatanınkinden büyüktür.`,
+        r`Mermerin sıcaklığı azalmaktadır.`,
+        r`Mermerin iç enerjisi çikolatanınkinden büyüktür.`,
+        r`Enerji aktarımı, mermerin sıcaklığı çikolatanınkini geçinceye kadar sürer.`,
+        r`Çikolatanın taneciklerinin ortalama kinetik enerjisi, mermerinkinden küçüktür.`
+      ],
+      dogru: 2,
+      cozum: [
+        r`Isı, sıcaklık farkı nedeniyle sıcaklığı büyük olan maddeden küçük olana aktarılan enerjidir. Enerji çikolatadan mermere aktarıldığına göre çikolatanın sıcaklığı mermerinkinden büyüktür.`,
+        r`Sıcaklık, taneciklerin ortalama kinetik enerjisinin göstergesidir; çikolatanın taneciklerinin ortalama kinetik enerjisi daha büyüktür.`,
+        r`İç enerji ise maddedeki bütün taneciklerin enerjilerinin toplamıdır ve maddenin miktarına bağlıdır. Büyük mermer tezgâhın kütlesi çikolatanınkinden çok büyük olduğundan iç enerjisi, sıcaklığı küçük olduğu hâlde, çikolatanınkinden büyük **olabilir.**`,
+        r`Enerji alan mermer hâl değiştirmediği için ısınır; aktarım, sıcaklıklar eşitlenince durur.`,
+        r`{{S0}} enerjinin sıcaklığı küçük olan maddeden büyük olana kendiliğinden aktarılabileceğini sanır. {{S1}} enerji alan mermerin soğuduğunu sanır. {{S4}} sıcaklığı büyük olan çikolatanın taneciklerinin ortalama kinetik enerjisinin de büyük olduğunu görmez. {{S3}} ısı alışverişinin sıcaklıklar eşitlenince durduğunu bilmez.`
+      ]
+    },
+    {
+      id: 'YD02_5', konu: 'Y.6.1', yks: true, zorluk: 2, cikti: '9.6.1.2', beceri: 'Dokunmayla elektriklenme ve topraklamayı yorumlama',
+      tahmin: { gerekce: r`2025 ve 2026'da elektriklenme soruları geldi ama ikisi de elektron aktarımı ve elektroskop üzerineydi. 9.6.1.2'nin topraklama maddesi hiç sorulmadı. Bilim merkezlerindeki Van de Graaff gösterisi, dokunmayla elektriklenmeyi, aynı cins yüklerin itmesini ve topraklamayı tek bir günlük bağlamda birleştirir.` },
+      metin: r`Bir bilim merkezinde Ece, yalıtkan bir platformun üzerinde dururken elini Van de Graaff üretecinin metal kubbesine koyuyor. Üreteç çalıştırılınca kubbe pozitif yükleniyor ve bir süre sonra Ece'nin saç telleri şekildeki gibi birbirinden ayrılarak kabarıyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Ece'nin saç telleri aynı cins yükle yüklendiği için birbirini iter.
+II. Ece yalıtkan platform yerine doğrudan toprak zeminde dursaydı da saçları aynı biçimde kabarırdı.
+III. Ece'nin vücudundan kubbeye elektron geçmiştir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YD02_vdg',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`III. Pozitif yüklenen kubbe, eli değen Ece'den elektron çeker; elektronlar Ece'nin vücudundan kubbeye geçer ve Ece de pozitif yüklenir. **Doğru.**`,
+        r`I. Fazla yük Ece'nin vücuduna ve saçlarına dağılır. Bütün saç telleri pozitif yüklü olduğundan birbirini iter ve teller birbirinden uzaklaşır. **Doğru.**`,
+        r`II. Ece toprağa değseydi, kubbenin çektiği elektronların yerine topraktan elektron gelirdi (topraklama). Ece'nin vücudunda fazla yük birikmez, saçları kabarmazdı. Yalıtkan platform bu yüzden kullanılır. **Yanlış.**`,
+        r`{{S0}} saçlar yüklendiğine göre bu yükün kubbeye elektron geçişiyle oluştuğunu atlar. {{S1}} saç tellerinin aynı cins yükle yüklenip birbirini ittiğini görmez. {{S3}} topraklamanın yük birikmesini önlediğini bilmez ve saçların itmesini atlar. {{S4}} toprağa değen bir insanın da aynı biçimde yüklü kalacağını sanır.`
+      ]
+    },
+    {
+      id: 'YD02_6', konu: 'Y.9.2', yks: true, zorluk: 2, cikti: '10.3.3.3', beceri: 'Derinlik değişince su dalgalarının niceliklerini karşılaştırma',
+      cikmis: { yil: 2022, no: 6, kalip: 'Tepelerin sıklaştığı görünümden sürat, frekans ve dalga boyunun değişimi' },
+      metin: r`Bir su parkındaki dalga havuzunun derin ucunda bulunan dalga üreteci, sabit frekansla doğrusal dalgalar oluşturuyor. Havuzun tabanı, üretecin karşısındaki plaj kısmına doğru giderek sığlaşıyor. Şekilde dalga tepelerinin bir andaki üstten görünüşü ve havuzun yandan kesiti verilmiştir.
+
+{{sekil}}
+
+Dalgalar plaja doğru ilerlerken dalgaların sürati, frekansı ve dalga boyu için aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'YD02_havuz',
+      secenekler: [
+        r`Sürat azalır; frekans azalır; dalga boyu azalır`,
+        r`Sürat artar; frekans değişmez; dalga boyu azalır`,
+        r`Sürat azalır; frekans artar; dalga boyu azalır`,
+        r`Sürat azalır; frekans değişmez; dalga boyu azalır`,
+        r`Sürat değişmez; frekans artar; dalga boyu azalır`
+      ],
+      dogru: 3,
+      cozum: [
+        r`Dalgaların frekansını kaynak belirler. Üreteç sabit frekansla çalıştığından, dalgalar havuzun her yerinde aynı frekanstadır: Frekans **değişmez.**`,
+        r`Şekilde ardışık tepeler arasındaki uzaklık plaja doğru kısalıyor: Dalga boyu **azalır.**`,
+        r`Aynı frekansta dalga boyu kısalıyorsa, dalga her periyotta daha kısa yol alıyor demektir ($\vartheta = \lambda \cdot f$): Sürat **azalır.** Su dalgaları sığ suda daha yavaş ilerler.`,
+        r`{{S0}} frekansın kaynağa bağlı olduğunu unutur ve her niceliğin birlikte azaldığını sanır. {{S1}} sığ suda dalgaların hızlandığını sanır. {{S2}} tepelerin sıklaşmasını frekansın artması sanır. {{S4}} sürati ortama bağlı saymaz; tepelerin sıklaşmasını frekans artışına bağlar.`
+      ]
+    },
+    {
+      id: 'YD02_7', konu: 'Y.10.3', yks: true, zorluk: 3, cikti: '10.4.5.2', beceri: 'Görüntü özelliğinden ayna türünü ve cismin yerini çıkarma',
+      tahmin: { gerekce: r`Küresel aynalar 2023'te özel ışınlarla, 2026'da aynaların görüntü boyları karşılaştırılarak soruldu. Günlük bir aynada görüntünün özelliğinden ayna türünü ve cismin bulunduğu bölgeyi çıkarmak, ardından cisim odağa yaklaşırken düz görüntünün büyüdüğünü görmek ("uzaklaşan cisim küçük görünür" sezgisine aykırı) hesap gerektirmeyen bir kavram zinciridir.` },
+      metin: r`Elif'in iki yüzlü makyaj aynasının bir yüzü düzlem ayna, öbür yüzü küresel bir aynadır. Elif küresel yüze yakından baktığında yüzünü düz ve olduğundan büyük görüyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Aynanın küresel yüzü çukurdur.
+II. Elif'in yüzü, küresel aynanın odak noktası ile ayna arasındadır.
+III. Elif aynayı yüzünden biraz uzaklaştırırsa, küresel yüzde gördüğü düz görüntü küçülür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'YD02_makyaj',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Düzlem ayna cisimle aynı boyda, tümsek ayna her zaman cisimden küçük düz görüntü verir. Düz ve cisimden büyük görüntüyü yalnız çukur ayna verir. **Kesinlikle doğru.**`,
+        r`II. Çukur aynada düz ve büyük (sanal) görüntü yalnız cisim odak noktası ($F$) ile ayna arasındayken oluşur. **Kesinlikle doğru.**`,
+        r`III. Odak noktası ile ayna arasındaki bir cisim aynadan uzaklaşıp odak noktasına yaklaştıkça düz görüntü aynanın arkasında daha uzakta oluşur ve **büyür.** Cisim odak noktasını geçerse görüntü ters olur. Düz görüntünün küçülmesi söz konusu değildir. **Yanlış.**`,
+        r`{{S0}} düz ve büyük görüntünün, cismin odak noktası ile ayna arasında olduğunu gösterdiğini atlar. {{S1}} düz ve büyük görüntünün aynanın çukur olduğunu kesinleştirdiğini atlar. {{S3}} cismin bölgesini belirlemez ve aynadan uzaklaşan yüzün görüntüsünün küçüleceğini sanır. {{S4}} odak noktasına yaklaşan cismin düz görüntüsünün büyüdüğünü görmez; uzaklaşan cismin görüntüsünün her aynada küçüleceğini sanır.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · YD03 (TYT Fizik Denemesi 3)
+   Gerçek TYT fen bölümünün fizik kısmı gibi 7 soru, 10 dakika; ÖSYM soru sırası.
+   Konu yuvaları: Y.2.1, Y.3.1, Y.8.3, Y.5.2, Y.7.1, Y.10.1, Y.10.4. Zorluk 2/3/2 (★/★★/★★★).
+   Kapsam: 2018 fizik öğretim programı (9 ve 10. sınıf); kazanım sınırlamalarına uyulmuştur
+   (özkütle hesabı var; ivme, kaldırma kuvveti (yalnız oran), hâl değişimi, direnç değişkenleri, gölge ve kırılmada hesap yok).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Çıkmamış ya da az çıkmış kazanımlardan gelen sorular "tahmin" alanıyla işaretlidir.
+   Şekil anahtarları: YD03_ öneki. Soru kimlikleri: YD03_1 … YD03_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', BAK = '#c25b2a', YES = '#2f8f5b', MOR = '#6b4fa8';
+const eksen = (ox, oy, ex, ey, xAd, yAd) =>
+  `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ex + 7},${oy} ${ex - 2},${oy - 3.8} ${ex - 2},${oy + 3.8}" fill="${P.ink}"/>` +
+  `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${ey - 7} ${ox - 3.8},${ey + 2} ${ox + 3.8},${ey + 2}" fill="${P.ink}"/>` +
+  T(ex + 6, oy + 30, xAd, { size: 12, weight: 700, anchor: 'end' }) + T(ox + 8, ey + 3, yAd, { size: 12, weight: 700 });
+
+// 3. soru: X, Y, Z sıvılarının ve K cisminin kütle–hacim grafiği (kareli)
+BFY_FIG_EKLE('YD03_grafik', function (u) {
+  const W = 300, H = 250, ox = 50, oy = 214, sx = 10.5, sy = 5.2;   // 1 cm³ = 10,5 px; 1 g = 5,2 px
+  const X = v => ox + v * sx, Y = m => oy - m * sy;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f8f7f3"/>`;
+  for (let v = 5; v <= 20; v += 5) s += `<line x1="${X(v)}" y1="${oy}" x2="${X(v)}" y2="${f1(Y(36))}" stroke="#e1ddd2" stroke-width="1"/>` + T(X(v), oy + 15, String(v), { size: 11, anchor: 'middle', fill: P.ink2 });
+  for (let m = 4; m <= 32; m += 4) s += `<line x1="${ox}" y1="${f1(Y(m))}" x2="${X(22)}" y2="${f1(Y(m))}" stroke="#e1ddd2" stroke-width="1"/>` + T(ox - 6, Y(m) + 4, String(m), { size: 11, anchor: 'end', fill: P.ink2 });
+  s += eksen(ox, oy, X(22.5), Y(37), 'V (cm³)', 'm (g)') + T(ox - 6, oy + 14, '0', { size: 11, anchor: 'end', fill: P.ink2 });
+  [['X', 32, BAK], ['Y', 20, MAV], ['Z', 16, YES]].forEach(([ad, m, c]) => {
+    s += `<line x1="${ox}" y1="${oy}" x2="${X(20)}" y2="${f1(Y(m))}" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>` + T(X(20) + 8, Y(m) + 4.5, ad, { size: 13, weight: 800, fill: c });
+  });
+  // K cismi: V = 10 cm³, m = 12 g
+  s += dashLine(X(10), Y(12), X(10), oy, P.ink2, '3 3', 1.1) + dashLine(ox, Y(12), X(10), Y(12), P.ink2, '3 3', 1.1);
+  s += `<circle cx="${X(10)}" cy="${f1(Y(12))}" r="5" fill="${MOR}" stroke="#fff" stroke-width="1.4"/>` + T(X(10) + 9, Y(12) - 7, 'K', { size: 13, weight: 800, fill: MOR });
+  return svg(W, H, s, u, 64);
+});
+
+// 4. soru: tomurcuk yüzeyindeki su–buz tabakasının sıcaklık–zaman grafiği
+BFY_FIG_EKLE('YD03_don', function (u) {
+  const W = 320, H = 240, ox = 52, oy = 200, sx = 22, sy = 17, y0 = oy - 4 * sy;   // T = −4 °C eksende
+  const X = t => ox + t * sx, Y = c => y0 - c * sy;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f4f7fb"/>`;
+  s += eksen(ox, oy, X(11.2), Y(5.2), 'Zaman', 'Sıcaklık (°C)');
+  [-4, -2, 0, 2, 4].forEach(c => { s += T(ox - 6, Y(c) + 4, c < 0 ? '−' + Math.abs(c) : String(c), { size: 11, anchor: 'end', fill: P.ink2 }); if (c !== -4) s += `<line x1="${ox - 3}" y1="${f1(Y(c))}" x2="${ox + 3}" y2="${f1(Y(c))}" stroke="${P.ink}" stroke-width="1.2"/>`; });
+  s += dashLine(ox, Y(0), X(10.6), Y(0), '#9fb2c2', '4 4', 1.1);
+  const t1 = 3, t2 = 7;
+  s += `<path d="M${X(0)} ${f1(Y(3))} L${X(t1)} ${f1(Y(0))} L${X(t2)} ${f1(Y(0))} L${X(9.2)} ${f1(Y(-3))} L${X(10.6)} ${f1(Y(-3.2))}" fill="none" stroke="${MAV}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+  [[t1, 't_1'], [t2, 't_2']].forEach(([t, ad]) => { s += dashLine(X(t), Y(0), X(t), oy, P.ink2, '3 3', 1.1) + T(X(t), oy + 16, ad, { size: 12.5, weight: 700, anchor: 'middle' }); });
+  return svg(W, H, s, u, 66);
+});
+
+// 5. soru: kâğıda çizilmiş eşit kalınlıkta üç grafit şerit (ölçüler cm)
+BFY_FIG_EKLE('YD03_grafit', function (u) {
+  const W = 320, H = 220, k = 11, x0 = 54;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#ece9e2"/>`;
+  s += `<rect x="14" y="14" width="${W - 28}" height="${H - 28}" rx="3" fill="#fffef8" stroke="#cfc9bb" stroke-width="1.2"/>`;
+  const serit = (y, boy, en, ad) => {
+    let t = `<rect x="${x0}" y="${y}" width="${boy * k}" height="${en * k}" rx="2" fill="#5b6066" opacity=".92"/>`;
+    t += `<circle cx="${x0 + 4}" cy="${y + en * k / 2}" r="3" fill="${BAK}"/><circle cx="${x0 + boy * k - 4}" cy="${y + en * k / 2}" r="3" fill="${BAK}"/>`;
+    t += T(x0 - 14, y + en * k / 2 + 5, ad, { size: 14, weight: 800, anchor: 'end' });
+    t += T(x0 + boy * k / 2, y - 7, `${boy} cm × ${en} cm`, { size: 11.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+    return t;
+  };
+  s += serit(50, 10, 1, 'K') + serit(106, 20, 1, 'L') + serit(160, 10, 2, 'M');
+  s += T(W - 22, 34, 'uç bağlantıları ●', { size: 10.5, weight: 600, anchor: 'end', fill: BAK });
+  return svg(W, H, s, u, 66);
+});
+
+// 6. soru: gölge oyunu düzeneği (yandan): küçük lamba, karton tasvir, bez perde, seyirciler
+BFY_FIG_EKLE('YD03_perde', function (u) {
+  const W = 330, H = 214, yer = 186, xL = 44, xT = 140, xP = 236;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#2e3440"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="#4b4237"/>`;
+  // ışık konisi (lambanın iki kenarından perdeye)
+  s += `<path d="M${xL} 92 L${xP} 26 L${xP} 166 L${xL} 104 Z" fill="#fff2b0" opacity=".16"/>`;
+  // lamba (noktasal değil)
+  s += `<line x1="${xL}" y1="104" x2="${xL}" y2="${yer}" stroke="#8a7a60" stroke-width="3"/><circle cx="${xL}" cy="98" r="9" fill="#ffe27a" stroke="#d8a93a" stroke-width="1.4"/>`;
+  s += T(xL, 76, 'lamba', { size: 11.5, weight: 700, anchor: 'middle', fill: '#f4ecd6', halo: false });
+  // tasvir (karton) ve çubuğu
+  s += `<g fill="#1b1b1b" stroke="#8d8d8d" stroke-width=".8"><path d="M${xT - 11} 66 h22 l-3 -8 h-16 z"/><circle cx="${xT}" cy="74" r="9"/>` +
+    `<path d="M${xT - 13} 86 h26 l4 28 h-8 l-2 -14 l-2 30 h-6 l-1 -18 l-1 18 h-6 l-2 -30 l-2 14 h-8 z"/></g>`;
+  s += `<line x1="${xT - 2}" y1="128" x2="${xT - 26}" y2="${yer - 4}" stroke="#b08a52" stroke-width="2.6"/>`;
+  s += T(xT, 52, 'tasvir', { size: 11.5, weight: 700, anchor: 'middle', fill: '#f4ecd6', halo: false });
+  // perde (beyaz bez) ve çerçeve
+  s += `<rect x="${xP - 3}" y="20" width="6" height="${yer - 20}" fill="#efe8d8" stroke="#a89878" stroke-width="1"/>`;
+  s += `<rect x="${xP - 5}" y="14" width="10" height="8" fill="#8a7a60"/>`;
+  s += T(xP + 10, 34, 'perde', { size: 11.5, weight: 700, fill: '#f4ecd6', halo: false });
+  s += T(xP + 10, 48, '(beyaz bez)', { size: 10.5, weight: 600, fill: '#d8d0bc', halo: false });
+  // seyirciler
+  [[278, 150], [306, 158]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="9" fill="#c9a88a"/><rect x="${x - 10}" y="${y + 9}" width="20" height="${yer - y - 9}" rx="6" fill="#6b7d8c"/>`; });
+  s += T(292, 128, 'seyirciler', { size: 11, weight: 700, anchor: 'middle', fill: '#f4ecd6', halo: false });
+  s += T(10, H - 8, '(Yandan görünüş, ölçekli değildir.)', { size: 10, weight: 600, fill: '#e8e2d2', halo: false });
+  return svg(W, H, s, u, 68);
+});
+
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'YD03', ad: 'TYT Fizik Denemesi 3', tur: 'deneme', sure: 600,
+  aciklama: 'Yedi soru, gerçek TYT sırası: müzedeki "altın" madalyadan tramvaya, kütle–hacim grafiğinden bahar donunda su püskürtülen meyve bahçesine, kurşun kalem çizgilerinden gölge oyunu perdesine ve ıslanınca saydamlaşan buzlu cama.',
+  baglamlar: [
+    'spor müzesindeki "altın" madalya: 504 g, taşırma kabında 48 mL, ortalama özkütle 10,5 g/cm³; altın 19,3, gümüş 10,5, bakır 8,9 (kesinlikle)',
+    'durağından batıya kalkan tramvay, doğu (+), 10 s arayla hız tablosu 0, −5, −10, −10, −5, 0 m/s; hızlanma, sabit hız ve yavaşlamada ivmenin yönü',
+    'X (1,6), Y (1,0), Z (0,8 g/cm³) sıvıları ve K cismi (12 g, 10 cm³) kütle–hacim grafiği; X\'te batan kısım yarıdan fazla mı (oran düzeyi), X–Z karışımında askıda kalma (olabilir)',
+    'bahar donunda meyve bahçesine su püskürtme: tomurcuk yüzeyindeki su–buz tabakasının sıcaklık–zaman grafiği, 0 °C\'de sabit kalırken buzun artması, donmada ısı verme',
+    'kâğıda kurşun kalemle çizilen eşit kalınlıkta K (10 × 1 cm), L (20 × 1 cm), M (10 × 2 cm) grafit şeritler; aynı pille akım sıralaması',
+    'okulda gölge oyunu: küçük lamba, saydam olmayan karton tasvir, yarı saydam bez perde; tasvirin perdeye ve lambaya yaklaştırılması',
+    'banyo penceresindeki buzlu cam ıslanınca saydamlaşıyor: pürüzlü yüzeyde camdan suya geçişte indis farkının küçülmesi, ışığın daha az sapması'
+  ],
+  sorular: [
+    {
+      id: 'YD03_1', konu: 'Y.2.1', yks: true, zorluk: 3, cikti: '9.2.1.1', beceri: 'Ölçümden özkütle bulup kesin yargıyı ayırt etme',
+      cikmis: { yil: 2022, no: 1, kalip: 'Özkütleyle ilgili kesin yargıları belirleme' },
+      metin: r`Bir spor müzesinde sergilenen "altın" bir madalyanın kütlesi $504\ \text{g}$ ölçülüyor. Madalya, yan ağzına kadar su dolu bir taşırma kabına bırakılınca tamamen batıyor ve kaptan $48\ \text{mL}$ su taşıyor. Tabloda bazı metallerin özkütleleri verilmiştir.
+
+{{tablo}}
+
+Buna göre,
+
+I. Madalya, içi tamamen dolu ve saf altından yapılmış olamaz.
+II. Madalya saf gümüşten yapılmıştır.
+III. Madalyanın ortalama özkütlesi $10,5\ \text{g/cm}^3$'tür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Metal', r`Özkütle ($\text{g/cm}^3$)`], ['Altın', '19,3'], ['Gümüş', '10,5'], ['Bakır', '8,9']],
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Tamamen batan madalyanın hacmi taşan suyun hacmine eşittir: $V = 48\ \text{mL} = 48\ \text{cm}^3$. Ortalama özkütle $d = \dfrac{m}{V} = \dfrac{504}{48} = 10,5\ \text{g/cm}^3$'tür. III **kesinlikle doğru.**`,
+        r`I. Madalya içi dolu ve saf altından olsaydı özkütlesi $19,3\ \text{g/cm}^3$ olurdu. Ölçülen değer bundan küçük olduğuna göre madalya içi dolu ve saf altından olamaz. **Kesinlikle doğru.**`,
+        r`II. Ortalama özkütlenin gümüşünkine eşit çıkması, madalyanın saf gümüş olduğunu kesinleştirmez. Örneğin altın ile bakırın uygun oranlardaki bir karışımı da bu ortalama özkütleyi verebilir. **Kesin değil.** (Gerçekte olimpiyat altın madalyalarının büyük kısmı gümüştür; yüzeyleri altınla kaplanır.)`,
+        r`{{S0}} ortalama özkütlenin ölçülen kütle ve hacimden doğrudan bulunduğunu, yani III'ün de kesin olduğunu atlar. {{S1}} ölçülen özkütle altınınkinden küçük olduğu hâlde madalyanın içi dolu saf altın olabileceğini düşünür. {{S3}} özkütlesi gümüşünkine eşit çıkan cismi kesinlikle saf gümüş sanır ve I'i atlar. {{S4}} ortalama özkütlesi bir metalinkine eşit olan cismin o metalden yapıldığını kesin sanır.`
+      ]
+    },
+    {
+      id: 'YD03_2', konu: 'Y.3.1', yks: true, zorluk: 2, cikti: '9.3.1.5', beceri: 'Hızlanma ve yavaşlamada ivmenin yönünü belirleme',
+      tahmin: { gerekce: r`9.3.1.5 (ivmenin hızlanma ve yavaşlamayla ilişkisi) 2018–2026 TYT'lerinde hiç sorulmadı. Program hesap istemez; hız negatif yönde iken yavaşlayan cismin ivmesinin (+) yönde olması, "yavaşlama = negatif ivme" ezberini yakalayan tipik bir nitel TYT sorusudur.` },
+      metin: r`Bir tramvay, durağından batıya doğru harekete geçip düz bir yolda ilerliyor ve bir sonraki durakta duruyor. Doğu yönü (+) alınarak tramvayın hızı $10$ saniyede bir kaydediliyor. Tramvay hızlanırken ve yavaşlarken hızını düzgün olarak değiştiriyor.
+
+{{tablo}}
+
+Buna göre $0$–$20\ \text{s}$, $20$–$30\ \text{s}$ ve $30$–$50\ \text{s}$ aralıklarında tramvayın ivmesinin yönü sırasıyla aşağıdakilerden hangisidir?`,
+      tablo: [['Zaman (s)', '0', '10', '20', '30', '40', '50'], ['Hız (m/s)', '0', '−5', '−10', '−10', '−5', '0']],
+      secenekler: [r`Batı; ivme yok; doğu`, r`Batı; batı; doğu`, r`Batı; ivme yok; batı`, r`Doğu; ivme yok; batı`, r`Doğu; ivme yok; doğu`],
+      dogru: 0,
+      cozum: [
+        r`Hızın işareti hareket yönünü gösterir: Değerler negatif olduğundan tramvay hep batıya gitmektedir.`,
+        r`$0$–$20\ \text{s}$: Hızın büyüklüğü $0$'dan $10\ \text{m/s}$'ye artıyor; tramvay hızlanıyor. Hızlanan cismin ivmesi hızıyla aynı yöndedir: **batı.**`,
+        r`$20$–$30\ \text{s}$: Hız değişmiyor; ivme **yoktur.**`,
+        r`$30$–$50\ \text{s}$: Hızın büyüklüğü azalıyor; tramvay yavaşlıyor. Yavaşlayan cismin ivmesi hızına zıt yöndedir: **doğu**, yani (+) yön.`,
+        r`{{S1}} sabit hızla giden tramvayın ivmesinin de hareket yönünde olduğunu sanır. {{S2}} "yavaşlayan cismin ivmesi negatiftir" ezberiyle $30$–$50\ \text{s}$'de ivmeyi batı (−) yönünde sanır. {{S3}} ivmenin yönünü hızın yönüne göre değil, sanki tramvay doğuya gidiyormuş gibi bulur. {{S4}} hızlanan cismin ivmesini her zaman (+) yönde sanır; ivme, hızlanmada hızla aynı yöndedir.`
+      ]
+    },
+    {
+      id: 'YD03_3', konu: 'Y.8.3', yks: true, zorluk: 2, cikti: '10.2.2.1', beceri: 'Grafikten özkütle karşılaştırıp yüzme koşulunu uygulama',
+      cikmis: { yil: 2023, no: 1, kalip: 'Kütle–hacim grafiğinden özkütle sıralaması ve karışımla yüzme koşulu' },
+      metin: r`Bir laboratuvarda birbiriyle tamamen karışabilen X, Y ve Z sıvıları ile bu sıvılarda çözünmeyen, içi dolu K cismi inceleniyor. Sıvıların ve K cisminin kütle–hacim grafiği şekildedir.
+
+{{sekil}}
+
+Buna göre,
+
+I. K cismi Y sıvısında yüzer.
+II. K cismi X sıvısına bırakılırsa, hacminin yarısından fazlası sıvının içinde kalacak biçimde yüzer.
+III. K cismi, X ve Z sıvılarının bir karışımında askıda kalıyor olabilir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YD03_grafik',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Grafikten özkütleler ($d = \dfrac{m}{V}$): $d_X = \dfrac{32}{20} = 1,6$; $d_Y = \dfrac{20}{20} = 1,0$; $d_Z = \dfrac{16}{20} = 0,8$; $d_K = \dfrac{12}{10} = 1,2\ \text{g/cm}^3$.`,
+        r`I. $d_K > d_Y$ olduğundan K, Y sıvısında batar. **Yanlış.**`,
+        r`II. $d_K < d_X$ olduğundan K, X'te yüzer. Yüzen cisimde $F_k = G$ eşitliğinden, batan hacmin cismin hacmine oranı cismin özkütlesinin sıvınınkine oranına eşittir. $d_K = 1,2\ \text{g/cm}^3$, $d_X$'in yarısından ($0,8\ \text{g/cm}^3$) büyük olduğundan K'nin hacminin yarısından fazlası sıvının içinde kalır. **Doğru.**`,
+        r`III. X ile Z karışımının özkütlesi, karışımdaki oranlara göre $0,8$ ile $1,6\ \text{g/cm}^3$ arasında bir değer alır. Oranlar uygunsa karışımın özkütlesi $1,2\ \text{g/cm}^3$ olur ve K askıda kalır. **Doğru (olabilir).**`,
+        r`{{S0}} eğimi büyük olan K'yi daha az yoğun sanır ve Y'de yüzdüğünü düşünür. {{S1}} karışımın özkütlesinin bileşenlerinkinin arasında bir değer alabileceğini görmez. {{S2}} K'nin özkütlesini Y'ninkinden küçük okur ve karışım yargısını doğru bulsa da X'teki batan kesri atlar. {{S4}} K'nin Y'de battığını görmez.`
+      ]
+    },
+    {
+      id: 'YD03_4', konu: 'Y.5.2', yks: true, zorluk: 3, cikti: '9.5.2.1', beceri: 'Hâl değişimi grafiğinde ısı alışverişini yorumlama',
+      tahmin: { gerekce: r`9.5.2.1 (hâl değişimi için gereken ısı) 2018–2026 TYT'lerinde ana kazanım olarak hiç sorulmadı; ısı soruları son yıllarda ısıl dengeye kaydı. Donan suyun çevresine ısı vermesi, sıcaklığın sabit kaldığı aralıkta donmanın sürmesi ve soğuyan buzun ısı vermesi, tarımdaki gerçek bir uygulamayla hesapsız bir kavram zinciri kurmaya elverişlidir.` },
+      metin: r`Bahar donlarında bazı meyve üreticileri, hava sıcaklığı $0\ ^\circ\text{C}$'nin altına inerken ağaçlara sürekli ince su damlaları püskürtür. Bir üretici, bir tomurcuğun yüzeyine yerleştirdiği sensörle tomurcuğun yüzeyindeki su–buz tabakasının sıcaklığını ölçüyor. Püskürtmeyi $t_2$ anında durduruyor; gece boyunca hava sıcaklığı $0\ ^\circ\text{C}$'nin altındadır. Sensörün ölçtüğü sıcaklığın zamana bağlı grafiği şekildedir.
+
+{{sekil}}
+
+Buna göre,
+
+I. $t_1$–$t_2$ aralığında tomurcuğun üzerindeki su donarken çevresine ısı verir.
+II. $t_1$–$t_2$ aralığında tomurcuğun üzerindeki buz tabakası kalınlaşır.
+III. $t_2$ anından sonra sıcaklığın düşmesinin nedeni, tomurcuğun üzerindeki buzun çevresinden ısı almasıdır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YD03_don',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`$t_1$–$t_2$ aralığında sıcaklık $0\ ^\circ\text{C}$'de sabit kalıyor: Bu aralıkta tomurcuğun üzerine gelen su donmaktadır ve saf su $0\ ^\circ\text{C}$'de donar.`,
+        r`I. Donan su çevresine ısı verir. Bu ısı, tomurcuğun sıcaklığının $0\ ^\circ\text{C}$'nin altına düşmesini geciktirir; uygulamanın amacı da budur. **Doğru.**`,
+        r`II. Sıcaklığın $0\ ^\circ\text{C}$'de sabit kaldığı bu aralıkta püskürtülen su tomurcuğun üzerinde donmayı sürdürür; buz miktarı artar ve tabaka kalınlaşır. **Doğru.**`,
+        r`III. $t_2$'den sonra su gelmediği için donacak su kalmaz; sıcaklığı $0\ ^\circ\text{C}$ olan buz, kendisinden soğuk havaya ısı vererek soğur. Buz ısı almaz, ısı verir. **Yanlış.**`,
+        r`{{S0}} sıcaklık sabitken donmanın sürdüğünü, yani buzun arttığını atlar. {{S2}} sabit sıcaklıkta buzun arttığını atlar ve soğuyan buzun ısı aldığını düşünür. {{S3}} donan suyun ısı verdiğini atlar ve soğuyan buzun ısı aldığını sanır. {{S4}} sıcaklığı düşen buzun ısı aldığını sanır; sıcaklığı düşen madde ısı verir.`
+      ]
+    },
+    {
+      id: 'YD03_5', konu: 'Y.7.1', yks: true, zorluk: 1, cikti: '10.1.1.2', beceri: 'Direncin uzunluk ve kesit alanına bağlılığı',
+      tahmin: { gerekce: r`10.1.1.2 (katı bir iletkenin direncinin bağlı olduğu değişkenler) 2018–2026 TYT'lerinde hiç sorulmadı. Program hesap istemediği için uzunluk ve kesit alanının etkisini nitel bir sıralamayla ölçen, kurşun kalem grafitiyle yapılabilen basit bir deney TYT'ye uygun bir sorudur.` },
+      metin: r`Ozan, kâğıda yumuşak bir kurşun kalemle grafitten K, L ve M şeritlerini çiziyor. Şeritlerin hepsini aynı kalemle, aynı sayıda üst üste geçerek çizdiği için kalınlıkları eşittir. Şeritlerin boyutları şekilde verilmiştir. Ozan, iç direnci önemsiz aynı pili sırayla her şeridin iki ucuna bağlayıp şeritten geçen akımı ölçüyor.
+
+{{sekil}}
+
+Şeritlerden geçen akımlar $i_K$, $i_L$ ve $i_M$ arasındaki ilişki nedir?`,
+      sekil: 'YD03_grafit',
+      secenekler: [r`$i_L > i_K > i_M$`, r`$i_M > i_K > i_L$`, r`$i_L = i_M > i_K$`, r`$i_K > i_M > i_L$`, r`$i_K > i_L = i_M$`],
+      dogru: 1,
+      cozum: [
+        r`Aynı maddeden yapılmış bir iletkenin direnci boyuyla doğru, kesit alanıyla ters orantılıdır. Şeritlerin kalınlıkları eşit olduğundan kesit alanları genişlikleriyle orantılıdır.`,
+        r`K'ye göre L'nin boyu 2 katıdır: Direnci daha büyüktür. M'nin genişliği, yani kesit alanı 2 katıdır: Direnci daha küçüktür. Dirençler: $R_L > R_K > R_M$.`,
+        r`Aynı pil bağlandığında gerilim aynıdır; Ohm yasasına göre akım dirençle ters orantılıdır: $i_M > i_K > i_L$.`,
+        r`{{S0}} direncin boyla ve kesit alanıyla ilişkisini ters kurar. {{S2}} direncin şeridin kâğıtta kapladığı alana bağlı olduğunu sanır; L ve M'nin alanları eşittir ama dirençleri farklıdır. {{S3}} genişliğin direnci artırdığını sanır. {{S4}} boyutları büyüyen iki şeridin dirençlerinin aynı biçimde arttığını sanır.`
+      ]
+    },
+    {
+      id: 'YD03_6', konu: 'Y.10.1', yks: true, zorluk: 1, cikti: '10.4.2.1', beceri: 'Gölge ve yarı saydam maddeyi yorumlama',
+      tahmin: { gerekce: r`Aydınlanma ve gölge 2018, 2019 ve 2023'te yalnız ışık şiddeti, akı ve aydınlanma üzerinden soruldu. 10.4.2.1 (saydam, yarı saydam ve saydam olmayan maddeler; gölge ve yarı gölge) hiç gelmedi. Gölge oyunu, iki kavramı hesapsız ve günlük bir bağlamda birleştirir.` },
+      metin: r`Okulda gölge oyunu hazırlayan Selin, gerilmiş beyaz bir bez perdenin arkasına küçük bir lamba koyuyor. Saydam olmayan kartondan kestiği tasviri lamba ile perde arasında tutuyor; seyirciler gösteriyi perdenin öbür yüzünden izliyor. Lamba noktasal değildir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Tasvir perdeye değdirilirse perdedeki gölgesi tasvirden büyük olur.
+II. Tasvir lambaya yaklaştırılırsa perdedeki gölgesi büyür.
+III. Seyircilerin gölgeyi görebilmesi, bez perdenin yarı saydam olmasıyla açıklanır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YD03_perde',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Tasvir perdeye değdiğinde ışınların tasvirin kenarından perdeye kadar yayılacak yeri kalmaz; gölge tasvirle aynı boyda ve en keskin hâlde olur. **Yanlış.**`,
+        r`II. Tasvir lambaya yaklaştırıldıkça, lambadan tasvirin kenarlarına giden ışınlar perdeye ulaşana kadar daha çok açılır; gölge büyür (kenarlarındaki yarı gölge de genişler). **Doğru.**`,
+        r`III. Yarı saydam bez ışığın bir kısmını geçirir: Aydınlık kısımlar perdenin öbür yüzünden parlak, gölge düşen kısımlar karanlık görünür. Saydam olmayan bir perde ışık geçirmeseydi seyirciler gölgeyi göremezdi. **Doğru.**`,
+        r`{{S0}} perdeye değen tasvirin gölgesini büyümüş sanır; öteki iki doğru yargıyı da atlar. {{S1}} perdenin ışık geçirme özelliğinin gösteri için gerekli olduğunu atlar. {{S2}} perdeye değen tasvirin gölgesini büyük sanır ve perdenin yarı saydamlığının rolünü atlar. {{S3}} perdeye değen tasvirin gölgesini büyük sanır ve lambaya yaklaşan tasvirin gölgesinin büyüdüğünü görmez.`
+      ]
+    },
+    {
+      id: 'YD03_7', konu: 'Y.10.4', yks: true, zorluk: 2, cikti: '10.4.6.1', beceri: 'Sapma miktarının indis farkına bağlılığını günlük olaya uygulama',
+      tahmin: { gerekce: r`Kırılma 2018'de ortamların kırıcılık sıralamasıyla, 2025'te görünür uzaklıkla soruldu. 10.4.6.1'in "ışığın doğrultusundan sapma miktarının bağlı olduğu değişkenler" maddesi, yani sapmanın iki ortamın kırıcılık indisleri arasındaki farka bağlı olması, günlük bir olayla hiç sorulmadı. Buzlu camın ıslanınca saydamlaşması bu ilişkiyi hesapsız yoklar.` },
+      metin: r`Banyo pencerelerinde kullanılan buzlu camın bir yüzü pürüzlüdür; bu camdan ışık geçer ama camın öbür tarafındaki cisimler net görünmez. Duş sırasında camın pürüzlü yüzüne su sıçradığında, ıslanan bölgelerden camın öbür tarafındaki cisimlerin çok daha net göründüğü fark ediliyor. Camın kırıcılık indisi suyunkinden, suyunki de havanınkinden büyüktür.
+
+Islanan bölgelerden cisimlerin daha net görünmesinin nedeni aşağıdakilerden hangisidir?`,
+      secenekler: [
+        r`Su ışığı havadan daha çok kırdığı için pürüzlü yüzeyden çıkan ışınlar tek bir noktada toplanır.`,
+        r`Su, değdiği camın kırıcılık indisini azaltarak havanınkine eşit hâle getirir.`,
+        r`Işık suda havadakinden daha hızlı ilerlediği için ıslak yüzeyden daha az kayıpla geçer.`,
+        r`Su tabakası ışığı tam yansımaya uğratarak yalnız karşıdan gelen ışınların geçmesine izin verir.`,
+        r`Islanan girintilerde ışık camdan havaya değil suya geçer; bu sınırda daha az kırılır ve daha az dağılır.`
+      ],
+      dogru: 4,
+      cozum: [
+        r`Işık iki saydam ortamın sınırından geçerken, ortamların kırıcılık indisleri arasındaki fark ne kadar büyükse doğrultusundan o kadar çok sapar.`,
+        r`Kuru buzlu camın pürüzlü yüzeyindeki küçük girinti ve çıkıntılar farklı doğrultulardadır. Camdan havaya geçen ışınlar her noktada farklı yönlere kırılır ve dağılır; bu yüzden cisimler net görünmez.`,
+        r`Islanınca girintiler suyla dolar. Camla su arasındaki indis farkı, camla hava arasındakinden küçüktür; ışınlar pürüzlü yüzeyde çok daha az sapar ve az dağılır. Suyun havayla sınırı ise pürüzlü cam yüzeyden çok daha düzgündür. Bu yüzden ıslak bölgeden cisimler daha net görünür.`,
+        r`{{S0}} sudaki kırılmayı havadakinden fazla sanır; oysa camla su arasındaki indis farkı daha küçük olduğundan ışık daha az kırılır. {{S1}} suyun camın kırıcılık indisini değiştirdiğini sanır; camın indisi değişmez, değişen camın temas ettiği ortamdır. {{S2}} ışığın suda havadakinden hızlı ilerlediğini sanır; kırıcılık indisi büyük olan suda ışık daha yavaştır. {{S3}} tam yansımanın ışığı geçirmeye yaradığını sanır; tam yansımada ışık ikinci ortama hiç geçmez.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · YD04 (TYT Fizik Denemesi 4)
+   Gerçek TYT fen bölümünün fizik kısmı gibi 7 soru, 10 dakika; ÖSYM soru sırası.
+   Konu yuvaları: Y.2.2, Y.3.2, Y.4.1, Y.5.3, Y.6.2, Y.9.1, Y.10.5. Zorluk 2/3/2 (★/★★/★★★).
+   Kapsam: 2018 fizik öğretim programı (9 ve 10. sınıf); kazanım sınırlamalarına uyulmuştur
+   (net kuvvet, iş-güç ve tek boyutta Coulomb hesabı var; kılcallık, enerji iletim yolları, dalga ve mercekte hesap yok).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Çıkmamış ya da az çıkmış kazanımlardan gelen sorular "tahmin" alanıyla işaretlidir.
+   Şekil anahtarları: YD04_ öneki. Soru kimlikleri: YD04_1 … YD04_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', BAK = '#c25b2a', YES = '#2f8f5b', TEL = '#24302c';
+const kisi = (x, ayak, renk, o = {}) => {
+  // basit yan görünüş insan figürü; o.egik: gövdenin öne eğimi (px)
+  const e = o.egik || 0, bas = [x + e, ayak - 92];
+  return `<line x1="${x - 6}" y1="${ayak}" x2="${x}" y2="${ayak - 40}" stroke="#3b5a8a" stroke-width="7" stroke-linecap="round"/><line x1="${x + 8}" y1="${ayak}" x2="${x}" y2="${ayak - 40}" stroke="#3b5a8a" stroke-width="7" stroke-linecap="round"/>` +
+    `<line x1="${x}" y1="${ayak - 40}" x2="${x + e}" y2="${ayak - 78}" stroke="${renk}" stroke-width="15" stroke-linecap="round"/>` +
+    `<circle cx="${bas[0]}" cy="${bas[1]}" r="9" fill="#f2c9a5" stroke="#9a6b48" stroke-width="1"/>`;
+};
+
+// 2. soru: karda kızak; baba önden iple çekiyor, anne arkadan itiyor, kar sürtünme kuvveti uyguluyor
+BFY_FIG_EKLE('YD04_kizak', function (u) {
+  const W = 340, H = 214, yer = 170;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#eaf2f8"/>`;
+  s += `<rect x="0" y="${yer}" width="${W}" height="${H - yer}" fill="#fbfdff"/><line x1="0" y1="${yer}" x2="${W}" y2="${yer}" stroke="#9fb6c8" stroke-width="2"/>`;
+  // kızak
+  const kx1 = 128, kx2 = 214;
+  s += `<path d="M${kx1 - 8} ${yer - 2} H${kx2} q 12 0 10 -12" fill="none" stroke="#7a5a2e" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<rect x="${kx1}" y="${yer - 22}" width="${kx2 - kx1}" height="9" rx="3" fill="url(#${u}wood)" stroke="#7a5a2e" stroke-width="1.2"/>`;
+  s += `<line x1="${kx1 + 14}" y1="${yer - 13}" x2="${kx1 + 14}" y2="${yer - 2}" stroke="#7a5a2e" stroke-width="2.4"/><line x1="${kx2 - 14}" y1="${yer - 13}" x2="${kx2 - 14}" y2="${yer - 2}" stroke="#7a5a2e" stroke-width="2.4"/>`;
+  // kardeş (oturuyor)
+  s += `<rect x="${kx1 + 30}" y="${yer - 56}" width="16" height="34" rx="7" fill="${YES}"/><circle cx="${kx1 + 38}" cy="${yer - 66}" r="9" fill="#f2c9a5" stroke="#9a6b48" stroke-width="1"/>`;
+  s += `<line x1="${kx1 + 42}" y1="${yer - 26}" x2="${kx1 + 70}" y2="${yer - 26}" stroke="#3b5a8a" stroke-width="7" stroke-linecap="round"/>`;
+  // baba (önde, iple çekiyor) ve ip
+  s += kisi(290, yer, MAV, { egik: 8 });
+  s += `<line x1="${kx2 + 6}" y1="${yer - 18}" x2="286" y2="${yer - 18}" stroke="#5f6b72" stroke-width="2"/>`;
+  s += `<line x1="292" y1="${yer - 64}" x2="284" y2="${yer - 20}" stroke="${MAV}" stroke-width="5" stroke-linecap="round"/>`;
+  // anne (arkada, itiyor)
+  s += kisi(84, yer, BAK, { egik: 12 });
+  s += `<line x1="96" y1="${yer - 66}" x2="${kx1 - 2}" y2="${yer - 26}" stroke="${BAK}" stroke-width="5" stroke-linecap="round"/>`;
+  // kuvvet okları
+  s += arrow(232, 30, 312, 30, { color: MAV, w: 2.6, head: 10, headW: 5 }) + T(272, 22, '60 N', { size: 12.5, weight: 800, anchor: 'middle', fill: MAV });
+  s += arrow(26, 30, 72, 30, { color: BAK, w: 2.6, head: 10, headW: 5 }) + T(49, 22, '30 N', { size: 12.5, weight: 800, anchor: 'middle', fill: BAK });
+  s += arrow(176, yer + 14, 140, yer + 14, { color: P.ink, w: 2.2, head: 9, headW: 4.5 }) + T(182, yer + 19, 'sürtünme 15 N', { size: 11.5, weight: 700 });
+  s += T(272, 48, 'baba (ip)', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(49, 48, 'anne', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += arrow(150, 86, 196, 86, { color: P.ink2, w: 1.6, head: 8, headW: 4 }) + T(173, 78, 'hareket yönü', { size: 10.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 72);
+});
+
+// 5. soru: elektronik terazide yalıtkan ayaklı X küresi; Y küresi yalıtkan sapla X'in tam üstünde tutuluyor
+BFY_FIG_EKLE('YD04_tarti', function (u) {
+  const W = 300, H = 236, xK = 128, yX = 150, yY = 70;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f5f7f8"/>`;
+  // terazi
+  s += `<rect x="52" y="190" width="152" height="30" rx="6" fill="#d9dee2" stroke="#6f7b84" stroke-width="1.4"/>`;
+  s += `<rect x="72" y="182" width="112" height="8" rx="2" fill="url(#${u}metal)" stroke="#6f7b84" stroke-width="1"/>`;
+  s += `<rect x="150" y="197" width="46" height="16" rx="2" fill="#1f2b24"/>` + T(173, 209.5, '_ _,_ _ g', { size: 10, weight: 700, anchor: 'middle', fill: '#9be7b2', halo: false });
+  // X ve yalıtkan ayağı
+  s += `<rect x="${xK - 4}" y="${yX + 10}" width="8" height="${182 - yX - 10}" fill="#e8d9a8" stroke="#a89060" stroke-width="1"/>`;
+  s += `<circle cx="${xK}" cy="${yX}" r="11" fill="url(#${u}metal)" stroke="#5f6b72" stroke-width="1.4"/>` + T(xK - 18, yX + 5, 'X', { size: 14, weight: 800, anchor: 'end' });
+  // Y ve yalıtkan sap
+  s += `<line x1="${xK + 9}" y1="${yY - 6}" x2="250" y2="20" stroke="#b08a52" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<circle cx="${xK}" cy="${yY}" r="11" fill="url(#${u}metal)" stroke="#5f6b72" stroke-width="1.4"/>` + T(xK - 18, yY + 5, 'Y', { size: 14, weight: 800, anchor: 'end' });
+  s += T(272, 62, 'yalıtkan sap', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += T(xK + 18, 176, 'yalıtkan ayak', { size: 11, weight: 700, fill: P.ink2 });
+  // uzaklık
+  s += dashLine(xK + 12, yY, 210, yY, P.ink2, '3 3', 1) + dashLine(xK + 12, yX, 210, yX, P.ink2, '3 3', 1);
+  s += `<line x1="204" y1="${yY + 2}" x2="204" y2="${yX - 2}" stroke="${P.ink2}" stroke-width="1.2"/><polygon points="204,${yY} 200.8,${yY + 7} 207.2,${yY + 7}" fill="${P.ink2}"/><polygon points="204,${yX} 200.8,${yX - 7} 207.2,${yX - 7}" fill="${P.ink2}"/>`;
+  s += T(212, (yX + yY) / 2 + 4, 'uzaklık', { size: 11.5, weight: 700 });
+  return svg(W, H, s, u, 62);
+});
+
+// 6. soru: bahçe örümceği ağı; merkezde örümcek, kenara yakın bir iplikte çırpınan böcek
+BFY_FIG_EKLE('YD04_ag', function (u) {
+  const W = 300, H = 236, cx = 150, cy = 120, R = 98;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#e9f1e6"/>`;
+  const n = 14;
+  for (let i = 0; i < n; i++) { const a = i * 2 * Math.PI / n; s += `<line x1="${cx}" y1="${cy}" x2="${f1(cx + R * Math.cos(a))}" y2="${f1(cy + R * 0.95 * Math.sin(a))}" stroke="#8c9a94" stroke-width="1.1"/>`; }
+  let d = '';
+  for (let k = 0; k <= n * 7; k++) { const a = k * 2 * Math.PI / n, rr = 12 + k * (R - 16) / (n * 7); d += (k ? 'L' : 'M') + f1(cx + rr * Math.cos(a)) + ' ' + f1(cy + rr * 0.95 * Math.sin(a)); }
+  s += `<path d="${d}" fill="none" stroke="#a9b6b0" stroke-width=".9"/>`;
+  // örümcek
+  for (let j = 0; j < 4; j++) { [-1, 1].forEach(sg => { const a = (-60 + j * 40) * Math.PI / 180; s += `<path d="M${cx} ${cy} q ${f1(sg * 12 * Math.cos(a))} ${f1(-14 + 10 * Math.sin(a))} ${f1(sg * 20 * Math.cos(a))} ${f1(12 * Math.sin(a) + 6)}" fill="none" stroke="#2b2b2b" stroke-width="1.6"/>`; }); }
+  s += `<ellipse cx="${cx}" cy="${cy + 4}" rx="7" ry="10" fill="#3b3024"/><circle cx="${cx}" cy="${cy - 6}" r="4.5" fill="#2b2b2b"/>`;
+  s += T(cx + 16, cy - 16, 'örümcek', { size: 11.5, weight: 700 });
+  // böcek: sağ alttaki iplikte
+  const a = 2 * Math.PI * 2 / n, bx = cx + 0.82 * R * Math.cos(a), by = cy + 0.82 * R * 0.95 * Math.sin(a);
+  s += `<ellipse cx="${f1(bx)}" cy="${f1(by)}" rx="7" ry="4.5" fill="#5f4a1f"/><ellipse cx="${f1(bx - 2)}" cy="${f1(by - 6)}" rx="7" ry="4" fill="#cfe3f3" opacity=".85"/><ellipse cx="${f1(bx + 3)}" cy="${f1(by - 6)}" rx="7" ry="4" fill="#cfe3f3" opacity=".85"/>`;
+  s += T(f1(bx + 12), f1(by + 18), 'böcek', { size: 11.5, weight: 700 });
+  // iplik boyunca titreşim
+  const ux = Math.cos(a), uy = 0.95 * Math.sin(a), L = Math.hypot(ux, uy);
+  s += arrow(f1(bx - 18 * ux / L), f1(by - 18 * uy / L), f1(cx + 26 * ux / L), f1(cy + 26 * uy / L), { color: BAK, w: 2.2, head: 9, headW: 4.5, dash: '5 4' });
+  return svg(W, H, s, u, 62);
+});
+
+// 7. soru: havada göz; uzaktan gelen paralel ışınlar kornea ve göz merceğinde kırılıp retinada toplanıyor
+BFY_FIG_EKLE('YD04_goz', function (u) {
+  const W = 320, H = 200, cx = 196, cy = 100, R = 72;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f6f8fa"/>`;
+  // göz küresi
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#fbfbf6" stroke="#8b7d66" stroke-width="2"/>`;
+  // retina (arka iç yüzey)
+  s += `<path d="M${f1(cx + R * Math.cos(-0.9))} ${f1(cy + R * Math.sin(-0.9))} A${R} ${R} 0 0 1 ${f1(cx + R * Math.cos(0.9))} ${f1(cy + R * Math.sin(0.9))}" fill="none" stroke="${BAK}" stroke-width="5"/>`;
+  // kornea
+  s += `<path d="M${cx - R + 6} ${cy - 34} Q ${cx - R - 20} ${cy} ${cx - R + 6} ${cy + 34}" fill="#d7ebf6" stroke="#5f8aa6" stroke-width="1.8"/>`;
+  // göz merceği
+  s += `<ellipse cx="${cx - 40}" cy="${cy}" rx="11" ry="27" fill="#cfe3f3" stroke="#5f8aa6" stroke-width="1.6"/>`;
+  // ışınlar
+  const odak = [cx + R, cy];
+  [-22, -11, 0, 11, 22].forEach(h => {
+    s += `<line x1="18" y1="${cy + h}" x2="${cx - R - 6}" y2="${cy + h}" stroke="#e0a21b" stroke-width="1.8"/>`;
+    s += `<line x1="${cx - R - 6}" y1="${cy + h}" x2="${cx - 40}" y2="${f1(cy + h * 0.8)}" stroke="#e0a21b" stroke-width="1.8"/>`;
+    s += `<line x1="${cx - 40}" y1="${f1(cy + h * 0.8)}" x2="${odak[0]}" y2="${odak[1]}" stroke="#e0a21b" stroke-width="1.8"/>`;
+  });
+  s += arrow(20, 44, 70, 44, { color: '#c48a12', w: 1.8, head: 8, headW: 4 }) + T(20, 34, 'uzaktaki cisimden', { size: 11, weight: 700, fill: '#8a6a12' });
+  s += T(cx - R - 10, cy + 56, 'kornea', { size: 11.5, weight: 700, anchor: 'end' });
+  s += T(cx - 12, cy + 40, 'göz merceği', { size: 11.5, weight: 700, anchor: 'middle' });
+  s += T(cx + R + 4, cy - 58, 'retina', { size: 11.5, weight: 700, anchor: 'end', fill: BAK });
+  s += T(14, H - 10, '(Gözün önünde hava var; ölçekli değildir.)', { size: 10.5, weight: 600, fill: P.ink2 });
+  return svg(W, H, s, u, 68);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'YD04', ad: 'TYT Fizik Denemesi 4', tur: 'deneme', sure: 600,
+  aciklama: 'Yedi soru, gerçek TYT sırası: dolma kalemin ucundan karda kızağa, zirveye çıkan dağcılardan maratoncunun folyo battaniyesine, terazide Coulomb kuvvetinden örümcek ağına ve maskesiz dalan bir dalgıcın bulanık görmesine.',
+  baglamlar: [
+    'dolma kalemde mürekkebin ucun ince yarığında ilerlemesi ve kâğıdın liflerine yayılması: kılcallık, adezyon ve kohezyon',
+    'karda kızak: baba önden iple 60 N, anne arkadan 30 N, kar zemin 15 N sürtünme, kızak ve kardeş 30 kg; a = 2,5 m/s²',
+    'aynı zirveye çıkan Ece ve Kerem (600 m, gereksiz veri): Ece\'nin ortalama gücü büyük; kütle, süre ve iş için kesin çıkarım',
+    'maraton sonrası folyo battaniye: parlak yüzün ışımayı geri yansıtması, hava akımını keserek konveksiyonu azaltması, battaniyenin ısı kaynağı olmaması',
+    'elektronik terazide +q yüklü X küresi (50,00 g), üstte Y küresi: +q, d → 50,40 g; bilinmeyen ölçüm 49,80 g → −2q, 2d (olabilir)',
+    'bahçe örümceği ağı: çırpınan böceğin oluşturduğu dalgalar, iplik gerginliği ve dalga sürati, frekansın sürate etkisi olmaması',
+    'maskesiz dalan Selin: gözün kırıcı kısımlarının suda daha az kırması, odak uzaklığının büyümesi, maskedeki havanın rolü'
+  ],
+  sorular: [
+    {
+      id: 'YD04_1', konu: 'Y.2.2', yks: true, zorluk: 1, cikti: '9.2.3.1', beceri: 'Kılcallığı yapışma ve birbirini tutmayla açıklama',
+      tahmin: { gerekce: r`Y.2.2'den 2018–2026 TYT'lerinde yalnız bir soru geldi (2021, yüzey gerilimi). Kılcallık ve adezyon-kohezyon karşılaştırması aynı kazanımın (9.2.3.1) öteki yarısıdır ve hesap gerektirmeden günlük bir araçla sorulmaya çok elverişlidir.` },
+      metin: r`Dolma kalemlerde mürekkep, hazneden metal ucun ortasındaki ince yarığa geçer ve yarık boyunca uca kadar ilerler. Uç kâğıda değince mürekkep kâğıda geçip kâğıdın lifleri arasına yayılır.
+
+Buna göre,
+
+I. Mürekkebin ince yarık boyunca ilerlemesi kılcallıkla açıklanır.
+II. Mürekkebin kendi molekülleri arasındaki birbirini tutma (kohezyon) kuvveti, mürekkep ile ucun metali arasındaki yapışma (adezyon) kuvvetinden büyüktür.
+III. Mürekkebin kâğıdın lifleri arasına yayılması da kılcallıkla açıklanır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Sıvıların ince borularda ya da dar aralıklarda kendiliğinden ilerlemesi kılcallıktır. Mürekkebin ucun ince yarığında ilerlemesi buna örnektir. **Doğru.**`,
+        r`II. Bir sıvının dar bir aralıkta ilerlemesi için sıvı ile katı yüzey arasındaki yapışma (adezyon), sıvının kendi molekülleri arasındaki birbirini tutmadan (kohezyon) büyük olmalıdır. Mürekkep metali ıslattığına göre adezyon kohezyondan büyüktür. **Yanlış.**`,
+        r`III. Kâğıdın lifleri arasındaki dar boşluklar da ince borular gibi davranır; mürekkep bu boşluklarda kılcallıkla yayılır. **Doğru.**`,
+        r`{{S0}} kâğıdın lifleri arasındaki boşlukların da kılcal boru gibi davrandığını atlar. {{S1}} metali ıslatan mürekkepte kohezyonun adezyondan büyük olduğunu sanır ve iki kılcallık örneğini atlar. {{S2}} mürekkebin ucun yarığında ilerlemesinin de kılcallık olduğunu atlar. {{S3}} kılcal yükselmenin, kohezyonun adezyondan büyük olduğu sıvılarda gerçekleştiğini sanır.`
+      ]
+    },
+    {
+      id: 'YD04_2', konu: 'Y.3.2', yks: true, zorluk: 1, cikti: '9.3.3.2', beceri: 'Net kuvveti bulup ivmeyi hesaplama',
+      cikmis: { yil: 2025, no: 1, kalip: 'Aynı yönlü iki kuvvet ve sürtünme kuvvetiyle net kuvvet' },
+      metin: r`Karla kaplı yatay bir zeminde, üzerinde kardeşi oturan bir kızak hareket ediyor. Babası kızağı önden, yere paralel bir iple $60\ \text{N}$'luk kuvvetle çekerken annesi de arkadan, hareket yönünde ve yere paralel $30\ \text{N}$'luk kuvvetle itiyor. Kardeşiyle birlikte kütlesi $30\ \text{kg}$ olan kızağa kar zeminin uyguladığı sürtünme kuvvetinin büyüklüğü $15\ \text{N}$'dur.
+
+{{sekil}}
+
+Buna göre kızağın ivmesinin büyüklüğü kaç $\text{m/s}^2$'dir?`,
+      sekil: 'YD04_kizak',
+      secenekler: [r`$0,5$`, r`$1,5$`, r`$2,5$`, r`$3$`, r`$3,5$`],
+      dogru: 2,
+      cozum: [
+        r`Baba ve annenin kuvvetleri hareket yönünde, sürtünme kuvveti hareket yönüne zıttır. Net kuvvet: $F_\text{net} = 60 + 30 - 15 = 75\ \text{N}$, hareket yönünde.`,
+        r`$F_\text{net} = m \cdot a$ bağıntısından $a = \dfrac{75}{30} = 2,5\ \text{m/s}^2$.`,
+        r`{{S0}} annenin kuvvetini babanınkine zıt yönde alır ($\dfrac{60 - 30 - 15}{30} = 0,5$). {{S1}} annenin kuvvetini hesaba katmaz ($\dfrac{60 - 15}{30} = 1,5$). {{S3}} sürtünme kuvvetini unutur ($\dfrac{90}{30} = 3$). {{S4}} sürtünme kuvvetini hareket yönünde ekler ($\dfrac{105}{30} = 3,5$).`
+      ]
+    },
+    {
+      id: 'YD04_3', konu: 'Y.4.1', yks: true, zorluk: 3, cikti: '9.4.1.2', beceri: 'İş ve güç bağıntılarından kesin çıkarım yapma',
+      cikmis: { yil: 2019, no: 3, kalip: 'Aynı yüksekliğe çıkanlarda iş ve güç karşılaştırması' },
+      metin: r`Ece ve Kerem bir dağ yürüyüşünde aynı başlangıç noktasından aynı zirveye çıkıyor. Zirve, başlangıç noktasından $600\ \text{m}$ yüksektedir. Yer çekimine karşı yaptıkları işe göre hesaplanan ortalama güçlerinden Ece'ninki, Kerem'inkinden büyüktür. (Yalnız yer çekimine karşı yapılan işi dikkate alınız.)
+
+Buna göre,
+
+I. Ece zirveye Kerem'den daha kısa sürede çıkmıştır.
+II. Ece'nin yaptığı iş Kerem'inkinden büyüktür.
+III. Ece'nin kütlesi Kerem'inkinden küçükse, Ece zirveye Kerem'den daha kısa sürede çıkmıştır.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`Yer çekimine karşı yapılan iş $W = m \cdot g \cdot h$'dir; $h$ ikisi için de aynıdır, yani iş kütleyle orantılıdır. Ortalama güç $P = \dfrac{W}{t} = \dfrac{m \cdot g \cdot h}{t}$'dir.`,
+        r`I. $P_\text{Ece} > P_\text{Kerem}$ eşitsizliği, Ece daha ağır olduğu için de sağlanabilir; bu durumda Ece daha uzun sürede çıkmış olabilir. **Kesin değil.**`,
+        r`II. Ece'nin işi ancak kütlesi Kerem'inkinden büyükse büyüktür; Ece daha hafif ama çok daha hızlı olabilir. **Kesin değil.**`,
+        r`III. Ece daha hafifse işi daha küçüktür ($W_\text{Ece} < W_\text{Kerem}$). Gücü yine de daha büyük olduğuna göre süresi daha kısadır: $t_\text{Ece} = \dfrac{W_\text{Ece}}{P_\text{Ece}} < \dfrac{W_\text{Kerem}}{P_\text{Kerem}} = t_\text{Kerem}$. **Kesinlikle doğru.** ($600\ \text{m}$ bilgisi sonuca etki etmez.)`,
+        r`{{S1}} gücü büyük olanın hem daha hızlı olduğunu hem de daha çok iş yaptığını sanır; gücün kütleye de bağlı olduğunu görmez. {{S2}} gücü yalnız çıkış süresine bağlar; ağır birinin yavaş olsa da gücünün büyük olabileceğini görmez. {{S3}} gücü büyük olanın işinin de büyük olduğunu sanır. {{S4}} olası durumları kesin sayar.`
+      ]
+    },
+    {
+      id: 'YD04_4', konu: 'Y.5.3', yks: true, zorluk: 2, cikti: '9.5.4.1', beceri: 'Enerji iletim yollarını günlük bir üründe ayırt etme',
+      tahmin: { gerekce: r`Enerji iletim yolları 2023'te yalnız Güneş'ten Yerküre'ye ışımayla aktarım örneğiyle soruldu. Bir yalıtım ürününün iletim yollarından hangilerini nasıl etkilediği ve "yalıtım malzemesi ısı verir" yanılgısı hiç sorulmadı; 9.5.4.1 ile 9.5.4.3'ün günlük hayat vurgusuna uyar.` },
+      metin: r`Maraton koşucularına yarışı bitirdikten hemen sonra ince, parlak metal kaplı folyo battaniyeler veriliyor. Terli ve sıcak vücut serin ve rüzgârlı havada hızla enerji kaybettiği için koşucular battaniyeye sarınıyor.
+
+Buna göre,
+
+I. Battaniyenin parlak yüzü, vücudun ışımayla yaydığı enerjinin büyük kısmını yansıtarak vücuda geri gönderir.
+II. Battaniye, vücudun çevresindeki havanın yer değiştirmesini engelleyerek konveksiyonla enerji kaybını azaltır.
+III. Battaniye, koşucunun vücuduna enerji vererek vücut sıcaklığını artırır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Sıcak vücut çevresine iletim, konveksiyon ve ışıma yollarıyla enerji aktarır. Folyo battaniye bu kaybı azaltan bir yalıtım malzemesidir.`,
+        r`I. Vücut kızılötesi ışınlar yayar (ışıma). Parlak metal yüzey bu ışınların büyük kısmını yansıtır ve vücuda geri gönderir. **Doğru.**`,
+        r`II. Rüzgârda vücudu saran ısınmış hava sürekli soğuk havayla yer değiştirir (konveksiyon). Battaniye vücudun çevresinde durgun bir hava tabakası tutar ve bu kaybı azaltır. **Doğru.**`,
+        r`III. Battaniyenin kendisi bir enerji kaynağı değildir; vücuttan çevreye giden enerjiyi azaltır. Koşucu, vücudunun ürettiği enerjiyi daha az kaybettiği için ısınır. **Yanlış.**`,
+        r`{{S0}} battaniyenin hava akımını keserek konveksiyonla kaybı da azalttığını atlar. {{S1}} parlak yüzün ışımayla yayılan enerjiyi geri yansıttığını atlar. {{S3}} battaniyenin konveksiyonu azalttığını atlar ve onu bir ısı kaynağı sanır. {{S4}} battaniyenin vücuda enerji verdiğini sanır; battaniye yalnız vücuttan kaybedilen enerjiyi azaltır.`
+      ]
+    },
+    {
+      id: 'YD04_5', konu: 'Y.6.2', yks: true, zorluk: 3, cikti: '9.6.1.3', beceri: 'Elektriksel kuvvetin yük ve uzaklıkla değişimini kullanma',
+      tahmin: { gerekce: r`Elektriksel kuvvet 2018 ve 2022'de yalnız nitel (itme-çekme, kutuplanma) olarak soruldu. Program, noktasal yüklerle tek boyutta Coulomb hesabını açıkça istiyor; kuvvetin yükle doğru, uzaklığın karesiyle ters orantılı değişimini terazi okumasına bağlayan oran sorusu bu boşluğa uyar.` },
+      metin: r`Elektronik bir terazinin kefesine yalıtkan bir ayakla yükü $+q$ olan küçük bir X küresi sabitlenmiştir; Y küresi yokken terazi $50,00\ \text{g}$ gösteriyor. Yalıtkan bir sapla tutulan küçük bir Y küresi, X'in tam üstüne getiriliyor. Tabloda Y'nin yüküne ve iki kürenin merkezleri arasındaki uzaklığa göre terazinin gösterdiği değerler verilmiştir; 2. ölçümde Y'nin yükü ve uzaklık yazılmamıştır.
+
+{{tablo}}
+
+{{sekil}}
+
+Buna göre 2. ölçümde Y'nin yükü ve kürelerin merkezleri arasındaki uzaklık aşağıdakilerden hangisi olabilir? (Küreler noktasal yük gibi davranıyor; X'in yükü değişmiyor.)`,
+      tablo: [['Ölçüm', 'Y’nin yükü', 'Uzaklık', 'Terazi'], ['1', r`$+q$`, r`$d$`, '50,40 g'], ['2', '?', '?', '49,80 g']],
+      sekil: 'YD04_tarti',
+      secenekler: [r`$-q$ ve $2d$`, r`$-2q$ ve $2d$`, r`$-\dfrac{q}{2}$ ve $2d$`, r`$+2q$ ve $2d$`, r`$-q$ ve $d$`],
+      dogru: 1,
+      cozum: [
+        r`1. ölçümde Y, X'i iter; itme kuvveti X'i aşağı bastırdığı için terazi $50,40 - 50,00 = 0,40\ \text{g}$ daha fazla gösterir. Bu fark elektriksel kuvveti gösterir: $F_1 \propto \dfrac{q \cdot q}{d^2}$, terazide $+0,40\ \text{g}$.`,
+        r`2. ölçümde terazi $49,80 - 50,00 = -0,20\ \text{g}$ fark gösteriyor: Kuvvet çekmedir (Y negatif yüklüdür) ve büyüklüğü 1. ölçümdekinin yarısıdır.`,
+        r`Coulomb yasasına göre kuvvet, yüklerin çarpımıyla doğru, uzaklığın karesiyle ters orantılıdır. Y'nin yükü $-2q$, uzaklık $2d$ ise kuvvetin büyüklüğü $\dfrac{2}{2^2} = \dfrac{1}{2}$ katına iner ve çekme olur: $50,00 - 0,20 = 49,80\ \text{g}$. Bu durum **olabilir.**`,
+        r`{{S3}} kuvvetin yarıya indiğini doğru bulur ama yükün işaretini göz ardı eder; itme olsaydı terazi $50,20\ \text{g}$ gösterirdi. {{S0}} kuvvetin uzaklığın karesiyle değil, uzaklıkla ters orantılı olduğunu sanır; oysa uzaklık iki katına çıkınca kuvvet $\dfrac{1}{4}$ katına iner ve terazi $49,90\ \text{g}$ gösterirdi. {{S4}} yalnız işaretin değiştiğini düşünür; kuvvet aynı büyüklükte kalır ve terazi $49,60\ \text{g}$ gösterirdi. {{S2}} yükün yarıya inmesinin kuvveti yarıya indireceğini düşünüp uzaklığın etkisini atlar; oysa kuvvet $\dfrac{1}{8}$ katına iner ve terazi $49,95\ \text{g}$ gösterirdi.`
+      ]
+    },
+    {
+      id: 'YD04_6', konu: 'Y.9.1', yks: true, zorluk: 2, cikti: '10.3.2.2', beceri: 'Dalga süratinin ortama, frekansın kaynağa bağlılığı',
+      tahmin: { gerekce: r`10.3.2.2 (gergin yayda atmanın ilerleme hızının bağlı olduğu değişkenler) 2018–2026 TYT'lerinde ana kazanım olarak hiç sorulmadı. Sürat ortama (gerginliğe), frekans kaynağa bağlıdır; ÖSYM'nin dalga sorularındaki bu temel tuzak, canlılardan alınan bir bağlamla hesapsız sorulabilir.` },
+      metin: r`Bir bahçe örümceği, ağına konan bir böceğin yerini ağın ipliklerinde ilerleyen titreşimlerden anlar. Böcek kurtulmak için çırpındıkça ipliklerde dalgalar oluşur ve bu dalgalar ağın merkezinde bekleyen örümceğe ulaşır.
+
+{{sekil}}
+
+Buna göre,
+
+I. İpliklerde ilerleyen dalgalar, böceğin çırpınmasıyla oluşan enerjiyi iplik boyunca madde taşımadan örümceğe iletir.
+II. Ağın iplikleri daha çok gerilirse, dalgalar örümceğe daha kısa sürede ulaşır.
+III. Böcek daha sık çırpınırsa, yani titreşimin frekansı artarsa, dalgalar ağda daha süratli ilerler.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YD04_ag',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. Dalgalar enerji taşır; ortamın parçacıkları (ipliğin parçaları) yalnız bulundukları yerde titreşir, dalgayla birlikte ilerlemez. **Doğru.**`,
+        r`II. Gergin bir ipte ya da yayda dalganın sürati ortamın özelliklerine bağlıdır; gerginlik arttıkça sürat artar. Dalgalar örümceğe daha kısa sürede ulaşır. **Doğru.**`,
+        r`III. Frekansı kaynak (böcek) belirler; dalganın ilerleme sürati ise ortama bağlıdır. Frekans artınca sürat değişmez, dalga boyu kısalır. **Yanlış.**`,
+        r`{{S0}} dalganın ilerleme süratinin ipliğin gerginliğine bağlı olduğunu atlar. {{S2}} süratin gerginliğe bağlı olduğunu görmez ve frekansın sürati artırdığını sanır. {{S3}} dalgaların enerjiyi madde taşımadan ilettiğini atlar ve süratin kaynağa bağlı olduğunu sanır. {{S4}} kaynağın frekansının dalganın ilerleme süratini değiştirdiğini sanır.`
+      ]
+    },
+    {
+      id: 'YD04_7', konu: 'Y.10.5', yks: true, zorluk: 2, cikti: '10.4.7.1', beceri: 'Merceğin odak uzaklığının ortama bağlılığı',
+      cikmis: { yil: 2024, no: 7, kalip: 'Koşul değişince merceğin ışınları topladığı noktanın yeri' },
+      metin: r`Gözümüzün ışığı kıran saydam kısımları (kornea ve göz merceği) birlikte, havada ince kenarlı bir mercek gibi davranır ve uzaktaki bir cismin net görüntüsünü retina üzerinde oluşturur. Bu kısımların kırıcılık indisleri, suyun kırıcılık indisinden biraz büyüktür. Maskesiz dalan Selin su altındaki cisimleri bulanık görüyor; içinde hava bulunan bir dalış maskesi takınca ise net görüyor.
+
+{{sekil}}
+
+Selin'in su altında maskesiz bulanık görmesinin nedeni aşağıdakilerden hangisidir?`,
+      sekil: 'YD04_goz',
+      secenekler: [
+        r`Gözün kırıcı kısımları suda ışığı havadakinden daha az kırar; ışınlar retinanın gerisinde toplanacak biçimde ilerler.`,
+        r`Gözün kırıcı kısımları suda kalın kenarlı mercek gibi davranır ve ışığı dağıtır.`,
+        r`Su gözün odak uzaklığını değiştirmez; görüntü, ışık suda yavaşladığı için bulanıklaşır.`,
+        r`Gözün kırıcı kısımları suda ışığı havadakinden daha az kırar; ışınlar retinanın önünde toplanır.`,
+        r`Gözün kırıcı kısımları suda ışığı havadakinden daha çok kırar; ışınlar retinanın önünde toplanır.`
+      ],
+      dogru: 0,
+      cozum: [
+        r`Bir merceğin ışığı ne kadar kıracağı, merceğin kırıcılık indisi ile çevresindeki ortamınki arasındaki farka bağlıdır. Fark küçüldükçe mercek ışığı daha az kırar ve odak uzaklığı büyür.`,
+        r`Gözün kırıcı kısımlarının indisleri havanınkinden çok, suyunkinden ise biraz büyüktür. Suda ışık daha az kırılır; gözün odak uzaklığı büyür ve ışınlar retinada değil, retinanın gerisinde toplanacak biçimde ilerler. Retinada net olmayan, bulanık bir görüntü oluşur.`,
+        r`Göz yine ışığı toplar; çünkü indisi sudan büyüktür. Maske, gözün önünde yeniden hava bulunmasını sağlar; ışık su–cam–hava yüzeylerinden geçip göze havadan ulaşır ve göz normal odak uzaklığıyla çalışır.`,
+        r`{{S4}} ortamın indisi merceğinkine yaklaşınca merceğin ışığı daha çok kırdığını sanır. {{S1}} gözün suda ışığı dağıttığını sanır; gözün indisi sudan büyük olduğu için ışığı yine toplar. {{S2}} ortamın kırılmayı ve odak uzaklığını etkilemediğini sanır. {{S3}} kırılma azalınca odak uzaklığının büyüdüğünü görmez ve ışınların retinanın önünde toplandığını sanır.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY etkileşimli içerik türleri: eşleştir, sınıfla, sırala (soru ya da not içi mini oyun)
    ve kavram kartları. Oluşturucu (PDF), dijital uygulama ve QA araçları bu yardımcıları ortak kullanır.
    Veri biçimi için bkz. KILAVUZ9.md "Etkileşimli içerik türleri".
