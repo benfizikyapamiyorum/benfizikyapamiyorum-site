@@ -18184,6 +18184,1757 @@ liste.push({
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.4.2 Mekanik Enerji, Verim ve Enerji Kaynakları — şekiller
+   Önek: kY42_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY42_ (tanım ve efsane çizimleri; 3B izometrik).
+   Kurallar: enerji grafiklerinde eksenlerde sayı yok (program hesap istemez); oranlar şekilde doğru ölçekte.
+   Renkler: kinetik enerji mercan, yer çekimi potansiyel enerjisi mavi, esneklik potansiyel enerjisi yeşil, ısı turuncu.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f4f7f9', EK = '#d9573b', EP = '#2f7fb8', ES = '#2f8a57', ISI = '#e08a1e', GRI = '#8a9aa6', TEL = '#2a3330';
+let N = 0;
+const yeniId = (u, ad) => `${u}${ad}${++N}`;
+function lg(id, renkler, yon = 'y') {
+  const xy = yon === 'y' ? 'x1="0" y1="0" x2="0" y2="1"' : 'x1="0" y1="0" x2="1" y2="0"';
+  return `<defs><linearGradient id="${id}" ${xy}>${renkler.map((c, i) => `<stop offset="${f1(i / (renkler.length - 1))}" stop-color="${c}"/>`).join('')}</linearGradient></defs>`;
+}
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const ok = (x1, y1, x2, y2, c, o = {}) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), Object.assign({ color: c, w: 2.4, head: 8, headW: 4.6 }, o));
+/* eksen takımı: başlangıç (ox, oy), uçlar (ex, ey); düşey eksen adı okun ucunda, yatay eksen adı ucun yanında */
+function eksen(ox, oy, ex, ey, xl, yl, o = {}) {
+  let s = `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ex + 7},${oy} ${ex - 2},${oy - 3.8} ${ex - 2},${oy + 3.8}" fill="${P.ink}"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${ey - 7} ${ox - 3.8},${ey + 2} ${ox + 3.8},${ey + 2}" fill="${P.ink}"/>`;
+  s += T(ox + 8, ey + 3, yl, { size: o.ys || 13, weight: 800 });
+  s += T(ex + 10, oy + 4.5, xl, { size: o.xs || 13, weight: 800, italic: !!o.xi });
+  s += T(ox - 5, oy + 14, '0', { size: 11.5, anchor: 'end', fill: P.ink2 });
+  return s;
+}
+function egri(fn, x0, x1, n = 40) { let d = ''; for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n; d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(fn(x)); } return d; }
+const yol = (d, c = P.blue, w = 2.6) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+function top_(u, cx, cy, r, renk) {
+  const id = yeniId(u, 'kr');
+  return `<defs><radialGradient id="${id}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".3" stop-color="${renk}"/><stop offset="1" stop-color="${renk}"/></radialGradient></defs>` +
+    `<circle cx="${f1(cx)}" cy="${f1(cy)}" r="${r}" fill="url(#${id})" stroke="${TEL}" stroke-width=".9"/>`;
+}
+/* dikey ölçü oku ve etiketi */
+function olcuV(x, y1, y2, et, o = {}) {
+  let s = `<line x1="${x}" y1="${f1(y1 + 5)}" x2="${x}" y2="${f1(y2 - 5)}" stroke="${P.ink}" stroke-width="1.2"/><polygon points="${x},${y1} ${x - 3},${y1 + 6} ${x + 3},${y1 + 6}" fill="${P.ink}"/><polygon points="${x},${y2} ${x - 3},${y2 - 6} ${x + 3},${y2 - 6}" fill="${P.ink}"/>`;
+  s += T(o.sag ? x + 6 : x - 6, (y1 + y2) / 2 + 4.5, et, { size: o.size || 13, weight: 800, anchor: o.sag ? 'start' : 'end' });
+  return s;
+}
+/* yay (zikzak) iki nokta arasında; n diş, genlik a */
+function yay(x1, y1, x2, y2, n, a, c = '#55626b', w = 1.6) {
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, px = -uy, py = ux;
+  const u0 = 0.08 * L, u1 = 0.92 * L;
+  let d = `M${f1(x1)} ${f1(y1)} L${f1(x1 + ux * u0)} ${f1(y1 + uy * u0)}`;
+  for (let i = 1; i <= 2 * n; i++) { const t = u0 + (u1 - u0) * (i - 0.5) / (2 * n), sg = i % 2 ? 1 : -1; d += ` L${f1(x1 + ux * t + px * a * sg)} ${f1(y1 + uy * t + py * a * sg)}`; }
+  d += ` L${f1(x1 + ux * u1)} ${f1(y1 + uy * u1)} L${f1(x2)} ${f1(y2)}`;
+  return `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"/>`;
+}
+const isiDalga = (x, y, h = 16, c = ISI) => [-6, 0, 6].map(d => `<path d="M${x + d} ${y} q-3 ${-h / 4} 0 ${-h / 2} q3 ${-h / 4} 0 ${-h / 2}" fill="none" stroke="${c}" stroke-width="1.6" stroke-linecap="round"/>`).join('');
+
+/* ================= NOT ŞEKİLLERİ ================= */
+/* Üç modelin grafikleri: E_K–ϑ, E_P–h (m ve 2m), E_esneklik–x */
+BFY_FIG_EKLE('kY42_modeller_genis', function (u) {
+  const W = 560, H = 214;
+  let s = zemin(W, H);
+  const pan = (i, baslik, xl, yl, ciz) => {
+    const x0 = 10 + i * 183, ox = x0 + 30, oy = 178, ex = x0 + 150, ey = 46;
+    let t = `<rect class="bg" x="${x0}" y="10" width="173" height="194" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+    t += T(x0 + 86.5, 30, baslik, { size: 12.5, weight: 800, anchor: 'middle', fill: P.ink });
+    t += eksen(ox, oy, ex, ey, xl, yl, { xi: true });
+    return t + ciz(ox, oy, ex - 10, ey + 14);
+  };
+  const kat = (ox, oy, xr, yt, renk, et1, et2, xe1, xe2) => {
+    const A = oy - yt, sx = t => ox + (xr - ox) * t, sy = t => oy - A * t * t / 0.9 / 0.9;
+    let t = yol(egri(x => oy - A * Math.pow((x - ox) / (xr - ox), 2) / 0.81, ox, sx(0.92)), renk);
+    [[0.45, et1, xe1], [0.9, et2, xe2]].forEach(([q, ey_, ex_]) => {
+      const x = sx(q), y = sy(q);
+      t += dashLine(f1(x), oy, f1(x), f1(y), '#9aa8b1', '3 3', 1) + dashLine(ox, f1(y), f1(x), f1(y), '#9aa8b1', '3 3', 1);
+      t += `<circle cx="${f1(x)}" cy="${f1(y)}" r="3.4" fill="${renk}"/>`;
+      t += T(f1(x), oy + 15, ex_, { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+      t += T(ox - 5, f1(y + 4), ey_, { size: 12, weight: 700, anchor: 'end', fill: P.ink2 });
+    });
+    return t;
+  };
+  s += pan(0, 'Kinetik enerji', 'ϑ', 'E_K', (ox, oy, xr, yt) => kat(ox, oy, xr, yt, EK, 'E', '4E', 'ϑ', '2ϑ'));
+  s += pan(1, 'Yer çekimi potansiyel', 'h', 'E_P', (ox, oy, xr, yt) => {
+    let t = `<line x1="${ox}" y1="${oy}" x2="${f1(xr)}" y2="${f1(oy - (oy - yt) * 0.5)}" stroke="${EP}" stroke-width="2.6" stroke-linecap="round"/>`;
+    t += `<line x1="${ox}" y1="${oy}" x2="${f1(ox + (xr - ox) * 0.92)}" y2="${f1(oy - (oy - yt) * 0.92)}" stroke="${EP}" stroke-width="2.6" stroke-linecap="round"/>`;
+    t += T(f1(xr - 2), f1(oy - (oy - yt) * 0.5 + 16), 'm', { size: 13, weight: 800, italic: true, anchor: 'end', fill: EP });
+    t += T(f1(ox + (xr - ox) * 0.92 - 8), f1(oy - (oy - yt) * 0.92 + 2), '2m', { size: 13, weight: 800, italic: true, anchor: 'end', fill: EP });
+    return t;
+  });
+  s += pan(2, 'Esneklik potansiyel', 'x', 'E_{esneklik}', (ox, oy, xr, yt) => kat(ox, oy, xr, yt, ES, 'E', '4E', 'x', '2x'));
+  return svg(W, H, s, u, 150);
+});
+
+/* Sürtünmesiz ve sürtünmeli rayda bırakılan bilye */
+BFY_FIG_EKLE('kY42_korunum_genis', function (u) {
+  const W = 560, H = 214;
+  let s = zemin(W, H);
+  const pan = (x0, surt) => {
+    const xa = x0 + 22, xb = x0 + 246, xm = (xa + xb) / 2, yb = 178, Hh = 112, yH = yb - Hh;
+    const ray = x => yb - Hh * Math.pow((x - xm) / ((xb - xa) / 2), 2);
+    let t = `<rect class="bg" x="${x0}" y="10" width="268" height="194" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+    t += T(x0 + 134, 30, surt ? 'Sürtünmeli ray' : 'Sürtünmesiz ray', { size: 13, weight: 800, anchor: 'middle', fill: surt ? '#b4561a' : P.ink });
+    let d = `M${xa} ${yb + 12} L${xa} ${f1(ray(xa))}`;
+    for (let i = 1; i <= 40; i++) { const x = xa + (xb - xa) * i / 40; d += ` L${f1(x)} ${f1(ray(x))}`; }
+    d += ` L${xb} ${yb + 12} Z`;
+    t += `<path d="${d}" fill="${surt ? '#e9dcc8' : '#dfe8ee'}" stroke="${surt ? '#a8865a' : '#7f97a6'}" stroke-width="1.6" stroke-linejoin="round"/>`;
+    if (surt) for (let x = xa + 30; x < xb - 30; x += 9) { const y = ray(x); t += `<line x1="${f1(x)}" y1="${f1(y + 1)}" x2="${f1(x + 3)}" y2="${f1(y + 5)}" stroke="#a8865a" stroke-width="1"/>`; }
+    // başlangıç: sol uçta, H yüksekliğinde (bilye rayın üstünde)
+    const r = 8, xs = xa + 10, ys = ray(xs);
+    const nor = x => { const e = 0.5, d1 = (ray(x + e) - ray(x - e)) / (2 * e), L = Math.hypot(1, d1); return [d1 / L, -1 / L]; };
+    const [nx0, ny0] = nor(xs);
+    t += top_(u, xs + nx0 * r, ys + ny0 * r, r, '#e4a33a');
+    t += T(xs + 16, ys - 10, 'bırakılır', { size: 11.5, weight: 700, fill: P.ink2 });
+    t += dashLine(xa - 4, f1(ys), xb + 4, f1(ys), '#9aa8b1', '4 4', 1.1);
+    // karşı taraf: sürtünmesizde aynı yükseklik, sürtünmelide daha alçak
+    const hO = surt ? 0.62 : 1, yO = yb - (yb - ys) * hO, xO = xm + (xb - xm) * Math.sqrt((yb - yO) / Hh);
+    const [nx1, ny1] = nor(xO);
+    t += `<circle cx="${f1(xO + nx1 * r)}" cy="${f1(yO + ny1 * r)}" r="${r}" fill="#e4a33a" opacity=".45" stroke="${TEL}" stroke-width=".9" stroke-dasharray="2 2"/>`;
+    if (surt) {
+      t += dashLine(xm, f1(yO), xb + 4, f1(yO), '#c98a4a', '4 4', 1.1);
+      t += `<line x1="${xb + 12}" y1="${f1(ys + 5)}" x2="${xb + 12}" y2="${f1(yO - 5)}" stroke="#b4561a" stroke-width="1.3"/><polygon points="${xb + 12},${f1(ys)} ${xb + 9},${f1(ys + 6)} ${xb + 15},${f1(ys + 6)}" fill="#b4561a"/><polygon points="${xb + 12},${f1(yO)} ${xb + 9},${f1(yO - 6)} ${xb + 15},${f1(yO - 6)}" fill="#b4561a"/>`;
+      t += isiDalga(xm - 10, yb - 6, 22) + T(xm + 14, yb - 14, 'ısı', { size: 12.5, weight: 800, fill: '#b4561a' });
+      t += T(xO - 12, yO - 14, 'daha alçağa çıkar', { size: 11.5, weight: 700, anchor: 'end', fill: '#b4561a' });
+    } else {
+      t += T(xO - 14, yO - 10, 'aynı yüksekliğe çıkar', { size: 11.5, weight: 700, anchor: 'end', fill: P.ink2 });
+    }
+    return t;
+  };
+  s += pan(10, false) + pan(282, true);
+  return svg(W, H, s, u, 150);
+});
+
+/* A–G enerji sınıfı göstergesi (enerji etiketi ve kimlik belgesindeki ölçek) */
+const SINIF = ['#1a8a3c', '#4fae3b', '#b5cc2e', '#f1d41d', '#f4a12b', '#e9652a', '#d6302a'];
+function sinifOlcek(x, y, w0, dw, h, aralik, sec, o = {}) {
+  let s = '';
+  'ABCDEFG'.split('').forEach((h_, i) => {
+    const yy = y + i * aralik, w = w0 + i * dw;
+    s += `<path d="M${x} ${yy} H${x + w} L${x + w + h / 2} ${yy + h / 2} L${x + w} ${yy + h} H${x} Z" fill="${SINIF[i]}"/>`;
+    s += T(x + 6, yy + h / 2 + 4.6, h_, { size: o.size || 13, weight: 800, fill: '#fff', halo: false });
+  });
+  if (sec != null) {
+    const yy = y + sec * aralik, xr = o.ok || x + w0 + 6 * dw + h / 2 + 14;
+    s += `<path d="M${xr} ${yy + h / 2} L${xr + h / 2} ${yy} H${xr + h / 2 + 30} V${yy + h} H${xr + h / 2} Z" fill="${TEL}"/>`;
+    s += T(xr + h / 2 + 15, yy + h / 2 + 5, 'ABCDEFG'[sec], { size: o.size ? o.size + 1 : 14, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  }
+  return s;
+}
+BFY_FIG_EKLE('kY42_etiket', function (u) {
+  const W = 300, H = 236;
+  let s = zemin(W, H);
+  s += `<rect x="40" y="12" width="220" height="214" rx="8" fill="#fff" stroke="#9fb2bf" stroke-width="1.4"/>`;
+  s += `<rect x="40" y="12" width="220" height="30" rx="8" fill="#2b4a8b"/><rect x="40" y="30" width="220" height="12" fill="#2b4a8b"/>`;
+  s += T(150, 32, 'ENERJİ SINIFI', { size: 13, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  s += T(54, 58, 'daha verimli', { size: 11.5, weight: 700, fill: '#1a8a3c' });
+  s += sinifOlcek(54, 64, 34, 13, 16, 19, 2, { ok: 200 });
+  s += T(54, 207, 'daha az verimli', { size: 11.5, weight: 700, fill: '#d6302a' });
+  s += `<line x1="160" y1="196" x2="248" y2="196" stroke="#c8d3da" stroke-width="1"/>`;
+  s += T(204, 212, 'yıllık tüketim (kWh)', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* ================= ÇÖZÜMLÜ ÖRNEK ŞEKİLLERİ ================= */
+/* C2: rüzgâr türbininin içi (yandan, şematik) */
+BFY_FIG_EKLE('kY42_C2_genis', function (u) {
+  const W = 560, H = 200;
+  let s = zemin(W, H);
+  s += `<rect class="bg" x="10" y="182" width="540" height="8" rx="2" fill="#cfdccf"/>`;
+  // kule
+  s += `<path d="M300 182 L310 92 L330 92 L340 182 Z" fill="#e6ebee" stroke="#8a9aa6" stroke-width="1.2"/>`;
+  // gövde (nasel): içi açık
+  s += `<rect x="168" y="50" width="300" height="46" rx="10" fill="#f6f8fa" stroke="#6f7d85" stroke-width="1.6"/>`;
+  // göbek ve kanatlar
+  const hx = 156, hy = 73, id = yeniId(u, 'kn');
+  s += lg(id, ['#ffffff', '#d7dee3'], 'x');
+  s += `<path d="M${hx} ${hy - 4} L${hx - 8} 8 L${hx + 2} 8 L${hx + 6} ${hy - 4} Z" fill="url(#${id})" stroke="#7d8a91" stroke-width="1"/>`;
+  s += `<path d="M${hx} ${hy + 4} L${hx - 8} 176 L${hx + 2} 176 L${hx + 6} ${hy + 4} Z" fill="url(#${id})" stroke="#7d8a91" stroke-width="1"/>`;
+  s += `<ellipse cx="${hx + 2}" cy="${hy}" rx="12" ry="16" fill="#dfe5e9" stroke="#6f7d85" stroke-width="1.3"/>`;
+  // mil, dişli kutusu, jeneratör
+  s += `<rect x="170" y="70" width="70" height="6" fill="#8a949b"/>`;
+  s += `<rect x="240" y="58" width="72" height="30" rx="4" fill="#c9d1d6" stroke="#5f6a70" stroke-width="1.2"/>`;
+  [256, 272, 288].forEach(x => { s += `<circle cx="${x}" cy="73" r="8" fill="none" stroke="#5f6a70" stroke-width="1.2" stroke-dasharray="2.4 1.6"/>`; });
+  s += `<rect x="312" y="70" width="34" height="6" fill="#8a949b"/>`;
+  s += `<rect x="346" y="56" width="92" height="34" rx="6" fill="#9fb8c9" stroke="#3f5f74" stroke-width="1.2"/>`;
+  for (let x = 354; x < 432; x += 8) s += `<line x1="${x}" y1="60" x2="${x}" y2="86" stroke="#3f5f74" stroke-width=".8" opacity=".6"/>`;
+  // kablo
+  s += `<path d="M392 90 L392 98 L322 98 L322 178" fill="none" stroke="${P.coral}" stroke-width="2.2"/>`;
+  // rüzgâr okları
+  [34, 74, 114, 154].forEach(y => { s += ok(20, y, 98, y, '#7fb3d5', { w: 2.2 }); });
+  s += T(20, 26, 'rüzgâr', { size: 13, weight: 800, fill: '#2e6f95' });
+  s += T(150, 196, 'kanatlar', { size: 12.5, weight: 700, anchor: 'end' });
+  s += T(276, 46, 'dişli kutusu', { size: 12.5, weight: 700, anchor: 'middle' }) + T(392, 46, 'jeneratör', { size: 12.5, weight: 700, anchor: 'middle' });
+  s += T(206, 108, 'mil', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(352, 140, 'elektrik', { size: 12.5, weight: 800, fill: P.coral });
+  return svg(W, H, s, u, 150);
+});
+
+/* Sankey şeridi: (x0, y0..y0+H) giriş, çıkışlar [ad, pay, renk] */
+function sankey(x0, xd, x1, yc, Hh, cik, et) {
+  let s = `<rect x="${x0}" y="${f1(yc - Hh / 2)}" width="${xd - x0}" height="${Hh}" fill="#9cc7e6" opacity=".9"/>`;
+  const bos = 22, topH = Hh + bos * (cik.length - 1);
+  let yy = yc - topH / 2, yg = yc - Hh / 2;
+  const xm = (xd + x1) / 2;
+  cik.forEach(([ad, pay, renk, alt]) => {
+    const h = Hh * pay;
+    s += `<path d="M${xd} ${f1(yg)} C${xm} ${f1(yg)} ${xm} ${f1(yy)} ${x1} ${f1(yy)} L${x1} ${f1(yy + h)} C${xm} ${f1(yy + h)} ${xm} ${f1(yg + h)} ${xd} ${f1(yg + h)} Z" fill="${renk}" opacity=".85"/>`;
+    s += `<polygon points="${x1},${f1(yy - 3)} ${x1 + 9},${f1(yy + h / 2)} ${x1},${f1(yy + h + 3)}" fill="${renk}"/>`;
+    s += T(x1 + 14, yy + h / 2 + (alt ? -3 : 4.5), ad, { size: 12.5, weight: 800, fill: et || P.ink });
+    if (alt) s += T(x1 + 14, yy + h / 2 + 12, alt, { size: 12, weight: 700, fill: P.ink2 });
+    yy += h + bos; yg += h;
+  });
+  return s;
+}
+/* C3: benzinli otomobilin enerji şeması */
+BFY_FIG_EKLE('kY42_C3_genis', function (u) {
+  const W = 560, H = 246;
+  let s = zemin(W, H);
+  s += sankey(20, 130, 300, 132, 150, [['Tekerleklerin hareketi', 0.2, '#2f7fb8'], ['Egzoz gazı ve radyatörle', 0.66, '#e08a1e', 'çevreye giden ısı'], ['Sürtünme ve ses', 0.14, '#b6884e']]);
+  s += T(75, 26, 'Yakıtın kimyasal', { size: 12.5, weight: 800, anchor: 'middle', fill: '#2e6f95' }) + T(75, 42, 'enerjisi', { size: 12.5, weight: 800, anchor: 'middle', fill: '#2e6f95' });
+  s += T(20, 236, 'Şerit kalınlıkları enerjiyle orantılıdır.', { size: 11.5, weight: 600, fill: P.ink2 });
+  return svg(W, H, s, u, 150);
+});
+
+/* C4: K'den bırakılan cisim, L çukuru, M tepesi, N'de durup dönüyor */
+BFY_FIG_EKLE('kY42_C4_genis', function (u) {
+  const W = 560, H = 210;
+  let s = zemin(W, H);
+  const yb = 192;
+  // profil: K (yüksek), L (çukur), M (orta tepe), N (sağ yamaçta, K'den alçak)
+  const pts = [[24, 40], [70, 60], [130, 150], [170, 168], [210, 150], [270, 96], [300, 90], [330, 96], [390, 148], [420, 160], [470, 118], [536, 58]];
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  let d = `M24 ${yb} L24 40`;
+  // yumuşak eğri: Catmull-Rom
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+    d += ` C${f1(c1[0])} ${f1(c1[1])} ${f1(c2[0])} ${f1(c2[1])} ${p2[0]} ${p2[1]}`;
+  }
+  d += ` L536 ${yb} Z`;
+  s += `<path d="${d}" fill="#e3e9ec" stroke="#7f97a6" stroke-width="1.6" stroke-linejoin="round"/>`;
+  s += top_(u, 34, 30, 8, '#e4a33a');
+  s += dashLine(16, 40, 548, 40, '#9aa8b1', '4 4', 1);
+  // N: sağ yamaçta, K'den alçak
+  const nx = 500, ny = 92;
+  s += `<circle cx="${nx - 6}" cy="${ny - 7}" r="8" fill="#e4a33a" opacity=".45" stroke="${TEL}" stroke-width=".9" stroke-dasharray="2 2"/>`;
+  s += T(44, 26, 'K', { size: 14, weight: 800 }) + T(170, 186, 'L', { size: 14, weight: 800, anchor: 'middle' }) + T(300, 80, 'M', { size: 14, weight: 800, anchor: 'middle' }) + T(nx + 8, ny + 2, 'N', { size: 14, weight: 800 });
+  s += T(548, 24, '(Şekil ölçekli değildir.)', { size: 11, weight: 600, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 150);
+});
+
+/* ================= SORU ŞEKİLLERİ ================= */
+/* Q2: direğe asılı X, Y, Z saksıları */
+function saksi(u, cx, ytop, w, renk) {
+  const id = yeniId(u, 'sk'), h = w * 0.62;
+  let s = lg(id, [renk, '#f3c9a2', renk], 'x');
+  s += `<path d="M${cx - w / 2} ${ytop} H${cx + w / 2} L${cx + w * 0.36} ${ytop + h} H${cx - w * 0.36} Z" fill="url(#${id})" stroke="#8a4b26" stroke-width="1.1"/>`;
+  s += `<rect x="${cx - w / 2 - 2}" y="${ytop - 4}" width="${w + 4}" height="6" rx="2" fill="#c97a45" stroke="#8a4b26" stroke-width="1"/>`;
+  s += `<path d="M${cx - 8} ${ytop - 4} q-6 -14 -14 -16 M${cx} ${ytop - 4} q0 -16 4 -22 M${cx + 8} ${ytop - 4} q6 -12 14 -14" fill="none" stroke="#3f8a4a" stroke-width="2.4" stroke-linecap="round"/>`;
+  s += `<ellipse cx="${cx - 22}" cy="${ytop - 20}" rx="7" ry="4" fill="#5fae5a"/><ellipse cx="${cx + 4}" cy="${ytop - 27}" rx="4" ry="7" fill="#5fae5a"/><ellipse cx="${cx + 22}" cy="${ytop - 18}" rx="7" ry="4" fill="#5fae5a"/>`;
+  return { s, alt: ytop + h };
+}
+BFY_FIG_EKLE('kY42_saksi', function (u) {
+  const W = 320, H = 260, yb = 236, k = 50;               // 1 h = 50 birim
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="${yb}" width="300" height="10" rx="2" fill="#cdb894"/>`;
+  s += `<rect x="156" y="20" width="8" height="${yb - 20}" fill="#8a6a45" stroke="#5c4026" stroke-width="1"/>`;
+  const asil = (yAlt, taraf, ad, km, renk) => {
+    const cx = 160 + taraf * 70, ytop = yAlt - 0.62 * 44, ykol = ytop - 46;
+    let t = `<rect x="${taraf < 0 ? cx : 164}" y="${ykol - 3}" width="${taraf < 0 ? 156 - cx : cx - 164}" height="5" fill="#8a6a45"/>`;
+    t += `<line x1="${cx}" y1="${ykol}" x2="${cx}" y2="${ytop - 4}" stroke="#4a4a4a" stroke-width="1.1"/>`;
+    t += saksi(u, cx, ytop, 44, renk).s;
+    t += T(cx + taraf * 30, ytop + 22, ad, { size: 14, weight: 800, anchor: taraf < 0 ? 'end' : 'start' });
+    t += T(cx + taraf * 30, ytop + 38, km, { size: 13, weight: 800, italic: true, anchor: taraf < 0 ? 'end' : 'start', fill: P.ink2 });
+    return t;
+  };
+  s += asil(yb - k, -1, 'X', '2m', '#d98c55') + asil(yb - 3 * k, 1, 'Y', 'm', '#d98c55') + asil(yb - k, 1, 'Z', '3m', '#d98c55');
+  // ölçüler: X ve Z için h (solda), Y için 3h (sağda)
+  s += dashLine(64, yb - k, 108, yb - k, '#9aa8b1', '3 3', 1) + olcuV(70, yb - k, yb, 'h');
+  s += dashLine(180, yb - k, 214, yb - k, '#9aa8b1', '3 3', 1) + olcuV(186, yb - k, yb, 'h', { sag: true });
+  s += dashLine(212, yb - 3 * k, 302, yb - 3 * k, '#9aa8b1', '3 3', 1) + olcuV(298, yb - 3 * k, yb, '3h', { sag: true });
+  return svg(W, H, s, u, 72);
+});
+
+/* Q3: elma bahçesinde hidrolik platform */
+BFY_FIG_EKLE('kY42_platform', function (u) {
+  const W = 300, H = 250, yb = 230;
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="${yb}" width="280" height="10" rx="2" fill="#bcd3a8"/>`;
+  // ağaç
+  s += `<rect x="232" y="128" width="12" height="${yb - 128}" fill="#7a5233"/>`;
+  [[238, 96, 46], [206, 120, 30], [268, 118, 28]].forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#5fa55a" stroke="#3f7a3a" stroke-width="1"/>`; });
+  [[220, 92], [250, 80], [256, 112], [212, 124], [236, 116], [270, 126]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="4.5" fill="#d9413a" stroke="#8a2a24" stroke-width=".7"/>`; });
+  // taban aracı
+  s += `<rect x="26" y="${yb - 30}" width="104" height="20" rx="4" fill="#e9b13b" stroke="#8a6a1c" stroke-width="1.2"/>`;
+  [44, 112].forEach(x => { s += `<circle cx="${x}" cy="${yb - 8}" r="9" fill="#33393d"/><circle cx="${x}" cy="${yb - 8}" r="3.5" fill="#9aa5ad"/>`; });
+  // makaslı kaldırıcı
+  const yS = yb - 30, yT = 108, n = 4, x1 = 52, x2 = 106;
+  for (let i = 0; i < n; i++) { const ya = yS - (yS - yT) * i / n, yc = yS - (yS - yT) * (i + 1) / n; s += `<line x1="${x1}" y1="${f1(ya)}" x2="${x2}" y2="${f1(yc)}" stroke="#5f6a70" stroke-width="3.2"/><line x1="${x2}" y1="${f1(ya)}" x2="${x1}" y2="${f1(yc)}" stroke="#5f6a70" stroke-width="3.2"/>`; }
+  // sepet ve işçi
+  s += `<rect x="36" y="${yT - 30}" width="88" height="30" rx="3" fill="none" stroke="#e9b13b" stroke-width="3"/><line x1="36" y1="${yT - 15}" x2="124" y2="${yT - 15}" stroke="#e9b13b" stroke-width="2"/><rect x="36" y="${yT - 2}" width="88" height="6" fill="#8a6a1c"/>`;
+  const px = 80, py = yT - 2;
+  s += `<line x1="${px - 5}" y1="${py}" x2="${px - 4}" y2="${py - 22}" stroke="#34495e" stroke-width="5" stroke-linecap="round"/><line x1="${px + 5}" y1="${py}" x2="${px + 4}" y2="${py - 22}" stroke="#34495e" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<rect x="${px - 9}" y="${py - 46}" width="18" height="26" rx="6" fill="#3b8fc8" stroke="#2a5f86" stroke-width=".9"/><circle cx="${px}" cy="${py - 54}" r="8" fill="#e8b892"/><path d="M${px - 8} ${py - 56} a8 8 0 0 1 16 0 q-8 -3 -16 0z" fill="#3b2a20"/>`;
+  s += `<line x1="${px + 9}" y1="${py - 40}" x2="${px + 24}" y2="${py - 52}" stroke="#e8b892" stroke-width="4" stroke-linecap="round"/>`;
+  // hız oku
+  s += ok(146, 96, 146, 52, P.coral, { w: 2.8 }) + T(154, 70, 'ϑ (sabit)', { size: 13, weight: 800, fill: P.coral });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q5: zıplama çubuğu (pogo), yay serbest ve sıkışmış */
+function pogo(cx, yb, L, sik) {
+  // yb: uç yerde; L: yayın serbest boyu; sik: sıkışma (birim)
+  const yAlt = yb - 26, yayUst = yAlt - (L - sik);
+  let s = `<line x1="${cx}" y1="${yb}" x2="${cx}" y2="${yAlt}" stroke="#4a5358" stroke-width="5" stroke-linecap="round"/><circle cx="${cx}" cy="${yb - 2}" r="4.5" fill="#33393d"/>`;
+  s += `<rect x="${cx - 14}" y="${yAlt - 2}" width="28" height="5" rx="2" fill="#5f6a70"/>`;
+  s += yay(cx, yAlt, cx, yayUst, 6, 11, '#2f8a57', 2.2);
+  // gövde borusu yayın üstünde (aşağı inen iç çubuk yayı sıkıştırır)
+  const bUst = yayUst - 96;
+  s += `<rect x="${cx - 9}" y="${f1(bUst)}" width="18" height="${f1(yayUst - bUst)}" rx="4" fill="#d9573b" opacity=".92" stroke="#8a2f1e" stroke-width="1.1"/>`;
+  s += `<rect x="${cx - 26}" y="${f1(yayUst - 18)}" width="52" height="6" rx="3" fill="#33393d"/>`;
+  s += `<rect x="${cx - 34}" y="${f1(bUst - 6)}" width="68" height="7" rx="3.5" fill="#33393d"/>`;
+  return { s, yayUst, yAlt, bUst };
+}
+BFY_FIG_EKLE('kY42_pogo', function (u) {
+  const W = 300, H = 270, yb = 252, L = 70;
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="${yb}" width="280" height="9" rx="2" fill="#cdb894"/>`;
+  const A = pogo(80, yb, L, 0), B = pogo(214, yb, L, 28);
+  s += A.s + B.s;
+  s += T(80, 22, 'serbest', { size: 13, weight: 800, anchor: 'middle' }) + T(214, 22, 'sıkışmış', { size: 13, weight: 800, anchor: 'middle' });
+  // sıkışma ölçüsü x: serbest yayın üst ucuyla sıkışmış yayın üst ucu arasındaki fark
+  s += dashLine(98, f1(A.yayUst), 262, f1(A.yayUst), '#9aa8b1', '3 3', 1) + dashLine(232, f1(B.yayUst), 262, f1(B.yayUst), '#9aa8b1', '3 3', 1);
+  s += olcuV(256, A.yayUst, B.yayUst, 'x', { sag: true });
+  s += `<line x1="104" y1="${f1((A.yAlt + A.yayUst) / 2)}" x2="128" y2="${f1((A.yAlt + A.yayUst) / 2 - 18)}" stroke="${P.ink2}" stroke-width="1"/>` + T(130, (A.yAlt + A.yayUst) / 2 - 20, 'yay', { size: 12.5, weight: 800, fill: '#2f8a57' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q6: üç doğrusal grafik */
+BFY_FIG_EKLE('kY42_grafik_genis', function (u) {
+  const W = 560, H = 190;
+  let s = zemin(W, H);
+  [['I', 'ϑ^2', 'E_K', EK], ['II', 'm', 'E_P', EP], ['III', 'x', 'E_{esneklik}', ES]].forEach(([ad, xl, yl, c], i) => {
+    const x0 = 10 + i * 183, ox = x0 + 30, oy = 160, ex = x0 + 148, ey = 40;
+    s += `<rect class="bg" x="${x0}" y="10" width="173" height="170" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+    s += eksen(ox, oy, ex, ey, xl, yl, { xi: true });
+    s += `<line x1="${ox}" y1="${oy}" x2="${ex - 14}" y2="${ey + 18}" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`;
+    s += T(x0 + 160, 32, ad, { size: 15, weight: 800, anchor: 'end', fill: P.copper });
+  });
+  return svg(W, H, s, u, 150);
+});
+
+/* Q8: iki kaydırak (X dik, h; Y yatık, 2h) */
+BFY_FIG_EKLE('kY42_kaydirak_genis', function (u) {
+  const W = 560, H = 236, yb = 214, k = 78;                 // 1 h = 78 birim
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="${yb}" width="540" height="10" rx="2" fill="#cdb894"/>`;
+  const kaydirak = (xUst, yUst, xAlt, ad) => {
+    let t = `<line x1="${xUst}" y1="${yUst}" x2="${xUst}" y2="${yb}" stroke="#7d8a91" stroke-width="3"/><line x1="${xUst - 14}" y1="${yUst}" x2="${xUst - 14}" y2="${yb}" stroke="#7d8a91" stroke-width="3"/>`;
+    for (let y = yUst + 14; y < yb; y += 16) t += `<line x1="${xUst - 14}" y1="${y}" x2="${xUst}" y2="${y}" stroke="#7d8a91" stroke-width="2"/>`;
+    t += `<rect x="${xUst - 18}" y="${yUst - 4}" width="24" height="6" rx="2" fill="#5f6a70"/>`;
+    t += `<path d="M${xUst} ${yUst} L${xAlt} ${yb - 6} L${xAlt + 14} ${yb - 6}" fill="none" stroke="#e05a3a" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`;
+    t += T((xUst + xAlt) / 2 + 12, (yUst + yb) / 2 - 8, ad, { size: 15, weight: 800, fill: P.copper });
+    return t;
+  };
+  s += kaydirak(80, yb - k, 160, 'X') + kaydirak(270, yb - 2 * k, 520, 'Y');
+  s += top_(u, 70, yb - k - 13, 9, '#3b8fc8') + T(58, yb - k - 26, 'Nisa (2m)', { size: 12.5, weight: 800, anchor: 'middle' });
+  s += top_(u, 260, yb - 2 * k - 13, 7, '#e4a33a') + T(260, yb - 2 * k - 26, 'Can (m)', { size: 12.5, weight: 800, anchor: 'middle' });
+  s += olcuV(40, yb - k, yb, 'h') + dashLine(36, yb - k, 64, yb - k, '#9aa8b1', '3 3', 1);
+  s += olcuV(236, yb - 2 * k, yb, '2h') + dashLine(232, yb - 2 * k, 254, yb - 2 * k, '#9aa8b1', '3 3', 1);
+  return svg(W, H, s, u, 150);
+});
+
+/* Q10: ağaca asılı lastik salıncak; her salınımda daha alçak */
+BFY_FIG_EKLE('kY42_salincak', function (u) {
+  const W = 300, H = 236, ax = 150, ay = 34, L = 150;
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="220" width="280" height="8" rx="2" fill="#bcd3a8"/>`;
+  s += `<path d="M14 30 Q90 22 290 36" fill="none" stroke="#7a5233" stroke-width="12" stroke-linecap="round"/>`;
+  const lastik = (a, op, kesik) => {
+    const r = a * Math.PI / 180, x = ax + L * Math.sin(r), y = ay + L * Math.cos(r);
+    let t = `<line x1="${ax}" y1="${ay}" x2="${f1(x)}" y2="${f1(y - 12)}" stroke="#6b5a45" stroke-width="1.4" opacity="${op}"${kesik ? ' stroke-dasharray="4 3"' : ''}/>`;
+    t += `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="20" ry="11" fill="none" stroke="#2f3438" stroke-width="7" opacity="${op}"/>`;
+    return { t, x, y };
+  };
+  const A = lastik(-48, 1), B = lastik(40, 0.45, true);
+  s += B.t + A.t;
+  s += `<path d="M${f1(ax + (L) * Math.sin(-48 * Math.PI / 180))} ${f1(ay + L * Math.cos(-48 * Math.PI / 180) + 18)} A${L} ${L} 0 0 0 ${f1(ax + L * Math.sin(40 * Math.PI / 180))} ${f1(ay + L * Math.cos(40 * Math.PI / 180) + 18)}" fill="none" stroke="#9aa8b1" stroke-width="1.2" stroke-dasharray="3 4"/>`;
+  s += T(A.x, A.y + 30, 'bırakılır', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(B.x + 6, B.y - 22, 'sonraki', { size: 12, weight: 700, fill: P.ink2 }) + T(B.x + 6, B.y - 8, 'salınım', { size: 12, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Q11: yol profili ve kinetik enerji-konum grafiği */
+BFY_FIG_EKLE('kY42_pist_genis', function (u) {
+  const W = 560, H = 330;
+  let s = zemin(W, H);
+  const X = { K: 60, L: 170, M: 290, N: 390, P: 510 };
+  const yHi = 70, yLo = 132;
+  // yol (üst panel)
+  const yolY = x => x <= X.L ? yHi : x <= X.M ? yHi + (yLo - yHi) * (x - X.L) / (X.M - X.L) : x <= X.N ? yLo : yLo - (yLo - 84) * (x - X.N) / (X.P - X.N);
+  let d = `M${X.K - 30} 156 L${X.K - 30} ${yHi}`; [X.K - 30, X.L, X.M, X.N, X.P, X.P + 20].forEach(x => { d += ` L${x} ${f1(yolY(Math.min(x, X.P)))}`; });
+  d += ` L${X.P + 20} 156 Z`;
+  s += `<path d="${d}" fill="#e3e9ec" stroke="#7f97a6" stroke-width="1.6" stroke-linejoin="round"/>`;
+  // araba K'de
+  s += `<rect x="${X.K - 22}" y="${yHi - 22}" width="40" height="16" rx="3" fill="#e9b13b" stroke="#8a6a1c" stroke-width="1.1"/>`;
+  [X.K - 12, X.K + 8].forEach(x => { s += `<circle cx="${x}" cy="${yHi - 5}" r="5" fill="#33393d"/>`; });
+  s += ok(X.K + 24, yHi - 30, X.K + 58, yHi - 30, P.coral, { w: 2.2 }) + T(X.K + 62, yHi - 26, 'ϑ', { size: 13, weight: 800, fill: P.coral });
+  Object.entries(X).forEach(([ad, x]) => { s += `<circle cx="${x}" cy="${f1(yolY(x))}" r="2.6" fill="${P.ink}"/>` + T(x, yolY(x) + 18, ad, { size: 13.5, weight: 800, anchor: 'middle' }); });
+  // grafik (alt panel)
+  const ox = 30, oy = 300, ey = 188;
+  s += `<line x1="${ox}" y1="${oy}" x2="${X.P + 24}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${X.P + 31},${oy} ${X.P + 22},${oy - 3.8} ${X.P + 22},${oy + 3.8}" fill="${P.ink}"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${ey - 7} ${ox - 3.8},${ey + 2} ${ox + 3.8},${ey + 2}" fill="${P.ink}"/>`;
+  s += T(ox + 8, ey + 4, 'Kinetik enerji', { size: 12.5, weight: 800 }) + T(X.P + 30, oy - 9, 'konum', { size: 12.5, weight: 800, anchor: 'end' });
+  const E = v => oy - 26 * v;
+  Object.entries(X).forEach(([ad, x]) => { s += dashLine(x, 160, x, oy, '#c2ccd2', '3 4', 1) + T(x, oy + 15, ad, { size: 13, weight: 800, anchor: 'middle' }); });
+  s += yol(`M${X.K} ${E(3.6)} L${X.L} ${E(3.6)} L${X.M} ${E(3.6)} L${X.N} ${E(2.5)} L${X.P} ${E(1.4)}`, EK, 2.8);
+  return svg(W, H, s, u, 150);
+});
+
+/* Q14: curling taşı yatay buzda K'den L'ye */
+function curlingTasi(x, yb) {
+  return `<path d="M${x - 22} ${yb} Q${x - 24} ${yb - 14} ${x - 16} ${yb - 16} H${x + 16} Q${x + 24} ${yb - 14} ${x + 22} ${yb} Z" fill="#8e979f" stroke="#4f585e" stroke-width="1.2"/>` +
+    `<rect x="${x - 20}" y="${yb - 10}" width="40" height="3" fill="#d24b3e"/>` +
+    `<path d="M${x - 6} ${yb - 16} L${x - 6} ${yb - 24} H${x + 14}" fill="none" stroke="#d24b3e" stroke-width="4" stroke-linecap="round"/>`;
+}
+BFY_FIG_EKLE('kY42_curling_genis', function (u) {
+  const W = 560, H = 150, yb = 108;
+  let s = zemin(W, H);
+  s += `<rect x="16" y="${yb}" width="528" height="16" rx="3" fill="#e4f2fa" stroke="#9cc7e6" stroke-width="1.2"/>`;
+  for (let x = 40; x < 540; x += 46) s += `<line x1="${x}" y1="${yb + 5}" x2="${x + 18}" y2="${yb + 5}" stroke="#fff" stroke-width="2" opacity=".9"/>`;
+  s += `<circle cx="120" cy="${yb - 13}" r="0" fill="none"/>` + curlingTasi(120, yb) + `<g opacity=".5">${curlingTasi(420, yb)}</g>`;
+  s += ok(150, yb - 44, 250, yb - 44, P.coral, { w: 2.8 }) + T(256, yb - 40, 'ϑ_K', { size: 13.5, weight: 800, fill: P.coral });
+  s += ok(450, yb - 44, 492, yb - 44, P.coral, { w: 2.8 }) + T(498, yb - 40, 'ϑ_L', { size: 13.5, weight: 800, fill: P.coral });
+  [[120, 'K'], [420, 'L']].forEach(([x, ad]) => { s += `<line x1="${x}" y1="${yb + 16}" x2="${x}" y2="${yb + 22}" stroke="${P.ink}" stroke-width="1.4"/>` + T(x, yb + 36, ad, { size: 14, weight: 800, anchor: 'middle' }); });
+  s += T(270, 20, 'yatay buz yüzeyi', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 150);
+});
+
+/* Q15: rayın ucunda yaylı tampon */
+BFY_FIG_EKLE('kY42_tampon_genis', function (u) {
+  const W = 560, H = 160, yr = 116;
+  let s = zemin(W, H);
+  s += `<rect x="20" y="${yr}" width="500" height="10" rx="3" fill="#b8c0c7" stroke="#6f7d85" stroke-width="1.1"/>`;
+  [60, 200, 340, 480].forEach(x => { s += `<rect x="${x - 4}" y="${yr + 10}" width="8" height="22" fill="#8a949b"/>`; });
+  // durdurucu blok ve yaylı tampon
+  s += `<rect x="512" y="${yr - 58}" width="26" height="68" rx="3" fill="#5f6a70" stroke="#33393d" stroke-width="1.2"/>`;
+  s += yay(512, yr - 26, 448, yr - 26, 7, 9, '#2f8a57', 2.2) + `<rect x="440" y="${yr - 44}" width="8" height="36" rx="2" fill="#33393d"/>`;
+  // araba K'de
+  const ax = 150;
+  s += `<rect x="${ax - 34}" y="${yr - 34}" width="68" height="24" rx="4" fill="#3b8fc8" stroke="#2a5f86" stroke-width="1.2"/>`;
+  [ax - 20, ax + 20].forEach(x => { s += `<circle cx="${x}" cy="${yr - 6}" r="6" fill="#33393d"/><circle cx="${x}" cy="${yr - 6}" r="2.2" fill="#9aa5ad"/>`; });
+  s += ok(ax + 40, yr - 50, ax + 110, yr - 50, P.coral, { w: 2.8 }) + T(ax + 116, yr - 46, 'ϑ', { size: 14, weight: 800, fill: P.coral });
+  s += `<line x1="${ax}" y1="${yr + 10}" x2="${ax}" y2="${yr + 18}" stroke="${P.ink}" stroke-width="1.4"/>` + T(ax, yr + 34, 'K', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(470, yr - 66, 'yaylı tampon', { size: 12.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 150);
+});
+
+/* Q20: P ve R evlerinin enerji kimlik belgeleri */
+BFY_FIG_EKLE('kY42_ekb', function (u) {
+  const W = 340, H = 236;
+  let s = zemin(W, H);
+  const belge = (x0, ad, sec) => {
+    let t = `<rect x="${x0}" y="12" width="154" height="212" rx="8" fill="#fff" stroke="#9fb2bf" stroke-width="1.3"/>`;
+    // ev simgesi
+    t += `<path d="M${x0 + 20} 50 L${x0 + 40} 32 L${x0 + 60} 50 V68 H${x0 + 20} Z" fill="#f3ead6" stroke="#8a6a45" stroke-width="1.2"/><rect x="${x0 + 35}" y="56" width="10" height="12" fill="#8a6a45"/>`;
+    t += T(x0 + 70, 46, ad, { size: 14, weight: 800 }) + T(x0 + 70, 62, 'Enerji Kimlik', { size: 11, weight: 700, fill: P.ink2 }) + T(x0 + 70, 75, 'Belgesi', { size: 11, weight: 700, fill: P.ink2 });
+    t += sinifOlcek(x0 + 10, 88, 22, 9, 15, 19, sec, { ok: x0 + 104, size: 12 });
+    return t;
+  };
+  s += belge(10, 'P evi', 1) + belge(176, 'R evi', 4);
+  return svg(W, H, s, u, 78);
+});
+
+/* Q21: sürtünmeli yükleme rampası */
+BFY_FIG_EKLE('kY42_rampa', function (u) {
+  const W = 320, H = 210, x0 = 30, y0 = 184, x1 = 296, y1 = 64;
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="${y0}" width="300" height="10" rx="2" fill="#cfd6db"/>`;
+  s += `<path d="M${x0} ${y0} L${x1} ${y1} L${x1} ${y0} Z" fill="#d9c3a0" stroke="#8a6a45" stroke-width="1.4"/>`;
+  for (let i = 1; i < 14; i++) { const t = i / 14, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t; s += `<line x1="${f1(x)}" y1="${f1(y + 1)}" x2="${f1(x + 4)}" y2="${f1(y + 5)}" stroke="#8a6a45" stroke-width=".9"/>`; }
+  // koli K'de (rampaya oturur)
+  const a = Math.atan2(y1 - y0, x1 - x0), deg = a * 180 / Math.PI, kx = x0 + 34, ky = y0 + (y1 - y0) * (34 / (x1 - x0));
+  s += `<g transform="translate(${f1(kx)} ${f1(ky)}) rotate(${f1(deg)})"><rect x="-2" y="-26" width="34" height="26" rx="2" fill="#c9955a" stroke="#7a5233" stroke-width="1.2"/><line x1="15" y1="-26" x2="15" y2="0" stroke="#e8d3a8" stroke-width="3"/></g>`;
+  const ux = Math.cos(a), uy = Math.sin(a), bx = kx + ux * 48 + uy * 34, by = ky + uy * 48 - ux * 34;
+  s += ok(bx, by, bx + ux * 60, by + uy * 60, P.coral, { w: 2.6 }) + T(bx + ux * 64 - 4, by + uy * 64 - 8, 'ilk sürat', { size: 12.5, weight: 800, fill: P.coral });
+  s += T(kx - 14, ky + 14, 'K', { size: 14, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 72);
+});
+
+/* Q25: santralin atık ısısı seralara */
+function sera(x, yb, w, h) {
+  let s = `<path d="M${x} ${yb} V${yb - h * 0.55} Q${x + w / 2} ${yb - h - 6} ${x + w} ${yb - h * 0.55} V${yb} Z" fill="#e6f3ea" stroke="#5f8f6a" stroke-width="1.3"/>`;
+  for (let i = 1; i < 4; i++) s += `<line x1="${x + w * i / 4}" y1="${yb}" x2="${x + w * i / 4}" y2="${f1(yb - h * 0.55 - (i === 2 ? h * 0.45 : h * 0.3))}" stroke="#5f8f6a" stroke-width=".9"/>`;
+  s += `<path d="M${x + 6} ${yb - 4} q4 -10 8 0 M${x + w - 18} ${yb - 4} q4 -12 8 0" fill="none" stroke="#3f8a4a" stroke-width="2"/>`;
+  return s;
+}
+BFY_FIG_EKLE('kY42_kojen_genis', function (u) {
+  const W = 560, H = 210, yb = 180;
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="${yb}" width="540" height="10" rx="2" fill="#cfdccf"/>`;
+  // santral binası ve bacası
+  s += `<rect x="40" y="${yb - 70}" width="110" height="70" rx="3" fill="#dfe5e9" stroke="#6f7d85" stroke-width="1.3"/><rect x="120" y="${yb - 116}" width="16" height="46" fill="#b8c0c7" stroke="#6f7d85" stroke-width="1.1"/>`;
+  s += T(95, yb - 40, 'doğal gaz', { size: 12, weight: 800, anchor: 'middle' }) + T(95, yb - 24, 'santrali', { size: 12, weight: 800, anchor: 'middle' });
+  // iletim hattı ve elektrik
+  s += `<path d="M150 ${yb - 56} L226 ${yb - 56}" stroke="${P.coral}" stroke-width="2.4"/>`;
+  s += `<path d="M232 ${yb} L244 ${yb - 96} L256 ${yb} M236 ${yb - 70} H252 M226 ${yb - 86} H262" fill="none" stroke="#7d8a91" stroke-width="2"/>`;
+  s += T(196, yb - 64, 'elektrik', { size: 12.5, weight: 800, anchor: 'middle', fill: P.coral });
+  // soğutma kulesi (eskiden ısının gittiği yer)
+  s += `<path d="M288 ${yb} Q298 ${yb - 40} 292 ${yb - 74} H330 Q324 ${yb - 40} 334 ${yb} Z" fill="#e9ecef" stroke="#8a9aa6" stroke-width="1.2"/>`;
+  s += `<path d="M300 ${yb - 80} q6 -10 0 -18 q-6 -8 2 -16 M318 ${yb - 80} q6 -10 0 -18 q-6 -8 2 -16" fill="none" stroke="#b8c4cc" stroke-width="2"/>`;
+  s += T(311, yb + 26, 'soğutma kulesi', { size: 11.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // sıcak su borusu seralara
+  s += `<path d="M150 ${yb - 18} H372 V${yb - 10} H392" fill="none" stroke="${ISI}" stroke-width="5" stroke-linejoin="round"/>`;
+  s += ok(250, yb - 30, 286, yb - 30, ISI, { w: 2.2 }) + T(206, yb - 26, 'ısı', { size: 12.5, weight: 800, anchor: 'end', fill: '#b4561a' });
+  s += sera(392, yb, 70, 64) + sera(470, yb, 70, 64);
+  s += T(466, yb - 76, 'seralar', { size: 12.5, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 150);
+});
+
+/* ================= 3B İZOMETRİK ÇİZİMLER ================= */
+const I0 = window.BFY_ISO;
+const { sahne, kutu, plaka, kure, izoOk, etiket, yazi, ton, silindir, parilti } = I0;
+const SU = '#7cc3e8';
+const poly = (I, a, fill, o = {}) => `<polygon points="${I.pts(a)}" fill="${fill}" stroke="${o.st || 'none'}" stroke-width="${o.sw || 0.8}" stroke-linejoin="round"/>`;
+const EF = (u, f, o = {}) => sahne(u, f, Object.assign({ w: 220, h: 110, oy: 72, mm: 62 }, o));
+
+/* Tanım: barajlı santral: gölde E_P → cebri boruda E_K → türbin-jeneratörde elektrik (ve ısı, ses) */
+BFY_FIG_EKLE('iY42_tanim', u => sahne(u, I => {
+  let s = plaka(I, -86, -30, 172, 60, '#dfe8e1');
+  // göl (yüksekte, solda)
+  s += kutu(I, -84, -28, 0, 44, 56, 30, '#c9b38a', { cizgi: '#8a7a5a' });
+  s += kutu(I, -82, -26, 30, 40, 52, 2, SU, { cizgi: ton(SU, -0.3), ust: ton(SU, 0.25) });
+  // baraj duvarı
+  s += kutu(I, -40, -28, 0, 8, 56, 36, '#b8c0c7');
+  // cebri boru (duvardan santrale iniş)
+  const a = I.p(-32, 0, 20), b = I.p(14, 0, 8);
+  s += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#6f7d85" stroke-width="5.5" stroke-linecap="round"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#a9b3bb" stroke-width="2.4" stroke-linecap="round"/>`;
+  // santral binası
+  s += kutu(I, 14, -14, 0, 30, 28, 18, '#e8e2d4');
+  // nehir (çıkış)
+  s += poly(I, [[44, -6, 0.2], [86, -6, 0.2], [86, 8, 0.2], [44, 8, 0.2]], '#9fd2ee', { st: ton(SU, -0.2) });
+  // iletim direği
+  const t0 = I.p(60, -24, 0), t1 = I.p(60, -24, 40);
+  s += `<path d="M${t0[0] - 5} ${t0[1]} L${t1[0]} ${t1[1]} L${t0[0] + 5} ${t0[1]} M${t1[0] - 8} ${t1[1] + 6} H${t1[0] + 8}" fill="none" stroke="#7d8a91" stroke-width="1.6"/>`;
+  const c0 = I.p(36, -14, 16);
+  s += `<path d="M${c0[0]} ${c0[1]} Q${(c0[0] + t1[0]) / 2} ${c0[1] - 6} ${t1[0] - 8} ${t1[1] + 6}" fill="none" stroke="#d9573b" stroke-width="1.4"/>`;
+  // etiketler
+  const g = I.p(-62, 0, 34), bo = I.p(-8, 0, 15), sn = I.p(30, 0, 18), el = [t1[0] + 4, t1[1] - 6];
+  s += `<line x1="${g[0]}" y1="${g[1]}" x2="${g[0] - 6}" y2="18" stroke="#7d8a91" stroke-width=".9"/>` + etiket(g[0] - 6, 14, 'E_P', { size: 10.5, renk: '#2f7fb8' });
+  s += `<line x1="${bo[0]}" y1="${bo[1]}" x2="${bo[0] - 22}" y2="${bo[1] + 30}" stroke="#7d8a91" stroke-width=".9"/>` + etiket(bo[0] - 26, bo[1] + 36, 'E_K', { size: 10.5, renk: '#d9573b' });
+  s += etiket(el[0] - 6, el[1] - 14, 'elektrik', { size: 10, renk: '#b4561a' });
+  s += `<line x1="${sn[0]}" y1="${sn[1] - 2}" x2="${sn[0] + 34}" y2="${sn[1] + 38}" stroke="#7d8a91" stroke-width=".9"/>` + etiket(sn[0] + 34, sn[1] + 44, 'ısı, ses', { size: 10, renk: '#e08a1e' });
+  return s;
+}, { w: 250, h: 172, mm: 110, ox: 125, oy: 108 }));
+
+/* Efsane 1: sürat iki katı, kinetik enerji dört katı */
+BFY_FIG_EKLE('iY42_efsane_1', u => EF(u, I => {
+  let s = plaka(I, -52, -26, 104, 52, '#e6eef2');
+  // arka şerit: sürat 2ϑ, enerji 4E; ön şerit: sürat ϑ, enerji E
+  const serit = (y, h, et, ve, L) => {
+    const [bx, by] = I.p(-40, y, 7), [ux, uy] = I.p(-40 + L, y, 7);
+    let t = kure(u, bx, by, 7, '#e4a33a') + I0.ok(bx + 8, by + 4, ux, uy, { renk: '#d9573b', w: 2, bas: 5, basG: 3 });
+    t += yazi(bx + (ux - bx) * 0.62 + 4, by + (uy - by) * 0.62 - 10, ve, { size: 10, renk: '#d9573b' });
+    t += kutu(I, 26, y - 4, 0, 8, 8, h, '#d9573b');
+    const [ex, ey] = I.p(26, y + 4, h); t += yazi(h > 10 ? ex + 30 : ex - 10, h > 10 ? ey + 6 : ey - 2, et, { size: 10, renk: '#d9573b' });
+    return t;
+  };
+  s += serit(-14, 28, '4E', '2ϑ', 40) + serit(14, 7, 'E', 'ϑ', 20);
+  return s;
+}, { oy: 74 }));
+
+/* Efsane 2: lamba: elektrik → ışık + ısı; toplam korunur ama ısı dağılır */
+BFY_FIG_EKLE('iY42_efsane_2', u => EF(u, I => {
+  let s = plaka(I, -46, -22, 92, 44, '#e9efe9');
+  s += kutu(I, -8, -8, 0, 16, 16, 4, '#9aa5ad');
+  const [lx, ly] = I.p(0, 0, 4);
+  s += `<line x1="${lx}" y1="${ly}" x2="${lx}" y2="${ly - 24}" stroke="#5f6a70" stroke-width="2.4"/>`;
+  s += I0.N.ampul(u, lx, ly - 22, 9, true);
+  // elektrik girişi (kablo)
+  const [kx, ky] = I.p(-40, 12, 0);
+  s += `<path d="M${kx} ${ky} Q${(kx + lx) / 2} ${ky + 6} ${lx - 6} ${ly - 1}" fill="none" stroke="#d9573b" stroke-width="1.6"/>` + yazi(kx + 8, ky + 16, 'elektrik', { size: 9, renk: '#d9573b' });
+  // ışık ve ısı okları
+  s += I0.ok(lx + 14, ly - 40, lx + 38, ly - 52, { renk: '#e7a93b', w: 1.6, bas: 5, basG: 3 }) + yazi(lx + 52, ly - 52, 'ışık', { size: 9, renk: '#b07a12' });
+  s += I0.ok(lx - 14, ly - 40, lx - 40, ly - 50, { renk: '#e08a1e', w: 2.8, bas: 6, basG: 3.6 }) + yazi(lx - 52, ly - 52, 'ısı', { size: 9, renk: '#b4561a' });
+  s += yazi(56, 100, 'ısı çevreye dağılır', { size: 8.5, renk: '#4b6059', weight: 600 });
+  return s;
+}, { oy: 74 }));
+
+/* Efsane 3: su döngüsü: Güneş buharlaştırır, yağış barajı doldurur */
+BFY_FIG_EKLE('iY42_efsane_3', u => EF(u, I => {
+  let s = plaka(I, -56, -24, 112, 48, '#e6eef2');
+  s += kutu(I, -54, -22, 0, 40, 44, 2, SU, { cizgi: ton(SU, -0.3), ust: ton(SU, 0.25) });
+  s += kutu(I, 10, -22, 0, 44, 44, 18, '#c9b38a', { cizgi: '#8a7a5a' });
+  s += kutu(I, 14, -18, 18, 22, 36, 1.5, SU, { cizgi: ton(SU, -0.3), ust: ton(SU, 0.25) });
+  s += kutu(I, 36, -22, 0, 5, 44, 24, '#b8c0c7');
+  // Güneş
+  s += `<circle cx="26" cy="22" r="9" fill="#f2c94c" stroke="#d9a21a" stroke-width="1"/>` + parilti(26, 22, 17, 'gunes', 10);
+  // buharlaşma ve bulut, yağmur
+  const [ex, ey] = I.p(-34, 0, 2);
+  [-8, 0, 8].forEach(d => { s += I0.ok(ex + d, ey - 4, ex + d + 6, ey - 26, { renk: '#9fc3db', w: 1.3, bas: 4, basG: 2.4, kesik: '2 2' }); });
+  s += `<g fill="#f4f7f9" stroke="#b8c4cc" stroke-width=".9"><ellipse cx="118" cy="20" rx="20" ry="9"/><ellipse cx="136" cy="16" rx="14" ry="9"/><ellipse cx="102" cy="22" rx="11" ry="7"/></g>`;
+  [104, 116, 128, 140].forEach(x => { s += `<line x1="${x}" y1="32" x2="${x + 6}" y2="46" stroke="#5aa6d6" stroke-width="1.3"/>`; });
+  s += yazi(26, 46, 'Güneş', { size: 9, renk: '#b07a12' });
+  return s;
+}, { oy: 74 }));
+
+/* Efsane 4: besin enerjisinin çoğu ısıya */
+BFY_FIG_EKLE('iY42_efsane_4', u => EF(u, I => {
+  let s = plaka(I, -48, -22, 96, 44, '#e9efe9');
+  const [px, py] = I.p(-6, 4, 0);
+  s += I0.N.insan(u, px, py, 46, 'yesil');
+  // elma
+  s += kure(u, px - 30, py - 30, 6, '#d9413a', { golge: false }) + `<path d="M${px - 30} ${py - 36} q1 -4 4 -5" fill="none" stroke="#5c4026" stroke-width="1.2"/>`;
+  s += I0.ok(px - 22, py - 30, px - 10, py - 30, { renk: '#7d8a91', w: 1.4, bas: 4, basG: 2.6 });
+  // ısı dalgaları (büyük) ve küçük hareket oku
+  [16, 26, 36].forEach((d, i) => { s += `<path d="M${px + d} ${py - 10} q-4 -8 0 -16 q4 -8 0 -16" fill="none" stroke="#e08a1e" stroke-width="1.8" stroke-linecap="round" opacity="${1 - i * 0.2}"/>`; });
+  s += yazi(px + 30, py - 50, 'ısı', { size: 10, renk: '#b4561a' });
+  s += I0.ok(px - 4, py + 10, px - 22, py + 14, { renk: '#2f7fb8', w: 1.4, bas: 4, basG: 2.6 }) + yazi(px - 40, py + 22, 'hareket', { size: 8.5, renk: '#2f7fb8' });
+  return s;
+}, { oy: 76 }));
+
+/* Efsane 5: rüzgâr türbini ve barajın çevresel etkileri */
+BFY_FIG_EKLE('iY42_efsane_5', u => EF(u, I => {
+  let s = plaka(I, -56, -24, 112, 48, '#e2ece0');
+  // baraj gölünün altında kalan ev
+  s += kutu(I, -52, -20, 0, 36, 40, 1.5, SU, { cizgi: ton(SU, -0.3), ust: ton(SU, 0.25) });
+  s += `<g opacity=".55">${kutu(I, -40, -6, 0, 8, 8, 6, '#e8e2d4')}</g>`;
+  // türbin
+  const [tx, ty] = I.p(22, 0, 0);
+  s += `<path d="M${tx - 2} ${ty} L${tx - 0.8} ${ty - 54} L${tx + 0.8} ${ty - 54} L${tx + 2} ${ty} Z" fill="#eef1f3" stroke="#8a9aa6" stroke-width=".8"/>`;
+  const hx = tx, hy = ty - 56;
+  [90, 210, 330].forEach(a => { const r = a * Math.PI / 180; s += `<path d="M${hx} ${hy} L${f1(hx + 26 * Math.cos(r) - 2 * Math.sin(r))} ${f1(hy - 26 * Math.sin(r) - 2 * Math.cos(r))} L${f1(hx + 26 * Math.cos(r))} ${f1(hy - 26 * Math.sin(r))} Z" fill="#fff" stroke="#8a9aa6" stroke-width=".8"/>`; });
+  s += `<circle cx="${hx}" cy="${hy}" r="2.6" fill="#b8c0c7" stroke="#6f7d85" stroke-width=".7"/>`;
+  // kuşlar ve gürültü
+  [[hx + 34, hy - 6], [hx + 46, hy + 6]].forEach(([x, y]) => { s += `<path d="M${x - 5} ${y} q2.5 -3 5 0 q2.5 -3 5 0" fill="none" stroke="#33393d" stroke-width="1.1"/>`; });
+  s += `<path d="M${hx + 8} ${hy + 16} a10 10 0 0 1 0 14 M${hx + 14} ${hy + 12} a16 16 0 0 1 0 22" fill="none" stroke="#7d8a91" stroke-width="1"/>`;
+  return s;
+}, { oy: 76 }));
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · İçerik bankası
+   Y.4 Enerji · Y.4.2 Mekanik Enerji, Verim ve Enerji Kaynakları
+   Kapsam: 2018 fizik öğretim programı 9.4.2.1 (kinetik, yer çekimi potansiyel ve tek yaylı esneklik potansiyel enerjisinin
+   bağlı olduğu değişkenler; modeller verilir, matematiksel hesaplamalara girilmez), 9.4.3.1 (dönüşümde toplam enerjinin
+   korunması; sürtünme yüzünden enerjinin tamamı hedeflenen biçime dönüşmez; dönüşüm hesaplamalarına girilmez), 9.4.3.2
+   (besin enerjisi ile harcanan enerji; canlılar iş yapmadan da enerji harcar), 9.4.4.1 (verim; tasarruf ve verimlilik,
+   enerji kimlik belgeleri), 9.4.4.2 (verim artırıcı öneriler, tarihsel verim artırıcı sistemler), 9.4.5.1 (yenilenebilir ve
+   yenilenemez kaynakların avantaj ve dezavantajları, tasarruf).
+   9.4.4.1 "verim kavramını açıklar" der; hesaplama öngörmez. Bu yüzden hiçbir soruda enerji değeri, korunum ya da verim
+   hesabı yoktur: sorular nitel karşılaştırma, oran düzeyinde model okuma ("sürat iki katı, kinetik enerji dört katı"),
+   grafik ve tablo yorumu, dönüşüm zinciri, kaynak karşılaştırması üzerine kuruludur.
+   ÖSYM 2018–2026 TYT'lerinde bu konudan soru çıkmadı (enerji ünitesindeki tek soru, 2019, Y.4.1'dedir); 30 sorunun hepsi tahmindir.
+   Metinler, sayılar ve şekiller özgündür.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+const KONU = {
+  id: 'Y.4.2',
+  ad: 'Mekanik Enerji, Verim ve Enerji Kaynakları',
+  kisa: 'Mekanik Enerji ve Verim',
+  kaynak: ['9.4.2', '9.4.3', '9.4.4', '9.4.5'],
+  ciktilar: ['9.4.2.1', '9.4.3.1', '9.4.3.2', '9.4.4.1', '9.4.4.2', '9.4.5.1'],
+  unvanlar: ['Enerji Avcısı', 'Dönüşüm Ustası', 'Verim Bilgini', 'Enerji Mimarı'],
+  renk: '#3d7a3a',
+  baglamlar: [
+    'tanım çizimi: baraj gölü, cebri boru, santral binası, iletim hattı; E_P → E_K → elektrik, ısı ve ses (iso)',
+    'not: üç mekanik enerjinin değişkenleri ve "2 katına çıkarsa" tablosu; E_K–ϑ, E_P–h (m ve 2m), E_esneklik–x grafikleri',
+    'not: sürtünmesiz ve sürtünmeli rayda bırakılan bilye, karşı tarafta çıkılan yükseklik ve ısı',
+    'not: canlılarda enerji tablosu (uyumak, otobüs yolculuğunda oturmak, kutuyu rafa kaldırmak, merdiven çıkmak); 1 kcal ≈ 4,2 kJ',
+    'not: A–G enerji sınıfı oku; enerji kimlik belgesi ve enerji etiketi; tasarruf ve verimlilik',
+    'not: tarihte verim artıran sistemler (Watt 1769, Rumford 1790\'lar, su türbini, yoğuşmalı kombi, LED)',
+    'not: yedi kaynak için avantaj ve dezavantaj tablosu (güneş, rüzgâr, barajlı HES, jeotermal, biyokütle, fosil, nükleer)',
+    'simülasyon 1: yaylı fırlatıcı (k = 500 N/m), sıkışma 2–10 cm, blok 0,5 ya da 1 kg, isteğe bağlı 20 cm zımpara şerit, kavisli rampa; çıkılan yükseklik, ısı payı, enerji çubukları',
+    'simülasyon 2: aydınlatma (akkor %5 / LED %30), ulaşım (benzinli %25 / elektrikli %80), ev ısıtma (eski kombi %80 / yoğuşmalı %95); aynı yararlı enerji için Sankey şeritleri',
+    '3B: sürtünmesiz ve sürtünmeli U rampada kaykay (src/anim3b.js rampa sahnesi)',
+    'çözümlü 1: kargo aracı yüklenince kütle 2 katı, sürat yarı',
+    'çözümlü 2: rüzgâr türbini: rotor, dişli kutusu, jeneratör; kayıplar (I-II-III)',
+    'çözümlü 3: benzinli otomobilin Sankey diyagramı: tekerleklerin hareketi, egzoz ve radyatör ısısı, sürtünme ve ses',
+    'çözümlü 4: K\'den durgun bırakılan cisim L çukuru, M tepesi, N\'de durup dönüyor (kesinlikle)',
+    'efsane: sürat iki katı kinetik enerji iki katı, korunum ve tasarruf, HES enerjisinin kaynağı Güneş (gerçek), besin enerjisinin çoğu ısıya (gerçek), yenilenebilirlerin çevresel etkisi',
+    'buz pateni gösterisinde Duru: sürat, viraj, sırt çantası, su şişesi',
+    'fidanlıkta direğe asılı X (2m, h), Y (m, 3h), Z (3m, h) saksıları',
+    'elma bahçesinde sabit süratle yükselen hidrolik platform sepeti (iki sütun)',
+    'trafik güvenliği afişi: sürat 2 katı, kütle 2 katı, eşit kinetik enerjili kamyon ve otomobil',
+    'zıplama çubuğunun (pogo) yayı: sıkışma, yay sabiti',
+    'üç grafik: E_K–ϑ², E_P–m, E_esneklik–x (hangisi doğru çizilmiş)',
+    'fizik kulübünde Kaan\'ın yaylı fırlatıcı deney planı: K ve L yayları, 2/4 cm, 20/40 g (kontrol değişkeni)',
+    'oyun parkında Nisa (2m, h, dik kaydırak) ve Can (m, 2h, yatık kaydırak)',
+    'kurmalı müzik kutusu: yay, dişliler, çıkıntılı silindir, metal tarak',
+    'ağaca asılı lastik tekerlek salıncak, her salınımda daha alçak',
+    'depoda tekerlekli yük arabası: KL yatay, LM iniş, MN yatay, NP çıkış; E_K–konum grafiği (kesinlikle)',
+    'dağ yolunda motor freniyle sabit süratle inen kamyon, ısınan balatalar (dönüşüm seçimi)',
+    'elektrik mağazasında buharlı ütü, hoparlör, LED lamba açıklamaları',
+    'curling taşı yatay buzda K\'den L\'ye yavaşlıyor (olabilir)',
+    'laboratuvar rayının ucunda yaylı tampon, araba daha yavaş dönüyor, hava direnci yok (olabilir)',
+    'satranç turnuvasında saatlerce oturan oyuncu: iş yapmadan enerji harcama (beyin, kalp, solunum, vücut sıcaklığı)',
+    'diyetisyen tablosu: elma 80, ayran 75, fındık 190 kcal; 60 kg Selin 30 dakikada uyku 30, yürüyüş 105, yüzme 210 kcal',
+    'kış uykusundaki boz ayı: iş yok, yağ depoları, vücut sıcaklığı',
+    'paslı bisiklet zinciri temizlenip yağlanıyor, aynı yol aynı sürat',
+    'aynı ilçede eşit büyüklükte P (B sınıfı) ve R (E sınıfı) evlerinin enerji kimlik belgeleri',
+    'kargo deposunda sürtünmeli yükleme rampasında yukarı itilip geri kayan koli (kesinlikle)',
+    'apartmanda K dairesinde yoğuşmalı, L dairesinde eski tip kombi (kesinlikle)',
+    'odun ateşli taş fırında daha az odunla aynı ekmek: yalıtım, kapak, kuru odun, arka arkaya pişirme, küçük partiler',
+    'Watt ayrı yoğuşturucu, Rumford ocağı, yoğuşmalı kombi eşleştirme',
+    'doğal gaz santralinin atık ısısı seralara, seraların kazanları kapatılıyor',
+    'ailenin önlemleri: ışığı kapatmak, LED, termostat, bekleme konumu, klima (verimlilik mi tasarruf mu)',
+    'yer altında sıcak su kaynağı olan belediye: sürekli üreten yenilenebilir kaynak',
+    'büyükşehir çöp depolama alanında metan gazından elektrik',
+    'X, Y, Z santralleri özellik tablosu: yakıt, sürekli üretim, baca gazı CO₂, yenilenebilirlik',
+    'ilçenin elektriği rüzgâr ve tarım atığı biyokütle santralinden (kesinlikle)'
+  ],
+
+  /* ---------------- KONU NOTU ---------------- */
+  not: [
+    {
+      tur: 'tanim',
+      sekil: 'iY42_tanim',
+      baslik: 'Mekanik enerji, verim ve enerji kaynaklarının özü',
+      metin: r`Mekanik enerji, bir cismin hareketinden ve konumundan kaynaklanan enerjilerin toplamıdır: $E_M = E_K + E_P$. Bu konunun bütün soruları aslında tek bir soruya dayanır: Enerji nereden nereye gidiyor?
+
+- **Mekanik enerjiler:** Kinetik enerji kütleye ve süratin karesine, yer çekimi potansiyel enerjisi kütleye ve referans düzeyinden yüksekliğe, tek bir yaydaki esneklik potansiyel enerjisi yay sabitine ve sıkışmanın (ya da uzamanın) karesine bağlıdır.
+- **Korunum:** Enerji yoktan var edilemez, var olan enerji yok edilemez; yalnız bir biçimden başka biçime dönüşür. Sürtünme ve hava direnci varsa mekanik enerjinin bir kısmı ısıya (ve sese) dönüşür; toplam enerji yine korunur.
+- **Canlılar:** Besinlerin kimyasal enerjisi vücutta harekete ve ısıya dönüşür. Canlılar iş yapmadan da (uyurken, otururken, düşünürken) enerji harcar.
+- **Verim:** Bir sisteme verilen enerjinin ne kadarının hedeflenen biçime dönüştüğünü gösterir. Sürtünme ve istenmeyen dönüşümler yüzünden makinelerde yüzde 100'e ulaşamaz.
+- **Kaynaklar:** Güneş, rüzgâr, akarsu, jeotermal ve biyokütle yenilenebilir; kömür, petrol, doğal gaz ve uranyum yenilenemez kaynaklardır. Her kaynağın maliyet, erişim, üretim, toplum ve çevre açısından avantajı ve dezavantajı vardır.`,
+      kutu: { etiket: 'ÖSYM gözüyle', metin: r`2018–2026 TYT'lerinde bu konudan doğrudan soru çıkmadı; enerji ünitesindeki tek soru (2019) iş ve güç kavramlarını ölçtü. 2023'teki bir elektrik enerjisi sorusu aynı ışığı veren farklı türde ampulleri bağlam olarak kullandı ve verim fikrine dolaylı olarak dokundu. Konu programda olduğu için sorulabilir. 2018 programı bu kazanımlarda hesaplamaya girmediğinden gelirse büyük olasılıkla kavramsal olur: hangi değişken kaç kat etkiler, sürtünmeli yolda mekanik enerji nasıl değişir, enerji hangi biçimlere dönüşür, verim ile tasarruf nasıl ayrılır, hangi kaynağın avantajı ve dezavantajı nedir.` }
+    },
+    {
+      tur: 'ikili',
+      sol: {
+        baslik: 'Üç mekanik enerji ve değişkenleri',
+        metin: r`- **Kinetik enerji** hareket eden her cismin enerjisidir. Kütle iki katına çıkarsa iki katına, sürat iki katına çıkarsa dört katına çıkar. Skaler bir büyüklüktür; hareketin yönüne bağlı değildir.
+- **Yer çekimi potansiyel enerjisi** cismin konumundan kaynaklanır. Kütleyle, yer çekimi ivmesiyle ve **referans düzeyinden** ölçülen yükseklikle doğru orantılıdır. Referans düzeyi değişirse değeri değişir; iki nokta arasındaki farkı değişmez.
+- **Esneklik potansiyel enerjisi** sıkıştırılmış ya da gerilmiş bir yayda depolanır. Yay sabiti büyük (sert) yay aynı sıkışmada daha çok enerji depolar; sıkışma iki katına çıkarsa enerji dört katına çıkar.
+- **Mekanik enerji** kinetik ve potansiyel enerjilerin toplamıdır. Sürtünme, hava direnci ya da bir motor gibi bir etki enerji eklemedikçe ya da başka biçime çevirmedikçe korunur.`
+      },
+      sag: {
+        baslik: 'Hangi değişken, kaç kat?',
+        tablo: [['Enerji', 'Bağlı olduğu', 'Bağlı olmadığı', 'Değişken 2 katına çıkarsa'], ['Kinetik', r`$m$, $\vartheta$`, 'Yön, yükseklik', r`$m$: 2 kat; $\vartheta$: 4 kat`], ['Yer çekimi potansiyel', r`$m$, $g$, $h$`, 'Sürat, gelinen yol', r`$m$ ya da $h$: 2 kat`], ['Esneklik potansiyel', r`$k$, $x$`, 'Yayı sıkıştıran cismin kütlesi', r`$k$: 2 kat; $x$: 4 kat`]],
+        dip: 'Tablo oran okumak içindir; 2018 programı bu kazanımda enerji değeri hesaplatmaz. Potansiyel enerji cismin o konuma hangi yoldan geldiğine bağlı değildir; yalnız bulunduğu yüksekliğe bağlıdır.'
+      }
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY42_modeller_genis',
+      baslik: 'Grafiklerle modeli okumak',
+      metin: r`- $E_K$–$\vartheta$ grafiği orijinden başlayıp giderek dikleşen bir eğridir; aynı cismin $E_K$–$\vartheta^2$ grafiği ise orijinden geçen bir doğrudur.
+- $E_P$–$h$ grafiği orijinden geçen bir doğrudur; kütlesi büyük cismin doğrusu daha diktir.
+- Tek yayda $E_{\text{esneklik}}$–$x$ grafiği de dikleşen bir eğridir: Sıkışma iki katına çıkınca enerji dört katına çıkar.
+- "Kaç kat?" sorusunda sayı hesaplamaya gerek yoktur; değişkenin üssüne bak: Üs 1 ise enerji aynı kat, üs 2 ise katın karesi kadar değişir.`
+    },
+    {
+      tur: 'sekilli',
+      altSekil: true,
+      sekil: 'kY42_korunum_genis',
+      baslik: 'Enerji korunur, biçim değiştirir',
+      metin: r`- **Sürtünmesiz yolda** durgun hâlden bırakılan cisim, karşı tarafta bırakıldığı yüksekliğe kadar çıkar. İnerken potansiyel enerji kinetik enerjiye, çıkarken kinetik enerji potansiyel enerjiye dönüşür; toplamları her an aynıdır.
+- **Sürtünmeli yolda** cisim karşı tarafta daha alçağa çıkar. Kaybolan mekanik enerji yok olmaz; cismin, yolun ve havanın iç enerjisini artıran ısıya (ve kısmen sese) dönüşür.
+- Bu yüzden gerçek dönüşümlerde enerjinin tamamı hedeflenen biçime dönüştürülemez; sürtünme her zaman bir kısmını ısıya çevirir.
+- Sabit sürat, mekanik enerjinin korunduğunu göstermez: Sabit süratle inen cismin mekanik enerjisi azalır, sabit süratle yükselenin mekanik enerjisi artar.`
+    },
+    {
+      tur: 'ikili',
+      sol: {
+        baslik: 'Canlılarda enerji: besinler ve harcama',
+        metin: r`- Besinlerin kimyasal enerjisi sindirim ve hücre solunumuyla vücudun kullanabileceği biçime geçer. Besin etiketlerinde enerji çoğunlukla kilokalori ($\text{kcal}$) ile verilir; $1\ \text{kcal}$ yaklaşık $4,2\ \text{kJ}$'dür.
+- Vücut enerjiyi yalnız hareket için harcamaz: Kalbin çalışması, solunum, vücut sıcaklığının korunması ve hücrelerin yenilenmesi uyurken de sürer. Az hareket eden birinin günlük harcamasının büyük kısmı bu temel ihtiyaçlara gider.
+- Uyurken, otururken ya da düşünürken çevremizdeki cisimlere iş yapmayız; ama beyin, kalp ve kaslar çalışmayı sürdürür. Canlılar **iş yapmadan da enerji harcar.**
+- Besinlerle alınan enerji harcanandan fazlaysa fazlası vücutta (çoğunlukla yağ olarak) depolanır; azsa depolardaki enerji kullanılır.`
+      },
+      sag: {
+        baslik: 'İş var mı, enerji harcanıyor mu?',
+        tablo: [['Durum', 'Cisme fiziksel iş', 'Vücut enerji harcar mı?'], ['Uyumak', 'Yok', 'Evet (temel ihtiyaçlar)'], ['Otobüs yolculuğunda saatlerce oturmak', 'Yok', 'Evet (beyin, kalp, solunum)'], ['Kutuyu yerden rafa kaldırmak', 'Var', 'Evet'], ['Merdiven çıkmak', 'Var (vücut yükselir)', 'Evet']],
+        dip: 'Fiziksel iş, cisme aktarılan enerjiyi gösterir. Vücudun harcadığı enerji bundan çok daha büyüktür ve büyük kısmı sonunda ısıya dönüşür.'
+      }
+    },
+    {
+      tur: 'sekilli',
+      sekil: 'kY42_etiket',
+      baslik: 'Verim, tasarruf ve enerji kimlik belgesi',
+      metin: r`- **Verim**, bir sisteme verilen enerjinin ne kadarının hedeflenen (yararlı) biçime dönüştüğünü gösterir: yararlı enerjinin harcanan enerjiye oranıdır. Makinelerde sürtünme ve istenmeyen ısı yüzünden yüzde 100'den küçüktür.
+- **Enerji verimliliği** aynı hizmeti (aynı ışık, aynı ısınma, aynı yol) daha az enerjiyle elde etmektir. **Enerji tasarrufu** ise gereksiz kullanımı bırakmak ya da ihtiyacı kısmaktır. İkisi de tüketimi azaltır.
+- **Enerji kimlik belgesi** binalara, **enerji etiketi** ev aletlerine verilir. Belge, standart kullanım koşulları için hesaplanan yıllık enerji ihtiyacına göre binayı A (en verimli) ile G (en az verimli) arasında sınıflar; yeni tip enerji etiketleri de çoğu ev aletini aynı A–G ölçeğiyle sınıflar.
+- Sınıfı iyi bir cihaz aynı hizmeti daha az enerjiyle verir. Ama toplam tüketim kullanım süresine de bağlıdır; verimli bir cihazı gereksiz çalıştırmak tasarrufu yok eder.`
+    },
+    {
+      tur: 'ikili',
+      sol: {
+        baslik: 'Verimi artırmak: dün ve bugün',
+        metin: r`- Verimi artırmanın yolu kayıpları bulup azaltmaktır: sürtünmeyi azaltmak (yağlama, rulman), ısı kaçışını önlemek (yalıtım, kapalı kap), atık ısıyı yeniden kullanmak.
+- Evde: dış cephe ve çatı yalıtımı, çift camlı pencereler, LED aydınlatma, sınıfı iyi ev aletleri, kombi ve tesisatın düzenli bakımı.
+- Ulaşımda: doğru lastik basıncı, gereksiz yük taşımamak, aracın bakımlı olması, toplu taşıma.
+- Sanayide: atık ısıyla su, konut ya da sera ısıtmak, verimli elektrik motorları kullanmak, kaçakları gidermek.`
+      },
+      sag: {
+        baslik: 'Tarihte verim artıran sistemler',
+        tablo: [['Sistem', 'Ne değişti?'], ['Watt\'ın ayrı yoğuşturucusu (1769)', 'Buhar ayrı bir kapta yoğuşturuldu; silindir her çevrimde soğutulmadığı için aynı iş çok daha az kömürle yapıldı.'], ['Rumford ocağı (1790\'lar)', 'Sığ ocak ve eğik yan duvarlar ısının daha büyük kısmını odaya yansıttı.'], ['Su türbini (19. yüzyıl)', 'Akan suyun enerjisinin, ahşap su çarklarına göre daha büyük kısmını mile aktardı.'], ['Yoğuşmalı kombi', 'Baca gazındaki su buharı yoğuşturulup açığa çıkan ısı da kullanıldı.'], ['LED aydınlatma', 'Elektrik enerjisinin akkor ampule göre çok daha büyük kısmı ışığa dönüştü.']],
+        dip: 'Verimi artırmak toplam enerjiyi artırmaz; yalnız boşa giden payı küçültür.'
+      }
+    },
+    {
+      tur: 'ikili',
+      sol: {
+        baslik: 'Enerji kaynakları: avantaj ve dezavantaj',
+        metin: r`- **Yenilenebilir kaynaklar** insan ömrüyle karşılaştırılabilir sürelerde kendini yeniler: Güneş, rüzgâr, akarsu (hidroelektrik), jeotermal, biyokütle, dalga ve gelgit. **Yenilenemez kaynakların** oluşması milyonlarca yıl sürer ya da tükendiklerinde yerlerine konamaz: kömür, petrol, doğal gaz (fosil yakıtlar) ve nükleer yakıt (uranyum).
+- Kaynaklar karşılaştırılırken **maliyet** (kurulum, yakıt, bakım), **erişilebilirlik** (bölgede var mı, ithal mi), **üretim kolaylığı** (sürekli mi, kesintili mi, depolanabilir mi), **toplum** (istihdam, yerleşim, sağlık), **teknoloji** ve **çevre** (sera gazı, atık, doğal yaşam) birlikte düşünülür.
+- **Güneş ve rüzgâr:** Yakıt gerekmez, çalışırken salım yoktur. Üretim kesintilidir (gece, bulut, rüzgârsız hava); depolama ve geniş alan gerekir. Rüzgâr türbinleri gürültü yapar, kuşları etkileyebilir.
+- **Barajlı hidroelektrik:** Su gölde depolanır, üretim ihtiyaca göre ayarlanır. Kurulumu pahalıdır; yerleşim yerleri ve doğal yaşam su altında kalabilir; kuraklıkta üretim düşer.
+- **Jeotermal:** Hava koşullarından bağımsız, sürekli üretir. Yalnız uygun bölgelerde kurulur; akışkan yer altına geri basılmazsa kaynak zayıflar; bazı sahalarda yer altından gelen karbon dioksit ve hidrojen sülfür havaya karışır.
+- **Biyokütle:** Atıkları değerlendirir, sürekli üretebilir. Yakılınca karbon dioksit oluşur; enerji bitkileri tarım alanı gerektirebilir.
+- **Fosil yakıtlar:** Üretim sürekli ve ayarlanabilir. Sera gazı ve hava kirliliği oluşturur, tükenir; ithal ediliyorsa dışa bağımlılık yaratır.
+- **Nükleer:** Az yakıtla çok enerji üretir, çalışırken karbon dioksit salmaz. Radyoaktif atık, kaza riski ve yüksek kurulum maliyeti vardır.`
+      },
+      sag: {
+        baslik: 'Kaynaklar bir bakışta',
+        tablo: [['Kaynak', 'Tür', 'Üretim', 'Yakıt yakılır mı?'], ['Güneş', 'Yenilenebilir', 'Kesintili', 'Hayır'], ['Rüzgâr', 'Yenilenebilir', 'Kesintili', 'Hayır'], ['Barajlı HES', 'Yenilenebilir', 'Ayarlanabilir', 'Hayır'], ['Jeotermal', 'Yenilenebilir', 'Sürekli', 'Hayır'], ['Biyokütle', 'Yenilenebilir', 'Sürekli', 'Evet'], ['Fosil yakıt', 'Yenilenemez', 'Sürekli', 'Evet'], ['Nükleer', 'Yenilenemez', 'Sürekli', 'Hayır (fisyon)']],
+        dip: 'Yenilenebilir olmak çevreye hiç etkisi olmamak demek değildir. Hiçbir kaynak her ölçütte en iyi değildir; hangi kaynak kullanılırsa kullanılsın enerjiyi tasarruflu kullanmak maliyeti de çevresel etkiyi de azaltır. Sorularda kaynağı verilen ölçütle eşleştir: yakıt, süreklilik, salım, yenilenme.'
+      }
+    },
+    {
+      tur: 'formul',
+      baslik: 'Matematiksel modeller',
+      alt: r`2018 programı bu konuda modelleri verir ama enerji değeri hesaplatmaz. Modelleri "hangi değişken, kaç kat?" ve "enerji nereye gitti?" sorularında kullan.`,
+      kolonlar: [
+        { baslik: 'Mekanik enerjiler', not: 'Kütle kg, sürat m/s, yükseklik m', satirlar: [r`E_K = \tfrac{1}{2} \cdot m \cdot \vartheta^2`, r`E_P = m \cdot g \cdot h`, r`E_{\text{esneklik}} = \tfrac{1}{2} \cdot k \cdot x^2`] },
+        { baslik: 'Mekanik enerji ve korunum', not: 'Sürtünme yoksa ve varsa', satirlar: [r`E_M = E_K + E_P`, r`\text{Sürtünmesiz: } E_{M,\text{ilk}} = E_{M,\text{son}}`, r`\text{Sürtünmeli: } E_{M,\text{ilk}} = E_{M,\text{son}} + E_{\text{ısı}}`] },
+        { baslik: 'Verim', not: 'Makinelerde 1\'den küçük', satirlar: [r`\text{Verim} = \dfrac{E_{\text{yararlı}}}{E_{\text{harcanan}}}`, r`\text{Yüzde verim} = \dfrac{E_{\text{yararlı}}}{E_{\text{harcanan}}} \cdot 100`] }
+      ],
+      dip: r`$h$ seçilen referans düzeyinden ölçülür; referans değişince $E_P$ değişir ama iki nokta arasındaki $E_P$ farkı değişmez. $x$ yayın serbest boyundan itibaren sıkışma ya da uzamadır, yayın toplam boyu değildir. Enerji birimi joule ($\text{J}$); besinlerde kilokalori ($1\ \text{kcal} \approx 4,2\ \text{kJ}$), elektrikte kilovatsaat ($1\ \text{kWh} = 3,6 \cdot 10^6\ \text{J}$) kullanılır.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY42_C1', zorluk: 1,
+      baslik: 'Yüklü kargo aracı',
+      metin: r`Bir kargo aracı boşken düz bir yolda belirli bir süratle gidiyor. Araç yüklenince kütlesi boş hâlinin iki katına çıkıyor ve aynı yolda boşkenki süratinin yarısıyla gidiyor.
+
+Yüklü aracın kinetik enerjisi, boş aracın kinetik enerjisine göre nasıl değişir?`,
+      secenekler: ['Değişmez.', 'İki katına çıkar.', 'Yarıya iner.', 'Dörtte birine iner.', 'Dört katına çıkar.'],
+      dogru: 2,
+      cozum: [
+        r`Kinetik enerji $E_K = \tfrac{1}{2} \cdot m \cdot \vartheta^2$ modeline göre kütleyle doğru orantılı, süratin karesiyle orantılıdır.`,
+        r`Kütle iki katına çıktığı için kinetik enerji 2 katına çıkardı; sürat yarıya indiği için süratin karesi dörtte birine iner. İki etki birlikte: $2 \cdot \tfrac{1}{4} = \tfrac{1}{2}$. Kinetik enerji **yarıya iner.**`,
+        r`{{S0}} kütlenin artışı ile süratin azalmasının birbirini götürdüğünü sanır; sürat karesiyle etkilidir. {{S1}} süratin azalmasını hesaba katmaz. {{S3}} kütlenin iki katına çıktığını unutur. {{S4}} süratin yarıya inmesini iki katına çıkması gibi düşünür ve kütlenin artışını hesaba katmaz.`
+      ],
+      ipucu: r`Önce yalnız kütlenin, sonra yalnız süratin etkisini ayrı ayrı düşün.`,
+      tuzak: r`Kütle "iki katı", sürat "yarı" diye etkileri eşit sanıp kinetik enerjinin değişmediğini söylemek. Sürat modelde karesiyle yer alır.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY42_C2', zorluk: 2,
+      baslik: 'Rüzgâr türbininde enerji nereye gider?',
+      metin: r`Bir rüzgâr türbininde esen rüzgâr kanatları döndürür. Kanatların bağlı olduğu mil, bir dişli kutusuyla hızlandırılarak jeneratörü çevirir ve jeneratör elektrik üretir.
+
+{{sekil}}
+
+Bu türbinle ilgili,
+
+I. Kanatlara çarpan rüzgârın kinetik enerjisinin tamamı elektrik enerjisine dönüşmez.
+II. Dişli kutusunda ve jeneratörde enerjinin bir kısmı ısıya dönüşür.
+III. Üretilen elektrik enerjisi ile türbindeki kayıpların toplamı, kanatlardan mile aktarılan enerjiden büyüktür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY42_C2_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Rüzgâr kanatlardan geçtikten sonra da hareket etmeye devam eder; enerjisinin ancak bir kısmı kanatlara aktarılır. Mile aktarılan enerjinin de bir kısmı yolda kaybolur. **Doğru.**`,
+        r`II. Dişlilerde ve yataklarda sürtünme, jeneratörün sargılarında ısınma olur; bu enerji ısıya (ve sese) dönüşür. **Doğru.**`,
+        r`III. Enerji korunur: Mile aktarılan enerji, üretilen elektrik enerjisi ile kayıpların toplamına **eşittir**; büyük olamaz. **Yanlış.**`,
+        r`{{S0}} dişli kutusu ve jeneratördeki ısınmayı görmez. {{S1}} rüzgârın enerjisinin yalnız bir kısmının kanatlara geçtiğini atlar. {{S3}} kayıpların enerjiye eklendiğini, yani toplamın artabileceğini sanır ve II'yi atlar. {{S4}} III'ü de doğru sayar; toplam enerji artamaz, yalnız korunur.`
+      ],
+      ipucu: r`Her aşamada "giren enerji = yararlı enerji + kayıp" eşitliğini düşün.`,
+      tuzak: r`Kayıpları "fazladan ortaya çıkan enerji" sanmak. Kayıplar, giren enerjinin hedefe ulaşamayan payıdır; toplam her zaman giren enerjiye eşittir.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY42_C3', zorluk: 2,
+      baslik: 'Otomobilin enerji şeması',
+      metin: r`Şekilde benzinli bir otomobilin yakıtından elde edilen enerjinin şehir içi yolculukta nasıl dağıldığı gösterilmiştir. Şeritlerin kalınlığı enerji miktarıyla orantılıdır.
+
+{{sekil}}
+
+Şemaya göre aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'kY42_C3_genis',
+      secenekler: ['Otomobilin verimi yüzde 50\'den büyüktür.', 'Boşa giden enerjinin en büyük kısmı egzoz gazı ve soğutma sistemiyle ısı olarak çevreye aktarılır.', 'Tekerleklerin hareketine aktarılan enerji ile kayıpların toplamı, yakıtın enerjisinden küçüktür.', 'Sürtünmeyle ısıya dönüşen enerji yok olur.', 'Yakıtın enerjisinin en büyük kısmı tekerleklerin hareketine aktarılır.'],
+      dogru: 1,
+      cozum: [
+        r`Şemada yararlı enerji, tekerleklerin hareketine giden şerittir; giren şeridin yarısından çok daha incedir. Otomobilin verimi yüzde 50'den küçüktür.`,
+        r`En kalın kayıp şeridi egzoz gazı ve radyatörle (soğutma sistemiyle) çevreye giden ısıdır. Sürtünme ve ses daha ince bir şerittir.`,
+        r`{{S0}} yararlı şeridin kalınlığını giren şeritle karşılaştırmaz. {{S2}} kayıpların bir kısmının yok olduğunu sanır; çıkan şeritlerin toplamı giren şeride eşittir. {{S3}} ısının yok olduğunu düşünür; ısı çevrenin iç enerjisini artırır. {{S4}} otomobilin amacı hareket olduğu için enerjinin çoğunun harekete gittiğini sanır.`
+      ],
+      ipucu: r`Önce yararlı şeridi bul, sonra kalınlığını giren şeritle karşılaştır.`,
+      tuzak: r`Verimi düşük bir makinede kaybın "yok olan enerji" olduğunu düşünmek. Kayıp, hedeflenmeyen biçime (çoğunlukla ısıya) dönüşen enerjidir.`
+    },
+    {
+      tur: 'cozumlu', id: 'kY42_C4', zorluk: 3,
+      baslik: 'Durup geri dönen cisim',
+      metin: r`Şekildeki yolun K noktasından durgun hâlden bırakılan küçük bir cisim, L çukurundan ve M tepesinden geçip N noktasında bir an duruyor ve geri dönüyor. N noktası K'den alçaktadır, M noktası L'den yüksektir. Hava direnci önemsizdir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Yolun en az bir bölümünde sürtünme vardır.
+II. Cisim geri dönerken K noktasına ulaşamaz.
+III. Cismin M noktasındaki sürati, L noktasındaki süratinden küçüktür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'kY42_C4_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. K'de ve N'de cisim durgundur; mekanik enerji yalnız potansiyel enerjidir. N, K'den alçakta olduğu için mekanik enerji azalmıştır. Hava direnci önemsiz olduğuna göre yolun en az bir bölümünde sürtünme vardır. **Kesinlikle doğru.**`,
+        r`II. Dönüşte mekanik enerji ya korunur ya da daha da azalır. Cismin N'deki mekanik enerjisi K'de durgun olması için gerekenden azdır; K'ye ulaşamaz. **Kesinlikle doğru.**`,
+        r`III. L'den M'ye çıkarken potansiyel enerji artar; mekanik enerji ise artamaz (sürtünme varsa azalır). Kinetik enerji, dolayısıyla sürat azalır. **Kesinlikle doğru.**`,
+        r`{{S0}} geri dönüşte mekanik enerjinin artamayacağını ve M'deki süratin küçüldüğünü görmez. {{S1}} N'nin K'den alçak olmasının mekanik enerji kaybı demek olduğunu görmez ve dönüşü düşünmez. {{S2}} sürtünmeli bölümün L ile M arasında olup olmadığı bilinmediği için III'ün kesin olmadığını sanır; yükseklik farkı tek başına yeterlidir. {{S3}} N'de durmanın mekanik enerji kaybını kesin olarak gösterdiğini görmez.`
+      ],
+      ipucu: r`Cismin durgun olduğu iki noktada mekanik enerjiyi yalnız yüksekliklerden karşılaştır.`,
+      tuzak: r`Sürtünmenin yolun neresinde olduğunu bilmeden hiçbir yargının kesin olamayacağını sanmak. Kesin yargılar yükseklik karşılaştırmasından ve "mekanik enerji artamaz" bilgisinden çıkar.`
+    },
+    {
+      tur: 'efsane',
+      baslik: 'Efsane mi, gerçek mi?',
+      kartlar: [
+        { sekil: 'iY42_efsane_1', iddia: 'Bir cismin sürati iki katına çıkarsa kinetik enerjisi de iki katına çıkar.', karar: false, aciklama: 'Kinetik enerji süratin karesiyle orantılıdır. Sürat iki katına çıkınca kinetik enerji dört katına, üç katına çıkınca dokuz katına çıkar. Kütle iki katına çıkarsa ise kinetik enerji yalnız iki katına çıkar.' },
+        { sekil: 'iY42_efsane_2', iddia: 'Enerji her zaman korunduğuna göre enerji tasarrufu yapmaya gerek yoktur.', karar: false, aciklama: 'Toplam enerji korunur ama kullandığımız enerji, işimize yarayan biçimden sonunda çevreye dağılan ısıya dönüşür. Dağılmış ısıyı yeniden elektrik ya da hareket olarak kullanmak çok zordur. Bu enerjiyi sağlayan kaynakların çoğu tükenir, hepsinin maliyeti ve çevresel etkisi vardır. Tasarruf, enerjiyi değil kullanılabilir enerji kaynaklarını korur.' },
+        { sekil: 'iY42_efsane_3', iddia: 'Bir hidroelektrik santralinde üretilen elektriğin enerjisinin kaynağı da Güneş\'tir.', karar: true, aciklama: 'Güneş ışınları denizlerdeki ve göllerdeki suyu buharlaştırır; buhar yükselip bulut olur, yağmur ve kar olarak yüksek yerlere düşer. Baraj gölündeki suyun yer çekimi potansiyel enerjisi bu su döngüsünden gelir. Santral bu enerjiyi suyun kinetik enerjisine, türbinde dönme enerjisine, jeneratörde elektrik enerjisine dönüştürür.' },
+        { sekil: 'iY42_efsane_4', iddia: 'Besinlerden aldığımız enerjinin büyük kısmı vücudumuzda sonunda ısıya dönüşür.', karar: true, aciklama: 'Kaslar besinlerin kimyasal enerjisinin yalnız küçük bir kısmını (yaklaşık dörtte birini) harekete dönüştürür; geri kalanı ısıya dönüşür. Kalbin, solunumun ve hücrelerin harcadığı enerji de sonunda ısı olarak çevreye aktarılır. Spor yaparken terlemek bu ısıyı vücuttan uzaklaştırmanın bir yoludur.' },
+        { sekil: 'iY42_efsane_5', iddia: 'Yenilenebilir enerji kaynaklarının çevreye hiçbir olumsuz etkisi yoktur.', karar: false, aciklama: 'Barajlar yerleşim yerlerini, tarım alanlarını ve doğal yaşamı su altında bırakabilir; akarsudaki canlıları etkiler. Rüzgâr türbinleri gürültü yapar ve kuşlar için tehlike oluşturabilir; güneş santralleri geniş alan kaplar, panellerin üretimi ve atığı da çevreyi etkiler. Bu etkiler çoğunlukla fosil yakıtlarınkinden küçüktür ama sıfır değildir.' }
+      ]
+    },
+    {
+      tur: 'kartlar',
+      baslik: 'Kısa yollar ve ÖSYM tuzakları',
+      alt: 'Önce ön yüzdeki soruyu kendin cevapla, sonra açıklamayı oku.',
+      kartlar: [
+        { on: 'Kaç kat? Üsse bak', ipucu: r`$\vartheta$ mi, $\vartheta^2$ mi?`, arka: r`$E_K$ kütleyle aynı katta, süratle karesi kadar; $E_P$ kütle ve yükseklikle aynı katta; $E_{\text{esneklik}}$ yay sabitiyle aynı katta, sıkışmayla karesi kadar artar. Sürat ya da sıkışma 3 katına çıkarsa enerji 9 katına çıkar.` },
+        { on: 'Referans düzeyini sor', ipucu: 'Potansiyel enerji neye göre?', arka: 'Yer çekimi potansiyel enerjisinin değeri seçilen referans düzeyine bağlıdır; referans değişirse değişir. İki nokta arasındaki potansiyel enerji farkı ise referansa bağlı değildir. Soru "yere göre" diyorsa yüksekliği yerden ölç.' },
+        { on: 'Sabit sürat, sabit enerji değildir', ipucu: 'Yokuş aşağı sabit süratle', arka: 'Sabit süratle hareket eden cismin yalnız kinetik enerjisi sabittir. Sabit süratle inen cismin mekanik enerjisi azalır (frenler ısınır); sabit süratle yükselenin mekanik enerjisi artar (bir motor ya da kas enerji aktarır).' },
+        { on: 'Mekanik enerji azaldıysa', ipucu: 'Enerji nereye gitti?', arka: 'Mekanik enerji azaldıysa sürtünme ya da hava direnci vardır ve azalan kısım ısıya (ve sese) dönüşmüştür; toplam enerji azalmaz. Durgun bırakılan cisim bırakıldığı yükseklikten alçakta durup geri dönüyorsa, hava direnci yoksa, yol kesinlikle sürtünmelidir.' },
+        { on: 'Aynı biçim, iki rol', ipucu: 'Isı her zaman kayıp mı?', arka: 'Hangi enerjinin yararlı olduğu cihazın amacına bağlıdır. Ütüde ve su ısıtıcısında ısı hedeflenen biçimdir; lambada, motorda ve hoparlörde ısı boşa giden enerjidir.' },
+        { on: 'Verimli olmak az tüketmek değildir', ipucu: '"Kesinlikle" kökünde dikkat', arka: 'Verimi yüksek cihaz aynı hizmeti daha az enerjiyle verir. Toplam tüketim ise kullanım süresine ve ihtiyaca da bağlıdır; verimli bir cihazı uzun süre çalıştıran, verimsiz cihazı az çalıştırandan çok tüketebilir.' },
+        { on: 'Kesintili mi, sürekli mi?', ipucu: 'Gece ve rüzgârsız havada ne olur?', arka: 'Güneş ve rüzgâr santrallerinin üretimi hava koşullarına bağlıdır; depolama ya da üretimi ayarlanabilen başka santraller gerekir. Jeotermal, fosil yakıtlı ve nükleer santraller ile gölünde su bulunan barajlı santraller istendiğinde sürekli üretim yapabilir.' },
+        { on: 'İş yoksa enerji harcanmaz mı?', ipucu: 'Uyurken ve otururken', arka: 'Canlılar çevrelerindeki cisimlere iş yapmadan da enerji harcar: Kalbin çalışması, solunum, beynin çalışması ve vücut sıcaklığının korunması sürekli enerji ister. Günlük harcamanın büyük kısmı bu temel ihtiyaçlara gider.' }
+      ]
+    },
+    {
+      tur: 'cikmis',
+      baslik: 'ÖSYM bu konuyu nasıl sordu?',
+      metin: r`2018–2026 arasında TYT'de bu konudan **hiç soru çıkmadı**; enerji ünitesinden gelen tek soru (2019) iş ve güç kavramlarını ölçtü ve Y.4.1 İş, Güç ve Enerji konusundadır. 2023'te elektrik enerjisi ve güç konusundaki (Y.7.2) bir soru, aynı aydınlatmayı sağlayan farklı türde ampullerde harcanan elektrik enerjisini karşılaştırttı; verim fikri yalnız bağlamdaydı, ölçülen enerji ile güç arasındaki ilişkiydi. Mekanik enerji, enerjinin korunumu, verim ve enerji kaynakları 2018 programında 9. sınıf kazanımı olduğu için 2027 TYT'nin de kapsamındadır. Program bu kazanımlarda sayısal hesaba girmediğinden gelebilecek bir soru büyük olasılıkla kavramsal olur: değişkenlerin etkisi (kaç kat), sürtünmeli ve sürtünmesiz yolda mekanik enerjinin değişimi, enerji dönüşüm zinciri, verim ile tasarruf ayrımı, kaynakların avantaj ve dezavantajları. Bu yüzden bu bölümdeki 30 sorunun hepsi tahmin sorusudur. Son 9 yılın verisine göre bu konunun önceliği düşüktür; ama hiç sorulmamış olması sorulmayacağı anlamına gelmez.`,
+      yillar: { 2018: 0, 2019: 0, 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0, 2026: 0 },
+      kaliplar: [],
+      kartlar: []
+    },
+    {
+      tur: 'ozet',
+      baslik: 'Kontrol listesi',
+      maddeler: [
+        'Kinetik, yer çekimi potansiyel ve esneklik potansiyel enerjisinin bağlı olduğu değişkenleri ve bir değişken iki katına çıkınca enerjinin kaç katına çıktığını açıklayabilirim.',
+        'Mekanik enerjinin kinetik ve potansiyel enerjilerin toplamı olduğunu ve sürtünmesiz yolda korunduğunu açıklayabilirim.',
+        'Sürtünmeli durumlarda enerjinin tamamının hedeflenen biçime dönüşmediğini, toplam enerjinin yine korunduğunu gösterebilirim.',
+        'Besinlerden alınan enerji ile günlük etkinliklerde harcanan enerjiyi karşılaştırabilir, iş yapmadan da enerji harcandığını açıklayabilirim.',
+        'Verim, enerji verimliliği ve enerji tasarrufu kavramlarını ayırt edebilir, enerji kimlik belgesini ve enerji etiketini yorumlayabilirim.',
+        'Bir sistemin verimini artıracak öneriler geliştirebilir, enerji kaynaklarını avantaj ve dezavantajlarıyla karşılaştırabilirim.'
+      ]
+    }
+  ],
+
+  /* ---------------- SORULAR ---------------- */
+  sorular: [
+    {
+      id: 'kY42_01', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.2.1', beceri: 'Değişken belirleme',
+      tahmin: { gerekce: r`Kinetik enerjinin skaler olup yöne bağlı olmaması programın "değişkenleri analiz eder" kazanımının temelidir. Hız ile süratin karıştırılması TYT'de sık kullanılan bir tuzaktır; kolay soru olarak gelebilir.` },
+      metin: r`Bir buz pateni gösterisinde Duru yatay buz pistinde kayıyor. Gösterinin farklı anlarında aşağıdaki değişiklikler oluyor.
+
+Bu değişikliklerden hangisi Duru'nun kinetik enerjisini **değiştirmez?**`,
+      secenekler: ['Süratini iki katına çıkarması', 'Aynı süratle kayarken geniş bir virajı dönerek hareket yönünü değiştirmesi', 'Aynı süratle kayarken sırtına dolu bir çanta takılması', 'Gösterinin sonunda yavaşlayıp durması', 'Aynı süratle kayarken elindeki dolu su şişesini kenardaki arkadaşına bırakması'],
+      dogru: 1,
+      cozum: [
+        r`Kinetik enerjinin modeli $E_K = \tfrac{1}{2} \cdot m \cdot \vartheta^2$'dir. Kinetik enerji yalnız kütleye ve sürate bağlıdır; skaler bir büyüklüktür, hareketin yönüne bağlı değildir.`,
+        r`Virajda kütle ve sürat değişmediği için kinetik enerji değişmez. Değişen, hızın yönüdür.`,
+        r`{{S0}} sürat artınca kinetik enerjinin değişmeyeceğini sanır; sürat iki katına çıkınca kinetik enerji dört katına çıkar. {{S2}} kinetik enerjinin yalnız sürate bağlı olduğunu düşünür; çanta takılınca hareket eden kütle artar. {{S3}} yavaşlamanın enerjiyi değiştirmediğini sanır; sürat azaldıkça kinetik enerji azalır. {{S4}} şişeyi bırakınca kütlenin azaldığını gözden kaçırır; aynı süratte kütlesi küçük cismin kinetik enerjisi küçüktür.`
+      ]
+    },
+    {
+      id: 'kY42_02', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.2.1', beceri: 'Sıralama',
+      tahmin: { gerekce: r`Yer çekimi potansiyel enerjisinin kütle ve yükseklikle birlikte değişmesi programda modelle verilir; iki değişkeni birlikte kullandıran şekilli sıralama sorusu hesap gerektirmeden ölçülebilir. Yalnız yüksekliğe bakmak tipik hatadır.` },
+      metin: r`Bir fidanlıkta yere dik çakılmış bir direğin kancalarına X, Y ve Z saksıları asılmıştır. Saksıların kütleleri ve yerden yükseklikleri şekilde verilmiştir.
+
+Saksıların yere göre yer çekimi potansiyel enerjileri $E_X$, $E_Y$ ve $E_Z$ arasındaki ilişki nedir? (Saksıların boyutları önemsizdir.)`,
+      sekil: 'kY42_saksi',
+      secenekler: [r`$E_Y = E_Z > E_X$`, r`$E_Z > E_Y > E_X$`, r`$E_Y > E_Z > E_X$`, r`$E_X = E_Y = E_Z$`, r`$E_Z > E_X > E_Y$`],
+      dogru: 0,
+      cozum: [
+        r`Yer çekimi potansiyel enerjisi $E_P = m \cdot g \cdot h$ modeline göre kütle ile yüksekliğin çarpımına bağlıdır; $g$ üç saksı için aynıdır.`,
+        r`Kütle ile yüksekliğin çarpımı X için $2m \cdot h$, Y için $m \cdot 3h$, Z için $3m \cdot h$'dir. Y ile Z'nin çarpımları eşit, X'inki küçüktür: $E_Y = E_Z > E_X$.`,
+        r`{{S1}} Z'nin kütlesi en büyük diye ona en büyük enerjiyi verir; Y'nin üç kat yüksekliğinin bunu dengelediğini görmez. {{S2}} önce yüksekliğe bakıp en yüksekteki Y'yi en büyük sayar; Y'nin kütlesinin Z'ninkinin üçte biri olduğunu hesaba katmaz. {{S3}} saksılar aynı direğe asılı diye enerjilerini eşit sanır; her saksının enerjisi kendi kütlesine ve yüksekliğine bağlıdır. {{S4}} yalnız kütleleri sıralar, yüksekliği hesaba katmaz.`
+      ]
+    },
+    {
+      id: 'kY42_03', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.2.1', beceri: 'Kavramsal karşılaştırma',
+      tahmin: { gerekce: r`Kinetik ve potansiyel enerjinin ayrı ayrı nasıl değiştiğini iki sütunlu seçeneklerle soran kısa sorular TYT'nin sevdiği biçimdir. Sabit sürat ile sabit enerjiyi karıştırmak bu konudaki en yaygın yanılgılardandır.` },
+      metin: r`Bir elma bahçesinde işçiyi taşıyan hidrolik platformun sepeti, şekildeki gibi düşey doğrultuda sabit süratle yükseliyor.
+
+Sepet yükselirken işçinin kinetik enerjisi ile yere göre yer çekimi potansiyel enerjisi nasıl değişir?`,
+      sekil: 'kY42_platform',
+      secenekler: ['Kinetik enerji artar; potansiyel enerji artar.', 'Kinetik enerji değişmez; potansiyel enerji artar.', 'Kinetik enerji değişmez; potansiyel enerji değişmez.', 'Kinetik enerji azalır; potansiyel enerji artar.', 'Kinetik enerji artar; potansiyel enerji değişmez.'],
+      dogru: 1,
+      cozum: [
+        r`Sepet sabit süratle hareket ettiği için işçinin kinetik enerjisi değişmez.`,
+        r`Yükseklik arttığı için potansiyel enerji artar. İşçinin mekanik enerjisi ($E_K + E_P$) de artar; bu artışı platformun hidrolik sistemi sağlar.`,
+        r`{{S0}} yükselen cismin hızlandığını sanır; sürat sabittir. {{S2}} sabit süratle hareket eden cismin hiçbir enerjisinin değişmediğini düşünür; yükseklik artmaktadır. {{S3}} potansiyel enerji arttıkça kinetik enerjinin azalması gerektiğini sanır; bu yalnız dışarıdan enerji verilmeyen cisimde geçerlidir, burada platform enerji aktarır. {{S4}} yükselmeyi hızlanmayla karıştırır ve potansiyel enerjinin yüksekliğe bağlı olduğunu atlar.`
+      ]
+    },
+    {
+      id: 'kY42_04', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.2.1', beceri: 'Model okuma',
+      tahmin: { gerekce: r`Program kinetik enerjinin değişkenlerini hesapsız analiz ettirir; "iki katına çıkarsa" biçimindeki oran yargıları bu sınırın içinde kalan tipik TYT yargılarıdır. Günlük hayattan trafik bağlamı ÖSYM'nin son yıllardaki tercihine uyar.` },
+      metin: r`Bir trafik güvenliği kampanyasının afişinde araçların kinetik enerjisiyle ilgili şu bilgiler yer alıyor.
+
+I. Kinetik enerjileri eşit olan bir kamyon ile bir otomobilden kamyonun sürati daha büyüktür.
+II. Bir otomobilin sürati iki katına çıkarsa kinetik enerjisi dört katına çıkar.
+III. Aynı süratle giden iki araçtan kütlesi iki katı olanın kinetik enerjisi de iki katıdır.
+
+Kamyonun kütlesi otomobilinkinden büyük olduğuna göre bu bilgilerden hangileri fizikçe doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`Kinetik enerji $E_K = \tfrac{1}{2} \cdot m \cdot \vartheta^2$ modeline göre kütleyle doğru orantılı, süratin karesiyle orantılıdır.`,
+        r`I. Kinetik enerjiler eşitse kütlesi büyük olan kamyonun süratinin karesi, dolayısıyla sürati küçük olmalıdır. **Yanlış.**`,
+        r`II. Sürat iki katına çıkınca süratin karesi dört katına çıkar. **Doğru.**`,
+        r`III. Sürat aynıyken kinetik enerji kütleyle doğru orantılıdır. **Doğru.**`,
+        r`{{S0}} büyük aracın hızlı olması gerektiğini sanır; eşit kinetik enerjide kütle büyükse sürat küçüktür ve öteki iki bilgi de doğrudur. {{S1}} kütlenin kinetik enerjiye etkisini görmez ve III'ü atlar. {{S2}} I'i doğru sayar ve kütlenin etkisini görmeyip III'ü atlar. {{S3}} I'i doğru sayar ve süratin kareli etkisini bilmeyip II'yi atlar.`
+      ]
+    },
+    {
+      id: 'kY42_05', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.2.1', beceri: 'Değişkenler arası ilişki',
+      tahmin: { gerekce: r`Program esneklik potansiyel enerjisini tek yaylı sistemle sınırlar ve değişkenlerini analiz ettirir; bu kazanım TYT'de hiç sorulmadı. Sıkışmanın karesiyle artışı, hesaba girmeden ölçülebilen tipik bir oran tuzağıdır.` },
+      metin: r`Zıplama çubuğunun gövdesinde tek bir yay vardır. Ece çubuğun pedallarına basarak zıplarken çubuk yere değdiğinde yay sıkışır, sonra açılarak Ece'yi yukarı fırlatır. Şekilde yayın serbest ve sıkışmış hâlleri gösterilmiştir.
+
+Esneklik potansiyel enerjisiyle ilgili,
+
+I. Yay daha çok sıkıştıkça yayda depolanan esneklik potansiyel enerjisi artar.
+II. Aynı miktar sıkıştırılan iki yaydan yay sabiti büyük olan daha çok esneklik potansiyel enerjisi depolar.
+III. Yayın sıkışma miktarı iki katına çıkarsa yayda depolanan esneklik potansiyel enerjisi de iki katına çıkar.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY42_pogo',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Tek yaylı sistemde esneklik potansiyel enerjisinin modeli $E_{\text{esneklik}} = \tfrac{1}{2} \cdot k \cdot x^2$'dir; $k$ yay sabiti, $x$ yayın serbest boyuna göre sıkışma miktarıdır.`,
+        r`I. $x$ arttıkça enerji artar. **Doğru.**`,
+        r`II. Aynı $x$ için enerji $k$ ile doğru orantılıdır; sert yay daha çok enerji depolar. **Doğru.**`,
+        r`III. Enerji $x^2$ ile orantılıdır; sıkışma iki katına çıkınca enerji dört katına çıkar. **Yanlış.**`,
+        r`{{S0}} yay sabitinin etkisini görmez. {{S1}} sıkışmanın etkisini atlar. {{S3}} yay sabitinin etkisini atlar ve enerjinin sıkışmayla doğru orantılı arttığını sanır. {{S4}} enerjinin sıkışmayla doğru orantılı olduğunu sanır; enerji sıkışmanın karesiyle artar.`
+      ]
+    },
+    {
+      id: 'kY42_06', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.2.1', beceri: 'Grafik yorumlama',
+      tahmin: { gerekce: r`Program değişkenlerin analizini deney ve simülasyonla ister; bunun ÖSYM'deki karşılığı grafik seçme sorusudur. Eksende $\vartheta$ yerine $\vartheta^2$ bulunması ve esneklik enerjisinin doğrusal çizilmesi, hesapsız ama dikkat isteyen iki tuzaktır.` },
+      metin: r`Bir öğrenci üç grafik çiziyor: I. grafikte kütlesi sabit bir arabanın kinetik enerjisini süratin karesine ($\vartheta^2$), II. grafikte aynı yükseklikte tutulan farklı kütleli cisimlerin yere göre yer çekimi potansiyel enerjisini kütleye ($m$), III. grafikte tek bir yayda esneklik potansiyel enerjisini sıkışma miktarına ($x$) göre çiziyor.
+
+{{sekil}}
+
+Bu grafiklerden hangileri doğru çizilmiştir?`,
+      sekil: 'kY42_grafik_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. $E_K = \tfrac{1}{2} \cdot m \cdot \vartheta^2$; $m$ sabitken $E_K$, $\vartheta^2$ ile doğru orantılıdır. Grafik orijinden geçen bir doğrudur. **Doğru.**`,
+        r`II. $E_P = m \cdot g \cdot h$; $g$ ve $h$ aynıyken $E_P$, $m$ ile doğru orantılıdır. **Doğru.**`,
+        r`III. $E_{\text{esneklik}} = \tfrac{1}{2} \cdot k \cdot x^2$; enerji $x$ ile değil $x^2$ ile orantılıdır. Grafik orijinden başlayıp giderek dikleşen bir eğri olmalıdır. **Yanlış.**`,
+        r`{{S0}} II'de kütleyle doğru orantıyı görmez. {{S1}} esneklik enerjisini sıkışmayla doğru orantılı sanır ve kinetik ile potansiyel enerji grafiklerini atlar. {{S3}} I'deki yatay eksenin sürat değil süratin karesi olduğunu gözden kaçırıp grafiği eğri olmalı sanır ve III'ü doğru sayar. {{S4}} III'teki doğrusal çizimi de doğru sayar.`
+      ]
+    },
+    {
+      id: 'kY42_07', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.2.1', beceri: 'Deney tasarımı',
+      tahmin: { gerekce: r`Program esneklik potansiyel enerjisinin değişkenlerini deneyle analiz ettirir. Kontrol değişkenini seçtiren tablo soruları TYT'de bilimsel süreç becerisini ölçmek için sık kullanılır; bu kazanımda hiç sorulmadı.` },
+      metin: r`Fizik kulübünde Kaan, yaylı bir fırlatıcıyla sürtünmesiz bir raydaki bilyeleri fırlatıp bilyelerin rampada çıktığı yüksekliği ölçecektir. K ve L yaylarının yay sabitleri farklıdır. Kaan'ın planladığı denemeler tabloda verilmiştir.
+
+{{tablo}}
+
+Kaan, yayda depolanan esneklik potansiyel enerjisinin yayın sıkışma miktarına bağlı olup olmadığını sınamak istiyor. Bunun için hangi iki denemenin sonuçlarını karşılaştırmalıdır?`,
+      tablo: [['Deneme', 'Yay', 'Sıkışma', 'Bilyenin kütlesi'], ['1', 'K', '2 cm', '20 g'], ['2', 'L', '4 cm', '20 g'], ['3', 'K', '4 cm', '20 g'], ['4', 'K', '4 cm', '40 g'], ['5', 'L', '2 cm', '40 g']],
+      secenekler: ['1 ve 2', '1 ve 3', '2 ve 3', '3 ve 4', '2 ve 5'],
+      dogru: 1,
+      cozum: [
+        r`Bir değişkenin etkisini sınamak için yalnız o değişken farklı, öteki bütün değişkenler aynı olmalıdır. Burada yalnız sıkışma değişmeli; yay ve bilyenin kütlesi aynı kalmalıdır.`,
+        r`1. ve 3. denemelerde yay (K) ve bilyenin kütlesi ($20\ \text{g}$) aynı, sıkışma farklıdır ($2\ \text{cm}$ ve $4\ \text{cm}$).`,
+        r`{{S0}} 1. ve 2. denemelerde yayın da değiştiğini görmez; fark yay sabitinden de gelebilir. {{S2}} 2. ve 3. denemelerde sıkışmanın aynı, yayın farklı olduğunu görmez; bu karşılaştırma yay sabitinin etkisini sınar. {{S3}} 3. ve 4. denemelerde yalnız bilyenin kütlesinin değiştiğini görmez. {{S4}} 2. ve 5. denemelerde hem sıkışmanın hem bilyenin kütlesinin değiştiğini atlar.`
+      ]
+    },
+    {
+      id: 'kY42_08', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.2.1', beceri: 'Çok adımlı akıl yürütme',
+      tahmin: { gerekce: r`Kütle ve yüksekliğin birlikte değiştiği iki cisimde, potansiyel enerjinin kinetik enerjiye dönüşmesini oran düzeyinde yorumlatmak programın sınırları içinde zor bir kavram zinciridir. Eğimin sonucu etkilemediği yargısı klasik bir TYT tuzağıdır.` },
+      metin: r`Bir oyun parkında Nisa X kaydırağının, kardeşi Can da Y kaydırağının üst ucundan durgun hâlden kaymaya başlıyor. Nisa'nın kütlesi $2m$, Can'ın kütlesi $m$'dir. Kaydırakların üst uçlarının alt uçlarına göre yükseklikleri şekilde verilmiştir; X kaydırağı Y'den daha diktir. Sürtünme ve hava direnci önemsizdir.
+
+{{sekil}}
+
+Kaydırakların alt uçlarına ulaştıkları an için,
+
+I. Nisa'nın ve Can'ın kinetik enerjileri eşittir.
+II. Nisa'nın sürati Can'ınkinden büyüktür.
+III. Nisa aynı yükseklikteki daha yatık bir kaydıraktan kaysaydı alt uçtaki kinetik enerjisi daha küçük olurdu.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY42_kaydirak_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 0,
+      cozum: [
+        r`Sürtünme ve hava direnci önemsiz olduğu için mekanik enerji korunur: Üst uçtaki potansiyel enerji alt uçta kinetik enerjiye dönüşür.`,
+        r`I. Nisa'nın potansiyel enerjisi $2m \cdot g \cdot h$, Can'ınki $m \cdot g \cdot 2h$'dir; ikisi eşittir. Alt uçtaki kinetik enerjiler de eşittir. **Doğru.**`,
+        r`II. Kinetik enerjiler eşitken kütlesi iki katı olan Nisa'nın süratinin karesi Can'ınkinin yarısıdır; Nisa'nın sürati daha küçüktür. **Yanlış.**`,
+        r`III. Sürtünmesiz kaydırakta alt uçtaki kinetik enerji yalnız yükseklik farkına bağlıdır; eğim değişse de aynı kalır. **Yanlış.**`,
+        r`{{S1}} ağır olanın daha hızlı ineceğini sanır ve kinetik enerjilerin eşitliğini atlar. {{S2}} dik kaydırağın daha çok enerji kazandırdığını sanır ve kinetik enerjilerin eşitliğini görmez. {{S3}} eşit kinetik enerjide kütlesi büyük olanın süratinin küçük olduğunu gözden kaçırır. {{S4}} kaydırağın eğiminin alt uçtaki enerjiyi değiştirdiğini sanır.`
+      ]
+    },
+    {
+      id: 'kY42_09', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.3.1', beceri: 'Dönüşüm zinciri kurma',
+      tahmin: { gerekce: r`Kazanım 9.4.3.1, enerjinin bir biçimden başka biçime dönüşümünü ister ve hesaba girmez. Bir cihazdaki dönüşüm zincirini seçtiren soru, TYT'de kolay soru olarak gelebilecek hesapsız bir kalıptır.` },
+      metin: r`Kurmalı bir müzik kutusunun anahtarı çevrilerek içindeki yay kuruluyor. Kutunun kapağı açılınca yay yavaş yavaş boşalırken dişlileri ve üzerinde çıkıntılar bulunan bir silindiri döndürüyor; çıkıntılar metal bir tarağın dişlerini titreştiriyor ve melodi duyuluyor.
+
+Kapak açıldıktan sonraki süreçte gerçekleşen enerji dönüşümü en doğru biçimde hangisiyle gösterilmiştir?`,
+      secenekler: ['Esneklik potansiyel enerjisi → kinetik enerji → ses enerjisi (bir kısmı da ısı)', 'Kinetik enerji → esneklik potansiyel enerjisi → ses enerjisi (bir kısmı da ısı)', 'Kimyasal enerji → kinetik enerji → ses enerjisi (bir kısmı da ısı)', 'Yer çekimi potansiyel enerjisi → kinetik enerji → ses enerjisi (bir kısmı da ısı)', 'Esneklik potansiyel enerjisi → ses enerjisi → kinetik enerji (bir kısmı da ısı)'],
+      dogru: 0,
+      cozum: [
+        r`Kurulan yay esneklik potansiyel enerjisi depolar. Kapak açılınca yay boşalır; bu enerji dişlilerin ve silindirin dönme (kinetik) enerjisine dönüşür.`,
+        r`Silindirin çıkıntıları tarağın dişlerini titreştirir; titreşen dişler havaya ses enerjisi aktarır. Dişlilerdeki sürtünme yüzünden enerjinin bir kısmı ısıya dönüşür.`,
+        r`{{S1}} kurma aşamasını kapak açıldıktan sonraki süreçle karıştırır; kurarken elin hareketi yaya enerji aktarıyordu. {{S2}} süreci yayı kuran elin kaslarındaki kimyasal enerjiden başlatır; kapak açıldıktan sonra enerjinin kaynağı yaydır. {{S3}} yayın enerjisini yükseklikle ilgili potansiyel enerji sanır. {{S4}} sırayı ters kurar; ses, dönen silindirin dişleri titreştirmesiyle en sonda oluşur.`
+      ]
+    },
+    {
+      id: 'kY42_10', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.3.1', beceri: 'Gözlemden çıkarım',
+      tahmin: { gerekce: r`Kazanım 9.4.3.1'in açıklaması, sürtünme yüzünden enerjinin tamamının hedeflenen biçime dönüşmediğini vurgular. Sönümlenen bir salınımdan mekanik enerji kaybını ve toplam enerjinin korunmasını çıkarmak hesapsız, gözleme dayalı bir TYT kalıbıdır.` },
+      metin: r`Bir bahçedeki ağaca iple asılı lastik tekerlek salıncak, Efe tarafından bir yüksekliğe çekilip durgun hâlden bırakılıyor; kimse salıncağı yeniden itmiyor. Salıncak her salınımda bir öncekinden biraz daha alçağa çıkıyor ve bir süre sonra duruyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Salıncak en alt noktadan her geçişinde aynı süratle geçer.
+II. Salıncağın mekanik enerjisi zamanla azalır.
+III. Azalan mekanik enerji yok olmaz; hava direnci ve ipin dala sürtünmesi yüzünden çoğunlukla ısıya dönüşür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY42_salincak',
+      secenekler: [r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. En alt noktada potansiyel enerji her geçişte aynıdır; mekanik enerji azaldığı için kinetik enerji ve sürat her geçişte biraz azalır. **Yanlış.**`,
+        r`II. Her salınımda ulaşılan en büyük yükseklik azalıyor. Bu noktalarda salıncak bir an durduğu için mekanik enerji yalnız potansiyel enerjidir; mekanik enerji azalmaktadır. **Doğru.**`,
+        r`III. Enerji korunur. Hava direnci ve ipin bağlandığı yerdeki sürtünme, mekanik enerjinin bir kısmını havanın, ipin ve dalın iç enerjisine (ısıya) aktarır. **Doğru.**`,
+        r`{{S0}} kaybolan mekanik enerjinin nereye gittiğini düşünmez ve III'ü atlar. {{S1}} enerjinin korunduğunu görür ama mekanik enerjinin azaldığını atlar. {{S2}} en alt noktada yalnız kinetik enerji olduğu için süratin hep aynı kaldığını sanır ve III'ü atlar. {{S3}} en alttaki süratin değişmediğini sanır ve mekanik enerjinin azaldığını atlar.`
+      ]
+    },
+    {
+      id: 'kY42_11', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.3.1', beceri: 'Şekil ve grafiği birlikte yorumlama',
+      tahmin: { gerekce: r`Yol profiliyle kinetik enerji grafiğini birlikte yorumlatan bu soru, sürtünmenin mekanik enerjiyi azalttığı fikrini hesapsız ama çok adımlı kullandırır. Yokuş yukarı çıkarken kinetik enerjinin azalmasını kesin kayıp sanmak, "kesinlikle" kökünün doğal tuzağıdır.` },
+      metin: r`Bir depoda itilip bırakılan tekerlekli bir yük arabası, K noktasından P noktasına kadar şekildeki yolda kendi kendine ilerliyor. Yolun KL ve MN bölümleri yatay, LM bölümü aşağı eğimli, NP bölümü yukarı eğimlidir. Arabanın kinetik enerjisinin konuma göre değişimi grafikte verilmiştir.
+
+{{sekil}}
+
+Hava direnci önemsiz olduğuna göre yolun hangi bölümlerinde arabanın mekanik enerjisi **kesinlikle** azalmaktadır?`,
+      sekil: 'kY42_pist_genis',
+      secenekler: ['Yalnız MN', 'LM ve MN', 'MN ve NP', 'LM, MN ve NP', 'KL ve MN'],
+      dogru: 1,
+      cozum: [
+        r`Mekanik enerji kinetik ve potansiyel enerjinin toplamıdır. Her bölümde iki enerjinin nasıl değiştiğine bakılır.`,
+        r`KL: Yükseklik de kinetik enerji de değişmiyor; mekanik enerji sabittir.`,
+        r`LM: Araba alçalıyor, potansiyel enerjisi azalıyor; kinetik enerjisi ise artmıyor. Mekanik enerji **kesinlikle azalıyor**; aradaki enerji sürtünmeyle ısıya dönüşüyor.`,
+        r`MN: Yükseklik değişmiyor, kinetik enerji azalıyor. Mekanik enerji **kesinlikle azalıyor.**`,
+        r`NP: Kinetik enerji azalırken potansiyel enerji artıyor. Kinetik enerjideki azalmanın tamamı potansiyel enerjiye dönüşmüş de olabilir, bir kısmı ısıya dönüşmüş de olabilir; grafikten kesin karar verilemez.`,
+        r`{{S0}} LM'de araba alçaldığı hâlde hızlanmamasının mekanik enerji kaybı olduğunu görmez. {{S2}} NP'deki azalmayı kesin kayıp sayar ve LM'yi atlar. {{S3}} NP'de kinetik enerjinin potansiyel enerjiye dönüşebileceğini düşünmez. {{S4}} KL'de kinetik enerjinin sabit kalmasını kayıp sanır ve LM'yi atlar.`
+      ]
+    },
+    {
+      id: 'kY42_12', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.3.1', beceri: 'Enerji dönüşümünü izleme',
+      tahmin: { gerekce: r`Kazanım 9.4.3.1 sürtünme yüzünden enerjinin hedeflenen biçime tam dönüşmediğini vurgular. Uzun bir yokuşta sabit süratle inen araçta potansiyel enerjinin nereye gittiğini soran hesapsız bir soru, korunumu günlük hayatta yoklayan tipik bir TYT kalıbıdır.` },
+      metin: r`Bir kamyon, dağ yolundaki uzun bir yokuştan aşağı, motor freni ve fren balatalarıyla sürati sabit kalacak biçimde iniyor. Yokuşun sonunda balataların ve fren disklerinin çok ısındığı görülüyor.
+
+İniş boyunca gerçekleşen enerji dönüşümüyle ilgili aşağıdakilerden hangisi doğrudur?`,
+      secenekler: ['Kamyonun kinetik enerjisi sabit kaldığı için iniş boyunca hiçbir enerji dönüşümü olmaz.', 'Kamyonun azalan potansiyel enerjisi kinetik enerjisine dönüşür.', 'Kamyonun azalan potansiyel enerjisi büyük ölçüde frenlerde ve motor freninde ısıya dönüşür.', 'Kamyonun mekanik enerjisi korunur; frenler yalnız ısınır.', 'Frenlerde oluşan ısı, kamyonun kaybettiği mekanik enerjiden fazladır.'],
+      dogru: 2,
+      cozum: [
+        r`Sürat sabit olduğu için kinetik enerji değişmez; kamyon alçaldıkça potansiyel enerjisi, dolayısıyla mekanik enerjisi azalır.`,
+        r`Azalan mekanik enerji yok olmaz: Fren balatalarında, disklerde ve motor freninde büyük ölçüde ısıya (bir kısmı sese) dönüşür. Balataların ısınması bunun göstergesidir. Toplam enerji korunur.`,
+        r`{{S0}} kinetik enerji sabitse enerjinin hiç değişmediğini sanır; potansiyel enerji azalmaktadır. {{S1}} serbest inişi düşünür; kinetik enerji artmamaktadır, sürat sabittir. {{S3}} frenlerin ısınmasının enerji dönüşümü olduğunu görmez; mekanik enerji azalmaktadır. {{S4}} ısının enerji kaybından fazla olabileceğini sanır; enerji yoktan var olmaz.`
+      ]
+    },
+    {
+      id: 'kY42_13', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.3.1', beceri: 'Kavram yanılgısını fark etme',
+      tahmin: { gerekce: r`Aynı enerji biçiminin (ısının) bir cihazda yararlı, ötekinde kayıp olması, programın "hedeflenen enerji biçimi" vurgusunun özüdür. Enerjinin yok olduğunu söyleyen bir yargıyla korunumu yoklayan I-II-III kalıbı TYT'ye uygundur.` },
+      metin: r`Bir elektrik mağazasındaki satış danışmanı üç cihaz için şu açıklamaları yapıyor.
+
+I. Buharlı ütüde elektrik enerjisinin hedeflenen enerji biçimi ısıdır.
+II. Hoparlörde elektrik enerjisinin ısıya dönüşen kısmı, hedeflenen biçime dönüşmeyen enerjidir.
+III. LED lambada ışığa dönüşmeyen elektrik enerjisi yok olur.
+
+Bu açıklamalardan hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Ütü kumaşı ısıtmak için tasarlanmıştır; hedeflenen biçim ısıdır. **Doğru.**`,
+        r`II. Hoparlörün amacı ses üretmektir. Bobinde ve devrede ısıya dönüşen enerji amaca hizmet etmez. **Doğru.**`,
+        r`III. Enerji korunur. LED lambada ışığa dönüşmeyen enerji, lambanın ve çevresinin iç enerjisini artıran ısıya dönüşür. **Yanlış.**`,
+        r`{{S0}} aynı biçimin (ısının) bir cihazda yararlı, başka bir cihazda kayıp olabileceğini görmez ve II'yi atlar. {{S1}} enerjinin korunduğunu unutur ve iki doğru açıklamayı atlar. {{S3}} hoparlördeki ısıyı da yararlı sanır ve enerjinin yok olabileceğini düşünür. {{S4}} ütüde ısının amaç olduğunu görmez ve enerjinin yok olabileceğini düşünür.`
+      ]
+    },
+    {
+      id: 'kY42_14', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.3.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`"Olabilir" kökü TYT'de son yıllarda sık kullanıldı. Yatay yolda yavaşlayan bir cisimde mekanik enerjinin korunamayacağını, ama kaybın nedenini yalnız gözlemden kesinleştiremeyeceğimizi ayırt ettiren hesapsız bir sorudur.` },
+      metin: r`Bir curling maçında atılan taş, yatay buz yüzeyinde K noktasından L noktasına kayıyor. Taşın L'deki sürati K'dekinden küçük ölçülüyor.
+
+{{sekil}}
+
+K ile L arasındaki hareketle ilgili,
+
+I. Taş ile buz arasında sürtünme kuvveti etki etmiştir.
+II. Taşın mekanik enerjisi korunmuştur.
+III. Taşın kaybettiği kinetik enerjinin bir kısmı taşın ve buzun iç enerjisini artırmıştır.
+
+yargılarından hangileri doğru olabilir?`,
+      sekil: 'kY42_curling_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Yol yatay olduğu için taşın potansiyel enerjisi değişmez. Kinetik enerjisi azaldığına göre mekanik enerjisi kesinlikle azalmıştır.`,
+        r`I. Mekanik enerjiyi azaltan buzla sürtünme olabilir; hava direnci de katkı yapabilir. **Olabilir.**`,
+        r`II. Mekanik enerji azaldığı için korunmuş olamaz. **Olamaz.**`,
+        r`III. Sürtünmeyle kaybolan kinetik enerji yok olmaz; taşın ve buzun iç enerjisini artırır. **Olabilir.**`,
+        r`{{S0}} kaybolan enerjinin ısıya dönüşebileceğini görmez. {{S1}} yatay yolda kinetik enerji azalırken mekanik enerjinin korunabileceğini sanır. {{S2}} mekanik enerjinin korunabileceğini sanır ve III'ü atlar. {{S4}} II'yi de olası sayar; sürati azalan, yüksekliği değişmeyen taşın mekanik enerjisi korunamaz.`
+      ]
+    },
+    {
+      id: 'kY42_15', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.3.1', beceri: 'Olasılık değerlendirme',
+      tahmin: { gerekce: r`Yaylı tamponda esneklik ve kinetik enerjinin birbirine dönüşmesi, kaybın yalnız raydan değil yaydan da gelebileceği fikriyle birleşince "olabilir" kökünde zor bir kavram zinciri oluşur. Program dışına çıkmadan ★★★ düzeyinde bir TYT sorusudur.` },
+      metin: r`Bir laboratuvarda yatay bir rayın ucuna yaylı bir tampon takılmıştır. Ray üzerinde K noktasından $\vartheta$ süratiyle geçen bir araba tampona çarpıyor ve yayı sıkıştırıyor; sonra yayın itmesiyle geri dönüp tampondan ayrılıyor ve K noktasından $\vartheta$'den küçük bir süratle geçiyor. Hava direnci önemsizdir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Ray sürtünmesizdir.
+II. Arabanın K'den dönerken geçtiği andaki mekanik enerjisi, K'den ilk geçtiği andakine eşittir.
+III. Yay en çok sıkıştığı anda arabanın kinetik enerjisi sıfırdan büyüktür.
+
+yargılarından hangileri doğru olabilir?`,
+      sekil: 'kY42_tampon_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 0,
+      cozum: [
+        r`K noktası iki geçişte aynı yüksekliktedir; potansiyel enerji aynıdır. Dönüşte sürat küçük olduğu için arabanın mekanik enerjisi kesinlikle azalmıştır.`,
+        r`I. Kayıp raydaki sürtünmeden gelebileceği gibi tamponun kendisinden de gelebilir: Gerçek bir yay ve tampon, sıkışıp açılırken enerjinin bir kısmını ısıya ve sese dönüştürür. Ray sürtünmesiz olsa bile araba daha yavaş dönebilir. **Olabilir.**`,
+        r`II. Aynı noktada sürati küçük olan arabanın mekanik enerjisi küçüktür. **Olamaz.**`,
+        r`III. Yay en çok sıkıştığı anda araba yön değiştirmek üzeredir ve o an durgundur; kinetik enerjisi sıfırdır. **Olamaz.**`,
+        r`{{S1}} mekanik enerjinin korunabileceğini sanır; aynı noktadan daha yavaş geçen arabanın mekanik enerjisi azalmıştır. {{S2}} dönüşteki mekanik enerjinin eşit olabileceğini de olası sayar. {{S3}} yay en çok sıkıştığında arabanın hâlâ hareket ettiğini sanır. {{S4}} hem mekanik enerjinin korunabileceğini hem de en çok sıkışmada arabanın hareketli olduğunu sanır ve olası tek durumu atlar.`
+      ]
+    },
+    {
+      id: 'kY42_16', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.3.2', beceri: 'Kavramı günlük hayata uygulama',
+      tahmin: { gerekce: r`Kazanım 9.4.3.2'nin açıklaması canlıların fiziksel anlamda iş yapmadan da enerji harcayabildiğini vurgular. Bu vurgu TYT'de hiç sorulmadı; hareketsiz bir etkinlikte enerjinin nereye harcandığını soran kısa bir soru kolay soru olarak gelebilir.` },
+      metin: r`Bir satranç turnuvasında Defne, saatlerce masada oturup hamlelerini düşünüyor; yalnız hamle sırası geldiğinde hafif taşları birkaç santimetre kaydırıyor. Turnuvanın sonunda acıkmış ve yorulmuş hissediyor.
+
+Bu durumla ilgili aşağıdakilerden hangisi doğrudur?`,
+      secenekler: ['Defne\'nin vücudu, taşlar dışında hiçbir cisme iş yapmasa da kalbin, solunumun, beynin çalışması ve vücut sıcaklığının korunması için sürekli enerji harcar.', 'Defne neredeyse hiç iş yapmadığı için vücudu enerji harcamaz; acıkması yalnız yemek saatinin gelmesindendir.', 'Defne\'nin vücudunun harcadığı enerji yok olur; hiçbir biçime dönüşmez.', 'Defne\'nin vücudu enerjiyi yalnız taşları kaydırırken harcar.', 'Masada oturan Defne, aynı sürede tempolu yürüyen birinden daha çok enerji harcar.'],
+      dogru: 0,
+      cozum: [
+        r`Taşları kaydırmak için gereken enerji çok küçüktür. Buna karşın vücut, saatler boyunca kalbin çalışması, solunum, beynin çalışması ve vücut sıcaklığının korunması için sürekli enerji harcar. Canlılar iş yapmadan da enerji harcar.`,
+        r`Harcanan enerji besinlerden ve vücuttaki depolardan karşılanır; büyük kısmı sonunda ısı olarak çevreye aktarılır. Acıkma ve yorgunluk bu harcamanın sonucudur.`,
+        r`{{S1}} iş yapılmayan durumda enerji harcanmadığını sanır; vücudun temel işlevleri sürekli enerji ister. {{S2}} enerjinin korunduğunu unutur; harcanan enerji çoğunlukla ısıya dönüşür. {{S3}} enerjinin yalnız bir cismi hareket ettirirken harcandığını sanır. {{S4}} oturan ile hareket eden kişiyi karıştırır; yürüyen kişi temel harcamaya ek olarak hareket için de enerji harcar.`
+      ]
+    },
+    {
+      id: 'kY42_17', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.3.2', beceri: 'Tablo yorumlama',
+      tahmin: { gerekce: r`Kazanım 9.4.3.2 besinlerden alınan enerji ile etkinliklerde harcanan enerjiyi karşılaştırtır. Hesap gerektirmeyen, doğrudan karşılaştırmaya dayalı bir besin ve etkinlik tablosu TYT'nin veri okuma kalıbına uyar; tablodaki ayran satırı çözümde kullanılmayan bilgidir.` },
+      metin: r`Bir diyetisyen, kütlesi 60 kg olan Selin için bazı besinlerin enerjisini ve bazı etkinliklerde 30 dakikada harcanan enerjiyi tabloda vermiştir. Değerler yaklaşıktır.
+
+{{tablo}}
+
+Tabloya göre,
+
+I. Selin'in 30 dakika yüzerken harcadığı enerji, bir avuç fındığın enerjisinden büyüktür.
+II. Selin uyurken fiziksel anlamda iş yapmadığı için enerji harcamaz.
+III. Bir orta boy elmanın enerjisi, Selin'in 30 dakika uyurken harcadığı enerjiden büyüktür.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Besin (porsiyon)', 'Enerji (kcal)', 'Etkinlik (30 dakika)', 'Harcanan enerji (kcal)'], ['1 orta boy elma', '80', 'Uyumak', '30'], ['1 su bardağı ayran', '75', 'Yürümek (5 km/h)', '105'], ['1 avuç fındık (30 g)', '190', 'Yüzmek (orta tempo)', '210']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Yüzmede harcanan $210\ \text{kcal}$, fındıktaki $190\ \text{kcal}$'den büyüktür. **Doğru.**`,
+        r`II. Tabloya göre uyurken de enerji harcanır. Vücut iş yapmasa da kalbin çalışması, solunum, vücut sıcaklığının korunması ve hücrelerdeki işlemler için sürekli enerji harcar. **Yanlış.**`,
+        r`III. Elmanın $80\ \text{kcal}$'si, 30 dakikalık uykuda harcanan $30\ \text{kcal}$'den büyüktür. **Doğru.**`,
+        r`{{S0}} uykuda harcanan enerjiyi elmanın enerjisiyle karşılaştırmayı atlar. {{S1}} iş yapılmayan durumda enerji harcanmadığını sanır ve iki doğru karşılaştırmayı atlar. {{S2}} uyurken enerji harcanmadığını sanır; tablodaki uyku satırı bunun tersini gösterir. {{S4}} uyurken enerji harcanmadığını sanır ve yüzme ile fındık karşılaştırmasını atlar.`
+      ]
+    },
+    {
+      id: 'kY42_18', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.3.2', beceri: 'Kavramı yeni duruma aktarma',
+      tahmin: { gerekce: r`Canlıların iş yapmadan enerji harcadığı ve harcamanın depolanmış enerjiden karşılandığı fikri, kış uykusu gibi bir doğa bağlamında I-II-III kalıbıyla hesapsız ölçülebilir. TYT'nin disiplinler arası bağlam tercihine uyar.` },
+      metin: r`Kış uykusundaki bir boz ayı aylarca mağarasında neredeyse hiç hareket etmeden yatar ve bu sürede hiç beslenmez. Bahara çıktığında vücut kütlesinin belirgin biçimde azaldığı görülür.
+
+Buna göre,
+
+I. Kış uykusunda ayının vücut sıcaklığını korumak için enerji harcaması gerekmez.
+II. Ayı, çevresindeki cisimler üzerinde iş yapmadığı hâlde enerji harcar.
+III. Ayının kış boyunca harcadığı enerji, vücudundaki yağ depolarının kimyasal enerjisinden karşılanır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Ayının vücudu soğuk mağarada sürekli ısı kaybeder. Kış uykusunda vücut sıcaklığı yalnız birkaç derece düşer ve bu sıcaklığı korumak için enerji harcanır. **Yanlış.**`,
+        r`II. Ayı yer değiştirmediği ve bir cismi itip çekmediği için çevresine iş yapmaz; ama kalbi atar, solunumu sürer, hücreleri çalışır. Bu işlemler enerji harcar. **Doğru.**`,
+        r`III. Beslenmeyen ayı, sonbaharda depoladığı yağın kimyasal enerjisini kullanır; kütlesinin azalmasının nedeni budur. **Doğru.**`,
+        r`{{S0}} soğuk ortamda vücut sıcaklığını korumanın enerji gerektirmediğini sanır ve doğru iki yargıyı atlar. {{S1}} depolanmış enerjinin kullanıldığını görür ama iş yapmadan da enerji harcandığını kabul etmez. {{S2}} vücut sıcaklığını korumanın enerji gerektirmediğini sanır ve yağ depolarını atlar. {{S3}} vücut sıcaklığını korumanın enerji gerektirmediğini sanır ve iş yapmadan enerji harcandığını atlar.`
+      ]
+    },
+    {
+      id: 'kY42_19', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.4.1', beceri: 'Kavramsal akıl yürütme',
+      tahmin: { gerekce: r`Kazanım 9.4.4.1 verim kavramını açıklatır, hesap öngörmez. Sürtünmeyi azaltmanın verimi artırdığı ama yüzde 100'e ulaştırmadığı, hesapsız bir verim sorusunun en doğal içeriğidir; TYT'de hiç sorulmadı.` },
+      metin: r`Paslanmış ve kurumuş bir bisiklet zinciri temizlenip yağlanıyor. Bisikletli sonra aynı yolu, aynı koşullarda ve aynı süratle yeniden gidiyor.
+
+Yağlamadan sonraki yolculukla ilgili aşağıdakilerden hangisi doğrudur?`,
+      secenekler: ['Bisikletin verimi yüzde 100 olur; pedala aktarılan enerjinin tamamı harekete dönüşür.', 'Zincirde ısıya dönüşen enerji artar.', 'Pedala aktarılan enerjinin daha büyük kısmı tekerleğin dönmesine aktarılır; bisikletin verimi artar.', 'Bisikletlinin harcadığı enerji değişmez; yalnız zincir daha az ses çıkarır.', 'Yağlama toplam enerjiyi artırdığı için bisikletliye enerji kazandırır.'],
+      dogru: 2,
+      cozum: [
+        r`Verim, bir sistemde yararlı biçime dönüşen enerjinin sisteme verilen enerjiye oranıdır.`,
+        r`Yağlama zincirdeki sürtünmeyi azaltır; pedaldan tekerleğe aktarılırken ısıya ve sese dönüşen enerji azalır. Aynı yolculuk için pedala daha az enerji aktarmak yeter; verim artar.`,
+        r`Hava direnci, lastiklerin yola sürtünmesi ve göbeklerdeki sürtünme sürdüğü için verim yine de yüzde 100'e ulaşamaz.`,
+        r`{{S0}} sürtünme azalınca bütün kayıpların bittiğini sanır; hava direnci ve öteki sürtünmeler sürer. {{S1}} yağlamanın etkisini ters düşünür. {{S3}} kayıplar azalınca aynı yolculuk için gereken enerjinin de azaldığını görmez. {{S4}} yağlamanın sisteme enerji kattığını sanır; toplam enerji değişmez, yalnız kayıp azalır.`
+      ]
+    },
+    {
+      id: 'kY42_20', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.4.1', beceri: 'Belge yorumlama',
+      tahmin: { gerekce: r`Program enerji tasarrufu ile verimlilik ilişkisinin enerji kimlik belgeleri üzerinden açıklanmasını özellikle ister. Belgenin binanın özelliğine, faturanın ise kullanıma bağlı olduğunu ayırt ettiren bir soru TYT'nin günlük hayat bağlamına uyar.` },
+      metin: r`Aynı ilçede bulunan, aynı tipte ve büyüklükleri eşit P ve R evlerinin enerji kimlik belgelerindeki enerji sınıfları şekilde gösterilmiştir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Standart kullanım koşulları için hesaplanan yıllık enerji ihtiyacı P evinde R evindekinden azdır.
+II. R evinin dış duvarlarına ve çatısına ısı yalıtımı yapılırsa evin enerji sınıfı iyileşebilir.
+III. R evinde yaşayan aile bir ay boyunca daha az enerji harcarsa evin belgedeki enerji sınıfı o ay iyileşir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY42_ekb',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Enerji kimlik belgesi binanın yalıtımına, pencerelerine, ısıtma ve sıcak su sistemine göre standart kullanım koşullarındaki yıllık enerji ihtiyacını hesaplar ve binayı A (en verimli) ile G (en az verimli) arasında sınıflar.`,
+        r`I. B sınıfındaki P evinin yıllık enerji ihtiyacı E sınıfındaki R evininkinden azdır. **Doğru.**`,
+        r`II. Yalıtım ısı kaybını azaltır; aynı konfor için gereken enerji azalır ve sınıf iyileşebilir. **Doğru.**`,
+        r`III. Belge, evde yaşayanların o ayki davranışına göre değil, binanın özelliklerine göre düzenlenir. Tasarruflu davranış faturayı azaltır ama belgedeki sınıfı değiştirmez. **Yanlış.**`,
+        r`{{S0}} yalıtımın binanın enerji sınıfını iyileştirdiğini görmez. {{S1}} tasarruflu davranışı binanın verimliliğiyle karıştırır. {{S3}} tasarruf ile verimliliği karıştırır ve yalıtımın etkisini atlar. {{S4}} III'ü de doğru sayar; aylık tüketimin azalması belgedeki sınıfı değiştirmez.`
+      ]
+    },
+    {
+      id: 'kY42_21', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.3.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Sürtünmeli eğik düzlemde gidip dönen cisimde mekanik enerjinin iki aşamada da ısıya dönüşmesi, korunumu hesapsız ama derinlemesine kullandıran bir kavram zinciridir. "Kesinlikle" kökü ve "çıkışta da kayıp var" ayrıntısı TYT'nin zor sorularına uyar.` },
+      metin: r`Bir kargo deposunda görevli, yüzeyi her yerinde aynı olan eğik ve sürtünmeli bir yükleme rampasının alt ucundaki K noktasında bir koliye rampa boyunca yukarı doğru bir ilk sürat verip bırakıyor. Koli rampada bir süre çıkıp duruyor, sonra geri kayarak K noktasından geçiyor. Hava direnci önemsizdir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Koli K noktasından, bırakıldığı andaki süratinden daha küçük bir süratle geçer.
+II. Kolinin çıkışı sırasında ısıya dönüşen enerji, inişi sırasında ısıya dönüşen enerjiye eşittir.
+III. Çıkış sırasında kolinin potansiyel enerjisindeki artış, kinetik enerjisindeki azalmaya eşittir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'kY42_rampa',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Kolinin hem çıkışında hem inişinde rampa ile koli arasında sürtünme vardır; mekanik enerjinin bir kısmı her iki aşamada ısıya dönüşür.`,
+        r`I. K noktası aynı yükseklikte olduğundan potansiyel enerji aynıdır. Mekanik enerji azaldığı için kinetik enerji ve sürat küçüktür. **Kesinlikle doğru.**`,
+        r`II. Rampanın yüzeyi her yerde aynı ve eğimi sabit olduğu için kayan koliye etki eden sürtünme kuvvetinin büyüklüğü çıkışta da inişte de aynıdır; koli iki aşamada aynı yolu alır. Sürtünme yüzünden ısıya dönüşen enerji iki aşamada eşittir. **Kesinlikle doğru.**`,
+        r`III. Çıkışta kinetik enerjideki azalmanın bir kısmı potansiyel enerjiye, bir kısmı ısıya dönüşür. Potansiyel enerjideki artış daha küçüktür. **Yanlış.**`,
+        r`{{S0}} çıkışta ve inişte sürtünme kuvvetinin ve alınan yolun aynı olduğunu görmez. {{S1}} sürtünmeli rampada mekanik enerjinin korunduğunu sanır. {{S3}} çıkıştaki ısı kaybını gözden kaçırır ve iki aşamadaki ısıyı karşılaştırmaz. {{S4}} çıkıştaki kaybı yok sayar ve koli geri döndüğünde süratinin küçüldüğünü atlar.`
+      ]
+    },
+    {
+      id: 'kY42_22', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.4.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`Verim bir oran olduğu için "verimi yüksek cihaz kesinlikle az tüketir" yargısı yanlıştır; bu ayrım programın tasarruf ve verimlilik vurgusunun en ince noktasıdır. "Kesinlikle" kökünde hesapsız ölçülebilen zor bir sorudur.` },
+      metin: r`Bir apartmanın K dairesinde verimi yüksek yoğuşmalı bir kombi, L dairesinde ise verimi daha düşük eski tip bir kombi kullanılıyor. İki kombi de doğal gazla çalışıyor ve dairelere ısı aktarıyor.
+
+Buna göre,
+
+I. Daireye aynı miktarda ısı aktarmak için K'deki kombi, L'dekinden daha az doğal gaz yakar.
+II. Bir kış boyunca K dairesinin doğal gaz tüketimi L dairesininkinden azdır.
+III. Yakılan doğal gazın enerjisinden boşa giden pay, K'deki kombide L'dekinden küçüktür.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Verim, yakıtın enerjisinin yararlı biçime (burada daireye aktarılan ısıya) dönüşen payıdır. Verimi büyük kombide bu pay büyük, boşa giden pay küçüktür.`,
+        r`I. Aynı yararlı ısı için verimi büyük olan kombiye daha az yakıt enerjisi vermek yeter. **Kesinlikle doğru.**`,
+        r`II. Toplam tüketim yalnız verime değil; dairelerin büyüklüğüne, yalıtımına, istenen oda sıcaklığına ve kombinin ne kadar çalıştırıldığına da bağlıdır. Bunlar verilmediği için tüketimler karşılaştırılamaz. **Kesin değil.**`,
+        r`III. Boşa giden pay, yararlı payla birlikte bütünü oluşturur; verimi büyük kombide küçüktür. **Kesinlikle doğru.**`,
+        r`{{S0}} boşa giden payın verimle birlikte belirlendiğini görmez. {{S1}} verimi yüksek cihazın her durumda daha az tükettiğini sanır ve kesin olan iki yargıyı atlar. {{S2}} verimi yüksek cihazın her durumda daha az tükettiğini sanır ve boşa giden payı atlar. {{S4}} II'yi de kesin sayar; dairelerin büyüklüğü ve kullanım biçimi hakkında bilgi yoktur.`
+      ]
+    },
+    {
+      id: 'kY42_23', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.4.2', beceri: 'Çözüm önerisini değerlendirme',
+      tahmin: { gerekce: r`Kazanım 9.4.4.2 bir sistemin verimini artıracak öneriler geliştirmeyi ister; önerileri değerlendiren bir soru TYT'de hiç sorulmadı. Geleneksel bir taş fırın, ısı kayıplarını hesapsız tartıştırmaya uygun bir bağlamdır.` },
+      metin: r`Bir fırıncı, odun ateşiyle ısıtılan taş fırınında aynı miktarda ekmeği daha az odun yakarak pişirmek istiyor.
+
+Aşağıdaki önerilerden hangisi bu amaca **hizmet etmez?**`,
+      secenekler: ['Fırının dış yüzeyini ısı yalıtım malzemesiyle kaplamak', 'Pişirme sırasında fırının kapağını gereksiz yere açmamak', 'Islak odun yerine iyice kurumuş odun kullanmak', 'Ekmekleri, fırın bir kez ısındıktan sonra ara vermeden arka arkaya pişirmek', 'Ekmekleri küçük partilere bölüp her partiden sonra fırının soğumasını bekleyerek pişirmek'],
+      dogru: 4,
+      cozum: [
+        r`Odunun kimyasal enerjisinin ancak bir kısmı ekmeğe aktarılır; geri kalanı duvarlardan, açılan kapaktan ve bacadan çevreye kaçar ya da soğuyan fırını yeniden ısıtmaya gider. Kayıpları azaltan her öneri aynı ekmek için gereken odunu azaltır.`,
+        r`Partiler arasında fırının soğumasına izin vermek, fırını her seferinde yeniden ısıtmayı gerektirir; aynı ekmek için daha çok odun yakılır.`,
+        r`{{S0}} yalıtımın duvarlardan kaçan ısıyı azalttığını görmez. {{S1}} açık kapaktan sıcak havanın ve ısının kaçtığını gözden kaçırır. {{S2}} ıslak odundaki suyu buharlaştırmak için enerji harcandığını bilmez. {{S3}} fırın sıcakken arka arkaya pişirmenin yeniden ısıtma kaybını önlediğini görmez.`
+      ]
+    },
+    {
+      id: 'kY42_24', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.4.2', beceri: 'Eşleştirme',
+      tahmin: { gerekce: r`Program tarihsel süreçte tasarlanmış verim artırıcı sistemlerin çalışma ilkesine değinilmesini ister. Sistemle ilkeyi eşleştiren tablo sorusu TYT'nin bilgi ve kavrama düzeyindeki eşleştirme kalıbına uyar; hiç sorulmadı.` },
+      metin: r`Tabloda tarihte enerji verimini artırmak için geliştirilmiş üç sistem ve verimi artırma yolları karışık olarak verilmiştir.
+
+{{tablo}}
+
+Sistemler verimi artırma yollarıyla doğru eşleştirildiğinde hangisi elde edilir?`,
+      tablo: [['Sistem', 'Verimi artırma yolu'], ['I. Watt\'ın ayrı yoğuşturuculu buhar makinesi (1769)', 'a) Baca gazındaki su buharının yoğuşurken verdiği ısıdan da yararlanmak'], ['II. Rumford ocağı (1790\'lar)', 'b) Silindiri her çevrimde soğutmadan, buharı ayrı bir kapta yoğuşturmak'], ['III. Yoğuşmalı kombi', 'c) Ocağı sığ yapıp yan duvarlarını eğerek ısının daha büyük kısmını odaya yansıtmak']],
+      secenekler: ['I-a, II-b, III-c', 'I-a, II-c, III-b', 'I-b, II-a, III-c', 'I-b, II-c, III-a', 'I-c, II-b, III-a'],
+      dogru: 3,
+      cozum: [
+        r`I. Newcomen'in buhar makinesinde silindir, buharı yoğuşturmak için her çevrimde soğutulup yeniden ısıtılıyordu; yakıtın büyük kısmı bu ısıtmaya gidiyordu. Watt buharı ayrı bir kapta yoğuşturdu, silindir sürekli sıcak kaldı ve aynı iş için çok daha az kömür yakıldı: I-b.`,
+        r`II. Rumford ocakları sığlaştırıp yan duvarlarını eğik yaptı; ateşin ısısı odaya daha çok yansıdı, bacadan kaçan ısı azaldı: II-c.`,
+        r`III. Yoğuşmalı kombi, baca gazındaki su buharını yoğuşturup açığa çıkan ısıyı da suya aktarır: III-a.`,
+        r`{{S0}} Watt'ın yeniliğini baca gazındaki buharın yoğuşmasıyla karıştırır ve üç eşleşmeyi de yanlış kurar. {{S1}} yoğuşmayla ilgili iki sistemi (Watt'ın makinesi ve kombi) birbirine karıştırır. {{S2}} Rumford ocağını yoğuşmalı kombiyle karıştırır. {{S4}} Watt'ın makinesini ocak tasarımıyla karıştırır.`
+      ]
+    },
+    {
+      id: 'kY42_25', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.4.2', beceri: 'Sistem analizi',
+      tahmin: { gerekce: r`Atık ısının değerlendirilmesi programdaki "verim artırıcı öneriler" kazanımının bugünkü en güçlü örneğidir. Bölgedeki toplam yakıtın azalmasını, elektrik üretim verimi ve enerjinin korunumuyla birlikte yorumlatan soru, hesapsız ama zor bir sistem analizidir.` },
+      metin: r`Bir doğal gaz santralinde elektrik üretilirken oluşan ve eskiden soğutma kuleleriyle havaya verilen ısı, yeni kurulan bir boru hattıyla yakındaki seralara gönderilmeye başlanıyor. Seralar daha önce kendi doğal gaz kazanlarıyla ısıtılıyordu; yeni düzende kazanlar kapatılıyor. Santralin yaktığı doğal gaz ve ürettiği elektrik değişmiyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Santral ile seralardan oluşan bölgede toplam yakılan doğal gaz azalır.
+II. Santralin yakıttan elektrik üretme verimi artar.
+III. Yeni düzende, yakılan doğal gazdan toplam olarak yararlanılan enerji, yakıtın enerjisinden fazladır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY42_kojen_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 0,
+      cozum: [
+        r`I. Santralin yaktığı gaz aynı kalırken seraların kazanları kapatıldığı için onların yaktığı gaz ortadan kalkar; bölgede toplam yakılan gaz azalır. **Doğru.**`,
+        r`II. Elektrik üretme verimi, üretilen elektrik enerjisinin yakılan yakıtın enerjisine oranıdır. İkisi de değişmediği için bu verim aynı kalır. Artan, yakıtın enerjisinden yararlanılan toplam paydır. **Yanlış.**`,
+        r`III. Enerji korunur: Elektrik, seralara giden ısı ve hâlâ çevreye kaçan ısının toplamı yakıtın enerjisine eşittir. Yararlanılan enerji yakıtın enerjisinden fazla olamaz. **Yanlış.**`,
+        r`{{S1}} yararlanılan toplam payın artmasını elektrik üretim veriminin artması sanır ve bölgedeki gaz tasarrufunu atlar. {{S2}} yararlanılan toplam payın artmasını elektrik üretim veriminin artması sanır. {{S3}} atık ısıyı kullanmanın enerji yarattığını sanır. {{S4}} hem elektrik verimini hem yararlanılan enerjiyi yakıttan fazla sanır ve bölgedeki gaz tasarrufunu atlar.`
+      ]
+    },
+    {
+      id: 'kY42_26', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.4.1', beceri: 'Kavram ayırt etme',
+      tahmin: { gerekce: r`Program enerji tasarrufu ile enerji verimliliği arasındaki ilişkinin açıklanmasını ister. İkisini ayırt ettiren günlük hayat seçenekli kısa bir soru, kolay TYT sorusu olarak gelebilecek hesapsız bir kalıptır.` },
+      metin: r`Bir ailenin evde enerji tüketimini azaltmak için uyguladığı aşağıdaki önlemlerden hangisi, aynı hizmeti daha az enerjiyle sağlayarak **verimliliği** artırmaya örnektir?`,
+      secenekler: ['Odadan çıkarken ışıkları kapatmak', 'Akkor ampulleri aynı ışığı veren LED lambalarla değiştirmek', 'Kışın termostatı birkaç derece düşük ayarlamak', 'Televizyonu bekleme konumunda bırakmak yerine tamamen kapatmak', 'Klimayı yalnız evde biri varken çalıştırmak'],
+      dogru: 1,
+      cozum: [
+        r`Enerji tasarrufu, gereksiz kullanımı bırakarak ya da ihtiyacı kısarak daha az enerji harcamaktır. Enerji verimliliği ise aynı hizmeti (aynı ışığı, aynı ısıyı) daha az enerjiyle elde etmektir.`,
+        r`LED lamba aynı ışığı verirken elektrik enerjisinin daha büyük kısmını ışığa dönüştürür; aynı hizmet daha az enerjiyle sağlanır.`,
+        r`{{S0}} ışığı kapatmanın hizmeti sona erdirdiğini görmez; bu bir tasarruf davranışıdır. {{S2}} termostatı düşürmenin daha az ısınma, yani hizmeti kısmak olduğunu görmez. {{S3}} bekleme konumundaki gereksiz tüketimi kesmenin tasarruf olduğunu görmez; televizyon aynı görüntüyü daha az enerjiyle vermemektedir. {{S4}} klimayı gereksiz saatlerde çalıştırmamanın kullanım süresini kısaltan bir tasarruf olduğunu görmez.`
+      ]
+    },
+    {
+      id: 'kY42_27', yks: true, zorluk: 1, tur: 'cs', cikti: '9.4.5.1', beceri: 'Ölçüte göre seçim',
+      tahmin: { gerekce: r`Kazanım 9.4.5.1 kaynakların üretim kolaylığını avantaj ve dezavantaj ölçütü olarak sayar. Kesintili ve sürekli kaynakları ayırt ettiren tek seçimli bir soru kolay TYT sorusu olarak gelebilir.` },
+      metin: r`Bir ilçenin yer altında sıcak su ve buhar kaynakları bulunuyor. İlçe belediyesi gece ve gündüz, yazın ve kışın, depolama sistemine gerek duymadan sürekli elektrik üretebilecek yenilenebilir bir enerji kaynağı arıyor.
+
+Aşağıdaki kaynaklardan hangisi bu ihtiyaca en uygundur?`,
+      secenekler: ['Güneş enerjisi', 'Rüzgâr enerjisi', 'Jeotermal enerji', 'Doğal gaz', 'Akarsu üzerindeki nehir tipi hidroelektrik'],
+      dogru: 2,
+      cozum: [
+        r`Jeotermal santral yer altındaki sıcak su ve buharın enerjisini kullanır; bu kaynak hava koşullarına, saate ve mevsime bağlı değildir. Uygun bir bölgede gece ve gündüz sürekli üretim yapılabilir. Kullanılan akışkan yeniden yer altına basılırsa kaynak uzun süre kullanılabilir.`,
+        r`{{S0}} güneş enerjisinin gece kesildiğini ve bulutlu günlerde azaldığını gözden kaçırır. {{S1}} rüzgârın her an esmediğini unutur. {{S3}} doğal gazın yenilenemez bir fosil yakıt olduğunu atlar. {{S4}} nehir tipi santralin akarsuyun debisine bağlı olduğunu, yağışlı ve kurak mevsimlerde çok farklı ürettiğini görmez.`
+      ]
+    },
+    {
+      id: 'kY42_28', yks: true, zorluk: 2, tur: 'cs', cikti: '9.4.5.1', beceri: 'Avantaj ve dezavantaj değerlendirme',
+      tahmin: { gerekce: r`Kazanım 9.4.5.1 kaynakların çevresel etkilerini avantaj ve dezavantaj ölçütü olarak sayar. Atıktan enerji üretimi gibi güncel bir bağlamda yenilenebilirliği ve sera gazı salımını birlikte yoklayan I-II-III soru TYT'ye uygundur.` },
+      metin: r`Bir büyükşehir belediyesi, çöp depolama alanında organik atıkların çürümesiyle oluşan ve büyük kısmı metan olan gazı borularla toplayıp bir santralde yakarak elektrik üretiyor.
+
+Bu uygulamayla ilgili,
+
+I. Gaz yakıldığında karbon dioksit oluşmaz.
+II. Kullanılan gaz, biyokütle kaynaklı bir enerji kaynağıdır.
+III. Metanın doğrudan atmosfere karışması önlendiği için çevreye yararı vardır.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Metan yanarken karbon dioksit ve su buharı oluşur. **Yanlış.**`,
+        r`II. Gaz, bitki ve hayvan kökenli organik atıklardan oluşur; biyokütle kaynaklıdır ve atık üretildikçe yeniden oluşur. **Doğru.**`,
+        r`III. Metan güçlü bir sera gazıdır. Toplanıp yakılması, doğrudan havaya karışmasından daha az zararlıdır; ayrıca kötü koku ve patlama tehlikesi azalır. **Doğru.**`,
+        r`{{S0}} yanmanın karbon dioksit oluşturmadığını sanır ve doğru iki yargıyı atlar. {{S1}} metanın havaya karışmasını önlemenin çevresel yararını görmez. {{S2}} yanmanın karbon dioksit oluşturmadığını sanır ve çevresel yararı atlar. {{S3}} yanmanın karbon dioksit oluşturmadığını sanır ve çöpten elde edilen gazı biyokütle saymaz.`
+      ]
+    },
+    {
+      id: 'kY42_29', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.5.1', beceri: 'Tablo yorumlama',
+      tahmin: { gerekce: r`Kaynakları yakıt, süreklilik, salım ve yenilenme ölçütleriyle birlikte ayırt ettiren bir tablo, programın "maliyet, erişilebilirlik, üretim kolaylığı, çevre" ölçütlerini hesapsız ölçer. Her çeldiricinin tek bir ölçütte çökmesi soruyu dikkat isteyen bir eleme sorusu yapar.` },
+      metin: r`Tabloda X, Y ve Z santrallerinin kullandığı enerji kaynaklarıyla ilgili bazı özellikler verilmiştir.
+
+{{tablo}}
+
+X, Y ve Z santrallerinin kaynakları aşağıdakilerin hangisinde doğru verilmiştir?`,
+      tablo: [['Özellik', 'X', 'Y', 'Z'], ['Elektrik üretmek için yakıt kullanır', 'Hayır', 'Evet', 'Evet'], ['Üretim günün her saatinde sürdürülebilir', 'Hayır', 'Evet', 'Evet'], ['Çalışırken baca gazıyla karbon dioksit salar', 'Hayır', 'Evet', 'Hayır'], ['Kaynağı yenilenebilir', 'Evet', 'Hayır', 'Hayır']],
+      secenekler: ['X: Güneş, Y: Doğal gaz, Z: Nükleer', 'X: Jeotermal, Y: Doğal gaz, Z: Nükleer', 'X: Güneş, Y: Biyokütle, Z: Nükleer', 'X: Rüzgâr, Y: Nükleer, Z: Kömür', 'X: Güneş, Y: Doğal gaz, Z: Barajlı hidroelektrik'],
+      dogru: 0,
+      cozum: [
+        r`X yakıt kullanmıyor, üretimi her saat sürdürülemiyor ve kaynağı yenilenebilir: kesintili bir kaynaktır (güneş ya da rüzgâr).`,
+        r`Y yakıt yakıyor, baca gazıyla karbon dioksit salıyor ve kaynağı yenilenemez: bir fosil yakıttır (doğal gaz ya da kömür).`,
+        r`Z yakıt kullanıyor ama yanma olmadığı için baca gazıyla karbon dioksit salmıyor; kaynağı yenilenemez: uranyum kullanan nükleer santraldir. Bütün satırlara uyan tek seçenek X: Güneş, Y: Doğal gaz, Z: Nükleer'dir.`,
+        r`{{S1}} jeotermal santralin gece ve gündüz sürekli üretebildiğini gözden kaçırır. {{S2}} biyokütlenin yenilenebilir bir kaynak olduğunu atlar. {{S3}} nükleer santralin baca gazıyla karbon dioksit salmadığını, kömür santralinin ise saldığını görmez. {{S4}} barajlı santralin yakıt kullanmadığını ve kaynağının yenilenebilir olduğunu atlar.`
+      ]
+    },
+    {
+      id: 'kY42_30', yks: true, zorluk: 3, tur: 'cs', cikti: '9.4.5.1', beceri: 'Kesin çıkarım',
+      tahmin: { gerekce: r`"Yenilenebilir" ile "salımsız" ve "tasarrufa gerek yok" yargılarını ayırt ettiren "kesinlikle" sorusu, programın tasarruf vurgusunu ve çevresel etki ölçütünü birlikte yoklar. Hesapsız ama yaygın yanılgılara dayanan zor bir sorudur.` },
+      metin: r`Bir ilçenin bir yıllık elektrik ihtiyacının tamamı ilçedeki bir rüzgâr santralinden ve bir biyokütle santralinden karşılanıyor. Biyokütle santralinde tarım atıkları yakılıyor.
+
+Buna göre,
+
+I. İlçede elektrik üretimi sırasında atmosfere hiç karbon dioksit salınmaz.
+II. Santrallerden en az birinin üretimi hava koşullarına bağlıdır.
+III. Kaynaklar yenilenebilir olduğu için ilçede elektriği tasarruflu kullanmanın hiçbir yararı yoktur.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. Biyokütle santralinde atıklar yakılır; yanma karbon dioksit oluşturur. Bitkiler büyürken karbon dioksit tuttuğu için biyokütle yenilenebilir sayılır ama yakılırken salım olur. **Yanlış.**`,
+        r`II. Rüzgâr santralinin üretimi rüzgârın esmesine bağlıdır. **Kesinlikle doğru.**`,
+        r`III. Tasarruf, yeni santral kurma ihtiyacını, maliyeti ve çevresel etkiyi azaltır; rüzgârın zayıf olduğu saatlerde üretimin yetmeme riskini de düşürür. Yenilenebilir kaynaklar da sınırsız ve bedelsiz değildir. **Yanlış.**`,
+        r`{{S0}} yenilenebilir kaynakların hiç karbon dioksit salmadığını sanır ve rüzgârın kesintili olduğunu atlar. {{S2}} biyokütle yakılırken karbon dioksit oluştuğunu görmez. {{S3}} yenilenebilir kaynaklarda tasarrufun gereksiz olduğunu sanır. {{S4}} yenilenebilir kaynakların hiç salım yapmadığını ve tasarrufu gereksiz kıldığını sanır.`
+      ]
+    }
+  ],
+  setler: []
+};
+
+window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
+})();
+
+</script>
+<script>
+/* Y.4.2 (YKS 2027 TYT) – 3B animasyonun durağan karesi (PDF baskısı ve çevrimdışı yedek görüntü).
+   Kaynak: src/anim3b.js 'rampa' sahnesinin y27t nitel kipindeki kendi çizimi (joule ve sürat yazısı yok); qa/Y.4.2/a3b_kontrol.py --poster ile üretildi. Elle düzenleme. */
+window.BFY_ANIM3B_VERI = Object.assign(window.BFY_ANIM3B_VERI || {}, {
+  rampa: { poster: 'data:image/webp;base64,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', alt: "U rampada kaykay yarı yükseklikte: potansiyel ve kinetik enerji çubukları eşit, toplamları (mekanik enerji) başlangıçtaki enerjiye eşit." }
+});
+
+/* 3B deney notu: bankayı değiştirmeden 'Enerji korunur, biçim değiştirir' notundan sonra eklenir (derlemede YENI=0 ise bu dosya hiç girmez). */
+(function () {
+  const K = window.BFY_BANK && window.BFY_BANK['Y.4.2']; if (!K || K.not.some(n => n.tur === 'anim3b')) return;
+  const i = K.not.findIndex(n => n.baslik === 'Enerji korunur, biçim değiştirir');
+  K.not.splice(i < 0 ? K.not.length : i + 1, 0, { tur: 'anim3b', sahne: 'rampa', baslik: '3B deney: U rampada enerji nereye gider?', metin: String.raw`Sürtünmesiz U rampada durgun hâlden bırakılan kaykayın potansiyel enerjisi inerken kinetik enerjiye, çıkarken yeniden potansiyel enerjiye dönüşür. Çubukları izle: $E_P$ ile $E_K$ sürekli değişir ama toplamları, yani mekanik enerji ($E_M$), hep aynı kalır ve kaykay öbür yanda bırakıldığı yüksekliğe çıkar. "Sürtünmeyi aç" düğmesine basınca her geçişte mekanik enerjinin bir kısmı ısıya dönüşür; kaykay her seferinde daha alçağa çıkar, mekanik enerji ile ısının toplamı ise değişmez. Sahnede enerji değerleri sayıyla verilmez, çubukların boyu karşılaştırılır; 2018 programı bu konuda enerji hesabına girmez, TYT'de karşılaştırma sorulur.`, ipucu: String.raw`Adım adım ilerle: Her adımda çubukların toplam yüksekliğinin değişip değişmediğine bak.` });
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.4.2 Mekanik Enerji, Verim ve Enerji Kaynakları: oynanan simülasyonlar
+   Maarif 10 kitabındaki iki simülasyonun (src/konu/10_2_4/sim.js rampa ve pürüzlü bölge, enerji sütunları;
+   src/konu/10_2_3/sim.js cihaz akış şeması) fikri bu kitabın 2018 programına göre uyarlanmıştır. Program bu kazanımlarda
+   matematiksel hesaplamaya girmediği için simülasyonlar enerji değerini sayıyla göstermez: enerji çubuklarla ve şerit
+   kalınlığıyla, ölçüm kutuları ise uzunluk ve oran (yüzde, kat) olarak verilir.
+   1) kY42_sim1: yaylı fırlatıcı, k = 500 N/m, sıkışma x; E_yay = ½·k·x²; isteğe bağlı 20 cm zımpara şerit (k_s = 0,5);
+      sürtünmesiz kavisli rampada ilk çıkış yüksekliği h = (E_yay − kayıp)/(m·g); kayıp = 0,5·m·g·0,20.
+   2) kY42_sim2: aynı yararlı enerjiyi veren eski ve yeni teknoloji; temsilî verimler: akkor %5, LED %30; benzinli %25,
+      elektrikli %80 (yalnız araçtaki dönüşüm); eski kombi %80, yoğuşmalı %95.
+   g = 10 m/s². Şablon ve kurallar: SIM_KILAVUZ.md
+   ============================================================ */
+(function () {
+window.BFY_SIM = window.BFY_SIM || {};
+const liste = window.BFY_SIM['Y.4.2'] = window.BFY_SIM['Y.4.2'] || [];
+const sayi = (x, o) => window.BFY_SIM_ARAC.sayi(x, o);
+const f1 = v => Math.round(v * 100) / 100;
+
+/* ---------------- 1) yaylı fırlatıcı, zımpara şerit, rampa ---------------- */
+(function () {
+const { P, T, svg, dashLine } = window.BFY_FIGLIB;
+const K = 500, G = 10, MU = 0.5, D = 0.2;
+const Eyay = v => 0.5 * K * Math.pow(v.x / 100, 2);                 // J (ekranda gösterilmez)
+const kayip = v => (v.s ? MU * v.m * G * D : 0);
+function durum(v) {
+  const E = Eyay(v), L = kayip(v);
+  if (v.s && E <= L) return { E, Q: E, EP: 0, h: 0, dur: true, yol: E / (MU * v.m * G) };   // şeridin içinde durur (m)
+  return { E, Q: L, EP: E - L, h: (E - L) / (v.m * G) * 100, dur: false };                // h: cm
+}
+const RENK = { yay: '#2f8a57', EP: '#2f7fb8', isi: '#e08a1e' };
+/* pist (yerel koordinat, 340 × 300): duvar, yay, düz yol, şerit, rampa; yükseklik 3 px/cm */
+const yb = 262, X0 = 30, XN = 104, BW = 30, BH = 20, XS1 = 150, XS2 = 220, XC = 250, XD = 318, HPX = 180, PXCM = 3;
+const rampaY = x => yb - HPX * Math.pow((x - XC) / (XD - XC), 2);
+const rampaX = hpx => XC + (XD - XC) * Math.sqrt(hpx / HPX);
+function blok(x, y, aci, op, kesik) {
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(aci)})" opacity="${op}"><rect x="${-BW / 2}" y="${-BH}" width="${BW}" height="${BH}" rx="3" fill="#7f8c96" stroke="#3f4a52" stroke-width="1.2"${kesik ? ' stroke-dasharray="3 2"' : ''}/><line x1="${-BW / 2 + 5}" y1="${-BH / 2}" x2="${BW / 2 - 5}" y2="${-BH / 2}" stroke="#c9d1d6" stroke-width="1"/></g>`;
+}
+function yayCiz(x1, x2, y) {
+  const n = 7, a = 7; let d = `M${x1} ${y} L${f1(x1 + 4)} ${y}`;
+  for (let i = 1; i <= 2 * n; i++) d += ` L${f1(x1 + 4 + (x2 - x1 - 8) * (i - 0.5) / (2 * n))} ${f1(y + (i % 2 ? -a : a))}`;
+  return `<path d="${d} L${f1(x2 - 4)} ${y} L${x2} ${y}" fill="none" stroke="${RENK.yay}" stroke-width="2" stroke-linejoin="round"/>`;
+}
+function pist(v, D_, fs, k, ox, oy) {
+  const Y_ = [], T = (x, y, t, o) => { Y_.push([x, y, t, o]); return ''; };
+  let s = `<rect class="bg" x="8" y="${yb}" width="326" height="9" rx="2" fill="#d9c9a8"/>`;
+  // yol gövdesi ve rampa
+  let d = `M${X0} ${yb + 9} L${X0} ${yb} L${XC} ${yb}`;
+  for (let i = 1; i <= 24; i++) { const x = XC + (XD - XC) * i / 24; d += ` L${f1(x)} ${f1(rampaY(x))}`; }
+  d += ` L${XD} ${yb + 9} Z`;
+  s += `<path d="${d}" fill="#e3e9ec" stroke="#7f97a6" stroke-width="1.4" stroke-linejoin="round"/>`;
+  // zımpara şerit
+  if (v.s) {
+    s += `<rect x="${XS1}" y="${yb - 3}" width="${XS2 - XS1}" height="4" fill="#a8865a"/>`;
+    for (let x = XS1 + 3; x < XS2; x += 6) s += `<line x1="${x}" y1="${yb + 1}" x2="${x + 3}" y2="${yb - 3}" stroke="#6d5233" stroke-width="1"/>`;
+    s += T((XS1 + XS2) / 2, yb + 26, 'zımpara, 20 cm', { size: fs, anchor: 'middle', weight: 700, fill: '#7a5a33' });
+  }
+  // duvar
+  s += `<rect x="14" y="${yb - 46}" width="${X0 - 14}" height="46" fill="#8b98a2" stroke="#55626b" stroke-width="1"/>`;
+  // cetvel (rampanın sağında): 0–60 cm
+  const xr = XD + 8;
+  s += `<line x1="${xr}" y1="${yb}" x2="${xr}" y2="${yb - 60 * PXCM}" stroke="${P.ink2}" stroke-width="1.2"/>`;
+  for (let c = 0; c <= 60; c += 10) { const y = yb - c * PXCM; s += `<line x1="${xr - (c % 20 ? 3 : 5)}" y1="${y}" x2="${xr}" y2="${y}" stroke="${P.ink2}" stroke-width="1"/>`; if (c % 20 === 0) s += T(xr - 7, y + 4, String(c), { size: fs - 1, anchor: 'end', weight: 600, fill: P.ink2 }); }
+  s += T(xr, yb - 60 * PXCM - 20, 'cm', { size: fs - 1, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // başlangıç: sıkışmış yay ve blok (soluk); yay sıkışması 4 px/cm
+  const xb0 = XN - v.x * 4;
+  if (D_.dur) {
+    // blok şeritte durdu; yay serbest boyuna dönmüştür
+    const xs = XS1 + D_.yol / D * (XS2 - XS1);
+    s += yayCiz(X0, XN, yb - BH / 2) + blok(xs, yb - 3, 0, 1, false) + T(xs, yb - BH - 12, 'durdu', { size: fs, anchor: 'middle', weight: 800, fill: '#b4561a' });
+  } else {
+    s += yayCiz(X0, xb0, yb - BH / 2) + blok(xb0 + BW / 2, yb, 0, 0.4, true);
+    const hpx = D_.h * PXCM, x = rampaX(hpx), y = rampaY(x), egim = Math.atan(2 * HPX * (x - XC) / Math.pow(XD - XC, 2)) * 180 / Math.PI;
+    s += blok(x, y, -egim, 1, false);
+    s += dashLine(XC - 40, f1(y), xr, f1(y), '#9aa8b1', '4 4', 1);
+    s += T(XC - 44, y + 4, 'en yüksek', { size: fs - 1, anchor: 'end', weight: 700, fill: P.ink2 });
+  }
+  const W_ = window.BFY_FIGLIB.T;
+  return `<g transform="translate(${ox} ${oy}) scale(${k})">${s}</g>` + Y_.map(([x, y, t, o]) => W_(f1(ox + x * k), f1(oy + y * k), t, o)).join('');
+}
+function cubuklar(D_, x0, y0, w, h, fs) {
+  let s = `<rect class="bg" x="${x0}" y="${y0}" width="${w}" height="${h}" rx="12" fill="#fbfdfe" stroke="#dde7ee" stroke-width="1"/>`;
+  s += T(x0 + w / 2, y0 + 22, 'Enerji çubukları', { size: fs, anchor: 'middle', weight: 800, fill: P.ink });
+  const tab = y0 + h - 50, sk = (h - 90) / 2.5, bw = 34, xs = [x0 + w * 0.2, x0 + w * 0.5, x0 + w * 0.8];
+  const yE = tab - D_.E * sk;
+  s += dashLine(x0 + 10, f1(yE), x0 + w - 10, f1(yE), '#8aa0ad', '4 4', 1.1);
+  [[D_.E, RENK.yay, 'Yay', 'başta'], [D_.EP, RENK.EP, 'E_P', 'tepede'], [D_.Q, RENK.isi, 'Isı', 'şeritte']].forEach(([e, r, a, b], i) => {
+    const hh = e * sk;
+    if (hh > 0.4) s += `<rect x="${f1(xs[i] - bw / 2)}" y="${f1(tab - hh)}" width="${bw}" height="${f1(hh)}" rx="2" fill="${r}"/>`;
+    s += T(xs[i], tab + 17, a, { size: fs, anchor: 'middle', weight: 800, fill: r === RENK.isi ? '#b4561a' : r });
+    s += T(xs[i], tab + 40, b, { size: fs - 1.5, anchor: 'middle', weight: 600, fill: P.ink2 });
+  });
+  s += `<line x1="${x0 + 10}" y1="${tab}" x2="${x0 + w - 10}" y2="${tab}" stroke="${P.ink}" stroke-width="1.3"/>`;
+  return s;
+}
+function sahne(v, u, o) {
+  const dar = o && o.dar, D_ = durum(v);
+  if (!dar) {
+    let s = `<rect class="bg" x="0" y="0" width="560" height="320" rx="14" fill="#f3f8fb"/>`;
+    s += pist(v, D_, 12.5, 1, 0, 20);
+    s += cubuklar(D_, 362, 12, 188, 296, 12.5);
+    return svg(560, 320, s, u, 150);
+  }
+  let s = `<rect class="bg" x="0" y="0" width="300" height="540" rx="14" fill="#f3f8fb"/>`;
+  s += pist(v, D_, 12, 0.84, 0, -6);
+  s += cubuklar(D_, 12, 252, 276, 280, 13);
+  return svg(300, 540, s, u, 80);
+}
+
+liste.push({
+  id: 'kY42_sim1',
+  baslik: 'Yay ne kadar sıkışırsa blok ne kadar yükselir?',
+  sonra: 'Grafiklerle modeli okumak',
+  metin: 'Duvara dayalı yayı sıkıştırıp bloğu bırakıyorsun; blok yatay yoldan geçip kavisli rampaya çıkıyor. Kaydırıcıyla yayın sıkışmasını, düğmelerle bloğun kütlesini ve yolu değiştir. Rampa ve zımpara şeridin dışındaki yol sürtünmesizdir; şekilde bloğun rampadaki ilk çıkışında ulaştığı en yüksek nokta gösterilir. Çubuklar enerjileri sayı vermeden karşılaştırır: yayda başta depolanan esneklik potansiyel enerjisi, en yüksek noktadaki yer çekimi potansiyel enerjisi ve şeritte ısıya dönüşen enerji. Kesikli çizgi başlangıçtaki enerjidir.',
+  pdfMetin: 'Şekilde duvara dayalı yay $8\\ \\text{cm}$ sıkıştırılıp $0,5\\ \\text{kg}$\'lık blok bırakılmıştır. Blok $20\\ \\text{cm}$\'lik zımpara şeritten geçip sürtünmesiz rampada yaklaşık $22\\ \\text{cm}$ yükseğe çıkar; şerit olmasaydı $32\\ \\text{cm}$\'ye çıkacaktı. Çubuklar, yayın başta depoladığı enerjinin en yüksek noktadaki potansiyel enerji ile şeritte ısıya dönüşen enerjinin toplamına eşit olduğunu gösterir.',
+  kontroller: [
+    { ad: 'x', etiket: 'Yayın sıkışması', min: 2, max: 10, adim: 1, deger: 8, birim: 'cm' },
+    { ad: 'm', etiket: 'Bloğun kütlesi', deger: 0.5, secenekler: [{ deger: 0.5, etiket: '0,5 kg' }, { deger: 1, etiket: '1 kg' }] },
+    { ad: 's', etiket: 'Yol', deger: 1, secenekler: [{ deger: 0, etiket: 'Sürtünmesiz' }, { deger: 1, etiket: 'Zımpara şeritli' }] }
+  ],
+  ciz: (v, u, o) => sahne(v, u, o),
+  olcumler: v => {
+    const D_ = durum(v);
+    return [
+      { etiket: 'Rampada çıkılan yükseklik', deger: D_.h, birim: 'cm', ondalik: 1 },
+      { etiket: 'Isıya dönüşen pay', deger: D_.Q / D_.E * 100, birim: '%', ondalik: 0 },
+      { etiket: 'Yaydaki enerji (2 cm sıkışmaya göre)', deger: Math.pow(v.x / 2, 2), birim: 'kat', ondalik: 2 }
+    ];
+  },
+  gorev: 'Yolu sürtünmesiz yap ve 0,5 kg\'lık bloğu önce 4 cm, sonra 8 cm sıkışmayla fırlat: Blok kaç kat yükseğe çıkar? Ardından kütleyi 1 kg yap. Son olarak zımpara şeridi ekle: Blok neden daha alçağa çıkar, eksilen enerji nereye gider? Önce tahmin et, sonra dene.',
+  gorevCevap: 'Sürtünmesiz yolda 4 cm\'lik sıkışmayla blok 8 cm\'ye, 8 cm\'lik sıkışmayla 32 cm\'ye çıkar: Sıkışma iki katına çıkınca yayda depolanan enerji de çıkılan yükseklik de dört katına çıkar. Kütle iki katına çıkınca aynı enerjiyle blok yarı yüksekliğe çıkar (8 cm sıkışmada 16 cm). Zımpara şerit eklenince mekanik enerjinin bir kısmı şeritte ısıya dönüşür ve blok daha alçağa çıkar; ama çubuklarda görüldüğü gibi potansiyel enerji ile ısının toplamı yine yayda depolanan enerjiye eşittir. Yay az sıkıştırılırsa blok şeridin içinde durur.'
+});
+})();
+
+/* ---------------- 2) aynı yararlı enerji, eski ve yeni teknoloji ---------------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const UYG = {
+  1: { ad: 'Aydınlatma', yarar: 'Işık', bosa: 'Isı', eski: ['Akkor ampul', 0.05], yeni: ['LED lamba', 0.30] },
+  2: { ad: 'Ulaşım', yarar: 'Hareket', bosa: 'Isı ve ses', eski: ['Benzinli otomobil', 0.25], yeni: ['Elektrikli otomobil', 0.80] },
+  3: { ad: 'Ev ısıtma', yarar: 'Eve ısı', bosa: 'Bacadan ısı', eski: ['Eski tip kombi', 0.80], yeni: ['Yoğuşmalı kombi', 0.95] }
+};
+const verim = v => UYG[v.a][v.t ? 'yeni' : 'eski'][1];
+const gerek = v => UYG[v.a].eski[1] / verim(v);                       // eskiye göre gereken enerji oranı
+function sahne(v, u, o) {
+  const dar = o && o.dar, U = UYG[v.a], C = U[v.t ? 'yeni' : 'eski'], H = 150;
+  const W = dar ? 300 : 560, Hs = dar ? 330 : 300;
+  const x0 = dar ? 14 : 30, xd = dar ? 70 : 150, x1 = dar ? 170 : 350, et = x1 + 14, yc = dar ? 196 : 168;
+  const hIn = H * gerek(v), hY = H * U.eski[1], hB = hIn - hY;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${Hs}" rx="14" fill="#f3f8fb"/>`;
+  s += T(dar ? 14 : 30, 30, `${U.ad}: ${C[0]}`, { size: 14, weight: 800, fill: P.ink });
+  s += T(dar ? 14 : 30, 50, 'Aynı yararlı enerji için akış şeması', { size: 12, weight: 600, fill: P.ink2 });
+  // eski teknolojinin giriş şeridi (karşılaştırma için kesikli)
+  if (v.t) s += `<rect x="${x0}" y="${f1(yc - H / 2)}" width="${xd - x0}" height="${H}" fill="none" stroke="#8aa0ad" stroke-width="1.2" stroke-dasharray="4 4"/>` + T((x0 + xd) / 2, yc + H / 2 + 16, 'eski', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += `<rect x="${x0}" y="${f1(yc - hIn / 2)}" width="${xd - x0}" height="${f1(hIn)}" fill="#9cc7e6"/>`;
+  s += T((x0 + xd) / 2, f1(yc - Math.max(hIn, v.t ? H : 0) / 2 - 10), 'Giren', { size: 12.5, anchor: 'middle', weight: 800, fill: P.blue });
+  // çıkışlar: yararlı (üstte) ve boşa giden (altta), arada boşluk
+  const bos = 26, top = hY + hB + bos;
+  const cik = [[hY, '#2f8a57', U.yarar, 'yararlı'], [hB, '#e08a1e', U.bosa, 'boşa giden']];
+  let yy = yc - top / 2, yg = yc - hIn / 2; const xm = (xd + x1) / 2;
+  cik.forEach(([h, r, a, b]) => {
+    const hh = Math.max(1.5, h);
+    s += `<path d="M${xd} ${f1(yg)} C${xm} ${f1(yg)} ${xm} ${f1(yy)} ${x1} ${f1(yy)} L${x1} ${f1(yy + hh)} C${xm} ${f1(yy + hh)} ${xm} ${f1(yg + hh)} ${xd} ${f1(yg + hh)} Z" fill="${r}" opacity=".85"/>`;
+    s += `<polygon points="${x1},${f1(yy - 3)} ${x1 + 8},${f1(yy + hh / 2)} ${x1},${f1(yy + hh + 3)}" fill="${r}"/>`;
+    s += T(et, f1(yy + hh / 2 - 2), a, { size: 13, weight: 800, fill: r === '#e08a1e' ? '#b4561a' : r });
+    s += T(et, f1(yy + hh / 2 + 13), b, { size: 12, weight: 600, fill: P.ink2 });
+    yy += hh + bos; yg += h;
+  });
+  return svg(W, Hs, s, u, dar ? 80 : 150);
+}
+liste.push({
+  id: 'kY42_sim2',
+  baslik: 'Aynı işi yapan iki teknolojiden hangisi daha az enerji harcar?',
+  sonra: 'Verim, tasarruf ve enerji kimlik belgesi',
+  metin: 'Düğmelerle bir uygulama ve teknoloji seç. Akış şemasında iki teknolojinin verdiği yararlı enerji (ışık, hareket ya da eve aktarılan ısı) aynı tutulur; şeritlerin kalınlığı enerji miktarıyla orantılıdır. Yeni teknolojiyi seçince kesikli çerçeve, eski teknolojinin aynı iş için harcadığı enerjiyi gösterir. Verim değerleri temsilîdir ve yalnız cihazdaki dönüşümü kapsar.',
+  pdfMetin: 'Şekilde akkor ampul ile aynı ışığı veren LED lambanın akış şeması gösterilmiştir. Şeritlerin kalınlığı enerji miktarıyla orantılıdır. Kesikli çerçeve, akkor ampulün aynı ışık için harcadığı elektrik enerjisidir; LED çok daha az enerjiyle aynı ışığı verir. Boşa giden enerji yok olmaz, ısı olarak çevreye aktarılır. Verim değerleri temsilîdir.',
+  kontroller: [
+    { ad: 'a', etiket: 'Uygulama', deger: 1, secenekler: [{ deger: 1, etiket: 'Aydınlatma' }, { deger: 2, etiket: 'Ulaşım' }, { deger: 3, etiket: 'Ev ısıtma' }] },
+    { ad: 't', etiket: 'Teknoloji', deger: 1, secenekler: [{ deger: 0, etiket: 'Eski' }, { deger: 1, etiket: 'Yeni' }] }
+  ],
+  ciz: (v, u, o) => sahne(v, u, o),
+  olcumler: v => [
+    { etiket: 'Verim (yararlı pay)', deger: verim(v) * 100, birim: '%', ondalik: 0 },
+    { etiket: 'Boşa giden pay', deger: (1 - verim(v)) * 100, birim: '%', ondalik: 0 },
+    { etiket: 'Aynı iş için gereken enerji (eskiye göre)', deger: gerek(v) * 100, birim: '%', ondalik: 0 }
+  ],
+  gorev: 'Üç uygulamada da eski ve yeni teknolojiyi karşılaştır. Yeni teknolojiye geçmek hangi uygulamada en büyük, hangisinde en küçük tasarruf sağlar? Boşa giden enerji yeni teknolojide yok mu olur? Önce tahmin et, sonra dene.',
+  gorevCevap: 'En büyük kazanç aydınlatmadadır: LED lamba aynı ışık için akkor ampulün harcadığı enerjinin yalnız yüzde 17 kadarını harcar, yani yaklaşık altıda birini. Elektrikli otomobil aynı hareket için benzinlinin harcadığı enerjinin yaklaşık üçte birini harcar. Ev ısıtmasında eski kombi zaten oldukça verimli olduğundan yoğuşmalı kombi yaklaşık yüzde 16 tasarruf sağlar. Hiçbir teknolojide boşa giden enerji yok olmaz; çoğunlukla ısı olarak çevreye aktarılır. Verimi artırmak toplam enerjiyi değiştirmez, boşa giden payı küçültür.'
+});
+})();
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim YKS 2027 TYT · Y.5.1 Isı, Sıcaklık ve Öz Isı — şekiller
    Önek: kY51_ (soru, not ve çözümlü örnek şekilleri; düz 2B), iY51_ (tanım ve efsane çizimleri; 3B izometrik).
    Kurallar: sıvı yüzeyleri yatay; ısı akışı oklarla (bakır renk) sıcaktan soğuğa; grafiklerde eksen adı okun ucunda;
