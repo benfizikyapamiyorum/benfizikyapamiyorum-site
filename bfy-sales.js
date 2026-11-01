@@ -16,7 +16,7 @@
     if(correct===total)return {...base,kind:'complete',title:'Bu testte tüm soruları doğru yanıtladın.',text:'Farklı soru türleriyle devam etmek için '+product.name+' konu notlarını, çözümlü sorularını ve yazdırılabilir PDF kitapçıklarını keşfet.',button:'Yeni Sorular İçin Paketi Al →'};
     const weak=rows.filter(([,d])=>d.dogru<d.total).sort((a,b)=>(a[1].dogru/a[1].total)-(b[1].dogru/b[1].total)||(b[1].yanlis+b[1].bos)-(a[1].yanlis+a[1].bos)||a[0].localeCompare(b[0],'tr'))[0];
     const [code,d]=weak,topic=names&&names[code]||grade+'. sınıf';
-    return {...base,kind:'review',topic,code,title:topic+' konusunu pekiştir.',text:'Bu testte bu konudan '+d.total+' soruda '+d.dogru+' doğru, '+d.yanlis+' yanlış ve '+d.bos+' boş var. Okul sınavlarına hazırlanırken Timur Hoca’nın '+product.name+' dijital kitabı ve yazdırılabilir PDF kitapçıklarıyla adım adım çalışabilirsin.',button:'Eksik Konu Paketini Al →'};
+    return {...base,kind:'review',topic,code,title:topic+' konusunu pekiştir.',text:'Bu testte bu konudan '+d.total+' soruda '+d.dogru+' doğru, '+d.yanlis+' yanlış ve '+d.bos+' boş var. Okul sınavlarına hazırlanırken Timur YILDIRIM’ın '+product.name+' dijital kitabı ve yazdırılabilir PDF kitapçıklarıyla adım adım çalışabilirsin.',button:'Eksik Konu Paketini Al →'};
   }
   function renderTestOffer(container,grade,byTopic,names){
     const rec=testRecommendation(grade,byTopic,names);if(!container||!rec)return;
