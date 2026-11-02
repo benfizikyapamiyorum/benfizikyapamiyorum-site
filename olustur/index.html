@@ -531,7 +531,7 @@ table.etk-sn.g2 th:first-child{width:52%} table.etk-sn.g3 th:first-child{width:4
   <aside class="panel">
     <div class="marka"><div class="logo">B</div><h1>Yapabilirim <small style="font-weight:600;opacity:.75">Not Oluşturucu</small></h1></div>
     <p class="alt">Konunu seç, paketini kur, PDF olarak kaydet. Her oluşturma yeni bir soru karışımı üretir.</p>
-    <a class="dij-link" href="../calis/">📱 Telefonda ya da tablette çalış: soruları dokunarak çöz, kalemle yaz</a>
+    <a class="dij-link" data-bfy-study-link href="../calis/">📱 Telefonda ya da tablette çalış: soruları dokunarak çöz, kalemle yaz</a>
     <div class="durum"><span id="seviyeEtiket">Ücretsiz örnek</span><button id="kodAc" type="button">Lisansım var</button></div>
 
     <div class="grp" id="tytTurGrp" hidden><h3>Ne yazdıracaksın?</h3>
@@ -113619,6 +113619,18 @@ function sayfala(bloklar) {
 }
 function ciz() {
   sinifUygula();
+  if ([9, 10, 11].includes(S.sinif)) {
+    const studyLink = document.querySelector('[data-bfy-study-link]');
+    const teacher = new URLSearchParams(location.search).get('kime') === 'ogretmen';
+    if (studyLink) studyLink.href = '../calis/?sinif=' + S.sinif + (teacher ? '&kime=ogretmen' : '');
+    try {
+      const u = new URL(location.href);
+      if (u.searchParams.get('sinif') !== String(S.sinif)) {
+        u.searchParams.set('sinif', String(S.sinif));
+        history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+      }
+    } catch (e) { }
+  }
   if (S.sinif >= 20 && S.tur === 'deneme') { denemeCiz(); return; }
   // Karşılıklı sayfaya sığmayan (sayfa çevirmeli) set kalmasın diye birkaç yerleşimi dene
   S._duzen = null;
@@ -113884,8 +113896,10 @@ async function basla() {
   const r = await lisansYukle();
   // Bu derlemede S.sinif (11) yoksa (TYT) katalogdaki ilk görünür sınıfa geç.
   if (!sinifGorunur(S.sinif)) { const g = window.BFY_KATALOG.find(x => sinifGorunur(x.no) && ilkKonu(x.no)); if (g) sinifSec(g.no); }
-  // Açılışta lisanslı sınıf seçili gelsin: yeni gelen link > 11 > 10.
+  // New verified license > explicit demo/PDF grade > existing licensed defaults.
+  const requestedGrade = new URLSearchParams(location.search).get('sinif');
   if (r.yeni && !r.yeni.hata) lisansUygula(r.yeni);
+  else if (/^(9|10|11)$/.test(requestedGrade || '') && sinifGorunur(+requestedGrade) && ilkKonu(+requestedGrade)) sinifSec(+requestedGrade);
   else if (LISLER[11] && sinifGorunur(11)) sinifSec(11);
   else if (Object.keys(LISLER).some(sinifGorunur)) sinifSec(+Object.keys(LISLER).filter(sinifGorunur).sort((a, b) => b - a)[0]);
   if (hp) { sinifUygula(); derinBaglanti(hp); }
