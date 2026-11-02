@@ -1174,7 +1174,7 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
   <p id="kodMesaj">Sana gönderilen lisans linkine tıkla ya da linki buraya yapıştır. Lisansının sınıfındaki bütün konular, sorular ve çözümler açılır.</p>
   <div class="kod-sat"><input id="kodInput" type="text" placeholder="Lisans linkini yapıştır" autocomplete="off" aria-label="Lisans linki"><button class="btn ana kucuk" id="kodTamam" type="button">Aç</button></div>
   <div class="kod-hata" id="kodHata"></div>
-  <div class="kod-al"><a href="../11-sinif-fizik-paketi.html#fiyat" target="_blank" rel="noopener">Lisans al</a></div>
+  <div class="kod-al"><a href="../11-sinif-fizik-paketi.html" target="_blank" rel="noopener">Lisans satın al</a></div><p style="font-size:13px;margin:14px 0 0">Satın aldın mı? <a href="../lisans-al/" target="_blank" rel="noopener" style="text-decoration:underline">Siparişinle lisansını bul →</a></p>
 </dialog>
 <script>window.BFY_LISANS_PUB=[{"kty":"EC","crv":"P-256","x":"_TaTTBflkNhET_aI5hsfW9UGRrxkG8CSUZ6NuZht-TQ","y":"qBWA-eJwvUagRLMiCF_HbuHx-L_uPfA1FRcHd0hwDUU"},{"kty":"EC","crv":"P-256","x":"vmG6TPdeE0BDMUH0-KXeZpGziz15ZXnV4HluaZ1R8a4","y":"nAUayVW3k26LUy5pjX9EcNgqKx0-jNVwF9F1qx6-H0g"}];window.BFY_IPTAL=[];window.BFY10 = true;window.BFY9 = true;window.BFY_LINK={"yap":"/calis/","yapOlustur":"/olustur/","tyt":"/tyt/","tytOlustur":"/tyt/olustur/","urunler":{"20":{"ad":"Ben Fizik Yapabilirim TYT","yol":"/tyt/","olustur":"/tyt/olustur/"},"22":{"ad":"Ben Fizik Yapabilirim YKS 2027 TYT","yol":"/yks2027-tyt/","olustur":"/yks2027-tyt/olustur/"},"23":{"ad":"Ben Fizik Yapabilirim YKS 2027 AYT","yol":"/yks2027-ayt/","olustur":"/yks2027-ayt/olustur/"}}};
 </script>
@@ -116340,6 +116340,25 @@ const konuSinif = konu => (/^[TAY]\./.test(String(konu.id)) ? U.sinif : +String(
 const sevK = konu => sinifSeviye(konuSinif(konu));
 // Ana ekranda ve denemede seçili sınıf (cihazda hatırlanır). Varsayılan: lisanslı sınıf (ikisi varsa 11), yoksa 11.
 const gorunurSiniflar = () => KAT.filter(s => sinifGorunur(s.no) && s.uniteler.some(u => u.konular.some(k => BANK[k.id]))).map(s => s.no);
+// A product/demo link carries its grade; a valid lesson deep link is more specific.
+function baglantidakiSinif(search, hash, available) {
+  const route = /^#\/(?:konu|soru|kt)\/((?:9|10|11)\.\d+\.\d+)(?:\/|$)/.exec(hash);
+  const candidate = route && BANK[route[1]] ? route[1].split('.')[0] : new URLSearchParams(search).get('sinif');
+  return /^(9|10|11)$/.test(candidate || '') && available.includes(+candidate) ? +candidate : null;
+}
+function sinifAdresiniGuncelle(sn) {
+  if (![9, 10, 11].includes(sn)) return;
+  try {
+    const u = new URL(location.href);
+    if (u.searchParams.get('sinif') === String(sn)) return;
+    u.searchParams.set('sinif', String(sn));
+    history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+  } catch (e) { }
+}
+function urunSayfasi(sn) {
+  const teacher = new URLSearchParams(location.search).get('kime') === 'ogretmen';
+  return '../' + sn + '-sinif-fizik-paketi.html?kime=' + (teacher ? 'ogretmen' : 'ogrenci');
+}
 function secSinif() {
   const g = gorunurSiniflar();
   if (g.includes(K.sinif)) return K.sinif;
@@ -116451,7 +116470,7 @@ function kilitBant(m, sinif) { return sinifSeviye(sinif) > 0 ? '' : `<div class=
 function anaEkran() {
   const sn = secSinif(), L = LISLER[sn];
   ust({ baslik: sn === U.sinif ? U.ad : 'Yapabilirim ' + sn, alt: 'Fizik yapamıyorum demeyi bırak.' }); navAktif('konular');
-  const son = K.son && BANK[K.son.id] ? K.son : null;
+  const son = K.son && BANK[K.son.id] && konuBilgi(K.son.id).sinif === sn ? K.son : null;
   let h = `<section class="hero">${L && L.ad ? `<div class="hero-ad">${esc(L.ad)} – ${lisansAdi(L)}</div>` : ''}<h1>${ilkAd() ? esc(ilkAd()) + ', bugün ne çalışıyoruz?' : 'Bugün ne çalışıyoruz?'}</h1><p>Notu oku, soruları çöz, kalemle üstüne yaz. Her doğru cevap XP kazandırır.</p>
     <div class="hero-istat"><div><b>${K.xp}</b><span>XP</span></div><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen()}</b><span>çözülen soru</span></div><div><b>${genelUnvan()}</b><span>unvan</span></div></div></section>`;
   if (son) { const sk = BANK[son.id]; h += `<a class="devam" href="#/soru/${son.id}/${son.idx}"><div><small>Kaldığın yerden devam et</small><b>${esc(sk.ad)}, ${son.idx + 1}. soru</b></div><span class="ok">→</span></a>`; }
@@ -116470,7 +116489,8 @@ function anaEkran() {
     h += '</div>';
     h += geriKart('unite', `${sn}|${u.no}`, `${u.no}. Üniteyi değerlendir`, 'En çok zorlandığın konuyu ve neye ihtiyacın olduğunu seç. Kitaba eklenecekler buna göre seçilir.', 'Değerlendir', true);
   }));
-  h += `<a class="pdf-link" href="../olustur/">📄 PDF çalışma kâğıdı oluştur</a>`;
+  h += `<a class="pdf-link" href="../olustur/?sinif=${sn}${new URLSearchParams(location.search).get('kime') === 'ogretmen' ? '&amp;kime=ogretmen' : ''}">📄 PDF çalışma kâğıdı oluştur</a>`;
+  h += `<a class="pdf-link" href="${urunSayfasi(sn)}">${sn}. sınıf dijital kitabını incele →</a>`;
   return h;
 }
 
@@ -117590,6 +117610,13 @@ function ciz(kaydirma = true) {
   ktDurdur();
   document.body.classList.remove('odak');
   const p = yolParca();
+  if (['konu', 'soru', 'kt'].includes(p[0]) && BANK[p[1]]) {
+    const sn = konuBilgi(p[1]).sinif;
+    if (K.sinif !== sn) { K.sinif = sn; kaydet(); }
+  }
+  sinifAdresiniGuncelle(secSinif());
+  const buyLink = document.querySelector('#kodPencere .kod-al a');
+  if (buyLink) buyLink.href = urunSayfasi(secSinif());
   let h;
   if (!p.length) h = anaEkran();
   else if (p[0] === 'konu') h = konuEkran(p[1], p[2] || 'not');
@@ -117653,7 +117680,7 @@ document.addEventListener('click', e => {
   const t = e.target;
   const ssb = t.closest('.n-sim [data-sim-sec]'); if (ssb) { simSec(ssb, false); return; }
   const scv = t.closest('.n-sim [data-sim-cevap]'); if (scv) { const c = scv.nextElementSibling, ac = c.hidden; c.hidden = !ac; scv.setAttribute('aria-expanded', ac); scv.textContent = ac ? 'Cevabı gizle' : 'Cevabı gör'; return; }
-  const ds = t.closest('[data-dsinif]'); if (ds && !ds.disabled) { K.sinif = +ds.dataset.dsinif; kaydet(); ciz(false); return; }
+  const ds = t.closest('[data-dsinif]'); if (ds && !ds.disabled) { K.sinif = +ds.dataset.dsinif; window._dk = null; kaydet(); sinifAdresiniGuncelle(K.sinif); ciz(false); return; }
   if (t.closest('[data-kod]')) { $('#kodMesaj').textContent = KOD_MESAJ; $('#kodHata').textContent = ''; $('#kodPencere').showModal(); $('#kodInput').focus(); return; }
   if (TYT && tytTik(t)) return;
   const czb = t.closest('[data-czsec],[data-czadim],[data-czip]'); if (czb && !czb.disabled) { cozumluTik(czb); return; }
@@ -117825,7 +117852,10 @@ window.BFY_DIJITAL = { K, INK, ciz, simTazele };
 async function basla() {
   const r = await lisansYukle();
   const yeni = r.yeni && !r.yeni.hata ? r.yeni : null;
-  if (yeni && sinifGorunur(yeni.sinif)) { K.sinif = yeni.sinif; kaydet(); }
+  // A newly verified license remains authoritative; otherwise honor the chosen demo grade.
+  const linkedGrade = baglantidakiSinif(location.search, location.hash, gorunurSiniflar());
+  const startGrade = yeni && sinifGorunur(yeni.sinif) ? yeni.sinif : linkedGrade;
+  if (startGrade !== null) { K.sinif = startGrade; kaydet(); }
   if (!/^#\//.test(location.hash)) { try { history.replaceState(null, '', location.pathname + location.search + '#/'); } catch (e) { } }
   try { await document.fonts.ready; } catch (e) { }
   ciz();
