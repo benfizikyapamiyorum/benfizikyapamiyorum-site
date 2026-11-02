@@ -14,10 +14,20 @@
   const labels={anime:'ANIME SERİSİ',optik:'OPTİK SERİ',sade:'İLK SERİ',kupalar:'KUPALAR'};
   const kindLabel=k=>({hoodie:'Hoodie',tshirt:'Tişört',mug:'Kupa'})[k];
   const kindsFor=p=>p.kinds||['hoodie','tshirt'];
+  const prices=Object.freeze({tshirt:949,hoodie:1299,mug:699});
+  const priceText=kind=>prices[kind].toLocaleString('tr-TR')+' TL';
+  document.querySelectorAll('.catalog-footnote,.interest-note,.accordion p').forEach(p=>{
+    const updated=p.textContent
+      .replace('kesin fiyat, renk, beden ve ürün fotoğrafları','renk, beden ve ürün fotoğrafları')
+      .replace('Fiyat ve satış tarihi henüz kesinleşmedi.','Satış tarihi henüz kesinleşmedi.')
+      .replace('Kesin fiyat, kargo, teslimat süresi ve iade koşulları','Teslimat süresi ve iade koşulları');
+    if(updated!==p.textContent)p.textContent=updated;
+  });
+
   const card=(p,kind='hoodie')=>{
     const supported=kindsFor(p);kind=supported.includes(kind)?kind:supported[0];
     const mug=kind==='mug';
-    return `<a class="product" data-series="${p.series}" href="${base}${p.id}/?urun=${kind}"><div class="art-frame${mug?' mug-art':''}" style="background:${p.bg}"><span class="badge">${labels[p.series]}</span><img src="${base}assets/${p.id}.webp" alt="${p.name}${mug?' beyaz kupa üzerinde iki yönden dijital önizleme':' baskı tasarımı'}" width="${mug?1600:700}" height="800" loading="lazy"></div><div class="card-meta"><h3>${p.name}</h3><span class="arrow" aria-hidden="true">↗</span></div><p class="tagline">${p.tagline}</p><div class="price-row"><span>${kindLabel(kind)} · Hazırlanıyor</span><small>Haberdar ol ↗</small></div></a>`;
+    return `<a class="product" data-series="${p.series}" href="${base}${p.id}/?urun=${kind}"><div class="art-frame${mug?' mug-art':''}" style="background:${p.bg}"><span class="badge">${labels[p.series]}</span><img src="${base}assets/${p.id}.webp" alt="${p.name}${mug?' beyaz kupa üzerinde iki yönden dijital önizleme':' baskı tasarımı'}" width="${mug?1600:700}" height="800" loading="lazy"></div><div class="card-meta"><h3>${p.name}</h3><span class="arrow" aria-hidden="true">↗</span></div><p class="tagline">${p.tagline}</p><div class="price-row"><span>${kindLabel(kind)} · <strong>${priceText(kind)}</strong></span><small>Haberdar ol ↗</small></div></a>`;
   };
   if(!productId){
     let series='all',kind='hoodie';
@@ -31,10 +41,24 @@
     const requestedKind=new URLSearchParams(location.search).get('urun');
     const supported=kindsFor(product);
     let kind=supported.includes(requestedKind)?requestedKind:supported[0];
+    const priceBlock=document.createElement('p');
+    priceBlock.id='selected-price';
+    priceBlock.setAttribute('aria-live','polite');
+    priceBlock.style.cssText='margin:18px 0 12px;font-size:28px;font-weight:700;line-height:1.35';
+    document.querySelector('.launch-status').before(priceBlock);
+    function updatePrice(){
+      priceBlock.replaceChildren();
+      const amount=document.createElement('span');
+      amount.textContent=priceText(kind);
+      const shipping=document.createElement('small');
+      shipping.textContent='120 TL kargo ücreti dahildir.';
+      shipping.style.cssText='display:block;margin-top:5px;font-size:13px;font-weight:400';
+      priceBlock.append(amount,shipping);
+    }
     const size=document.getElementById('interest-size');
     const message=document.getElementById('interest-message');
     const feedback=document.getElementById('interest-feedback');
-    function updateMessage(){const value=kind!=='mug'&&size?size.value.trim():'';message.value=product.name+' / '+kindLabel(kind)+(value?' / Tahmini beden: '+value:'')+'. Bu ürün satışa açıldığında Instagram’dan haber almak istiyorum.';feedback.textContent='';}
+    function updateMessage(){updatePrice();const value=kind!=='mug'&&size?size.value.trim():'';message.value=product.name+' / '+kindLabel(kind)+(value?' / Tahmini beden: '+value:'')+'. Bu ürün satışa açıldığında Instagram’dan haber almak istiyorum.';feedback.textContent='';}
     document.querySelectorAll('[data-kind]').forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.kind;document.querySelectorAll('[data-kind]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.getElementById('selected-kind').textContent=kindLabel(kind);updateMessage();}));
     if(size)size.addEventListener('input',updateMessage);
     document.getElementById('copy-interest').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(message.value);feedback.textContent='Mesaj kopyalandı. Şimdi Instagram’ı açıp bize gönderebilirsin.';}catch{message.focus();message.select();feedback.textContent='Otomatik kopyalama kullanılamadı. Seçili metni kopyalayıp Instagram’dan gönderebilirsin.';}});
