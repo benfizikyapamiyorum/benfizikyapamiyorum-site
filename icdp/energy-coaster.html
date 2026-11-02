@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roller Coaster Energy · I Can't Do Physics</title>
+<meta name="description" content="Watch gravitational potential energy turn into kinetic energy, with or without friction.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 1.7.1 Energy</p>
+<h1>Roller Coaster Energy</h1>
+<div class="try"><b>Try this:</b> Press <b>Release</b> and watch the energy bars. Without friction the total energy stays the same. Switch friction on: some energy is transferred to the thermal store of the track and surroundings, so the car cannot climb back as high.</div>
+<div class="card" style="margin-top:16px"><canvas id="track"></canvas></div>
+<div class="grid">
+  <div class="card"><h2>Energy stores</h2><canvas id="bars"></canvas></div>
+  <div class="card">
+    <h2>Controls</h2>
+    <div class="btns"><button id="go" class="primary">▶ Release</button><button id="fric">Friction: OFF</button><button id="reset">Reset</button></div>
+    <label class="ctl"><span>Mass of car <b id="lm">500 kg</b></span><input id="m" type="range" min="100" max="1000" step="50" value="500"></label>
+    <div class="read">
+      <div><small>height</small><b id="rh">20.0 m</b></div>
+      <div><small>speed</small><b id="rv">0.0 m/s</b></div>
+    </div>
+    <p class="note">The car starts from rest 20 m above the ground. g = 9.8 N/kg. With friction on, a constant friction force of 5% of the car's weight acts against the motion.</p>
+    <div class="status" id="status"></div>
+  </div>
+</div>
+
+<section class="check"><h2>Check yourself</h2><p>A 500 kg car rolls from rest down a 20 m drop with no friction. What is its speed at the bottom? (g = 9.8 N/kg)</p><details><summary>Show answer</summary><div class="ans">mgh = ½mv², so v = √(2gh) = √(2 × 9.8 × 20) = <b>19.8 m/s</b> (about 20 m/s). The mass cancels.</div></details></section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+
+const g = 9.8, MU = 0.05, PTS = [[0, 20.6], [22, 1], [44, 13], [66, 0], [88, 8], [106, 2], [120, 26]], XMAX = 120, HMAX = 26;
+let m = 500, fric = false, run = false, st, last = null;
+function hx(x) { x = Math.max(0, Math.min(XMAX, x)); for (let i = 0; i < PTS.length - 1; i++) { const [x0, h0] = PTS[i], [x1, h1] = PTS[i + 1];
+  if (x <= x1) { const u = (x - x0) / (x1 - x0); return h1 + (h0 - h1) * (1 + Math.cos(Math.PI * u)) / 2; } } return PTS[PTS.length - 1][1]; }
+// arc-length table
+const NX = 6000, XS = [], SS = [0]; for (let i = 0; i <= NX; i++) XS.push(i / NX * XMAX);
+for (let i = 1; i <= NX; i++) SS.push(SS[i - 1] + Math.hypot(XS[i] - XS[i - 1], hx(XS[i]) - hx(XS[i - 1])));
+const SMAX = SS[NX];
+// start where the track is exactly 20 m high, on the slope (so the car can move off from rest)
+let XSTART = (() => { let lo = 0, hi = 11; for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; hx(mid) > 20 ? lo = mid : hi = mid; } return (lo + hi) / 2; })();
+let S0 = 0;
+function xOf(s) { s = Math.max(0, Math.min(SMAX, s)); let lo = 0, hi = NX; while (hi - lo > 1) { const mid = (lo + hi) >> 1; SS[mid] <= s ? lo = mid : hi = mid; } const u = (s - SS[lo]) / (SS[hi] - SS[lo] || 1); return XS[lo] + u * (XS[hi] - XS[lo]); }
+S0 = (() => { let lo = 0, hi = SMAX; for (let i = 0; i < 60; i++) { const mid = (lo + hi) / 2; xOf(mid) < XSTART ? lo = mid : hi = mid; } return (lo + hi) / 2; })();
+function slope(s) { const x = xOf(s), e = 0.01, dhdx = (hx(x + e) - hx(x - e)) / (2 * e); return dhdx / Math.sqrt(1 + dhdx * dhdx); } // dh/ds
+function reset() { st = {s: S0, v: 0, th: 0, rest: false}; run = false; $('#go').textContent = '▶ Release'; $('#status').textContent = ''; $('#status').className = 'status'; draw(); }
+function E() { const h = hx(xOf(st.s)); return {h, gpe: m * g * h, ke: 0.5 * m * st.v * st.v, th: st.th}; }
+function physics(dt) {
+  if (st.rest) return; const sl = slope(st.s);
+  if (fric && Math.abs(st.v) < 1e-3 && Math.abs(g * sl) <= MU * g) { st.v = 0; st.rest = true; return; }
+  let a = -g * sl; if (fric) a -= Math.sign(st.v || -sl) * MU * g;
+  const v0 = st.v; st.v += a * dt;
+  if (fric && v0 !== 0 && Math.sign(st.v) !== Math.sign(v0)) st.v = 0; // friction cannot reverse the motion by itself
+  const ds = st.v * dt; st.s = Math.max(0, Math.min(SMAX, st.s + ds)); if (fric) st.th += MU * m * g * Math.abs(ds);
+}
+let T, Bc;
+function sizes() { T = fit($('#track'), 0.3, 180, 300); Bc = fit($('#bars'), 0.62, 220, 300); }
+function drawTrack() {
+  const {c, w, h} = T; c.clearRect(0, 0, w, h);
+  const grd = c.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, '#E0F2FE'); grd.addColorStop(1, '#F8FAFC'); c.fillStyle = grd; c.fillRect(0, 0, w, h);
+  const pad = 40, X = x => pad + x / XMAX * (w - pad - 14), Y = y => h - 22 - y / HMAX * (h - 46);
+  c.fillStyle = '#BBF7D0'; c.fillRect(0, Y(0), w, h - Y(0));
+  // height scale
+  c.font = '10px ' + FONT; c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (let y = 0; y <= 25; y += 5) { c.fillText(y + ' m', pad - 6, Y(y)); c.strokeStyle = 'rgba(15,42,74,.07)'; c.beginPath(); c.moveTo(pad, Y(y)); c.lineTo(w, Y(y)); c.stroke(); }
+  c.strokeStyle = COL.navy; c.lineWidth = 4; c.beginPath(); for (let i = 0; i <= 400; i++) { const x = i / 400 * XMAX; i ? c.lineTo(X(x), Y(hx(x))) : c.moveTo(X(x), Y(hx(x))); } c.stroke();
+  // supports
+  c.strokeStyle = 'rgba(15,42,74,.25)'; c.lineWidth = 1.5; for (let x = 4; x < XMAX; x += 8) { c.beginPath(); c.moveTo(X(x), Y(hx(x)) + 3); c.lineTo(X(x), Y(0)); c.stroke(); }
+  // start height line
+  c.setLineDash([5, 4]); c.strokeStyle = COL.amber; c.lineWidth = 1.5; c.beginPath(); c.moveTo(X(0), Y(20)); c.lineTo(X(XMAX), Y(20)); c.stroke(); c.setLineDash([]);
+  label(c, 'start height 20 m', X(14), Y(20) - 9, {align: 'left', size: 11, col: '#8A5A00'});
+  // car
+  const x = xOf(st.s), px = X(x), py = Y(hx(x)), e = 0.3, ang = Math.atan2(Y(hx(x + e)) - Y(hx(x - e)), X(x + e) - X(x - e));
+  c.save(); c.translate(px, py); c.rotate(ang); c.fillStyle = COL.red; rrect(c, -14, -17, 28, 13, 4); c.fill();
+  c.fillStyle = '#111827'; [-8, 8].forEach(wx => { c.beginPath(); c.arc(wx, -4, 3.5, 0, 7); c.fill(); }); c.restore();
+}
+function drawBars() {
+  const {c, w, h} = Bc; c.clearRect(0, 0, w, h);
+  const en = E(), E0 = m * g * 20, tot = en.gpe + en.ke + en.th, ymax = niceMax(E0 * 1.08 / 1000, 5);
+  const o = {x: 48, y: 10, w: w - 58, h: h - 50, xmin: 0, xmax: 4, ymin: 0, ymax: ymax, xstep: 4, ystep: niceStep(ymax, 5), xlab: '', ylab: 'energy / kJ', ylabOff: 38, xfmt: () => ''};
+  const {X, Y} = axes(c, o);
+  const items = [['GPE', en.gpe, COL.brand], ['KE', en.ke, COL.amber], ['thermal', en.th, COL.red], ['total', tot, COL.navy]];
+  const bw = o.w / 4 * 0.6;
+  items.forEach(([n, v, col], i) => { const cx = o.x + o.w / 4 * (i + 0.5), top = Y(v / 1000);
+    c.fillStyle = col; c.globalAlpha = i === 3 ? 0.85 : 1; c.fillRect(cx - bw / 2, top, bw, Y(0) - top); c.globalAlpha = 1;
+    label(c, n, cx, Y(0) + 12, {size: 12, col: COL.ink}); label(c, fmt(v / 1000, 1), cx, Math.min(top - 9, Y(0) - 9), {size: 11, col: COL.navy}); });
+}
+function readouts() { const en = E(); $('#rh').textContent = fmt(en.h, 1) + ' m'; $('#rv').textContent = fmt(Math.abs(st.v), 1) + ' m/s'; }
+function draw() { drawTrack(); drawBars(); readouts(); }
+function loop(ts) { if (!run) return; if (last == null) last = ts; const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+  const n = Math.ceil(dt / 0.0005); for (let i = 0; i < n; i++) physics(dt / n);
+  if (st.rest) { run = false; $('#go').textContent = '▶ Release'; $('#status').textContent = 'The car has stopped. All the energy it lost from its gravitational store is now in the thermal store of the track and surroundings.'; $('#status').className = 'status warn'; }
+  draw(); if (run) requestAnimationFrame(loop); }
+$('#go').onclick = () => { if (run) { run = false; $('#go').textContent = '▶ Continue'; return; }
+  if (st.rest || st.s === S0) { st = {s: S0, v: 0, th: 0, rest: false}; $('#status').textContent = fric ? 'Friction is on: energy is transferred to the thermal store, so the total of GPE + KE falls.' : 'No friction: GPE + KE stays constant (conservation of energy).'; $('#status').className = 'status'; }
+  run = true; last = null; $('#go').textContent = '❚❚ Pause'; requestAnimationFrame(loop); };
+$('#fric').onclick = () => { fric = !fric; $('#fric').textContent = 'Friction: ' + (fric ? 'ON' : 'OFF'); $('#fric').classList.toggle('on', fric); reset(); };
+bindRange('m', v => { m = v; $('#lm').textContent = v + ' kg'; reset(); });
+$('#reset').onclick = reset;
+sizes(); reset(); onResize(() => { sizes(); draw(); });
+
+</script>
+</body>
+</html>

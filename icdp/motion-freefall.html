@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free Fall and Terminal Velocity · I Can't Do Physics</title>
+<meta name="description" content="Drop a skydiver with and without air resistance, then open the parachute.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 1.2 Motion</p>
+<h1>Free Fall and Terminal Velocity</h1>
+<div class="try"><b>Try this:</b> Choose <b>No air resistance</b> and press <b>Jump</b>: the speed rises steadily by 9.8 m/s every second. Then try <b>With air resistance</b> and watch the drag arrow grow until it equals the weight. Open the parachute and see the new, lower terminal velocity.</div>
+<div class="grid even">
+  <div class="card"><h2>The skydiver</h2><canvas id="scene"></canvas></div>
+  <div class="card"><h2>Speed–time graph</h2><canvas id="graph"></canvas></div>
+</div>
+<div class="grid">
+  <div class="card">
+    <h2>Controls</h2>
+    <div class="btns"><button id="mVac" class="on">No air resistance</button><button id="mAir">With air resistance</button></div>
+    <div class="btns"><button id="jump" class="primary">▶ Jump</button><button id="chute" disabled>Open parachute</button><button id="reset">Reset</button></div>
+    <p class="note">Skydiver mass 80 kg, weight = mg = 80 kg × 9.8 N/kg = 784 N. Time runs three times faster than real time.</p>
+    <div class="status" id="status"></div>
+  </div>
+  <div class="card">
+    <h2>Live readings</h2>
+    <div class="read">
+      <div><small>time</small><b id="rt">0.0 s</b></div>
+      <div><small>speed</small><b id="rv">0.0 m/s</b></div>
+      <div><small>weight (down)</small><b>784 N</b></div>
+      <div><small>air resistance (up)</small><b id="rd">0 N</b></div>
+      <div><small>resultant force</small><b id="rf">784 N ↓</b></div>
+      <div><small>acceleration</small><b id="ra">9.8 m/s²</b></div>
+    </div>
+  </div>
+</div>
+
+<section class="check"><h2>Check yourself</h2><p>Why does the skydiver’s acceleration decrease as she speeds up?</p><details><summary>Show answer</summary><div class="ans">Air resistance (drag) increases as her speed increases, so the resultant force (weight − drag) gets smaller and so does her acceleration. When drag equals weight the resultant force is zero and she falls at a constant <b>terminal velocity</b>.</div></details></section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+
+const m = 80, g = 9.8, W = m * g, KC = W / (50 * 50), KO = W / (5 * 5), TMAX = 60, VMAX = 60, SPEED = 3;
+let air = false, st, playing = false, last = null, cloudY = 0;
+function reset() { st = {t: 0, v: 0, open: null, hist: [[0, 0]], done: false}; playing = false; last = null; $('#chute').disabled = true; $('#jump').textContent = '▶ Jump'; $('#status').textContent = ''; $('#status').className = 'status'; draw(); }
+function k() { if (!air) return 0; if (st.open == null) return KC; const tau = Math.min(1, (st.t - st.open) / 4); return KC + (KO - KC) * tau * tau * tau; }
+function step(dt) {
+  const kk = k(), a = g - kk * st.v * st.v / m; st.v = Math.max(0, st.v + a * dt); st.t += dt;
+}
+let S, G;
+function sizes() { S = fit($('#scene'), 0.8, 260, 380); G = fit($('#graph'), 0.8, 260, 380); }
+function drawScene() {
+  const {c, w, h} = S; c.clearRect(0, 0, w, h);
+  const grd = c.createLinearGradient(0, 0, 0, h); grd.addColorStop(0, '#BFDBFE'); grd.addColorStop(1, '#EFF6FF'); c.fillStyle = grd; c.fillRect(0, 0, w, h);
+  // clouds scroll upwards at a rate proportional to speed
+  c.fillStyle = 'rgba(255,255,255,.9)';
+  for (let i = 0; i < 6; i++) { const cx = ((i * 137) % 100) / 100 * w, cy = ((i * 0.37 * h - cloudY) % (h + 80) + h + 80) % (h + 80) - 40;
+    [[0, 0, 22], [24, 6, 18], [-22, 8, 16], [8, -10, 16]].forEach(([dx, dy, r]) => { c.beginPath(); c.arc(cx + dx, cy + dy, r, 0, 7); c.fill(); }); }
+  const x = w / 2, y = h * 0.48;
+  // parachute
+  if (st.open != null) { const sc = Math.min(1, (st.t - st.open) / 4 * 1.6 + 0.15);
+    c.fillStyle = COL.amber; c.beginPath(); c.ellipse(x, y - 90 * sc, 70 * sc, 34 * sc, 0, Math.PI, 0); c.fill();
+    c.strokeStyle = COL.navy; c.lineWidth = 1; [-66, -30, 30, 66].forEach(dx => { c.beginPath(); c.moveTo(x + dx * sc, y - 90 * sc); c.lineTo(x, y - 14); c.stroke(); }); }
+  // person (spread position)
+  c.strokeStyle = COL.navy; c.lineCap = 'round'; c.lineWidth = 6;
+  c.beginPath(); c.moveTo(x - 26, y - 14); c.lineTo(x, y); c.lineTo(x + 26, y - 14); c.moveTo(x - 16, y + 30); c.lineTo(x, y + 12); c.lineTo(x + 16, y + 30); c.moveTo(x, y); c.lineTo(x, y + 12); c.stroke();
+  c.fillStyle = COL.navy; c.beginPath(); c.arc(x, y - 12, 8, 0, 7); c.fill();
+  // forces: 784 N drawn as 70 px
+  const sc = 70 / W, drag = k() * st.v * st.v;
+  arrow(c, x + 44, y + 6, x + 44, y + 6 + W * sc, COL.red, 4, 12); label(c, 'weight 784 N', x + 52, y + 6 + W * sc - 6, {align: 'left', size: 12, col: COL.red, bg: 'rgba(255,255,255,.85)'});
+  if (drag > 1) { const L = Math.min(drag * sc, 150); arrow(c, x - 44, y + 6, x - 44, y + 6 - L, COL.brand, 4, 12);
+    label(c, 'air resistance ' + fmt(drag, 0) + ' N', x - 52, y + 6 - L + 6, {align: 'right', size: 12, col: COL.brand, bg: 'rgba(255,255,255,.85)'}); }
+}
+function drawGraph() {
+  const {c, w, h} = G; c.clearRect(0, 0, w, h);
+  const o = {x: 50, y: 10, w: w - 62, h: h - 52, xmin: 0, xmax: TMAX, ymin: 0, ymax: VMAX, xstep: 10, ystep: 10, xlab: 'time / s', ylab: 'speed / (m/s)'};
+  const {X, Y} = axes(c, o);
+  if (air) { c.save(); c.setLineDash([5, 5]); c.strokeStyle = COL.muted; c.beginPath(); c.moveTo(X(0), Y(50)); c.lineTo(X(TMAX), Y(50)); c.stroke(); c.restore();
+    label(c, 'terminal velocity 50 m/s', X(TMAX) - 4, Y(50) - 9, {align: 'right', size: 11, col: COL.muted});
+    if (st.open != null) { c.save(); c.setLineDash([5, 5]); c.strokeStyle = COL.muted; c.beginPath(); c.moveTo(X(0), Y(5)); c.lineTo(X(TMAX), Y(5)); c.stroke(); c.restore();
+      label(c, '5 m/s with parachute', X(TMAX) - 4, Y(5) - 9, {align: 'right', size: 11, col: COL.muted}); } }
+  c.strokeStyle = COL.brand; c.lineWidth = 2.6; c.lineJoin = 'round'; c.beginPath();
+  st.hist.forEach(([t, v], i) => { const px = X(t), py = Y(Math.min(v, VMAX)); i ? c.lineTo(px, py) : c.moveTo(px, py); }); c.stroke();
+  c.fillStyle = COL.navy; c.beginPath(); c.arc(X(st.t), Y(Math.min(st.v, VMAX)), 4.5, 0, 7); c.fill();
+}
+function readouts() {
+  const drag = k() * st.v * st.v, F = W - drag, a = F / m;
+  $('#rt').textContent = fmt(st.t, 1) + ' s'; $('#rv').textContent = fmt(st.v, 1) + ' m/s';
+  $('#rd').textContent = fmt(drag, 0) + ' N';
+  $('#rf').textContent = Math.abs(F) < 0.5 ? '0 N' : fmt(Math.abs(F), 0) + ' N ' + (F > 0 ? '↓' : '↑');
+  $('#ra').textContent = Math.abs(a) < 0.005 ? '0.0 m/s²' : fmt(Math.abs(a), 2) + ' m/s² ' + (a > 0 ? '(speeding up)' : '(slowing down)');
+}
+function draw() { drawScene(); drawGraph(); readouts(); }
+function loop(ts) {
+  if (!playing) return; if (last == null) last = ts; let dtR = Math.min(0.05, (ts - last) / 1000) * SPEED; last = ts;
+  const n = Math.ceil(dtR / 0.002); for (let i = 0; i < n; i++) step(dtR / n);
+  cloudY += st.v * dtR / SPEED * 6;
+  if (st.hist.length === 0 || st.t - st.hist[st.hist.length - 1][0] > 0.05) st.hist.push([st.t, st.v]);
+  if (!air && st.v >= VMAX) { playing = false; $('#status').textContent = 'Off the scale! With no air resistance she keeps speeding up by 9.8 m/s every second.'; $('#status').className = 'status warn'; $('#jump').textContent = '▶ Jump again'; }
+  if (st.t >= TMAX) { playing = false; $('#jump').textContent = '▶ Jump again'; $('#chute').disabled = true; }
+  if (air && st.open == null && Math.abs(W - k() * st.v * st.v) < 8 && playing) { $('#status').textContent = 'Air resistance = weight: resultant force is zero, so she falls at terminal velocity.'; $('#status').className = 'status good'; }
+  if (air && st.open != null && st.t - st.open > 6 && st.v < 5.3) { $('#status').textContent = 'New, lower terminal velocity: air resistance = weight again.'; $('#status').className = 'status good'; }
+  draw(); if (playing) requestAnimationFrame(loop);
+}
+function mode(isAir) { air = isAir; $('#mAir').classList.toggle('on', air); $('#mVac').classList.toggle('on', !air); reset(); }
+$('#mAir').onclick = () => mode(true); $('#mVac').onclick = () => mode(false);
+$('#jump').onclick = () => { reset(); playing = true; $('#jump').textContent = 'Falling…'; $('#chute').disabled = !air; requestAnimationFrame(loop); };
+$('#chute').onclick = () => { if (st.open == null && playing) { st.open = st.t; $('#chute').disabled = true; $('#status').textContent = 'Parachute opens: air resistance is now bigger than her weight, so she slows down.'; $('#status').className = 'status warn'; } };
+$('#reset').onclick = reset;
+sizes(); reset(); onResize(() => { sizes(); draw(); });
+
+</script>
+</body>
+</html>

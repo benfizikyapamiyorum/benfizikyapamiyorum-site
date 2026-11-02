@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Balance the Beam: Moments · I Can't Do Physics</title>
+<meta name="description" content="Drag weights onto a pivoted beam and balance the clockwise and anticlockwise moments.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 1.5.2 Turning effect of forces</p>
+<h1>Balance the Beam: Moments</h1>
+<div class="try"><b>Try this:</b> Drag the weights from the tray onto the beam. The beam balances when the total clockwise moment equals the total anticlockwise moment. Drag a weight off the beam to remove it.</div>
+<div class="card" style="margin-top:16px"><canvas id="beam"></canvas><p class="note">Drag a weight onto the beam. It snaps to the nearest 0.05 m. Drag it below the beam to put it back in the tray.</p></div>
+<div class="grid">
+  <div class="card">
+    <h2>Moments about the pivot</h2>
+    <div class="read">
+      <div><small>total anticlockwise moment</small><b id="racw">0.00 N m</b></div>
+      <div><small>total clockwise moment</small><b id="rcw">0.00 N m</b></div>
+    </div>
+    <div class="eq" id="list">moment = force × perpendicular distance from the pivot</div>
+    <div class="status" id="status"></div>
+  </div>
+  <div class="card">
+    <h2>Controls</h2>
+    <div class="btns"><button id="reset">Clear the beam</button><button id="ex">Example: 4 N at 0.30 m</button></div>
+    <p class="note">The beam is uniform and pivoted at its centre, so its own weight has no moment about the pivot. Principle of moments: when the beam is balanced, total clockwise moment = total anticlockwise moment.</p>
+  </div>
+</div>
+
+<section class="check"><h2>Check yourself</h2><p>A 4 N weight is 0.30 m to the left of the pivot. Where must a 6 N weight go to balance the beam?</p><details><summary>Show answer</summary><div class="ans">Anticlockwise moment = 4 N × 0.30 m = 1.2 N m. For balance, 6 N × d = 1.2 N m, so d = <b>0.20 m to the right</b> of the pivot.</div></details></section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+
+const WTS = [{F: 2, col: '#0E9F6E'}, {F: 4, col: '#1F6FEB'}, {F: 6, col: '#7C3AED'}, {F: 4, col: '#1F6FEB'}].map(o => Object.assign(o, {pos: null}));
+let ang = 0, drag = null, last = null, B;
+function sizes() { B = fit($('#beam'), 0.5, 300, 400); }
+function geom() { const {w, h} = B; const BL = Math.min(w - 40, 680); return {cx: w / 2, py: h * 0.36, BL, half: BL / 2, tray: h - 46}; }
+function moments() { let acw = 0, cw = 0; WTS.forEach(o => { if (o.pos == null) return; if (o.pos < 0) acw += o.F * -o.pos; else cw += o.F * o.pos; }); return {acw, cw}; }
+function beamPoint(pos) { const {cx, py, half} = geom(); const r = pos / 0.5 * half; return {x: cx + r * Math.cos(ang), y: py + r * Math.sin(ang)}; }
+function blockSize(F) { return {bw: 30 + F * 3, bh: 24 + F * 2}; }
+function layout() { // compute block rects
+  const {w} = B, g = geom(); const used = {}; let tx = 0; const trayItems = WTS.filter(o => o.pos == null && o !== (drag && drag.o));
+  const totalW = trayItems.reduce((s, o) => s + blockSize(o.F).bw + 14, -14); tx = w / 2 - totalW / 2;
+  WTS.forEach(o => { const {bw, bh} = blockSize(o.F);
+    if (drag && drag.o === o) { o.rect = {x: drag.x - bw / 2, y: drag.y - bh / 2, w: bw, h: bh}; o.hook = null; return; }
+    if (o.pos == null) { o.rect = {x: tx, y: g.tray - bh, w: bw, h: bh}; tx += bw + 14; o.hook = null; return; }
+    const key = o.pos.toFixed(2); const below = used[key] || 0; const p = beamPoint(o.pos);
+    o.hook = p; o.rect = {x: p.x - bw / 2, y: p.y + 18 + below, w: bw, h: bh}; used[key] = below + bh + 10; });
+}
+function draw() {
+  const {c, w, h} = B; c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  const g = geom(); layout();
+  // tray
+  c.fillStyle = '#E2E8F0'; rrect(c, 10, g.tray - 4, w - 20, 34, 8); c.fill(); label(c, 'tray', 22, g.tray + 16, {align: 'left', size: 11, col: COL.muted});
+  // pivot
+  c.fillStyle = COL.navy; c.beginPath(); c.moveTo(g.cx, g.py + 7); c.lineTo(g.cx - 20, g.py + 50); c.lineTo(g.cx + 20, g.py + 50); c.closePath(); c.fill();
+  c.fillStyle = '#94A3B8'; c.fillRect(g.cx - 60, g.py + 50, 120, 6);
+  // beam
+  c.save(); c.translate(g.cx, g.py); c.rotate(ang);
+  c.fillStyle = '#E9C98F'; c.strokeStyle = '#B07D2B'; c.lineWidth = 1; rrect(c, -g.half - 6, -7, g.BL + 12, 14, 3); c.fill(); c.stroke();
+  c.font = '10px ' + FONT; c.fillStyle = '#5B3E0E'; c.textAlign = 'center'; c.textBaseline = 'bottom';
+  for (let i = -10; i <= 10; i++) { const x = i / 20 * g.BL; c.strokeStyle = '#7A5B21'; c.beginPath(); c.moveTo(x, -7); c.lineTo(x, i % 2 ? -3 : 1); c.stroke();
+    if (i % 2 === 0 && i !== 0 && (g.BL > 420 || i % 4 === 0)) c.fillText(Math.abs(i / 20).toFixed(1), x, -9); }
+  c.restore();
+  label(c, 'distance from pivot / m', g.cx, g.py - 30, {size: 11, weight: '500', col: COL.muted});
+  // blocks
+  WTS.forEach(o => { const r = o.rect; if (o.hook) { c.strokeStyle = COL.ink; c.lineWidth = 1.2; c.beginPath(); c.moveTo(o.hook.x, o.hook.y + 6); c.lineTo(o.hook.x, r.y); c.stroke(); }
+    c.fillStyle = o.col; rrect(c, r.x, r.y, r.w, r.h, 5); c.fill(); label(c, o.F + ' N', r.x + r.w / 2, r.y + r.h / 2, {size: 13, weight: '700', col: '#fff'}); });
+}
+function readouts() {
+  const {acw, cw} = moments();
+  $('#racw').textContent = fmt(acw, 2) + ' N m'; $('#rcw').textContent = fmt(cw, 2) + ' N m';
+  const on = WTS.filter(o => o.pos != null).sort((a, b) => a.pos - b.pos);
+  $('#list').innerHTML = on.length ? on.map(o => `${o.F} N × ${fmt(Math.abs(o.pos), 2)} m = ${fmt(o.F * Math.abs(o.pos), 2)} N m ${o.pos < 0 ? '(anticlockwise)' : o.pos > 0 ? '(clockwise)' : '(no moment)'}`).join('<br>') : 'moment = force × perpendicular distance from the pivot';
+  const s = $('#status'), d = cw - acw;
+  if (!on.length) { s.textContent = ''; s.className = 'status'; }
+  else if (Math.abs(d) < 1e-9) { s.textContent = 'Balanced ✓ clockwise moment = anticlockwise moment'; s.className = 'status good'; }
+  else { s.textContent = 'Not balanced: the beam turns ' + (d > 0 ? 'clockwise' : 'anticlockwise') + ' (difference ' + fmt(Math.abs(d), 2) + ' N m)'; s.className = 'status warn'; }
+}
+function loop(ts) { if (last == null) last = ts; const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+  const {acw, cw} = moments(); const target = Math.max(-0.2, Math.min(0.2, (cw - acw) * 0.12)); ang += (target - ang) * Math.min(1, dt * 5);
+  draw(); requestAnimationFrame(loop); }
+const cv = $('#beam');
+cv.addEventListener('pointerdown', e => { const p = pointerPos(cv, e); for (let i = WTS.length - 1; i >= 0; i--) { const r = WTS[i].rect;
+  if (r && p.x >= r.x - 6 && p.x <= r.x + r.w + 6 && p.y >= r.y - 6 && p.y <= r.y + r.h + 6) { drag = {o: WTS[i], x: p.x, y: p.y}; WTS[i].pos = null; cv.setPointerCapture(e.pointerId); readouts(); e.preventDefault(); return; } } });
+cv.addEventListener('pointermove', e => { if (!drag) return; const p = pointerPos(cv, e); drag.x = p.x; drag.y = p.y; });
+function drop() { if (!drag) return; const g = geom(); const o = drag.o;
+  if (drag.y > g.py - 60 && drag.y < g.tray - 40 && Math.abs(drag.x - g.cx) <= g.half + 20) { o.pos = Math.max(-0.5, Math.min(0.5, Math.round((drag.x - g.cx) / g.half * 0.5 / 0.05) * 0.05)); if (Math.abs(o.pos) < 1e-9) o.pos = 0; }
+  drag = null; readouts(); }
+['pointerup', 'pointercancel'].forEach(t => cv.addEventListener(t, drop));
+$('#reset').onclick = () => { WTS.forEach(o => o.pos = null); readouts(); };
+$('#ex').onclick = () => { WTS.forEach(o => o.pos = null); WTS[1].pos = -0.30; readouts(); };
+window.__place = (i, pos) => { WTS[i === 0 ? 1 : 2].pos = pos; readouts(); };
+sizes(); readouts(); requestAnimationFrame(loop); onResize(sizes);
+
+</script>
+</body>
+</html>

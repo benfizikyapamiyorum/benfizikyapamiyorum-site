@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Density by Displacement · I Can't Do Physics</title>
+<meta name="description" content="Weigh an irregular object, lower it into a measuring cylinder and calculate its density.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 1.4 Density</p>
+<h1>Density by Displacement</h1>
+<div class="try"><b>Try this:</b> Pick an object, press <b>Weigh it</b>, then <b>Lower into water</b>. Read the measuring cylinder at the bottom of the meniscus before and after. The rise in the water level is the volume of the object.</div>
+<div class="grid">
+  <div class="card"><canvas id="lab"></canvas></div>
+  <div class="card">
+    <h2>1. Choose an object</h2>
+    <div class="btns" id="objs"></div>
+    <h2 style="margin-top:12px">2. Measure</h2>
+    <div class="btns"><button id="weigh" class="primary">Weigh it</button><button id="lower">Lower into water</button><button id="calc" disabled>Calculate density</button><button id="reset">Reset</button></div>
+    <div class="read">
+      <div><small>mass</small><b id="rm">— g</b></div>
+      <div><small>reading before</small><b>50 cm³</b></div>
+      <div><small>reading after</small><b id="r2">— cm³</b></div>
+      <div><small>volume of object</small><b id="rv">— cm³</b></div>
+    </div>
+    <div class="eq" id="res">density = mass ÷ volume<br><span class="note">Weigh the object and lower it into the water first.</span></div>
+  </div>
+</div>
+
+<section class="check"><h2>Check yourself</h2><p>A stone raises the water level from 40 cm³ to 55 cm³. Its mass is 39 g. What is its density?</p><details><summary>Show answer</summary><div class="ans">Volume = 55 − 40 = 15 cm³. Density = m ÷ V = 39 g ÷ 15 cm³ = <b>2.6 g/cm³</b>.</div></details></section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+
+const OBJ = [
+  {name: 'Stone', m: 65.0, V: 25.0, col: '#8B8F98', shape: 'stone'},
+  {name: 'Aluminium block', m: 54.0, V: 20.0, col: '#C7CED8', shape: 'block'},
+  {name: 'Brass key', m: 34.0, V: 4.0, col: '#D4A72C', shape: 'key'},
+  {name: 'Glass marble', m: 15.0, V: 6.0, col: '#60A5FA', shape: 'marble'},
+];
+const V0 = 50;
+let o = 0, weighed = false, lowered = 0, target = 0, anim = null, calced = false;
+$('#objs').innerHTML = OBJ.map((b, i) => `<button data-obj="${i}" class="${i === 0 ? 'on' : ''}">${b.name}</button>`).join('');
+$$('[data-obj]').forEach(b => b.onclick = () => { o = +b.dataset.obj; $$('[data-obj]').forEach(x => x.classList.toggle('on', x === b)); reset(); });
+let L;
+function sizes() { L = fit($('#lab'), 0.78, 320, 470); }
+function level() { return V0 + OBJ[o].V * Math.max(0, Math.min(1, (lowered - 0.45) / 0.4)); }
+function drawObj(c, x, y, s) { // y = bottom of object
+  const b = OBJ[o]; c.save(); c.fillStyle = b.col; c.strokeStyle = 'rgba(15,42,74,.55)'; c.lineWidth = 1.2;
+  if (b.shape === 'block') { rrect(c, x - 13 * s, y - 20 * s, 26 * s, 20 * s, 2); c.fill(); c.stroke(); }
+  else if (b.shape === 'stone') { c.beginPath(); c.moveTo(x - 15 * s, y - 4 * s); c.quadraticCurveTo(x - 17 * s, y - 20 * s, x - 2 * s, y - 22 * s); c.quadraticCurveTo(x + 16 * s, y - 22 * s, x + 15 * s, y - 7 * s); c.quadraticCurveTo(x + 12 * s, y + 1 * s, x, y); c.quadraticCurveTo(x - 12 * s, y + 1 * s, x - 15 * s, y - 4 * s); c.fill(); c.stroke(); }
+  else if (b.shape === 'marble') { c.beginPath(); c.arc(x, y - 8 * s, 8 * s, 0, 7); c.fill(); c.stroke(); c.fillStyle = 'rgba(255,255,255,.7)'; c.beginPath(); c.arc(x - 3 * s, y - 11 * s, 2.4 * s, 0, 7); c.fill(); }
+  else { c.beginPath(); c.arc(x, y - 22 * s, 6 * s, 0, 7); c.fill(); c.stroke(); c.fillRect(x - 2 * s, y - 17 * s, 4 * s, 17 * s); c.strokeRect(x - 2 * s, y - 17 * s, 4 * s, 17 * s); c.fillRect(x + 2 * s, y - 7 * s, 4 * s, 3 * s); c.fillRect(x + 2 * s, y - 3 * s, 3 * s, 3 * s); c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y - 22 * s, 2.2 * s, 0, 7); c.fill(); }
+  c.restore();
+}
+function draw() {
+  const {c, w, h} = L; c.clearRect(0, 0, w, h);
+  c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  const table = h - 26; c.fillStyle = '#E9C98F'; c.fillRect(0, table, w, 26); c.fillStyle = 'rgba(0,0,0,.08)'; c.fillRect(0, table, w, 3);
+  // balance
+  const bx = w * 0.24, bw = Math.min(150, w * 0.36);
+  c.fillStyle = COL.navy; rrect(c, bx - bw / 2, table - 46, bw, 46, 8); c.fill();
+  c.fillStyle = '#0B1F36'; rrect(c, bx - bw * 0.36, table - 34, bw * 0.72, 24, 4); c.fill();
+  const shown = weighed && lowered === 0 ? OBJ[o].m : 0;
+  label(c, fmt(shown, 1) + ' g', bx, table - 22, {size: 16, weight: '700', col: '#4ADE80'});
+  c.fillStyle = COL.navy; c.fillRect(bx - 4, table - 56, 8, 10);
+  c.fillStyle = '#94A3B8'; rrect(c, bx - bw * 0.42, table - 62, bw * 0.84, 7, 3); c.fill();
+  label(c, 'top-pan balance', bx, table + 13, {size: 11, weight: '600', col: '#7A5B21'});
+  // cylinder geometry
+  const cx = w * 0.7, cw = Math.min(64, w * 0.15), top = 40, bottom = table - 12, H = bottom - top - 18;
+  const Y = v => bottom - v / 100 * H;
+  // water
+  const lv = level(), wy = Y(lv);
+  c.fillStyle = 'rgba(96,165,250,.45)'; c.beginPath(); c.moveTo(cx - cw / 2, bottom); c.lineTo(cx - cw / 2, wy - 5); c.quadraticCurveTo(cx, wy + 4, cx + cw / 2, wy - 5); c.lineTo(cx + cw / 2, bottom); c.closePath(); c.fill();
+  c.strokeStyle = '#2563EB'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx - cw / 2, wy - 5); c.quadraticCurveTo(cx, wy + 4, cx + cw / 2, wy - 5); c.stroke();
+  // object
+  const s = Math.min(1.25, cw / 34);
+  if (!weighed && lowered === 0) drawObj(c, bx - bw / 2 - 30 > 20 ? bx + bw / 2 + 26 : bx, table, 1.1);
+  else if (lowered === 0) drawObj(c, bx, table - 62, 1.1);
+  else { const yb = (top - 30) + (bottom - 4 - (top - 30)) * Math.min(1, lowered / 0.85); drawObj(c, cx, yb, s);
+    if (lowered < 0.85) { c.strokeStyle = COL.muted; c.lineWidth = 1; c.beginPath(); c.moveTo(cx, 0); c.lineTo(cx, yb - 24 * s); c.stroke(); } }
+  // glass + scale
+  c.strokeStyle = '#64748B'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx - cw / 2, top); c.lineTo(cx - cw / 2, bottom); c.lineTo(cx + cw / 2, bottom); c.lineTo(cx + cw / 2, top); c.stroke();
+  c.fillStyle = '#CBD5E1'; rrect(c, cx - cw / 2 - 14, bottom, cw + 28, 10, 3); c.fill();
+  c.font = '10px ' + FONT; c.fillStyle = COL.ink; c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (let v = 0; v <= 100; v += 2) { const y = Y(v), maj = v % 10 === 0; c.strokeStyle = COL.ink; c.lineWidth = maj ? 1.3 : 0.8;
+    c.beginPath(); c.moveTo(cx - cw / 2, y); c.lineTo(cx - cw / 2 + (maj ? 16 : 8), y); c.stroke(); if (maj && v > 0) c.fillText(v, cx - cw / 2 - 4, y); }
+  label(c, 'cm³', cx - cw / 2 - 4, top - 10, {size: 10, align: 'right', col: COL.muted});
+  // reading pointer
+  const ry = wy; c.strokeStyle = COL.amber; c.lineWidth = 2; c.setLineDash([4, 3]); c.beginPath(); c.moveTo(cx + cw / 2 + 4, ry); c.lineTo(cx + cw / 2 + 22, ry); c.stroke(); c.setLineDash([]);
+  label(c, 'read here: ' + fmt(lv, 0) + ' cm³', cx + cw / 2 + 24, ry, {align: 'left', size: 11, col: '#8A5A00', bg: 'rgba(255,244,223,.95)'});
+  if (w > 420) label(c, '(bottom of the meniscus)', cx + cw / 2 + 24, ry + 18, {align: 'left', size: 10, weight: '500', col: COL.muted});
+  label(c, 'measuring cylinder', cx, table + 13, {size: 11, col: '#7A5B21'});
+  readouts();
+}
+function readouts() {
+  const b = OBJ[o];
+  $('#rm').textContent = weighed ? fmt(b.m, 1) + ' g' : '— g';
+  $('#r2').textContent = lowered >= 1 ? fmt(V0 + b.V, 0) + ' cm³' : '— cm³';
+  $('#rv').textContent = lowered >= 1 ? fmt(V0 + b.V, 0) + ' − ' + V0 + ' = ' + fmt(b.V, 0) + ' cm³' : '— cm³';
+  $('#calc').disabled = !(weighed && lowered >= 1);
+  $('#weigh').disabled = weighed; $('#lower').disabled = !weighed || lowered > 0;
+  if (calced) { const r = b.m / b.V;
+    $('#res').innerHTML = `density = mass ÷ volume = ${fmt(b.m, 1)} g ÷ ${fmt(b.V, 1)} cm³ = <b>${sig(r, 2)} g/cm³</b><br>= ${fmt(r * 1000, 0)} kg/m³ <span class="note">(1 g/cm³ = 1000 kg/m³)</span>`; }
+  else $('#res').innerHTML = 'density = mass ÷ volume<br><span class="note">' + (weighed && lowered >= 1 ? 'Now press Calculate density.' : 'Weigh the object and lower it into the water first.') + '</span>';
+}
+function animate(ts) { if (anim == null) anim = ts; lowered = Math.min(1, (ts - anim) / 1300); draw(); if (lowered < 1) requestAnimationFrame(animate); else anim = null; }
+$('#weigh').onclick = () => { weighed = true; draw(); };
+$('#lower').onclick = () => { if (!weighed) return; anim = null; requestAnimationFrame(animate); };
+$('#calc').onclick = () => { calced = true; draw(); };
+function reset() { weighed = false; lowered = 0; calced = false; anim = null; draw(); }
+$('#reset').onclick = reset;
+sizes(); draw(); onResize(() => { sizes(); draw(); });
+
+</script>
+</body>
+</html>
