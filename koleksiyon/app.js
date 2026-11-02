@@ -1,5 +1,13 @@
 (() => {
   'use strict';
+  const footer = document.querySelector('footer.footer');
+  if (footer && !footer.querySelector('.shipping-note')) {
+    const shippingNote = document.createElement('p');
+    shippingNote.className = 'wrap shipping-note';
+    shippingNote.textContent = 'Ürün fiyatlarına 120 TL kargo ücreti dahildir. Kargo için ayrıca ücret alınmaz.';
+    shippingNote.style.cssText = 'margin-top:24px;margin-bottom:0;padding-top:20px;border-top:1px solid currentColor;font-size:13px;line-height:1.7;opacity:.9';
+    footer.append(shippingNote);
+  }
   const data=JSON.parse(document.getElementById('product-data').textContent);
   const base=document.body.dataset.base;
   const productId=document.body.dataset.product;
