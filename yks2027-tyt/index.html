@@ -1357,7 +1357,7 @@ if (window.BFY_URUN && window.BFY_URUN.kod === 'y27a') window.BFY_KATALOG = [
       ]},
       { no: 5, ad: 'Atom Fiziği ve Modern Fizik', konular: [
         { id: 'A.5.1', ad: 'Atom Modelleri ve Büyük Patlama' }, { id: 'A.5.2', ad: 'Radyoaktivite' }, { id: 'A.5.3', ad: 'Özel Görelilik' },
-        { id: 'A.5.4', ad: 'Kara Cisim, Fotoelektrik ve Compton' }, { id: 'A.5.5', ad: 'Modern Fiziğin Teknolojideki Uygulamaları' }
+        { id: 'A.5.4', ad: 'Siyah Cisim, Fotoelektrik ve Compton' }, { id: 'A.5.5', ad: 'Modern Fiziğin Teknolojideki Uygulamaları' }
       ]}
     ]
   }
@@ -22061,8 +22061,11 @@ window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
    Yapabilirim 11'deki simülasyonun (src/konu/11_1_4/sim.js) çizim ve modeli bu kitabın 2018 programına göre
    uyarlanmıştır: yatay düzlemde durgun hâlden başlayan 1 kg'lık takoz dinamometreyle yatay F kuvvetiyle çekilir.
    Öğrenci kuvveti, yüzey çiftini ve takozun duruşunu (geniş yüz, dar yüz, üstünde özdeş takoz) değiştirir.
-   Program "matematiksel model verilir, hesaplamalara girilmez" dediği için canlı satır modeli yerine koymaz;
-   uygulanan kuvveti kayma eşiğiyle karşılaştırır ve okunan sürtünmeyi gösterir. İvme gösterilmez.
+   Program "matematiksel model verilir, hesaplamalara girilmez" dediği için simülasyon NİTELDİR (Timur'un kararı,
+   3 Kasım 2026): kuvvet newton yerine kademeyle ayarlanır, kayma eşiği ve sürtünme sayıyla yazılmaz; uygulanan kuvvet
+   bir çubukta kayma eşiği işaretiyle karşılaştırılır, durum "kayıyor / kaymıyor" diye yazılır, grafik sayısızdır.
+   Ölçüm kutuları yalnız sayım verir (üst üste takoz, kayan takoz). İvme gösterilmez.
+   İç model: 1 kademe = 2 N (öğrenciye gösterilmez).
    Model: N = m · g, f_s,max = k_s · N, f_k = k · N; F < f_s,max ise f_s = F, değilse f = f_k. g = 10 m/s².
    Katsayılar (yaklaşık, kuru yüzeyler; Serway & Jewett, Physics for Scientists and Engineers, Tablo 5.1):
    tahta–tahta 0,40 / 0,20; lastik–kuru beton 1,0 / 0,8; alüminyum–çelik 0,61 / 0,47.
@@ -22080,10 +22083,11 @@ const CIFT = {
   3: { ks: 0.61, kk: 0.47, ad: 'çelik levha', blok: ['#eef1f4', '#a9b3bb'], kenar: '#5f6a72', zemin: ['#e9edf0', '#9aa5ad'], cizgi: '#6d7a84' }
 };
 const TAKOZ = { 1: 'tahta takoz', 2: 'lastik kaplı takoz', 3: 'alüminyum takoz' };
+const KADEME = 2;                                              // 1 kademe = 2 N (iç model)
 function hesap(v) {
-  const c = CIFT[v.cift], m = v.durus === 3 ? 2 * M : M, N = m * g;
-  const fsm = c.ks * N, fk = c.kk * N, kayar = v.F >= fsm - 1e-9;
-  return { m, N, fsm, fk, kayar, f: kayar ? fk : v.F };
+  const c = CIFT[v.cift], m = v.durus === 3 ? 2 * M : M, N = m * g, F = v.F * KADEME;
+  const fsm = c.ks * N, fk = c.kk * N, kayar = F >= fsm - 1e-9;
+  return { m, N, F, fsm, fk, kayar, f: kayar ? fk : F };
 }
 
 /* Geniş: 560 × 320 (sahne solda, f–F grafiği sağda). Dar: 300 × 556 (grafik altta). */
@@ -22112,23 +22116,30 @@ function sahne(v, u, o) {
   s += `<line x1="${xr}" y1="${yk}" x2="${d0}" y2="${yk}" stroke="#4a4a4a" stroke-width="1.3"/>`;
   s += `<rect x="${d0}" y="${dy}" width="${L}" height="14" rx="4" fill="#fbfcfb" stroke="#55626b" stroke-width="1.4"/>`;
   for (let n = 0; n <= 24; n += 4) { const tx = r1(d0 + 6 + n / 24 * (L - 12)); s += `<line x1="${tx}" y1="${dy + 1.5}" x2="${tx}" y2="${dy + (n % 8 ? 4.5 : 6.5)}" stroke="#55626b" stroke-width=".9"/>`; }
-  const px = r1(d0 + 6 + Math.min(v.F, 24) / 24 * (L - 12));
+  const px = r1(d0 + 6 + Math.min(h.F, 24) / 24 * (L - 12));
   s += `<line x1="${px}" y1="${dy + 2}" x2="${px}" y2="${dy + 12}" stroke="${P.coral}" stroke-width="2.4"/>`;
   s += `<circle cx="${d0 + L + 5}" cy="${yk}" r="4" fill="none" stroke="#55626b" stroke-width="1.5"/>`;
   /* uygulanan kuvvet: dinamometrenin halkasından sağa */
   const xF = d0 + L + 10;
-  if (v.F > 0) s += arrow(xF, yk, r1(xF + Math.min(40, Math.max(8, v.F * 1.7))), yk, { color: P.blue, w: 2.8, head: Math.min(9, 4 + v.F * 0.5), headW: 5 });
-  s += T(d0 + L / 2, dy - 9, `F = ${sayi(v.F, v.F % 1 ? 1 : 0)} N`, { size: 12.5, weight: 800, fill: P.blue, anchor: 'middle' });
+  if (h.F > 0) s += arrow(xF, yk, r1(xF + Math.min(40, Math.max(8, h.F * 1.7))), yk, { color: P.blue, w: 2.8, head: Math.min(9, 4 + h.F * 0.5), headW: 5 });
+  s += T(d0 + L / 2, dy - 9, 'F', { size: 13, weight: 800, fill: P.blue, anchor: 'middle' });
   /* sürtünme kuvveti: temas yüzeyinde, kayma (eğilimi) yönüne zıt */
   const fl = h.f * KF;
   if (fl >= 3) s += arrow(xl, YS - 3, r1(xl - Math.min(fl, 60)), YS - 3, { color: P.coral, w: 2.8, head: Math.min(9, fl * 0.6), headW: 5 });
-  s += T(xl - 4, YS - 12, `${h.kayar ? 'f_k' : 'f_s'} = ${sayi(h.f, 1)} N`, { size: 12.5, weight: 800, fill: P.coral, anchor: 'end' });
+  if (fl >= 3) s += T(xl - 4, YS - 12, h.kayar ? 'f_k' : 'f_s', { size: 13, weight: 800, fill: P.coral, anchor: 'end' });
   /* durum */
   if (h.kayar) {
     s += arrow(24, 52, 90, 52, { color: '#6b4fb3', w: 2.6, head: 8, headW: 4.6 });
     s += T(98, 56, 'Takoz kayıyor.', { size: 12.5, weight: 800, fill: '#6b4fb3' });
   } else s += T(24, 56, v.F > 0 ? 'Takoz kaymıyor: f_s = F' : 'Kuvvet yok: sürtünme yok', { size: 12.5, weight: 800, fill: P.green });
-  s += T(24, 80, `Kayma eşiği: ${sayi(h.fsm, 1)} N`, { size: 12, weight: 700, fill: P.ink2 });
+  /* kuvvet çubuğu: uygulanan kuvvet (mavi) ve kayma eşiği (kırmızı kesikli işaret), sayısız */
+  const cx0 = 24, cw = 240, cy = 88, cx = F => r1(cx0 + Math.min(F, 24) / 24 * cw);
+  s += T(cx0, 80, 'Uygulanan kuvvet ve kayma eşiği', { size: 12, weight: 700, fill: P.ink2 });
+  s += `<rect x="${cx0}" y="${cy}" width="${cw}" height="10" rx="5" fill="#e3eaef" stroke="#c7d3db" stroke-width=".8"/>`;
+  if (h.F > 0) s += `<rect x="${cx0}" y="${cy}" width="${r1(Math.max(6, cx(h.F) - cx0))}" height="10" rx="5" fill="${h.kayar ? '#6b4fb3' : P.blue}"/>`;
+  const xe0 = cx(h.fsm);
+  s += `<line x1="${xe0}" y1="${cy - 5}" x2="${xe0}" y2="${cy + 15}" stroke="${P.coral}" stroke-width="2.2" stroke-dasharray="3 2"/>`;
+  s += T(xe0, cy + 28, 'kayma eşiği', { size: 11.5, weight: 700, fill: P.coral, anchor: xe0 < cx0 + 40 ? 'start' : xe0 > cx0 + cw - 40 ? 'end' : 'middle' });
 
   /* --- f–F grafiği (eksenler aynı ölçekte, 0–24 N) --- */
   const [OX, OY] = G.gO, K = G.gK, gx = F => r1(OX + F * K), gy = f => r1(OY - f * K);
@@ -22136,10 +22147,9 @@ function sahne(v, u, o) {
   const xe = gx(24) + 8, ye = gy(24) - 10;
   s += `<line x1="${OX}" y1="${OY}" x2="${xe}" y2="${OY}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${xe + 7},${OY} ${xe - 2},${OY - 3.8} ${xe - 2},${OY + 3.8}" fill="${P.ink}"/>`;
   s += `<line x1="${OX}" y1="${OY}" x2="${OX}" y2="${ye}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${OX},${ye - 7} ${OX - 3.8},${ye + 2} ${OX + 3.8},${ye + 2}" fill="${P.ink}"/>`;
-  s += T(OX + 8, ye + 2, 'f (N)', { size: 12.5, weight: 700 });
-  s += T(xe + 11, OY + 4.5, 'F (N)', { size: 12.5, weight: 700 });
+  s += T(OX + 8, ye + 2, 'sürtünme kuvveti', { size: 12.5, weight: 700 });
+  s += T(xe + 11, OY + 4.5, 'F', { size: 13, weight: 800 });
   s += T(OX - 5, OY + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
-  for (let F = 8; F <= 24; F += 8) s += T(gx(F), G.tickY, String(F), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 }) + T(OX - 6, gy(F) + 4.3, String(F), { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
   // eğri: statik bölge, eşikte düşüş, kinetik bölge (eşik grafiğin dışındaysa yalnız statik doğru)
   const fsx = Math.min(h.fsm, 24);
   s += `<line x1="${OX}" y1="${OY}" x2="${gx(fsx)}" y2="${gy(fsx)}" stroke="${P.green}" stroke-width="2.6" stroke-linecap="round"/>`;
@@ -22149,7 +22159,7 @@ function sahne(v, u, o) {
     s += T(gx(24) - 2, h.fk * K < 22 ? gy(h.fk) - 8 : gy(h.fk) + 17, 'kinetik', { size: 12, weight: 700, fill: P.coral, anchor: 'end' });
   }
   s += T(OX + 8, gy(24) + 14, 'statik: f_s = F', { size: 12, weight: 700, fill: P.green });
-  s += `<circle cx="${gx(v.F)}" cy="${gy(h.f)}" r="5.2" fill="${P.coral}" stroke="#fff" stroke-width="1.6"/>`;
+  s += `<circle cx="${gx(Math.min(h.F, 24))}" cy="${gy(h.f)}" r="5.2" fill="${P.coral}" stroke="#fff" stroke-width="1.6"/>`;
   return svg(G.W, G.H, s, u, dar ? 80 : 150);
 }
 
@@ -22159,14 +22169,14 @@ BFY_SIM['Y.3.3'] = [
     id: 'kY33_sim1',
     baslik: 'Takoz ne zaman kaymaya başlar?',
     sonra: 'Statik ve kinetik sürtünme',
-    metin: 'Takoz her denemede yatay yüzeyde durgun hâlden başlar. Kaydırıcıyla dinamometrenin uyguladığı yatay $F$ kuvvetini, düğmelerle yüzey çiftini ve takozun duruşunu değiştir. Her takozun kütlesi $1\\ \\text{kg}$\'dır; dar yüz, aynı takozun yan çevrilmiş hâlidir. Kırmızı ok temas yüzeyindeki sürtünme kuvvetidir. Grafikte sürtünme kuvveti–uygulanan kuvvet eğrisi ve takozun o anki durumu görülür; $g = 10\\ \\text{m/s}^2$ alınmıştır.',
-    pdfMetin: 'Şekilde kuru beton üzerindeki $1\\ \\text{kg}$\'lık lastik kaplı takoza dinamometreyle $6\\ \\text{N}$\'luk yatay kuvvet uygulanıyor. Kayma eşiği $10\\ \\text{N}$ olduğundan takoz kaymaz ve sürtünme kuvveti uygulanan kuvvete eşittir. Grafikte kuvvet $10\\ \\text{N}$\'a ulaşınca takoz kayar ve sürtünme $8\\ \\text{N}$\'luk kinetik değere düşer. Takoz dar yüzü üzerine çevrilse de eşik değişmez; üstüne özdeş bir takoz konunca eşik ve kinetik sürtünme büyür.',
+    metin: 'Takoz her denemede yatay yüzeyde durgun hâlden başlar. Kaydırıcıyla dinamometrenin uyguladığı yatay $F$ kuvvetini kademe kademe artır; düğmelerle yüzey çiftini ve takozun duruşunu değiştir. Dar yüz, aynı takozun yan çevrilmiş hâlidir. Kırmızı ok temas yüzeyindeki sürtünme kuvvetidir. Çubukta mavi bölüm uygulanan kuvveti, kırmızı kesikli çizgi kayma eşiğini gösterir. Grafikte sürtünme kuvvetinin uygulanan kuvvetle nasıl değiştiği ve takozun o anki durumu görülür.',
+    pdfMetin: 'Şekilde kuru beton üzerindeki lastik kaplı takoza dinamometreyle yatay bir kuvvet uygulanıyor. Kuvvet çubuğu kayma eşiğine ulaşmadığı için takoz kaymaz ve statik sürtünme kuvveti uygulanan kuvvete eşittir. Grafikte kuvvet kayma eşiğine ulaşınca takoz kayar ve sürtünme daha küçük olan kinetik değere düşer. Takoz dar yüzü üzerine çevrilse de eşik değişmez; üstüne özdeş bir takoz konunca eşik ve kinetik sürtünme büyür.',
     kontroller: [
-      { ad: 'F', etiket: 'Uygulanan kuvvet', min: 0, max: 24, adim: 0.5, deger: 6, birim: 'N' },
+      { ad: 'F', etiket: 'Uygulanan kuvvet', min: 0, max: 12, adim: 1, deger: 3, birim: 'kademe' },
       { ad: 'cift', etiket: 'Yüzey çifti', deger: 2, secenekler: [
-        { deger: 1, etiket: 'Tahta – tahta', alt: 'statik 0,40; kinetik 0,20' },
-        { deger: 2, etiket: 'Lastik – kuru beton', alt: 'statik 1,0; kinetik 0,8' },
-        { deger: 3, etiket: 'Alüminyum – çelik', alt: 'statik 0,61; kinetik 0,47' } ] },
+        { deger: 1, etiket: 'Tahta – tahta', alt: 'kaygan' },
+        { deger: 2, etiket: 'Lastik – kuru beton', alt: 'çok tutucu' },
+        { deger: 3, etiket: 'Alüminyum – çelik', alt: 'orta' } ] },
       { ad: 'durus', etiket: 'Takozun duruşu', deger: 1, secenekler: [
         { deger: 1, etiket: 'Geniş yüzü altta' },
         { deger: 2, etiket: 'Dar yüzü altta' },
@@ -22176,19 +22186,18 @@ BFY_SIM['Y.3.3'] = [
     olcumler: v => {
       const h = hesap(v);
       return [
-        { etiket: 'Tepki kuvveti', deger: h.N, birim: 'N', ondalik: 0 },
-        { etiket: 'Kayma eşiği', deger: h.fsm, birim: 'N', ondalik: 1 },
-        { etiket: 'Sürtünme kuvveti', deger: h.f, birim: 'N', ondalik: 1 }
+        { etiket: 'Yüzeye bastıran takoz', deger: h.m, birim: 'tane', ondalik: 0 },
+        { etiket: 'Kayan takoz', deger: h.kayar ? h.m : 0, birim: 'tane', ondalik: 0 }
       ];
     },
     denklem: v => {
       const h = hesap(v);
       if (v.F === 0) return `F = 0 \\Rightarrow f = 0`;
-      if (!h.kayar) return `F = ${sayi(v.F, 1)}\\ \\text{N} < f_{s,\\text{max}} = ${sayi(h.fsm, 1)}\\ \\text{N} \\Rightarrow f_s = F = ${sayi(v.F, 1)}\\ \\text{N}`;
-      return `F \\geq f_{s,\\text{max}} \\Rightarrow \\text{kayar, } f_k = ${sayi(h.fk, 1)}\\ \\text{N}`;
+      if (!h.kayar) return `F < f_{s,\\text{max}} \\Rightarrow \\text{kaymaz, } f_s = F`;
+      return `F \\geq f_{s,\\text{max}} \\Rightarrow \\text{kayar, } f_k < f_{s,\\text{max}}`;
     },
-    gorev: 'Lastik – kuru beton çiftinde, takozun geniş yüzü altta iken kuvveti yarım newtonluk adımlarla artırıp takozun hangi kuvvette kaymaya başladığını gözle; bulduğun değeri ekrandaki kayma eşiğiyle karşılaştır. Takozu dar yüzü üzerine çevirince ve üstüne özdeş takoz koyunca bu kuvvet nasıl değişir? Kayma başlayınca sürtünme kuvvetine ne olur? Önce tahmin et, sonra dene.',
-    gorevCevap: 'Geniş yüzü altta iken takoz $9{,}5$ N\'da kaymaz, $10$ N\'da kaymaya başlar. Dar yüzü altta iken de eşik $10$ N\'dur; temas alanı değişti ama yüzeyler ve tepki kuvveti aynı kaldı. Üstüne özdeş takoz konunca tepki kuvveti büyür ve takozlar ancak $20$ N\'da kayar. Kayma başlayınca sürtünme kinetik değere düşer: tek takozda $8$ N, iki takozda $16$ N. Bir cismi harekete geçirmek, kayarken hareketini sürdürmekten daha büyük kuvvet ister.'
+    gorev: 'Lastik – kuru beton çiftinde, takozun geniş yüzü altta iken kuvveti kademe kademe artır ve mavi çubuk kayma eşiğine ulaşınca ne olduğunu gözle. Takozu dar yüzü üzerine çevirince eşik çizgisi yer değiştirir mi? Üstüne özdeş takoz koyunca ne olur? Kayma başlayınca sürtünme kuvveti büyür mü, küçülür mü? Önce tahmin et, sonra dene.',
+    gorevCevap: 'Kuvvet eşiğe ulaşmadıkça takoz kaymaz ve statik sürtünme her kademede uygulanan kuvvete eşit kalır: Kuvvet arttıkça sürtünme de artar. Dar yüzü altta iken eşik çizgisi yerinden oynamaz; temas alanı değişti ama yüzeylerin cinsi ve tepki kuvveti aynı kaldı. Üstüne özdeş takoz konunca tepki kuvveti büyür, eşik çizgisi sağa kayar ve takozları kaydırmak için daha büyük kuvvet gerekir. Kayma başlayınca sürtünme, eşikten daha küçük olan kinetik değere düşer. Bir cismi harekete geçirmek, kayarken hareketini sürdürmekten daha büyük kuvvet ister.'
   }
 ];
 })();
@@ -39560,7 +39569,9 @@ window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
    1) kY81_sim1: tablalı platform süngerde; m yük, n ayak (1–3), her ayağın tabanı A; P = m · g / (n · A).
       2021 TYT sorusundaki "tekerlek sayısı ve yük" fikri için ayak sayısı kontrolü eklenmiştir.
    2) kY81_sim2: sonda ile sıvı basıncı; h derinlik, sıvı cinsi ve kap biçimi (silindir, yukarı genişleyen,
-      yukarı daralan); P = h · d · g. Kap biçimi basıncı değiştirmez.
+      yukarı daralan); iç model P = h × d × g. Kap biçimi basıncı değiştirmez. NİTEL (Timur'un kararı, 3 Kasım 2026):
+      basınç Pa olarak yazılmaz; sondanın göstergesi 20 bölmeli bir çubuktur (tam dolu = gliserinde 80 cm),
+      grafikte basınç ekseni sayısızdır, sıvıların özkütlesi sayıyla verilmez.
    g = 10 m/s². Şablon ve kurallar: SIM_KILAVUZ.md
    ============================================================ */
 (function () {
@@ -39687,6 +39698,7 @@ const DX = 236;
 const GENIS = { W: 560, H: 332, OX: 352, OY: 290, GX: 1.7, GY: 21.45, EX: 150, EY: 250, panel: [292, 12, 256, 308] };
 const DAR = { W: 300, H: 556, OX: 64, OY: 518, GX: 1.9, GY: 13.5, EX: 164, EY: 160, panel: [10, 340, 280, 206] };
 const PMAX = 0.8 * 1260 * g;
+const bolme = v => Math.round(20 * basinc(v) / PMAX);        // göstergede dolan bölme (0–20)
 
 function sahne(v, u, o) {
   const G = o && o.dar ? DAR : GENIS, { W, H, OX, OY, GX, GY } = G;
@@ -39719,7 +39731,9 @@ function sahne(v, u, o) {
   s += `<rect x="${XC - 6}" y="${yp - 10}" width="12" height="10" rx="2" fill="#41525c"/>`;
   s += `<rect x="${bx}" y="${by}" width="112" height="38" rx="8" fill="#24323a"/>`;
   s += `<rect x="${bx + 6}" y="${by + 6}" width="100" height="26" rx="4" fill="#d6ead0"/>`;
-  s += T(XC, by + 25, `${sayi(Pa, 0)} Pa`, { size: 15, anchor: 'middle', weight: 800, fill: '#1f3b2c', halo: false });
+  /* basınç göstergesi: 20 bölmeli çubuk (sayısız) */
+  const nb = bolme(v);
+  for (let i = 0; i < 20; i++) s += `<rect x="${bx + 9 + i * 4.75}" y="${by + 10}" width="3.6" height="18" rx="1" fill="${i < nb ? '#2e7d4f' : '#b9d3b1'}"/>`;
   const L = 24 * Pa / PMAX;
   if (L >= 5) {
     const hd = Math.min(8, L * 0.7);
@@ -39737,7 +39751,7 @@ function sahne(v, u, o) {
   } else if (hp > 0) s += `<line x1="${DX}" y1="${YS}" x2="${DX}" y2="${yp}" stroke="${P.ink}" stroke-width="1.4"/>`;
   const ey = hp >= 18 ? etY : yp + 14;
   s += T(DX + 7, ey.toFixed(1), 'h =', { size: 12.5, weight: 800 }) + T(DX + 7, (ey + 16).toFixed(1), `${sayi(v.h, 0)} cm`, { size: 12.5, weight: 800 });
-  s += T(148, YB + 34, `${sv.ad}: d = ${sayi(v.sivi, 0)} kg/m^3`, { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink });
+  s += T(148, YB + 34, sv.ad, { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink });
   /* P–h grafiği */
   const gx = h => OX + h * GX, gy = kpa => OY - kpa * GY;
   for (let h = 20; h <= 80; h += 20) s += `<line x1="${gx(h)}" y1="${OY}" x2="${gx(h)}" y2="${gy(10.6)}" stroke="#e1e9ee" stroke-width="1"/>`;
@@ -39746,10 +39760,9 @@ function sahne(v, u, o) {
   s += `<line x1="${OX}" y1="${OY}" x2="${xe}" y2="${OY}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${xe + 7},${OY} ${xe - 2},${OY - 3.8} ${xe - 2},${OY + 3.8}" fill="${P.ink}"/>`;
   s += `<line x1="${OX}" y1="${OY}" x2="${OX}" y2="${ye}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${OX},${ye - 7} ${OX - 3.8},${ye + 2} ${OX + 3.8},${ye + 2}" fill="${P.ink}"/>`;
   s += T(xe + 11, OY + 4.5, 'h (cm)', { size: 13, weight: 700 });
-  s += T(OX - 8, ye - 1, 'P (kPa)', { size: 13, anchor: 'end', weight: 700 });
+  s += T(OX - 8, ye - 1, 'P', { size: 13, anchor: 'end', weight: 800 });
   s += T(OX - 5, OY + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
   for (let h = 20; h <= 80; h += 20) s += T(gx(h), OY + 17, String(h), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
-  for (let k = 2; k <= 10; k += 2) s += T(OX - 7, gy(k) + 4.3, String(k), { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
   const pe = 0.8 * v.sivi * g / 1000;
   s += `<line x1="${OX}" y1="${OY}" x2="${gx(80)}" y2="${gy(pe)}" stroke="${sv.cizgi}" stroke-width="2.8" stroke-linecap="round"/>`;
   s += `<line x1="${OX + 14}" y1="${ye + 9}" x2="${OX + 36}" y2="${ye + 9}" stroke="${sv.cizgi}" stroke-width="2.8" stroke-linecap="round"/>`;
@@ -39764,21 +39777,20 @@ liste.push({
   id: 'kY81_sim2',
   baslik: 'Derinlik, sıvı cinsi ve kap biçimi basıncı nasıl değiştirir?',
   sonra: 'Sıvı basıncı: derinlik ve kap biçimi',
-  metin: 'Kaydırıcıyla sondanın ucundaki noktanın derinliğini, düğmelerle sıvıyı ve kabın biçimini değiştir. Göstergedeki basıncı ve grafikteki noktayı izle. Cetvelin sıfırı serbest yüzeydedir; derinlik buradan aşağı doğru ölçülür. Kabın biçimi değişince kaptaki sıvının miktarı da değişir. Ölçümlerde $g = 10\\ \\text{m/s}^2$ alınmıştır.',
-  pdfMetin: 'Şekilde, düzgün silindir biçimli bir kapta sondanın ucundaki noktanın derinliği serbest yüzeyden ölçülüyor ve gösterge o noktadaki sıvı basıncını veriyor. Grafik, seçili sıvıda basıncın derinlikle doğru orantılı arttığını gösterir. Kap yukarı doğru genişlese ya da daralsa da aynı derinlikteki basınç değişmez; özkütlesi büyük sıvının doğrusu daha diktir. Ölçümlerde $g = 10\\ \\text{m/s}^2$ alınmıştır.',
+  metin: 'Kaydırıcıyla sondanın ucundaki noktanın derinliğini, düğmelerle sıvıyı ve kabın biçimini değiştir. Sondanın 20 bölmeli göstergesinde dolan yeşil bölmeleri ve grafikteki noktayı izle: Bölme ne kadar çok dolarsa basınç o kadar büyüktür. Cetvelin sıfırı serbest yüzeydedir; derinlik buradan aşağı doğru ölçülür. Kabın biçimi değişince kaptaki sıvının miktarı da değişir.',
+  pdfMetin: 'Şekilde, düzgün silindir biçimli bir kapta sondanın ucundaki noktanın derinliği serbest yüzeyden ölçülüyor; göstergede dolan bölmeler o noktadaki sıvı basıncının büyüklüğünü gösterir. Grafik, seçili sıvıda basıncın derinlikle doğru orantılı arttığını gösterir. Kap yukarı doğru genişlese ya da daralsa da aynı derinlikteki basınç değişmez; özkütlesi büyük sıvının doğrusu daha diktir.',
   kontroller: [
     { ad: 'h', etiket: 'Derinlik', min: 0, max: 80, adim: 1, deger: 40, birim: 'cm' },
-    { ad: 'sivi', etiket: 'Sıvı', deger: 1000, secenekler: [{ deger: 920, etiket: 'Zeytinyağı', alt: '920 kg/m³' }, { deger: 1000, etiket: 'Su', alt: '1000 kg/m³' }, { deger: 1030, etiket: 'Tuzlu su', alt: '1030 kg/m³' }, { deger: 1260, etiket: 'Gliserin', alt: '1260 kg/m³' }] },
+    { ad: 'sivi', etiket: 'Sıvı', deger: 1000, secenekler: [{ deger: 920, etiket: 'Zeytinyağı', alt: 'özkütlesi en küçük' }, { deger: 1000, etiket: 'Su', alt: 'özkütlesi küçük' }, { deger: 1030, etiket: 'Tuzlu su', alt: 'özkütlesi büyük' }, { deger: 1260, etiket: 'Gliserin', alt: 'özkütlesi en büyük' }] },
     { ad: 'kap', etiket: 'Kabın biçimi', deger: 0, secenekler: [{ deger: 0, etiket: 'Silindir' }, { deger: 1, etiket: 'Genişleyen', alt: 'yukarı doğru' }, { deger: 2, etiket: 'Daralan', alt: 'yukarı doğru' }] }
   ],
   ciz: (v, u, o) => sahne(v, u, o),
   olcumler: v => [
-    { etiket: 'Derinlik', deger: v.h / 100, birim: 'm', ondalik: 2 },
-    { etiket: 'Sıvı basıncı', deger: basinc(v), birim: 'Pa', ondalik: 0 },
-    { etiket: 'Sıvı basıncı', deger: basinc(v) / 1000, birim: 'kPa', ondalik: 2 }
+    { etiket: 'Derinlik', deger: v.h, birim: 'cm', ondalik: 0 },
+    { etiket: 'Göstergede dolan bölme', deger: bolme(v), birim: 'bölme', ondalik: 0 }
   ],
-  gorev: 'Su seçiliyken sondayı 40 cm derinliğe indir ve basıncı not et. Kabın biçimini değiştirince basınç değişir mi? Sonra gliserine geç: Aynı basıncı ölçmek için sondayı daha derine mi, daha yukarıya mı almalısın? Önce tahmin et, sonra dene.',
-  gorevCevap: 'Suda 40 cm derinlikte basınç $4000\\ \\text{Pa}$\'dır ve kabın biçimi değişse de aynı kalır; çünkü sıvı basıncı yalnız derinliğe ve sıvının özkütlesine bağlıdır. Gliserinin özkütlesi suyunkinden büyük olduğu için aynı basınç daha az derinlikte oluşur: Sondayı yukarı almalısın. Yaklaşık 32 cm derinlikte gösterge yaklaşık $4000\\ \\text{Pa}$ okur ($4032\\ \\text{Pa}$).'
+  gorev: 'Su seçiliyken sondayı orta bir derinliğe indir ve göstergede kaç bölmenin dolduğuna bak. Kabın biçimini değiştirince dolan bölmeler değişir mi? Sonra gliserine geç: Göstergede aynı sayıda bölmeyi görmek için sondayı daha derine mi, daha yukarıya mı almalısın? Önce tahmin et, sonra dene.',
+  gorevCevap: 'Kabın biçimi değişse de gösterge aynı kalır; çünkü sıvı basıncı yalnız derinliğe ve sıvının özkütlesine bağlıdır, kaptaki sıvının miktarına ya da kabın biçimine bağlı değildir. Gliserinin özkütlesi suyunkinden büyük olduğu için aynı basınç daha az derinlikte oluşur: Sondayı biraz yukarı almalısın. Grafikte de gliserinin doğrusu suyunkinden diktir; aynı basınç düzeyine daha küçük derinlikte ulaşır.'
 });
 })();
 })();
@@ -44530,8 +44542,12 @@ window.BFY_BANK = window.BFY_BANK || {}; window.BFY_BANK[KONU.id] = KONU;
    Yapabilirim 10'daki iki simülasyonun (src/konu/10_4_2/sim.js ve 10_4_3/sim.js) çizim ve modeli, bu kitabın
    metinleri, görevleri ve ölçüm kutularıyla uyarlanmıştır (2018 programı: frekans kaynağa, sürat ortama bağlı;
    ortam olarak yaylar; su dalgası seçeneği yerine ilerleme yönü seçimi ve halkanın anlık hareket yönü).
-   1) kY91_sim1: titreştiricinin frekansı ve yay; λ = ϑ / f, T = 1 / f.
-   2) kY91_sim2: enine ve boyuna yay dalgası, sağa ya da sola; φ = 2π(t/T − yön·x/λ), y = A sin φ, hız = A·2π/T·cos φ.
+   NİTEL (Timur'un kararı, 3 Kasım 2026): canlı yerine koyma satırları (λ = ϑ/f, Δx = ϑ × t) kaldırıldı;
+   dalga boyu, sürat, yol ve uzanım sayıyla yazılmaz. Ölçüm kutuları yalnız sayım/oran-dışı göstergeler verir.
+   1) kY91_sim1: titreştiricinin frekansı ve yay; iç model λ = ϑ / f. Ölçüm: şekildeki bölümde görünen dalga sayısı.
+   2) kY91_sim2: enine ve boyuna yay dalgası, sağa ya da sola; φ = 2π(t/T − yön × x/λ), y = A sin φ.
+      Süre periyot (T) cinsinden ayarlanır; ölçüm: izlenen tepenin dalga boyu cinsinden ilerlemesi ve halkanın titreşim sayısı
+      (bir periyotta dalga bir dalga boyu ilerler, halka bir tam titreşim yapar).
    Şablon ve kurallar: SIM_KILAVUZ.md
    ============================================================ */
 (function () {
@@ -44544,9 +44560,9 @@ const { P, T, svg, dashLine } = window.BFY_FIGLIB;
 
 /* ortamlar: dalga sürati (m/s), çizgi rengi */
 const ORTAM = {
-  3: { ad: 'Kalın yay', renk: '#8a5a33' },
-  4.5: { ad: 'İnce yay', renk: '#4f7f9c' },
-  6: { ad: 'Daha gergin ince yay', renk: '#2f6f9e' }
+  3: { ad: 'Kalın yay', hiz: 'dalga en yavaş', renk: '#8a5a33' },
+  4.5: { ad: 'İnce yay', hiz: 'dalga daha hızlı', renk: '#4f7f9c' },
+  6: { ad: 'Daha gergin ince yay', hiz: 'dalga en hızlı', renk: '#2f6f9e' }
 };
 const LIP = 6;                                             // yayın gösterilen bölümü (m)
 
@@ -44567,7 +44583,6 @@ function sahne(v, u, o) {
   for (let m = 0; m <= LIP * 2; m++) {
     const x = sx(m / 2), b = m % 2 === 0;
     s += `<line x1="${x}" y1="${yM}" x2="${x}" y2="${yM + (b ? 7 : 4)}" stroke="${P.ink2}" stroke-width="${b ? 1.2 : 0.9}"/>`;
-    if (b) s += T(x, yM + 20, m / 2 === LIP ? LIP + ' m' : String(m / 2), { size: 12, anchor: m / 2 === LIP ? 'end' : 'middle', weight: 600, fill: P.ink2 });
   }
 
   /* --- titreştirici ve direk --- */
@@ -44590,12 +44605,12 @@ function sahne(v, u, o) {
   s += `<polygon points="${sx(0)},${yD} ${sx(0) + 7.5},${yD - 3.4} ${sx(0) + 7.5},${yD + 3.4}" fill="#b3361f"/><polygon points="${x2},${yD} ${x2 - 7.5},${yD - 3.4} ${x2 - 7.5},${yD + 3.4}" fill="#b3361f"/>`;
   s += `<circle cx="${sx(0)}" cy="${YR}" r="3.6" fill="#b3361f" stroke="#fff" stroke-width="1.2"/><circle cx="${x2}" cy="${YR}" r="3.6" fill="#b3361f" stroke="#fff" stroke-width="1.2"/>`;
   const lx = (sx(0) + x2) / 2, lw = 80;
-  s += T(Math.max(sx(0) + lw / 2 - 6, Math.min(lx, sx(LIP) - lw / 2)), yD - 7, `λ = ${sayi(lam, 2)} m`, { size: 13, anchor: 'middle', weight: 800, fill: '#b3361f' });
+  s += T(Math.max(sx(0) + 10, Math.min(lx, sx(LIP) - 10)), yD - 7, 'λ', { size: 14, anchor: 'middle', weight: 800, fill: '#b3361f' });
 
   /* --- bilgi: ortam ve kaynak --- */
   const [bx, by] = G.bilgi;
-  s += T(bx, by, `${ort.ad}: ϑ = ${sayi(v.v, 1)} m/s`, { size: 12.5, weight: 800, fill: ort.renk });
-  s += T(bx, by + 20, `Kaynak: f = ${sayi(v.f, 2)} Hz`, { size: 12.5, weight: 700, fill: P.ink2 });
+  s += T(bx, by, `${ort.ad}: ${ort.hiz}`, { size: 12.5, weight: 800, fill: ort.renk });
+  s += T(bx, by + 20, 'Sürati yay, frekansı kaynak belirler.', { size: 12, weight: 700, fill: P.ink2 });
 
   /* --- λ–f grafiği: seçili ortamın eğrisi koyu, ötekiler silik --- */
   const gx = f => OX + f * GX, gy = l => OY - l * GY;
@@ -44605,10 +44620,9 @@ function sahne(v, u, o) {
   s += `<line x1="${OX}" y1="${OY}" x2="${xe}" y2="${OY}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${xe + 7},${OY} ${xe - 2},${OY - 3.8} ${xe - 2},${OY + 3.8}" fill="${P.ink}"/>`;
   s += `<line x1="${OX}" y1="${OY}" x2="${OX}" y2="${ye}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${OX},${ye - 7} ${OX - 3.8},${ye + 2} ${OX + 3.8},${ye + 2}" fill="${P.ink}"/>`;
   s += T(xe + 10, OY + 4.5, 'f (Hz)', { size: 13, weight: 700 });
-  s += T(OX - 8, ye + 2, 'λ (m)', { size: 13, anchor: 'end', weight: 700 });
+  s += T(OX - 8, ye + 2, 'λ', { size: 14, anchor: 'end', weight: 800 });
   s += T(OX - 5, OY + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
   for (let f = 1; f <= 4; f++) s += T(gx(f), OY + 16, String(f), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
-  for (let l = 2; l <= 6; l += 2) s += T(OX - 7, gy(l) + 4.3, String(l), { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
   [3, 4.5, 6].forEach(vv => {
     const sec = vv === v.v; let yol = '';
     for (let i = 0; i <= 60; i++) { const f = 1 + 3 * i / 60; yol += (i ? 'L' : 'M') + gx(f).toFixed(1) + ' ' + gy(vv / f).toFixed(1); }
@@ -44624,24 +44638,21 @@ liste.push({
     id: 'kY91_sim1',
     baslik: 'Kaynak hızlanınca dalga boyuna ne olur?',
     sonra: 'Dalganın dili: anlık görünüm ve uzanım-zaman grafiği',
-    metin: 'Kaydırıcıyla titreştiricinin frekansını, düğmelerle yayı değiştir. Şekil, uzun bir yayın titreştiriciye yakın 6 m\'lik bölümündeki dalganın bir andaki görünümüdür; kırmızı ok bir dalga boyunu gösterir. Grafikte üç yayın dalga boyu-frekans eğrileri vardır; koyu eğri seçili yayınkidir. Frekansı değiştirince dalganın sürati mi değişiyor, dalga boyu mu? Yayı değiştirince frekans değişiyor mu?',
-    pdfMetin: 'Şekil, uzun ve kalın bir yayda $2\\ \\text{Hz}$ frekansla oluşturulan dalganın titreştiriciye yakın 6 m\'lik bölümünün bir andaki görünümüdür; kırmızı ok bir dalga boyunu gösterir. Grafikteki eğriler, dalga sürati $3$; $4,5$ ve $6\\ \\text{m/s}$ olan kalın yay, ince yay ve daha gergin ince yayda dalga boyunun frekansla nasıl değiştiğini gösterir. Aynı yayda frekans artınca sürat değişmez, dalga boyu kısalır; aynı frekansta daha süratli yayda dalga boyu uzundur.',
+    metin: 'Kaydırıcıyla titreştiricinin frekansını, düğmelerle yayı değiştir. Şekil, uzun bir yayın titreştiriciye yakın bir bölümündeki dalganın bir andaki görünümüdür; kırmızı ok bir dalga boyunu gösterir. Bölümün uzunluğu hep aynıdır; içine sığan dalga sayısı arttıkça dalga boyu kısalır. Grafikte üç yayın dalga boyu-frekans eğrileri vardır; koyu eğri seçili yayınkidir. Frekansı değiştirince dalganın sürati mi değişiyor, dalga boyu mu? Yayı değiştirince frekans değişiyor mu?',
+    pdfMetin: 'Şekil, uzun ve kalın bir yayda oluşturulan dalganın titreştiriciye yakın bir bölümünün bir andaki görünümüdür; kırmızı ok bir dalga boyunu gösterir. Grafikteki eğriler, dalganın en yavaş ilerlediği kalın yayda, daha hızlı ilerlediği ince yayda ve en hızlı ilerlediği daha gergin ince yayda dalga boyunun frekansla nasıl değiştiğini gösterir. Aynı yayda frekans artınca sürat değişmez, dalga boyu kısalır; aynı frekansta daha süratli yayda dalga boyu uzundur.',
     kontroller: [
       { ad: 'f', etiket: 'Frekans', min: 1, max: 4, adim: 0.25, deger: 2, birim: 'Hz' },
       { ad: 'v', etiket: 'Yay', deger: 3, secenekler: [
-        { deger: 3, etiket: 'Kalın yay', alt: 'ϑ = 3,0 m/s' },
-        { deger: 4.5, etiket: 'İnce yay', alt: 'ϑ = 4,5 m/s' },
-        { deger: 6, etiket: 'Daha gergin', alt: 'ince yay, 6,0 m/s' } ] }
+        { deger: 3, etiket: 'Kalın yay', alt: 'dalga en yavaş' },
+        { deger: 4.5, etiket: 'İnce yay', alt: 'dalga daha hızlı' },
+        { deger: 6, etiket: 'Daha gergin', alt: 'ince yay, dalga en hızlı' } ] }
     ],
     ciz: (v, u, o) => sahne(v, u, o),
     olcumler: v => [
-      { etiket: 'Dalga boyu', deger: v.v / v.f, birim: 'm', ondalik: 2 },
-      { etiket: 'Periyot', deger: 1 / v.f, birim: 's', ondalik: 2 },
-      { etiket: 'Dalga sürati', deger: v.v, birim: 'm/s', ondalik: 1 }
+      { etiket: 'Şekildeki bölüme sığan dalga', deger: LIP * v.f / v.v, birim: 'dalga', ondalik: 1 }
     ],
-    denklem: v => `\\lambda = \\dfrac{\\vartheta}{f} = \\dfrac{${sayi(v.v, 1)}}{${sayi(v.f, 2)}} = ${sayi(v.v / v.f, 2)}\\ \\text{m}`,
-    gorev: 'Kalın yayda frekansı 2 Hz\'ten 4 Hz\'e çıkar: Dalga boyu ve sürat nasıl değişir? Sonra frekansı 4 Hz\'te tutarak, kalın yaydaki 2 Hz\'lik dalganın dalga boyunu veren yayı bul. Önce tahmin et, sonra dene.',
-    gorevCevap: 'Kalın yayda frekans iki katına çıkınca dalga boyu 1,50 m\'den 0,75 m\'ye, yani yarıya iner; sürat 3 m/s olarak kalır, çünkü sürati yay belirler. 4 Hz\'te 1,50 m dalga boyu için sürat 6 m/s olmalıdır: daha gergin ince yay. Gerginliği artırmak ya da hafif bir yay seçmek sürati, dolayısıyla aynı frekanstaki dalga boyunu artırır; frekans yine kaynağınkidir.'
+    gorev: 'Kalın yayda frekansı iki katına çıkar: Şekildeki bölüme sığan dalga sayısı, dalga boyu ve dalganın sürati nasıl değişir? Sonra frekansı yüksek tutarak, kalın yaydaki düşük frekanslı dalganın dalga boyunu veren yayı bul. Önce tahmin et, sonra dene.',
+    gorevCevap: 'Kalın yayda frekans iki katına çıkınca aynı bölüme iki kat dalga sığar, yani dalga boyu yarıya iner; dalganın sürati değişmez, çünkü sürati yay belirler. Frekans yüksekken dalga boyunu yeniden uzatmak için dalganın daha hızlı ilerlediği bir yay gerekir: daha gergin ince yay. Gerginliği artırmak ya da hafif bir yay seçmek sürati, dolayısıyla aynı frekanstaki dalga boyunu artırır; frekans yine kaynağınkidir.'
   });
 })();
 /* 2) taneciğin titreşimi: enine ve boyuna yay dalgası, sağa ya da sola ilerleme */
@@ -44669,7 +44680,7 @@ const DAR = { W: 300, H: 430, X0: 18, S: 2.2, YB: 112, panel: [10, 226, 280, 194
 
 function sahne(v, u, o) {
   const dar = o && o.dar, G = dar ? DAR : GENIS, { W, H, X0, S, YB } = G;
-  const tur = v.tur, t = v.t, yon = v.yon, bilgi = TUR[tur], sx = x => X0 + x * S, k = S;
+  const tur = v.tur, t = v.t * TP, yon = v.yon, bilgi = TUR[tur], sx = x => X0 + x * S, k = S;
   let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f4fb"/>`;
   s += `<rect class="bg" x="${G.panel[0]}" y="${G.panel[1]}" width="${G.panel[2]}" height="${G.panel[3]}" rx="12" fill="#fbfdfe" stroke="#dde7ee" stroke-width="1"/>`;
 
@@ -44679,7 +44690,6 @@ function sahne(v, u, o) {
   for (let c = 0; c <= 120; c += 10) {
     const b = c % 30 === 0;
     s += `<line x1="${sx(c)}" y1="${yM}" x2="${sx(c)}" y2="${yM + (b ? 7 : 4)}" stroke="${P.ink2}" stroke-width="${b ? 1.2 : 0.9}"/>`;
-    if (b) s += T(sx(c), yM + 20, c === 120 ? '120 cm' : String(c), { size: 12, anchor: c === 120 ? 'end' : 'middle', weight: 600, fill: P.ink2 });
   }
 
   /* --- sarmal yay: düşey halkalar (her 2,5 cm'de bir) --- */
@@ -44710,7 +44720,7 @@ function sahne(v, u, o) {
   s += dashLine(sx(x0), ya + 4, sx(x0), ya + 12, '#8a6d00', '2 2', 1);
   s += `<polygon points="${sx(x1)},${ya + 14} ${sx(x1) - 5.5},${ya + 4} ${sx(x1) + 5.5},${ya + 4}" fill="#d08a0a"/>`;
   if (t > 0) s += arrow(sx(x0), ya, sx(x1), ya, { color: '#d08a0a', w: 1.6, head: 7, headW: 3.4 });
-  const lab = `${bilgi.kisa}: ${sayi(V * t, 0)} cm ilerledi`, lw = dar ? 130 : 150;
+  const lab = `izlenen ${bilgi.kisa}`, lw = dar ? 130 : 150;
   s += T(Math.min(Math.max(sx((x0 + x1) / 2), sx(0) + lw / 2), sx(120) - lw / 2), ya - 8, lab, { size: 12.5, anchor: 'middle', weight: 800, fill: '#a86c00' });
 
   /* --- yönler paneli --- */
@@ -44734,10 +44744,10 @@ liste.push({
     id: 'kY91_sim2',
     baslik: 'Dalga ilerlerken halka nereye gider?',
     sonra: 'Dalgaları sınıflandırma',
-    metin: 'Kaydırıcıyla zamanı ilerlet; düğmelerle dalganın türünü ve ilerleme yönünü seç. Turuncu üçgen izlenen tepeyi ya da sıkışmayı, kırmızı halka yayın bir noktasını, yeşil ok halkanın o andaki hareket yönünü gösterir. Dalga 60 cm/s süratle ilerlerken kırmızı halkanın kesikli denge çizgisinden uzaklaşıp uzaklaşmadığını ve ilerleme yönü değişince hareket yönünün nasıl değiştiğini izle. Dalganın periyodu 0,5 s, dalga boyu 30 cm\'dir.',
-    pdfMetin: 'Şekil, sarmal yayda sağa ilerleyen enine bir dalganın $0{,}8\\ \\text{s}$ anındaki görünümüdür. Turuncu üçgenle izlenen tepe $48\\ \\text{cm}$ ilerlemiştir; kırmızı halka ise yalnızca kendi denge konumunun üstünde ve altında, ilerleme doğrultusuna dik titreşir. Yeşil ok halkanın o andaki hareket yönünü gösterir. Dalganın periyodu $0{,}5\\ \\text{s}$, dalga boyu $30\\ \\text{cm}$\'dir.',
+    metin: 'Kaydırıcıyla zamanı ilerlet; geçen süre dalganın periyodu ($T$) cinsinden yazılır. Düğmelerle dalganın türünü ve ilerleme yönünü seç. Turuncu üçgen izlenen tepeyi ya da sıkışmayı, kırmızı halka yayın bir noktasını, yeşil ok halkanın o andaki hareket yönünü gösterir. Dalga ilerlerken kırmızı halkanın kesikli denge çizgisinden uzaklaşıp uzaklaşmadığını ve ilerleme yönü değişince hareket yönünün nasıl değiştiğini izle.',
+    pdfMetin: 'Şekil, sarmal yayda sağa ilerleyen enine bir dalganın bir andaki görünümüdür. Turuncu üçgenle izlenen tepe sağa doğru ilerlemiştir; kırmızı halka ise yalnızca kendi denge konumunun üstünde ve altında, ilerleme doğrultusuna dik titreşir. Yeşil ok halkanın o andaki hareket yönünü gösterir. Bir periyotta tepe bir dalga boyu ilerler, halka bir tam titreşim yapar.',
     kontroller: [
-      { ad: 't', etiket: 'Geçen süre', min: 0, max: 1.5, adim: 0.05, deger: 0.8, birim: 's' },
+      { ad: 't', etiket: 'Geçen süre', min: 0, max: 3, adim: 0.1, deger: 1.6, birim: 'T' },
       { ad: 'tur', etiket: 'Dalga', deger: 1, secenekler: [
         { deger: 1, etiket: 'Enine', alt: 'yay eksene dik sallanır' },
         { deger: 2, etiket: 'Boyuna', alt: 'yay eksen boyunca itilir' } ] },
@@ -44747,15 +44757,13 @@ liste.push({
     ],
     ciz: (v, u, o) => sahne(v, u, o),
     olcumler: v => {
-      const [xi, yi] = yer(v.tur, XI, v.t, v.yon);
       return [
-        { etiket: v.tur === 2 ? 'Sıkışmanın aldığı yol' : 'Tepenin aldığı yol', deger: V * v.t, birim: 'cm', ondalik: 0 },
-        { etiket: v.tur === 2 ? 'Halkanın yer değiştirmesi (sağ +)' : 'Halkanın yer değiştirmesi (yukarı +)', deger: Math.round((v.tur === 2 ? xi : yi) * 10) / 10, birim: 'cm', ondalik: 1 }
+        { etiket: v.tur === 2 ? 'Sıkışmanın ilerlemesi' : 'Tepenin ilerlemesi', deger: v.t, birim: 'λ', ondalik: 1 },
+        { etiket: 'Kırmızı halkanın titreşimi', deger: v.t, birim: 'tur', ondalik: 1 }
       ];
     },
-    denklem: v => `\\Delta x = \\vartheta \\times t = 60 \\times ${sayi(v.t, 2)} = ${sayi(V * v.t, 0)}\\ \\text{cm}`,
-    gorev: 'Enine dalgayı ve sağa ilerlemeyi seç, süreyi 0,10 s yap: Kırmızı halka denge konumunun neresinde ve hangi yöne gidiyor? Sonra yalnız ilerleme yönünü sola çevir. Önce tahmin et, sonra dene.',
-    gorevCevap: 'Dalga sağa ilerlerken 0,10 s\'de halka denge konumunun yaklaşık 1,2 cm altındadır ve yukarı gider; solundaki komşusu ondan yukarıdadır. Dalga sola ilerlerken aynı anda halka 1,2 cm yukarıdadır ve aşağı gider; artık sağındaki komşusunun yerine gelir. Halkanın hareket yönü, konumundan değil, dalganın hangi taraftan geldiğinden bulunur; iki durumda da halka dalgayla birlikte taşınmaz.'
+    gorev: 'Enine dalgayı ve sağa ilerlemeyi seç; süreyi sıfırdan başlatıp bir periyoda getir. Bu sürede tepe ne kadar ilerledi, kırmızı halka ne yaptı? Sonra süreyi sıfırdan biraz ilerlet ve yalnız ilerleme yönünü sola çevir: Halkanın hareket yönü nasıl değişir? Önce tahmin et, sonra dene.',
+    gorevCevap: 'Bir periyotta tepe bir dalga boyu ilerler; kırmızı halka ise bir tam titreşim yapıp başladığı yere döner, dalgayla birlikte taşınmaz. Dalga boyu, dalganın bir periyotta aldığı yoldur. Süre biraz ilerlemişken dalga sağa giderken halka denge konumunun altındadır ve yukarı gider; dalga sola giderken aynı anda halka denge konumunun üstündedir ve aşağı gider. Halkanın hareket yönü, dalganın hangi taraftan geldiğine bağlıdır: Halka, dalganın geldiği taraftaki komşusunun az önceki hareketini tekrarlar.'
   });
 })();
 })();
@@ -53061,7 +53069,7 @@ window.BFY_TYT_TEST[TEST.id] = TEST;
    Gerçek TYT fen bölümünün fizik kısmı gibi 7 soru, 10 dakika; ÖSYM soru sırası.
    Konu yuvaları: Y.2.1, Y.3.1, Y.8.3, Y.5.3, Y.7.1, Y.9.1, Y.10.4. Zorluk 2/3/2 (★/★★/★★★).
    Kapsam: 2018 fizik öğretim programı (9 ve 10. sınıf); kazanım sınırlamalarına uyulmuştur
-   (ortalama sürat ve hız hesabı var; ölçü aletleri, kaldırma kuvveti, genleşme, dalga ve kırılmada hesap yok,
+   (hız–zaman grafiği yalnız nitel yorumlanır, ivme hesabı yok; ölçü aletleri, kaldırma kuvveti, genleşme, dalga ve kırılmada hesap yok,
    atma sürati yalnız karşılaştırılır).
    Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
    Çıkmamış ya da az çıkmış kazanımlardan gelen sorular "tahmin" alanıyla işaretlidir.
@@ -53101,28 +53109,26 @@ BFY_FIG_EKLE('YD13_kan', function (u) {
   return svg(W, H, s, u, 64);
 });
 
-// 2. soru: ortalama hız koridoru; A ve B kameraları, virajlı dağ yolu, doğrusal uzaklık (üstten görünüş)
-BFY_FIG_EKLE('YD13_koridor', function (u) {
-  const W = 336, H = 214, A = [44, 150], B = [292, 70];
-  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#eef3ea"/>`;
-  // tepeler (eş yükselti izleri)
-  [[150, 96, 64, 34], [150, 96, 40, 20], [228, 150, 50, 26]].forEach(([cx, cy, rx, ry]) => { s += `<ellipse class="bg" cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="#c7d6bf" stroke-width="1.2"/>`; });
-  // virajlı yol
-  const yol = `M${A[0]} ${A[1]} C 70 196, 112 186, 118 150 S 86 92, 120 62 S 184 40, 196 82 S 186 146, 236 140 S 270 96, ${B[0]} ${B[1]}`;
-  s += `<path d="${yol}" fill="none" stroke="#7b7f84" stroke-width="9" stroke-linecap="round"/>`;
-  s += `<path d="${yol}" fill="none" stroke="#f4f4f0" stroke-width="1.4" stroke-dasharray="6 6"/>`;
-  // doğrusal uzaklık
-  s += dashLine(A[0], A[1], B[0], B[1], BAK, '6 5', 1.8);
-  s += T(150, 204, 'kesikli çizgi: doğrusal uzaklık 9 km', { size: 11.5, weight: 700, fill: BAK, anchor: 'middle' });
-  // kameralar
-  const kam = ([x, y], ad, dx) => `<rect x="${x - 7}" y="${y - 30}" width="4" height="26" fill="#5d6b74"/>` +
-    `<rect x="${x - 13}" y="${y - 40}" width="20" height="12" rx="3" fill="#34444e"/><circle cx="${x + 5}" cy="${y - 34}" r="3.4" fill="#9fd0f0"/>` +
-    `<circle cx="${x}" cy="${y}" r="5" fill="#fff" stroke="${TEL}" stroke-width="2"/>` + T(x + dx, y + 5, ad, { size: 14, weight: 800, anchor: dx < 0 ? 'end' : 'start' });
-  s += kam(A, 'A', -10) + kam(B, 'B', 10);
-  s += T(16, 24, 'virajlı yol: 15 km', { size: 11.5, weight: 700, fill: '#4f5458' });
-  // hız sınırı levhası
-  s += `<circle cx="300" cy="176" r="17" fill="#fff" stroke="#c0262d" stroke-width="5"/>` + T(300, 181, '80', { size: 13, weight: 800, anchor: 'middle', halo: false });
-  s += T(W - 12, 24, '(Üstten görünüş)', { size: 10.5, weight: 600, anchor: 'end', fill: P.ink2 });
+// 2. soru: kargo kapsülünün hız–zaman grafiği (istasyona doğru +); 0,4 m/s'den −0,6 m/s'ye doğrusal, 4. s'de sıfır
+BFY_FIG_EKLE('YD13_kapsul', function (u) {
+  const W = 330, H = 214, ox = 62, oy = 96, sx = 22, sy = 120;
+  const X = t => ox + t * sx, Y = v => oy - v * sy;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f4f6fa"/>`;
+  s += dashLine(ox, Y(-0.6), X(10), Y(-0.6), P.ink2, '4 4', 1.1) + dashLine(X(10), Y(-0.6), X(10), oy + 22, P.ink2, '4 4', 1.1);
+  // eksenler: yatay eksen v = 0'da; düşey eksen aşağı da uzanır
+  const ex = X(10) + 26, ey = 22;
+  s += `<line x1="${ox}" y1="${Y(-0.72)}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${ey - 7} ${ox - 3.8},${ey + 2} ${ox + 3.8},${ey + 2}" fill="${P.ink}"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ex + 7},${oy} ${ex - 2},${oy - 3.8} ${ex - 2},${oy + 3.8}" fill="${P.ink}"/>`;
+  s += T(ox + 8, ey + 4, 'Hız (m/s)', { size: 12, weight: 700 });
+  s += T(ex + 8, oy - 9, 't (s)', { size: 12, weight: 700, anchor: 'end' });
+  // değerler: zaman değerleri eksenin hemen altında (beyaz haleyle), hız değerleri solda
+  s += T(ox - 6, oy + 14, '0', { size: 11.5, anchor: 'end', fill: P.ink2 });
+  s += T(X(4) - 7, oy + 15, '4', { size: 11.5, anchor: 'middle', fill: P.ink2 });
+  s += T(X(10), oy + 15, '10', { size: 11.5, anchor: 'middle', fill: P.ink2 });
+  s += T(ox - 6, Y(0.4) + 4, '0,4', { size: 11.5, anchor: 'end', fill: P.ink2 });
+  s += T(ox - 6, Y(-0.6) + 4, '−0,6', { size: 11.5, anchor: 'end', fill: P.ink2 });
+  s += `<line x1="${X(0)}" y1="${Y(0.4)}" x2="${X(10)}" y2="${Y(-0.6)}" stroke="${MAV}" stroke-width="2.8" stroke-linecap="round"/>`;
+  s += T(W - 12, H - 10, '(+) yön: istasyona doğru', { size: 11, weight: 600, anchor: 'end', fill: P.ink2 });
   return svg(W, H, s, u, 70);
 });
 
@@ -53184,10 +53190,10 @@ BFY_FIG_EKLE('YD13_blok', function (u) {
 /* ---------- Deneme ---------- */
 const TEST = {
   id: 'YD13', ad: 'TYT Fizik Denemesi 13', tur: 'deneme', sure: 600,
-  aciklama: 'Yedi soru, gerçek TYT sırası: kan bağışındaki bakır sülfat damla testinden ortalama hız koridoruna, su içinde iki duruşta tutulan bir bloktan sıcakta genleşen çelik şerit metreye, yanlış kademede bırakılan bir multimetreden hafif ipten ağır zincire geçen atmaya ve kalın bir cam bloktan geçen lazer ışınına.',
+  aciklama: 'Yedi soru, gerçek TYT sırası: kan bağışındaki bakır sülfat damla testinden istasyona yanaşırken yön değiştiren bir kargo kapsülüne, su içinde iki duruşta tutulan bir bloktan sıcakta genleşen çelik şerit metreye, yanlış kademede bırakılan bir multimetreden hafif ipten ağır zincire geçen atmaya ve kalın bir cam bloktan geçen lazer ışınına.',
   baglamlar: [
     'kan bağışı öncesi bakır sülfat yöntemi: damla dibe inerse test geçilir; çözeltinin seyreltilmesi (olabilir, II), damla büyüklüğü (III)',
-    'ortalama hız koridoru: A ve B kameraları, 15 km virajlı dağ yolu, 9 km doğrusal uzaklık, 14.20–14.30, 80 km/h sınır; 90 km/h ortalama sürat, 54 km/h ortalama hız (kesinlikle)',
+    'uzay istasyonuna yanaşan kargo kapsülü, sabit frenleme iticisi: ϑ-t 0,4 → −0,6 m/s (0–10 s), 4. s\'de yön değiştirme, ivme hep istasyondan uzaklaşma yönünde, anlık durmada ivme sıfır değil (kesinlikle)',
     'aynı metal blok suda yatık ve dik, üst yüzler aynı h derinliğinde: alt yüzde basınç, üst yüzde basınç kuvveti, kaldırma kuvveti eşit',
     '20 °C\'de işaretlenmiş çelik şerit metre 45 °C\'de ve −10 °C\'de: okunan değer küçük ve büyük çıkar (genleşme)',
     'ampermetre kademesinde unutulan multimetre akünün uçlarına dokunduruluyor, iç sigorta atıyor: ampermetrenin direnci çok küçük, kısa devre güvenliği',
@@ -53222,30 +53228,27 @@ yargılarından hangileri doğrudur?`,
       ]
     },
     {
-      id: 'YD13_2', konu: 'Y.3.1', yks: true, zorluk: 3, cikti: '9.3.1.4', beceri: 'Ortalama sürat ile ortalama hızı ayırt edip kesin çıkarım yapma',
-      cikmis: { yil: 2025, no: 2, kalip: 'Ortalama hız ile ortalama süratin ayırt edilmesi' },
-      metin: r`Bazı karayollarında "ortalama hız koridoru" denetimi yapılır: Yol üzerindeki A ve B noktalarına konan kameralar her aracın geçiş saatini kaydeder; sistem, iki kamera arasındaki yolun uzunluğunu aracın geçiş süresine bölerek aracın ortalama süratini hesaplar.
-
-Şekilde A ve B kameraları arasındaki $15\ \text{km}$ uzunluğundaki virajlı dağ yolu gösterilmiştir. A ile B arasındaki doğrusal uzaklık $9\ \text{km}$'dir ve yolda hız sınırı $80\ \text{km/h}$'dir. Bir otomobil A'dan saat 14.20'de, B'den saat 14.30'da geçiyor.
+      id: 'YD13_2', konu: 'Y.3.1', yks: true, zorluk: 3, cikti: '9.3.1.5', beceri: 'Hız–zaman grafiğinde yön değiştirme anında hız ve ivmeyi yorumlama',
+      tahmin: { gerekce: r`9.3.1.5 ivmeyi hızlanma ve yavaşlamayla ilişkilendirir, anlık hıza değinir ve hız–zaman grafiğinin yorumunu ister; hesap istemez. Hızın sıfırdan geçip işaret değiştirdiği an, "hız sıfırsa ivme de sıfırdır" ve "yön değişince ivmenin yönü de değişir" yanılgılarını birlikte yoklar. Bu fikir 2018–2026 TYT'lerinde ayrı bir soru olarak sorulmadı.` },
+      metin: r`Uzay istasyonuna yanaşmaya çalışan bir kargo kapsülü, istasyona doğru düz bir çizgi boyunca giderken frenleme iticisini çalıştırıyor. İtici açık kaldığı sürece kapsüle hep aynı büyüklükte ve aynı yönde kuvvet uyguluyor. İstasyona doğru yön (+) alınarak kapsülün $0$–$10\ \text{s}$ arasındaki hız–zaman grafiği şekildeki gibi çiziliyor.
 
 {{sekil}}
 
 Buna göre,
 
-I. Otomobilin A ile B arasındaki ortalama sürati $90\ \text{km/h}$'dir.
-II. Otomobil A ile B arasında en az bir zaman aralığında $80\ \text{km/h}$'den daha hızlı gitmiştir.
-III. Otomobilin A'dan B'ye ortalama hızının büyüklüğü $90\ \text{km/h}$'dir.
+I. Kapsül $t = 4\ \text{s}$ anında hareket yönünü değiştirmiştir.
+II. Kapsülün ivmesi $0$–$10\ \text{s}$ aralığının tamamında istasyondan uzaklaşma yönündedir.
+III. Kapsülün $t = 4\ \text{s}$ anındaki ivmesi sıfırdır.
 
 yargılarından hangileri kesinlikle doğrudur?`,
-      sekil: 'YD13_koridor',
+      sekil: 'YD13_kapsul',
       secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
       dogru: 2,
       cozum: [
-        r`Geçiş süresi 14.20 ile 14.30 arasındaki $10$ dakikadır: $\dfrac{10}{60} = \dfrac{1}{6}\ \text{h}$.`,
-        r`I. Ortalama sürat, alınan yolun süreye oranıdır: $\dfrac{15\ \text{km}}{\frac{1}{6}\ \text{h}} = 90\ \text{km/h}$. **Kesinlikle doğru.**`,
-        r`II. Otomobil hiçbir an $80\ \text{km/h}$'yi aşmasaydı, $10$ dakikada en çok $80 \times \dfrac{1}{6} \approx 13,3\ \text{km}$ yol alabilirdi. Oysa $15\ \text{km}$ almıştır; demek ki yolun bir kısmında sınırın üstünde gitmiştir. **Kesinlikle doğru.** Sistemin ceza kesebilmesi de bu çıkarıma dayanır.`,
-        r`III. Ortalama hız, yer değiştirmenin süreye oranıdır. Yer değiştirmenin büyüklüğü A ile B arasındaki doğrusal uzaklıktır: $\dfrac{9\ \text{km}}{\frac{1}{6}\ \text{h}} = 54\ \text{km/h}$. **Yanlış.**`,
-        r`{{S0}} ortalama süratin sınırı aşmasının, otomobilin yolun bir kısmında sınırın üstünde gittiğini kesin gösterdiğini görmez. {{S1}} ortalama sürati doğrusal uzaklıkla hesaplar ($54\ \text{km/h}$) ve I'i atlar; oysa ortalama sürat alınan yolla bulunur. {{S3}} ortalama hızı da yolun uzunluğuyla hesaplar ve II'yi atlar; oysa ortalama hız $9\ \text{km}$'lik yer değiştirmeyle bulunur. {{S4}} ortalama hızın büyüklüğünü de yolun uzunluğunu süreye bölerek bulur; virajlı yolda yer değiştirme alınan yoldan küçüktür.`
+        r`I. Hızın işareti hareket yönünü gösterir. $0$–$4\ \text{s}$ arasında hız pozitiftir, kapsül istasyona doğru gider; $4\ \text{s}$'den sonra hız negatiftir, kapsül istasyondan uzaklaşır. Hız $4\ \text{s}$'de sıfırdan geçerek işaret değiştirdiği için kapsül bu anda yön değiştirmiştir. **Kesinlikle doğru.**`,
+        r`II. Grafik eğimi sabit ve negatif bir doğrudur; hız hep aynı düzenle azalır. İvme, hız değişiminin yönündedir: (−) yön, yani istasyondan uzaklaşma yönü. $0$–$4\ \text{s}$'de bu ivme harekete zıttır ve kapsül yavaşlar; $4$–$10\ \text{s}$'de harekete aynı yöndedir ve kapsül hızlanır. Hareket yön değiştirse de ivmenin yönü değişmez. **Kesinlikle doğru.**`,
+        r`III. $t = 4\ \text{s}$'de kapsülün anlık hızı sıfırdır ama hızı o anda da değişmektedir: hemen önce pozitif, hemen sonra negatiftir. Grafiğin eğimi o anda da öteki anlardakiyle aynıdır; ivme sıfır değildir. **Yanlış.**`,
+        r`{{S0}} ivmenin yönünün hareketin yönüyle birlikte değiştiğini sanır; hız işaret değiştirse de grafiğin eğimi değişmediği için ivmenin yönü aynı kalır. {{S1}} hızın pozitiften negatife geçmesini yön değiştirme olarak görmez, hız azaldığı için yalnız yavaşladığını sanır. {{S3}} anlık hızın sıfır olduğu anda ivmenin de sıfır olduğunu sanır ve ivmenin yönünü hareketle birlikte değişen bir şey olarak düşünür. {{S4}} hem anlık durmayı ivmesizlik sanır hem de I ve II'yi doğru bulur; hızın sıfır olması, hızın değişmediği anlamına gelmez.`
       ]
     },
     {
