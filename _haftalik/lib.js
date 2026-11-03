@@ -165,6 +165,6 @@ function soru(n, q) {
   return `<div class="soru"><div class="sn">${n}</div><div>${md(q.metin)}${q.sekil ? `<div class="sekil">${q.sekil}</div>` : ''}${q.kok ? `<p><b>${md(q.kok)}</b></p>` : ''}${sik}${q.ek || ''}</div></div>`;
 }
 const cevaplar = L => `<h2 class="b"><span class="n">✓</span>Cevaplar ve çözümler</h2><table class="cv">` + L.map((c, i) => `<tr><td>${i + 1}</td><td>${c[0]}</td><td>${md(c[1])}</td></tr>`).join('') + `</table>`;
-const sonraki = t => `<div class="son"><div>Bu notu faydalı bulduysan arkadaşına gönder. Gelecek hafta:<br><b>${md(t)}</b></div><div><b>@benfizikyapamiyorum</b></div></div>`;
+const sonraki = t => `<a class="son" href="https://benfizikyapamiyorum.com/ucretsiz/pdf?utm_source=haftalik_not&utm_medium=pdf" style="text-decoration:none"><div>Bu notu faydalı bulduysan arkadaşına gönder. Gelecek hafta:<br><b>${md(t)}</b></div><div style="text-align:right"><b>Tüm ücretsiz notlar →</b><br>benfizikyapamiyorum.com/ucretsiz/pdf</div></a>`;
 
 module.exports = { md, RENK, VC, txt, ok, kare, dogru, head, hero, bolum, kutu, sekil, hatalar, ornek, soru, cevaplar, sonraki, NM, FONT };

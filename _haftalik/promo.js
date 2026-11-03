@@ -31,7 +31,7 @@ async function promoHTML(N, site) {
 .st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
 .st div{background:var(--acik);border-radius:9px;padding:8px;text-align:center}.st b{display:block;font-size:15pt;color:var(--koyu);font-weight:800}.st span{font-size:8.2pt;color:var(--ink2)}
 .alt3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
-.alt3>div{border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-size:9.2pt}
+.alt3>div,.alt3>a{border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-size:9.2pt}
 .alt3 h4{font-size:10.4pt;font-weight:800;margin-bottom:4px}
 .qr{text-align:center;border-color:var(--ana)!important}.qr svg{width:30mm;height:30mm}.qr p{font-size:8.4pt;font-weight:700;margin-top:4px}
 .kod{display:inline-block;border:2px dashed var(--ana);color:var(--koyu);font-weight:800;font-size:13pt;letter-spacing:.08em;padding:3px 10px;border-radius:7px;margin-top:6px}
@@ -47,11 +47,11 @@ async function promoHTML(N, site) {
   <div class="fy"><b>${U.fiyat}</b><span>Tek ödeme, yıl boyu kullanım.<br>Ücretsiz sürümle önce dene.</span></div></div>
 </div>
 <div class="alt3">
- <div class="qr">${qr}<p>Okut ya da yaz:<br>${url.replace('.html', '')}</p></div>
- <div><h4>Yazılıya 3 gün kala</h4>Yazılıdan önceki 3 gün için hazır plan: konuyu topla, çözerek öğren, son gün prova et. <b>Yazılıya 3 Gün Kala ${N.sinif}</b> kitapçığı sitede.</div>
+ <a class="qr" href="https://${url}?utm_source=haftalik_not&utm_medium=pdf" style="color:inherit;text-decoration:none;display:block">${qr}<p>Okut ya da dokun:<br>${url.replace('.html', '')}</p></a>
+ <a href="https://benfizikyapamiyorum.com/yazili-3-gun-kala.html?utm_source=haftalik_not&utm_medium=pdf#sinif-sec" style="color:inherit;text-decoration:none;display:block"><h4>Yazılıya 3 gün kala</h4>Yazılıdan önceki 3 gün için hazır plan: konuyu topla, çözerek öğren, son gün prova et. <b>Yazılıya 3 Gün Kala ${N.sinif}</b> kitapçığı sitede →</a>
  <div><h4>Bu PDF’yi okuyanlara %10</h4>${U.ad} ve Yazılıya 3 Gün Kala’da Shopier ödeme adımında yaz:<br><span class="kod">NOTLAR10</span></div>
 </div>
-<div class="bant"><span>Her hafta yeni ücretsiz not: <b>Pazartesi 9 · Çarşamba 10 · Cuma 11. sınıf</b></span><span>benfizikyapamiyorum.com · @benfizikyapamiyorum</span></div>
+<a class="bant" href="https://benfizikyapamiyorum.com/ucretsiz/pdf?utm_source=haftalik_not&utm_medium=pdf" style="text-decoration:none"><span>Her hafta yeni ücretsiz not: <b>Pazartesi 9 · Çarşamba 10 · Cuma 11. sınıf</b></span><span>benfizikyapamiyorum.com · @benfizikyapamiyorum</span></a>
 </body></html>`;
 }
 module.exports = { promoHTML, URUN };
