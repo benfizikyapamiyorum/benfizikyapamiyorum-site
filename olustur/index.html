@@ -1306,6 +1306,8 @@ function yatSilindir(I, u, x, y, z, r, L, renk) {
   const ry = r, rx = r * 0.5;
   let s = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ton(c, 0.35)}"/><stop offset=".5" stop-color="${ton(c, 0.05)}"/><stop offset="1" stop-color="${ton(c, -0.35)}"/></linearGradient></defs>`;
   s += `<path d="M${a[0]},${r1(a[1] - ry)} L${b[0]},${r1(b[1] - ry)} L${b[0]},${r1(b[1] + ry)} L${a[0]},${r1(a[1] + ry)}Z" fill="url(#${id})" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
+  s += `<path d="M${a[0]},${r1(a[1] - ry)} A${r1(rx)},${r1(ry)} 0 0 0 ${a[0]},${r1(a[1] + ry)}" fill="url(#${id})" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
+  s += `<path d="M${a[0]},${r1(a[1] - ry * 0.45)} L${b[0]},${r1(b[1] - ry * 0.45)}" stroke="#fff" stroke-opacity=".35" stroke-width="${r1(Math.max(1.2, ry * 0.28))}" stroke-linecap="round"/>`;
   s += `<ellipse cx="${b[0]}" cy="${b[1]}" rx="${r1(rx)}" ry="${r1(ry)}" fill="${ton(c, 0.2)}" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
   return s;
 }
@@ -19558,35 +19560,59 @@ BFY_FIG_EKLE('k933_depolar_genis', function (u) {
   return svg(W, H, s, u, 150);
 });
 
-/* 11: şişe kriko (basitleştirilmiş kesit) */
+/* 11: şişe kriko (basitleştirilmiş kesit). Pompa kolunun dayanağı küçük silindirin
+   gövdesine bağlı mafsal kulağındadır; kanalın üstünde serbest direk yoktur. */
 BFY_FIG_EKLE('k933_kriko', function (u) {
   const W = 320, H = 262, o = OLC.kriko;
-  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
-  s += `<rect x="40" y="226" width="250" height="12" rx="3" fill="#4f5a60"/>`;
-  // pompa silindiri (dar) ve kaldırma silindiri (geniş)
-  s += `<path d="M70 120 H96 V200 H186 V108 H262 V226 H70 Z" fill="url(#${u}water)" opacity=".55"/>`;
-  s += `<path d="M66 96 V230 H266 V96" fill="none" stroke="${C.duvar}" stroke-width="3.4" stroke-linejoin="round"/>`;
-  s += `<path d="M100 96 V196 H182 V96" fill="none" stroke="${C.duvar}" stroke-width="3.4" stroke-linejoin="round"/>`;
-  s += `<rect x="146" y="196" width="12" height="8" fill="#244f40"/>`;
-  s += T(146, 220, 'tek yönlü vana', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
-  // pompa pistonu ve kol
+  let s = `<defs>
+    <linearGradient id="${u}kGov" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5f6c73"/><stop offset=".22" stop-color="#9aa6ad"/><stop offset=".5" stop-color="#7d8a91"/><stop offset="1" stop-color="#4c575d"/></linearGradient>
+    <linearGradient id="${u}kYag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3cf7a"/><stop offset="1" stop-color="#c98d2c"/></linearGradient>
+    <linearGradient id="${u}kTaban" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b777e"/><stop offset="1" stop-color="#3b454a"/></linearGradient>
+    <linearGradient id="${u}kKol" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c878d"/><stop offset=".5" stop-color="#3f4a50"/><stop offset="1" stop-color="#5a656b"/></linearGradient>
+  </defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  // zemin gölgesi ve taban plakası
+  s += `<ellipse cx="166" cy="242" rx="134" ry="6" fill="#000" opacity=".12"/>`;
+  s += `<rect x="40" y="226" width="250" height="12" rx="3" fill="url(#${u}kTaban)"/>`;
+  s += `<rect x="40" y="226" width="250" height="2.2" rx="1" fill="#fff" opacity=".25"/>`;
+  // dökme çelik gövde: iki silindir ve alttaki bağlantı kanalı (duvar kalınlığı 8)
+  s += `<path d="M62 96 H104 V192 H178 V96 H270 V230 H62 Z" fill="url(#${u}kGov)" stroke="#3b454a" stroke-width="1.2" stroke-linejoin="round"/>`;
+  // silindir iç yüzeyi (yağın üstündeki boşluk)
+  s += `<path d="M70 96 H96 V200 H186 V96 H262 V222 H70 Z" fill="#e3e8eb"/>`;
+  // hidrolik yağ
+  s += `<path d="M70 120 H96 V200 H186 V108 H262 V222 H70 Z" fill="url(#${u}kYag)"/>`;
+  s += `<path d="M70 96 H96 V200 H186 V96 H262 V222 H70 Z" fill="none" stroke="#3b454a" stroke-width="1" stroke-linejoin="round"/>`;
+  // ağız bilezikleri
+  s += `<rect x="59" y="92" width="48" height="6" rx="2" fill="url(#${u}metal)" stroke="#3b454a" stroke-width=".8"/>`;
+  s += `<rect x="175" y="92" width="98" height="6" rx="2" fill="url(#${u}metal)" stroke="#3b454a" stroke-width=".8"/>`;
+  // tek yönlü vana: kanaldaki yuva ve bilye
+  s += `<rect x="144" y="200" width="4" height="22" fill="#3b454a"/><rect x="156" y="200" width="4" height="22" fill="#3b454a"/>`;
+  s += `<circle cx="152" cy="211" r="5.2" fill="url(#${u}b_green)" stroke="#1c3e32" stroke-width=".8"/>`;
+  s += `<line x1="152" y1="186" x2="152" y2="203" stroke="${P.ink2}" stroke-width="1.1"/>`;
+  s += T(141, 160, 'tek yönlü', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(141, 175, 'vana', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // pompa pistonu ve piston kolu
   s += `<rect x="70" y="110" width="26" height="10" rx="1.5" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width=".9"/>`;
-  s += `<rect x="80" y="62" width="6" height="48" fill="#8e979f"/>`;
-  // kolun dönme ekseni: sağ uçta, gövdeye bağlı destek üzerinde
-  s += `<rect x="136" y="66" width="5" height="130" fill="#8e979f"/>`;
-  s += `<line x1="40" y1="56" x2="138" y2="66" stroke="#4f5a60" stroke-width="6" stroke-linecap="round"/>`;
-  s += `<circle cx="138" cy="66" r="4.2" fill="#fff" stroke="#4f5a60" stroke-width="2"/>`;
-  s += arrow(46, 24, 46, 50, { color: P.copper, w: 2.6 });
-  s += T(54, 30, 'pompala', { size: 12, weight: 800, fill: P.copper });
-  // kaldırma pistonu ve yük
+  s += `<rect x="80" y="68" width="6" height="42" fill="url(#${u}metalV)" stroke="#5a656b" stroke-width=".6"/>`;
+  // mafsal kulağı: küçük silindirin sağ duvarına cıvatalı, dayanak pimi üstte
+  s += `<path d="M98 98 L104 98 L114 80 L114 74 L104 74 Z" fill="url(#${u}kGov)" stroke="#3b454a" stroke-width="1" stroke-linejoin="round"/>`;
+  s += `<circle cx="104" cy="94" r="1.6" fill="#2f383d"/>`;
+  // pompa kolu: dayanak (108, 74), piston pimi (83, ~69), tutma ucu solda
+  s += `<path d="M40 56 L108 70.5 L108 77.5 L40 63 Z" fill="url(#${u}kKol)" stroke="#2f383d" stroke-width=".8" stroke-linejoin="round"/>`;
+  s += `<rect x="30" y="54.5" width="16" height="10" rx="4" transform="rotate(12 38 59.5)" fill="#2f383d"/>`;
+  s += `<circle cx="83" cy="68.6" r="2.4" fill="#d9dee2" stroke="#2f383d" stroke-width="1"/>`;
+  s += `<circle cx="108" cy="74" r="4.2" fill="#fff" stroke="#2f383d" stroke-width="2"/>`;
+  s += arrow(46, 18, 46, 46, { color: P.copper, w: 2.6 });
+  s += T(54, 28, 'pompala', { size: 12, weight: 800, fill: P.copper });
+  // kaldırma pistonu, mil ve yük tablası
   s += `<rect x="190" y="98" width="72" height="10" rx="1.5" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width=".9"/>`;
   s += `<rect x="216" y="44" width="20" height="54" fill="url(#${u}metalV)" stroke="#4f5a60" stroke-width=".9"/>`;
-  s += `<rect x="200" y="36" width="52" height="8" rx="2" fill="#4f5a60"/>`;
+  s += `<path d="M200 44 H252 L248 36 H204 Z" fill="url(#${u}kKol)" stroke="#2f383d" stroke-width=".8" stroke-linejoin="round"/>`;
   s += arrow(226, 4, 226, 32, { color: P.coral, w: 2.8 });
   s += T(236, 18, `${o.yuk} N`, { size: 12.5, weight: 800, fill: P.coral });
-  s += T(83, 140, 'A₁', { size: 13, anchor: 'middle', weight: 800, fill: '#14506f', halo: false });
-  s += T(226, 132, 'A₂', { size: 13, anchor: 'middle', weight: 800, fill: '#14506f', halo: false });
-  s += T(226, 176, 'hidrolik yağ', { size: 12, anchor: 'middle', weight: 700, fill: '#14506f' });
+  s += T(83, 142, 'A₁', { size: 13, anchor: 'middle', weight: 800, fill: '#5a3a08', halo: false });
+  s += T(226, 134, 'A₂', { size: 13, anchor: 'middle', weight: 800, fill: '#5a3a08', halo: false });
+  s += T(226, 178, 'hidrolik yağ', { size: 12, anchor: 'middle', weight: 700, fill: '#5a3a08' });
   return svg(W, H, s, u, 66);
 });
 
@@ -26172,11 +26198,15 @@ BFY_FIG_EKLE('k937_baca', function (u) {
   s += `<rect x="100" y="172" width="30" height="28" fill="#cfe5f4" stroke="#7d6a4a"/><rect x="176" y="172" width="34" height="50" fill="#8a6232" stroke="#5a4020"/>`;
   // baca
   s += `<rect x="192" y="80" width="22" height="58" fill="#a9a29a" stroke="#6b645d" stroke-width="1.2"/><rect x="188" y="74" width="30" height="8" fill="#8f8880" stroke="#6b645d"/>`;
-  // duman
-  s += yol([[203, 72], [210, 56], [226, 46], [250, 42], [282, 40]], '#8a8f94', 5);
   // rüzgâr
   [[30, 40], [30, 64]].forEach(([x, y]) => { s += arrow(x, y, x + 64, y, { color: C.akis, w: 2.6 }); });
   s += yol([[110, 66], [160, 64], [190, 60], [224, 58], [290, 62]], C.cizgi, 1.5);
+  // duman: baca ağzından çıkıp rüzgârla sağa sürüklenen, büyüdükçe seyrelen yarı saydam bulutçuklar
+  s += `<defs><radialGradient id="${u}duman" cx="42%" cy="38%" r="60%"><stop offset="0" stop-color="#9aa0a6" stop-opacity=".95"/><stop offset=".55" stop-color="#8a9097" stop-opacity=".6"/><stop offset="1" stop-color="#8a9097" stop-opacity="0"/></radialGradient><filter id="${u}dumanB" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1.8"/></filter></defs><g filter="url(#${u}dumanB)">`;
+  [[203, 70, 5, .85], [205, 63, 6.5, .82], [209, 56, 8, .78], [216, 50, 9.5, .72], [226, 46, 11, .64], [222, 41, 7, .45],
+   [238, 43, 12.5, .56], [252, 40, 14, .48], [248, 34, 9, .3], [268, 38, 15.5, .38], [284, 36, 16.5, .28], [280, 46, 10, .2], [298, 34, 15, .18]]
+    .forEach(([x, y, r, op]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u}duman)" opacity="${op}"/>`; });
+  s += `</g>`;
   s += not(30, 30, 'rüzgâr', { size: 12.5, fill: C.akis });
   s += `<line x1="220" y1="78" x2="236" y2="92" stroke="#6b645d" stroke-width="1"/>` + not(234, 104, 'baca ağzı', { size: 12 });
   return svg(W, H, s, u, 64);

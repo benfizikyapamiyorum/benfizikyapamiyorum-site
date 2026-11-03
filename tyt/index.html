@@ -1885,6 +1885,8 @@ function yatSilindir(I, u, x, y, z, r, L, renk) {
   const ry = r, rx = r * 0.5;
   let s = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ton(c, 0.35)}"/><stop offset=".5" stop-color="${ton(c, 0.05)}"/><stop offset="1" stop-color="${ton(c, -0.35)}"/></linearGradient></defs>`;
   s += `<path d="M${a[0]},${r1(a[1] - ry)} L${b[0]},${r1(b[1] - ry)} L${b[0]},${r1(b[1] + ry)} L${a[0]},${r1(a[1] + ry)}Z" fill="url(#${id})" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
+  s += `<path d="M${a[0]},${r1(a[1] - ry)} A${r1(rx)},${r1(ry)} 0 0 0 ${a[0]},${r1(a[1] + ry)}" fill="url(#${id})" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
+  s += `<path d="M${a[0]},${r1(a[1] - ry * 0.45)} L${b[0]},${r1(b[1] - ry * 0.45)}" stroke="#fff" stroke-opacity=".35" stroke-width="${r1(Math.max(1.2, ry * 0.28))}" stroke-linecap="round"/>`;
   s += `<ellipse cx="${b[0]}" cy="${b[1]}" rx="${r1(rx)}" ry="${r1(ry)}" fill="${ton(c, 0.2)}" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
   return s;
 }
@@ -25677,21 +25679,60 @@ BFY_FIG_EKLE('kT63_S1_paket', function (u) {
 
 /* ================= 3B NOT ÇİZİMİ ================= */
 const I0 = window.BFY_ISO, { plaka, kutu, yazi, sahne, N } = I0;
-// Tanım çizimi: solda uç uca (seri) iki pil, sağda yan yana (paralel) iki pil
+/* Gerçekçi silindir pil (izometrik): ekseni dünya x doğrultusunda, (+) ucu x'in büyüdüğü yönde.
+   Siyah gövde, bakır renkli (+) uç bandı, gümüş (+) çıkıntısı; gövdeye basılı + ve − işaretleri. */
+let pilNo = 0;
+function pilG(I, u, x, y, z, L, r) {
+  const id = u + 'pg' + (++pilNo), ss = I.s;
+  const Q = (xx, th, rr = r) => I.p(xx, y + rr * Math.cos(th), z + rr * Math.sin(th));
+  const a0 = I.p(x, y, z), b0 = I.p(x + L, y, z), dx = b0[0] - a0[0], dy = b0[1] - a0[1], dl = Math.hypot(dx, dy), nx = -dy / dl, ny = dx / dl;
+  const D = Math.PI / 180, ARC = []; for (let t = -45; t <= 135; t += 7.5) ARC.push(t * D);
+  const grad = (gid, xx, rr, c1, c2, c3) => {
+    const pU = Q(xx, 135 * D, rr), pA = Q(xx, -45 * D, rr), m = I.p(xx, y, z);
+    const k1 = (pU[0] - m[0]) * nx + (pU[1] - m[1]) * ny, k2 = (pA[0] - m[0]) * nx + (pA[1] - m[1]) * ny;
+    return `<linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="${f1(m[0] + nx * k1)}" y1="${f1(m[1] + ny * k1)}" x2="${f1(m[0] + nx * k2)}" y2="${f1(m[1] + ny * k2)}"><stop offset="0" stop-color="${c1}"/><stop offset=".3" stop-color="${c2}"/><stop offset="1" stop-color="${c3}"/></linearGradient>`;
+  };
+  const parca = (xa, xb, rr, fill, stroke) => {
+    const pts = ARC.map(t => Q(xa, t, rr)).concat(ARC.slice().reverse().map(t => Q(xb, t, rr)));
+    return `<polygon points="${pts.map(q => q.join(',')).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width=".7" stroke-linejoin="round"/>`;
+  };
+  const kapak = (xx, rr, fill, stroke) => {
+    const pts = []; for (let t = 0; t < 360; t += 10) pts.push(Q(xx, t * D, rr));
+    return `<polygon points="${pts.map(q => q.join(',')).join(' ')}" fill="${fill}" stroke="${stroke}" stroke-width=".7" stroke-linejoin="round"/>`;
+  };
+  const xb = x + L * 0.7, xe = x + L, rn = r * 0.36, ln = 1.6;
+  let s = `<defs>${grad(id + 'g', x + L / 2, r, '#6d7478', '#3a4044', '#121517')}${grad(id + 'c', xb, r, '#f2c38c', '#c8823f', '#7a4318')}${grad(id + 'n', xe, rn, '#ffffff', '#c9d0d5', '#7d878d')}</defs>`;
+  s += parca(x, xb, r, `url(#${id}g)`, '#0d0f10');
+  s += parca(xb, xe, r, `url(#${id}c)`, '#6a3a14');
+  s += kapak(xe, r, '#b98048', '#6a3a14');
+  s += kapak(xe, r * 0.78, '#d6dbde', '#7d878d');
+  s += parca(xe, xe + ln, rn, `url(#${id}n)`, '#6c767c') + kapak(xe + ln, rn, '#eef1f3', '#6c767c');
+  // gövdeye basılı işaretler: (−) arka uca yakın, (+) bakır bandın üstünde
+  const [mx, my] = Q(x + L * 0.12, 45 * D), [px, py] = Q(x + L * 0.86, 45 * D);
+  s += `<text x="${f1(mx)}" y="${f1(my + 3.2 * ss)}" font-family="${P.font || "'Plus Jakarta Sans', Arial, sans-serif"}" font-size="${f1(9 * ss)}" font-weight="800" fill="#f4f6f7" text-anchor="middle">−</text>`;
+  s += `<text x="${f1(px)}" y="${f1(py + 3.2 * ss)}" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-size="${f1(9 * ss)}" font-weight="800" fill="#3d1f08" text-anchor="middle">+</text>`;
+  return s;
+}
+// Tanım çizimi: solda uç uca (seri) iki pil, sağda yan yana (paralel) iki pil; her pilin yanında 1,5 V
 BFY_FIG_EKLE('iT63_tanim', u => sahne(u, I => {
   let s = plaka(I, -78, -36, 156, 72, '#dfe8d8');
   const tl = (arr, c = '#c0392b') => `<polyline points="${I.pts(arr)}" fill="none" stroke="${c}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
-  // seri: x boyunca uç uca, y = 14
+  const R = 6.5, Z = 8;
+  // seri: x boyunca uç uca, y = 14; birinci pilin (+) çıkıntısı ikincinin (−) ucuna değer
   s += kutu(I, -72, 6, 0, 66, 16, 2, '#cfd6db');
-  s += N.pil(I, u, -70, 14, 8, 30, 6.5) + N.pil(I, u, -39, 14, 8, 30, 6.5);
-  // paralel: yan yana, y = −22 ve y = −6, x = 10..40; aynı uçlar tellerle birleşik
+  s += pilG(I, u, -70, 14, Z, 29.4, R) + pilG(I, u, -39, 14, Z, 29.4, R);
+  // paralel: yan yana, y = −22 ve y = −6; (+) uçlar kırmızı, (−) uçlar siyah telle birleşik
   s += kutu(I, 6, -30, 0, 46, 32, 2, '#cfd6db');
-  s += tl([[44, -22, 8], [50, -22, 3], [50, -6, 3], [44, -6, 8]]) + tl([[12, -22, 8], [8, -22, 3], [8, -6, 3], [12, -6, 8]], '#2b3330');
-  s += N.pil(I, u, 12, -22, 8, 32, 6.5) + N.pil(I, u, 12, -6, 8, 32, 6.5);
+  s += tl([[45.5, -22, Z], [50, -22, 3], [50, -6, 3], [45.5, -6, Z]]) + tl([[12, -22, Z], [2, -22, 4], [2, -6, 4], [12, -6, Z]], '#2b3330');
+  s += pilG(I, u, 12, -22, Z, 32, R) + pilG(I, u, 12, -6, Z, 32, R);
+  // gerilim etiketleri: her pilin hemen yanında
+  const [s1x, s1y] = I.p(-55, 14 - R, Z + R), [s2x, s2y] = I.p(-24, 14 - R, Z + R), [p1x, p1y] = I.p(28, -22, Z + R), [p2x, p2y] = I.p(20, 2, 0);
+  s += yazi(s1x + 4, s1y - 3, '1,5 V', { size: 9.5, renk: '#173430', anchor: 'start' }) + yazi(s2x + 4, s2y - 3, '1,5 V', { size: 9.5, renk: '#173430', anchor: 'start' });
+  s += yazi(p1x + 4, p1y - 10, '1,5 V', { size: 9.5, renk: '#173430' }) + yazi(p2x - 2, p2y + 7, '1,5 V', { size: 9.5, renk: '#173430', anchor: 'end' });
   const [ax, ay] = I.p(-40, 26, 0), [bx, by] = I.p(30, 8, 0);
-  s += yazi(ax, ay + 18, 'seri', { size: 10.5, renk: '#244f40' }) + yazi(bx + 6, by + 22, 'paralel', { size: 10.5, renk: '#244f40' });
+  s += yazi(ax, ay + 22, 'seri', { size: 10.5, renk: '#244f40' }) + yazi(bx + 18, by + 30, 'paralel', { size: 10.5, renk: '#244f40' });
   return s;
-}, { w: 320, h: 150, mm: 110, ox: 160, oy: 70 }));
+}, { w: 320, h: 168, mm: 110, ox: 160, oy: 80, s: 1.2 }));
 })();
 
 </script>

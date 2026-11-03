@@ -1306,6 +1306,8 @@ function yatSilindir(I, u, x, y, z, r, L, renk) {
   const ry = r, rx = r * 0.5;
   let s = `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ton(c, 0.35)}"/><stop offset=".5" stop-color="${ton(c, 0.05)}"/><stop offset="1" stop-color="${ton(c, -0.35)}"/></linearGradient></defs>`;
   s += `<path d="M${a[0]},${r1(a[1] - ry)} L${b[0]},${r1(b[1] - ry)} L${b[0]},${r1(b[1] + ry)} L${a[0]},${r1(a[1] + ry)}Z" fill="url(#${id})" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
+  s += `<path d="M${a[0]},${r1(a[1] - ry)} A${r1(rx)},${r1(ry)} 0 0 0 ${a[0]},${r1(a[1] + ry)}" fill="url(#${id})" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
+  s += `<path d="M${a[0]},${r1(a[1] - ry * 0.45)} L${b[0]},${r1(b[1] - ry * 0.45)}" stroke="#fff" stroke-opacity=".35" stroke-width="${r1(Math.max(1.2, ry * 0.28))}" stroke-linecap="round"/>`;
   s += `<ellipse cx="${b[0]}" cy="${b[1]}" rx="${r1(rx)}" ry="${r1(ry)}" fill="${ton(c, 0.2)}" stroke="${ton(c, -0.45)}" stroke-width=".9"/>`;
   return s;
 }
@@ -34082,22 +34084,29 @@ BFY_FIG_EKLE('iA51_tanim', u => sahne(u, I0_ => {
   const R = 46, zc = 11, xf = 26;
   const halka = (a0, a1, z) => { const P2 = []; for (let i = 0; i <= 40; i++) { const t = (a0 + (a1 - a0) * i / 40) * D; P2.push([xf + R * Math.cos(t), R * Math.sin(t), z]); } return P2; };
   const [, cyE] = I.p(xf, 0, 11);
-  const halkaCiz = (z, on) => { let t = ''; for (let i = 0; i < 72; i++) { const a = i * 5, b = a + 5, p1 = [xf + R * Math.cos(a * D), R * Math.sin(a * D), z], p2 = [xf + R * Math.cos(b * D), R * Math.sin(b * D), z]; const onde = (I.p(...p1)[1] + I.p(...p2)[1]) / 2 > cyE; if (onde === on) t += yolD(I, [p1, p2], on ? '#4f7487' : ton('#7fa6b8', 0.3), on ? 1.6 : 1.2); } return t; };
+  // giriş yarığı: demetin geldiği 180° doğrultusunda ekranda açıklık (yarık dışında ekran kesintisiz)
+  const Y1 = 174, Y2 = 186, yarikta = a => a > Y1 - 0.01 && a < Y2 + 0.01;
+  const onMu = (a, b, z) => (I.p(xf + R * Math.cos(a * D), R * Math.sin(a * D), z)[1] + I.p(xf + R * Math.cos(b * D), R * Math.sin(b * D), z)[1]) / 2 > cyE;
+  const halkaCiz = (z, on) => { let t = ''; for (let i = 0; i < 72; i++) { const a = i * 5, b = a + 5; if (yarikta(a) && yarikta(b)) continue; const a1 = Math.max(a, yarikta(a) ? Y2 : a), b1 = yarikta(b) ? Y1 : b; const p1 = [xf + R * Math.cos(a1 * D), R * Math.sin(a1 * D), z], p2 = [xf + R * Math.cos(b1 * D), R * Math.sin(b1 * D), z]; if (onMu(a1, b1, z) === on) t += yolD(I, [p1, p2], on ? '#4f7487' : ton('#7fa6b8', 0.3), on ? 1.6 : 1.2); } return t; };
+  // ekran yüzeyi: çinko sülfür kaplı yarı saydam şerit (arka yarı soluk, ön yarı hafif)
+  const serit = on => { let t = ''; for (let i = 0; i < 72; i++) { let a = i * 5, b = a + 5; if (yarikta(a) && yarikta(b)) continue; if (yarikta(a)) a = Y2; if (yarikta(b)) b = Y1; if (onMu(a, b, 11) !== on) continue; const q = (g, z) => [xf + R * Math.cos(g * D), R * Math.sin(g * D), z]; t += `<polygon points="${I.pts([q(a, 3), q(b, 3), q(b, 19), q(a, 19)])}" fill="${on ? '#a9c9d8' : '#d3e4ec'}" opacity="${on ? 0.28 : 0.55}"/>`; } return t; };
+  const yarikKenar = () => [Y1, Y2].map(g => yolD(I, [[xf + R * Math.cos(g * D), R * Math.sin(g * D), 3], [xf + R * Math.cos(g * D), R * Math.sin(g * D), 19]], '#35576a', 1.8)).join('');
   // ekranın arka yarısı (soluk)
-  s += halkaCiz(3, false) + halkaCiz(19, false);
+  s += serit(false) + halkaCiz(3, false) + halkaCiz(19, false);
   // kurşun blok ve demet
   s += kutu(I, -96, -9, 0, 30, 18, 22, '#6c777e');
   s += izoOk(I, [-66, 0, zc], [xf - 3, 0, zc], { renk: '#d24b3e', w: 1.8, bas: 6, basG: 3.2, kesik: '5 3' });
   // altın levha
   s += kutu(I, xf - 1, -13, 2, 2, 26, 18, '#e7b93b');
   // saçılan yollar ve ışık noktaları
-  [[0], [8], [-7], [32], [-55], [158]].forEach(([a]) => {
+  let isik = '';
+  [[0], [8], [-7], [32], [-55], [146]].forEach(([a]) => {
     const t = a * D, q = [xf + R * Math.cos(t), R * Math.sin(t), zc];
     s += yolD(I, [[xf + 1, 0, zc], q], '#d24b3e', 1, { op: 0.7 });
-    const [x, y] = I.p(...q); s += `<circle cx="${x}" cy="${y}" r="3.2" fill="#ffe27a" stroke="#d9822b" stroke-width=".8"/>`;
+    const [x, y] = I.p(...q); isik += `<circle cx="${x}" cy="${y}" r="3.2" fill="#ffe27a" stroke="#d9822b" stroke-width=".8"/>`;
   });
-  // ekranın ön yarısı
-  s += halkaCiz(3, true) + halkaCiz(19, true);
+  // ekranın ön yarısı ve giriş yarığının kenarları; ışık noktaları ekranın iç yüzünde, en üstte
+  s += serit(true) + halkaCiz(3, true) + halkaCiz(19, true) + yarikKenar() + isik;
   { const [a, b] = I.p(-81, 9, 0); s += yazi(a, b + 14, 'α kaynağı', { size: 9.5 }); }
   { const [a, b] = I.p(xf, 13, 0); s += yazi(a - 6, b + 14, 'altın levha', { size: 9.5, renk: '#8a6410' }); }
   { const [a, b] = I.p(xf + R * Math.cos(-150 * D), R * Math.sin(-150 * D), 19); s += yazi(a - 14, b - 12, 'ekran', { size: 9.5, renk: '#4f7487' }); }
@@ -43275,18 +43284,63 @@ BFY_FIG_EKLE('AD04_kantar', function (u) {
   return svg(360, 232, s, u, 66);
 });
 
-// 7. soru: hurda vincinin elektromıknatısı
+// 7. soru: hurda vincinin elektromıknatısı (disk biçimli kaldırma mıknatısı, zincirle vinç kancasına asılı)
 BFY_FIG_EKLE('AD04_hurda', function (u) {
-  let s = `<rect class="bg" x="0" y="0" width="300" height="214" rx="12" fill="url(#${u}sky)"/>`;
+  const cx = 150, yT = 94, rx = 58, ry = 10, hY = 24, yB = yT + hY;
+  let s = `<defs>
+    <linearGradient id="${u}hYan" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2c3236"/><stop offset=".28" stop-color="#6d767c"/><stop offset=".45" stop-color="#4a5257"/><stop offset="1" stop-color="#1f2427"/></linearGradient>
+    <radialGradient id="${u}hUst" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#8a9399"/><stop offset="1" stop-color="#454d52"/></radialGradient>
+    <linearGradient id="${u}hBlok" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9a21c"/><stop offset=".4" stop-color="#f5cf5a"/><stop offset="1" stop-color="#a87810"/></linearGradient>
+    <linearGradient id="${u}pas1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9a7a62"/><stop offset="1" stop-color="#5e4635"/></linearGradient>
+    <linearGradient id="${u}pas2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8d8f8c"/><stop offset="1" stop-color="#55585a"/></linearGradient>
+    <linearGradient id="${u}pas3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b0825a"/><stop offset="1" stop-color="#6e4a2e"/></linearGradient>
+  </defs>`;
+  s += `<rect class="bg" x="0" y="0" width="300" height="214" rx="12" fill="url(#${u}sky)"/>`;
   s += `<rect x="0" y="182" width="300" height="32" fill="url(#${u}soil)"/>`;
-  s += `<line x1="150" y1="0" x2="150" y2="52" stroke="#4b555c" stroke-width="3"/><path d="M 150 52 L 118 82 M 150 52 L 182 82 M 150 52 L 150 82" stroke="#4b555c" stroke-width="2.4"/>`;
-  s += `<rect x="96" y="82" width="108" height="34" rx="6" fill="url(#${u}metal)" stroke="#4b555c" stroke-width="1.6"/>`;
-  for (let x = 104; x < 200; x += 8) s += `<line x1="${x}" y1="88" x2="${x + 4}" y2="110" stroke="#b5651d" stroke-width="2.2"/>`;
+  // vinç halatı, kanca bloğu ve kanca
+  s += `<line x1="146" y1="0" x2="146" y2="20" stroke="#3b4247" stroke-width="2"/><line x1="154" y1="0" x2="154" y2="20" stroke="#3b4247" stroke-width="2"/>`;
+  s += `<rect x="136" y="18" width="28" height="20" rx="4" fill="url(#${u}hBlok)" stroke="#6b4c08" stroke-width="1"/><circle cx="150" cy="28" r="4" fill="#4b555c"/>`;
+  s += `<path d="M150 38 V44 C150 52 160 54 160 46" fill="none" stroke="#3b4247" stroke-width="4" stroke-linecap="round"/>`;
+  s += `<ellipse cx="150" cy="50" rx="6" ry="4.4" fill="none" stroke="#2f363a" stroke-width="2.6"/>`;
+  // üç zincir: kancadaki halkadan diskin üst yüzündeki kulaklara
+  const zincir = (x1, y1, x2, y2) => {
+    const L = Math.hypot(x2 - x1, y2 - y1), n = Math.round(L / 6), ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+    let z = '';
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) / n, x = x1 + (x2 - x1) * t, y = y1 + (y2 - y1) * t;
+      z += i % 2 ? `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="3.6" ry=".9" transform="rotate(${f1(ang)} ${f1(x)} ${f1(y)})" fill="#2f363a"/>`
+                 : `<ellipse cx="${f1(x)}" cy="${f1(y)}" rx="3.8" ry="2.2" transform="rotate(${f1(ang)} ${f1(x)} ${f1(y)})" fill="none" stroke="#2f363a" stroke-width="1.3"/>`;
+    }
+    return z;
+  };
+  s += zincir(150, 54, 150, yT - 9);
+  s += zincir(147, 53, cx - 42, yT + 1) + zincir(153, 53, cx + 42, yT + 1);
+  // güç kablosu: kanca bloğundan bağlantı kutusuna sarkan kangal
+  s += `<path d="M164 30 C190 34 192 66 170 80" fill="none" stroke="#151a1d" stroke-width="2.4" stroke-linecap="round"/>`;
+  // disk gövde: yan yüzey, alt düz yüz kenarı, üst yüz
+  s += `<path d="M${cx - rx} ${yT} V${yB} A${rx} ${ry} 0 0 0 ${cx + rx} ${yB} V${yT} Z" fill="url(#${u}hYan)" stroke="#16191b" stroke-width="1"/>`;
+  s += `<path d="M${cx - rx} ${yB - 5} A${rx} ${ry} 0 0 0 ${cx + rx} ${yB - 5}" fill="none" stroke="#9aa3a8" stroke-width="1" opacity=".55"/>`;
+  s += `<ellipse cx="${cx}" cy="${yT}" rx="${rx}" ry="${ry}" fill="url(#${u}hUst)" stroke="#16191b" stroke-width="1"/>`;
+  // üst yüzdeki ışınsal soğutma kaburgaları
+  for (let k = 0; k < 12; k++) {
+    const a = k * Math.PI / 6, x1 = cx + Math.cos(a) * rx * 0.34, y1 = yT + Math.sin(a) * ry * 0.34, x2 = cx + Math.cos(a) * rx * 0.94, y2 = yT + Math.sin(a) * ry * 0.94;
+    s += `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="#2c3236" stroke-width="1.6"/>`;
+  }
+  // zincir kulakları ve bağlantı kutusu
+  s += `<rect x="${cx - 45}" y="${yT - 3}" width="6" height="6" rx="1.5" fill="#3b4247"/><rect x="${cx + 39}" y="${yT - 3}" width="6" height="6" rx="1.5" fill="#3b4247"/><rect x="${cx - 3}" y="${yT - 12}" width="6" height="6" rx="1.5" fill="#3b4247"/>`;
+  s += `<rect x="${cx + 12}" y="${yT - 14}" width="16" height="11" rx="2" fill="url(#${u}hBlok)" stroke="#6b4c08" stroke-width=".9"/>`;
   s += T(196, 72, 'elektromıknatıs', { size: 12, weight: 800 });
-  // asılı hurda parçaları
-  s += `<rect x="112" y="118" width="34" height="12" fill="#7a6a5a" stroke="#3d342b" transform="rotate(-8 129 124)"/><rect x="146" y="118" width="42" height="10" fill="#8a7a6a" stroke="#3d342b" transform="rotate(6 167 123)"/><rect x="128" y="130" width="40" height="9" fill="#6d6257" stroke="#3d342b"/>`;
-  // yerdeki hurda yığını
-  s += `<path d="M 30 182 L 60 160 L 84 170 L 104 156 L 132 182 Z" fill="#7d6f62" stroke="#3d342b"/><path d="M 196 182 L 222 166 L 246 172 L 270 160 L 286 182 Z" fill="#8a7d70" stroke="#3d342b"/>`;
+  // mıknatısın düz alt yüzüne yapışmış hurda parçaları
+  s += `<path d="M106 ${yB + 11} L146 ${yB + 9} L148 ${yB + 18} L110 ${yB + 22} Z" fill="url(#${u}pas1)" stroke="#3d2f24" stroke-width=".9"/>`;
+  s += `<path d="M144 ${yB + 10} L192 ${yB + 12} L190 ${yB + 20} L150 ${yB + 19} Z" fill="url(#${u}pas2)" stroke="#33363a" stroke-width=".9"/>`;
+  s += `<path d="M122 ${yB + 20} L170 ${yB + 18} L172 ${yB + 25} L126 ${yB + 29} Z" fill="url(#${u}pas3)" stroke="#3d2f24" stroke-width=".9"/>`;
+  s += `<rect x="160" y="${yB + 19}" width="34" height="4" rx="2" transform="rotate(14 177 ${yB + 21})" fill="#5c5f62" stroke="#2c2f31" stroke-width=".6"/>`;
+  s += `<path d="M136 ${yB + 27} q8 8 22 4 l1 4 q-16 5 -25 -4 Z" fill="url(#${u}pas1)" stroke="#3d2f24" stroke-width=".8"/>`;
+  // yerdeki hurda yığınları: yığın gövdesi ve üstünde levha, çubuk, boru parçaları
+  s += `<path d="M28 182 Q40 168 60 162 Q74 158 84 166 Q96 154 110 158 Q124 168 134 182 Z" fill="#6f6155" stroke="#3d342b"/>`;
+  s += `<path d="M44 170 L72 164 L74 170 L48 176 Z" fill="url(#${u}pas3)" stroke="#3d2f24" stroke-width=".7"/><rect x="82" y="160" width="36" height="3.6" rx="1.8" transform="rotate(-18 100 162)" fill="#55585a"/><path d="M96 170 l20 -2 l4 8 l-22 3 Z" fill="url(#${u}pas2)" stroke="#33363a" stroke-width=".7"/><ellipse cx="66" cy="176" rx="7" ry="4" fill="#4b4038" stroke="#2c241e" stroke-width=".7"/>`;
+  s += `<path d="M196 182 Q206 170 222 166 Q236 162 246 168 Q262 156 274 162 Q284 170 288 182 Z" fill="#7a6c5f" stroke="#3d342b"/>`;
+  s += `<path d="M210 176 L236 168 L240 174 L214 181 Z" fill="url(#${u}pas1)" stroke="#3d2f24" stroke-width=".7"/><rect x="244" y="164" width="34" height="3.6" rx="1.8" transform="rotate(12 261 166)" fill="#5c5f62"/><path d="M252 176 l18 -4 l2 6 l-18 3 Z" fill="url(#${u}pas3)" stroke="#3d2f24" stroke-width=".7"/>`;
   s += T(60, 152, 'demir hurda', { size: 11.5, weight: 700, anchor: 'middle' });
   return svg(300, 214, s, u, 64);
 });
