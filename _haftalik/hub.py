@@ -36,10 +36,12 @@ sec = re.search(r'<section class="tk" id="takvim-%d".*?</section>' % n, s, re.S)
 assert sec, 'takvim bulunamadı'
 blok = sec.group(0)
 li = re.search(r'<li class="tk-r[^"]*" data-bas="[^"]+" data-son="[^"]+">(?:(?!</li>).)*?data-not="%s"(?:(?!</li>).)*?</li>' % H['tarih'], blok, re.S)
+if not li:  # bu haftaya daha önce not bağlanmış: aynı haftanın satırını data-bas ile bul (eski bağlantı yeni notla değişir, eski PDF notlar/ içinde kalır)
+    li = re.search(r'<li class="tk-r[^"]*" data-bas="%s" data-son="[^"]+">(?:(?!</li>).)*?</li>' % H.get('hafta', H['tarih']), blok, re.S)
 assert li, 'takvim satırı bulunamadı: ' + H['tarih']
 hafta = re.search(r'<small>Hafta (\d+)</small>', li.group(0))
 lab = f'takvim_{n}_h{hafta.group(1) if hafta else "x"}'
-yeni_li = re.sub(r'<span class="tk-bekle" data-not="%s">[^<]*</span>' % H['tarih'],
+yeni_li = re.sub(r'<span class="tk-bekle" data-not="%s">[^<]*</span>|<a class="tk-not" [^>]*>[^<]*</a>' % H['tarih'],
                  f'<a class="tk-not" href="/notlar/{slug}.pdf" download data-bfy-event="free_pdf_download" data-bfy-lab="{lab}">{H["takvimLink"]}</a>', li.group(0))
 assert yeni_li != li.group(0)
 blok2 = blok.replace(li.group(0), yeni_li)

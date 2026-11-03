@@ -11,6 +11,7 @@ const URUN = {
 };
 
 async function promoHTML(N, site) {
+  if (N.yazili) return yaziliPromo(N, site);
   const R = RENK[N.sinif], U = URUN[N.sinif];
   const url = 'benfizikyapamiyorum.com/' + U.sayfa;
   const qr = await QR.toString('https://' + url, { type: 'svg', margin: 0, color: { dark: '#1d2b53', light: '#ffffff' } });
@@ -52,6 +53,52 @@ async function promoHTML(N, site) {
  <div><h4>Bu PDF’yi okuyanlara %10</h4>${U.ad} ve Yazılıya 3 Gün Kala’da Shopier ödeme adımında yaz:<br><span class="kod">NOTLAR10</span></div>
 </div>
 <a class="bant" href="https://benfizikyapamiyorum.com/ucretsiz/pdf?utm_source=haftalik_not&utm_medium=pdf" style="text-decoration:none"><span>Her hafta yeni ücretsiz not: <b>Pazartesi 9 · Çarşamba 10 · Cuma 11. sınıf</b></span><span>benfizikyapamiyorum.com · @benfizikyapamiyorum</span></a>
+</body></html>`;
+}
+
+// Yazılı haftası notları için son sayfa: Yazılıya 3 Gün Kala öne çıkar
+async function yaziliPromo(N, site) {
+  const R = RENK[N.sinif];
+  const url = 'benfizikyapamiyorum.com/yazili-3-gun-kala.html';
+  const utm = '?utm_source=haftalik_not&utm_medium=pdf';
+  const qr = await QR.toString('https://' + url + utm + '#sinif-sec', { type: 'svg', margin: 0, color: { dark: '#1d2b53', light: '#ffffff' } });
+  const img = p => 'file://' + path.join(site, p);
+  const k = N.yaziliNo || 1;
+  const extra = `
+@page{size:A4;margin:12mm}
+.pb{display:flex;justify-content:space-between;font-size:7.6pt;font-weight:800;letter-spacing:.06em;color:var(--ana);margin-bottom:6px}
+.ph{background:linear-gradient(115deg,#1b2557 0%,#2b3480 45%,#5b3cc4 100%);color:#fff;border-radius:12px;padding:16px 20px}
+.ph .e{font-size:7.6pt;font-weight:800;letter-spacing:.16em;color:#c9d2ff}
+.ph h1{font-size:21pt;font-weight:800;margin:6px 0 4px;line-height:1.15}.ph p{color:#dfe4ff;font-size:10pt}
+.gr{display:grid;grid-template-columns:.95fr 1.05fr;gap:12px;margin-top:12px}
+.kt{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
+.kt h3{font-size:13pt;font-weight:800;margin:4px 0 6px}
+.gun{display:grid;grid-template-columns:30px 1fr;gap:8px;margin:7px 0;font-size:9.6pt}.gun b.n{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--rozet);color:#fff}
+.fy{display:flex;gap:10px;margin-top:10px}.fy div{flex:1;background:var(--acik);border-radius:10px;padding:8px 10px;text-align:center}.fy b{display:block;font-size:18pt;color:var(--koyu);font-weight:800}.fy span{font-size:8.4pt;color:var(--ink2)}
+.gs{display:flex;gap:10px;justify-content:center}.gs img{border-radius:8px;box-shadow:0 6px 18px rgba(29,43,83,.18);border:1px solid #e2e8f0;height:92mm}
+.alt3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.alt3>div,.alt3>a{border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-size:9.2pt;color:inherit;text-decoration:none;display:block}
+.alt3 h4{font-size:10.4pt;font-weight:800;margin-bottom:4px}
+.qr{text-align:center;border-color:var(--ana)!important}.qr svg{width:30mm;height:30mm}.qr p{font-size:8.4pt;font-weight:700;margin-top:4px}
+.kod{display:inline-block;border:2px dashed var(--ana);color:var(--koyu);font-weight:800;font-size:13pt;letter-spacing:.08em;padding:3px 10px;border-radius:7px;margin-top:6px}
+.bant{display:flex;justify-content:space-between;background:#1d2b53;color:#fff;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:8.8pt;text-decoration:none}.bant b{color:#fcd34d}`;
+  return head('Yazılıya 3 Gün Kala tanıtım', R, extra) + `
+<div class="pb"><span>BEN FİZİK YAPAMIYORUM</span><span>YAZILI HAFTASI</span></div>
+<div class="ph"><div class="e">YAZILIYA HAZIRLIK · ${N.sinif}. SINIF</div><h1>Yazılıya 3 gün mü kaldı? Plan hazır.</h1><p>Bu not son tekrar içindi. Yazılıya 3 Gün Kala ${N.sinif} kitapçığı seni üç günde sınava hazır eder: konuyu topla, çözerek öğren, son gün prova et.</p></div>
+<div class="gr">
+ <div class="kt"><div class="gs"><img src="${img(`img/yazili3gun/kapak-${N.sinif}-${k}.webp`)}"></div></div>
+ <div class="kt"><h3>Yazılıya 3 Gün Kala · ${N.sinif}. sınıf</h3>
+  <div class="gun"><b class="n">1</b><div><b>Topla:</b> yazılının bütün konuları kısa özet ve kavram haritasıyla.</div></div>
+  <div class="gun"><b class="n">2</b><div><b>Çözerek öğren:</b> MEB yazılı biçiminde açık uçlu sorular, adım adım çözüm.</div></div>
+  <div class="gun"><b class="n">3</b><div><b>Prova et:</b> süreli deneme yazılısı ve puanlama anahtarı.</div></div>
+  <div class="fy"><div><b>₺199</b><span>tek yazılı</span></div><div><b>₺299</b><span>1. + 2. yazılı paketi</span></div></div></div>
+</div>
+<div class="alt3">
+ <a class="qr" href="https://${url}${utm}#sinif-sec">${qr}<p>Okut ya da dokun:<br>${url.replace('.html', '')}</p></a>
+ <a href="https://benfizikyapamiyorum.com/ucretsiz/pdf${utm}#sinif-${N.sinif}"><h4>Ücretsiz MEB senaryoları</h4>Okulunun seçtiği konu-soru dağılım senaryosunu ve ${N.sinif}. sınıfın ücretsiz PDF’lerini sitede bul →</a>
+ <div><h4>Bu PDF’yi okuyanlara %10</h4>Yazılıya 3 Gün Kala ve Yapabilirim’de Shopier ödeme adımında yaz:<br><span class="kod">NOTLAR10</span></div>
+</div>
+<a class="bant" href="https://benfizikyapamiyorum.com/ucretsiz/pdf${utm}"><span>Her hafta yeni ücretsiz not: <b>Pazartesi 9 · Çarşamba 10 · Cuma 11. sınıf</b></span><span>benfizikyapamiyorum.com · @benfizikyapamiyorum</span></a>
 </body></html>`;
 }
 module.exports = { promoHTML, URUN };

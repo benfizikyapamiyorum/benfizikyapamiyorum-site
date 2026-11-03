@@ -34,6 +34,17 @@ Timur Hoca'nın (Ben Fizik Yapamıyorum) Instagram "BFY Fizik Notları" serisi v
 7. Timur'a gönder (SendUserFile): PDF, kapak slaytı, tüm slaytlar (zip), açıklama metni ve ilk yorum. Kısa özet: konu, sayfa sayısı, mini sorunun cevabı. "Yayınlayayım mı?" diye sor.
 8. "yayınla" gelince: `python3 hub.py out/<slug>/meta.json ..` → `git add notlar/<slug>.* ucretsiz/pdf.html _haftalik/notlar/<dosya>.js` → commit ("<sınıf>. sınıf haftalık not #<no>: <konu>") → push. 1–2 dakika sonra `curl https://benfizikyapamiyorum.com/ucretsiz/pdf` ile canlıda olduğunu doğrula ve Timur'a bildir.
 
+## Yazılı haftaları: takvim konusu yerine "yazılıya son tekrar" notu (Timur'un kararı)
+
+Okullarda ortak yazılı haftasındaysa ya da yazılıya 10 günden az kaldıysa takvimdeki yeni konunun notu **yazılmaz** (öğrencinin o an işine yaramaz). Onun yerine o sınıfın sıradaki yazılısı için **"<k>. yazılıya son tekrar"** notu hazırlanır:
+- Kapsam: `ucretsiz/<sınıf>-Sinif-MEB-Senaryolari.pdf` (MEB ortak yazılı konu-soru dağılım senaryoları). Senaryoların ortak konularına ağırlık ver, okulun seçtiği senaryoya göre değişen konuları ayrıca belirt. Kapsam dışı konu yok (ör. 9. sınıf 1. yazılıda vektörler yok).
+- Yapı: konu konu kısa özet (formül ve kavram kutuları, şekiller), "yazılıda en çok kaybedilen puanlar" (5 hata), 2 çözümlü MEB tarzı açık uçlu soru (alt maddeli, puanlı), 10 soru (en az 4'ü MEB tarzı açık uçlu ve puanlı, kalanı çoktan seçmeli), cevaplar ve puanlama. Maarif terimleri kullanılır.
+- Not dosyasında `yazili: true, yaziliNo: <1|2>` ver: son sayfa otomatik olarak Yazılıya 3 Gün Kala tanıtımı olur. `hub.devam`: `{ href: '/yazili-3-gun-kala.html#sinif-sec', img: '/img/yazili3gun/kapak-<sınıf>-<k>.webp', lab: 'not<sınıf>_y3g', b: 'Devamı: Yazılıya 3 Gün Kala · <sınıf>. sınıf', span: '3 günlük plan, MEB tarzı sorular, prova yazılısı', em: '₺199 →' }`.
+- Takvim satırı yine o haftanın `data-not` satırıdır; `takvimLink`: "Not #<no> · <k>. yazılıya son tekrar ↓". "Gelecek hafta" bandında takvimdeki bir sonraki gerçek konuyu yaz.
+- Instagram: kanca "Yazılıya kaç gün kaldı?" tarzında; açıklamada Yazılıya 3 Gün Kala'yı tek cümleyle an.
+- Yazılı tarihleri: 2026-2027 MEB çalışma takvimi ve ortak yazılı takvimini web'de ara ve resmî kaynaktan doğrula. Bilinen: 1. dönem 1. yazılılar Kasım'ın ilk iki haftası (ara tatil 16–20 Kasım). Bu dönemde (13 Kasım'a kadar) bütün notlar yazılı notudur.
+- **Tek seferlik:** 4 Kasım (Çarşamba) çalışmasında 10. sınıf notuna ek olarak 9. sınıf "1. yazılıya son tekrar" notunu da hazırla; Instagram'a Perşembe 5 Kasım 20.00'ye planlanır (takvimde 2–6 Kasım satırının not bağlantısı bu notla değişir, vektör notu `notlar/` içinde kalır, sayfanın "Bu haftanın notu" kartı yazılı notu olur).
+
 ## Instagram (Timur'un kalıcı onayı: "yayınla" dediği notu Instagram'a da yükle)
 
 "yayınla" onayından sonra carousel'i Meta Business Suite'te **o gün saat 20.00'ye** planla (20.00 geçtiyse en yakın yarım saate). Claude in Chrome kullan (Timur'un Chrome'u; Instagram web'de başka hesap açık olabilir, oradan paylaşma).
