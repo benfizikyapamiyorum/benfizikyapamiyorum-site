@@ -34,6 +34,16 @@ Timur Hoca'nın (Ben Fizik Yapamıyorum) Instagram "BFY Fizik Notları" serisi v
 7. Timur'a gönder (SendUserFile): PDF, kapak slaytı, tüm slaytlar (zip), açıklama metni ve ilk yorum. Kısa özet: konu, sayfa sayısı, mini sorunun cevabı. "Yayınlayayım mı?" diye sor.
 8. "yayınla" gelince: `python3 hub.py out/<slug>/meta.json ..` → `git add notlar/<slug>.* ucretsiz/pdf.html _haftalik/notlar/<dosya>.js` → commit ("<sınıf>. sınıf haftalık not #<no>: <konu>") → push. 1–2 dakika sonra `curl https://benfizikyapamiyorum.com/ucretsiz/pdf` ile canlıda olduğunu doğrula ve Timur'a bildir.
 
-## Instagram
+## Instagram (Timur'un kalıcı onayı: "yayınla" dediği notu Instagram'a da yükle)
 
-Paylaşım saati 19.00–21.00. Sıra: kapak (`*_slayt_0_kapak.png`), sonra 1'den 9'a. Açıklama ve ilk yorum `aciklama.txt`'de.
+"yayınla" onayından sonra carousel'i Meta Business Suite'te **o gün saat 20.00'ye** planla (20.00 geçtiyse en yakın yarım saate). Claude in Chrome kullan (Timur'un Chrome'u; Instagram web'de başka hesap açık olabilir, oradan paylaşma).
+
+1. `https://business.facebook.com/latest/home` → "Gönderi oluştur".
+2. "Şurada paylaş" açılır listesinde **yalnız benfizikyapamiyorum (Instagram)** seçili kalsın; Facebook sayfasının işaretini kaldır, Escape.
+3. Dosya girişi gizli ve yerel dosya seçiciyi açar. Önce şu JS'i çalıştır, sonra "Fotoğraf/video ekle" düğmesine tıkla; input ekrana gelir, `find` ile ref'ini al ve `file_upload` ile `out/<slug>/slayt/jpg/` içindeki 10 JPG'yi **sırayla** (0_kapak, 1 … 9) yükle. Ardından `window.__bfyInput.style.display='none'`.
+   `HTMLInputElement.prototype.click` yamalanır: type=file ise `id='bfy-file'`, `aria-label='bfy dosya girişi'`, görünür yap, DOM'a ekle, `window.__bfyInput=this`, yerel pencereyi açma.
+4. "Metin" kutusuna `aciklama.txt`'deki açıklamayı yaz (ilk yorum hariç), sonunda Escape. 10 görsel ("1080 x 1350") ve metni JS ile doğrula.
+5. "Planla" bölümünde "Tarih ve saat ayarla"yı aç, tarih bugün, saat 20:00. "Planla" düğmesi → "Gönderin planlandı" → **"Belki daha sonra"** (öne çıkarma/reklam YOK).
+6. Planlayıcıda (`/latest/content_calendar`) o gün 20.00'de Instagram gönderisinin göründüğünü doğrula, Timur'a bildir.
+7. 20.05'te kendine `send_later` kur: gönderinin yayınlandığını kontrol et; Business Suite'ten (Gelen Kutusu > Instagram yorumları ya da gönderi ayrıntısı) `ilkYorum` metnini ilk yorum olarak yaz. Sabitleme yapılamıyorsa Timur'a telefondan sabitlemesini söyle.
+Chrome'a ulaşılamazsa paylaşma; dosyaları gönder ve Timur'a elle paylaşmasını hatırlat.

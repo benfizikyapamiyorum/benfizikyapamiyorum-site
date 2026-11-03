@@ -68,6 +68,8 @@ crop.resize((560,347),Image.LANCZOS).save('${path.join(out, N.slug + '.webp')}',
     await sp.evaluate('document.fonts.ready');
     const name = i === 0 ? `${N.sinif}_not${N.no}_slayt_0_kapak.png` : `${N.sinif}_not${N.no}_slayt_${i}.png`;
     await sp.screenshot({ path: path.join(out, 'slayt', name) });
+    fs.mkdirSync(path.join(out, 'slayt', 'jpg'), { recursive: true });
+    await sp.screenshot({ path: path.join(out, 'slayt', 'jpg', name.replace('.png', '.jpg')), type: 'jpeg', quality: 92 });
     // taşma denetimi: içerik 1350'yi aşıyor mu
     const over = await sp.evaluate(() => { const w = document.querySelector('.w'); return w.scrollHeight > 1350 + 1 ? w.scrollHeight : 0; });
     if (over) console.log('UYARI taşma slayt', i, over);
