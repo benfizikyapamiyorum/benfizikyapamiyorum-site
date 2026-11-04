@@ -41,13 +41,13 @@
   }).catch(function () {});
 
   function kopyala(kod, sessiz) {
-    var bitti = function () { if (!sessiz) bildir('Kod kopyalandı: ' + kod); else bildir('İndirim kodun panoda: ' + kod + ' · Shopier ödeme adımında yapıştır'); };
+    var bitti = function () { if (!sessiz) bildir('Kod kopyalandı: ' + kod); else bildir('İndirim kodun panoda: ' + kod + ' · Shopier ödeme sayfasında "Siparişi tamamla"ya basmadan aşağı kaydır, "İndirim kodu girin" kutusuna yapıştır', 7000); };
     try { navigator.clipboard.writeText(kod).then(bitti, function () {}); } catch (e) {}
   }
-  function bildir(t) {
+  function bildir(t, ms) {
     var b = document.getElementById('bfyRefToast');
     if (!b) { b = document.createElement('div'); b.id = 'bfyRefToast'; b.setAttribute('role', 'status'); document.body.appendChild(b); }
-    b.textContent = t; b.className = 'on'; clearTimeout(b._t); b._t = setTimeout(function () { b.className = ''; }, 3200);
+    b.textContent = t; b.className = 'on'; clearTimeout(b._t); b._t = setTimeout(function () { b.className = ''; }, ms || 3200);
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function serit(h, track) {
@@ -57,7 +57,7 @@
     document.head.appendChild(css);
     var d = document.createElement('div');
     d.id = 'bfyRef'; d.setAttribute('role', 'region'); d.setAttribute('aria-label', 'Hoca indirim kodu');
-    d.innerHTML = '<div class="in"><span>🎓 <b>' + esc(h.ad) + '</b> öğrencilerine <b>' + esc(h.indirim || '%10') + ' indirim</b><span class="l">: Shopier ödeme adımında bu kodu yaz</span></span><code>' + esc(h.kod) + '</code><button type="button" class="kp">Kodu kopyala</button></div><button type="button" class="x" aria-label="Şeridi kapat">×</button>';
+    d.innerHTML = '<div class="in"><span>🎓 <b>' + esc(h.ad) + '</b> öğrencilerine <b>' + esc(h.indirim || '%10') + ' indirim</b><span class="l">: Shopier ödeme sayfasında aşağı kaydır, “İndirim kodu girin” kutusuna yaz</span></span><code>' + esc(h.kod) + '</code><button type="button" class="kp">Kodu kopyala</button></div><button type="button" class="x" aria-label="Şeridi kapat">×</button>';
     d.querySelector('.kp').onclick = function () { kopyala(h.kod, false); track('ref_code_copy'); };
     d.querySelector('.x').onclick = function () { d.remove(); try { sessionStorage.setItem('bfy_ref_kapali', '1'); } catch (e) {} };
     var ekle = function () { document.body.insertBefore(d, document.body.firstChild); };

@@ -11,7 +11,7 @@
    =========================================================== */
 (function () {
   // Hoca satış ortaklığı: ?ref= kodunu hatırlayan ve indirim kodu şeridini gösteren küçük betik.
-  try { var rs = document.createElement('script'); rs.src = '/bfy-ref.js?v=20261026'; rs.async = true; document.head.appendChild(rs); } catch (e) { /* sessiz */ }
+  try { var rs = document.createElement('script'); rs.src = '/bfy-ref.js?v=20261104'; rs.async = true; document.head.appendChild(rs); } catch (e) { /* sessiz */ }
   // Local previews must not inflate the live website's counters.
   if (location.protocol !== "https:" || !/^(www\.)?benfizikyapamiyorum\.com$/.test(location.hostname)) {
     window.BFY = { track: function () { return Promise.resolve(false); } };
