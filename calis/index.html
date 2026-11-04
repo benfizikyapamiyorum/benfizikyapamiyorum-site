@@ -1225,6 +1225,7 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
 #rehberPencere p{font-size:15px;line-height:1.55;margin:0 0 10px}
 .rh-nok{display:flex;justify-content:center;gap:6px;margin:14px 0 4px}.rh-nok i{width:7px;height:7px;border-radius:50%;background:var(--ui-line)}.rh-nok i.on{background:var(--copper);width:18px;border-radius:4px}
 .rh-alt{display:flex;gap:10px;margin-top:12px}.rh-alt .btn{flex:1;padding:12px 14px;font-size:15px}
+.yk-cipler{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.yk-cip{font-size:12.5px;font-weight:700;text-decoration:none;color:var(--ui-text);background:color-mix(in srgb,var(--copper) 12%,transparent);border:1px solid color-mix(in srgb,var(--copper) 35%,var(--ui-line));border-radius:999px;padding:5px 10px}
 </style>
 </head>
 <body class="dj">
@@ -116913,14 +116914,27 @@ function halka(y, renk, yazi) {
 function kilitBant(m, sinif) { return sinifSeviye(sinif) > 0 ? '' : `<div class="kilit-bant"><span>🔒 ${m}</span><button type="button" data-kod>Lisansım var</button></div>`; }
 
 // Ana ekranda "Yeni" kartı: ipucu merdiveni ve hata profili (Kasım 2026). Kapatılınca K.ayar.yeni1 ile bir daha gösterilmez.
+// YKS 2027 ürünlerinde "Kitabın güncelleniyor" kartı (4 Kasım 2026, yorumlama soruları). Kapatılınca K.ayar.yeni2.
+const YENI2 = { y27t: { 'Y.3.1': 'kY31_31', 'Y.4.2': 'kY42_31', 'Y.5.2': 'kY52_31', 'Y.7.1': 'kY71_31', 'Y.8.1': 'kY81_31', 'Y.8.3': 'kY83_31', 'Y.9.2': 'kY92_31', 'Y.10.4': 'kY104_31' },
+  y27a: { 'A.1.4': 'kA14_31', 'A.1.7': 'kA17_31', 'A.2.1': 'kA21_31', 'A.2.4': 'kA24_31', 'A.3.3': 'kA33_31', 'A.3.4': 'kA34_31', 'A.4.1': 'kA41_31', 'A.5.4': 'kA54_31' } };
+function yeniKart2() {
+  const M = YENI2[U.kod]; if (!M || K.ayar.yeni2) return '';
+  const L = Object.entries(M).map(([id, qid]) => { const k = BANK[id]; if (!k) return ''; const i = sirali(k).findIndex(q => q.id === qid); return i < 0 ? '' : `<a class="yk-cip" href="#/soru/${id}/${i}">${esc(k.ad)}</a>`; }).filter(Boolean);
+  if (!L.length) return '';
+  return `<section class="yeni-kart" aria-label="Yenilikler"><div class="yk-ust"><span class="yk-rozet">Yeni</span><b>Kitabın güncelleniyor</b><button type="button" class="yk-kapat" data-yeni-kapat="yeni2" aria-label="Kapat">✕</button></div>
+<div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">🧩</span><div><b>${L.length} yeni yorumlama sorusu</b><p>ÖSYM tarzında grafik, tablo ve deney yorumlatan yeni sorular eklendi. Konunun adına dokununca doğrudan o soruya gidersin.</p><div class="yk-cipler">${L.join('')}</div></div></div>
+<div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">💬</span><div><b>Anlamadığın yeri bana yaz</b><p>Konu notunun altındaki “Anlamadım, yaz” ve sorulardaki “Bu soruyu anlamadım” düğmeleriyle bana yazabilirsin. Hepsini okuyorum; en çok istenen yerlere video ve yeni anlatım ekliyorum.</p></div></div>
+<div class="yk-alt"><button type="button" class="btn cizgi ince" data-yeni-kapat="yeni2">Anladım</button></div></section>`;
+}
 function yeniKart() {
+  const k2 = yeniKart2(); if (k2) return k2;
   if (!YN || K.ayar.yeni1) return '';
   return `<section class="yeni-kart" aria-label="Yenilikler"><div class="yk-ust"><span class="yk-rozet">Yeni</span><b>Kitabına iki yeni özellik eklendi</b><button type="button" class="yk-kapat" data-yeni-kapat aria-label="Kapat">✕</button></div>
 <div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">🪜</span><div><b>İpucu merdiveni</b><p>Bir soruda takılınca çözüme bakmadan önce “İpucu al” düğmesine bas. İpuçları adım adım açılır ve cevabı söylemez. Her ipucu o sorudan alacağın XP’yi biraz azaltır.</p></div></div>
 <div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">🧭</span><div><b>Hata profilin</b><p>Yanlış bir şık seçince o yanlışın hangi hata türünden geldiğini görürsün. İlerleme ekranında en sık yaptığın hata türleri ve her biri için çalışacağın sorular toplanır.</p></div></div>
 <div class="yk-alt"><a class="btn yesil ince" href="#/ilerleme">Hata profilime git</a><button type="button" class="btn cizgi ince" data-yeni-kapat>Anladım</button></div></section>`;
 }
-document.addEventListener('click', e => { if (e.target.closest('[data-rehber]')) { rehberAc(aktifLisans()); return; } if (!e.target.closest('[data-yeni-kapat]')) return; K.ayar.yeni1 = 1; kaydet(); const s = e.target.closest('.yeni-kart'); if (s) s.remove(); });
+document.addEventListener('click', e => { if (e.target.closest('[data-rehber]')) { rehberAc(aktifLisans()); return; } const yk = e.target.closest('[data-yeni-kapat]'); if (!yk) return; K.ayar[yk.dataset.yeniKapat || 'yeni1'] = 1; kaydet(); const s = e.target.closest('.yeni-kart'); if (s) s.remove(); });
 
 function anaEkran() {
   const sn = secSinif(), L = LISLER[sn];
