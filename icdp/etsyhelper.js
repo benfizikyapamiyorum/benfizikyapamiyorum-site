@@ -4,12 +4,20 @@ window.ESETUP = async function (k) {
   let b = [...document.querySelectorAll('button,a')].find(x => /Switch to standard list/.test(x.innerText));
   if (b) { b.click(); await sl(3000); }
   window.ED = window.ED || await (await fetch('https://benfizikyapamiyorum.com/icdp/etsydata.json?' + Date.now())).json();
-  const el = document.querySelector('#listing-editor_category-search-typeahead');
-  el.focus(); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, 'worksheet');
-  el.dispatchEvent(new Event('input', { bubbles: true })); await sl(2500);
-  const o = [...document.querySelectorAll('[role=option]')].find(e => /^Worksheets/.test(e.innerText));
-  if (o) o.click(); out.push(o ? 'cat' : 'CATFAIL'); await sl(1500);
-  const lb = document.querySelector('[aria-label="Physical or digital listing type"]');
+  const LB = () => document.querySelector('[aria-label="Physical or digital listing type"]');
+  if (!LB()) {
+    const top = [...document.querySelectorAll('*')].find(e => e.children.length <= 2 && /^\+\s*Worksheets/.test((e.innerText || '').trim()) && e.offsetParent);
+    if (top) { (top.querySelector('b,strong,span') || top).click(); await sl(2000); }
+  }
+  for (let t = 0; t < 3 && !LB(); t++) {
+    const el = document.querySelector('#listing-editor_category-search-typeahead');
+    el.focus(); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, 'worksheet');
+    el.dispatchEvent(new Event('input', { bubbles: true })); await sl(3500);
+    const o = [...document.querySelectorAll('[role=option]')].find(e => /^Worksheets/.test(e.innerText));
+    if (o) o.click(); await sl(2000);
+  }
+  out.push(LB() ? 'cat' : 'CATFAIL');
+  const lb = LB();
   lb.parentElement.parentElement.querySelector('button').click(); await sl(700);
   [...lb.querySelectorAll('li[role=option]')].find(e => /Digital/.test(e.textContent)).click(); await sl(1500);
   out.push(document.querySelector('input[name=whatContent]') ? 'digital' : 'DIGFAIL');
