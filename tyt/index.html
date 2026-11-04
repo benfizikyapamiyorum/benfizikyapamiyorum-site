@@ -1215,6 +1215,16 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
 .yk-ik{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:20px;background:color-mix(in srgb,var(--copper) 14%,transparent)}
 .yk-ozellik b{display:block;font-size:14.5px}.yk-ozellik p{margin:3px 0 0;font-size:13.5px;line-height:1.5;color:var(--ui-muted,inherit)}
 .yk-alt{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.yk-alt .btn{padding:9px 14px;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+
+#rehberPencere{width:min(460px,calc(100vw - 32px));max-height:calc(100dvh - 40px);overflow:auto;border:0;border-radius:22px;padding:18px 20px 20px;background:var(--ui-card);color:var(--ui-text);box-shadow:0 24px 60px rgba(0,0,0,.28)}
+#rehberPencere::backdrop{background:rgba(10,20,16,.55)}
+.rh-ust{display:flex;align-items:center;justify-content:space-between}.rh-say{font-size:12.5px;font-weight:700;color:var(--ui-muted)}
+.rh-gec:focus:not(:focus-visible){outline:0}.rh-gec{border:0;background:transparent;color:var(--ui-muted);font-weight:700;font-size:13.5px;padding:6px 4px;cursor:pointer}
+.rh-ik{width:64px;height:64px;margin:6px auto 8px;border-radius:20px;display:grid;place-items:center;font-size:32px;background:color-mix(in srgb,var(--copper) 14%,transparent)}
+.rh-b{text-align:center;font-size:20px;line-height:1.25;margin:0 0 10px}
+#rehberPencere p{font-size:15px;line-height:1.55;margin:0 0 10px}
+.rh-nok{display:flex;justify-content:center;gap:6px;margin:14px 0 4px}.rh-nok i{width:7px;height:7px;border-radius:50%;background:var(--ui-line)}.rh-nok i.on{background:var(--copper);width:18px;border-radius:4px}
+.rh-alt{display:flex;gap:10px;margin-top:12px}.rh-alt .btn{flex:1;padding:12px 14px;font-size:15px}
 </style>
 </head>
 <body class="dj">
@@ -42855,7 +42865,7 @@ function yeniKart() {
 <div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">🧭</span><div><b>Hata profilin</b><p>Yanlış bir şık seçince o yanlışın hangi hata türünden geldiğini görürsün. İlerleme ekranında en sık yaptığın hata türleri ve her biri için çalışacağın sorular toplanır.</p></div></div>
 <div class="yk-alt"><a class="btn yesil ince" href="#/ilerleme">Hata profilime git</a><button type="button" class="btn cizgi ince" data-yeni-kapat>Anladım</button></div></section>`;
 }
-document.addEventListener('click', e => { if (!e.target.closest('[data-yeni-kapat]')) return; K.ayar.yeni1 = 1; kaydet(); const s = e.target.closest('.yeni-kart'); if (s) s.remove(); });
+document.addEventListener('click', e => { if (e.target.closest('[data-rehber]')) { rehberAc(aktifLisans()); return; } if (!e.target.closest('[data-yeni-kapat]')) return; K.ayar.yeni1 = 1; kaydet(); const s = e.target.closest('.yeni-kart'); if (s) s.remove(); });
 
 function anaEkran() {
   const sn = secSinif(), L = LISLER[sn];
@@ -43934,6 +43944,7 @@ function ilerleme() {
     <label class="ayar-sat">Titreşim<input class="dugme-a" type="checkbox" data-ayar="titresim" ${K.ayar.titresim ? 'checked' : ''}></label>
     ${gorunurSiniflar().map(n => { const L = LISLER[n]; return `<div class="ayar-sat" data-erisim="${n}"><span>${SA(n)}: ${L ? (L.seviye === 2 ? 'Öğretmen lisansı' : 'Öğrenci lisansı') + (L.ad ? ' – ' + esc(L.ad) : '') : 'Ücretsiz sürüm'}</span>${L ? '' : '<button class="btn ana kucuk" type="button" data-kod>Lisansım var</button>'}</div>`; }).join('')}
     ${ANALIZ ? `<label class="ayar-sat">Sınav tarihi (tahmini)<input type="date" data-ayar-tarih="sinav" value="${K.ayar.sinav || SINAV_VARS}"></label>` : ''}
+    <div class="ayar-sat"><span>Kitabı nasıl kullanırım?</span><button class="btn cizgi" type="button" data-rehber style="padding:8px 12px">Rehberi aç</button></div>
     <div class="ayar-sat"><span>İlerlemeyi ve çizimleri sıfırla</span><button class="btn cizgi" type="button" id="sifirla" style="padding:8px 12px">Sıfırla</button></div></div>
     <p class="dip" style="text-align:center;margin-top:10px">İlerlemen ve kalem çizimlerin bu cihazda saklanır.</p>`;
   return h;
@@ -44218,12 +44229,52 @@ async function kodDene() {
   $('#kodPencere').close(); hosGeldin(r); ciz(false);
 }
 const ilkAd = () => { const L = aktifLisans(); return ((L && L.ad) || '').split(/\s+/)[0] || ''; };
-function hosGeldin(r) { const a = (r.ad || '').split(/\s+/)[0]; tost(`Hoş geldin${a ? ' ' + a : ''}! ${lisansAdi(r).replace(/^./, c => c.toUpperCase())} açıldı.`); konfeti(); }
+function hosGeldin(r) {
+  const a = (r.ad || '').split(/\s+/)[0]; konfeti();
+  const gor = K.ayar.rehber || []; if (r.no && gor.includes(r.no)) { tost(`Hoş geldin${a ? ' ' + a : ''}! ${lisansAdi(r).replace(/^./, c => c.toUpperCase())} açıldı.`); return; }
+  if (r.no) { K.ayar.rehber = gor.concat(r.no).slice(-20); kaydet(); }
+  rehberAc(r);
+}
+/* ---- Karşılama rehberi: lisans ilk açıldığında adım adım "kitabı nasıl kullanırım" (Ayarlar'dan yeniden açılır) ---- */
+function rehberAdimlar(r) {
+  const a = ((r && r.ad) || '').split(/\s+/)[0], urun = r ? lisansAdi(r) : '', sinav = TYT;
+  const A = [
+    { ik: '👋', b: `Hoş geldin${a ? ', ' + a : ''}!`, p: [`${urun ? urun.replace(/^./, c => c.toUpperCase()) + ' açıldı. ' : ''}Ben Timur Hoca. Bu kitabı senin için hazırladım.`, 'Şimdi kitabı nasıl kullanacağını adım adım anlatacağım. Bir dakika sürer; istediğin zaman İlerleme ekranının altındaki Ayarlar’dan bu rehberi yeniden açabilirsin.'] },
+    { ik: '📱', b: 'Lisansın bu cihazda kayıtlı', p: ['Bundan sonra bu sayfayı açman yeterli; internet olmasa da çalışır.', 'Telefonda kolay açmak için ana ekrana ekle. iPhone’da Safari’de alttaki Paylaş düğmesine, sonra “Ana Ekrana Ekle”ye dokun. Android’de sağ üstteki üç noktaya, sonra “Ana ekrana ekle”ye dokun.', 'Tablette ya da bilgisayarda da kullanacaksan e-postadaki linke o cihazda bir kez dokun. İlerlemen her cihazda ayrı tutulur.'] },
+    { ik: '📚', b: 'Bir konu seç', p: ['Ana ekranda üniteler ve konular sırayla duruyor. Çalışacağın konuya dokun.', 'Konu kartındaki halka, o konuda ne kadarını bitirdiğini gösterir. En üstteki “Kaldığın yerden devam et” kartı seni son çözdüğün soruya götürür.'] },
+    { ik: '📖', b: 'Önce konu notunu oku', p: ['Konunun içinde iki sekme var: “Konu notu” ve “Sorular”.', 'Notta şekilli anlatım, çözümlü örnekler, kavram kartları ve mini oyunlar var. Kavram kartına dokununca kart döner ve anlamını gösterir. Simülasyonda kaydırıcıları oynat, fiziğin nasıl değiştiğini kendi gözünle gör.'] },
+    { ik: '✏️', b: 'Soruları çöz', p: ['“Sorular” sekmesinde bir şık seç, sonra “Kontrol et”e bas. Doğru cevaplar XP kazandırır.', 'Takılırsan hemen çözüme bakma: önce “💡 İpucu al”a bas. İpuçları adım adım açılır ve cevabı söylemez. Her ipucu o sorudan alacağın XP’yi biraz azaltır.'] },
+    { ik: '🔍', b: 'Yanlış yapınca', p: ['Yanlış bir şık seçersen o şıkkın neden yanlış olduğu ve hatanın türü hemen yazılır. “Çözümü göster” ile çözümü adım adım açarsın.', 'Yanlış yaptığın sorular alttaki “Yanlışlarım” sekmesinde toplanır. Birkaç gün sonra oradan tekrar çöz; ikinci kez doğru yapınca o konu gerçekten oturur.'] },
+    { ik: '🖊️', b: 'Kalemle yaz', p: ['Sağ üstteki “Kalem” düğmesine basınca sorunun üstüne yazabilirsin; tablette kalemle, telefonda parmakla.', 'Renk değiştirebilir, fosforlu kalemle işaretleyebilir, silgiyle silebilirsin. Yazdıkların o soruda kalır.'] },
+    sinav
+      ? { ik: '⏱️', b: `${U.sinav} denemeleri`, p: [`Alttaki “Deneme” sekmesinde gerçek ${U.sinav} fizik bölümü gibi ${U.deneme.soru} soruluk, ${DK(U.deneme.sure)} dakikalık denemeler var. Süre tutulur; bitince netin hesaplanır ve net grafiğinde ilerlemeni görürsün.`].concat(GUNLUK ? ['Ana ekranda her gün yeni bir “Günün 7 sorusu” çıkar. Her gün çözersen serin büyür.'] : []).concat(ANALIZ ? ['“Sınav rotası” kartı sınava kalan güne göre hangi konuya öncelik vermen gerektiğini ve haftalık planını gösterir.'] : []) }
+      : { ik: '⏱️', b: 'Deneme ve konu testi', p: ['Alttaki “Deneme” sekmesinde farklı konulardan karışık, süreli bir deneme çözersin.', 'Bir konuyu bitirince o konunun “Sorular” sekmesinden süreli konu testi açabilirsin. Kaç dakikada bitirdiğini ve hangi soruda zorlandığını görürsün.'] },
+    { ik: '📈', b: 'İlerlemene bak', p: ['Alttaki “İlerleme” sekmesinde XP’n, günlük serin, rozetlerin ve hata profilin var.', 'Hata profili en sık yaptığın hata türlerini gösterir. Her birinin yanındaki “Bu hatayı çalış” ile o hata için seçilmiş soruları çözersin.'] },
+    { ik: '💬', b: 'Takıldığın yeri bana yaz', p: ['Konu notunun altındaki “Anlamadım, yaz” ve sorulardaki “Bu soruyu anlamadım” düğmeleriyle bana yazabilirsin. Hepsini okuyorum; en çok istenen yerlere video ve yeni anlatım ekliyorum.', 'Kâğıtta çalışmak istersen ana ekranın en altındaki “PDF çalışma kâğıdı oluştur”a bas; adına özel kitapçığını yazdırırsın.', 'Hazırsın. Haydi ilk konuyla başlayalım.'] },
+  ];
+  return A;
+}
+function rehberAc(r) {
+  let d = $('#rehberPencere');
+  if (!d) { d = document.createElement('dialog'); d.id = 'rehberPencere'; d.setAttribute('aria-label', 'Kitabı nasıl kullanırım?'); document.body.appendChild(d); }
+  const A = rehberAdimlar(r); let i = 0;
+  const ciz1 = () => {
+    const s = A[i], son = i === A.length - 1;
+    d.innerHTML = `<div class="rh-ust"><span class="rh-say">${i + 1} / ${A.length}</span><button type="button" class="rh-gec" data-rh="kapat">${son ? 'Kapat' : 'Geç'}</button></div>
+<div class="rh-ik" aria-hidden="true">${s.ik}</div><h2 class="rh-b">${esc(s.b)}</h2>${s.p.map(x => `<p>${esc(x)}</p>`).join('')}
+<div class="rh-nok" aria-hidden="true">${A.map((_, j) => `<i class="${j === i ? 'on' : ''}"></i>`).join('')}</div>
+<div class="rh-alt">${i ? '<button type="button" class="btn cizgi" data-rh="geri">Geri</button>' : ''}<button type="button" class="btn yesil" autofocus data-rh="${son ? 'kapat' : 'ileri'}">${son ? 'Başlayalım' : i ? 'İleri' : 'Hadi başlayalım'}</button></div>`;
+    const b = d.querySelector('[data-rh="ileri"],[data-rh="kapat"].btn'); if (b) b.focus();
+  };
+  d.onclick = e => { const t = e.target.closest('[data-rh]'); if (!t) return; const k = t.dataset.rh; if (k === 'ileri') { i++; ciz1(); } else if (k === 'geri') { i--; ciz1(); } else d.close(); };
+  ciz1(); if (!d.open) d.showModal();
+  const b0 = d.querySelector('.btn.yesil'); if (b0) b0.focus({ preventScroll: true });
+}
 $('#kodTamam').addEventListener('click', kodDene);
 $('#kodInput').addEventListener('keydown', e => { if (e.key === 'Enter') kodDene(); });
 $('#kodKapat').addEventListener('click', () => $('#kodPencere').close());
 document.addEventListener('keydown', e => {
-  if (e.target.matches('input,textarea,select') || $('#kodPencere').open || ($('#geriPencere') && $('#geriPencere').open)) return;
+  if (e.target.matches('input,textarea,select') || $('#kodPencere').open || ($('#geriPencere') && $('#geriPencere').open) || ($('#rehberPencere') && $('#rehberPencere').open)) return;
   // Etkileşimli öğelerde Enter/boşluk yalnız odaktaki düğmeyi çalıştırır (Kontrol et'i tetiklemez).
   if (e.target.closest && e.target.closest('.etk, .kc, .n-kartlar-dj, .n-oyun-dj') && (e.key === 'Enter' || e.key === ' ')) return;
   const p = yolParca(); if (p[0] !== 'soru') return;
