@@ -533,6 +533,7 @@ table.etk-sn.g2 th:first-child{width:52%} table.etk-sn.g3 th:first-child{width:4
     <p class="alt">Konunu seç, paketini kur, PDF olarak kaydet. Her oluşturma yeni bir soru karışımı üretir.</p>
     <a class="dij-link" href="../calis/">📱 Telefonda ya da tablette çalış: soruları dokunarak çöz, kalemle yaz</a>
     <div class="durum"><span id="seviyeEtiket">Ücretsiz örnek</span><button id="kodAc" type="button">Lisansım var</button></div>
+    <div class="grp" id="listeGrp" hidden><h3>Uygulamadan gelen kâğıt</h3><p class="ipucu" id="listeBilgi"></p><button class="btn ikincil" id="listeCik" type="button">Kendi seçimimi yapacağım</button></div>
 
     <div class="grp" id="tytTurGrp" hidden><h3>Ne yazdıracaksın?</h3>
       <div class="cips"><button class="cip" data-v="tur=konu" type="button">Konu kitapçığı</button><button class="cip" data-v="tur=deneme" type="button">Deneme ve tarama</button></div>
@@ -112987,7 +112988,9 @@ const S = {
   seed: Math.floor(Math.random() * 1e6) + 1,
   seviye: 0,
   // TYT: tur = 'konu' (konu kitapçığı) | 'deneme' (deneme ve tarama kitapçığı); anahtar: cevap anahtarı basılsın mı
-  tur: 'konu', anahtar: true, denemeler: [], dn: { kapak: null, optik: true, cozum: false }
+  tur: 'konu', anahtar: true, denemeler: [], dn: { kapak: null, optik: true, cozum: false },
+  // 9/10/11: dijital kitaptan gelen soru listesi (deneme, süreli konu testi): { ids, baslik, sure } ya da null
+  liste: null
 };
 
 // Katalogda görünen (yayında ya da BFY10 ile açılmış) sınıf mı?
@@ -113158,7 +113161,7 @@ function kapakBlok(harf) {
     <div class="kp-sag">
       <div class="kp-ad"><span>Adım</span><b>${esc(S.ad.trim()) || '&nbsp;'}</b></div>
       <div class="kp-ad"><span>Tarih</span><b>&nbsp;</b></div>
-      ${S.tekrar && S.sinif >= 20 ? `<div class="kp-gorev"><b>Görev:</b> Formülleri ve tuzakları sesli tekrar et. Emin olmadığın satırı işaretle, sınavdan önce bir kez daha oku.</div>` : `<div class="kp-gorev"><b>Görev:</b> Notu oku, soruları çöz, XP topla. <span class="xp1">★ 10</span> <span class="xp2">★★ 20</span> <span class="xp3">★★★ 30 XP</span></div>
+      ${S.tekrar && S.sinif >= 20 ? `<div class="kp-gorev"><b>Görev:</b> Formülleri ve tuzakları sesli tekrar et. Emin olmadığın satırı işaretle, sınavdan önce bir kez daha oku.</div>` : `<div class="kp-gorev"><b>Görev:</b> ${S.liste && !window.BFYTYT ? 'Süreni tut, soruları çöz, sonra cevap anahtarıyla kontrol et.' : 'Notu oku, soruları çöz, XP topla.'} <span class="xp1">★ 10</span> <span class="xp2">★★ 20</span> <span class="xp3">★★★ 30 XP</span></div>
       <div class="kp-unvan">${un.map(u => `<span>${esc(u)}</span>`).join('<i>›</i>')}</div>`}
     </div>
   </div>`;
@@ -113373,7 +113376,61 @@ function setDuzen(qs, v) {
   const tas = []; for (let i = once.length - 1; i >= 0 && tas.length < m; i--) if (once[i].tur === 'cs') tas.unshift(...once.splice(i, 1));
   return [...once, ...pr.flatMap(i => birim[i]), ...tas, ...sonra];
 }
+/* ---------------- Uygulamadan gelen soru listesi (9/10/11) ----------------
+   Dijital kitaptaki deneme ve süreli konu testi sorularını kimlik listesiyle gönderir (#sorular=…).
+   Sorular tam bu sırayla basılır. Şık sırası dijital kitaptaki gibi yalnız soru kimliğine bağlıdır
+   (rng(hashSayi(id))): öğrenci ekranda gördüğü şık harflerini kâğıtta da aynı bulur.
+   Lisansın açmadığı sorular basılmaz; kaç soru atlandığı kâğıtta bir satırla yazılır. */
+let _qh = null;
+function soruHaritasi() {
+  if (_qh) return _qh;
+  _qh = {};
+  Object.values(window.BFY_BANK).forEach(k => {
+    k.sorular.forEach(q => { _qh[q.id] = { q, k }; });
+    (k.setler || []).forEach(st => st.sorular.forEach((q, j) => { _qh[q.id] = { q, k, st, j }; }));
+  });
+  return _qh;
+}
+const konuSinifNo = k => +String(k.id).split('.')[0];
+function listeHazirla() {
+  const H = soruHaritasi(), qs = []; let kilitli = 0;
+  S.liste.ids.forEach(id => {
+    const x = H[id]; if (!x) return;
+    const ac = sinifSeviye(konuSinifNo(x.k)) > 0 || (!x.st && vitrinListesi(x.k).includes(id));
+    if (!ac) { kilitli++; return; }
+    const q = { ...x.q, tur: x.q.tur || 'cs', konu: x.k, ...(x.st ? { set: x.st, setSira: x.j } : {}) }, rnd = rng(hashSayi(id));
+    qs.push(q.tur === 'cs' ? seceneklerKaristir(q, rnd) : ETK.etkMi(q) ? ETK.etkKaristir(q, rnd) : q);
+  });
+  return { qs, kilitli };
+}
+function listeBloklari() {
+  const B = [], L = S.liste, { qs, kilitli } = listeHazirla();
+  const cozumAlt = S.mod === 'ogretmen' && S.cozum === 'altinda' && S.seviye >= 2;
+  const cozumSonda = S.cozum === 'sonda' && S.seviye >= 1;
+  B.push(kapakBlok('A'));
+  B.push(`<div class="blk bolum"><span class="bn soru">SORULAR</span><h2>${S.mod === 'ogretmen' ? 'Değerlendirme' : 'Sıra sende'}</h2><span class="bc">${qs.length} soru${L.sure ? `, süre ${L.sure} dakika` : ''}</span></div>`);
+  if (kilitli) B.push(`<div class="blk tanitim"><b>${kilitli} soru basılmadı.</b> Listedeki bu sorular ${sinifAd(S.sinif)} lisansıyla açılır.</div>`);
+  if (!qs.length) { B.push(`<div class="blk tanitim"><b>Bu listede basılabilecek soru yok.</b> Soldaki “Kendi seçimimi yapacağım” düğmesiyle konu seçerek kâğıt oluşturabilirsin.</div>`); return B; }
+  qs.forEach((q, i) => {
+    if (q.set && (i === 0 || !qs[i - 1].set || qs[i - 1].set.id !== q.set.id)) {
+      let j = i; while (j + 1 < qs.length && qs[j + 1].set && qs[j + 1].set.id === q.set.id) j++;
+      B.push(baglamBlok(q.set, i + 1, j + 1));
+    }
+    B.push(soruBlok(q, i + 1, { cozumAlt }));
+  });
+  if (S.anahtar !== false) {
+    B.push('<div class="blk kir"></div>');
+    B.push(anahtarBlok([{ harf: 'A', qs }], false));
+    if (cozumSonda && !cozumAlt) {
+      B.push(`<div class="blk bolum"><span class="bn cz">ÇÖZÜMLER</span><h2>Adım adım çözümler</h2><span class="bc">Kâğıttaki sırayla</span></div>`);
+      qs.forEach((q, i) => B.push(`<div class="blk">${cozumHTML(q, i + 1)}</div>`));
+    }
+  }
+  if (S.seviye === 0) B.push(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Tüm sorular, adım adım çözümler, kişiye özel kapak ve öğretmen modu için ${sinifAd(S.sinif)} lisansı al: ${CFG.site}</div>`);
+  return B;
+}
 function belgeBloklari() {
+  if (S.liste && !window.BFYTYT) return listeBloklari();
   // TYT birden çok konu: konu konu kitapçık (her konunun notu ve soruları birlikte)
   if (S.sinif >= 20 && secKonular().length > 1) return tytKitapBloklari();
   const bloklar = [];
@@ -113752,7 +113809,7 @@ function ciz() {
   // Karşılıklı sayfaya sığmayan (sayfa çevirmeli) set kalmasın diye birkaç yerleşimi dene
   S._duzen = null;
   let sayfalar = sayfala(belgeBloklari());
-  if (sayfalar.cevir) {
+  if (sayfalar.cevir && !S.liste) {
     let en = { s: sayfalar, puan: sayfalar.cevir * 1000 + sayfalar.length, v: null };
     for (let m = 0; m <= 2 && en.s.cevir; m++) for (let p = 0; p < 6 && en.s.cevir; p++) {
       if (!m && !p) continue;
@@ -113763,13 +113820,13 @@ function ciz() {
     S._duzen = en.v; sayfalar = en.s;
   }
   const ks = secKonular();
-  const ad = S.sinif >= 20 && ks.length > 2 ? (tytUniteleri(ks).length === 1 ? tytUniteleri(ks)[0].no + '. Ünite' : 'Konu kitapçığı') + ' (' + ks.length + ' konu)' : ks.length > 2 ? S.unite + '. Ünite (' + ks.length + ' konu)' : ks.map(k => k.kisa || k.ad).join(' + ');
+  const ad = S.liste && !window.BFYTYT ? S.liste.baslik : S.sinif >= 20 && ks.length > 2 ? (tytUniteleri(ks).length === 1 ? tytUniteleri(ks)[0].no + '. Ünite' : 'Konu kitapçığı') + ' (' + ks.length + ' konu)' : ks.length > 2 ? S.unite + '. Ünite (' + ks.length + ' konu)' : ks.map(k => k.kisa || k.ad).join(' + ');
   const n = sayfalar.length;
   // TYT içindekiler: konu başlığının bulunduğu sayfa numarası
   if (S.sinif >= 20) sayfalar.forEach((s, i) => { (s.match(/data-kbas="0-\d+"/g) || []).forEach(m => { const k = m.match(/0-\d+/)[0]; sayfalar.forEach((x, j) => { sayfalar[j] = x.replace(`data-ics="${k}">…<`, `data-ics="${k}">${i + 1}<`); }); }); });
   $('#sayfalar').innerHTML = sayfalar.map((s, i) => `<section class="sheet"><div class="sheet-ic tema-${S.tema} ${S.mod}${S.sinif >= 20 ? ' tyt-ic' : ''}">${s}</div>
-    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : (S.sinif >= 20 ? UR.ad : 'Yapabilirim ' + S.sinif + ' – Ben Fizik Yapamıyorum')}</span><span>${sinifAdB(S.sinif)} – ${esc(ad)}${S.seviye >= 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
-  $('#bilgi').textContent = `${n} sayfa – ${formKodu()}`;
+    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : (S.sinif >= 20 ? UR.ad : 'Yapabilirim ' + S.sinif + ' – Ben Fizik Yapamıyorum')}</span><span>${sinifAdB(S.sinif)} – ${esc(ad)}${S.seviye >= 1 && !S.liste ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
+  $('#bilgi').textContent = S.liste ? `${n} sayfa – ${S.liste.baslik}` : `${n} sayfa – ${formKodu()}`;
   $('#formkod').textContent = formKodu();
   olcekle();
   // Ölçüm sırasında ilk kez gereken bir yazı tipi yüzü (ör. KaTeX) henüz yüklenmemişse satır kırılmaları sonradan değişir
@@ -113812,7 +113869,19 @@ function arayuz() {
   // Etkileşimli soru seçeneği yalnız seçili konularda bu türden soru varsa görünür.
   if ($('#etkTik')) { $('#etkTik').style.display = secKonular().some(k => k.sorular.some(ETK.etkMi)) ? '' : 'none'; $('#t_etk').checked = S.turler.etk !== false; }
   $('#ab').checked = S.ab;
-  if (window.BFYTYT) tytArayuz();
+  if (window.BFYTYT) tytArayuz(); else listeArayuz();
+}
+// 9/10/11: uygulamadan gelen soru listesi varken konu, paket ve soru seçimi gizlenir; çözüm seçimi açık kalır.
+function listeArayuz() {
+  const lm = !!S.liste, lg = $('#listeGrp');
+  if (lg) { lg.hidden = !lm; if (lm) $('#listeBilgi').textContent = `${S.liste.baslik}: ${S.liste.ids.length} soru. Sorular ve şıklar uygulamadaki sırasıyla basılır.`; }
+  ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = lm; });
+  const ab = $('#ab'); if (ab && ab.closest('label')) ab.closest('label').hidden = lm;
+}
+function listeBirak() {
+  if (!S.liste) return;
+  if (S.baslik === S.liste.baslik) { S.baslik = ''; const b = $('#baslik'); if (b) b.value = ''; }
+  S.liste = null;
 }
 /* ---- TYT paneli: konu kitapçığı (bütün üniteler, ünite başlığıyla toplu seçim, kitapçık türü) ve denemeler ---- */
 const katKonu = id => { for (const s of window.BFY_KATALOG) for (const u of s.uniteler || []) for (const k of u.konular) if (k.id === id) return { s, u, k }; return null; };
@@ -113898,7 +113967,8 @@ function baglan() {
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-v]');
     if (b && !b.disabled) { const [k, v] = b.dataset.v.split('='); S[k] = isNaN(+v) || v === '' ? v : +v; if (k === 'mod' && v === 'ogretmen' && S.seviye < 2) { S.mod = 'ogrenci'; kodPenceresi(2); } yenile(); }
-    const c = e.target.closest('[data-sinif]'); if (c && !c.disabled && +c.dataset.sinif !== S.sinif) { sinifSec(+c.dataset.sinif); yenile(); }
+    const c = e.target.closest('[data-sinif]'); if (c && !c.disabled && +c.dataset.sinif !== S.sinif) { listeBirak(); sinifSec(+c.dataset.sinif); yenile(); }
+    if (e.target.closest('#listeCik')) { listeBirak(); yenile(); }
   });
   $('#uniteler').addEventListener('change', e => { S.unite = +e.target.value; yenile(); });
   $('#konular').addEventListener('change', e => {
@@ -113956,7 +114026,8 @@ function tytBaglan() {
 }
 // Uygulamadan gelen bağlantı: #konu=T.2.3 | #konu=T.2.3,T.2.4 | #unite=3 | #deneme=TD01 | #deneme=TD01,TU1 | #deneme=hepsi (&cozum=1)
 function derinBaglanti(hp) {
-  if (!window.BFYTYT || !hp) return;
+  if (!hp) return;
+  if (!window.BFYTYT) { derinBaglanti9(hp); return; }
   const sin = window.BFY_KATALOG.find(s => s.no === UR.sinif); if (!sin) return;
   if (hp.get('deneme')) {
     const v = hp.get('deneme'), L = tytTestListe();
@@ -113972,6 +114043,35 @@ function derinBaglanti(hp) {
   S.tur = 'konu'; S.konular = katSira(ids);
   const us = tytUniteleri(S.konular); S.unite = us.length === 1 ? us[0].no : 0;
   const ic = hp.get('icerik'); if (ic && TYT_ICERIK.some(x => x[0] === ic)) tytIcerikAyarla(ic);
+}
+// 9/10/11 dijital kitaptan gelen bağlantı:
+//   #sinif=10&konu=10.2.1[,10.2.2]&icerik=tam|cozum|sorular   (tam: not + bütün sorular, çözümler sonda; cozum: sorular ve çözümler; sorular: sorular ve cevap anahtarı)
+//   #sinif=10&sorular=id1,id2,…&baslik=…&sure=dk[&cozum=1]     (deneme ve süreli konu testi: tam bu sorular, bu sırayla)
+function derinBaglanti9(hp) {
+  const sn = +hp.get('sinif'), P = S.parca;
+  const sinifaGec = no => { if (!sinifGorunur(no) || !ilkKonu(no)) return false; if (no !== S.sinif) sinifSec(no); sinifUygula(); return true; };
+  const uniteAyarla = () => { const kk = katKonu(S.konular[0]); if (kk && kk.u) S.unite = kk.u.no; };
+  if (hp.get('sorular')) {
+    const H = soruHaritasi(), ids = [...new Set(hp.get('sorular').split(',').map(x => x.trim()).filter(id => H[id]))];
+    if (!ids.length) return;
+    if (!sinifaGec(sn) && !sinifaGec(konuSinifNo(H[ids[0]].k))) return;
+    S.konular = katSira([...new Set(ids.map(id => H[id].k.id))]); uniteAyarla();
+    const sure = Math.round(+hp.get('sure') || 0);
+    S.liste = { ids, baslik: (hp.get('baslik') || 'Sınav kâğıdı').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Sınav kâğıdı', sure: sure > 0 && sure < 600 ? sure : 0 };
+    S.baslik = S.liste.baslik; const b = $('#baslik'); if (b) b.value = S.baslik;
+    S.cozum = hp.get('cozum') === '1' ? 'sonda' : 'yok'; S.anahtar = true; S.ab = false;
+    return;
+  }
+  const ids = (hp.get('konu') || '').split(',').map(x => x.trim()).filter(id => window.BFY_BANK[id]);
+  if (!ids.length) return;
+  const no = sinifGorunur(sn) && ids.some(id => +id.split('.')[0] === sn) ? sn : +ids[0].split('.')[0];
+  if (!sinifaGec(no)) return;
+  S.konular = katSira(ids.filter(id => +id.split('.')[0] === no)); uniteAyarla();
+  S.soruSayisi = 'hepsi'; S.zorluk = 'karisik'; S.turler = { cs: true, acik: true, set: true, etk: true }; S.anahtar = true;
+  const ic = hp.get('icerik') || 'tam';
+  if (ic === 'cozum') { P.not = false; P.sorular = true; S.cozum = 'sonda'; }
+  else if (ic === 'sorular') { P.not = false; P.sorular = true; S.cozum = 'yok'; }
+  else { P.not = true; P.sorular = true; S.cozum = 'sonda'; }
 }
 function kodPenceresi(hedef, hata) {
   $('#kodMesaj').textContent = hedef === 2 ? `Öğretmen modu için ${sinifAd(S.sinif)} öğretmen lisansı gerekir. Sana gönderilen linke tıkla ya da linki buraya yapıştır.` : 'Sana gönderilen lisans linkine tıkla ya da linki buraya yapıştır. Her sınıfın lisansı ayrıdır; ikisini de ekleyebilirsin.';
@@ -113996,20 +114096,22 @@ async function yazdir() {
   const ks = secKonular();
   const eski = document.title;
   const dn = S.sinif >= 20 && S.tur === 'deneme';
-  const ad = dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
+  const ad = S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
   document.title = `BFY_${S.sinif >= 20 ? UR.dosya : S.sinif}_${ad.replace(/\s+/g, '_').replace(/[:+]/g, '')}_${S.mod === 'ogretmen' ? 'Ogretmen' : 'Ogrenci'}_${formKodu()}`;
   window.print();
   setTimeout(() => { document.title = eski; }, 1500);
 }
 
-window.BFY_NOTGEN = { S, yenile, lisansCoz, LIS, LISLER, sinifSec, sinifUygula, cyrb53, TUZ, formKodu, tytTestListe, TYT_UCRETSIZ,
+window.BFY_NOTGEN = { S, yenile,
+  // QA: uygulamadan gelen listenin basılan soru ve şık sıraları
+  _listeVeri: () => (S.liste ? listeHazirla().qs.map(q => ({ id: q.id, sira: q.sira, dogru: q.dogru, harf: q.sira ? dogruHarf(q) : '' })) : null), lisansCoz, LIS, LISLER, sinifSec, sinifUygula, cyrb53, TUZ, formKodu, tytTestListe, TYT_UCRETSIZ,
   // QA: basılan deneme kitapçıklarının soru ve şık sıraları (qa/tyt_pdf.py)
   _dnVeri: () => dnFormlar().map(h => ({ harf: h, testler: dnSecili().map(id => ({ id, qs: dnHazirla(tytTestler()[id], h).map(q => ({ id: q.id, sira: q.sira, dogru: q.dogru, harf: dogruHarf(q), sekil: q.sekil || '' })) })) })) };
 // Dijital Çalışma sayfası da aynı biçimlendirme ve erişim yardımcılarını kullanır.
 window.BFY_ORTAK = { cikmisEtiket, sinifAd, sinifAdB, baskaUrunMesaji, cozumluHazirla, vitrinListesi, tex, inline, md, tabloHTML, tabloBaslikli, esc, rng, shuffle, seceneklerKaristir, lisansCoz, lisansYukle, lisansEkle, lisansVar, sinifSeviye, lisansAdi, sinifGorunur, LIS, LISLER, SEV_AD, LISANS_HATA, store, CFG, XP, ZAD, HARF };
 async function basla() {
   if (!document.getElementById('siniflar')) return; // oluşturucu arayüzü yoksa (dijital sayfa) başlatma
-  const hp = window.BFYTYT && /(^#|&)(konu|unite|deneme)=/.test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
+  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
   const r = await lisansYukle();
   // Bu derlemede S.sinif (11) yoksa (TYT) katalogdaki ilk görünür sınıfa geç.
   if (!sinifGorunur(S.sinif)) { const g = window.BFY_KATALOG.find(x => sinifGorunur(x.no) && ilkKonu(x.no)); if (g) sinifSec(g.no); }

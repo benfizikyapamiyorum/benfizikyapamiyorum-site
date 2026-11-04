@@ -52754,7 +52754,9 @@ const S = {
   seed: Math.floor(Math.random() * 1e6) + 1,
   seviye: 0,
   // TYT: tur = 'konu' (konu kitapçığı) | 'deneme' (deneme ve tarama kitapçığı); anahtar: cevap anahtarı basılsın mı
-  tur: 'konu', anahtar: true, denemeler: [], dn: { kapak: null, optik: true, cozum: false }
+  tur: 'konu', anahtar: true, denemeler: [], dn: { kapak: null, optik: true, cozum: false },
+  // 9/10/11: dijital kitaptan gelen soru listesi (deneme, süreli konu testi): { ids, baslik, sure } ya da null
+  liste: null
 };
 
 // Katalogda görünen (yayında ya da BFY10 ile açılmış) sınıf mı?
@@ -52925,7 +52927,7 @@ function kapakBlok(harf) {
     <div class="kp-sag">
       <div class="kp-ad"><span>Adım</span><b>${esc(S.ad.trim()) || '&nbsp;'}</b></div>
       <div class="kp-ad"><span>Tarih</span><b>&nbsp;</b></div>
-      ${S.tekrar && S.sinif >= 20 ? `<div class="kp-gorev"><b>Görev:</b> Formülleri ve tuzakları sesli tekrar et. Emin olmadığın satırı işaretle, sınavdan önce bir kez daha oku.</div>` : `<div class="kp-gorev"><b>Görev:</b> Notu oku, soruları çöz, XP topla. <span class="xp1">★ 10</span> <span class="xp2">★★ 20</span> <span class="xp3">★★★ 30 XP</span></div>
+      ${S.tekrar && S.sinif >= 20 ? `<div class="kp-gorev"><b>Görev:</b> Formülleri ve tuzakları sesli tekrar et. Emin olmadığın satırı işaretle, sınavdan önce bir kez daha oku.</div>` : `<div class="kp-gorev"><b>Görev:</b> ${S.liste && !window.BFYTYT ? 'Süreni tut, soruları çöz, sonra cevap anahtarıyla kontrol et.' : 'Notu oku, soruları çöz, XP topla.'} <span class="xp1">★ 10</span> <span class="xp2">★★ 20</span> <span class="xp3">★★★ 30 XP</span></div>
       <div class="kp-unvan">${un.map(u => `<span>${esc(u)}</span>`).join('<i>›</i>')}</div>`}
     </div>
   </div>`;
@@ -53140,7 +53142,61 @@ function setDuzen(qs, v) {
   const tas = []; for (let i = once.length - 1; i >= 0 && tas.length < m; i--) if (once[i].tur === 'cs') tas.unshift(...once.splice(i, 1));
   return [...once, ...pr.flatMap(i => birim[i]), ...tas, ...sonra];
 }
+/* ---------------- Uygulamadan gelen soru listesi (9/10/11) ----------------
+   Dijital kitaptaki deneme ve süreli konu testi sorularını kimlik listesiyle gönderir (#sorular=…).
+   Sorular tam bu sırayla basılır. Şık sırası dijital kitaptaki gibi yalnız soru kimliğine bağlıdır
+   (rng(hashSayi(id))): öğrenci ekranda gördüğü şık harflerini kâğıtta da aynı bulur.
+   Lisansın açmadığı sorular basılmaz; kaç soru atlandığı kâğıtta bir satırla yazılır. */
+let _qh = null;
+function soruHaritasi() {
+  if (_qh) return _qh;
+  _qh = {};
+  Object.values(window.BFY_BANK).forEach(k => {
+    k.sorular.forEach(q => { _qh[q.id] = { q, k }; });
+    (k.setler || []).forEach(st => st.sorular.forEach((q, j) => { _qh[q.id] = { q, k, st, j }; }));
+  });
+  return _qh;
+}
+const konuSinifNo = k => +String(k.id).split('.')[0];
+function listeHazirla() {
+  const H = soruHaritasi(), qs = []; let kilitli = 0;
+  S.liste.ids.forEach(id => {
+    const x = H[id]; if (!x) return;
+    const ac = sinifSeviye(konuSinifNo(x.k)) > 0 || (!x.st && vitrinListesi(x.k).includes(id));
+    if (!ac) { kilitli++; return; }
+    const q = { ...x.q, tur: x.q.tur || 'cs', konu: x.k, ...(x.st ? { set: x.st, setSira: x.j } : {}) }, rnd = rng(hashSayi(id));
+    qs.push(q.tur === 'cs' ? seceneklerKaristir(q, rnd) : ETK.etkMi(q) ? ETK.etkKaristir(q, rnd) : q);
+  });
+  return { qs, kilitli };
+}
+function listeBloklari() {
+  const B = [], L = S.liste, { qs, kilitli } = listeHazirla();
+  const cozumAlt = S.mod === 'ogretmen' && S.cozum === 'altinda' && S.seviye >= 2;
+  const cozumSonda = S.cozum === 'sonda' && S.seviye >= 1;
+  B.push(kapakBlok('A'));
+  B.push(`<div class="blk bolum"><span class="bn soru">SORULAR</span><h2>${S.mod === 'ogretmen' ? 'Değerlendirme' : 'Sıra sende'}</h2><span class="bc">${qs.length} soru${L.sure ? `, süre ${L.sure} dakika` : ''}</span></div>`);
+  if (kilitli) B.push(`<div class="blk tanitim"><b>${kilitli} soru basılmadı.</b> Listedeki bu sorular ${sinifAd(S.sinif)} lisansıyla açılır.</div>`);
+  if (!qs.length) { B.push(`<div class="blk tanitim"><b>Bu listede basılabilecek soru yok.</b> Soldaki “Kendi seçimimi yapacağım” düğmesiyle konu seçerek kâğıt oluşturabilirsin.</div>`); return B; }
+  qs.forEach((q, i) => {
+    if (q.set && (i === 0 || !qs[i - 1].set || qs[i - 1].set.id !== q.set.id)) {
+      let j = i; while (j + 1 < qs.length && qs[j + 1].set && qs[j + 1].set.id === q.set.id) j++;
+      B.push(baglamBlok(q.set, i + 1, j + 1));
+    }
+    B.push(soruBlok(q, i + 1, { cozumAlt }));
+  });
+  if (S.anahtar !== false) {
+    B.push('<div class="blk kir"></div>');
+    B.push(anahtarBlok([{ harf: 'A', qs }], false));
+    if (cozumSonda && !cozumAlt) {
+      B.push(`<div class="blk bolum"><span class="bn cz">ÇÖZÜMLER</span><h2>Adım adım çözümler</h2><span class="bc">Kâğıttaki sırayla</span></div>`);
+      qs.forEach((q, i) => B.push(`<div class="blk">${cozumHTML(q, i + 1)}</div>`));
+    }
+  }
+  if (S.seviye === 0) B.push(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Tüm sorular, adım adım çözümler, kişiye özel kapak ve öğretmen modu için ${sinifAd(S.sinif)} lisansı al: ${CFG.site}</div>`);
+  return B;
+}
 function belgeBloklari() {
+  if (S.liste && !window.BFYTYT) return listeBloklari();
   // TYT birden çok konu: konu konu kitapçık (her konunun notu ve soruları birlikte)
   if (S.sinif >= 20 && secKonular().length > 1) return tytKitapBloklari();
   const bloklar = [];
@@ -53519,7 +53575,7 @@ function ciz() {
   // Karşılıklı sayfaya sığmayan (sayfa çevirmeli) set kalmasın diye birkaç yerleşimi dene
   S._duzen = null;
   let sayfalar = sayfala(belgeBloklari());
-  if (sayfalar.cevir) {
+  if (sayfalar.cevir && !S.liste) {
     let en = { s: sayfalar, puan: sayfalar.cevir * 1000 + sayfalar.length, v: null };
     for (let m = 0; m <= 2 && en.s.cevir; m++) for (let p = 0; p < 6 && en.s.cevir; p++) {
       if (!m && !p) continue;
@@ -53530,13 +53586,13 @@ function ciz() {
     S._duzen = en.v; sayfalar = en.s;
   }
   const ks = secKonular();
-  const ad = S.sinif >= 20 && ks.length > 2 ? (tytUniteleri(ks).length === 1 ? tytUniteleri(ks)[0].no + '. Ünite' : 'Konu kitapçığı') + ' (' + ks.length + ' konu)' : ks.length > 2 ? S.unite + '. Ünite (' + ks.length + ' konu)' : ks.map(k => k.kisa || k.ad).join(' + ');
+  const ad = S.liste && !window.BFYTYT ? S.liste.baslik : S.sinif >= 20 && ks.length > 2 ? (tytUniteleri(ks).length === 1 ? tytUniteleri(ks)[0].no + '. Ünite' : 'Konu kitapçığı') + ' (' + ks.length + ' konu)' : ks.length > 2 ? S.unite + '. Ünite (' + ks.length + ' konu)' : ks.map(k => k.kisa || k.ad).join(' + ');
   const n = sayfalar.length;
   // TYT içindekiler: konu başlığının bulunduğu sayfa numarası
   if (S.sinif >= 20) sayfalar.forEach((s, i) => { (s.match(/data-kbas="0-\d+"/g) || []).forEach(m => { const k = m.match(/0-\d+/)[0]; sayfalar.forEach((x, j) => { sayfalar[j] = x.replace(`data-ics="${k}">…<`, `data-ics="${k}">${i + 1}<`); }); }); });
   $('#sayfalar').innerHTML = sayfalar.map((s, i) => `<section class="sheet"><div class="sheet-ic tema-${S.tema} ${S.mod}${S.sinif >= 20 ? ' tyt-ic' : ''}">${s}</div>
-    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : (S.sinif >= 20 ? UR.ad : 'Yapabilirim ' + S.sinif + ' – Ben Fizik Yapamıyorum')}</span><span>${sinifAdB(S.sinif)} – ${esc(ad)}${S.seviye >= 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
-  $('#bilgi').textContent = `${n} sayfa – ${formKodu()}`;
+    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : (S.sinif >= 20 ? UR.ad : 'Yapabilirim ' + S.sinif + ' – Ben Fizik Yapamıyorum')}</span><span>${sinifAdB(S.sinif)} – ${esc(ad)}${S.seviye >= 1 && !S.liste ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
+  $('#bilgi').textContent = S.liste ? `${n} sayfa – ${S.liste.baslik}` : `${n} sayfa – ${formKodu()}`;
   $('#formkod').textContent = formKodu();
   olcekle();
   // Ölçüm sırasında ilk kez gereken bir yazı tipi yüzü (ör. KaTeX) henüz yüklenmemişse satır kırılmaları sonradan değişir
@@ -53579,7 +53635,19 @@ function arayuz() {
   // Etkileşimli soru seçeneği yalnız seçili konularda bu türden soru varsa görünür.
   if ($('#etkTik')) { $('#etkTik').style.display = secKonular().some(k => k.sorular.some(ETK.etkMi)) ? '' : 'none'; $('#t_etk').checked = S.turler.etk !== false; }
   $('#ab').checked = S.ab;
-  if (window.BFYTYT) tytArayuz();
+  if (window.BFYTYT) tytArayuz(); else listeArayuz();
+}
+// 9/10/11: uygulamadan gelen soru listesi varken konu, paket ve soru seçimi gizlenir; çözüm seçimi açık kalır.
+function listeArayuz() {
+  const lm = !!S.liste, lg = $('#listeGrp');
+  if (lg) { lg.hidden = !lm; if (lm) $('#listeBilgi').textContent = `${S.liste.baslik}: ${S.liste.ids.length} soru. Sorular ve şıklar uygulamadaki sırasıyla basılır.`; }
+  ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = lm; });
+  const ab = $('#ab'); if (ab && ab.closest('label')) ab.closest('label').hidden = lm;
+}
+function listeBirak() {
+  if (!S.liste) return;
+  if (S.baslik === S.liste.baslik) { S.baslik = ''; const b = $('#baslik'); if (b) b.value = ''; }
+  S.liste = null;
 }
 /* ---- TYT paneli: konu kitapçığı (bütün üniteler, ünite başlığıyla toplu seçim, kitapçık türü) ve denemeler ---- */
 const katKonu = id => { for (const s of window.BFY_KATALOG) for (const u of s.uniteler || []) for (const k of u.konular) if (k.id === id) return { s, u, k }; return null; };
@@ -53665,7 +53733,8 @@ function baglan() {
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-v]');
     if (b && !b.disabled) { const [k, v] = b.dataset.v.split('='); S[k] = isNaN(+v) || v === '' ? v : +v; if (k === 'mod' && v === 'ogretmen' && S.seviye < 2) { S.mod = 'ogrenci'; kodPenceresi(2); } yenile(); }
-    const c = e.target.closest('[data-sinif]'); if (c && !c.disabled && +c.dataset.sinif !== S.sinif) { sinifSec(+c.dataset.sinif); yenile(); }
+    const c = e.target.closest('[data-sinif]'); if (c && !c.disabled && +c.dataset.sinif !== S.sinif) { listeBirak(); sinifSec(+c.dataset.sinif); yenile(); }
+    if (e.target.closest('#listeCik')) { listeBirak(); yenile(); }
   });
   $('#uniteler').addEventListener('change', e => { S.unite = +e.target.value; yenile(); });
   $('#konular').addEventListener('change', e => {
@@ -53723,7 +53792,8 @@ function tytBaglan() {
 }
 // Uygulamadan gelen bağlantı: #konu=T.2.3 | #konu=T.2.3,T.2.4 | #unite=3 | #deneme=TD01 | #deneme=TD01,TU1 | #deneme=hepsi (&cozum=1)
 function derinBaglanti(hp) {
-  if (!window.BFYTYT || !hp) return;
+  if (!hp) return;
+  if (!window.BFYTYT) { derinBaglanti9(hp); return; }
   const sin = window.BFY_KATALOG.find(s => s.no === UR.sinif); if (!sin) return;
   if (hp.get('deneme')) {
     const v = hp.get('deneme'), L = tytTestListe();
@@ -53739,6 +53809,35 @@ function derinBaglanti(hp) {
   S.tur = 'konu'; S.konular = katSira(ids);
   const us = tytUniteleri(S.konular); S.unite = us.length === 1 ? us[0].no : 0;
   const ic = hp.get('icerik'); if (ic && TYT_ICERIK.some(x => x[0] === ic)) tytIcerikAyarla(ic);
+}
+// 9/10/11 dijital kitaptan gelen bağlantı:
+//   #sinif=10&konu=10.2.1[,10.2.2]&icerik=tam|cozum|sorular   (tam: not + bütün sorular, çözümler sonda; cozum: sorular ve çözümler; sorular: sorular ve cevap anahtarı)
+//   #sinif=10&sorular=id1,id2,…&baslik=…&sure=dk[&cozum=1]     (deneme ve süreli konu testi: tam bu sorular, bu sırayla)
+function derinBaglanti9(hp) {
+  const sn = +hp.get('sinif'), P = S.parca;
+  const sinifaGec = no => { if (!sinifGorunur(no) || !ilkKonu(no)) return false; if (no !== S.sinif) sinifSec(no); sinifUygula(); return true; };
+  const uniteAyarla = () => { const kk = katKonu(S.konular[0]); if (kk && kk.u) S.unite = kk.u.no; };
+  if (hp.get('sorular')) {
+    const H = soruHaritasi(), ids = [...new Set(hp.get('sorular').split(',').map(x => x.trim()).filter(id => H[id]))];
+    if (!ids.length) return;
+    if (!sinifaGec(sn) && !sinifaGec(konuSinifNo(H[ids[0]].k))) return;
+    S.konular = katSira([...new Set(ids.map(id => H[id].k.id))]); uniteAyarla();
+    const sure = Math.round(+hp.get('sure') || 0);
+    S.liste = { ids, baslik: (hp.get('baslik') || 'Sınav kâğıdı').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Sınav kâğıdı', sure: sure > 0 && sure < 600 ? sure : 0 };
+    S.baslik = S.liste.baslik; const b = $('#baslik'); if (b) b.value = S.baslik;
+    S.cozum = hp.get('cozum') === '1' ? 'sonda' : 'yok'; S.anahtar = true; S.ab = false;
+    return;
+  }
+  const ids = (hp.get('konu') || '').split(',').map(x => x.trim()).filter(id => window.BFY_BANK[id]);
+  if (!ids.length) return;
+  const no = sinifGorunur(sn) && ids.some(id => +id.split('.')[0] === sn) ? sn : +ids[0].split('.')[0];
+  if (!sinifaGec(no)) return;
+  S.konular = katSira(ids.filter(id => +id.split('.')[0] === no)); uniteAyarla();
+  S.soruSayisi = 'hepsi'; S.zorluk = 'karisik'; S.turler = { cs: true, acik: true, set: true, etk: true }; S.anahtar = true;
+  const ic = hp.get('icerik') || 'tam';
+  if (ic === 'cozum') { P.not = false; P.sorular = true; S.cozum = 'sonda'; }
+  else if (ic === 'sorular') { P.not = false; P.sorular = true; S.cozum = 'yok'; }
+  else { P.not = true; P.sorular = true; S.cozum = 'sonda'; }
 }
 function kodPenceresi(hedef, hata) {
   $('#kodMesaj').textContent = hedef === 2 ? `Öğretmen modu için ${sinifAd(S.sinif)} öğretmen lisansı gerekir. Sana gönderilen linke tıkla ya da linki buraya yapıştır.` : 'Sana gönderilen lisans linkine tıkla ya da linki buraya yapıştır. Her sınıfın lisansı ayrıdır; ikisini de ekleyebilirsin.';
@@ -53763,20 +53862,22 @@ async function yazdir() {
   const ks = secKonular();
   const eski = document.title;
   const dn = S.sinif >= 20 && S.tur === 'deneme';
-  const ad = dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
+  const ad = S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
   document.title = `BFY_${S.sinif >= 20 ? UR.dosya : S.sinif}_${ad.replace(/\s+/g, '_').replace(/[:+]/g, '')}_${S.mod === 'ogretmen' ? 'Ogretmen' : 'Ogrenci'}_${formKodu()}`;
   window.print();
   setTimeout(() => { document.title = eski; }, 1500);
 }
 
-window.BFY_NOTGEN = { S, yenile, lisansCoz, LIS, LISLER, sinifSec, sinifUygula, cyrb53, TUZ, formKodu, tytTestListe, TYT_UCRETSIZ,
+window.BFY_NOTGEN = { S, yenile,
+  // QA: uygulamadan gelen listenin basılan soru ve şık sıraları
+  _listeVeri: () => (S.liste ? listeHazirla().qs.map(q => ({ id: q.id, sira: q.sira, dogru: q.dogru, harf: q.sira ? dogruHarf(q) : '' })) : null), lisansCoz, LIS, LISLER, sinifSec, sinifUygula, cyrb53, TUZ, formKodu, tytTestListe, TYT_UCRETSIZ,
   // QA: basılan deneme kitapçıklarının soru ve şık sıraları (qa/tyt_pdf.py)
   _dnVeri: () => dnFormlar().map(h => ({ harf: h, testler: dnSecili().map(id => ({ id, qs: dnHazirla(tytTestler()[id], h).map(q => ({ id: q.id, sira: q.sira, dogru: q.dogru, harf: dogruHarf(q), sekil: q.sekil || '' })) })) })) };
 // Dijital Çalışma sayfası da aynı biçimlendirme ve erişim yardımcılarını kullanır.
 window.BFY_ORTAK = { cikmisEtiket, sinifAd, sinifAdB, baskaUrunMesaji, cozumluHazirla, vitrinListesi, tex, inline, md, tabloHTML, tabloBaslikli, esc, rng, shuffle, seceneklerKaristir, lisansCoz, lisansYukle, lisansEkle, lisansVar, sinifSeviye, lisansAdi, sinifGorunur, LIS, LISLER, SEV_AD, LISANS_HATA, store, CFG, XP, ZAD, HARF };
 async function basla() {
   if (!document.getElementById('siniflar')) return; // oluşturucu arayüzü yoksa (dijital sayfa) başlatma
-  const hp = window.BFYTYT && /(^#|&)(konu|unite|deneme)=/.test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
+  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
   const r = await lisansYukle();
   // Bu derlemede S.sinif (11) yoksa (TYT) katalogdaki ilk görünür sınıfa geç.
   if (!sinifGorunur(S.sinif)) { const g = window.BFY_KATALOG.find(x => sinifGorunur(x.no) && ilkKonu(x.no)); if (g) sinifSec(g.no); }
@@ -55964,9 +56065,22 @@ const sirali = konu => [
 const acik = (konu, q) => sevK(konu) > 0 || vitrin(konu).has(q.id);
 const qKonu = {}; Object.values(BANK).forEach(k => tumSorular(k).forEach(q => { qKonu[q.id] = k; }));
 const yildiz = z => '★'.repeat(z);
-// TYT: ekrandaki içeriği oluşturucuda hazır seçimle açan "Yazdır / PDF" bağlantısı (yalnız TYT derlemesi).
-const PDF_ADRES = (window.BFY_LINK || {}).tytOlustur || 'tyt-olusturucu.html';
-const pdfLink = (hash, yazi) => (TYT ? `<a class="pdf-link yazdir-link" href="${esc(PDF_ADRES + '#' + hash)}">🖨️ ${esc(yazi)}</a>` : '');
+// Ekrandaki içeriği oluşturucuda hazır seçimle açan "Yazdır / PDF" bağlantısı.
+// Sınav ürünleri kendi oluşturucusuna (tytOlustur), 9/10/11 not oluşturucusuna (yapOlustur) gider; hash biçimleri engine.js derinBaglanti içinde.
+const PDF_ADRES = TYT ? (window.BFY_LINK || {}).tytOlustur || 'tyt-olusturucu.html' : (window.BFY_LINK || {}).yapOlustur || 'not-olusturucu.html';
+const pdfLink = (hash, yazi) => `<a class="pdf-link yazdir-link" href="${esc(PDF_ADRES + '#' + hash)}">🖨️ ${esc(yazi)}</a>`;
+// 9/10/11: deneme ve süreli konu testi için soru listesiyle bağlantı (sorular ve şıklar ekrandaki sırayla basılır).
+// sure: dakika (yoksa 0), cozum: çözümlü kâğıt.
+function listePdf(qs, baslik, sure, cozum, yazi) {
+  if (TYT || !qs || !qs.length) return '';
+  const k = qKonu[qs[0]], sn = k ? konuSinif(k) : secSinif();
+  return pdfLink(`sinif=${sn}&sorular=${qs.map(encodeURIComponent).join(',')}&baslik=${encodeURIComponent(baslik)}${sure ? '&sure=' + sure : ''}${cozum ? '&cozum=1' : ''}`, yazi);
+}
+// Denemenin kâğıt başlığı: sorular tek üniteden geliyorsa ünite adıyla.
+function denemeBaslik(qs) {
+  const us = [...new Set(qs.map(id => { const kb = qKonu[id] && konuBilgi(qKonu[id].id); return kb ? kb.uad : ''; }))];
+  return us.length === 1 && us[0] ? `Deneme sınavı: ${us[0]}` : 'Deneme sınavı';
+}
 const harfle = (q, c) => (q.sira ? c.replace(/\{\{S(\d)\}\}/g, (_, n) => HARF[q.sira.indexOf(+n)]) : c);
 
 function konuDurum(konu) {
@@ -56248,7 +56362,7 @@ function konuEkran(id, sekme) {
     h += geriKart('konu', id, 'Bir yeri anlamadın mı?', 'Hangi kısımda takıldığını yaz, Timur Hoca okusun. En çok istenen yerlere video ve yeni anlatım eklenir.', 'Anlamadım, yaz');
     h += `<a class="btn ana gen" href="#/soru/${id}/0" style="display:block;text-align:center;text-decoration:none">Sorulara geç →</a>`;
     h += ktKarti(konu);
-    h += pdfLink(`konu=${id}&icerik=tam`, 'Yazdır / PDF: konu özeti, çözümlü örnekler ve sorular');
+    h += TYT ? pdfLink(`konu=${id}&icerik=tam`, 'Yazdır / PDF: konu özeti, çözümlü örnekler ve sorular') : pdfLink(`sinif=${konuSinif(konu)}&konu=${id}&icerik=tam`, sevK(konu) > 0 ? 'Yazdır / PDF: konu notu ve sorular' : 'Yazdır / PDF: konu notu ve ücretsiz sorular');
   } else {
     h += kilitBant(`Ücretsiz sürümde her konuda 4 soru açık. Hepsi ${SA(konuSinif(konu))} lisansıyla açılır.`, konuSinif(konu));
     h += ktKarti(konu);
@@ -56260,7 +56374,7 @@ function konuEkran(id, sekme) {
       const ilk = q.metin.replace(/\{\{[a-z]+\}\}/g, '').replace(/\$[^$]*\$/g, '…').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
       return bas + `<a class="sl ${r ? (r.d ? 'd' : 'y') : ''} ${ac ? '' : 'kilitli'} ${q.set ? 'set' : ''}" href="#/soru/${id}/${i}"><span class="no">${ac ? i + 1 : '🔒'}</span><span class="sl-m"><b>${esc(ilk.slice(0, 90))}</b><small>${q.tur === 'acik' ? 'Açık uçlu' : ETK.etkMi(q) ? ETK.TUR_AD[q.tur] + ', ' + ZAD[q.zorluk] : ZAD[q.zorluk]}${q.cikmis && TYT ? ', çıkmış soru benzeri' : q.tahmin ? ', çıkma ihtimali yüksek' : q.yks && !TYT ? ', YKS tarzı' : ''}${r ? (r.d ? ', doğru' : ', tekrar et') : ''}</small></span><span class="yz">${yildiz(q.zorluk)}</span></a>`;
     }).join('')}</div>`;
-    h += pdfLink(`konu=${id}&icerik=cozum`, sevK(konu) > 0 ? 'Yazdır / PDF: sorular ve çözümler' : 'Yazdır / PDF: ücretsiz sorular');
+    h += pdfLink(`${TYT ? '' : `sinif=${konuSinif(konu)}&`}konu=${id}&icerik=cozum`, sevK(konu) > 0 ? 'Yazdır / PDF: sorular ve çözümler' : 'Yazdır / PDF: ücretsiz sorular');
   }
   return h;
 }
@@ -56539,6 +56653,8 @@ function denemeKur() {
   const D = K.deneme;
   let h = '';
   if (D && !D.bitti) h += `<a class="devam" href="#/deneme/calis/0"><div><small>Yarım kalan deneme</small><b>${D.qs.length} soru, ${Object.keys(D.cev).length} cevaplı</b></div><span class="ok">→</span></a>`;
+  if (D && D.bitti && !TYT) h += `<a class="devam" href="#/deneme/sonuc"><div><small>Son deneme</small><b>${D.qs.length} soru, net ${(+D.sonuc.net).toLocaleString('tr-TR')}</b></div><span class="ok">→</span></a>`;
+  if (D) h += listePdf(D.qs, denemeBaslik(D.qs), DK(D.sure || 0), false, 'Yazdır / PDF: bu deneme, sınav kâğıdı ve cevap anahtarı');
   const kurulum = window._dk || (window._dk = { unite: 1, n: 10, sure: 1 });
   const sn = secSinif(), s11 = KAT.find(s => s.no === sn);
   if (gorunurSiniflar().length > 1) h += sinifSecici();
@@ -56612,6 +56728,7 @@ function denemeSonuc() {
   D.qs.forEach(id => { const k = qKonu[id]; kon[k.id] = kon[k.id] || { k, n: 0, d: 0 }; kon[k.id].n++; if (D.cev[id] === qBul(id).dogru) kon[k.id].d++; });
   h += `<h2 class="baslik2">Konulara göre</h2><div class="kart">${Object.values(kon).map(x => `<div class="kb-sat" style="--renk:${x.k.renk || '#244f40'}"><div><span>${esc(x.k.ad)}</span><span>${x.d}/${x.n}</span></div><div class="cubuk"><i style="width:${Math.round(100 * x.d / x.n)}%"></i></div></div>`).join('')}</div>`;
   h += `<h2 class="baslik2">Soruları incele</h2><div class="soru-liste">${D.qs.map((id, i) => { const q = qBul(id), c = D.cev[id], dg = c === q.dogru; return `<a class="sl ${c === undefined ? '' : dg ? 'd' : 'y'}" href="#/deneme/incele/${i}"><span class="no">${i + 1}</span><span class="sl-m"><b>${esc(qKonu[id].ad)}</b><small>${c === undefined ? 'boş' : dg ? 'doğru' : `yanlış, doğrusu ${HARF[q.sira.indexOf(q.dogru)]}`}</small></span><span class="yz">${yildiz(q.zorluk)}</span></a>`; }).join('')}</div>`;
+  h += listePdf(D.qs, denemeBaslik(D.qs), DK(D.sure || 0), false, 'Yazdır / PDF: bu deneme, sınav kâğıdı ve cevap anahtarı') + listePdf(D.qs, denemeBaslik(D.qs), DK(D.sure || 0), true, 'Yazdır / PDF: bu deneme, çözümleriyle');
   h += `<div class="q-alt" style="margin-top:16px"><button class="btn ana gen" type="button" id="yeniDeneme">Yeni deneme</button></div>`;
   return h;
 }
@@ -56658,6 +56775,7 @@ function ktGiris(id) {
   h += kilitBant(`Ücretsiz sürümde test yalnız açık sorulardan kurulur. Konunun bütün soruları ${SA(konuSinif(konu))} lisansıyla gelir.`, konuSinif(konu));
   if (yarim) h += `<a class="devam" href="#/kt/${id}/${Math.max(0, T.qs.indexOf(T.cur))}"><div><small>Yarım kalan test</small><b>${Object.keys(T.cev).length}/${T.qs.length} cevaplı, geçen süre ${dkSn(Math.round(ktGecen(T) / 1000))}</b></div><span class="ok">→</span></a>`;
   h += `<div class="q-alt" style="margin-top:16px"><button class="btn ana gen" type="button" data-kt-basla="${id}">${yarim ? 'Baştan yeni test başlat' : 'Teste başla'}</button></div>`;
+  if (T && T.k === id) h += listePdf(T.qs, `Süreli konu testi: ${konu.ad}`, T.limit ? DK(T.limit) : 0, false, `Yazdır / PDF: ${T.bitti ? 'son' : 'bu'} test, sınav kâğıdı ve cevap anahtarı`);
   if (TYT && qs.length >= MINI.n) h += `<div class="kart kt-mini"><b>⚡ Mini test: ${MINI.n} soru, ${DK(MINI.sure)} dakika</b><p>Rastgele ${MINI.n} soru (1 kolay, 2 orta, 2 zor), geri sayımlı. Süre bitince test kendiliğinden biter; sınav temposunu böyle ölç.</p><button class="btn cizgi gen" type="button" data-kt-basla="${id}" data-kt-mini="1">Mini teste başla</button></div>`;
   if (g.length) h += `<h2 class="baslik2">Bu konudaki testlerin</h2><div class="soru-liste">${g.slice(-6).reverse().map(x => `<div class="sl"><span class="no" style="width:auto;padding:0 8px">${dkSn(x.sn)}</span><span class="sl-m"><b>${x.d} doğru, ${x.y} yanlış, ${x.b} boş</b><small>${x.tarih}, soru başına ${snYaz(x.sn / x.n)}</small></span></div>`).join('')}</div>`;
   return h;
@@ -56719,6 +56837,7 @@ function ktSonuc(id) {
   h += `<div class="kart kt-kiyas"><b>Gerçek sınav için</b><p>Bu hızla 10 soruluk bir yazılı yaklaşık <b>${dkYuvarla(ort * 10)} dakika</b>, 20 soruluk bir test yaklaşık <b>${dkYuvarla(ort * 20)} dakika</b> sürer. Gözden geçirme için üstüne birkaç dakika ekle.</p></div>`;
   const qsn = T.qs.map(qid => Math.round((T.qt[qid] || 0) / 1000)), enUzun = Math.max(1, ...qsn), uzunlar = new Set(qsn.map((sn, i) => [sn, i]).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0]).slice(0, n > 3 ? 3 : 0).map(x => x[1]));
   h += `<h2 class="baslik2">Soru soru süren<small>En uzun süren üç soru işaretli</small></h2><div class="soru-liste">${T.qs.map((qid, i) => { const q = qBul(qid), c = T.cev[qid], dg = c === q.dogru, sn = qsn[i], uzun = uzunlar.has(i); return `<a class="sl ${c === undefined ? '' : dg ? 'd' : 'y'}" href="#/kt/${id}/incele/${i}"><span class="no">${i + 1}</span><span class="sl-m"><b>${snYaz(sn)}${uzun ? ' <span class="kt-uzun">en uzun</span>' : ''}</b><small>${c === undefined ? 'boş' : dg ? 'doğru' : `yanlış, doğrusu ${HARF[q.sira.indexOf(q.dogru)]}`}</small><span class="kt-cubuk"><i style="width:${Math.round(100 * sn / enUzun)}%"></i></span></span><span class="yz">${yildiz(q.zorluk)}</span></a>`; }).join('')}</div>`;
+  h += listePdf(T.qs, `Süreli konu testi: ${konu.ad}`, T.limit ? DK(T.limit) : 0, false, 'Yazdır / PDF: bu test, sınav kâğıdı ve cevap anahtarı') + listePdf(T.qs, `Süreli konu testi: ${konu.ad}`, T.limit ? DK(T.limit) : 0, true, 'Yazdır / PDF: bu test, çözümleriyle');
   h += `<div class="q-alt" style="margin-top:16px"><a class="btn cizgi" style="text-align:center;text-decoration:none" href="#/konu/${id}/sorular">Konuya dön</a><button class="btn ana" type="button" data-kt-basla="${id}"${T.limit ? ' data-kt-mini="1"' : ''}>${T.limit ? 'Yeni mini test' : 'Tekrar ölç'}</button></div>`;
   return h;
 }
@@ -57443,7 +57562,7 @@ function rehberAdimlar(r) {
       ? { ik: '⏱️', b: `${U.sinav} denemeleri`, p: [`Alttaki “Deneme” sekmesinde gerçek ${U.sinav} fizik bölümü gibi ${U.deneme.soru} soruluk, ${DK(U.deneme.sure)} dakikalık denemeler var. Süre tutulur; bitince netin hesaplanır ve net grafiğinde ilerlemeni görürsün.`].concat(GUNLUK ? ['Ana ekranda her gün yeni bir “Günün 7 sorusu” çıkar. Her gün çözersen serin büyür.'] : []).concat(ANALIZ ? ['“Sınav rotası” kartı sınava kalan güne göre hangi konuya öncelik vermen gerektiğini ve haftalık planını gösterir.'] : []) }
       : { ik: '⏱️', b: 'Deneme ve konu testi', p: ['Alttaki “Deneme” sekmesinde farklı konulardan karışık, süreli bir deneme çözersin.', 'Bir konuyu bitirince o konunun “Sorular” sekmesinden süreli konu testi açabilirsin. Kaç dakikada bitirdiğini ve hangi soruda zorlandığını görürsün.'] },
     { ik: '📈', b: 'İlerlemene bak', p: ['Alttaki “İlerleme” sekmesinde XP’n, günlük serin, rozetlerin ve hata profilin var.', 'Hata profili en sık yaptığın hata türlerini gösterir. Her birinin yanındaki “Bu hatayı çalış” ile o hata için seçilmiş soruları çözersin.'] },
-    { ik: '💬', b: 'Takıldığın yeri bana yaz', p: ['Konu notunun altındaki “Anlamadım, yaz” ve sorulardaki “Bu soruyu anlamadım” düğmeleriyle bana yazabilirsin. Hepsini okuyorum; en çok istenen yerlere video ve yeni anlatım ekliyorum.', 'Kâğıtta çalışmak istersen ana ekranın en altındaki “PDF çalışma kâğıdı oluştur”a bas; adına özel kitapçığını yazdırırsın.', 'Hazırsın. Haydi ilk konuyla başlayalım.'] },
+    { ik: '💬', b: 'Takıldığın yeri bana yaz', p: ['Konu notunun altındaki “Anlamadım, yaz” ve sorulardaki “Bu soruyu anlamadım” düğmeleriyle bana yazabilirsin. Hepsini okuyorum; en çok istenen yerlere video ve yeni anlatım ekliyorum.', TYT ? 'Kâğıtta çalışmak istersen her konunun ve denemenin altındaki “Yazdır / PDF” bağlantısıyla çıktı alabilirsin. Ana ekranın en altındaki “PDF çalışma kâğıdı oluştur” ile kendi kitapçığını da kurarsın.' : 'Kâğıtta çalışmak istersen her konunun, denemenin ve testin altındaki “Yazdır / PDF” bağlantısıyla çıktı alabilirsin. Ana ekranın en altındaki “PDF çalışma kâğıdı oluştur” ile adına özel kitapçığını da kurarsın.', 'Hazırsın. Haydi ilk konuyla başlayalım.'] },
   ];
   return A;
 }
