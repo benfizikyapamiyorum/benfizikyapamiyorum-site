@@ -58,3 +58,8 @@ Okullarda ortak yazılı haftasındaysa ya da yazılıya 10 günden az kaldıysa
 6. Planlayıcıda (`/latest/content_calendar`) o gün 20.00'de Instagram gönderisinin göründüğünü doğrula, Timur'a bildir.
 7. 20.05'te kendine `send_later` kur: gönderinin yayınlandığını kontrol et; Business Suite'ten (Gelen Kutusu > Instagram yorumları ya da gönderi ayrıntısı) `ilkYorum` metnini ilk yorum olarak yaz. Sabitleme yapılamıyorsa Timur'a telefondan sabitlemesini söyle.
 Chrome'a ulaşılamazsa paylaşma; dosyaları gönder ve Timur'a elle paylaşmasını hatırlat.
+
+## Sayılar: küsurat çok nadir (Timur'un kuralı, 5 Kasım 2026)
+- Verileri ve sonuçları tam sayı olacak şekilde seç. Hesap sonucu küsuratlı çıkıyorsa soruyu değil verileri değiştir.
+- Küsuratlı (ondalıklı) sayı çok çok nadir kullanılır: bir konunun yeni soruları ya da bir deneme içinde en fazla 1 soru, o da yalnız fiziksel bağlam gerçekten gerektirdiğinde (ör. 0,5 kg, 1,5 m gibi yarımlar; ölçüm tablosu). Hesap ara adımlarında da küsurat üretme.
+- Amaç soru kalitesi: öğrenci hesapla değil fizikle uğraşsın. Sayı kolaylığı soruyu tek adımlı ya da basit yapmaz; düşündürücülük kurgudan ve yorumdan gelir.
