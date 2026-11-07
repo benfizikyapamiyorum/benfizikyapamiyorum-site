@@ -25420,6 +25420,164 @@ BFY_FIG_EKLE('i934_kart_seyrek', u => KART(u, I => {
 }, { oy: 78 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf934_ öneki) ---------- */
+(function () {
+const { P, T, arrow, dimV, svg, dashLine } = window.BFY_FIGLIB;
+const sfDefs = u => `<defs>
+  <linearGradient id="${u}sfhg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f979e"/><stop offset=".35" stop-color="#eef1f4"/><stop offset=".6" stop-color="#c3cad0"/><stop offset="1" stop-color="#7d868d"/></linearGradient>
+  <linearGradient id="${u}sfhgY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9edf0"/><stop offset="1" stop-color="#8d969d"/></linearGradient>
+  <linearGradient id="${u}sfcam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity=".15"/><stop offset=".25" stop-color="#ffffff" stop-opacity=".85"/><stop offset=".45" stop-color="#ffffff" stop-opacity=".1"/><stop offset="1" stop-color="#cfe3ee" stop-opacity=".35"/></linearGradient>
+  <linearGradient id="${u}sfsutun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9cc9e6" stop-opacity="0"/><stop offset="1" stop-color="#9cc9e6" stop-opacity=".55"/></linearGradient>
+  <linearGradient id="${u}sfyorgan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3c2d2"/><stop offset="1" stop-color="#d98aa6"/></linearGradient>
+  <linearGradient id="${u}sfplastik" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".75"/><stop offset=".4" stop-color="#ffffff" stop-opacity=".12"/><stop offset="1" stop-color="#dbe9f2" stop-opacity=".5"/></linearGradient>
+  <radialGradient id="${u}sfbalon" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e8ecef"/><stop offset="1" stop-color="#b9c2c9"/></radialGradient>
+  <linearGradient id="${u}sfdeniz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe0f2"/><stop offset="1" stop-color="#8cc3e3"/></linearGradient>
+  <linearGradient id="${u}sfkara" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3dcb8"/><stop offset=".5" stop-color="#c9d9a4"/><stop offset="1" stop-color="#a9c486"/></linearGradient>
+</defs>`;
+const OK = '#2f6f9f';
+
+/* Adım 2: vakumlu yorgan torbası; havası çekilince açık hava torbayı her yönden sıkıştırır */
+BFY_FIG_EKLE('sf934_torba', function (u) {
+  const W = 360, H = 236, raf = 194;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  s += `<rect class="bg" x="0" y="${raf}" width="${W}" height="12" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+  s += `<line class="bg" x1="180" y1="16" x2="180" y2="${raf - 6}" stroke="#d6d0c2" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  // yorgan deseni (dikiş çizgileri)
+  const dikis = (x1, y1, x2, y2, adim) => {
+    let g = '';
+    for (let x = x1 + adim; x < x2; x += adim) g += `<line x1="${x}" y1="${y1 + 4}" x2="${x}" y2="${y2 - 4}" stroke="#b9607f" stroke-width="1" stroke-dasharray="3 3" opacity=".8"/>`;
+    return g;
+  };
+  // Sol: kabarık torba
+  {
+    const x1 = 26, x2 = 154, y1 = 86, y2 = raf;
+    s += `<ellipse cx="90" cy="${raf + 1}" rx="68" ry="4" fill="#000" opacity=".12"/>`;
+    s += `<path d="M${x1 + 14} ${y2} Q${x1 - 4} ${(y1 + y2) / 2} ${x1 + 12} ${y1 + 6} Q90 ${y1 - 12} ${x2 - 12} ${y1 + 6} Q${x2 + 4} ${(y1 + y2) / 2} ${x2 - 14} ${y2} Z" fill="url(#${u}sfyorgan)" stroke="#b9607f" stroke-width="1"/>`;
+    s += dikis(x1 + 4, y1 + 6, x2 - 4, y2, 24);
+    s += `<path d="M${x1 + 10} ${y2} Q${x1 - 9} ${(y1 + y2) / 2} ${x1 + 8} ${y1 + 1} Q90 ${y1 - 18} ${x2 - 8} ${y1 + 1} Q${x2 + 9} ${(y1 + y2) / 2} ${x2 - 10} ${y2} Z" fill="url(#${u}sfplastik)" stroke="#7d97a8" stroke-width="1.5"/>`;
+    s += `<path d="M${x1 + 10} ${y1 + 22} Q${x1 + 2} ${(y1 + y2) / 2} ${x1 + 12} ${y2 - 18}" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>`;
+    s += `<ellipse cx="90" cy="${y1 - 6}" rx="11" ry="4.5" fill="#5f6b73"/><rect x="83" y="${y1 - 14}" width="14" height="8" rx="2" fill="#7a868e"/>`;
+    s += T(90, 32, 'önce', { size: 13, anchor: 'middle', weight: 800, fill: P.ink2 });
+    s += T(90, raf + 32, 'torbada hava var', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink });
+  }
+  // Sağ: havası çekilmiş, incelmiş torba
+  {
+    const x1 = 210, x2 = 316, y1 = 160, y2 = raf;
+    s += `<ellipse cx="263" cy="${raf + 1}" rx="58" ry="3.5" fill="#000" opacity=".12"/>`;
+    s += `<rect x="${x1 + 4}" y="${y1 + 5}" width="${x2 - x1 - 8}" height="${y2 - y1 - 6}" rx="6" fill="url(#${u}sfyorgan)" stroke="#b9607f" stroke-width="1"/>`;
+    s += dikis(x1 + 4, y1 + 4, x2 - 4, y2, 15);
+    let kenar = `M${x1} ${y2} L${x1} ${y1 + 6}`;
+    for (let x = x1; x < x2; x += 13) kenar += ` Q${x + 6.5} ${y1 - 3} ${x + 13} ${y1 + 3}`;
+    kenar += ` L${x2 + 1} ${y2} Z`;
+    s += `<path d="${kenar}" fill="url(#${u}sfplastik)" stroke="#7d97a8" stroke-width="1.5"/>`;
+    [232, 258, 288].forEach(x => { s += `<path d="M${x} ${y1 + 4} l4 10 l-3 9" fill="none" stroke="#fff" stroke-width="1.6" opacity=".9"/>`; });
+    // vana ve süpürge hortumu
+    s += `<rect x="292" y="${y1 - 7}" width="14" height="8" rx="2" fill="#7a868e"/>`;
+    s += `<path d="M299 ${y1 - 7} C299 120 330 118 336 92" fill="none" stroke="#56626a" stroke-width="9" stroke-linecap="round"/>`;
+    s += `<path d="M299 ${y1 - 7} C299 120 330 118 336 92" fill="none" stroke="#8e9aa2" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 4"/>`;
+    s += T(336, 80, 'süpürge', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 });
+    // açık hava basıncı okları: üstten ve yanlardan
+    [226, 262].forEach(x => { s += arrow(x, 104, x, y1 - 6, { color: OK, w: 2.4, head: 8, headW: 4.6 }); });
+    s += arrow(186, 178, x1 - 3, 178, { color: OK, w: 2.4, head: 8, headW: 4.6 });
+    s += arrow(346, 178, x2 + 5, 178, { color: OK, w: 2.4, head: 8, headW: 4.6 });
+    s += T(244, 98, 'P₀', { size: 14, anchor: 'middle', weight: 800, fill: OK });
+    s += T(270, 32, 'hava çekilince', { size: 13, anchor: 'middle', weight: 800, fill: P.ink2 });
+    s += T(270, raf + 32, 'dışarıdaki hava sıkıştırır', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink });
+  }
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 3: Torricelli düzeneği; kaptaki cıva yüzeyine açık hava bastırır, sütun 76 cm */
+BFY_FIG_EKLE('sf934_boru', function (u) {
+  const W = 320, H = 320, ys = 262, k = 2.3, xt = 118, bw = 20, ytop = 30;
+  const hg = ys - 76 * k;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  // açık havayı simgeleyen hava sütunu (kabın sol kısmının üstünde)
+  s += `<rect x="38" y="20" width="56" height="${ys - 24}" rx="6" fill="url(#${u}sfsutun)"/>`;
+  for (let i = 0; i < 26; i++) { const x = 44 + (i * 37) % 46, y = 30 + ((i * 53) % 200) * (0.55 + 0.45 * (i % 3) / 2); s += `<circle cx="${x}" cy="${Math.min(y, ys - 40).toFixed(1)}" r="1.6" fill="#5b93bb" opacity=".55"/>`; }
+  // kap: arka yüz
+  const kx = 30, kw = 210, kh = 34;
+  s += `<path d="M${kx} ${ys - 14} L${kx + 8} ${ys + kh - 14} Q${kx + kw / 2} ${ys + kh - 6} ${kx + kw - 8} ${ys + kh - 14} L${kx + kw} ${ys - 14}" fill="#dfe8ee" stroke="#7d97a8" stroke-width="1.4"/>`;
+  // cıva
+  s += `<path d="M${kx + 3} ${ys} L${kx + 9} ${ys + kh - 16} Q${kx + kw / 2} ${ys + kh - 9} ${kx + kw - 9} ${ys + kh - 16} L${kx + kw - 3} ${ys} Z" fill="url(#${u}sfhgY)"/>`;
+  s += `<ellipse cx="${kx + kw / 2}" cy="${ys}" rx="${kw / 2 - 3}" ry="5" fill="#e6eaee" stroke="#8d969d" stroke-width="1"/>`;
+  // boru (cam) ve içindeki cıva
+  s += `<rect x="${xt - bw / 2}" y="${hg}" width="${bw}" height="${ys + 18 - hg}" fill="url(#${u}sfhg)"/>`;
+  s += `<path d="M${xt - bw / 2} ${ys + 20} L${xt - bw / 2} ${ytop + 10} Q${xt - bw / 2} ${ytop} ${xt} ${ytop} Q${xt + bw / 2} ${ytop} ${xt + bw / 2} ${ytop + 10} L${xt + bw / 2} ${ys + 20}" fill="url(#${u}sfcam)" stroke="#5d7d8f" stroke-width="1.6"/>`;
+  s += `<path d="M${xt - bw / 2 + 1} ${hg} Q${xt} ${hg - 5} ${xt + bw / 2 - 1} ${hg}" fill="#eef1f4" stroke="#8d969d" stroke-width=".8"/>`;
+  // kabın ön kenarı
+  s += `<path d="M${kx} ${ys - 14} Q${kx + kw / 2} ${ys - 4} ${kx + kw} ${ys - 14}" fill="none" stroke="#7d97a8" stroke-width="1.4"/>`;
+  s += `<ellipse cx="${kx + kw / 2}" cy="${ys + kh - 4}" rx="${kw / 2}" ry="5" fill="#000" opacity=".1"/>`;
+  // P0 okları kaptaki cıva yüzeyine
+  [52, 80].forEach(x => { s += arrow(x, ys - 52, x, ys - 4, { color: OK, w: 2.6, head: 9, headW: 5 }); });
+  s += arrow(206, ys - 52, 206, ys - 4, { color: OK, w: 2.6, head: 9, headW: 5 });
+  s += T(66, ys - 60, 'P₀', { size: 15, anchor: 'middle', weight: 800, fill: OK });
+  s += T(206, ys - 60, 'P₀', { size: 15, anchor: 'middle', weight: 800, fill: OK });
+  s += T(66, 44, 'hava', { size: 12, anchor: 'middle', weight: 700, fill: OK });
+  s += T(66, 59, 'sütunu', { size: 12, anchor: 'middle', weight: 700, fill: OK });
+  // ölçü: cıva yüzeyinden sütunun tepesine 76 cm
+  s += dashLine(xt + bw / 2 + 2, hg, 262, hg, '#9aa6ae', '4 3', 1.1);
+  s += dashLine(kx + kw - 2, ys, 262, ys, '#9aa6ae', '4 3', 1.1);
+  s += dimV(256, hg, ys, '76 cm', { side: 'right', size: 13.5 });
+  // boşluk ve cıva etiketleri
+  const by = (ytop + hg) / 2;
+  s += `<line x1="${xt + bw / 2 + 3}" y1="${by}" x2="${xt + 34}" y2="${by}" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += T(xt + 38, by + 4.5, 'boşluk', { size: 12.5, weight: 700, fill: P.ink2 });
+  s += `<line x1="${xt + bw / 2 + 3}" y1="${hg + 70}" x2="${xt + 34}" y2="${hg + 70}" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += T(xt + 38, hg + 74.5, 'cıva', { size: 12.5, weight: 700, fill: P.ink2 });
+  s += T(135, H - 10, 'deniz kenarı', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 4: yükseldikçe şişen meteoroloji balonu */
+BFY_FIG_EKLE('sf934_balon', function (u) {
+  const W = 340, H = 300, yer = 268;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  const bulut = (x, y, k) => `<g opacity=".9"><ellipse cx="${x}" cy="${y}" rx="${22 * k}" ry="${9 * k}" fill="#fff"/><ellipse cx="${x - 12 * k}" cy="${y - 5 * k}" rx="${12 * k}" ry="${9 * k}" fill="#fff"/><ellipse cx="${x + 8 * k}" cy="${y - 8 * k}" rx="${14 * k}" ry="${11 * k}" fill="#fff"/></g>`;
+  s += bulut(60, 120, 1) + bulut(286, 196, 0.8) + bulut(120, 40, 0.7);
+  s += `<path class="bg" d="M0 ${yer} Q90 ${yer - 10} 170 ${yer - 2} T${W} ${yer - 6} L${W} ${H} L0 ${H} Z" fill="url(#${u}grass)"/>`;
+  // meteoroloji istasyonu
+  s += `<rect x="22" y="${yer - 34}" width="40" height="30" fill="url(#${u}facade)" stroke="#a89a7f" stroke-width="1"/><path d="M18 ${yer - 34} L42 ${yer - 48} L66 ${yer - 34} Z" fill="#b5543a"/><rect x="36" y="${yer - 20}" width="10" height="16" fill="#7a5a3a"/>`;
+  // yörünge
+  s += `<path d="M96 ${yer - 40} C130 190 180 150 236 74" fill="none" stroke="#8aa5b8" stroke-width="1.4" stroke-dasharray="5 5"/>`;
+  const balon = (x, y, r) => {
+    const ip = r * 1.1 + 12;
+    return `<line x1="${x}" y1="${y + r}" x2="${x}" y2="${y + r + ip}" stroke="#5b646b" stroke-width="1.1"/>` +
+      `<rect x="${x - 5}" y="${y + r + ip}" width="10" height="9" rx="1.5" fill="#e7a93b" stroke="#9c6b1a" stroke-width=".8"/>` +
+      `<path d="M${x - 3} ${y + r - 1} L${x + 3} ${y + r - 1} L${x + 2} ${y + r + 4} L${x - 2} ${y + r + 4} Z" fill="#b9c2c9"/>` +
+      `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 1.04}" fill="url(#${u}sfbalon)" stroke="#9aa6ae" stroke-width="1"/>` +
+      `<ellipse cx="${x - r * 0.35}" cy="${y - r * 0.4}" rx="${r * 0.25}" ry="${r * 0.16}" fill="#fff" opacity=".9"/>`;
+  };
+  s += balon(96, 214, 13) + balon(170, 140, 22) + balon(248, 58, 36);
+  s += T(118, 222, 'yerde: küçük', { size: 12.5, weight: 800, fill: P.ink });
+  s += T(198, 180, 'büyüyor', { size: 12.5, weight: 800, fill: P.ink });
+  s += T(206, 26, 'yüksekte: en büyük', { size: 12.5, anchor: 'end', weight: 800, fill: P.ink });
+  // yükseklik oku
+  s += arrow(316, 250, 316, 120, { color: OK, w: 2.4, head: 9, headW: 5 });
+  s += T(308, 252, 'yükseldikçe P₀ azalır', { size: 12, anchor: 'end', weight: 800, fill: OK });
+  return svg(W, H, s, u, 74);
+});
+
+/* Isınma 3: üç şehrin açık hava basınçları; K-L ve M-L uzaklıkları eşit */
+BFY_FIG_EKLE('sf934_harita', function (u) {
+  const W = 340, H = 262;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sfdeniz)"/>`;
+  s += `<path d="M20 60 Q40 26 96 30 Q150 18 196 34 Q262 24 310 46 Q330 90 316 140 Q326 206 284 236 Q220 252 160 244 Q96 250 48 228 Q16 170 26 120 Q12 90 20 60 Z" fill="url(#${u}sfkara)" stroke="#8fa77a" stroke-width="1.6"/>`;
+  s += `<path d="M50 196 Q86 182 100 150 M230 200 Q250 160 286 150" fill="none" stroke="#7fb3d6" stroke-width="2.2" opacity=".8"/>`;
+  const K = [96, 104], M = [244, 104], L = [170, 192];
+  s += dashLine(K[0], K[1], L[0], L[1], '#6f7f74', '5 4', 1.3) + dashLine(M[0], M[1], L[0], L[1], '#6f7f74', '5 4', 1.3);
+  const sehir = (p, ad, deger, dx, dy, an) => {
+    const bx = an === 'end' ? p[0] + dx - 78 : an === 'middle' ? p[0] + dx - 39 : p[0] + dx;
+    return `<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="#fff" stroke="${P.ink}" stroke-width="2"/><circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${P.coral}"/>` +
+      `<rect x="${bx}" y="${p[1] + dy - 17}" width="78" height="40" rx="7" fill="#fff" stroke="#9aa6ae" stroke-width="1" opacity=".95"/>` +
+      T(bx + 39, p[1] + dy, ad, { size: 14, anchor: 'middle', weight: 800, halo: false }) +
+      T(bx + 39, p[1] + dy + 17, deger, { size: 12.5, anchor: 'middle', weight: 700, fill: OK, halo: false });
+  };
+  s += sehir(K, 'K', '1024 hPa', 0, -38, 'middle') + sehir(M, 'M', '1016 hPa', 0, -38, 'middle') + sehir(L, 'L', '1008 hPa', 0, 34, 'middle');
+  return svg(W, H, s, u, 74);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -25465,6 +25623,183 @@ const KONU = {
     'iş merkezinde asansörle çıkarken dijital barometre: her 5 katta 2,0 hPa, 1002,2 hPa → 27. kat (grafik)', 'gaz dolu cam balon ve açık uçlu cıvalı U borusu: 14 cm, 90 cmHg, 68 cmHg yerde 22 cm',
     'dağ-vadi rüzgârları ve muson rüzgârları (eşleştir)', 'simülasyon: standart atmosferde 0–4000 m, cıva ve su sütunu'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.3.4/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde havanın neden bastırdığını, bu basıncı nasıl ölçtüğümüzü ve basıncın nelere göre değiştiğini kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Havanın da ağırlığı var`,
+        metin: r`Havayı göremeyiz ama hava da bir maddedir. Sıvılar gibi gazlar da akışkandır ve ağırlıkları vardır. Orta büyüklükte bir sınıftaki havanın kütlesi yaklaşık 200 kilogramdır.
+
+Dünya'yı saran bu gaz tabakasına **atmosfer** denir. Bulunduğun yerin tam üstünde, atmosferin en üst sınırına kadar uzanan uzun bir **hava sütunu** düşün. Bu sütunun ağırlığı, altındaki her yüzeye bastırır.
+
+Atmosferdeki gazların ağırlıkları nedeniyle yüzeylere uyguladığı basınca **açık hava basıncı** denir ve $P_0$ ile gösterilir.`,
+        kontrol: {
+          soru: r`Bir köy meydanındaki açık hava basıncını oluşturan nedir?`,
+          secenekler: [r`Meydanda esen rüzgâr.`, r`Meydanın üstündeki hava sütununun ağırlığı.`, r`Meydandaki seslerin titreşimi.`],
+          dogru: 1,
+          aciklama: r`Açık hava basıncı, bir yerin üstünde atmosferin sınırına kadar uzanan hava sütununun ağırlığından kaynaklanır.`,
+          yanlisIpucu: r`Sıvı basıncı sıvının ağırlığından geliyordu. Hava da ağırlığı olan bir akışkandır.`
+        }
+      },
+      {
+        baslik: r`Hava her yönden bastırır`,
+        sekil: 'sf934_torba',
+        metin: r`Yorganları saklamak için kullanılan vakumlu torbaları düşün. Yorgan torbaya konur, ağzı kapatılır. Sonra torbanın küçük kapağından elektrikli süpürgeyle içerideki hava çekilir. Kabarık torba birden incelir ve yorgan sıkışır.
+
+Torbayı sıkıştıran dışarıdaki havadır. İçeride hava azalınca içerideki basınç düşer. Dışarıdaki açık hava torbaya üstten ve yanlardan bastırır.
+
+Açık hava basıncı yalnız yukarıdan aşağıya etki etmez; temas ettiği yüzeylere her yönden etki eder. Peki biz neden ezilmiyoruz? Vücudumuzun içindeki basınç dışarıdakine yakındır. İçeriden ve dışarıdan etki eden basınçlar birbirini dengeler.`,
+        kontrol: {
+          soru: r`Havası çekilen vakumlu torbayı inceltip sıkıştıran nedir?`,
+          secenekler: [r`Yorganın kendi ağırlığı.`, r`İçerideki boşluğun torbayı çekmesi.`, r`Dışarıdaki havanın torbaya her yönden bastırması.`],
+          dogru: 2,
+          aciklama: r`Torbanın içindeki basınç azalınca dışarıdaki açık hava torbaya her yönden bastırır ve torbayı sıkıştırır.`,
+          yanlisIpucu: r`Boşluk bir şeyi çekmez. Torbanın dışında ne var ve o ne yapıyor?`
+        }
+      },
+      {
+        baslik: r`Havanın basıncını ölçmek`,
+        sekil: 'sf934_boru',
+        metin: r`Açık hava basıncını ilk ölçen kişi İtalyan bilim insanı **Torricelli**'dir. Yaklaşık 1 m uzunluğunda, bir ucu kapalı bir cam boruyu cıvayla doldurdu. Borunun ağzını kapatıp boruyu cıva dolu bir kaba ters çevirdi ve ağzı cıvanın içinde açtı.
+
+Deniz kenarında bu deney yapılırsa borudaki cıva biraz alçalır ve kaptaki cıva yüzeyinden 76 cm yükseklikte durur. Borunun üst ucunda hava olmayan bir **boşluk** kalır.
+
+Cıvayı yukarıda tutan, kaptaki cıva yüzeyine bastıran açık havadır. Deniz seviyesinde açık hava basıncı, 76 cm'lik cıva sütununun basıncına eşittir. Bu yüzden $P_0 = 76$ cmHg (santimetre cıva) yazılır. Açık hava basıncını ölçen alete **barometre** denir.`,
+        kontrol: {
+          soru: r`Torricelli düzeneğinde cıvanın borunun içinde yukarıda kalmasını sağlayan nedir?`,
+          secenekler: [r`Kaptaki cıva yüzeyine açık havanın bastırması.`, r`Borunun üstündeki boşluğun cıvayı çekmesi.`, r`Cıvanın cam boruya yapışması.`],
+          dogru: 0,
+          aciklama: r`Açık hava kaptaki cıva yüzeyine bastırır. Cıva sütununun basıncı bu basınca eşit olunca sütun dengede durur.`,
+          yanlisIpucu: r`Boşlukta hava yoktur, bu yüzden bir şeyi çekemez. Kaptaki cıvanın açıkta kalan yüzeyine bak.`
+        }
+      },
+      {
+        baslik: r`Yükseldikçe basınç azalır`,
+        sekil: 'sf934_balon',
+        metin: r`Meteoroloji uzmanları havayı ölçmek için büyük balonlar uçurur. Balonun altında küçük bir ölçüm kutusu asılıdır. Balon yerden kalkarken küçüktür. Yükseldikçe şişer ve çok yükseklerde yerdekinin birkaç katı büyüklüğe ulaşır.
+
+Bunun nedeni açık hava basıncıdır. Yükseğe çıktıkça üstte kalan hava sütunu kısalır. Hava da yukarılarda seyrelir. Bu yüzden açık hava basıncı **azalır**. Balona dışarıdan bastıran hava azalınca balonun içindeki gaz balonu genişletir.
+
+Aynı nedenle deniz kenarında 76 cm olan cıva sütunu, yüksek bir yaylada daha kısa olur.`,
+        kontrol: {
+          soru: r`Bir meteoroloji balonu yerden yükseldikçe neden büyür?`,
+          secenekler: [r`Balonun dışındaki açık hava basıncı azalır.`, r`Balonun içine yukarıda hava girer.`, r`Güneşe yaklaştıkça balon ısınır.`],
+          dogru: 0,
+          aciklama: r`Yükseldikçe balonun üstündeki hava sütunu kısalır ve açık hava basıncı azalır. Dışarıdan bastıran hava azaldığı için balon genişler.`,
+          yanlisIpucu: r`Balonun ağzı sıkıca kapalıdır. Yükseldikçe balonun dışında ne değişiyor?`
+        }
+      },
+      {
+        baslik: r`Sıcak hava, soğuk hava ve basınç`,
+        metin: r`Açık hava basıncı aynı yükseklikteki iki yerde de farklı olabilir. Bunun bir nedeni havanın sıcaklığıdır.
+- Isınan hava genleşir, yoğunluğu azalır ve yükselir. Altında **alçak basınç alanı** oluşur.
+- Soğuyan hava sıkışır, yoğunluğu artar ve alçalır. Altında **yüksek basınç alanı** oluşur.
+
+Kısacası sıcak havanın altında basınç düşük, soğuk havanın altında basınç yüksektir.`,
+        kontrol: {
+          soru: r`Güneşli bir günde geniş bir ova çok ısınıyor ve ovanın üstündeki hava yükseliyor. Ovada hangi basınç alanı oluşur?`,
+          secenekler: [r`Yüksek basınç alanı.`, r`Alçak basınç alanı.`, r`Basınç hiç değişmez.`],
+          dogru: 1,
+          aciklama: r`Isınan hava genleşir ve yükselir. Yükselen havanın altında açık hava basıncı azalır ve alçak basınç alanı oluşur.`,
+          yanlisIpucu: r`Isınan hava genleşip yükseliyor. Yoğunluğu azalan havanın yerdeki basıncı artar mı, azalır mı?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Köydeki barometre`,
+        metin: r`Elif, deniz kenarındaki evlerinde cıvalı barometrenin 76 cmHg gösterdiğini görüyor. Yazın dedesinin dağ köyüne gidiyor. Köydeki barometre aynı gün 72 cmHg gösteriyor.`,
+        adimlar: [
+          {
+            soru: r`Köy, deniz kenarına göre daha yüksekte mi, daha alçakta mı?`,
+            secenekler: [r`Daha yüksekte.`, r`Daha alçakta.`, r`İkisi aynı yükseklikte.`],
+            dogru: 0,
+            ipucu: r`Yükseldikçe açık hava basıncı azalır. Köyde basınç daha mı küçük?`,
+            aciklama: r`Köyde basınç 72 cmHg, deniz kenarında 76 cmHg'dir. Basınç köyde daha küçük olduğu için köy daha yüksektedir.`
+          },
+          {
+            soru: r`İki yerin açık hava basınçları arasındaki fark kaç cmHg'dir?`,
+            secenekler: [r`148 cmHg`, r`4 cmHg`, r`72 cmHg`],
+            dogru: 1,
+            ipucu: r`Büyük basınçtan küçük basıncı çıkar.`,
+            aciklama: r`Fark $76 - 72 = 4$ cmHg olur.`
+          },
+          {
+            soru: r`Ertesi gün köyün üstüne soğuk ve yoğun bir hava kütlesi yerleşiyor. Köydeki cıva sütunu ne olur?`,
+            secenekler: [r`Kısalır.`, r`Değişmez.`, r`Uzar.`],
+            dogru: 2,
+            ipucu: r`Soğuk ve yoğun hava yüksek basınç alanı oluşturur. Basınç artınca cıva sütunu ne yapar?`,
+            aciklama: r`Soğuk ve yoğun hava alçalır ve köyde açık hava basıncı artar. Kaptaki cıvaya daha çok bastırılır ve sütun uzar.`
+          }
+        ],
+        sonuc: r`Cıva sütununun boyu açık hava basıncını gösterir. Yükseldikçe sütun kısalır; soğuk ve yoğun hava geldiğinde uzar.`
+      },
+      {
+        baslik: r`Cıva yerine başka bir sıvı`,
+        metin: r`Deniz kenarında iki Torricelli düzeneği kuruluyor. Birinde cıva, ötekinde uzun bir boruda X sıvısı var. X sıvısının yoğunluğu, cıvanın yoğunluğunun 8'de 1'idir. Cıva sütunu 76 cm yükseklikte duruyor.`,
+        adimlar: [
+          {
+            soru: r`İki sütunun dibinde, sıvıların oluşturduğu basınçlar nasıldır?`,
+            secenekler: [r`Cıvanınki daha büyüktür.`, r`İkisi de açık hava basıncına eşittir.`, r`X'inki daha büyüktür.`],
+            dogru: 1,
+            ipucu: r`İki düzenek de aynı yerde. Sütunu yukarıda tutan basınç ikisinde de aynı mı?`,
+            aciklama: r`İki sütun da aynı açık hava basıncıyla dengededir. Bu yüzden iki sütunun basıncı eşittir.`
+          },
+          {
+            soru: r`Aynı basıncı oluşturmak için X sütunu, cıva sütununun kaç katı uzun olmalıdır?`,
+            secenekler: [r`8 katı.`, r`2 katı.`, r`Eşit uzunlukta olmalıdır.`],
+            dogru: 0,
+            ipucu: r`Basınç, sütunun yüksekliğiyle ve sıvının yoğunluğuyla orantılıdır. Yoğunluk 8'de 1'ine inerse aynı basınç için yükseklik kaç katına çıkmalı?`,
+            aciklama: r`Yoğunluk 8 kat küçük olduğu için aynı basıncı oluşturmak üzere yükseklik 8 kat büyük olmalıdır.`
+          },
+          {
+            soru: r`X sütununun yüksekliği kaç cm olur?`,
+            secenekler: [r`84 cm`, r`608 cm`, r`76 cm`],
+            dogru: 1,
+            ipucu: r`Cıva sütununun yüksekliğini 8 ile çarp.`,
+            aciklama: r`$76 \times 8 = 608$ cm, yani 6 metreden biraz fazla olur.`
+          }
+        ],
+        sonuc: r`Yoğunluğu küçük bir sıvı, aynı açık hava basıncını daha uzun bir sütunla dengeler. Barometrelerde cıvanın kullanılmasının nedeni budur: Cıva çok yoğundur ve sütunu kısa kalır.`
+      },
+      {
+        baslik: r`Hava durumu haritası`,
+        sekil: 'sf934_harita',
+        metin: r`Bir hava durumu haritasında üç şehrin açık hava basınçları verilmiş: K'de 1024 hPa, L'de 1008 hPa, M'de 1016 hPa. K ile L arasındaki uzaklık, M ile L arasındaki uzaklığa eşittir. Hektopaskal (hPa), hava raporlarında kullanılan bir basınç birimidir.
+
+Hava, yüksek basınç alanından alçak basınç alanına doğru hareket eder. Bu hava hareketine **rüzgâr** denir.`,
+        adimlar: [
+          {
+            soru: r`Hangi şehirde alçak basınç alanı vardır?`,
+            secenekler: [r`K'de.`, r`M'de.`, r`L'de.`],
+            dogru: 2,
+            ipucu: r`Üç değeri karşılaştır. Alçak basınç, en küçük değerdir.`,
+            aciklama: r`En küçük basınç 1008 hPa ile L'dedir. L, alçak basınç alanındadır.`
+          },
+          {
+            soru: r`K ile L arasında rüzgâr hangi yönde eser?`,
+            secenekler: [r`K'den L'ye doğru.`, r`L'den K'ye doğru.`, r`Rüzgâr esmez.`],
+            dogru: 0,
+            ipucu: r`Hava, basıncın yüksek olduğu yerden alçak olduğu yere doğru hareket eder.`,
+            aciklama: r`K'de basınç daha yüksektir. Hava K'den L'ye doğru hareket eder.`
+          },
+          {
+            soru: r`K'den L'ye esen rüzgâr mı, M'den L'ye esen rüzgâr mı daha hızlıdır?`,
+            secenekler: [r`İkisi aynı hızdadır.`, r`K'den L'ye esen.`, r`M'den L'ye esen.`],
+            dogru: 1,
+            ipucu: r`Uzaklıklar eşit. Basınç farklarını bul: $1024 - 1008$ ve $1016 - 1008$.`,
+            aciklama: r`K ile L arasındaki fark 16 hPa, M ile L arasındaki fark 8 hPa'dır. Basınç farkı büyük olan yerde rüzgâr daha hızlı eser.`
+          }
+        ],
+        sonuc: r`Rüzgâr yüksek basınçtan alçak basınca doğru eser. Basınç farkı büyüdükçe rüzgâr da güçlenir.`
+      }
+    ],
+    hazir: r`Açık hava basıncının havanın ağırlığından geldiğini, her yönden etki ettiğini, Torricelli deneyiyle ölçüldüğünü, yükseldikçe azaldığını, sıcaklıkla değiştiğini ve rüzgârı oluşturduğunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -62587,6 +62922,143 @@ BFY_FIG_EKLE('i1032_kart_debi', u => KS(u, I => {
 /* ---------- KAVRAM KARTLARI: 3B çizimler (son) ---------- */
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1032_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const C = { el: '#2f7fb8', elD: '#1d5a86', pos: '#d9573b', posD: '#a8402a', akim: '#2b8a3e', tel: '#5b646b' };
+const sfDefs = u => `<defs>
+  <linearGradient id="${u}sfcu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3c39a"/><stop offset=".35" stop-color="#d98c55"/><stop offset=".75" stop-color="#a8622f"/><stop offset="1" stop-color="#7d4a27"/></linearGradient>
+  <linearGradient id="${u}sfkilif" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb0d3"/><stop offset=".4" stop-color="#3f7fae"/><stop offset="1" stop-color="#245a80"/></linearGradient>
+  <linearGradient id="${u}sfcoz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6ecf7"/><stop offset="1" stop-color="#9fcde6"/></linearGradient>
+  <linearGradient id="${u}sfcam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity=".1"/><stop offset=".12" stop-color="#ffffff" stop-opacity=".8"/><stop offset=".22" stop-color="#ffffff" stop-opacity=".05"/><stop offset=".9" stop-color="#ffffff" stop-opacity=".05"/><stop offset=".96" stop-color="#ffffff" stop-opacity=".6"/><stop offset="1" stop-color="#ffffff" stop-opacity=".1"/></linearGradient>
+  <radialGradient id="${u}sfisik" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff3b0" stop-opacity=".95"/><stop offset=".55" stop-color="#ffe066" stop-opacity=".45"/><stop offset="1" stop-color="#ffe066" stop-opacity="0"/></radialGradient>
+</defs>`;
+/* pil sembolü (yatay telde): + solda (uzun ince), − sağda (kısa kalın); gerilim pilin hemen altında */
+function pil(x, y, etiket) {
+  return `<line x1="${x - 9}" y1="${y}" x2="${x + 9}" y2="${y}" stroke="#fff" stroke-width="8"/>` +
+    `<line x1="${x - 4}" y1="${y - 15}" x2="${x - 4}" y2="${y + 15}" stroke="${P.ink}" stroke-width="2"/>` +
+    `<line x1="${x + 4}" y1="${y - 8}" x2="${x + 4}" y2="${y + 8}" stroke="${P.ink}" stroke-width="4.5"/>` +
+    T(x - 14, y - 10, '+', { size: 14, anchor: 'middle', weight: 800 }) + T(x + 15, y - 10, '−', { size: 14, anchor: 'middle', weight: 800 }) +
+    T(x, y + 32, etiket, { size: 13, anchor: 'middle', weight: 800 });
+}
+function elektron(x, y, r = 6.5) {
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.el}" stroke="${C.elD}" stroke-width=".8"/>` +
+    `<line x1="${x - r * 0.5}" y1="${y}" x2="${x + r * 0.5}" y2="${y}" stroke="#fff" stroke-width="1.6"/>`;
+}
+function artiIyon(x, y, r = 8) {
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.pos}" stroke="${C.posD}" stroke-width=".8"/>` +
+    `<line x1="${x - r * 0.5}" y1="${y}" x2="${x + r * 0.5}" y2="${y}" stroke="#fff" stroke-width="1.7"/><line x1="${x}" y1="${y - r * 0.5}" x2="${x}" y2="${y + r * 0.5}" stroke="#fff" stroke-width="1.7"/>`;
+}
+function eksiIyon(x, y, r = 8) {
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${C.el}" stroke="${C.elD}" stroke-width=".8"/>` +
+    `<line x1="${x - r * 0.5}" y1="${y}" x2="${x + r * 0.5}" y2="${y}" stroke="#fff" stroke-width="1.7"/>`;
+}
+const tel = (d, w = 3) => `<path d="${d}" fill="none" stroke="${C.tel}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+/* Adım 1: kalın bakır kablo, telin kesiti ve kesitten geçen elektronlar */
+BFY_FIG_EKLE('sf1032_kesit', function (u) {
+  const W = 360, H = 190, y1 = 64, y2 = 116, cy = (y1 + y2) / 2, ry = (y2 - y1) / 2, xs = 186;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  // plastik kılıf (sol) ve açıkta kalan bakır gövde
+  s += `<rect x="18" y="${y1 - 8}" width="74" height="${y2 - y1 + 16}" rx="8" fill="url(#${u}sfkilif)"/>`;
+  s += `<rect x="86" y="${y1}" width="236" height="${y2 - y1}" fill="url(#${u}sfcu)"/>`;
+  s += `<ellipse cx="322" cy="${cy}" rx="10" ry="${ry}" fill="#e7a877" stroke="#9c5a2c" stroke-width="1"/>`;
+  s += `<ellipse cx="92" cy="${cy}" rx="10" ry="${ry + 8}" fill="#5f93ba" stroke="#245a80" stroke-width="1"/>`;
+  s += `<line x1="86" y1="${y1 + 7}" x2="322" y2="${y1 + 7}" stroke="#fff" stroke-width="3" opacity=".45"/>`;
+  // kesit
+  s += `<ellipse cx="${xs}" cy="${cy}" rx="11" ry="${ry + 3}" fill="${C.akim}" fill-opacity=".28" stroke="${C.akim}" stroke-width="2" stroke-dasharray="5 3"/>`;
+  s += `<line x1="${xs}" y1="${y1 - 4}" x2="${xs}" y2="34" stroke="${C.akim}" stroke-width="1.2"/>`;
+  s += T(xs, 28, 'kesit', { size: 13, anchor: 'middle', weight: 800, fill: C.akim });
+  // elektronlar (sola sürükleniyor)
+  [[118, 78], [150, 100], [214, 80], [246, 103], [282, 84], [306, 104]].forEach(([x, y]) => {
+    s += elektron(x, y, 6) + arrow(x - 8, y, x - 22, y, { color: '#fff', w: 1.8, head: 5, headW: 3 });
+  });
+  // yönler
+  s += arrow(250, 146, 160, 146, { color: C.el, w: 2.4, head: 8, headW: 4.6 });
+  s += T(256, 151, 'elektronlar', { size: 12.5, weight: 800, fill: C.el });
+  s += arrow(160, 172, 250, 172, { color: C.akim, w: 2.6, head: 9, headW: 5 });
+  s += T(154, 177, 'akım (I)', { size: 12.5, anchor: 'end', weight: 800, fill: C.akim });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 3: pil, kapalı anahtar ve lamba; akım (+) kutuptan dış devreye, elektronlar ters yönde */
+BFY_FIG_EKLE('sf1032_devre', function (u) {
+  const W = 330, H = 262, x1 = 56, x2 = 274, yU = 54, yA = 196, xp = 165, xl = 165, ya = 128;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  // teller
+  s += tel(`M${xp - 8} ${yU} H${x1} V${yA} H${xl - 15}`) + tel(`M${xl + 15} ${yA} H${x2} V${ya + 14}`) + tel(`M${x2} ${ya - 16} V${yU} H${xp + 8}`);
+  // anahtar (kapalı)
+  s += `<circle cx="${x2}" cy="${ya + 14}" r="3.6" fill="${P.ink}"/><circle cx="${x2}" cy="${ya - 16}" r="3.6" fill="${P.ink}"/>`;
+  s += `<line x1="${x2}" y1="${ya + 14}" x2="${x2 + 2}" y2="${ya - 16}" stroke="${P.ink}" stroke-width="3" stroke-linecap="round"/>`;
+  s += T(x2 - 12, ya + 4, 'anahtar', { size: 12, anchor: 'end', weight: 700, fill: P.ink2 });
+  // lamba (yanıyor)
+  s += `<circle cx="${xl}" cy="${yA}" r="30" fill="url(#${u}sfisik)"/>`;
+  const d = 10;
+  s += `<circle cx="${xl}" cy="${yA}" r="14" fill="#fff8d6" stroke="${P.ink}" stroke-width="2"/>` +
+    `<line x1="${xl - d}" y1="${yA - d}" x2="${xl + d}" y2="${yA + d}" stroke="${P.ink}" stroke-width="1.6"/><line x1="${xl - d}" y1="${yA + d}" x2="${xl + d}" y2="${yA - d}" stroke="${P.ink}" stroke-width="1.6"/>`;
+  s += T(xl, yA + 32, 'lamba', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // pil ve gerilimi
+  s += pil(xp, yU, '6 V');
+  // akım okları (yeşil): + kutuptan çıkıp dış devreden − kutba
+  const ak = (a, b, c, d) => arrow(a, b, c, d, { color: C.akim, w: 3, head: 10, headW: 6 });
+  s += ak(118, yU, 92, yU) + ak(x1, 112, x1, 138) + ak(96, yA, 122, yA) + ak(212, yA, 238, yA) + ak(x2, 178, x2, 160) + ak(236, yU, 210, yU);
+  s += T(x1 - 10, 130, 'I', { size: 15, anchor: 'end', weight: 800, fill: C.akim, italic: true });
+  // elektronların hareketi (mavi), alt telin içinde ters yönde
+  s += arrow(222, yA - 22, 178, yA - 22, { color: C.el, w: 2.2, head: 8, headW: 4.4 });
+  s += elektron(232, yA - 22, 6);
+  s += T(226, yA - 36, 'elektron', { size: 12, anchor: 'middle', weight: 800, fill: C.el });
+  s += T(W / 2, H - 8, 'yeşil: akım, mavi: elektronların hareketi', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 5: tuzlu çözeltide iyonlar; pozitif iyonlar (−) elektroda, negatif iyonlar (+) elektroda */
+BFY_FIG_EKLE('sf1032_cozelti', function (u) {
+  const W = 340, H = 280, bx1 = 66, bx2 = 274, by1 = 104, by2 = 252, sy = 126, ex1 = 104, ex2 = 236, xp = 170, yU = 40;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  // çözelti ve kap
+  s += `<path d="M${bx1 + 2} ${sy} L${bx1 + 2} ${by2 - 8} Q${bx1 + 2} ${by2 - 2} ${bx1 + 8} ${by2 - 2} L${bx2 - 8} ${by2 - 2} Q${bx2 - 2} ${by2 - 2} ${bx2 - 2} ${by2 - 8} L${bx2 - 2} ${sy} Z" fill="url(#${u}sfcoz)"/>`;
+  s += `<line x1="${bx1 + 2}" y1="${sy}" x2="${bx2 - 2}" y2="${sy}" stroke="#4f97c4" stroke-width="1.6"/>`;
+  // elektrotlar
+  const elek = x => `<rect x="${x - 6}" y="78" width="12" height="150" rx="2" fill="url(#${u}metalV)" stroke="#5b646b" stroke-width="1"/>`;
+  s += elek(ex1) + elek(ex2);
+  // kap camı (önde)
+  s += `<path d="M${bx1} ${by1} L${bx1} ${by2 - 8} Q${bx1} ${by2} ${bx1 + 8} ${by2} L${bx2 - 8} ${by2} Q${bx2} ${by2} ${bx2} ${by2 - 8} L${bx2} ${by1}" fill="url(#${u}sfcam)" stroke="#5d7d8f" stroke-width="1.8"/>`;
+  s += `<ellipse cx="${(bx1 + bx2) / 2}" cy="${by2 + 4}" rx="${(bx2 - bx1) / 2 + 6}" ry="4" fill="#000" opacity=".1"/>`;
+  // teller ve pil
+  s += tel(`M${ex1} 78 V${yU} H${xp - 9}`) + tel(`M${xp + 9} ${yU} H${ex2} V78`);
+  s += pil(xp, yU, '6 V');
+  s += T(ex1 - 12, 98, '(+)', { size: 13, anchor: 'end', weight: 800, fill: P.coral });
+  s += T(ex2 + 12, 98, '(−)', { size: 13, anchor: 'start', weight: 800, fill: C.el });
+  // iyonlar: pozitifler sağa (− elektroda), negatifler sola (+ elektroda)
+  [[134, 150], [178, 196], [150, 232], [204, 160]].forEach(([x, y]) => { s += artiIyon(x, y, 7.5) + arrow(x + 10, y, x + 28, y, { color: C.pos, w: 2, head: 6, headW: 3.6 }); });
+  [[206, 214], [166, 140], [212, 238], [146, 182]].forEach(([x, y]) => { s += eksiIyon(x, y, 7.5) + arrow(x - 10, y, x - 28, y, { color: C.el, w: 2, head: 6, headW: 3.6 }); });
+  s += T(W / 2, H - 8, 'mercan: pozitif iyon, mavi: negatif iyon', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Isınma 3: kablosuz süpürge motorunun akım-zaman grafiği; 0–3 s 8 A, 3–12 s 4 A */
+BFY_FIG_EKLE('sf1032_grafik', function (u) {
+  const W = 340, H = 230, ox = 52, oy = 186, Wx = 232, Hy = 150;
+  const X = t => ox + t * 18, Y = i => oy - i * 15;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  for (let t = 1; t <= 12; t++) s += `<line x1="${X(t)}" y1="${Y(9)}" x2="${X(t)}" y2="${oy}" stroke="#dde5df" stroke-width="1"/>`;
+  for (let i = 1; i <= 9; i++) s += `<line x1="${ox}" y1="${Y(i)}" x2="${X(12)}" y2="${Y(i)}" stroke="#dde5df" stroke-width="1"/>`;
+  s += `<path d="M${X(0)} ${oy} V${Y(8)} H${X(3)} V${Y(4)} H${X(12)} V${oy} Z" fill="url(#${u}posA)"/>`;
+  // eksenler: I (A) dikey eksenin ucunda, t (s) yatay eksenin sağ ucunda
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - Hy}" stroke="${P.ink}" stroke-width="1.5"/>` +
+    `<polygon points="${ox},${oy - Hy - 8} ${ox - 4},${oy - Hy + 2} ${ox + 4},${oy - Hy + 2}" fill="${P.ink}"/>` +
+    `<line x1="${ox}" y1="${oy}" x2="${ox + Wx}" y2="${oy}" stroke="${P.ink}" stroke-width="1.5"/>` +
+    `<polygon points="${ox + Wx + 8},${oy} ${ox + Wx - 2},${oy - 4} ${ox + Wx - 2},${oy + 4}" fill="${P.ink}"/>`;
+  s += T(ox + 8, oy - Hy - 2, 'I (A)', { size: 13, weight: 800 });
+  s += T(ox + Wx + 12, oy + 4.5, 't (s)', { size: 13, weight: 800 });
+  s += `<path d="M${X(0)} ${Y(8)} H${X(3)} V${Y(4)} H${X(12)}" fill="none" stroke="${P.blue}" stroke-width="3" stroke-linejoin="round"/>`;
+  s += dashLine(X(12), Y(4), X(12), oy, '#8aa0ad', '3 3', 1.1) + dashLine(ox, Y(4), X(3), Y(4), '#8aa0ad', '3 3', 1.1);
+  [[0, '0'], [3, '3'], [12, '12']].forEach(([t, l]) => { s += T(X(t), oy + 17, l, { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 }); });
+  [[4, '4'], [8, '8']].forEach(([i, l]) => { s += T(ox - 7, Y(i) + 4.5, l, { size: 12.5, anchor: 'end', weight: 700, fill: P.ink2 }); });
+  return svg(W, H, s, u, 74);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -62625,6 +63097,183 @@ const KONU = {
     'SET 2: okul kulübünde bakır sülfat çözeltisiyle çelik pul kaplama (akım, süre, kütle artışı; 4. denemede dökülen kaplama), 250 mA ile 200 mg için süre',
     'EK: yıldırım olay zinciri sıralama', 'EK: akım oluşma koşulları (yük taşıyıcı, potansiyel fark, kapalı devre) sınıflaması', 'EK: bakır tel, tuzlu su, neon gazındaki parçacıkların sürüklenme yönü', 'EK: I-t grafiği ↔ durum (marş motoru, üç kademeli soba, yanıp sönen LED)', 'EK: iki kademeli analog ampermetre 0,48 A, 5 dk', 'EK: telefon şarjı I-t grafiği 3 A 40 dk, 70. dk 0,5 A', 'ZENGİN: taramalı elektron mikroskobu (SEM) piksel başına elektron sayısı, gürültü-N grafiği, beş demet ayarı (pA, μs), 200 pA sınırı', 'ZENGİN: uç uca kaynaklı 4 mm² ve 1 mm² bakır tel, 3 A, K ve L kesitleri, sürüklenme sürati oranı', 'ZENGİN: dört q-t grafiği (K, L, M, N) ↔ akım ifadeleri eşleştirme', 'SİM: akım 0–2 A ve süre 0–20 s, kesitten geçen yük, I-t alanı'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/10.3.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde elektrik akımının ne olduğunu, hangi yönde aktığını ve nasıl hesaplandığını kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Akım, yükün akışıdır`,
+        sekil: 'sf1032_kesit',
+        metin: r`Bir stadyumun girişinde turnikeler var. Görevli, bir turnikeden dakikada kaç kişinin geçtiğini sayar. Kalabalığın akışını bu sayı anlatır.
+
+Elektrik akımı da buna benzer. Bir telin içinde, teli dik kesen hayalî bir dilim düşün. Bu dilime telin **kesiti** denir. **Elektrik akımı**, kesitten birim zamanda, yani her saniye geçen yük miktarıdır.
+
+Akım $I$ ile gösterilir, birimi **amperdir** (A). Yük $q$ ile gösterilir, birimi **coulombdur** (C). Kesitten her saniye 1 C yük geçiyorsa akım 1 A'dir. Bir elektronun yükü çok küçüktür; 1 C yük, milyarlarca kez milyar elektronun yüküne eşittir.`,
+        kontrol: {
+          soru: r`Aşağıdakilerden hangisi elektrik akımını anlatır?`,
+          secenekler: [r`Telin içinde bulunan toplam yük miktarı.`, r`Telin bir kesitinden her saniye geçen yük miktarı.`, r`Telin içindeki elektronların sayısı.`],
+          dogru: 1,
+          aciklama: r`Akım, kesitten birim zamanda geçen yüktür. Turnikeden her dakika geçen kişi sayısı gibi, akımda da kesitten her saniye geçen yük sayılır.`,
+          yanlisIpucu: r`Turnike örneğini düşün. Stadyumdaki kişi sayısı değil, turnikeden belli bir sürede geçen kişi sayısı önemliydi.`
+        }
+      },
+      {
+        baslik: r`Elektronlar telde zaten var`,
+        metin: r`Bakır gibi metallerde bazı elektronlar atomlarına zayıf bağlıdır. Bu elektronlar telin içinde serbestçe dolaşır. Bunlara **serbest elektron** denir.
+
+Çekmecede duran bir bakır kabloyu düşün. İçindeki serbest elektronlar her yöne gelişigüzel hareket eder. Bir kesitten sağa geçen elektron sayısı, sola geçenlerin sayısına eşittir. Bu yüzden **net akım yoktur**.
+
+Kablo bir pile bağlanıp devre kapatılınca durum değişir. Elektronlar gelişigüzel hareketlerini sürdürürken pilin (+) kutbuna doğru yavaşça **sürüklenir**. Akımı bu sürüklenme oluşturur. Akım için hareket edebilen yükler, pil gibi bir **potansiyel fark** kaynağı ve **kapalı devre** birlikte gerekir.`,
+        kontrol: {
+          soru: r`Çekmecede duran, hiçbir yere bağlı olmayan bir bakır telden net akım geçer mi?`,
+          secenekler: [r`Geçer, çünkü telde serbest elektronlar vardır.`, r`Geçmez, çünkü telde hiç elektron yoktur.`, r`Geçmez, çünkü elektronlar her yöne gelişigüzel hareket eder.`],
+          dogru: 2,
+          aciklama: r`Telde serbest elektronlar vardır ama gelişigüzel hareket eder. Kesitten iki yöne geçen elektronlar eşit olduğu için net akım oluşmaz.`,
+          yanlisIpucu: r`Elektronlar hareket ediyor ama belirli bir yöne mi gidiyorlar? Telde pil ve kapalı devre var mı?`
+        }
+      },
+      {
+        baslik: r`Akımın yönü`,
+        sekil: 'sf1032_devre',
+        metin: r`Akımın yönü, pozitif yüklerin hareket yönü olarak kabul edilir. Metal telde hareket edenler ise negatif yüklü elektronlardır.
+- Devrede akım, pilin (+) kutbundan çıkar, dış devreden geçer ve (−) kutbuna döner.
+- Elektronlar bunun tersine, (−) kutuptan (+) kutba doğru hareket eder.
+
+Yani metal telde akımın yönü, elektronların hareket yönüne **zıttır**.`,
+        kontrol: {
+          soru: r`Bir metal telde elektronlar batıdan doğuya doğru sürükleniyor. Telden geçen akımın yönü nedir?`,
+          secenekler: [r`Doğudan batıya.`, r`Batıdan doğuya.`, r`Akımın yönü yoktur.`],
+          dogru: 0,
+          aciklama: r`Akımın yönü elektronların hareket yönüne zıttır. Elektronlar doğuya gidiyorsa akım doğudan batıya doğrudur.`,
+          yanlisIpucu: r`Akımın yönü, pozitif yüklerin hareket yönüdür. Elektronlar negatif yüklüdür.`
+        }
+      },
+      {
+        baslik: r`Akımı hesaplamak`,
+        metin: r`Akım, kesitten geçen yükün, bu yükün geçtiği süreye bölümüdür:
+$$I = \dfrac{q}{t}$$
+Yük coulomb (C), süre saniye (s) ile yazılırsa akım amper (A) çıkar.
+
+Bir el fenerinin devresindeki telin kesitinden 10 s'de 20 C yük geçsin. Akım $I = \dfrac{20}{10} = 2$ A olur. Yani kesitten her saniye 2 C yük geçer.`,
+        kontrol: {
+          soru: r`Bir saç kurutma makinesinin kablosunun kesitinden 4 s'de 24 C yük geçiyor. Akım kaç A'dir?`,
+          secenekler: [r`96 A`, r`20 A`, r`6 A`],
+          dogru: 2,
+          aciklama: r`$I = \dfrac{q}{t} = \dfrac{24}{4} = 6$ A olur.`,
+          yanlisIpucu: r`Yükü süreye böl. Çarpma ya da çıkarma yapma.`
+        }
+      },
+      {
+        baslik: r`Sıvılarda akımı iyonlar taşır`,
+        sekil: 'sf1032_cozelti',
+        metin: r`Saf su akımı çok az iletir. Suya tuz karıştırınca durum değişir. Tuz suda çözünür ve **iyonlara** ayrılır: pozitif yüklü iyonlar ve negatif yüklü iyonlar.
+
+Çözeltiye, pile bağlı iki metal çubuk daldıralım. Bunlara **elektrot** denir.
+- Pozitif iyonlar (−) kutba bağlı elektroda doğru gider.
+- Negatif iyonlar (+) kutba bağlı elektroda doğru gider.
+
+İki tür iyon zıt yönlerde gider ama akımı **birlikte** oluşturur. Sıvıdaki akımın yönü, pozitif iyonların hareket yönüdür.`,
+        kontrol: {
+          soru: r`Pile bağlı elektrotların daldırıldığı bir çözeltide pozitif iyonlar hangi elektroda doğru gider?`,
+          secenekler: [r`(+) kutba bağlı elektroda.`, r`(−) kutba bağlı elektroda.`, r`Hiçbir elektroda gitmez.`],
+          dogru: 1,
+          aciklama: r`Zıt yükler birbirini çeker. Pozitif iyonlar (−) kutba bağlı elektroda doğru gider.`,
+          yanlisIpucu: r`Pozitif yük, hangi işaretli yüke doğru çekilir?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Mutfaktaki blender`,
+        metin: r`Bir blender çalışırken kablosundan 4 A akım geçiyor. Blender 1 dakika çalıştırılıyor.`,
+        adimlar: [
+          {
+            soru: r`4 A akım, kablonun kesitinden her saniye kaç C yük geçtiğini gösterir?`,
+            secenekler: [r`4 C`, r`60 C`, r`240 C`],
+            dogru: 0,
+            ipucu: r`1 A, kesitten her saniye 1 C yük geçmesi demektir.`,
+            aciklama: r`4 A akımda kesitten her saniye 4 C yük geçer.`
+          },
+          {
+            soru: r`1 dakikada kesitten kaç C yük geçer?`,
+            secenekler: [r`64 C`, r`240 C`, r`15 C`],
+            dogru: 1,
+            ipucu: r`1 dakika 60 s'dir. Her saniye 4 C geçiyorsa 60 s'de ne kadar geçer? $q = I \times t$ ile bul.`,
+            aciklama: r`$q = I \times t = 4 \times 60 = 240$ C olur.`
+          },
+          {
+            soru: r`Blender en hızlı kademede 8 A akım çekiyor. Aynı 240 C yük kaç saniyede geçer?`,
+            secenekler: [r`60 s`, r`1920 s`, r`30 s`],
+            dogru: 2,
+            ipucu: r`Akım büyüdükçe aynı yük daha kısa sürede geçer: $t = \dfrac{q}{I}$.`,
+            aciklama: r`$t = \dfrac{240}{8} = 30$ s olur.`
+          }
+        ],
+        sonuc: r`Akım, her saniye geçen yük miktarıdır. Geçen toplam yükü $q = I \times t$ ile, süreyi $t = \dfrac{q}{I}$ ile buluruz.`
+      },
+      {
+        baslik: r`Laboratuvardaki çözelti`,
+        metin: r`Bir laboratuvarda tuzlu bir çözeltiye, pile bağlı iki elektrot daldırılıyor. Çözeltinin ortasında hayalî bir kesit düşünelim. Bu kesitten 2 s'de pozitif iyonlar sağa doğru 10 mC, negatif iyonlar sola doğru 4 mC yük taşıyor. 1 mC, 1 C'nin binde biridir.`,
+        adimlar: [
+          {
+            soru: r`Çözeltideki akımın yönü nedir?`,
+            secenekler: [r`Sola doğru.`, r`Sağa doğru.`, r`Akım oluşmaz.`],
+            dogru: 1,
+            ipucu: r`Sıvıdaki akımın yönü, pozitif iyonların hareket yönüdür.`,
+            aciklama: r`Pozitif iyonlar sağa gidiyor. Akım da sağa doğrudur. Sola giden negatif iyonlar da sağa doğru akıma katkı verir.`
+          },
+          {
+            soru: r`Kesitten 2 s'de geçen toplam yük kaç mC'dur?`,
+            secenekler: [r`6 mC`, r`14 mC`, r`10 mC`],
+            dogru: 1,
+            ipucu: r`Zıt yönlerde giden iyonlar akımı birlikte oluşturur. Yükleri birbirinden çıkarma, topla.`,
+            aciklama: r`Toplam yük $10 + 4 = 14$ mC olur.`
+          },
+          {
+            soru: r`Çözeltiden geçen akım kaç mA'dir?`,
+            secenekler: [r`7 mA`, r`28 mA`, r`3 mA`],
+            dogru: 0,
+            ipucu: r`Toplam yükü süreye böl.`,
+            aciklama: r`$I = \dfrac{14}{2} = 7$ mA olur.`
+          }
+        ],
+        sonuc: r`Sıvılarda akımı pozitif ve negatif iyonlar birlikte taşır. Kesitten geçen yükler işaretlerine bakılmadan toplanır.`
+      },
+      {
+        baslik: r`Kablosuz süpürge`,
+        sekil: 'sf1032_grafik',
+        metin: r`Kablosuz bir süpürge güçlü modda motoruna daha çok akım çeker. Halıdaki bir lekeyi temizlerken ilk 3 s güçlü modda, sonra normal modda çalışıyor. Grafik, motordan geçen akımın ilk 12 saniyedeki değişimini gösteriyor: İlk 3 s'de akım 8 A, sonraki 9 s'de 4 A'dir.`,
+        adimlar: [
+          {
+            soru: r`İlk 3 s'de motorun kablosunun kesitinden kaç C yük geçer?`,
+            secenekler: [r`11 C`, r`24 C`, r`8 C`],
+            dogru: 1,
+            ipucu: r`Akım sabitken geçen yük $q = I \times t$ ile bulunur. Bu, grafikteki dikdörtgenin alanıdır.`,
+            aciklama: r`$q_1 = 8 \times 3 = 24$ C olur.`
+          },
+          {
+            soru: r`12 saniyenin tamamında kesitten kaç C yük geçer?`,
+            secenekler: [r`60 C`, r`48 C`, r`36 C`],
+            dogru: 0,
+            ipucu: r`Sonraki 9 s'de geçen yükü de bul: $4 \times 9$. Sonra iki yükü topla.`,
+            aciklama: r`$q_2 = 4 \times 9 = 36$ C olur. Toplam yük $24 + 36 = 60$ C olur.`
+          },
+          {
+            soru: r`Bu 12 saniyedeki ortalama akım kaç A'dir?`,
+            secenekler: [r`12 A`, r`6 A`, r`5 A`],
+            dogru: 2,
+            ipucu: r`Ortalama akım, toplam yükün toplam süreye bölümüdür. İki akımın ortalamasını alma; süreler farklı.`,
+            aciklama: r`$I_{ort} = \dfrac{60}{12} = 5$ A olur. 8 A ile 4 A'in ortalaması olan 6 A yanlıştır, çünkü akım 4 A'de daha uzun süre kalmıştır.`
+          }
+        ],
+        sonuc: r`Akım-zaman grafiğinde grafiğin altındaki alan, geçen yükü verir. Ortalama akımı bulmak için toplam yük toplam süreye bölünür.`
+      }
+    ],
+    hazir: r`Akımın kesitten her saniye geçen yük olduğunu, akım için gereken koşulları, akımın yönünü, $I = \dfrac{q}{t}$ modelini ve sıvılarda akımı iyonların taşıdığını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -101337,6 +101986,176 @@ BFY_FIG_EKLE('k123_iki_bobin', function (u) {
 });
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1123_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const OR = '#e8590c', BL = '#5b8db8', CU = '#b8692f';
+const sfDefs = u => `<defs>
+  <linearGradient id="${u}sfN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f08a6f"/><stop offset=".5" stop-color="#d9573b"/><stop offset="1" stop-color="#a8402a"/></linearGradient>
+  <linearGradient id="${u}sfS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb3dc"/><stop offset=".5" stop-color="#2f7fb8"/><stop offset="1" stop-color="#1d5a86"/></linearGradient>
+  <linearGradient id="${u}sfNv" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f08a6f"/><stop offset=".5" stop-color="#d9573b"/><stop offset="1" stop-color="#a8402a"/></linearGradient>
+  <linearGradient id="${u}sfSv" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7fb3dc"/><stop offset=".5" stop-color="#2f7fb8"/><stop offset="1" stop-color="#1d5a86"/></linearGradient>
+  <linearGradient id="${u}sfcer" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6c08e" stop-opacity=".35"/><stop offset="1" stop-color="#c9793f" stop-opacity=".18"/></linearGradient>
+</defs>`;
+const ok = (x1, y1, x2, y2, c, w = 2.2) => arrow(x1, y1, x2, y2, { color: c, w, head: 8, headW: 4.4 });
+/* yatay çubuk mıknatıs: nSag true ise N kutbu sağda */
+function miknatisH(u, x, y, w, h, nSag) {
+  const sol = nSag ? 'S' : 'N', sag = nSag ? 'N' : 'S';
+  return `<rect x="${x + 3}" y="${y + h - 1}" width="${w}" height="5" rx="2" fill="#000" opacity=".12"/>` +
+    `<rect x="${x}" y="${y}" width="${w / 2}" height="${h}" rx="3" fill="url(#${u}sf${sol})" stroke="#333" stroke-width=".8"/>` +
+    `<rect x="${x + w / 2}" y="${y}" width="${w / 2}" height="${h}" rx="3" fill="url(#${u}sf${sag})" stroke="#333" stroke-width=".8"/>` +
+    `<line x1="${x + 3}" y1="${y + 4}" x2="${x + w - 3}" y2="${y + 4}" stroke="#fff" stroke-width="2" opacity=".35"/>` +
+    T(x + w / 4, y + h / 2 + 5, sol, { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) +
+    T(x + 3 * w / 4, y + h / 2 + 5, sag, { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+}
+/* dikey çubuk mıknatıs: nAlt true ise N kutbu altta */
+function miknatisV(u, x, y, w, h, nAlt) {
+  const ust = nAlt ? 'S' : 'N', alt = nAlt ? 'N' : 'S';
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h / 2}" rx="3" fill="url(#${u}sf${ust}v)" stroke="#333" stroke-width=".8"/>` +
+    `<rect x="${x}" y="${y + h / 2}" width="${w}" height="${h / 2}" rx="3" fill="url(#${u}sf${alt}v)" stroke="#333" stroke-width=".8"/>` +
+    T(x + w / 2, y + h / 4 + 5, ust, { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) +
+    T(x + w / 2, y + 3 * h / 4 + 5, alt, { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+}
+/* yatay eksenli bobin: arka yarım halkalar ve ön yarım halkalar ayrı (mıknatıs arada çizilebilsin) */
+function bobinArka(x1, n, ara, cy, ry, rx) {
+  let s = '';
+  for (let i = 0; i < n; i++) { const x = x1 + i * ara; s += `<path d="M${x} ${cy - ry} A${rx} ${ry} 0 0 0 ${x} ${cy + ry}" fill="none" stroke="#8a5a34" stroke-width="3"/>`; }
+  return s;
+}
+function bobinOn(x1, n, ara, cy, ry, rx) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const x = x1 + i * ara;
+    s += `<path d="M${x} ${cy - ry} A${rx} ${ry} 0 0 1 ${x + ara * (i < n - 1 ? 1 : 0)} ${cy + ry}" fill="none" stroke="${CU}" stroke-width="3.6" stroke-linecap="round"/>`;
+    s += `<path d="M${x + 1} ${cy - ry + 4} A${rx} ${ry} 0 0 1 ${x + 3} ${cy - 4}" fill="none" stroke="#f6c08e" stroke-width="1.2" opacity=".9"/>`;
+  }
+  return s;
+}
+/* galvanometre: aci derece (0 ortada) */
+function galvo(cx, cy, aci) {
+  const r = 24, a = (aci - 90) * Math.PI / 180;
+  let s = `<rect x="${cx - 30}" y="${cy - 26}" width="60" height="44" rx="7" fill="#e9edf0" stroke="#7d868d" stroke-width="1.2"/>`;
+  s += `<path d="M${cx - 20} ${cy + 8} A${r} ${r} 0 0 1 ${cx + 20} ${cy + 8}" fill="none" stroke="#c9d1d6" stroke-width="1"/>`;
+  s += `<path d="M${cx - 21} ${cy - 2} A${r} ${r} 0 0 1 ${cx + 21} ${cy - 2}" fill="none" stroke="${P.ink}" stroke-width="1.3"/>`;
+  [-50, -25, 0, 25, 50].forEach(d => { const b = (d - 90) * Math.PI / 180; s += `<line x1="${(cx + 22 * Math.cos(b)).toFixed(1)}" y1="${(cy + 12 + 22 * Math.sin(b)).toFixed(1)}" x2="${(cx + (d ? 18 : 16) * Math.cos(b)).toFixed(1)}" y2="${(cy + 12 + (d ? 18 : 16) * Math.sin(b)).toFixed(1)}" stroke="${P.ink}" stroke-width="${d ? 1 : 1.6}"/>`; });
+  s += `<line x1="${cx}" y1="${cy + 12}" x2="${(cx + 21 * Math.cos(a)).toFixed(1)}" y2="${(cy + 12 + 21 * Math.sin(a)).toFixed(1)}" stroke="${P.coral}" stroke-width="2" stroke-linecap="round"/>`;
+  s += `<circle cx="${cx}" cy="${cy + 12}" r="2.6" fill="${P.ink}"/>`;
+  s += T(cx, cy + 15, 'G', { size: 9, anchor: 'middle', weight: 800, fill: P.ink2, halo: false });
+  return s;
+}
+
+/* Adım 1: alanı karşıdan karşılayan çerçeve (akı en büyük) ve düzlemi alana paralel çerçeve (akı sıfır) */
+BFY_FIG_EKLE('sf1123_aki', function (u) {
+  const W = 360, H = 214;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="174" height="${H}" rx="12" fill="#f3f7fa"/><rect class="bg" x="186" y="0" width="174" height="${H}" rx="12" fill="#f3f7fa"/>`;
+  const cizgi = (x1, x2, y) => `<line x1="${x1}" y1="${y}" x2="${x2 - 7}" y2="${y}" stroke="${BL}" stroke-width="1.4"/><polygon points="${x2},${y} ${x2 - 8},${y - 3.8} ${x2 - 8},${y + 3.8}" fill="${BL}"/>`;
+  const ys = [44, 70, 96, 122, 148];
+  // sol panel: çerçeve alana dik (düzlemi düşey, derinliğe doğru eğik görünüyor)
+  const A = [74, 52], B = [102, 36], C2 = [102, 150], D = [74, 166];
+  s += `<polygon points="${A} ${B} ${C2} ${D}" fill="url(#${u}sfcer)"/>`;
+  ys.forEach(y => { s += cizgi(12, 164, y); });
+  s += `<polygon points="${A} ${B} ${C2} ${D}" fill="none" stroke="${CU}" stroke-width="4" stroke-linejoin="round"/>`;
+  s += `<polygon points="${A} ${B} ${C2} ${D}" fill="none" stroke="#f6c08e" stroke-width="1.2" stroke-linejoin="round" opacity=".8"/>`;
+  s += T(14, 30, 'B', { size: 15, weight: 800, fill: BL, italic: true });
+  s += T(87, 188, 'çok çizgi geçer', { size: 12.5, anchor: 'middle', weight: 700 });
+  s += T(87, 205, 'akı en büyük', { size: 12.5, anchor: 'middle', weight: 800, fill: OR });
+  // sağ panel: çerçevenin düzlemi alan çizgilerine paralel (yatay, yandan ince görünür)
+  ys.forEach(y => { s += cizgi(198, 350, y); });
+  const E = [218, 112], F = [312, 112], G = [334, 102], H2 = [240, 102];
+  s += `<polygon points="${E} ${F} ${G} ${H2}" fill="url(#${u}sfcer)" stroke="${CU}" stroke-width="4" stroke-linejoin="round"/>`;
+  s += `<polygon points="${E} ${F} ${G} ${H2}" fill="none" stroke="#f6c08e" stroke-width="1.2" stroke-linejoin="round" opacity=".8"/>`;
+  s += T(200, 30, 'B', { size: 15, weight: 800, fill: BL, italic: true });
+  s += T(273, 188, 'hiç çizgi geçmez', { size: 12.5, anchor: 'middle', weight: 700 });
+  s += T(273, 205, 'akı sıfır', { size: 12.5, anchor: 'middle', weight: 800, fill: OR });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 3: (a) mıknatıs bobine itiliyor, ibre sapıyor; (b) mıknatıs bobinin içinde duruyor, ibre sıfırda */
+BFY_FIG_EKLE('sf1123_bobin', function (u) {
+  const W = 372, H = 236, cy = 82, ry = 28, rx = 8, n = 7, ara = 9;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="180" height="${H}" rx="12" fill="#f6f9f7"/><rect class="bg" x="192" y="0" width="180" height="${H}" rx="12" fill="#f6f9f7"/>`;
+  const panel = (x0, itiliyor) => {
+    const b1 = x0 + 92, b2 = b1 + (n - 1) * ara, gx = (b1 + b2) / 2, gy = 168;
+    let p = '';
+    // bobin uçlarından galvanometreye teller
+    p += `<path d="M${b1} ${cy + ry} L${b1 - 6} ${cy + ry + 14} L${b1 - 6} ${gy - 6} L${gx - 30} ${gy - 6}" fill="none" stroke="#5b646b" stroke-width="2" stroke-linejoin="round"/>`;
+    p += `<path d="M${b2} ${cy + ry} L${b2 + 14} ${cy + ry + 14} L${b2 + 14} ${gy - 6} L${gx + 30} ${gy - 6}" fill="none" stroke="#5b646b" stroke-width="2" stroke-linejoin="round"/>`;
+    p += bobinArka(b1, n, ara, cy, ry, rx);
+    if (itiliyor) {
+      p += miknatisH(u, x0 + 10, cy - 13, 70, 26, true);
+      p += ok(x0 + 22, cy - 26, x0 + 70, cy - 26, P.ink);
+      p += T(x0 + 46, cy - 34, 'itiliyor', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+    } else {
+      p += miknatisH(u, b1 - 22, cy - 13, 70, 26, true);
+      p += T(x0 + 44, cy - 34, 'duruyor', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+    }
+    p += bobinOn(b1, n, ara, cy, ry, rx);
+    // (b): bobinin içindeki N kutbunun etiketi sarımların önünde okunur kalsın
+    if (!itiliyor) p += `<rect x="${b1 + 22}" y="${cy - 10}" width="17" height="20" rx="4" fill="#cf4b36" stroke="#fff" stroke-width="1.2"/>` + T(b1 + 30.5, cy + 5, 'N', { size: 13, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+    p += galvo(gx, gy, itiliyor ? 38 : 0);
+    p += T(x0 + 90, 222, itiliyor ? '(a) ibre sapar' : '(b) ibre sıfırda', { size: 12.5, anchor: 'middle', weight: 800, fill: itiliyor ? OR : P.ink2 });
+    return p;
+  };
+  s += panel(0, true) + panel(192, false);
+  return svg(W, H, s, u, 82);
+});
+
+/* Adım 5: N kutbu halkaya yaklaşıyor; halkanın mıknatısa bakan yüzü N gibi davranır ve mıknatısı iter */
+BFY_FIG_EKLE('sf1123_lenz', function (u) {
+  const W = 360, H = 214, cy = 100, rcx = 262;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  // halka: arka yarısı
+  s += `<path d="M${rcx} ${cy - 50} A14 50 0 0 0 ${rcx} ${cy + 50}" fill="none" stroke="#8a5a34" stroke-width="5"/>`;
+  // mıknatısın alan çizgileri (N kutbundan halkaya doğru)
+  [86, 114].forEach(y => { s += `<line x1="146" y1="${y}" x2="${rcx + 34}" y2="${y + (y - cy) * 0.5}" stroke="${BL}" stroke-width="1.4" opacity=".9"/>`; });
+  s += `<polygon points="${rcx + 40},${cy - 21} ${rcx + 31},${cy - 22} ${rcx + 33},${cy - 15}" fill="${BL}"/><polygon points="${rcx + 40},${cy + 21} ${rcx + 31},${cy + 22} ${rcx + 33},${cy + 15}" fill="${BL}"/>`;
+  s += miknatisH(u, 30, cy - 15, 110, 30, true);
+  // halkanın kendi alanı (sola, mıknatısa doğru)
+  s += arrow(rcx + 30, cy, rcx - 34, cy, { color: OR, w: 3, head: 10, headW: 6 });
+  // halka: ön yarısı
+  s += `<path d="M${rcx} ${cy - 50} A14 50 0 0 1 ${rcx} ${cy + 50}" fill="none" stroke="${CU}" stroke-width="6" stroke-linecap="round"/>`;
+  s += `<path d="M${rcx + 2} ${cy - 44} A12 46 0 0 1 ${rcx + 9} ${cy - 10}" fill="none" stroke="#f6c08e" stroke-width="1.6"/>`;
+  s += T(rcx - 22, cy - 56, 'N gibi', { size: 13, anchor: 'end', weight: 800, fill: OR });
+  s += T(rcx, 182, 'halkanın alanı', { size: 12.5, anchor: 'middle', weight: 800, fill: OR });
+  // hareket ve itme
+  s += ok(46, 54, 116, 54, P.ink);
+  s += T(81, 44, 'yaklaşıyor', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += arrow(116, 146, 56, 146, { color: OR, w: 2.6, head: 9, headW: 5 });
+  s += T(86, 168, 'halka iter', { size: 12.5, anchor: 'middle', weight: 800, fill: OR });
+  s += T(W / 2, 206, 'mavi: mıknatısın alanı', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Isınma 2: N kutbu aşağıda, masadaki halkanın üstünden kaldırılan mıknatıs; sağda halkaya üstten bakış */
+BFY_FIG_EKLE('sf1123_kaldir', function (u) {
+  const W = 360, H = 248, masa = 196, cx = 100;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="216" height="${H}" rx="12" fill="#f3f7fa"/><rect class="bg" x="226" y="0" width="134" height="${H}" rx="12" fill="#f3f7fa"/>`;
+  // masa
+  s += `<path d="M10 ${masa} L206 ${masa} L196 ${masa + 14} L20 ${masa + 14} Z" fill="url(#${u}wood)" stroke="#a07b45" stroke-width="1"/>`;
+  s += `<rect x="20" y="${masa + 14}" width="176" height="6" fill="#c9a46a"/>`;
+  // halka (masada yatay)
+  s += `<ellipse cx="${cx}" cy="${masa - 3}" rx="52" ry="11" fill="none" stroke="#8a5a34" stroke-width="5"/>`;
+  s += `<path d="M${cx - 52} ${masa - 3} A52 11 0 0 0 ${cx + 52} ${masa - 3}" fill="none" stroke="${CU}" stroke-width="6" stroke-linecap="round"/>`;
+  s += `<ellipse cx="${cx}" cy="${masa + 6}" rx="50" ry="4" fill="#000" opacity=".1"/>`;
+  // mıknatıs (N altta) ve hareket oku
+  s += `<ellipse cx="${cx + 4}" cy="${masa - 2}" rx="16" ry="3" fill="#000" opacity=".06"/>`;
+  s += miknatisV(u, cx - 14, 54, 28, 96, true);
+  s += ok(cx + 40, 140, cx + 40, 74, P.ink, 2.6);
+  s += T(cx + 50, 112, 'yukarı', { size: 12.5, weight: 700, fill: P.ink2 });
+  s += T(cx + 50, 128, 'kaldırılıyor', { size: 12.5, weight: 700, fill: P.ink2 });
+  s += T(cx, 238, 'yandan görünüş', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // üstten bakış: göz ve halka
+  const ux = 293, uy = 128;
+  s += `<circle cx="${ux}" cy="${uy}" r="44" fill="none" stroke="${CU}" stroke-width="6"/>`;
+  s += `<circle cx="${ux}" cy="${uy}" r="44" fill="none" stroke="#f6c08e" stroke-width="1.4" stroke-dasharray="20 120"/>`;
+  s += T(ux, 40, 'halkaya', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+  s += T(ux, 56, 'üstten bakış', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+  s += T(ux, 206, 'akım yönünü', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(ux, 221, 'sen bulacaksın', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -101368,6 +102187,195 @@ const KONU = {
     'plaj metal dedektörü ve madenî para', '1989 Quebec jeomanyetik fırtınası', 'şişe tipi bisiklet dinamosu ve LED', '8 Ocak 2021 Kıta Avrupası şebeke ayrılması, ENTSO-E frekans verileri (set)', 'bakır, alüminyum ve PVC borularda düşen neodimyum mıknatıs, ışık kapısı süreleri (set)', 'elektromıknatıs alanında veri toplayıcılı yassı bobin: ε oran ve işaret (eşleştir)', 'Lenz: bobinin yakın ucunun kutbu (sınıfla)', 'toplu taşıma temassız kartı (sırala)', 'akıyı değiştiren nicelik B, A, θ (sınıfla)',
     'otomobil tekerlek hız algılayıcısı: 48 dişli demir halka, mıknatıslı bobin, sürat–frekans–gerilim tablosu', 'ortak demir çubuktaki iki bobin: anahtar kapanırken, kapalıyken, açılırken galvanometre yönü', 'dönen çerçevenin yarım turdaki akı–gerilim durumları (sırala)', 'SİM: 100 sarımlı 25 cm² kare bobin, alan 0,3 T\'dan son değere, Δt seçimi, Φ–t ve ε–t'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/11.2.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde bir mıknatısın, pil olmadan bir telde nasıl akım oluşturabildiğini kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Manyetik akı: Halkadan geçen çizgiler`,
+        sekil: 'sf1123_aki',
+        metin: r`Bir mıknatısın çevresindeki manyetik alanı alan çizgileriyle gösteririz. Şimdi bu alanın içine tel bir çerçeve koyalım.
+
+Yağmur dik yağarken bir çemberi yere paralel tutarsan içinden çok damla geçer. Çemberi dik tutarsan neredeyse hiç damla geçmez. Alan çizgileri ve çerçeve için de durum böyledir.
+
+Çerçeveden geçen alan çizgilerinin sayısının ölçüsüne **manyetik akı** denir ve $\Phi$ ile gösterilir.
+- Çerçeve alan çizgilerini tam karşıdan karşılarsa en çok çizgi geçer ve akı en büyüktür.
+- Çerçevenin düzlemi alan çizgilerine paralel olursa hiç çizgi geçmez ve akı sıfırdır.`,
+        kontrol: {
+          soru: r`Bir çerçeve, alan çizgilerini tam karşıdan karşıladığı konumdan yavaşça döndürülüp düzlemi alan çizgilerine paralel hâle getiriliyor. Çerçeveden geçen akı nasıl değişir?`,
+          secenekler: [r`Artar.`, r`Azalır ve sonunda sıfır olur.`, r`Hiç değişmez.`],
+          dogru: 1,
+          aciklama: r`Çerçeve döndükçe içinden geçen çizgiler azalır. Düzlemi çizgilere paralel olunca hiç çizgi geçmez ve akı sıfır olur.`,
+          yanlisIpucu: r`Yağmurdaki çemberi düşün. Çemberi yatay konumdan dik konuma çevirince içinden geçen damlalar artar mı, azalır mı?`
+        }
+      },
+      {
+        baslik: r`Akı neye bağlı?`,
+        metin: r`Alan çizgileri çerçeveye dik geçerken akı iki şeye bağlıdır:
+- Manyetik alanın büyüklüğü ($B$). Alan güçlüyse çizgiler sıktır ve daha çok çizgi geçer.
+- Çerçevenin yüzey alanı ($A$). Büyük çerçeveden daha çok çizgi geçer.
+
+Bu durumda akı, ikisinin çarpımıdır:
+$$\Phi = B \times A$$
+Akının birimi **weberdir** (Wb). Küçük akılar için miliweber (mWb) kullanılır. Çerçeve eğik durursa daha az çizgi geçer; bu durumu konu notunda açıyla birlikte öğreneceksin.`,
+        kontrol: {
+          soru: r`Aynı düzgün manyetik alanda, alan çizgilerine dik tutulan iki çerçeveden birinin yüzey alanı ötekinin 3 katıdır. Büyük çerçeveden geçen akı, küçük çerçeveden geçen akının kaç katıdır?`,
+          secenekler: [r`9 katı.`, r`Eşittir.`, r`3 katı.`],
+          dogru: 2,
+          aciklama: r`İki çerçevede $B$ aynıdır. $\Phi = B \times A$ olduğu için yüzey alanı 3 katı olan çerçeveden 3 katı akı geçer.`,
+          yanlisIpucu: r`Akı, yüzey alanıyla doğru orantılıdır. Alan 3 katına çıkınca akı kaç katına çıkar?`
+        }
+      },
+      {
+        baslik: r`Akı değişirse akım doğar`,
+        sekil: 'sf1123_bobin',
+        metin: r`Bir bobinin uçlarını, küçük akımları gösteren bir **galvanometreye** bağlayalım. Devrede hiç pil yok.
+- Mıknatısı bobine doğru itince galvanometrenin ibresi sapar. Bobinden akım geçer.
+- Mıknatıs bobinin içinde hareketsiz durunca ibre sıfıra döner.
+- Mıknatısı geri çekince ibre ters yöne sapar.
+
+Akımı oluşturan mıknatısın kendisi değil, bobinden geçen **akının değişmesidir**. Akı değiştiği sürece bobinde bir gerilim oluşur. Bu gerilime **indüksiyon gerilimi**, oluşan akıma **indüksiyon akımı** denir.`,
+        kontrol: {
+          soru: r`Bir öğrenci mıknatısı bobinin içinde tutuyor ve ikisini birlikte, aynı hızla sınıfın öbür ucuna taşıyor. Bobinde indüksiyon akımı oluşur mu?`,
+          secenekler: [r`Oluşmaz, çünkü bobinden geçen akı değişmez.`, r`Oluşur, çünkü mıknatıs hareket ediyor.`, r`Oluşur, çünkü bobin hareket ediyor.`],
+          dogru: 0,
+          aciklama: r`Mıknatıs bobine göre yerinden oynamıyor. Bobinden geçen akı değişmediği için akım oluşmaz.`,
+          yanlisIpucu: r`Önemli olan hareket değil, bobinden geçen akının değişmesidir. Mıknatıs bobine yaklaşıyor ya da bobinden uzaklaşıyor mu?`
+        }
+      },
+      {
+        baslik: r`Hızlı değişim, büyük gerilim`,
+        metin: r`Mıknatısı bobine yavaşça itersen ibre az sapar. Hızlıca itersen çok sapar. Akı aynı miktar değişse de değişim kısa sürede olursa gerilim büyür.
+
+Gerilimin büyüklüğünü **Faraday Yasası** verir:
+$$\varepsilon = -N \times \dfrac{\Delta \Phi}{\Delta t}$$
+Burada $N$ sarım sayısı, $\Delta \Phi$ bir sarımdan geçen akının değişimi, $\Delta t$ bu değişimin süresidir. Formüldeki eksi işareti akımın yönünü anlatır. Bunu son adımda göreceksin. Gerilimin büyüklüğünü hesaplarken eksi işaretini yazmayız: $\varepsilon = N \times \dfrac{\Delta \Phi}{\Delta t}$.
+
+Büyük bir elektromıknatısın kutupları arasındaki tek sarımlı halkadan geçen akı 5 s'de 10 mWb artarsa $\varepsilon = 1 \times \dfrac{10}{5} = 2$ mV olur. Aynı değişim 2 s'de olursa $\varepsilon = 1 \times \dfrac{10}{2} = 5$ mV olur.`,
+        kontrol: {
+          soru: r`Aynı elektromıknatısın kutupları arasına 30 sarımlı bir bobin konuyor. Elektromıknatısın akımı artırılınca bobinin her sarımından geçen akı 4 s'de 8 mWb artıyor. Bobinde oluşan indüksiyon geriliminin büyüklüğü kaç mV'tur?`,
+          secenekler: [r`2 mV`, r`60 mV`, r`960 mV`],
+          dogru: 1,
+          aciklama: r`$\varepsilon = N \times \dfrac{\Delta \Phi}{\Delta t} = 30 \times \dfrac{8}{4} = 60$ mV olur.`,
+          yanlisIpucu: r`Önce bir sarımdaki değişimi süreye böl: $\dfrac{8}{4}$. Sonra sarım sayısıyla çarp.`
+        }
+      },
+      {
+        baslik: r`Lenz Yasası: Akım değişime karşı koyar`,
+        sekil: 'sf1123_lenz',
+        metin: r`İndüksiyon akımı hangi yönde dolanır? Kural kısadır: Akım, kendisini oluşturan akı değişimine **karşı koyacak** yönde oluşur. Buna **Lenz Yasası** denir.
+
+Bir mıknatısın N kutbunu bir tel halkaya yaklaştıralım. Halkadan geçen akı artar. Halkada oluşan akım, halkanın mıknatısa bakan yüzünü bir N kutbu gibi yapar. Aynı kutuplar birbirini iter. Halka, yaklaşan mıknatısı geri iter.
+
+Bu yüzden mıknatısı yaklaştırmak için biraz zorlanırız. Harcadığımız enerji, halkadaki elektrik enerjisine dönüşür.`,
+        kontrol: {
+          soru: r`Bir mıknatısın S kutbu bir tel halkaya yaklaştırılıyor. Halkanın mıknatısa bakan yüzü nasıl davranır?`,
+          secenekler: [r`N kutbu gibi davranır ve mıknatısı çeker.`, r`Kutup gibi davranmaz.`, r`S kutbu gibi davranır ve mıknatısı iter.`],
+          dogru: 2,
+          aciklama: r`Yaklaşan S kutbuna karşı koymak için halkanın o yüzü S kutbu gibi davranır. Aynı kutuplar birbirini iter ve halka yaklaşmayı zorlaştırır.`,
+          yanlisIpucu: r`Halka değişime karşı koyar. Yaklaşan bir kutbu durdurmaya çalışmak için çekmek mi gerekir, itmek mi?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Bobine itilen mıknatıs`,
+        metin: r`600 sarımlı bir bobinin uçları bir galvanometreye bağlı. Devrenin toplam direnci 30 Ω'dur. Bir öğrenci güçlü bir mıknatısı 1 s'de bobinin içine itiyor. Bu sürede bobinin her sarımından geçen akı 1 mWb artıyor.`,
+        adimlar: [
+          {
+            soru: r`Bobinde oluşan indüksiyon geriliminin büyüklüğü kaç mV'tur?`,
+            secenekler: [r`1 mV`, r`20 mV`, r`600 mV`],
+            dogru: 2,
+            ipucu: r`$\varepsilon = N \times \dfrac{\Delta \Phi}{\Delta t}$ modelinde sarım sayısını unutma.`,
+            aciklama: r`$\varepsilon = 600 \times \dfrac{1}{1} = 600$ mV olur.`
+          },
+          {
+            soru: r`Devreden geçen indüksiyon akımı kaç mA'dir?`,
+            secenekler: [r`20 mA`, r`18 000 mA`, r`600 mA`],
+            dogru: 0,
+            ipucu: r`Akım, gerilimin dirence bölümüdür: $i = \dfrac{\varepsilon}{R}$.`,
+            aciklama: r`$i = \dfrac{600}{30} = 20$ mA olur.`
+          },
+          {
+            soru: r`Öğrenci aynı mıknatısı aynı yere bu kez daha hızlı itiyor. Akım nasıl değişir?`,
+            secenekler: [r`Azalır.`, r`Artar.`, r`Değişmez.`],
+            dogru: 1,
+            ipucu: r`Akının değişimi aynı ama süre kısaldı. $\Delta t$ küçülünce gerilim ne olur?`,
+            aciklama: r`Aynı akı değişimi daha kısa sürede olduğu için gerilim büyür. Direnç aynı olduğundan akım da artar.`
+          }
+        ],
+        sonuc: r`Faraday Yasası ile gerilimi, $i = \dfrac{\varepsilon}{R}$ ile akımı buluruz. Değişim ne kadar hızlıysa akım o kadar büyük olur.`
+      },
+      {
+        baslik: r`Halkanın üstünden kaldırılan mıknatıs`,
+        sekil: 'sf1123_kaldir',
+        metin: r`Masanın üstünde yatay duran bir tel halka var. Bir çubuk mıknatıs, N kutbu aşağıya bakacak biçimde halkanın tam üstünde dik tutuluyor. Sonra mıknatıs yavaşça yukarı kaldırılıyor. Halkaya üstten bakıyoruz.`,
+        adimlar: [
+          {
+            soru: r`Mıknatısın alanı halkanın içinden hangi yönde geçer?`,
+            secenekler: [r`Aşağı doğru.`, r`Yukarı doğru.`, r`Halkanın içinden alan geçmez.`],
+            dogru: 0,
+            ipucu: r`Mıknatısın dışında alan çizgileri N kutbundan çıkar. N kutbu aşağı bakıyor.`,
+            aciklama: r`Alan çizgileri aşağı bakan N kutbundan çıkar ve halkanın içinden aşağı doğru geçer. Üstten bakınca bu alan içe doğru ($\otimes$) görünür.`
+          },
+          {
+            soru: r`Mıknatıs kaldırılırken halkadan geçen akı nasıl değişir?`,
+            secenekler: [r`Azalır.`, r`Artar.`, r`Değişmez.`],
+            dogru: 0,
+            ipucu: r`Mıknatıs uzaklaştıkça halkanın bulunduğu yerde alan zayıflar.`,
+            aciklama: r`Mıknatıs uzaklaştıkça halkadaki alan zayıflar ve akı azalır.`
+          },
+          {
+            soru: r`Halkada oluşan akımın kendi alanı, halkanın içinde hangi yöndedir?`,
+            secenekler: [r`Yukarı doğru.`, r`Halkada alan oluşmaz.`, r`Aşağı doğru.`],
+            dogru: 2,
+            ipucu: r`Akı azalıyorsa halka bu azalmaya karşı koyar. Halkanın alanı dış alanla aynı yönde olur.`,
+            aciklama: r`Akı azaldığı için halkanın alanı dış alanla aynı yönde, yani aşağı doğrudur. Halka azalan akıyı desteklemeye çalışır.`
+          },
+          {
+            soru: r`Üstten bakınca halkadaki akım hangi yönde dolanır?`,
+            secenekler: [r`Saat yönünün tersine.`, r`Saat yönünde.`, r`Akım dolanmaz.`],
+            dogru: 1,
+            ipucu: r`Sağ el kuralı: Dört parmağını akım yönünde kıvırınca başparmak halkanın içindeki alanı gösterir. Başparmak aşağıyı, yani senden uzağı göstermeli.`,
+            aciklama: r`Başparmak aşağıyı gösterecek biçimde sağ eli kıvırınca parmaklar, üstten bakana göre saat yönünde döner. Akım saat yönündedir.`
+          }
+        ],
+        sonuc: r`Lenz Yasası'nı dört adımda uyguladık: dış alanın yönü, akının değişimi, halkanın alanının yönü ve sağ el kuralı. Akı azalırken halkanın alanı dış alanla aynı yönde olur.`
+      },
+      {
+        baslik: r`Küçük rüzgâr türbini`,
+        metin: r`Küçük bir rüzgâr türbininin içinde, mıknatısların arasında dönen bir bobin var. Pervane dönünce bobin de döner. Bobin saniyede 5 tur dönerken oluşan gerilimin en büyük değeri 12 V'tur.`,
+        adimlar: [
+          {
+            soru: r`Dönen bobinin düzlemi bir an manyetik alana dik konuma geliyor. Bu anda bobinden geçen akı en büyüktür. Bu anda gerilim nedir?`,
+            secenekler: [r`En büyük değerindedir.`, r`Sıfırdır.`, r`En büyük değerin yarısıdır.`],
+            dogru: 1,
+            ipucu: r`Gerilimi akının büyüklüğü değil, akının ne kadar hızlı değiştiği belirler. Akı en büyük değerine ulaştığı an, bir an için değişiyor mu?`,
+            aciklama: r`Akı en büyük değerine ulaştığı anda bir an için değişmez. Değişim olmadığı için o anda gerilim sıfırdır.`
+          },
+          {
+            soru: r`Rüzgâr hızlanıyor ve bobin saniyede 10 tur dönmeye başlıyor. Gerilimin en büyük değeri kaç V olur?`,
+            secenekler: [r`24 V`, r`12 V`, r`6 V`],
+            dogru: 0,
+            ipucu: r`Bobin 2 kat hızlı dönünce akı da 2 kat hızlı değişir.`,
+            aciklama: r`Dönme hızı 2 katına çıkınca akı 2 kat hızlı değişir. En büyük gerilim $12 \times 2 = 24$ V olur.`
+          },
+          {
+            soru: r`Bobin dönerken gerilimin yönü nasıl davranır?`,
+            secenekler: [r`Hep aynı kalır.`, r`Yalnız rüzgâr yön değiştirince değişir.`, r`Her turda iki kez değişir.`],
+            dogru: 2,
+            ipucu: r`Bobin dönerken akı bir artar, bir azalır. Akı artarken ve azalırken gerilimin işareti aynı mıdır?`,
+            aciklama: r`Bobin dönerken akı bir artar, bir azalır. Akı her turda bir kez artar, bir kez azalır. Bu yüzden gerilimin yönü her turda iki kez değişir. Böyle akıma **alternatif akım** denir.`
+          }
+        ],
+        sonuc: r`Dönen bobinde akı sürekli değişir ve alternatif akım oluşur. Bobin hızlı döndükçe en büyük gerilim de büyür.`
+      }
+    ],
+    hazir: r`Manyetik akının ne olduğunu, akı değişince bobinde gerilim ve akım oluştuğunu, Faraday Yasası'nı ve Lenz Yasası'nı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
