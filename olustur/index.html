@@ -28992,6 +28992,137 @@ BFY_FIG_EKLE('k936_S2_duzenek', function (u) {
   return svg(W, H, s, u, 66);
 });
 
+
+/* =================== SIFIRDAN BAŞLA ŞEKİLLERİ (sf936_) =================== */
+const sfPlastik = u => `<defs><linearGradient id="${u}pet" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b9d8e6" stop-opacity=".95"/><stop offset=".35" stop-color="#f2f9fc" stop-opacity=".95"/><stop offset="1" stop-color="#9fc4d6" stop-opacity=".95"/></linearGradient>` +
+  `<linearGradient id="${u}kutu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#e09a2d"/></linearGradient>` +
+  `<linearGradient id="${u}kutuY" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c98724"/><stop offset="1" stop-color="#a86d18"/></linearGradient>` +
+  `<linearGradient id="${u}kum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e0cfa6"/><stop offset="1" stop-color="#bda877"/></linearGradient></defs>`;
+/* Pet şişe: cx merkez, yb taban, k ölçek, sq bel içe çökmesi */
+function sfSise(u, cx, yb, k, sq) {
+  const w = 22 * k, h1 = 8 * k, hb = 66 * k, hs = 84 * k, hn = 92 * k, nw = 8 * k;
+  const yw = yb - 38 * k;
+  let d = `M${cx - w} ${yb - h1} Q${cx - w} ${yb} ${cx - w + 8 * k} ${yb} L${cx + w - 8 * k} ${yb} Q${cx + w} ${yb} ${cx + w} ${yb - h1}`;
+  d += ` Q${cx + w - 2 * sq} ${yw} ${cx + w} ${yb - hb} Q${cx + w} ${yb - hs} ${cx + nw} ${yb - hn} L${cx + nw} ${yb - 100 * k} L${cx - nw} ${yb - 100 * k} L${cx - nw} ${yb - hn}`;
+  d += ` Q${cx - w} ${yb - hs} ${cx - w} ${yb - hb} Q${cx - w + 2 * sq} ${yw} ${cx - w} ${yb - h1} Z`;
+  let s = `<path d="${d}" fill="url(#${u}pet)" stroke="#5f8799" stroke-width="1.3" stroke-linejoin="round"/>`;
+  s += `<rect x="${cx - nw - 1.5 * k}" y="${yb - 110 * k}" width="${2 * nw + 3 * k}" height="${11 * k}" rx="${2 * k}" fill="#2f7fb8" stroke="#1d5a86" stroke-width="1"/>`;
+  s += `<path d="M${cx - w * 0.55} ${yb - 60 * k} Q${cx - w * 0.55 + sq * 0.9} ${yw} ${cx - w * 0.55} ${yb - 14 * k}" fill="none" stroke="#fff" stroke-width="${2.4 * k}" stroke-linecap="round" opacity=".8"/>`;
+  s += `<line x1="${cx - w + 1}" y1="${yb - 72 * k}" x2="${cx + w - 1}" y2="${yb - 72 * k}" stroke="#7fa6b8" stroke-width="1" opacity=".7"/>`;
+  return s;
+}
+
+/* Adım 1: dışarıdaki şişe ve derindeki, her yandan ezilen şişe */
+BFY_FIG_EKLE('sf936_sise', function (u) {
+  const W = 320, H = 282, sy = 120, px = 104;
+  let s = suDefs(u) + sfPlastik(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += `<rect x="8" y="${sy - 4}" width="${px - 8}" height="${H - sy - 4}" fill="url(#${u}concrete)" stroke="#9aa3a8" stroke-width="1"/>`;
+  s += `<rect x="${px}" y="${sy}" width="${W - px - 10}" height="${H - sy - 18}" fill="url(#${u}su)"/>`;
+  s += `<line x1="${px}" y1="${sy}" x2="${W - 10}" y2="${sy}" stroke="${C.yuzey}" stroke-width="1.6"/>`;
+  s += `<path d="M${px} ${sy - 10} V${H - 18} H${W - 10} V${sy - 10}" fill="none" stroke="#8d989e" stroke-width="4" stroke-linejoin="round"/>`;
+  s += sfSise(u, 56, sy - 4, 0.9, 0);
+  s += not(56, sy + 22, 'dışarıda', { anchor: 'middle' });
+  const cx = 214, yb = 228, k = 0.9, sq = 9;
+  s += sfSise(u, cx, yb, k, sq);
+  const yw = yb - 38 * k, xs = 22 * k - sq;
+  [yw - 14, yw + 12].forEach(y => {
+    s += arrow(cx - xs - 34, y, cx - xs - 4, y, { color: C.F1, w: 2.4, head: 8, headW: 4.5 });
+    s += arrow(cx + xs + 34, y, cx + xs + 4, y, { color: C.F1, w: 2.4, head: 8, headW: 4.5 });
+  });
+  s += arrow(cx, yb - 100 * k - 40, cx, yb - 100 * k - 13, { color: C.F1, w: 2.4, head: 8, headW: 4.5 });
+  s += arrow(cx, H - 22, cx, yb + 3, { color: C.F1, w: 2.4, head: 8, headW: 4.5 });
+  s += not(cx + 40, yb - 98 * k, 'derinde');
+  s += not(px + 10, sy + 20, 'havuz', { size: 12 });
+  return svg(W, H, s, u, 64);
+});
+
+/* 3B kutu: (x, y) ön yüzün sol üst köşesi, w genişlik, h yükseklik, d derinlik kayması */
+function sfKutu(u, x, y, w, h, d) {
+  return `<ellipse cx="${x + w / 2 + d / 2}" cy="${y + h + 4}" rx="${w / 2 + 6}" ry="4" fill="#000" opacity=".08"/>` +
+    `<polygon points="${x},${y} ${x + d},${y - d * 0.55} ${x + w + d},${y - d * 0.55} ${x + w},${y}" fill="#ffe2a3" stroke="#a86d18" stroke-width="1.1" stroke-linejoin="round"/>` +
+    `<polygon points="${x + w},${y} ${x + w + d},${y - d * 0.55} ${x + w + d},${y + h - d * 0.55} ${x + w},${y + h}" fill="url(#${u}kutuY)" stroke="#a86d18" stroke-width="1.1" stroke-linejoin="round"/>` +
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${u}kutu)" stroke="#a86d18" stroke-width="1.2"/>` +
+    `<rect x="${x + 6}" y="${y + 6}" width="${w - 12}" height="${h - 12}" rx="3" fill="none" stroke="#fff" stroke-width="1.2" opacity=".5"/>`;
+}
+
+/* Adım 2: tamamı suda kutu, üst ve alt yüzey kuvvetleri, h1 ve h2 */
+BFY_FIG_EKLE('sf936_kutu', function (u) {
+  const W = 320, H = 300, sy = 50, x = 118, y = 130, w = 92, h = 70, d = 24;
+  let s = suDefs(u) + sfPlastik(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += kap(u, 12, 24, 296, 262, sy);
+  s += dashLine(82, y, x, y, '#7f9aab', '3 3', 1) + dashLine(42, y + h, x, y + h, '#7f9aab', '3 3', 1);
+  s += sfKutu(u, x, y, w, h, d);
+  const cx = x + w / 2;
+  s += arrow(cx + d / 2, y - d * 0.28 - 40, cx + d / 2, y - d * 0.28 - 2, { color: C.F1, w: 3, head: 10 }) + lab(cx + d / 2 + 10, y - 36, 'F_1', C.F1);
+  s += arrow(cx, y + h + 74, cx, y + h + 4, { color: C.F2, w: 3, head: 10 }) + lab(cx + 10, y + h + 52, 'F_2', C.F2);
+  s += arrow(64, y + 40, x - 3, y + 40, { color: C.yan, w: 2.4 });
+  s += arrow(x + w + d + 44, y + 28, x + w + d * 0.5 + 3, y + 28, { color: C.yan, w: 2.4 });
+  s += dimV(76, sy, y, 'h_1', { side: 'right', size: 13 }) + dimV(36, sy, y + h, 'h_2', { side: 'right', size: 13 });
+  s += not(228, y + h + 50, 'Alt yüzey', { size: 12 }) + not(228, y + h + 65, 'daha derinde.', { size: 12 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 4: aynı kutu iki derinlikte; kuvvetler aynı miktarda artar */
+BFY_FIG_EKLE('sf936_derin', function (u) {
+  const W = 340, H = 330, sy = 40, w = 66, h = 46, d = 16, k = 0.3;
+  let s = suDefs(u) + sfPlastik(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += kap(u, 12, 18, 316, 300, sy);
+  const kutu = (x, y, f1, f2) => {
+    const cx = x + w / 2, l1 = f1 * k, l2 = f2 * k, yt = y - d * 0.28;
+    let t = sfKutu(u, x, y, w, h, d);
+    t += arrow(cx + d / 2, yt - l1 - 2, cx + d / 2, yt - 2, { color: C.F1, w: 2.8, head: 9 });
+    t += arrow(cx, y + h + 3 + l2, cx, y + h + 3, { color: C.F2, w: 2.8, head: 9 });
+    t += lab(cx + d / 2 + 10, yt - l1 + 4, `F_1 = ${f1} N`, C.F1, { size: 12.5 });
+    t += lab(cx + 10, y + h + 8 + l2 / 2, `F_2 = ${f2} N`, C.F2, { size: 12.5 });
+    return t;
+  };
+  s += kutu(46, 92, 60, 90) + kutu(196, 206, 110, 140);
+  s += not(28, 262, 'Kutu derine inince', { size: 12 }) + not(28, 278, 'iki kuvvet de 50 N artar.', { size: 12 });
+  return svg(W, H, s, u, 68);
+});
+
+/* Adım 5: yüzen kalas; üst yüzey suyun dışında, F2 yukarı, G aşağı */
+BFY_FIG_EKLE('sf936_kalas', function (u) {
+  const W = 320, H = 236, sy = 112, x = 70, w = 170, yt = 94, hh = 34, d = 18;
+  let s = suDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += kap(u, 12, 30, 296, 194, sy);
+  s += `<ellipse cx="${x + w / 2 + 6}" cy="${sy + 1}" rx="${w / 2 + 16}" ry="3" fill="#2a79ad" opacity=".25"/>`;
+  s += `<polygon points="${x},${yt} ${x + d},${yt - d * 0.5} ${x + w + d},${yt - d * 0.5} ${x + w},${yt}" fill="#f3d9a6" stroke="#9a6b31" stroke-width="1.1" stroke-linejoin="round"/>`;
+  s += `<polygon points="${x + w},${yt} ${x + w + d},${yt - d * 0.5} ${x + w + d},${yt + hh - d * 0.5} ${x + w},${yt + hh}" fill="#b98a4f" stroke="#9a6b31" stroke-width="1.1" stroke-linejoin="round"/>`;
+  s += `<rect x="${x}" y="${yt}" width="${w}" height="${hh}" fill="url(#${u}tahta)" stroke="#9a6b31" stroke-width="1.2"/>`;
+  [10, 19, 27].forEach((dy, i) => { s += `<path d="M${x + 6} ${yt + dy} Q${x + 60} ${yt + dy - 3 + i} ${x + 110} ${yt + dy} T${x + w - 6} ${yt + dy}" fill="none" stroke="#a5763d" stroke-width=".9" opacity=".6"/>`; });
+  s += `<rect x="${x}" y="${sy}" width="${w}" height="${yt + hh - sy}" fill="#2a79ad" opacity=".16"/>`;
+  s += `<line x1="${x - 40}" y1="${sy}" x2="${x}" y2="${sy}" stroke="${C.yuzey}" stroke-width="1.6"/><line x1="${x + w + d}" y1="${sy}" x2="${W - 12}" y2="${sy}" stroke="${C.yuzey}" stroke-width="1.6"/>`;
+  [x + 18, x + 50, x + w - 50, x + w - 18].forEach(ax => { s += arrow(ax, yt + hh + 30, ax, yt + hh + 3, { color: C.F2, w: 2.4, head: 8, headW: 4.6 }); });
+  s += lab(x + w + 6, yt + hh + 26, 'F_2', C.F2);
+  const cx = x + w / 2;
+  s += `<circle cx="${cx}" cy="${yt + hh / 2}" r="3" fill="${C.G}"/>` + arrow(cx, yt + hh / 2, cx, yt + hh + 52, { color: C.G, w: 3, head: 10 }) + lab(cx + 9, yt + hh + 50, 'G', C.G);
+  s += lab(x + 4, yt - 22, 'F_1 = 0', C.F1, { size: 12.5 });
+  s += not(x + 72, yt - 22, 'üst yüzey suyun dışında', { size: 12 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Isınma 1: göldeki gözlem odası; tavan 1 m, yükseklik 2 m */
+BFY_FIG_EKLE('sf936_oda', function (u) {
+  const W = 320, H = 262, sy = 46, m = 40, yt = sy + m, yb = yt + 2 * m, x = 112, w = 140, d = 20, zemin = 232;
+  let s = suDefs(u) + sfPlastik(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef5f9"/>`;
+  s += `<rect x="10" y="${sy}" width="${W - 20}" height="${zemin - sy}" fill="url(#${u}deniz)" opacity=".75"/>`;
+  s += `<line x1="10" y1="${sy}" x2="${W - 10}" y2="${sy}" stroke="${C.yuzey}" stroke-width="1.8"/>`;
+  s += `<path d="M10 ${zemin} Q90 ${zemin - 8} 170 ${zemin - 2} T${W - 10} ${zemin - 4} V${H - 10} H10 Z" fill="url(#${u}kum)"/>`;
+  [[x + 22, yb, zemin - 2], [x + w - 22, yb, zemin - 3]].forEach(([lx, a, b]) => { s += `<rect x="${lx - 5}" y="${a}" width="10" height="${b - a}" fill="url(#${u}metalV)" stroke="#5f6b73" stroke-width=".8"/>`; });
+  s += `<polygon points="${x},${yt} ${x + d},${yt - d * 0.5} ${x + w + d},${yt - d * 0.5} ${x + w},${yt}" fill="#d9e0e5" stroke="#5f6b73" stroke-width="1.1" stroke-linejoin="round"/>`;
+  s += `<polygon points="${x + w},${yt} ${x + w + d},${yt - d * 0.5} ${x + w + d},${yb - d * 0.5} ${x + w},${yb}" fill="#8e979f" stroke="#5f6b73" stroke-width="1.1" stroke-linejoin="round"/>`;
+  s += `<rect x="${x}" y="${yt}" width="${w}" height="${yb - yt}" fill="url(#${u}cyl)" stroke="#5f6b73" stroke-width="1.2"/>`;
+  [x + 35, x + 70, x + 105].forEach(cx => { s += `<circle cx="${cx}" cy="${(yt + yb) / 2}" r="13" fill="#bfe3f5" stroke="#4f585e" stroke-width="2.2"/><path d="M${cx - 6} ${(yt + yb) / 2 - 4} q4 -5 9 -3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`; });
+  const balik = (bx, by, k, ters) => `<g transform="translate(${bx} ${by}) scale(${ters ? -k : k} ${k})"><path d="M0 0 Q12 -9 26 0 Q12 9 0 0 Z" fill="#e58c3a" stroke="#a85a1c" stroke-width=".8"/><path d="M26 0 L36 -7 L34 0 L36 7 Z" fill="#e58c3a" stroke="#a85a1c" stroke-width=".8"/><circle cx="7" cy="-1.5" r="1.4" fill="#173430"/></g>`;
+  s += balik(24, 204, 0.9, false) + balik(292, 206, 0.8, true);
+  s += dashLine(56, yt, x, yt, '#e8f2f8', '4 3', 1.2) + dashLine(56, yb, x, yb, '#e8f2f8', '4 3', 1.2);
+  s += dimV(62, sy, yt, '1 m', { side: 'left', size: 12.5 }) + dimV(62, yt, yb, '2 m', { side: 'left', size: 12.5 });
+  s += T(x + w / 2, yb + 22, 'gözlem odası', { size: 12, anchor: 'middle', weight: 700, fill: '#fff', halo: false });
+  s += T(W - 16, sy - 10, 'göl yüzeyi', { size: 12, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
 })();
 
 /* ---------- 3B KARTLAR, HİKÂYE, TANIM VE EFSANE ÇİZİMLERİ (izometrik) ---------- */
@@ -29392,6 +29523,184 @@ const KONU = {
     'Antarktika masa biçimli buzdağı 200 m kalınlık, buz 917 ve deniz suyu 1025 kg/m³, alt yüzey basıncı 1,83 MPa (tablo)', 'deniz tabanına zincirle bağlı, tamamen su altındaki silindir şamandıra (0,5 m², 0,8 m, 120 kg), alçak ve yüksek gelgit (1,5 m)',
     'yüzen boş kutuya taş konunca alt yüzey basınç kuvvetinin artışı, neden-sonuç zinciri (sırala)', 'simülasyon: ipe asılı 50 cm² × 16 cm prizma, alt yüzey derinliği 0–48 cm, sıvı yağ / su / gliserin'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kaldırma kuvvetinin nereden geldiğini kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Su her yüzeye bastırır',
+        sekil: 'sf936_sise',
+        metin: r`Boş bir pet şişenin kapağını sıkıca kapat ve şişeyi havuzun dibine doğru götür. Şişe her yandan biraz içe doğru ezilir. Yukarı çıkarınca yeniden eski hâline döner.
+
+Şişeyi ezen sudur. Sıvı, içindeki bir cismin **her yüzeyine** kuvvet uygular. Bu kuvvete **basınç kuvveti** denir:
+- Basınç kuvveti yüzeye **diktir** ve yüzeyi cismin içine doğru iter.
+- Su, cismin üst yüzeyini aşağı, alt yüzeyini yukarı, yan yüzeylerini yana doğru iter.`,
+        kontrol: {
+          soru: 'Tamamı suyun içinde olan bir kutunun sağ yan yüzeyi dik duruyor. Su bu yüzeye hangi yönde kuvvet uygular?',
+          secenekler: ['Aşağı doğru', 'Yüzeye dik, sola doğru', 'Yukarı doğru'],
+          dogru: 1,
+          aciklama: 'Basınç kuvveti yüzeye diktir ve yüzeyi iter. Dik duran bir yüzeye dik doğrultu yataydır. Su sağ yan yüzeyi sola, yani kutunun içine doğru iter.',
+          yanlisIpucu: 'Basınç kuvveti her zaman yüzeye diktir. Dik duran yüzeye dik bir ok çizersen ok hangi doğrultuda olur?'
+        }
+      },
+      {
+        baslik: 'Derindeki yüzey daha çok itilir',
+        sekil: 'sf936_kutu',
+        metin: r`Sıvı basıncı derinlikle artar: $P = h \times d_s \times g$. Şimdi tamamı suyun içinde olan, kapalı ve kutu biçimli bir cisim düşün. Kutunun üst yüzeyi $h_1$, alt yüzeyi $h_2$ derinliktedir.
+- Su, üst yüzeye aşağı doğru $F_1$ kuvvetiyle bastırır.
+- Su, alt yüzeye yukarı doğru $F_2$ kuvvetiyle bastırır.
+
+Bir yüzeye etki eden basınç kuvveti, basınç ile yüzey alanının çarpımıdır: $F = P \times A$. Kutunun alt ve üst yüzeylerinin alanları eşittir. Alt yüzey daha derinde olduğu için oradaki basınç daha büyüktür. Bu yüzden $F_2$, $F_1$'den büyüktür.`,
+        kontrol: {
+          soru: 'Tamamı suyun içinde olan bir kutu için hangisi her zaman doğrudur?',
+          secenekler: [r`$F_1 = F_2$`, r`$F_2 > F_1$`, r`$F_1 > F_2$`],
+          dogru: 1,
+          aciklama: r`Alt yüzey üst yüzeyden daha derindedir: $h_2 > h_1$. Alanlar eşit olduğundan alt yüzeydeki kuvvet daha büyüktür: $F_2 > F_1$.`,
+          yanlisIpucu: 'Hangi yüzey daha derinde? Derinlik artınca basınç, basınç artınca da aynı alana etki eden kuvvet artar.'
+        }
+      },
+      {
+        baslik: 'Farkı kaldırma kuvveti yapar',
+        metin: r`Okulun robot kulübü, kutu biçimli, sağlam ve kapalı gövdesi olan küçük bir su altı robotunu havuzda deniyor. Su, robotun gövdesinin üst yüzeyine aşağı doğru $F_1 = 60$ N, alt yüzeyine yukarı doğru $F_2 = 90$ N kuvvet uyguluyor.
+- Karşılıklı yan yüzeylere etki eden kuvvetler eşit büyüklükte ve zıt yönlüdür. Birbirini dengeler.
+- Alttaki itiş üsttekinden büyüktür. Bu yüzden suyun gövdeye uyguladığı kuvvetlerin bileşkesi yukarı yönlüdür.
+
+Bu bileşke **kaldırma kuvvetidir**:
+$$F_k = F_2 - F_1$$
+Robotun gövdesi için $F_k = 90 - 60 = 30$ N olur.`,
+        kontrol: {
+          soru: r`Su bir kutunun üst yüzeyine $45$ N, alt yüzeyine $70$ N kuvvet uyguluyor. Kutuya etki eden kaldırma kuvveti kaç N'dur?`,
+          secenekler: [r`$115$ N`, r`$25$ N`, r`$70$ N`],
+          dogru: 1,
+          aciklama: r`Üstteki kuvvet aşağı, alttaki kuvvet yukarı yönlüdür. Zıt yönlü iki kuvvetin bileşkesi farklarıdır: $F_k = 70 - 45 = 25$ N, yukarı yönde.`,
+          yanlisIpucu: 'İki kuvvet zıt yönlü. Zıt yönlü kuvvetler toplanmaz; büyükten küçük çıkarılır. Alt yüzeydeki kuvvet de tek başına kaldırma kuvveti değildir.'
+        }
+      },
+      {
+        baslik: 'Derine inince fark değişmez',
+        sekil: 'sf936_derin',
+        metin: r`Robot havuzun daha derin bir yerine dalıyor. Derinlik artınca iki yüzeydeki basınç da artar. Ama alt yüzey hep üst yüzeyden gövdenin yüksekliği kadar daha derindedir. Bu yüzden iki kuvvet **aynı miktarda** artar.
+
+Şekilde robotun gövdesi yalnız bir kutu olarak çizildi. Yeni yerde $F_1 = 110$ N ve $F_2 = 140$ N olmuştur. İkisi de $50$ N artmıştır. Kaldırma kuvveti yine $F_k = 140 - 110 = 30$ N'dur.
+
+Tamamı sıvının içinde olan sağlam bir cisim derine indikçe kaldırma kuvveti değişmez.`,
+        kontrol: {
+          soru: r`Robot biraz daha derine dalıyor. Gövdenin üst yüzeyine etki eden kuvvet $160$ N oluyor. Alt yüzeyine etki eden kuvvet kaç N'dur?`,
+          secenekler: [r`$90$ N`, r`$240$ N`, r`$190$ N`],
+          dogru: 2,
+          aciklama: r`Kaldırma kuvveti derinlikle değişmez: $F_2 - F_1 = 30$ N. Bu yüzden $F_2 = 160 + 30 = 190$ N olur.`,
+          yanlisIpucu: r`İki kuvvet aynı miktarda artar, aynı oranda değil. Aradaki fark hep $30$ N kalır.`
+        }
+      },
+      {
+        baslik: 'Yüzen cisimde su üstten bastırmaz',
+        sekil: 'sf936_kalas',
+        metin: r`Bir gölde tahta bir kalas yüzüyor. Kalasın üst yüzeyi suyun dışında kalıyor. Su, dışarıdaki bu yüzeye kuvvet uygulayamaz: $F_1 = 0$. Kaldırma kuvvetinin tamamı alt yüzeydeki itiştir: $F_k = F_2$.
+
+Üst yüzeye hava bastırır. Ama açık hava basıncı su aracılığıyla alt yüzeye de aynı ölçüde bastırır. Kuvvetlerin farkını değiştirmediği için açık hava basıncını hesaba katmıyoruz.
+
+Kalas yüzerken dengededir. Yukarı yönlü kaldırma kuvveti, aşağı yönlü ağırlığı dengeler: $F_k = G$. Kısacası yüzen bir cisimde $F_2 = G$ olur.`,
+        kontrol: {
+          soru: r`Ağırlığı $8$ N olan tahta bir kalas suda yüzüyor. Suyun kalasın alt yüzeyine uyguladığı kuvvet kaç N'dur?`,
+          secenekler: [r`$0$`, r`$8$ N`, r`$16$ N`],
+          dogru: 1,
+          aciklama: r`Üst yüzey suyun dışında olduğu için $F_1 = 0$'dır. Kaldırma kuvveti yalnız $F_2$'dir ve ağırlığı dengeler: $F_2 = G = 8$ N.`,
+          yanlisIpucu: 'Kalasın alt yüzeyi suyun içinde. Kalası yukarı tutan tek kuvvet alttaki itiştir. Kalas dengede olduğuna göre bu kuvvet ağırlığa göre nasıl olmalı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Göldeki gözlem odası',
+        sekil: 'sf936_oda',
+        metin: r`Bir gölde balıkları izlemek için suyun içine kutu biçimli, kapalı bir gözlem odası yapılmış. Odanın tavanının ve tabanının alanı $5$ m², yüksekliği $2$ m'dir. Tavanı göl yüzeyinden $1$ m derindedir. Suyun yoğunluğu $1000$ kg/m³, $g = 10$ m/s² alınıyor.`,
+        adimlar: [
+          {
+            soru: 'Tavandaki su basıncı kaç Pa\'dır?',
+            secenekler: [r`$10\,000$ Pa`, r`$1000$ Pa`, r`$30\,000$ Pa`],
+            dogru: 0,
+            ipucu: r`$P = h \times d_s \times g$. Tavanın derinliği $h_1 = 1$ m'dir.`,
+            aciklama: r`$P_1 = 1 \times 1000 \times 10 = 10\,000$ Pa. Tavana etki eden kuvvet $F_1 = P_1 \times A = 10\,000 \times 5 = 50\,000$ N'dur.`
+          },
+          {
+            soru: r`Tabana etki eden $F_2$ kuvveti kaç N'dur?`,
+            secenekler: [r`$30\,000$ N`, r`$100\,000$ N`, r`$150\,000$ N`],
+            dogru: 2,
+            ipucu: r`Taban, tavandan $2$ m daha derindedir: $h_2 = 1 + 2 = 3$ m. Önce basıncı bul, sonra alanla çarp.`,
+            aciklama: r`$P_2 = 3 \times 1000 \times 10 = 30\,000$ Pa ve $F_2 = 30\,000 \times 5 = 150\,000$ N.`
+          },
+          {
+            soru: 'Suyun odaya uyguladığı kaldırma kuvveti kaç N\'dur?',
+            secenekler: [r`$200\,000$ N`, r`$100\,000$ N`, r`$150\,000$ N`],
+            dogru: 1,
+            ipucu: 'Tavana aşağı, tabana yukarı doğru kuvvet etki ediyor. Zıt yönlü iki kuvvetin farkını al.',
+            aciklama: r`$F_k = F_2 - F_1 = 150\,000 - 50\,000 = 100\,000$ N, yukarı yönde.`
+          }
+        ],
+        sonuc: r`Aynı sonuç $F_k = V_b \times d_s \times g$ ile de bulunur: Odanın hacmi $5 \times 2 = 10$ m³ ve $F_k = 10 \times 1000 \times 10 = 100\,000$ N. Basınç kuvvetlerinin farkı, odanın yerini değiştirdiği suyun ağırlığına eşittir.`
+      },
+      {
+        baslik: 'Hangi kutu yüzüyor?',
+        metin: r`Bir havuzda kapalı, kutu biçimli K ve L cisimleri dengede duruyor. Kutulardan biri bir ipe bağlı. Her kutunun alt yüzeyine suyun uyguladığı kuvvet $F_2$ ve kutuya etki eden kaldırma kuvveti $F_k$ ölçülmüş:
+- K kutusu: $F_2 = 80$ N, $F_k = 80$ N.
+- L kutusu: $F_2 = 120$ N, $F_k = 40$ N.`,
+        adimlar: [
+          {
+            soru: 'Suyun K kutusunun üst yüzeyine uyguladığı kuvvet kaç N\'dur?',
+            secenekler: [r`$0$`, r`$80$ N`, r`$160$ N`],
+            dogru: 0,
+            ipucu: r`$F_k = F_2 - F_1$ ise $F_1 = F_2 - F_k$ olur.`,
+            aciklama: r`$F_1 = 80 - 80 = 0$. Su, K'nin üst yüzeyine hiç kuvvet uygulamıyor.`
+          },
+          {
+            soru: 'Bu sonuç K kutusu hakkında ne söyler?',
+            secenekler: ['K kutusu tamamen suyun içindedir.', 'K kutusu yüzüyor; üst yüzeyi suyun dışındadır.', 'K kutusuna kaldırma kuvveti etki etmez.'],
+            dogru: 1,
+            ipucu: 'Su bir yüzeye ne zaman kuvvet uygulayamaz? O yüzeyin çevresinde su olmalı mı?',
+            aciklama: r`Üst yüzeye kuvvet uygulanmıyorsa o yüzey suyun dışındadır. K yüzüyor ve kaldırma kuvvetinin tamamı $F_2$'dir.`
+          },
+          {
+            soru: 'L kutusu için hangisi doğrudur?',
+            secenekler: [r`Üst yüzeyine $80$ N kuvvet etki eder; L tamamen suyun içindedir.`, 'Üst yüzeyine kuvvet etki etmez; L yüzüyor.', r`Üst yüzeyine $160$ N kuvvet etki eder; L tamamen suyun içindedir.`],
+            dogru: 0,
+            ipucu: r`K için yaptığını L için de yap: $F_1 = F_2 - F_k$. Sonuç sıfırdan büyük mü?`,
+            aciklama: r`$F_1 = 120 - 40 = 80$ N. Su, L'nin üst yüzeyine de bastırıyor. Demek ki üst yüzeyin üstünde de su var: L tamamen suyun içindedir.`
+          }
+        ],
+        sonuc: 'Üst yüzeye etki eden kuvvet sıfırsa cisim yüzüyordur. Sıfırdan büyükse cisim tamamen sıvının içindedir. Basınç kuvvetleri, cismin sıvıdaki yeri hakkında bilgi verir.'
+      },
+      {
+        baslik: 'Havuzdaki köpük minder',
+        metin: r`Bir yüzme havuzunda düz tabanlı, köpükten bir minder yüzüyor. Minderin üstünde bir çocuk oturuyor. Minder ile çocuğun toplam ağırlığı $400$ N, minderin taban alanı $2$ m²'dir. Suyun yoğunluğu $1000$ kg/m³, $g = 10$ m/s² alınıyor.`,
+        adimlar: [
+          {
+            soru: r`Suyun minderin tabanına uyguladığı $F_2$ kuvveti kaç N'dur?`,
+            secenekler: [r`$0$`, r`$400$ N`, r`$800$ N`],
+            dogru: 1,
+            ipucu: r`Minderin üst yüzü suyun dışında, $F_1 = 0$. Minder yüzüyor ve dengede; yukarı yönlü kuvvet, aşağı yönlü ağırlığa eşit olmalı.`,
+            aciklama: r`$F_k = F_2 - 0 = F_2$ ve yüzen minderde $F_k = G$. Bu yüzden $F_2 = 400$ N olur.`
+          },
+          {
+            soru: 'Tabandaki su basıncı kaç Pa\'dır?',
+            secenekler: [r`$800$ Pa`, r`$200$ Pa`, r`$400$ Pa`],
+            dogru: 1,
+            ipucu: r`Basınç, kuvvetin yüzey alanına bölümüdür: $P = \dfrac{F_2}{A}$.`,
+            aciklama: r`$P = \dfrac{400}{2} = 200$ Pa.`
+          },
+          {
+            soru: 'Minderin tabanı kaç cm derinliktedir?',
+            secenekler: [r`$2$ cm`, r`$20$ cm`, r`$200$ cm`],
+            dogru: 0,
+            ipucu: r`$P = h \times d_s \times g$ ise $h = \dfrac{P}{d_s \times g}$ olur. Sonucu önce metre olarak bul, sonra santimetreye çevir.`,
+            aciklama: r`$h = \dfrac{200}{1000 \times 10} = \dfrac{2}{100}$ m, yani $2$ cm.`
+          }
+        ],
+        sonuc: 'Yüzen cisimde kaldırma kuvvetinin tamamı tabana etki eden basınç kuvvetidir ve ağırlığa eşittir. Ağırlıktan yola çıkarak tabandaki basıncı ve cismin ne kadar battığını bulabilirsin.'
+      }
+    ],
+    hazir: 'Basınç kuvvetlerini ve kaldırma kuvvetinin bu kuvvetlerin farkı olduğunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -67149,6 +67458,54 @@ BFY_FIG_EKLE('k1034_kare', function (u) {
   [[A, 'A', -10, -10], [B, 'B', 12, -10], [C, 'C', 12, 20], [D, 'D', -10, 20]].forEach(([p, h, dx, dy]) => { s += nokta(p[0], p[1], 3.8) + T(p[0] + dx, p[1] + dy, h, { size: 14, anchor: 'middle', weight: 800 }); });
   return svg(W, H, s, u, 66);
 });
+
+/* =================== SIFIRDAN BAŞLA ŞEKİLLERİ (sf1034_) =================== */
+/* İki direnç seri; o.r1, o.r2 etiketleri, o.v üreteç gerilimi, o.vb V1 ve V2 köşeli ayraçları */
+function sfSeri(u, o) {
+  const W = 300, H = o.vb ? 222 : 196, y = 62, yb = H - 40, xl = 34, xr = 266;
+  let s = zemin(W, H);
+  s += tel([[xl, y], [70, y]]) + direnc(70, y, 120, y, o.r1, 'ust') + tel([[120, y], [180, y]]) + direnc(180, y, 230, y, o.r2, 'ust') + tel([[230, y], [xr, y], [xr, yb], [170, yb]]);
+  s += pil(130, yb, 170, yb, o.v) + tel([[130, yb], [xl, yb], [xl, y]]);
+  if (o.vb) [[95, 'V_1'], [205, 'V_2']].forEach(([x, l]) => {
+    s += `<path d="M${x - 26} ${y + 20} V${y + 26} H${x + 26} V${y + 20}" fill="none" stroke="${P.copper}" stroke-width="1.4"/>` + T(x, y + 44, l, { size: 12.5, anchor: 'middle', weight: 800, fill: P.copper });
+  });
+  s += akim(xl, (y + yb) / 2 + 4, 'u', 'I', { lx: -12, ly: 4, an: 'end' }) + akim(152, y, 'r', 'I', { ly: -10 }) + akim(xr, (y + yb) / 2 + 4, 'd', 'I', { lx: 12, ly: 4, an: 'start' });
+  return svg(W, H, s, u, 70);
+}
+BFY_FIG_EKLE('sf1034_seri', u => sfSeri(u, { r1: 'R_1', r2: 'R_2', v: 'V' }));
+BFY_FIG_EKLE('sf1034_seri_deger', u => sfSeri(u, { r1: '1 Ω', r2: '3 Ω', v: '12 V', vb: true }));
+
+/* Adım 3: 12 V, 4 Ω ve 12 Ω paralel; kol akımları I1, I2 ve ana kol akımı I */
+BFY_FIG_EKLE('sf1034_paralel', function (u) {
+  const W = 300, H = 226, xa = 64, xb = 236, ys = [48, 112], yb = 186;
+  let s = zemin(W, H);
+  [['4 Ω', 'I_1'], ['12 Ω', 'I_2']].forEach(([lab, il], i) => {
+    const y = ys[i];
+    s += tel([[xa, y], [125, y]]) + direnc(125, y, 175, y, lab, 'ust') + tel([[175, y], [xb, y]]);
+    s += akim(97, y, 'r', il, { ly: -10 });
+  });
+  s += tel([[xa, ys[0]], [xa, yb], [130, yb]]) + pil(130, yb, 170, yb, '12 V') + tel([[170, yb], [xb, yb], [xb, ys[0]]]);
+  s += nokta(xa, ys[1]) + nokta(xb, ys[1]);
+  s += akim(xa, 156, 'u', 'I', { lx: -12, ly: 4, an: 'end' }) + akim(xb, 156, 'd', 'I', { lx: 12, ly: 4, an: 'start' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Birleşik devre: seri direnç + paralel iki eleman (direnç ya da lamba) */
+function sfBirlesik(u, o) {
+  const W = 330, H = 222, y = 86, yu = 46, ya = 126, yb = 184, xl = 28, xr = 302, n1 = 132, n2 = 262;
+  let s = zemin(W, H);
+  s += tel([[xl, y], [52, y]]) + direnc(52, y, 102, y, o.seri, 'ust') + tel([[102, y], [n1, y]]);
+  s += tel([[n1, yu], [n1, ya]]) + tel([[n2, yu], [n2, ya]]) + nokta(n1, y) + nokta(n2, y);
+  const el = o.lamba ? lamba : direnc;
+  s += tel([[n1, yu], [172, yu]]) + el(172, yu, 222, yu, o.ust, 'ust') + tel([[222, yu], [n2, yu]]);
+  s += tel([[n1, ya], [172, ya]]) + el(172, ya, 222, ya, o.alt, 'alt') + tel([[222, ya], [n2, ya]]);
+  s += tel([[n2, y], [xr, y], [xr, yb], [185, yb]]) + pil(145, yb, 185, yb, o.v) + tel([[145, yb], [xl, yb], [xl, y]]);
+  s += akim(xl, 140, 'u', 'I', { lx: -12, ly: 4, an: 'end' });
+  return svg(W, H, s, u, 72);
+}
+BFY_FIG_EKLE('sf1034_birlesik', u => sfBirlesik(u, { seri: '5 Ω', ust: '8 Ω', alt: '8 Ω', v: 'V' }));
+BFY_FIG_EKLE('sf1034_maket', u => sfBirlesik(u, { seri: '1 Ω', ust: 'L_1 = 6 Ω', alt: 'L_2 = 3 Ω', v: '9 V', lamba: true }));
+
 })();
 /* ---------- 3B GÖRÜNÜMLÜ ÇİZİMLER (izometrik): hikâye, tanım ve efsane kartları ---------- */
 (function () {
@@ -67550,6 +67907,207 @@ const KONU = {
     'SET 2: tek analog girişle beş tuşlu oyuncak piyano: 10 kΩ + 2,2 / 2,7 / 3,9 / 6,8 kΩ merdiveni, 5,00 V, tuş–gerilim tablosu, iki tuşa birden basma, 3,75 V için beşinci direnç',
     'ADIM 3: devre tahtasında 2/3/6 kΩ düzenleri, 18 V, ampermetre 18/4,5/4,0/2,5 mA', 'evde-otomobilde-laboratuvarda seri/paralel eleman çiftleri', '24 V, 4 Ω + (6∥12) + (10∥40) akım sıralaması', 'R1 + (R2∥R3), R2 voltmetresi: artar/azalır/değişmez', 'ZENGİN: LED için 800 Ω, renk kodlu K (1 kΩ), L (2,2 kΩ), M (470 Ω), N (330 Ω) dirençler, IEC 60062 renk tablosu', 'ZENGİN: kare devre (6-3-6-3 Ω) ve B-D köşegen teli, 12 V, köşegenden 1 A', 'ZENGİN: 6 V pil-lamba devresinde ampermetre/voltmetrenin doğru ve yanlış bağlanışı ↔ sonuç eşleştirme', 'SİM: R1, R2 10–60 Ω, seri/paralel seçici, 12 V, ampermetre ve voltmetre okumaları, R_eş çubukları'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Dirençlerin nasıl bağlandığını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Tek yol: seri bağlama',
+        sekil: 'sf1034_seri',
+        metin: r`İki mahalle arasında tek bir yol olsun ve bu yolda art arda iki yol çalışması bulunsun. Her araç önce birinci daralmadan, sonra ikincisinden geçmek zorundadır. Daralma sayısı arttıkça geçiş zorlaşır.
+
+Dirençler de böyle **uç uca** bağlanabilir. Buna **seri bağlama** denir:
+- Akımın gidebileceği tek bir yol vardır. Bu yüzden her dirençten **aynı akım** geçer.
+- Dirençlerin hepsinin yerine konabilecek tek dirence **eşdeğer direnç** denir ve $R_{\text{eş}}$ ile gösterilir.
+- Seri bağlamada dirençler toplanır: $R_{\text{eş}} = R_1 + R_2$.`,
+        kontrol: {
+          soru: r`Seri bağlı $4$ Ω ve $6$ Ω'luk iki direncin eşdeğer direnci kaç Ω'dur?`,
+          secenekler: [r`$2$ Ω`, r`$10$ Ω`, r`$24$ Ω`],
+          dogru: 1,
+          aciklama: r`Seri bağlamada dirençler toplanır: $R_{\text{eş}} = 4 + 6 = 10$ Ω. Seri eşdeğer direnç, her iki dirençten de büyüktür.`,
+          yanlisIpucu: 'Akım iki direnci de sırayla geçmek zorunda. Engeller art arda eklenince toplam engel büyür; dirençleri topla.'
+        }
+      },
+      {
+        baslik: 'Seride potansiyel fark paylaşılır',
+        sekil: 'sf1034_seri_deger',
+        metin: r`Şekilde $12$ V'luk bir üretece $R_1 = 1$ Ω ve $R_2 = 3$ Ω'luk dirençler seri bağlı.
+- Eşdeğer direnç $R_{\text{eş}} = 1 + 3 = 4$ Ω'dur.
+- Devreden geçen akım $I = \dfrac{V}{R_{\text{eş}}} = \dfrac{12}{4} = 3$ A'dir.
+- Her direncin uçlarındaki potansiyel fark $V = I \times R$ ile bulunur: $V_1 = 3 \times 1 = 3$ V ve $V_2 = 3 \times 3 = 9$ V.
+
+Üretecin potansiyel farkı dirençler arasında paylaşılır: $3 + 9 = 12$ V. Büyük dirence büyük pay düşer.`,
+        kontrol: {
+          soru: r`$18$ V'luk bir üretece $2$ Ω ve $7$ Ω'luk dirençler seri bağlanıyor. $7$ Ω'luk direncin uçlarındaki potansiyel fark kaç V'tur?`,
+          secenekler: [r`$9$ V`, r`$14$ V`, r`$4$ V`],
+          dogru: 1,
+          aciklama: r`$R_{\text{eş}} = 2 + 7 = 9$ Ω ve $I = \dfrac{18}{9} = 2$ A. $7$ Ω'luk direncin payı $V = 2 \times 7 = 14$ V'tur. $2$ Ω'luk direncin payı $4$ V'tur; ikisinin toplamı $18$ V eder.`,
+          yanlisIpucu: r`Potansiyel fark eşit paylaşılmaz. Önce akımı bul, sonra $V = I \times R$ ile $7$ Ω'luk direncin payını hesapla.`
+        }
+      },
+      {
+        baslik: 'Paralel: iki yol, aynı potansiyel fark',
+        sekil: 'sf1034_paralel',
+        metin: r`Şimdi iki mahalle arasında yan yana iki köprü olsun. Araçların bir kısmı birinden, kalanı öbüründen geçer. Geçmek kolaylaşır.
+
+Dirençlerin birer uçları bir noktada, öbür uçları başka bir noktada birleşirse buna **paralel bağlama** denir:
+- Her direncin uçları üretecin uçlarına bağlıdır. Paralel dirençlerin uçlarındaki **potansiyel fark aynıdır**.
+- Ana koldaki akım kollara ayrılır: $I = I_1 + I_2$.
+
+Şekilde $12$ V'luk üretece $4$ Ω ve $12$ Ω'luk dirençler paralel bağlı. $I_1 = \dfrac{12}{4} = 3$ A ve $I_2 = \dfrac{12}{12} = 1$ A olur. Ana koldan $I = 3 + 1 = 4$ A geçer. Küçük dirençli koldan daha çok akım geçer.`,
+        kontrol: {
+          soru: r`$24$ V'luk bir üretece $8$ Ω ve $6$ Ω'luk dirençler paralel bağlanıyor. Ana koldan geçen akım kaç A'dir?`,
+          secenekler: [r`$4$ A`, r`$7$ A`, r`$1$ A`],
+          dogru: 1,
+          aciklama: r`İki direncin uçlarında da $24$ V vardır. $I_1 = \dfrac{24}{8} = 3$ A ve $I_2 = \dfrac{24}{6} = 4$ A. Ana kol akımı $3 + 4 = 7$ A'dir.`,
+          yanlisIpucu: r`Her kolun akımını ayrı ayrı bul; iki kolda da potansiyel fark $24$ V'tur. Ana koldaki akım, kol akımlarının toplamıdır.`
+        }
+      },
+      {
+        baslik: 'Paralelde eşdeğer direnç küçülür',
+        metin: r`Önceki devrede üreteç $12$ V'ta ana koldan $4$ A çekiyordu. Aynı akımı çeken tek direnç $R_{\text{eş}} = \dfrac{12}{4} = 3$ Ω'dur. Bu, en küçük direnç olan $4$ Ω'dan bile küçüktür. Akıma yeni bir yol açmak geçişi kolaylaştırır.
+
+Paralel bağlı dirençlerin eşdeğer direnci şöyle bulunur:
+$$\dfrac{1}{R_{\text{eş}}} = \dfrac{1}{R_1} + \dfrac{1}{R_2}$$
+Örnekte $\dfrac{1}{4} + \dfrac{1}{12} = \dfrac{3}{12} + \dfrac{1}{12} = \dfrac{4}{12} = \dfrac{1}{3}$ olur. Sonuç ters çevrilir: $R_{\text{eş}} = 3$ Ω.
+
+Özdeş iki direnç paralel bağlanırsa eşdeğer direnç birinin yarısıdır.`,
+        kontrol: {
+          soru: r`Paralel bağlı $10$ Ω ve $15$ Ω'luk iki direncin eşdeğer direnci kaç Ω'dur?`,
+          secenekler: [r`$25$ Ω`, r`$6$ Ω`, r`$5$ Ω`],
+          dogru: 1,
+          aciklama: r`$\dfrac{1}{10} + \dfrac{1}{15} = \dfrac{3}{30} + \dfrac{2}{30} = \dfrac{5}{30} = \dfrac{1}{6}$. Ters çevirince $R_{\text{eş}} = 6$ Ω olur. Bu değer en küçük direnç olan $10$ Ω'dan küçüktür.`,
+          yanlisIpucu: r`Paralelde dirençler toplanmaz, çıkarılmaz da. Terslerini topla: $\dfrac{1}{10} + \dfrac{1}{15}$. Paydaları eşitle ve sonucu ters çevir.`
+        }
+      },
+      {
+        baslik: 'Birleşik: parça parça sadeleştir',
+        sekil: 'sf1034_birlesik',
+        metin: r`Bazı devrelerde seri ve paralel bağlı dirençler bir aradadır. Buna **birleşik bağlama** denir. Böyle bir devre adım adım sadeleştirilir:
+- Önce paralel bağlı grubu tek dirence indir.
+- Sonra bu direnci, ona seri bağlı dirençle topla.
+
+Şekilde $8$ Ω'luk iki özdeş direnç paralel bağlı. Özdeş iki direncin eşdeğeri birinin yarısıdır: $4$ Ω. Bu grup $5$ Ω'luk dirençle seri bağlı: $R_{\text{eş}} = 5 + 4 = 9$ Ω.`,
+        kontrol: {
+          soru: r`$2$ Ω'luk bir direnç, birbirine paralel bağlı $20$ Ω ve $5$ Ω'luk dirençlere seri bağlanıyor. Devrenin eşdeğer direnci kaç Ω'dur?`,
+          secenekler: [r`$27$ Ω`, r`$6$ Ω`, r`$7$ Ω`],
+          dogru: 1,
+          aciklama: r`Paralel kısım: $\dfrac{1}{20} + \dfrac{1}{5} = \dfrac{1}{20} + \dfrac{4}{20} = \dfrac{5}{20} = \dfrac{1}{4}$, yani $4$ Ω. Seri direnç eklenince $R_{\text{eş}} = 2 + 4 = 6$ Ω olur.`,
+          yanlisIpucu: r`Üç direncin hepsi seri değil. Önce paralel iki direnci tek dirence indir; sonra $2$ Ω ile topla.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Tır koltuğunun ısıtıcısı',
+        metin: r`Bir tırın koltuğunda ısıtıcı var. Oturma minderindeki $5$ Ω'luk ısıtıcı tel ile sırtlıktaki $3$ Ω'luk ısıtıcı tel, tırın $24$ V'luk aküsüne seri bağlı. Kabloların direnci önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Devrenin eşdeğer direnci kaç Ω\'dur?',
+            secenekler: [r`$8$ Ω`, r`$2$ Ω`, r`$15$ Ω`],
+            dogru: 0,
+            ipucu: 'Seri bağlı dirençlerde akımın tek yolu var. Eşdeğer direnç, dirençlerin toplamıdır.',
+            aciklama: r`$R_{\text{eş}} = 5 + 3 = 8$ Ω.`
+          },
+          {
+            soru: 'Aküden çekilen akım kaç A\'dir?',
+            secenekler: [r`$8$ A`, r`$3$ A`, r`$192$ A`],
+            dogru: 1,
+            ipucu: r`$I = \dfrac{V}{R_{\text{eş}}}$. Akünün potansiyel farkını eşdeğer dirence böl.`,
+            aciklama: r`$I = \dfrac{24}{8} = 3$ A. Bu akım iki telden de geçer.`
+          },
+          {
+            soru: 'Sırtlıktaki telin uçlarındaki potansiyel fark kaç V\'tur?',
+            secenekler: [r`$12$ V`, r`$15$ V`, r`$9$ V`],
+            dogru: 2,
+            ipucu: r`Sırtlıktaki telin direnci $3$ Ω ve ondan $3$ A geçiyor. $V = I \times R$.`,
+            aciklama: r`$V = 3 \times 3 = 9$ V. Minderdeki telin payı $3 \times 5 = 15$ V'tur ve $9 + 15 = 24$ V eder.`
+          },
+          {
+            soru: 'Minderdeki tel koparsa sırtlıktaki tel ne olur?',
+            secenekler: ['Daha çok ısınır.', 'Aynı biçimde ısınmaya devam eder.', 'Akım kesilir; o da ısınmaz.'],
+            dogru: 2,
+            ipucu: 'Seri bağlamada akımın tek bir yolu var. Yol bir yerden kesilirse akım devam edebilir mi?',
+            aciklama: 'Tel kopunca devre açılır ve akımın tek yolu kesilir. Sırtlıktaki telden de akım geçmez.'
+          }
+        ],
+        sonuc: 'Seri bağlı elemanlar aynı yolu paylaşır: Hepsinden aynı akım geçer, potansiyel fark aralarında paylaşılır ve biri koparsa hepsi durur.'
+      },
+      {
+        baslik: 'Karavanın lambaları',
+        metin: r`Bir karavanın tavanında üç lamba var. Lambalar $12$ V'luk aküye paralel bağlı ve her biri kendi anahtarıyla yakılıyor. Lambaların dirençleri $4$ Ω, $6$ Ω ve $12$ Ω'dur. Üçü de yanıyor. Lambaların dirençleri sabit kabul ediliyor.`,
+        adimlar: [
+          {
+            soru: r`$4$ Ω'luk lambanın uçlarındaki potansiyel fark kaç V'tur?`,
+            secenekler: [r`$4$ V`, r`$12$ V`, r`$6$ V`],
+            dogru: 1,
+            ipucu: 'Paralel bağlı her lambanın uçları doğrudan akünün uçlarına bağlı.',
+            aciklama: r`Paralel bağlı elemanların uçlarındaki potansiyel fark aynıdır ve akününkine eşittir: $12$ V.`
+          },
+          {
+            soru: 'Aküden çekilen ana kol akımı kaç A\'dir?',
+            secenekler: [r`$3$ A`, r`$6$ A`, r`$1$ A`],
+            dogru: 1,
+            ipucu: r`Her lambanın akımını $I = \dfrac{V}{R}$ ile bul. Üç lambanın akımlarını topla.`,
+            aciklama: r`$\dfrac{12}{4} = 3$ A, $\dfrac{12}{6} = 2$ A ve $\dfrac{12}{12} = 1$ A. Ana kol akımı $3 + 2 + 1 = 6$ A'dir.`
+          },
+          {
+            soru: 'Üç lambanın eşdeğer direnci kaç Ω\'dur?',
+            secenekler: [r`$22$ Ω`, r`$2$ Ω`, r`$4$ Ω`],
+            dogru: 1,
+            ipucu: r`Ana kol akımını biliyorsun. $R_{\text{eş}} = \dfrac{V}{I}$.`,
+            aciklama: r`$R_{\text{eş}} = \dfrac{12}{6} = 2$ Ω. Bu, en küçük direnç olan $4$ Ω'dan küçüktür.`
+          },
+          {
+            soru: r`$4$ Ω'luk lamba kendi anahtarıyla söndürülüyor. $12$ Ω'luk lambanın akımı ne olur?`,
+            secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+            dogru: 2,
+            ipucu: r`$12$ Ω'luk lambanın uçlarında hâlâ akünün $12$ V'u var mı?`,
+            aciklama: r`Lambanın uçlarında yine $12$ V vardır; akımı $\dfrac{12}{12} = 1$ A olarak kalır. Yalnız aküden çekilen ana kol akımı $6$ A'den $3$ A'e iner.`
+          }
+        ],
+        sonuc: 'Paralel bağlı lambalar birbirinden bağımsızdır. Biri sönünce öbürlerinin potansiyel farkı ve akımı değişmez; yalnız ana kol akımı azalır. Evlerdeki lambalar da bu yüzden paralel bağlıdır.'
+      },
+      {
+        baslik: 'Akvaryumun lambaları',
+        sekil: 'sf1034_maket',
+        metin: r`Bir akvaryumun kapağında iki lamba var. $6$ Ω'luk $L_1$ ve $3$ Ω'luk $L_2$ lambaları birbirine paralel bağlı. Bu grup, $1$ Ω'luk bir dirençle seri olarak $9$ V'luk bir güç kaynağına bağlı. Şekilde güç kaynağı üreteç simgesiyle gösterildi. Lambaların dirençleri sabit kabul ediliyor.`,
+        adimlar: [
+          {
+            soru: 'Paralel bağlı iki lambanın eşdeğer direnci kaç Ω\'dur?',
+            secenekler: [r`$9$ Ω`, r`$2$ Ω`, r`$3$ Ω`],
+            dogru: 1,
+            ipucu: r`$\dfrac{1}{6} + \dfrac{1}{3}$ toplamını bul. Paydaları eşitle, sonra sonucu ters çevir.`,
+            aciklama: r`$\dfrac{1}{6} + \dfrac{2}{6} = \dfrac{3}{6} = \dfrac{1}{2}$, yani paralel kısım $2$ Ω'dur.`
+          },
+          {
+            soru: 'Devrenin eşdeğer direnci kaç Ω\'dur?',
+            secenekler: [r`$3$ Ω`, r`$10$ Ω`, r`$2$ Ω`],
+            dogru: 0,
+            ipucu: r`Paralel kısım $2$ Ω'luk tek bir direnç gibidir. Ona seri bağlı $1$ Ω'luk direnci ekle.`,
+            aciklama: r`$R_{\text{eş}} = 1 + 2 = 3$ Ω.`
+          },
+          {
+            soru: 'Güç kaynağından çekilen akım kaç A\'dir?',
+            secenekler: [r`$9$ A`, r`$1$ A`, r`$3$ A`],
+            dogru: 2,
+            ipucu: r`$I = \dfrac{V}{R_{\text{eş}}}$. Güç kaynağının potansiyel farkını devrenin eşdeğer direncine böl.`,
+            aciklama: r`$I = \dfrac{9}{3} = 3$ A. Bu akım $1$ Ω'luk dirençten geçer, sonra lambalara ayrılır.`
+          },
+          {
+            soru: r`$L_2$ lambasından geçen akım kaç A'dir?`,
+            secenekler: [r`$2$ A`, r`$3$ A`, r`$1$ A`],
+            dogru: 0,
+            ipucu: r`Önce lambaların uçlarındaki potansiyel farkı bul: Paralel kısım $2$ Ω'dur ve ondan $3$ A geçer. Sonra bu potansiyel farkı $L_2$'nin direncine böl.`,
+            aciklama: r`Lambaların uçlarındaki potansiyel fark $3 \times 2 = 6$ V'tur. $L_2$'den $\dfrac{6}{3} = 2$ A, $L_1$'den $\dfrac{6}{6} = 1$ A geçer.`
+          }
+        ],
+        sonuc: r`Birleşik devrede önce eşdeğer direnç, sonra ana kol akımı bulunur. Paralel kısmın potansiyel farkı bulununca her kolun akımı hesaplanır: $1 + 2 = 3$ A, yani kol akımlarının toplamı ana kol akımına eşittir. Güç kaynağının $9$ V'u da $1$ Ω'luk dirence $3$ V, lambalara $6$ V olarak paylaşılır.`
+      }
+    ],
+    hazir: 'Seri, paralel ve birleşik bağlamayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -106822,6 +107380,106 @@ BFY_FIG_EKLE('k131_fotometre', function (u) {
   s += dimH(x0, x1, 198, '2 m', { size: 13, below: true });
   return svg(340, 232, s, u, 76);
 });
+
+/* =================== SIFIRDAN BAŞLA ŞEKİLLERİ (sf1131_) =================== */
+/* Adım 2: aynı kaynak, iç içe küçük ve büyük küre; her ışın iki küreden de geçer */
+BFY_FIG_EKLE('sf1131_kure', function (u) {
+  const W = 300, H = 250, cx = 150, cy = 125, r1 = 42, r2 = 100;
+  let s = GL(u) + `<defs><radialGradient id="${u}kr" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fffdf4" stop-opacity=".9"/><stop offset="1" stop-color="#f6e2ad" stop-opacity=".55"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f6f1"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${r2}" fill="url(#${u}kr)" stroke="#c99a3a" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="${r2}" ry="${r2 * 0.22}" fill="none" stroke="#c99a3a" stroke-width=".9" stroke-dasharray="4 3" opacity=".7"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${r1}" fill="#fff6d8" fill-opacity=".85" stroke="#c99a3a" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="${r1}" ry="${r1 * 0.22}" fill="none" stroke="#c99a3a" stroke-width=".9" stroke-dasharray="3 3" opacity=".7"/>`;
+  for (let i = 0; i < 12; i++) {
+    const a = (i * 30 + 15) * D, c = Math.cos(a), sn = Math.sin(a);
+    s += ray(cx + c * 12, cy + sn * 12, cx + c * (r2 + 14), cy + sn * (r2 + 14), { w: 1.5, head: 7 });
+  }
+  s += kaynak(u, cx, cy, 7, 2.6);
+  s += T(cx + 12, cy - 12, 'I', { size: 14, weight: 800, italic: true });
+  s += T(cx + r1 + 6, cy + 4, 'küçük küre', { size: 12, weight: 700, fill: P.ink2 });
+  s += T(W - 12, H - 10, 'büyük küre', { size: 12, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 5: masaya eğik gelen ışın, normal ve α açısı */
+BFY_FIG_EKLE('sf1131_egik', function (u) {
+  const W = 300, H = 232, L = [60, 48], Pp = [196, 168];
+  let s = GL(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f6f1"/>`;
+  s += `<rect x="24" y="${Pp[1]}" width="252" height="12" rx="3" fill="url(#${u}wood)" stroke="#a88652" stroke-width="1.1"/>`;
+  s += `<rect x="40" y="${Pp[1] + 12}" width="10" height="${H - Pp[1] - 22}" fill="#c9a66d" stroke="#a88652"/><rect x="250" y="${Pp[1] + 12}" width="10" height="${H - Pp[1] - 22}" fill="#c9a66d" stroke="#a88652"/>`;
+  // açık kitap
+  s += `<path d="M${Pp[0] - 58} ${Pp[1]} L${Pp[0] - 54} ${Pp[1] - 7} Q${Pp[0] - 28} ${Pp[1] - 11} ${Pp[0]} ${Pp[1] - 5} Q${Pp[0] + 28} ${Pp[1] - 11} ${Pp[0] + 54} ${Pp[1] - 7} L${Pp[0] + 58} ${Pp[1]} Z" fill="#fffdf6" stroke="#8b7a5a" stroke-width="1"/>`;
+  s += dashLine(Pp[0], Pp[1] - 5, Pp[0], 36, P.ink2, '5 4', 1.4) + T(Pp[0] + 8, 46, 'normal', { size: 12, weight: 700, fill: P.ink2 });
+  const vx = L[0] - Pp[0], vy = L[1] - Pp[1], len = Math.hypot(vx, vy), ux = vx / len, uy = vy / len;
+  s += ray(L[0] - ux * 10, L[1] - uy * 10, Pp[0] + ux * 6, Pp[1] - 5 + uy * 6, { w: 2.2, head: 9, headW: 4.5 });
+  [-26, 24].forEach(dd => { const q = [Pp[0] + dd, Pp[1] - 6]; const qx = L[0] - q[0], qy = L[1] - q[1], ql = Math.hypot(qx, qy); s += ray(L[0] - qx / ql * 10, L[1] - qy / ql * 10, q[0] + qx / ql * 3, q[1] + qy / ql * 3, { w: 1.1, head: 6 }); });
+  s += kaynak(u, L[0], L[1], 7, 3);
+  s += T(L[0] + 14, L[1] - 10, 'I', { size: 14, weight: 800, italic: true });
+  const aR = Math.atan2(uy, ux) / D;
+  s += yay(Pp[0], Pp[1] - 5, 36, aR, -90, P.coral, 1.8);
+  const am = ((aR - 90) / 2) * D;
+  s += T(f1(Pp[0] + 50 * Math.cos(am)), f1(Pp[1] - 5 + 50 * Math.sin(am) + 5), 'α', { size: 15, anchor: 'middle', weight: 800, fill: P.coral });
+  const mx = L[0] + 0.45 * (Pp[0] - L[0]), my = L[1] + 0.45 * (Pp[1] - L[1]);
+  s += T(f1(mx + uy * 12), f1(my - ux * 12 + 5), 'r', { size: 14, anchor: 'middle', weight: 800, italic: true });
+  s += T(Pp[0] + 62, Pp[1] - 8, 'kitap', { size: 12, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Isınma 1: serada asılı lamba; K tam altında 1 m, L'ye uzaklık 2 m, ışın normalle 60° */
+BFY_FIG_EKLE('sf1131_sera', function (u) {
+  const W = 330, H = 250, m = 72, L = [92, 66], yz = L[1] + m, xL = L[0] + Math.sqrt(3) * m;
+  let s = GL(u) + `<defs><linearGradient id="${u}seraC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3f1f6"/><stop offset="1" stop-color="#f6faf7"/></linearGradient><linearGradient id="${u}yaprak" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fd06a"/><stop offset="1" stop-color="#3f8a3a"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}seraC)"/>`;
+  s += `<path d="M10 40 Q165 -6 320 40" fill="none" stroke="#9fb3bb" stroke-width="3"/>`;
+  [70, 130, 200, 260].forEach(x => { s += `<line x1="${x}" y1="${40 - (x < 165 ? (x - 10) : (320 - x)) * 0.28}" x2="${x}" y2="${H - 30}" stroke="#c4d3d8" stroke-width="2"/>`; });
+  s += `<line x1="${L[0]}" y1="22" x2="${L[0]}" y2="${L[1] - 12}" stroke="#4f585e" stroke-width="1.6"/>`;
+  s += `<path d="M${L[0] - 16} ${L[1] - 4} Q${L[0]} ${L[1] - 20} ${L[0] + 16} ${L[1] - 4} Z" fill="#5f6b73" stroke="#3d464c" stroke-width="1"/>`;
+  s += kaynak(u, L[0], L[1], 6, 2.8);
+  // tezgâh ve fide tablaları
+  s += `<rect x="20" y="${yz + 8}" width="290" height="14" rx="3" fill="url(#${u}wood)" stroke="#a88652" stroke-width="1"/>`;
+  s += `<rect x="34" y="${yz + 22}" width="9" height="${H - yz - 34}" fill="#c9a66d" stroke="#a88652"/><rect x="288" y="${yz + 22}" width="9" height="${H - yz - 34}" fill="#c9a66d" stroke="#a88652"/>`;
+  s += `<rect x="24" y="${yz}" width="282" height="9" rx="2" fill="#6b4e33"/>`;
+  for (let x = 38; x < 300; x += 22) s += `<path d="M${x} ${yz} q-7 -9 -12 -6 q5 6 12 6 q7 -9 12 -6 q-5 6 -12 6" fill="url(#${u}yaprak)" stroke="#2f6b2c" stroke-width=".6"/>`;
+  // ışınlar ve ölçüler
+  s += ray(L[0], L[1] + 12, L[0], yz - 4, { w: 2, head: 8 });
+  const ux = (xL - L[0]) / (2 * m), uy = (yz - L[1]) / (2 * m);
+  s += ray(L[0] + ux * 12, L[1] + uy * 12, xL - ux * 4, yz - uy * 4, { w: 2, head: 8 });
+  s += `<circle cx="${L[0]}" cy="${yz}" r="3.6" fill="${P.ink}"/><circle cx="${f1(xL)}" cy="${yz}" r="3.6" fill="${P.ink}"/>`;
+  s += T(L[0] - 10, yz - 8, 'K', { size: 14, anchor: 'end', weight: 800 }) + T(f1(xL + 10), yz - 8, 'L', { size: 14, weight: 800 });
+  s += dimV(L[0] - 30, L[1], yz, '1 m', { side: 'left', size: 12.5 });
+  s += dashLine(L[0] - 34, L[1], L[0] - 10, L[1], P.ink2, '3 3', 1);
+  s += T(f1((L[0] + xL) / 2 - 8), f1((L[1] + yz) / 2 + 19), '2 m', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += dashLine(f1(xL), yz - 4, f1(xL), 24, P.ink2, '5 4', 1.3) + T(f1(xL + 6), 32, 'normal', { size: 12, weight: 700, fill: P.ink2 });
+  const aR = Math.atan2(-uy, -ux) / D;
+  s += yay(xL, yz, 32, aR, -90, P.coral, 1.8);
+  const am = ((aR - 90) / 2) * D;
+  s += T(f1(xL + 46 * Math.cos(am)), f1(yz + 46 * Math.sin(am) + 5), '60°', { size: 13, anchor: 'middle', weight: 800, fill: P.coral });
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 2: direğin üstünde aydınlatma balonu, yarıçap 1 m, lamba merkezde */
+BFY_FIG_EKLE('sf1131_balon', function (u) {
+  const W = 320, H = 262, cx = 150, cy = 84, R = 56, yz = 222;
+  let s = GL(u) + `<defs><radialGradient id="${u}bln" cx="42%" cy="38%" r="65%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#fbf3d6"/><stop offset="1" stop-color="#e3cf93"/></radialGradient><radialGradient id="${u}hale" cx="50%" cy="50%" r="50%"><stop offset=".55" stop-color="#fff2bf" stop-opacity=".55"/><stop offset="1" stop-color="#fff2bf" stop-opacity="0"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}night)"/>`;
+  s += `<path d="M0 ${yz} H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="#4a4f55"/>`;
+  s += `<path d="M0 ${yz + 20} H${W}" stroke="#e8e2c8" stroke-width="2.4" stroke-dasharray="16 12"/>`;
+  s += `<ellipse cx="${cx}" cy="${yz + 2}" rx="120" ry="16" fill="#fff2bf" opacity=".22"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R + 34}" fill="url(#${u}hale)"/>`;
+  s += `<rect x="${cx - 4}" y="${cy + R - 4}" width="8" height="${yz - cy - R - 6}" fill="url(#${u}metalV)" stroke="#3d464c" stroke-width=".8"/>`;
+  s += `<path d="M${cx - 44} ${yz} L${cx} ${yz - 52} L${cx + 44} ${yz}" fill="none" stroke="#8e979f" stroke-width="3"/>`;
+  s += `<rect x="${cx - 52}" y="${yz - 8}" width="104" height="10" rx="3" fill="#d9822b" stroke="#8a4e14"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${u}bln)" stroke="#c9b26a" stroke-width="1.4"/>`;
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="${R}" ry="${R * 0.24}" fill="none" stroke="#c9b26a" stroke-width=".9" stroke-dasharray="4 3" opacity=".8"/>`;
+  s += kaynak(u, cx, cy, 6, 2.4);
+  s += dimH(cx, cx + R, cy + 22, 'r = 1 m', { size: 12.5, below: true });
+  s += T(cx + R + 14, cy - R + 6, 'aydınlatma', { size: 12, weight: 700, fill: '#fff', halo: false }) + T(cx + R + 14, cy - R + 21, 'balonu', { size: 12, weight: 700, fill: '#fff', halo: false });
+  s += T(cx - 12, cy + 26, 'lamba', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 });
+  [[40, yz - 2], [262, yz - 2]].forEach(([x, y]) => { s += `<path d="M${x - 9} ${y} L${x} ${y - 24} L${x + 9} ${y} Z" fill="#e8662a" stroke="#9a3d12"/><path d="M${x - 5.5} ${y - 9} H${x + 5.5} M${x - 3.5} ${y - 16} H${x + 3.5}" stroke="#fff" stroke-width="2.2"/>`; });
+  return svg(W, H, s, u, 68);
+});
+
 })();
 
 /* ---------- i1131: HİKÂYE, TANIM ve EFSANE için 3B görünümlü çizimler ---------- */
@@ -107341,6 +107999,192 @@ const KONU = {
     'ZENGİN: mağaza tavanında doğrultuya bağlı ışık şiddeti tablolu gömme LED armatür, P ve Q (37°) oranı', 'ZENGİN: yağ lekeli kâğıt fotometresi, 2 m ray, 40 cd ve bilinmeyen lamba, kâğıdı döndürme ve kaydırma',
     'ZENGİN ETK: 50 cd lamba, küre/yarım küre/küp yüzü/dik ve eğik küçük levhaya düşen akı (eşleştir)', 'SİM: 200 cd lamba, 30–120 cm kart, α seçici, E–r grafiği'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Işık şiddeti, ışık akısı ve aydınlanmayı kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Kaynağın gücü: ışık şiddeti',
+        metin: r`Elektrikler kesildi ve masaya bir mum yaktın. Biraz sonra elektrik geldi ve tavandaki ampul yandı. Ampul, mumdan çok daha güçlü ışık veriyor.
+
+Bir kaynağın belli bir doğrultuda yaydığı ışığın yoğunluğuna **ışık şiddeti** denir:
+- Sembolü $I$, birimi **candela** (cd)'dır. Bir mum alevinin ışık şiddeti yaklaşık $1$ cd'dır.
+- Işık şiddeti kaynağın kendi özelliğidir. Kaynağa yaklaşsan da uzaklaşsan da değişmez.
+
+Uzaklaşınca değişen, senin bulunduğun yere ulaşan ışıktır. Onu birazdan göreceğiz.`,
+        kontrol: {
+          soru: 'Masadaki lambadan uzaklaşıp odanın öbür ucuna gidiyorsun. Lambanın ışık şiddeti ne olur?',
+          secenekler: ['Azalır.', 'Değişmez.', 'Artar.'],
+          dogru: 1,
+          aciklama: 'Işık şiddeti lambanın özelliğidir; senin uzaklığına bağlı değildir. Uzaklaşınca sana ulaşan ışık azalır ama lambanın ışık şiddeti aynı kalır.',
+          yanlisIpucu: 'Işık şiddeti kimin özelliği: lambanın mı, senin bulunduğun yerin mi?'
+        }
+      },
+      {
+        baslik: 'Saçılan ışığın tamamı: ışık akısı',
+        sekil: 'sf1131_kure',
+        metin: r`Bir ampul her yöne ışık saçar. Bir yüzeye birim zamanda düşen ışık miktarına **ışık akısı** denir. Sembolü $\Phi$ (fi), birimi **lümen** (lm)'dir. Ampul kutularında yazan lümen değeri budur.
+
+Ampulü tamamen saran kapalı bir yüzey düşün, örneğin bir küre. Ampulün yaydığı her ışın bu yüzeye mutlaka düşer. Bu yüzden kapalı yüzeye düşen toplam akı:
+$$\Phi = 4\pi I$$
+Bu konuda $\pi = 3$ alınır, yani $\Phi = 12 \times I$ olur. Işık şiddeti $10$ cd olan bir ampulün toplam akısı $12 \times 10 = 120$ lm'dir. Şekildeki her ışın iki küreden de geçer. Küre küçük de olsa büyük de olsa toplam akı aynıdır.`,
+        kontrol: {
+          soru: r`Işık şiddeti $20$ cd olan bir lamba, önce küçük bir kürenin, sonra çok büyük bir kürenin merkezine konuyor. Büyük küreye düşen toplam ışık akısı kaç lm'dir?`,
+          secenekler: [r`$20$ lm`, r`$240$ lm`, r`$80$ lm`],
+          dogru: 1,
+          aciklama: r`$\Phi = 4\pi I = 12 \times 20 = 240$ lm. Lambanın yaydığı ışığın tamamı kürenin iç yüzeyine düşer. Kürenin büyüklüğü bu toplamı değiştirmez; küçük küreye de $240$ lm düşer.`,
+          yanlisIpucu: r`$\Phi = 4\pi I$ ve $\pi = 3$. Işık şiddeti ile ışık akısı aynı şey değildir; $\pi$ sayısını da unutma.`
+        }
+      },
+      {
+        baslik: 'Aydınlanma: her metrekareye düşen ışık',
+        metin: r`Aynı ışığı küçük bir alana toplarsan o alan çok aydınlık olur. Geniş bir alana yayarsan her yere az ışık düşer.
+
+Birim yüzeye dik olarak düşen ışık akısına **aydınlanma** denir. Sembolü $E$, birimi **lüks** (lx)'tür:
+$$E = \dfrac{\Phi}{A}$$
+Alanı $2$ m² olan bir duvar panosuna $800$ lm'lik ışık akısı düşüyor. Panonun aydınlanması $E = \dfrac{800}{2} = 400$ lx'tür. Aydınlanmayı **lüksmetre** ölçer.`,
+        kontrol: {
+          soru: r`Alanı $3$ m² olan bir masaya $900$ lm'lik ışık akısı düşüyor. Masanın aydınlanması kaç lx'tür?`,
+          secenekler: [r`$2700$ lx`, r`$300$ lx`, r`$900$ lx`],
+          dogru: 1,
+          aciklama: r`$E = \dfrac{\Phi}{A} = \dfrac{900}{3} = 300$ lx. Her metrekareye $300$ lm düşer.`,
+          yanlisIpucu: 'Aydınlanma, ışık akısının alana bölümüdür. Çarpma yapma; alanı da hesaba kat.'
+        }
+      },
+      {
+        baslik: 'Uzaklaştıkça hızla azalır',
+        metin: r`Bir lambanın ışığı uzaklaştıkça daha geniş bir alana yayılır. Uzaklık 2 katına çıkınca aynı ışık 4 kat alana yayılır. Bu yüzden ışınların dik düştüğü bir noktada aydınlanma:
+$$E = \dfrac{I}{r^2}$$
+Burada $r$, kaynağın o noktaya uzaklığıdır ve metre ile yazılır.
+
+Işık şiddeti $80$ cd olan bir lamba, $2$ m uzaklıktaki bir noktada $E = \dfrac{80}{2^2} = 20$ lx aydınlanma oluşturur. $4$ m uzaklıkta ise $\dfrac{80}{16} = 5$ lx olur. Uzaklık 2 katına çıktı, aydınlanma 4'te 1'ine indi.`,
+        kontrol: {
+          soru: r`Işık şiddeti $90$ cd olan bir lamba, $3$ m altındaki zemini aydınlatıyor. Zeminde lambanın tam altındaki noktanın aydınlanması kaç lx'tür?`,
+          secenekler: [r`$30$ lx`, r`$270$ lx`, r`$10$ lx`],
+          dogru: 2,
+          aciklama: r`$E = \dfrac{I}{r^2} = \dfrac{90}{3^2} = \dfrac{90}{9} = 10$ lx.`,
+          yanlisIpucu: r`Uzaklığın karesini almayı unutma: $3^2 = 9$. Işık şiddetini bu sayıya böl.`
+        }
+      },
+      {
+        baslik: 'Eğik gelen ışık daha az aydınlatır',
+        sekil: 'sf1131_egik',
+        metin: r`Bir kitabı lambanın altında ışığa dik tutunca sayfa iyi aydınlanır. Kitabı yatırınca sayfa kararır. Işınlar yüzeye eğik gelince aynı ışık daha geniş bir alana yayılır.
+
+Işınlar yüzeye eğik geliyorsa aydınlanma şöyle bulunur:
+$$E = \dfrac{I}{r^2}\cos\alpha$$
+Buradaki $\alpha$, ışının yüzeyle değil, yüzeyin **normaliyle** yaptığı açıdır. Normal, yüzeye dik çizilen çizgidir.
+- $\alpha = 0°$ ise ışın dik gelir. $\cos 0° = 1$ olduğundan aydınlanma en büyüktür.
+- $\alpha = 60°$ ise $\cos 60° = \dfrac{1}{2}$ olur. Aydınlanma, dik gelişteki değerin yarısıdır.
+
+Önceki $80$ cd'lık lambanın ışınları $2$ m uzaktaki bir sayfaya normalle $60°$ açı yaparak gelirse $E = 20 \times \dfrac{1}{2} = 10$ lx olur.`,
+        kontrol: {
+          soru: r`Bir ışın masanın yüzeyiyle $30°$'lik açı yapıyor. $E = \dfrac{I}{r^2}\cos\alpha$ bağıntısında $\alpha$ kaç derecedir?`,
+          secenekler: [r`$30°$`, r`$60°$`, r`$90°$`],
+          dogru: 1,
+          aciklama: r`Normal yüzeye diktir; yüzeyle $90°$ açı yapar. Işın yüzeyle $30°$ yapıyorsa normalle $90° - 30° = 60°$ yapar. Bu yüzden $\alpha = 60°$'dir.`,
+          yanlisIpucu: r`$\alpha$, ışın ile normal arasındaki açıdır. Normal yüzeye diktir; $90°$'den ışının yüzeyle yaptığı açıyı çıkar.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Seradaki lamba',
+        sekil: 'sf1131_sera',
+        metin: r`Bir serada fidelerin üstüne ışık şiddeti $360$ cd olan bir lamba asılmış. K fidesi lambanın tam altında ve lambadan $1$ m uzakta. L fidesi lambadan $2$ m uzakta ve lambanın ışınları L'ye normalle $60°$ açı yaparak geliyor. Yaprakların yüzeyi yatay kabul ediliyor. Lamba noktasal ve her yöne eşit ışık yayan bir kaynaktır.`,
+        adimlar: [
+          {
+            soru: 'K fidesinin aydınlanması kaç lx\'tür?',
+            secenekler: [r`$4320$ lx`, r`$360$ lx`, r`$90$ lx`],
+            dogru: 1,
+            ipucu: r`Işınlar K'ye dik geliyor. $E = \dfrac{I}{r^2}$ ve $r = 1$ m.`,
+            aciklama: r`$E_K = \dfrac{360}{1^2} = 360$ lx.`
+          },
+          {
+            soru: 'L fidesinin aydınlanması kaç lx\'tür?',
+            secenekler: [r`$45$ lx`, r`$90$ lx`, r`$180$ lx`],
+            dogru: 0,
+            ipucu: r`Önce uzaklığı hesaba kat: $\dfrac{360}{2^2}$. Sonra eğik geliş için $\cos 60° = \dfrac{1}{2}$ ile çarp.`,
+            aciklama: r`$E_L = \dfrac{360}{2^2} \times \dfrac{1}{2} = 90 \times \dfrac{1}{2} = 45$ lx.`
+          },
+          {
+            soru: r`Lamba yukarı kaldırılıyor ve K'ye uzaklığı $3$ m oluyor. K'nin aydınlanması kaç lx olur?`,
+            secenekler: [r`$120$ lx`, r`$40$ lx`, r`$360$ lx`],
+            dogru: 1,
+            ipucu: r`Uzaklık 3 katına çıktı. Aydınlanma uzaklıkla değil, uzaklığın karesiyle ters orantılıdır: $3^2 = 9$.`,
+            aciklama: r`$E_K = \dfrac{360}{3^2} = \dfrac{360}{9} = 40$ lx. Uzaklık 3 katına çıkınca aydınlanma 9'da 1'ine indi.`
+          }
+        ],
+        sonuc: 'Lambanın tam altındaki fide, kenardaki fideden hem daha yakın olduğu hem de ışığı dik aldığı için daha çok aydınlanır. Lambayı uzaklaştırmak aydınlanmayı çok hızlı azaltır.'
+      },
+      {
+        baslik: 'Aydınlatma balonu',
+        sekil: 'sf1131_balon',
+        metin: r`Gece yapılan yol çalışmalarında bazen bir direğin üstüne büyük, beyaz bir aydınlatma balonu yerleştirilir. Balonun tam ortasında bir lamba vardır. Balonun yarıçapı $1$ m, lambanın ışık şiddeti $2000$ cd'dır. $\pi = 3$ alınıyor.`,
+        adimlar: [
+          {
+            soru: 'Lambadan balona düşen toplam ışık akısı kaç lm\'dir?',
+            secenekler: [r`$2000$ lm`, r`$8000$ lm`, r`$24\,000$ lm`],
+            dogru: 2,
+            ipucu: r`Balon lambayı tamamen sarıyor. Kapalı yüzeyin akısı $\Phi = 4\pi I$'dır.`,
+            aciklama: r`$\Phi = 4 \times 3 \times 2000 = 24\,000$ lm.`
+          },
+          {
+            soru: r`Balonun iç yüzeyinin alanı $4\pi r^2 = 12$ m²'dir. Balonun iç yüzeyindeki ortalama aydınlanma kaç lx'tür?`,
+            secenekler: [r`$2000$ lx`, r`$24\,000$ lx`, r`$12$ lx`],
+            dogru: 0,
+            ipucu: r`$E = \dfrac{\Phi}{A}$. Toplam akıyı yüzey alanına böl.`,
+            aciklama: r`$E = \dfrac{24\,000}{12} = 2000$ lx. $E = \dfrac{I}{r^2} = \dfrac{2000}{1^2}$ ile de aynı sonuç çıkar.`
+          },
+          {
+            soru: r`Aynı lamba, yarıçapı $2$ m olan daha büyük bir balona konuyor. Balona düşen toplam ışık akısı ne olur?`,
+            secenekler: [r`Değişmez, yine $24\,000$ lm olur.`, '2 katına çıkar.', '4 katına çıkar.'],
+            dogru: 0,
+            ipucu: 'Lambanın yaydığı ışınların hepsi yine balonun iç yüzeyine düşüyor mu? Lamba değişti mi?',
+            aciklama: 'Lamba aynıdır ve balon onu yine tamamen sarar. Bütün ışınlar balona düşer; toplam akı değişmez.'
+          },
+          {
+            soru: 'Büyük balonun iç yüzeyindeki ortalama aydınlanma kaç lx olur?',
+            secenekler: [r`$1000$ lx`, r`$500$ lx`, r`$2000$ lx`],
+            dogru: 1,
+            ipucu: r`Yüzey alanı $4\pi r^2 = 12 \times 2^2 = 48$ m² olur. Aynı akıyı bu alana böl.`,
+            aciklama: r`$E = \dfrac{24\,000}{48} = 500$ lx. $E = \dfrac{I}{r^2} = \dfrac{2000}{4} = 500$ lx ile de aynı sonuç çıkar.`
+          }
+        ],
+        sonuc: 'Kapalı yüzeye düşen toplam akı yüzeyin büyüklüğüne bağlı değildir. Yüzey büyüyünce aynı akı daha geniş alana yayılır ve aydınlanma azalır.'
+      },
+      {
+        baslik: 'Fotoğraf masası',
+        metin: r`Bir fotoğrafçı, masadaki bir vazonun fotoğrafını çekecek. Işık şiddeti $480$ cd olan bir lamba vazoyu $4$ m uzaklıktan aydınlatıyor. Işınlar vazonun ön yüzüne dik geliyor.`,
+        adimlar: [
+          {
+            soru: 'Vazonun ön yüzündeki aydınlanma kaç lx\'tür?',
+            secenekler: [r`$120$ lx`, r`$30$ lx`, r`$1920$ lx`],
+            dogru: 1,
+            ipucu: r`$E = \dfrac{I}{r^2}$ ve $r^2 = 4^2 = 16$.`,
+            aciklama: r`$E = \dfrac{480}{16} = 30$ lx.`
+          },
+          {
+            soru: r`Fotoğrafçı lambayı vazoya yaklaştırıyor ve uzaklık $1$ m oluyor. Aydınlanma kaç lx olur?`,
+            secenekler: [r`$120$ lx`, r`$480$ lx`, r`$30$ lx`],
+            dogru: 1,
+            ipucu: 'Uzaklık 4\'te 1\'ine indi. Aydınlanma uzaklığın karesiyle ters orantılıdır: Kaç katına çıkar?',
+            aciklama: r`$E = \dfrac{480}{1^2} = 480$ lx. Uzaklık 4'te 1'ine inince aydınlanma $4^2 = 16$ katına çıktı.`
+          },
+          {
+            soru: r`Lamba $1$ m uzaklıkta kalacak. Vazonun aydınlanmasının yine $30$ lx olması için lambanın ışık şiddeti kaç cd olmalıdır?`,
+            secenekler: [r`$30$ cd`, r`$120$ cd`, r`$480$ cd`],
+            dogru: 0,
+            ipucu: r`$E = \dfrac{I}{r^2}$ ise $I = E \times r^2$ olur. $r = 1$ m.`,
+            aciklama: r`$I = 30 \times 1^2 = 30$ cd. Yaklaşınca aynı aydınlanma için 16 kat daha zayıf bir lamba yeter.`
+          }
+        ],
+        sonuc: 'Aydınlanma, ışık şiddetiyle doğru orantılı, uzaklığın karesiyle ters orantılıdır. Kaynağa yaklaşmak, daha güçlü bir lamba almaktan çoğu zaman daha etkilidir.'
+      }
+    ],
+    hazir: 'Işık şiddeti, ışık akısı ve aydınlanmayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
