@@ -3103,6 +3103,145 @@ BFY_FIG_EKLE('i911_kart_olcut', u => S(u, I => {
 
 })();
 
+/* =============== SIFIRDAN BAŞLA: sahneler (konu.baslangic) =============== */
+(function () {
+const { kure, golge, ok, etiket, yazi, parilti, N, sahne, ton } = window.BFY_ISO;
+const r1 = v => Math.round(v * 10) / 10;
+const gokZemin = (u, ust = '#cfe6f5', alt = '#eef6fb') => `<defs><linearGradient id="${u}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ust}"/><stop offset="1" stop-color="${alt}"/></linearGradient><linearGradient id="${u}cm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fcf7f"/><stop offset="1" stop-color="#6fa957"/></linearGradient></defs>`;
+const bulut = (x, y, k = 1, renk = '#ffffff', op = 0.95) => `<g opacity="${op}" fill="${renk}"><ellipse cx="${x}" cy="${y}" rx="${r1(18 * k)}" ry="${r1(8 * k)}"/><ellipse cx="${r1(x - 12 * k)}" cy="${r1(y + 2 * k)}" rx="${r1(11 * k)}" ry="${r1(6 * k)}"/><ellipse cx="${r1(x + 13 * k)}" cy="${r1(y + 2 * k)}" rx="${r1(12 * k)}" ry="${r1(6 * k)}"/><ellipse cx="${r1(x - 3 * k)}" cy="${r1(y - 6 * k)}" rx="${r1(10 * k)}" ry="${r1(7 * k)}"/></g>`;
+const gunes = (u, x, y, r) => parilti(x, y, r * 2, 'gunes', 12) + kure(u, x, y, r, '#f6c445', { golge: false, cizgi: false });
+const metalBoru = (x1, y1, x2, y2, w = 4, c = '#8d99a3') => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${ton(c, -0.4)}" stroke-width="${w + 1.6}" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#fff" stroke-opacity=".45" stroke-width="${r1(w * 0.3)}" stroke-linecap="round" transform="translate(-0.8 -0.8)"/>`;
+
+/* Adım 1: parkta bir öğleden sonra; salıncak gidip gelir, Güneş kaydırağı ısıtır, ağacın gölgesi oluşur.
+   Güneş sağ üstte olduğundan gölgeler sola düşer. */
+BFY_FIG_EKLE('sf911_park', u => sahne(u, () => {
+  let s = gokZemin(u);
+  s += bulut(92, 28, 1) + bulut(196, 20, 0.8);
+  s += gunes(u, 284, 30, 13);
+  s += `<path d="M0 118 Q80 108 160 116 T320 112 L320 180 L0 180Z" fill="url(#${u}cm)"/>`;
+  s += `<path d="M0 118 Q80 108 160 116 T320 112" fill="none" stroke="#5f9a49" stroke-width="1"/>`;
+  // ağaç ve sola düşen gölgesi
+  s += `<ellipse cx="30" cy="142" rx="30" ry="5.5" fill="#2f5a25" opacity=".35"/>`;
+  s += `<path d="M56 141 L58 98 L66 98 L68 141Z" fill="#8a5a33" stroke="#5e3b1f" stroke-width=".8"/>`;
+  s += kure(u, 62, 80, 24, '#4f9a5d', { golge: false }) + kure(u, 47, 92, 15, '#4f9a5d', { golge: false }) + kure(u, 78, 92, 15, '#5aa566', { golge: false });
+  s += yazi(30, 160, 'gölge', { size: 11.5, renk: '#2f5a25' });
+  // salıncak çerçevesi (A ayaklı), gölgesi solda
+  s += `<ellipse cx="160" cy="143" rx="40" ry="3.5" fill="#2f5a25" opacity=".25"/>`;
+  s += metalBoru(128, 142, 142, 60) + metalBoru(156, 142, 142, 60) + metalBoru(186, 142, 200, 60) + metalBoru(214, 142, 200, 60);
+  s += metalBoru(140, 60, 202, 60, 5, '#c0504d');
+  // salınım yayı (kesikli) ve iki yön oku
+  const px = 171, py = 61, R = 66, a1 = -32 * Math.PI / 180, a2 = 32 * Math.PI / 180;
+  const A = [px + R * Math.sin(a1), py + R * Math.cos(a1)], B = [px + R * Math.sin(a2), py + R * Math.cos(a2)];
+  s += `<path d="M${r1(A[0])} ${r1(A[1])} A${R} ${R} 0 0 0 ${r1(B[0])} ${r1(B[1])}" fill="none" stroke="#2b4a8b" stroke-width="1.3" stroke-dasharray="4 3"/>`;
+  s += ok(A[0] + 6, A[1] + 3.2, A[0], A[1], { renk: '#2b4a8b', w: 1.3, bas: 6, basG: 3.4 }) + ok(B[0] - 6, B[1] + 3.2, B[0], B[1], { renk: '#2b4a8b', w: 1.3, bas: 6, basG: 3.4 });
+  // ipler ve oturak (ileri salınmış)
+  const L = 52, t = 24 * Math.PI / 180, sx = px + L * Math.sin(t), sy = py + L * Math.cos(t);
+  s += `<line x1="${px - 4}" y1="${py}" x2="${r1(sx - 6)}" y2="${r1(sy)}" stroke="#5e4a3a" stroke-width="1.4"/><line x1="${px + 4}" y1="${py}" x2="${r1(sx + 5)}" y2="${r1(sy)}" stroke="#5e4a3a" stroke-width="1.4"/>`;
+  // oturan çocuk
+  s += `<path d="M${r1(sx - 2)} ${r1(sy - 1)} L${r1(sx + 12)} ${r1(sy + 1)} L${r1(sx + 17)} ${r1(sy + 13)}" fill="none" stroke="#34495e" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += `<rect x="${r1(sx - 6)}" y="${r1(sy - 19)}" width="11" height="17" rx="4.5" fill="#ee8a3a" stroke="${ton('#ee8a3a', -0.4)}" stroke-width=".8" transform="rotate(-8 ${r1(sx)} ${r1(sy - 10)})"/>`;
+  s += `<line x1="${r1(sx - 3)}" y1="${r1(sy - 14)}" x2="${r1(sx - 5)}" y2="${r1(sy - 20)}" stroke="#e8b892" stroke-width="2.4" stroke-linecap="round"/>`;
+  s += kure(u, sx - 1.5, sy - 25, 5.6, '#e8b892', { golge: false, cizgi: false });
+  s += `<path d="M${r1(sx - 7.1)} ${r1(sy - 26)} A5.6 5.6 0 0 1 ${r1(sx + 4.1)} ${r1(sy - 26)} Q${r1(sx - 1.5)} ${r1(sy - 28.5)} ${r1(sx - 7.1)} ${r1(sy - 26)}Z" fill="#3b2a20"/>`;
+  s += `<rect x="${r1(sx - 9)}" y="${r1(sy - 1)}" width="17" height="3.6" rx="1.4" fill="#c9955a" stroke="#7a5530" stroke-width=".8"/>`;
+  s += yazi(171, 160, 'gidip gelir', { size: 11.5, renk: '#2b4a8b' });
+  // kaydırak: merdiven sağda, kayma yüzü sola iner
+  s += `<ellipse cx="252" cy="142" rx="36" ry="3.5" fill="#2f5a25" opacity=".25"/>`;
+  s += metalBoru(286, 142, 286, 80, 3) + metalBoru(298, 142, 298, 80, 3);
+  for (let y = 132; y >= 90; y -= 10) s += `<line x1="286" y1="${y}" x2="298" y2="${y}" stroke="#6f7a83" stroke-width="2"/>`;
+  s += `<path d="M280 80 L300 80 L300 84 L280 84Z" fill="#9aa5ad" stroke="#5f6a70" stroke-width=".8"/>`;
+  s += `<defs><linearGradient id="${u}ky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0f4f6"/><stop offset=".5" stop-color="#b8c4cc"/><stop offset="1" stop-color="#7d8a93"/></linearGradient></defs>`;
+  s += `<path d="M282 80 L230 134 Q226 138 220 138 L218 142 L226 142 Q232 142 236 137 L286 84Z" fill="url(#${u}ky)" stroke="#5f6a70" stroke-width=".9"/>`;
+  s += `<line x1="283" y1="81" x2="232" y2="134" stroke="#fff" stroke-width="1.2" opacity=".8"/>`;
+  [[248, 100], [258, 90], [268, 80]].forEach(([x, y]) => { s += `<path d="M${x} ${y} q-3 -4 0 -8 t0 -8" fill="none" stroke="#e2502a" stroke-width="1.4" stroke-linecap="round" opacity=".8"/>`; });
+  s += yazi(246, 160, 'ısınır', { size: 11.5, renk: '#b5401f' });
+  return s;
+}, { w: 320, h: 172, mm: 105, zemin: 'url(#' + u + 'gk)' }));
+
+/* Adım 2: yağmurdan sonra gökkuşağı. Güneş gözlemcinin arkasında (sağ üst), gökkuşağı karşıda (sol).
+   Kırmızı bant dışta, mor bant içte; yay ufkun altında kalan bir merkezle çizilir. */
+BFY_FIG_EKLE('sf911_gokkusagi', u => sahne(u, () => {
+  let s = gokZemin(u, '#b9cfdf', '#eaf2f7');
+  s += gunes(u, 294, 68, 12); // gökkuşağı için Güneş alçakta (42°'den aşağıda)
+  // yağmur bulutu ve yağmur (solda, uzakta)
+  for (let i = 0; i < 16; i++) { const x = 14 + i * 9; s += `<line x1="${x}" y1="40" x2="${x - 6}" y2="118" stroke="#7d93a6" stroke-width="1" opacity=".45"/>`; }
+  s += bulut(52, 30, 1.6, '#8796a3', 1) + bulut(112, 26, 1.4, '#97a5b1', 1);
+  // gökkuşağı
+  const cx = 118, cy = 186, renk = ['#d24b3e', '#ee8a3a', '#f2c94c', '#5fae6a', '#3b8fc8', '#3e4fa8', '#7b5bc4'];
+  s += `<defs><clipPath id="${u}uf"><rect x="0" y="0" width="320" height="121"/></clipPath></defs><g clip-path="url(#${u}uf)" opacity=".85">`;
+  renk.forEach((c, i) => { const R = 118 - i * 4.4; s += `<circle cx="${cx}" cy="${cy}" r="${r1(R)}" fill="none" stroke="${c}" stroke-width="4.6"/>`; });
+  s += '</g>';
+  // zemin
+  s += `<path d="M0 121 Q100 114 200 120 T320 118 L320 172 L0 172Z" fill="url(#${u}cm)"/>`;
+  s += `<path d="M0 121 Q100 114 200 120 T320 118" fill="none" stroke="#5f9a49" stroke-width="1"/>`;
+  [[70, 140], [110, 150], [160, 136], [40, 156]].forEach(([x, y]) => { s += `<ellipse cx="${x}" cy="${y}" rx="9" ry="2" fill="#c7e1ef" stroke="#8fb8cf" stroke-width=".6"/>`; });
+  // sehpa ve tuval
+  s += `<line x1="214" y1="148" x2="224" y2="92" stroke="#8a5a33" stroke-width="2.4"/><line x1="240" y1="148" x2="228" y2="92" stroke="#8a5a33" stroke-width="2.4"/><line x1="226" y1="92" x2="232" y2="148" stroke="#6e4527" stroke-width="2"/>`;
+  s += `<rect x="208" y="98" width="38" height="28" rx="1.5" fill="#fbfaf6" stroke="#8a7a62" stroke-width="1" transform="rotate(-4 227 112)"/>`;
+  s += `<g transform="rotate(-4 227 112)">${renk.slice(0, 5).map((c, i) => `<path d="M${214 + i * 1.6} 122 A${13 - i * 1.6} ${12 - i * 1.6} 0 0 1 ${240 - i * 1.6} 122" fill="none" stroke="${c}" stroke-width="1.5"/>`).join('')}</g>`;
+  s += `<line x1="211" y1="126" x2="244" y2="124" stroke="#8a5a33" stroke-width="2"/>`;
+  // resim yapan çocuk (sırtı Güneş'e dönük), gölgesi sola düşer
+  s += `<ellipse cx="248" cy="150" rx="16" ry="3" fill="#2f5a25" opacity=".3"/>`;
+  s += N.insan(u, 262, 150, 40, 'mor', { pantolon: '#2f3e4e' });
+  s += `<line x1="257" y1="128" x2="246" y2="120" stroke="#e8b892" stroke-width="2.6" stroke-linecap="round"/>`;
+  // etiketler
+  s += etiket(60, 54, 'Coğrafya', { size: 10.5, renk: '#4a5f73' });
+  s += etiket(118, 108, 'Fizik', { size: 10.5, renk: '#b5401f' });
+  s += etiket(258, 162, 'Görsel sanatlar', { size: 10.5, renk: '#5b3f9e' });
+  return s;
+}, { w: 320, h: 172, mm: 105, zemin: 'url(#' + u + 'gk)' }));
+
+/* Adım 4: bisikletin dört parçası, dört alt dal (yandan görünüm). Güneş sol üstte. */
+BFY_FIG_EKLE('sf911_bisiklet', u => sahne(u, () => {
+  let s = gokZemin(u, '#dcecf5', '#f4f8fa');
+  s += gunes(u, 28, 26, 11);
+  s += `<rect x="0" y="166" width="320" height="16" fill="#b9b3a6"/><line x1="0" y1="166" x2="320" y2="166" stroke="#8f887a" stroke-width="1"/>`;
+  [20, 80, 140, 200, 260].forEach(x => { s += `<rect x="${x}" y="172" width="30" height="3" rx="1.5" fill="#f4f1e8"/>`; });
+  const tek = (cx, cy) => {
+    let t = golge(cx, 167, 36, 3, 0.22);
+    t += `<circle cx="${cx}" cy="${cy}" r="38" fill="none" stroke="#2a2f33" stroke-width="6"/><circle cx="${cx}" cy="${cy}" r="38" fill="none" stroke="#4b545a" stroke-width="1.2" stroke-dasharray="2 3"/>`;
+    t += `<circle cx="${cx}" cy="${cy}" r="33.5" fill="none" stroke="#b8c0c7" stroke-width="2.4"/>`;
+    for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; t += `<line x1="${cx}" y1="${cy}" x2="${r1(cx + 33 * Math.cos(a))}" y2="${r1(cy + 33 * Math.sin(a))}" stroke="#9aa5ad" stroke-width=".7"/>`; }
+    t += kure(u, cx, cy, 4, '#b8c0c7', { golge: false });
+    return t;
+  };
+  const RX = 86, FX = 236, Y = 128;
+  s += tek(RX, Y) + tek(FX, Y);
+  // çamurluk (arka)
+  s += `<path d="M${RX - 42} ${Y + 6} A42 42 0 0 1 ${RX + 14} ${Y - 40}" fill="none" stroke="#5a646b" stroke-width="3" stroke-linecap="round"/>`;
+  // kadro
+  const BB = [150, 134], ST = [140, 78], HT = [214, 76], HB = [220, 98];
+  const boru = (a, b, w = 5) => metalBoru(a[0], a[1], b[0], b[1], w, '#2f7fb8');
+  s += boru([RX, Y], BB, 4) + boru([RX, Y], ST, 3.6) + boru(BB, ST) + boru(ST, HT) + boru(BB, HB, 5.5) + boru(HT, HB, 6) + boru(HB, [FX, Y], 4);
+  // sele ve sele borusu
+  s += metalBoru(140, 78, 136, 64, 3, '#9aa5ad');
+  s += `<path d="M122 62 Q130 56 144 60 Q150 62 146 66 Q132 67 122 66Z" fill="#2a2f33" stroke="#111" stroke-width=".8"/><path d="M126 60 Q134 57 142 60" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1.2"/>`;
+  [[126, 50], [134, 46], [142, 50]].forEach(([x, y]) => { s += `<path d="M${x} ${y} q-2.5 -3 0 -6 t0 -6" fill="none" stroke="#e2502a" stroke-width="1.3" stroke-linecap="round" opacity=".8"/>`; });
+  // gidon ve ayna
+  s += metalBoru(214, 76, 210, 62, 3, '#9aa5ad') + metalBoru(204, 60, 222, 58, 3, '#2a2f33');
+  s += `<line x1="206" y1="60" x2="198" y2="44" stroke="#5f6a70" stroke-width="1.6"/>`;
+  s += `<ellipse cx="196" cy="40" rx="6" ry="7.5" fill="#cfe6f5" stroke="#3c4448" stroke-width="2"/><path d="M193 36 L197 34" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>`;
+  // pedal ve zincir
+  s += `<line x1="${RX + 5}" y1="${Y - 4}" x2="${BB[0]}" y2="${BB[1] - 10}" stroke="#4b545a" stroke-width="1.4"/><line x1="${RX + 5}" y1="${Y + 4}" x2="${BB[0]}" y2="${BB[1] + 10}" stroke="#4b545a" stroke-width="1.4"/>`;
+  s += `<circle cx="${BB[0]}" cy="${BB[1]}" r="10" fill="#d9dee2" stroke="#5f6a70" stroke-width="1.4"/><circle cx="${BB[0]}" cy="${BB[1]}" r="3" fill="#5f6a70"/>`;
+  s += `<line x1="${BB[0]}" y1="${BB[1]}" x2="${BB[0] + 8}" y2="${BB[1] + 15}" stroke="#3c4448" stroke-width="3" stroke-linecap="round"/><rect x="${BB[0] + 3}" y="${BB[1] + 15}" width="11" height="3.6" rx="1" fill="#2a2f33"/>`;
+  // arka fren (sele çatalı köprüsünde, jant üstünde)
+  s += `<path d="M${RX + 8} ${Y - 44} L${RX + 8} ${Y - 35} M${RX + 14} ${Y - 43} L${RX + 14} ${Y - 34}" stroke="#3c4448" stroke-width="2.4" stroke-linecap="round"/><rect x="${RX + 6}" y="${Y - 47}" width="11" height="4" rx="1.5" fill="#5f6a70"/><rect x="${RX + 6.5}" y="${Y - 36.5}" width="3" height="4" fill="#c0504d"/><rect x="${RX + 12.5}" y="${Y - 35.5}" width="3" height="4" fill="#c0504d"/>`;
+  // göbek dinamosu (ön tekerleğin göbeğinde, tekerlekle birlikte döner) ve fara giden kablo
+  s += `<circle cx="${FX}" cy="${Y}" r="8" fill="#c9cfd4" stroke="#4b545a" stroke-width="1.1"/><circle cx="${FX}" cy="${Y}" r="5.2" fill="none" stroke="#8a959c" stroke-width=".8"/><circle cx="${FX - 2.4}" cy="${Y - 2.6}" r="2" fill="#fff" opacity=".55"/><circle cx="${FX}" cy="${Y}" r="2" fill="#4b545a"/>`;
+  s += `<path d="M${FX + 3} ${Y - 7} L${HB[0] + 4} ${HB[1] + 1} Q${HB[0] + 7} ${HB[1] - 8} 229 83" fill="none" stroke="#c0504d" stroke-width="1.1"/>`;
+  s += `<polygon points="234,78 318,62 318,102" fill="#ffe27a" opacity=".28"/>`;
+  s += `<path d="M224 78 L234 74 L234 84 L224 82Z" fill="#e6e9ec" stroke="#5f6a70" stroke-width=".9"/><ellipse cx="234" cy="79" rx="2" ry="5" fill="#fff6c8" stroke="#c9a33a" stroke-width=".8"/>`;
+  // etiketler ve kılavuz çizgileri
+  const kil = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#5c6b66" stroke-width=".9"/><circle cx="${x1}" cy="${y1}" r="1.8" fill="#5c6b66"/>`;
+  s += kil(RX + 11, Y - 46, 70, 54) + etiket(56, 48, 'fren', { size: 11 });
+  s += kil(134, 44, 120, 30) + etiket(108, 26, 'sele', { size: 11 });
+  s += kil(190, 38, 176, 26) + etiket(166, 20, 'ayna', { size: 11 });
+  s += kil(FX + 7, Y + 4, 276, 157) + etiket(296, 161, 'dinamo', { size: 11 });
+  return s;
+}, { w: 320, h: 182, mm: 105, zemin: 'url(#' + u + 'gk)' }));
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -3143,6 +3282,191 @@ const KONU = {
     'SET 2: Mert\'in bir haftalık "Fizik nerede?" günlüğü: siyah-beyaz tişört, terleyen şişe, balon, iş makinesinin gecikmeli sesi, polarize gözlük, gübre',
     'ADIM 5: fizik-kimya-biyoloji kesişen daireler (maya, pusula, pil, kulak zarı, fotosentez)', 'ADIM 5: alt dal ayrıştırma ağacı (karbon-14 yaş tayini, sezyum atom saati, asfalt, yelkenli)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Bu konuda hesap yok; tanıma, sınıflandırma ve yorum. Doğru şıklar qa/9.1.1/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hesap yok; çevrene bakıp olayları tanıyacak ve sınıflandıracaksın. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Parkta fizik',
+        sekil: 'sf911_park',
+        metin: r`Bir parkta oturduğunu düşün. Salıncak ileri geri gidip geliyor. Güneş, metal kaydırağı ısıtıyor. Ağacın gölgesi yere düşüyor. Bu üç olayın hepsi fiziğin konusudur.
+
+**Fizik**, evreni ve evrende olan olayları açıklamaya çalışan bilimdir. Madde, enerji, kuvvet, uzay ve zaman arasındaki ilişkileri inceler. Bunu yaparken:
+- Olayları **gözlemler** ve **deney** yapar.
+- Ölçer ve bulduğu ilişkileri **matematik diliyle** yazar.`,
+        kontrol: {
+          soru: 'Parktaki bir öğrenci üç soru yazmış. Hangisi fiziğin gözlem ve deneyle cevap arayacağı bir sorudur?',
+          secenekler: ['Salıncağın en güzel rengi hangisidir?', 'Salıncak neden ileri geri gidip gelir?', 'Bu parkı kim yaptırmıştır?'],
+          dogru: 1,
+          aciklama: 'Salıncağın gidip gelmesi kuvvet ve hareketle ilgili bir olaydır. Bu olay gözlenir, ölçülür ve deneyle sınanır. Renk zevki ve parkın tarihi fiziğin cevap arayacağı sorular değildir.',
+          yanlisIpucu: 'Hangi soru ölçülebilen ve deneyle sınanabilen bir olayı soruyor? Zevk ve tarih sorularını deney cevaplayamaz.'
+        }
+      },
+      {
+        baslik: 'Bir olay, birçok bilim',
+        sekil: 'sf911_gokkusagi',
+        metin: r`Yağmurdan sonra Güneş açtı ve gökyüzünde bir gökkuşağı belirdi. Ece, sırtı Güneş'e dönük durup gökkuşağının resmini yapıyor.
+- Güneş ışığının yağmur damlalarında renklere ayrılması **fiziğin** konusudur.
+- Yağmur bulutlarının oluşması ve su döngüsü **coğrafyanın** da konusudur.
+- Ece'nin renkleri tuvale aktarması **görsel sanatların** konusudur.
+
+Fizik tek başına bir ada değildir. Kimya, biyoloji, matematik, coğrafya, müzik, spor ve sanatla iç içedir. İlişki iki yönlüdür: Fizik bu alanlara yardım eder, onlardan da yararlanır.`,
+        kontrol: {
+          soru: 'Gökkuşağı örneğinden hangi sonuç çıkar?',
+          secenekler: ['Bir olay birden çok disiplinin ortak konusu olabilir.', 'Her olay yalnız tek bir disiplinin konusudur.', 'Gökkuşağı yalnız sanatın konusudur.'],
+          dogru: 0,
+          aciklama: 'Aynı gökkuşağına fizik, coğrafya ve görsel sanatlar farklı sorularla bakar. Doğadaki pek çok olay birden çok disiplinin ortak konusudur.',
+          yanlisIpucu: 'Şekildeki üç etikete bak. Aynı gökkuşağı kaç farklı alanın konusu oluyor?'
+        }
+      },
+      {
+        baslik: 'Fizik neden alt dallara ayrıldı?',
+        metin: r`Bir oto serviste her işe bakan tek bir usta yoktur. Motoru bir usta, elektrik tesisatını başka bir usta, boyayı bir başkası yapar. Araç ise hepsinin birlikte çalışmasıyla yola çıkar.
+
+Fizikte de durum benzerdir:
+- Yüzyıllar içinde **bilgi birikimi arttı**.
+- Konular atomun içinden galaksilere kadar **genişledi ve karmaşıklaştı**.
+- Bu yüzden **uzmanlaşma gerekti** ve fizik **alt dallara** ayrıldı.
+
+Alt dallar birbirinden kopuk değildir. Bir elektrikli otomobil ya da bir tıp cihazı tasarlanırken farklı alt dalların uzmanları birlikte çalışır.`,
+        kontrol: {
+          soru: 'Fiziğin alt dallara ayrılmasının nedeni hangisidir?',
+          secenekler: ['Alt dalların birbiriyle hiçbir ilişkisinin olmaması', 'Bilgi birikiminin artması ve uzmanlaşmanın gerekmesi', 'Fizikteki eski bilgilerin tümüyle yanlış çıkması'],
+          dogru: 1,
+          aciklama: 'Bilgi arttıkça tek bir kişinin her konuda uzman olması zorlaştı. Alt dallar bu yüzden doğdu. Yine de alt dallar birbiriyle iş birliği yapar.',
+          yanlisIpucu: 'Oto servis örneğini düşün. Ustalar işi neden paylaşıyor? Birbirleriyle ilgisiz oldukları için mi?'
+        }
+      },
+      {
+        baslik: 'Bir bisiklette dört alt dal',
+        sekil: 'sf911_bisiklet',
+        metin: r`Bir bisikletin üzerinde birçok alt dal bir arada çalışır:
+- **Mekanik** kuvveti, hareketi ve dengeyi inceler. Frene basınca bisikletin yavaşlaması mekaniğin konusudur.
+- **Termodinamik** ısı ve sıcaklıkla ilgilenir. Güneşte bekleyen siyah selenin ısınması termodinamiğin konusudur.
+- **Optik** ışık olaylarını inceler. Gidondaki aynada arkadaki yolun görünmesi optiğin konusudur.
+- **Elektromanyetizma** elektrik akımını, mıknatısları ve manyetik alanı inceler.
+
+Bu dört alt dal çoğunlukla gözümüzle görebildiğimiz büyüklükteki olaylarla ilgilenir.`,
+        kontrol: {
+          soru: 'Ön tekerleğin göbeğindeki dinamo, tekerlek dönerken farı yakan elektrik akımını üretir. Bu olay en çok hangi alt dalın konusudur?',
+          secenekler: ['Mekanik', 'Elektromanyetizma', 'Optik'],
+          dogru: 1,
+          aciklama: 'Dinamonun içinde bir mıknatıs ve bir tel sargısı vardır. Dönen mıknatıs, tel sargısında elektrik akımı oluşturur. Elektrik akımı ve mıknatıslar elektromanyetizmanın konusudur.',
+          yanlisIpucu: 'Dinamonun ürettiği şey nedir: hareket mi, ışık mı, elektrik akımı mı? Elektrik akımıyla ve mıknatıslarla ilgilenen alt dalı seç.'
+        }
+      },
+      {
+        baslik: 'Çok küçüklerin dünyası',
+        metin: r`Bazı alt dallar gözle göremediğimiz kadar küçük yapıları inceler:
+- **Atom fiziği** atomun yapısını, elektronların enerji düzeylerini ve atomların ışık yaymasını inceler.
+- **Nükleer fizik** atomun merkezindeki çekirdeği ve çekirdek tepkimelerini inceler.
+- **Yüksek enerji ve plazma fiziği** maddenin temel yapı taşlarını ve plazmayı inceler. Plazma, elektronları atomlarından ayrılmış, iyonlaşmış gazdır.
+- **Katı hâl fiziği** bir köprü gibidir. Katılardaki atomların dizilişinden yola çıkarak maddenin sertlik, iletkenlik gibi özelliklerini açıklar.
+
+Alt dalları bir **ölçüte** göre gruplayabilirsin. "İnceleme düzeyi" ölçütüyle mekanik, termodinamik, optik ve elektromanyetizma bir grupta; atom fiziği, nükleer fizik, yüksek enerji ve plazma fiziği başka bir grupta yer alır. Katı hâl fiziği iki grubu birbirine bağlar.`,
+        kontrol: {
+          soru: 'Bir araştırmacı, atomdaki elektronların bir enerji düzeyinden ötekine geçerken nasıl ışık yaydığını inceliyor. Bu araştırma en çok hangi alt dalın konusudur?',
+          secenekler: ['Nükleer fizik', 'Atom fiziği', 'Mekanik'],
+          dogru: 1,
+          aciklama: 'Elektronlar atomun çekirdeğinde değil, çekirdeğin çevresindedir. Elektronların enerji düzeyleri atom fiziğinin konusudur. Nükleer fizik ise çekirdekle ilgilenir.',
+          yanlisIpucu: 'Olay atomun neresinde oluyor: çekirdekte mi, elektronlarda mı? Elektronların enerji düzeyleriyle hangi alt dal ilgilenir?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Soğukta az zıplayan top',
+        metin: 'Zeynep, kış gecesi balkonda kalan basketbol topunun sabah çok az zıpladığını fark ediyor. Top bir süre sıcak odada kalınca yeniden iyi zıplıyor. Zeynep bu olayı bir fizikçi gibi incelemek istiyor.',
+        adimlar: [
+          {
+            soru: 'Zeynep bu gözlemden yola çıkarak hangi soruyu araştırabilir?',
+            secenekler: ['Topun sıcaklığı, zıplama yüksekliğini değiştirir mi?', 'Basketbolu ilk kim oynamıştır?', 'En güzel basketbol topu hangi renktir?'],
+            dogru: 0,
+            ipucu: 'Ölçülebilen ve deneyle sınanabilen soruyu ara. Gözlemde değişen iki şey neydi?',
+            aciklama: 'Gözlemde topun sıcaklığı ve zıplaması değişiyor. Bu iki şey ölçülebilir. Aralarındaki ilişki deneyle araştırılabilir.'
+          },
+          {
+            soru: 'Zeynep deneyini nasıl yapmalıdır?',
+            secenekler: ['Aynı topu farklı sıcaklıklarda, hep aynı yükseklikten bırakır ve zıplama yüksekliğini ölçer.', 'Her denemede farklı bir topu farklı yüksekliklerden bırakır.', 'Topu bir kez bırakır ve sonucu kesin kabul eder.'],
+            dogru: 0,
+            ipucu: 'Yalnız sıcaklık değişmeli; top ve bırakma yüksekliği aynı kalmalı. Bir deneme yeterli olur mu?',
+            aciklama: 'Sonucu yalnız sıcaklığın etkilediğinden emin olmak için öbür her şey aynı tutulur. Ölçümler birkaç kez tekrarlanır ve sonuçlar bir tabloya yazılır.'
+          },
+          {
+            soru: 'Bu olay en çok hangi iki alt dalın ortak konusudur?',
+            secenekler: ['Mekanik ve termodinamik', 'Optik ve nükleer fizik', 'Atom fiziği ve optik'],
+            dogru: 0,
+            ipucu: 'Olayda bir hareket (zıplama) ve bir sıcaklık değişimi var. Hareketle ve sıcaklıkla ilgilenen alt dallar hangileri?',
+            aciklama: 'Topun zıplaması hareketle ilgili olduğu için mekaniğin, sıcaklığın değişmesi termodinamiğin konusudur. Bir olayı birden çok alt dal birlikte açıklayabilir.'
+          }
+        ],
+        sonuc: 'Zeynep bir gözlemle başladı, ölçülebilir bir soru sordu ve öbür koşulları aynı tutarak deney planladı. Fizik de böyle çalışır: gözlem, soru, deney, ölçüm ve sonuç.'
+      },
+      {
+        baslik: 'Bilim şenliğinde üç stant',
+        metin: r`Okulun bilim şenliğinde üç stant var:
+- **1. stant:** Bir duvar saatinin sarkacı düzenli olarak gidip geliyor.
+- **2. stant:** Büyük bir model, bir tuz kristalindeki taneciklerin küp biçiminde düzenli dizilişini gösteriyor. Tuz kristallerinin neden düz yüzeyler boyunca kırıldığını bu dizilişle açıklıyor.
+- **3. stant:** Bir animasyon, kararsız bir atom çekirdeğinin ışıma yaparak başka bir çekirdeğe dönüşmesini gösteriyor.`,
+        adimlar: [
+          {
+            soru: '1. stanttaki sarkaç hangi alt dalın konusudur?',
+            secenekler: ['Mekanik', 'Termodinamik', 'Katı hâl fiziği'],
+            dogru: 0,
+            ipucu: 'Sarkaçta değişen şey nedir: konumu mu, sıcaklığı mı?',
+            aciklama: 'Sarkacın gidip gelmesi bir harekettir. Kuvveti ve hareketi mekanik inceler.'
+          },
+          {
+            soru: '3. stanttaki çekirdek dönüşümü hangi alt dalın konusudur?',
+            secenekler: ['Atom fiziği', 'Nükleer fizik', 'Termodinamik'],
+            dogru: 1,
+            ipucu: 'Olay atomun neresinde oluyor? Çekirdekle ilgilenen alt dala "çekirdek fiziği" de denir.',
+            aciklama: 'Çekirdeği, çekirdek tepkimelerini ve çekirdek ışımalarını nükleer fizik inceler. Atom fiziği ise daha çok elektronlarla ilgilenir.'
+          },
+          {
+            soru: 'Öğretmen standları "inceleme düzeyi" ölçütüne göre grupluyor. 2. stant nereye konur?',
+            secenekler: ['Gözle görülen olaylar grubuna', 'Atom ve atom altı yapılar grubuna', 'İki düzeyi birbirine bağlayan köprü olarak ayrı bir yere'],
+            dogru: 2,
+            ipucu: '2. stant hem çok küçük bir şeyi (taneciklerin dizilişini) hem de gözle görülen bir özelliği (kırılma biçimini) anlatıyor. İkisini birden anlatan alt dal hangisiydi?',
+            aciklama: '2. stant katı hâl fiziğinin konusudur. Katı hâl fiziği, taneciklerin dizilişinden yola çıkarak maddenin gözle görülen özelliklerini açıklar. Böylece iki düzey arasında köprü kurar.'
+          }
+        ],
+        sonuc: 'Üç stant, fiziğin çok farklı büyüklükteki yapılarla ilgilendiğini gösteriyor. Gruplandırma yaparken ölçütü açıkça söylemek gerekir. Ölçüt değişirse gruplar da değişir.'
+      },
+      {
+        baslik: 'Okçunun atışı',
+        metin: 'Bir okçu yayı gerip oku hedefe gönderiyor. Antrenörü her atışı kaydediyor. Bu tek atışa farklı bilimlerin gözüyle bakalım.',
+        adimlar: [
+          {
+            soru: 'Okçunun yayı germek için kaslarını kullanması hangi iki disiplinin ortak konusudur?',
+            secenekler: ['Fizik ve biyoloji', 'Fizik ve tarih', 'Kimya ve müzik'],
+            dogru: 0,
+            ipucu: 'Yayı geren kuvvet hangi bilimin konusu? Kasların çalışması hangi bilimin konusu?',
+            aciklama: 'Yayın gerilmesi ve okun fırlaması kuvvet ve hareketle ilgilidir, yani fiziğin konusudur. Kasların çalışması ise biyolojinin konusudur.'
+          },
+          {
+            soru: 'Antrenör, yayın ne kadar gerildiğini ve okun ne kadar uzağa gittiğini bir tabloya yazıyor. Sonra aralarındaki ilişkiyi bir grafikle gösteriyor. Burada fiziğe hangi disiplin dil oluyor?',
+            secenekler: ['Coğrafya', 'Matematik', 'Görsel sanatlar'],
+            dogru: 1,
+            ipucu: 'Tablo, grafik ve sayılar hangi disiplinin araçlarıdır?',
+            aciklama: 'Ölçüm sonuçlarını tablo, grafik ve bağıntılarla ifade etmek matematiğin dilidir. Fizik bulduğu ilişkileri matematikle yazar.'
+          },
+          {
+            soru: 'Bu örnekten hangi sonuç çıkar?',
+            secenekler: ['Fizik yalnız laboratuvarda yapılır.', 'Spor fizikten yararlanır; fizik de spordaki ölçümlerden yeni bilgiler edinebilir.', 'Okçulukla yalnız biyoloji ilgilenir.'],
+            dogru: 1,
+            ipucu: 'Okçulukta fizik, biyoloji ve matematik bir arada çalıştı. İlişki tek yönlü mü?',
+            aciklama: 'Fizik ile öbür disiplinler arasındaki ilişki iki yönlüdür. Sporcular fizikten yararlanır; fizikçiler de spordaki ölçümlerden yeni sorular ve bilgiler elde eder.'
+          }
+        ],
+        sonuc: 'Tek bir ok atışında fizik, biyoloji ve matematik iş başındaydı. Fiziği öbür disiplinlerle birlikte düşünmek, olayları daha iyi anlamanı sağlar.'
+      }
+    ],
+    hazir: 'Fiziğin neyi incelediğini, öbür disiplinlerle ilişkisini ve sekiz alt dalını tanıdın. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -4838,6 +5162,108 @@ BFY_FIG_EKLE('i912_kart_etki', u => S(u, I => {
 }, { oy: 56 }));
 })();
 
+/* =============== SIFIRDAN BAŞLA: sahneler (konu.baslangic) =============== */
+(function () {
+const { kure, golge, etiket, yazi, N, sahne, ton } = window.BFY_ISO;
+const r1 = v => Math.round(v * 10) / 10;
+
+/* Adım 1: karanlık odada prizma. Pencere kepengindeki küçük delikten giren beyaz ışık prizmada renklere ayrılır.
+   Tepesi yukarıda olan prizmada ışık tabana doğru kırılır; mor en çok, kırmızı en az sapar (perdede kırmızı üstte). */
+BFY_FIG_EKLE('sf912_prizma', u => sahne(u, () => {
+  let s = `<defs><linearGradient id="${u}od" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3142"/><stop offset="1" stop-color="#3a4256"/></linearGradient>
+    <linearGradient id="${u}pr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef8fd" stop-opacity=".9"/><stop offset="1" stop-color="#8ec3df" stop-opacity=".75"/></linearGradient>
+    <linearGradient id="${u}ms" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a7774a"/><stop offset="1" stop-color="#7a5230"/></linearGradient></defs>`;
+  s += `<rect x="0" y="0" width="320" height="172" rx="12" fill="url(#${u}od)"/>`;
+  s += `<path d="M0 150 L320 150 L320 160 Q320 172 308 172 L12 172 Q0 172 0 160Z" fill="#4a3a2c"/><line x1="0" y1="150" x2="320" y2="150" stroke="#2a2018" stroke-width="1"/>`;
+  // kepenk ve delik
+  s += `<rect x="4" y="18" width="22" height="70" rx="2" fill="#6b4a2e" stroke="#3e2a18" stroke-width="1"/>`;
+  for (let y = 26; y < 86; y += 8) s += `<line x1="6" y1="${y}" x2="24" y2="${y}" stroke="#55391f" stroke-width="1"/>`;
+  s += `<circle cx="24" cy="50" r="2.4" fill="#fff8d6"/>`;
+  // masa
+  s += `<rect x="104" y="112" width="96" height="6" rx="1.5" fill="url(#${u}ms)" stroke="#4e3420" stroke-width=".8"/>`;
+  s += `<rect x="110" y="118" width="6" height="32" fill="#6b4a2e"/><rect x="188" y="118" width="6" height="32" fill="#6b4a2e"/>`;
+  // gelen beyaz ışık
+  const E = [138, 91], X = [162, 91];
+  s += `<line x1="24" y1="50" x2="${E[0]}" y2="${E[1]}" stroke="#fffbe6" stroke-width="3" opacity=".95"/><line x1="24" y1="50" x2="${E[0]}" y2="${E[1]}" stroke="#fff" stroke-width="7" opacity=".15"/>`;
+  // prizma içi
+  s += `<line x1="${E[0]}" y1="${E[1]}" x2="${X[0]}" y2="${X[1]}" stroke="#fffbe6" stroke-width="2.6" opacity=".9"/>`;
+  // renk yelpazesi
+  const renk = ['#e2402f', '#f08a2c', '#f5d03b', '#5fbf5a', '#3b8fe0', '#4b4fc0', '#8a5ad0'];
+  renk.forEach((c, i) => { const y1 = 118 + i * 5, y2 = y1 + 5; s += `<polygon points="${X[0]},${X[1]} 294,${y1} 294,${y2}" fill="${c}" opacity=".8"/>`; });
+  // perde
+  s += `<rect x="294" y="98" width="12" height="62" rx="1.5" fill="#f4f1ea" stroke="#9b958a" stroke-width=".8"/>`;
+  renk.forEach((c, i) => { s += `<rect x="294.5" y="${118 + i * 5}" width="11" height="5" fill="${c}"/>`; });
+  s += `<rect x="298" y="160" width="4" height="12" fill="#6f6a60"/>`;
+  // prizma (üstte)
+  s += `<polygon points="150,68 124,112 176,112" fill="url(#${u}pr)" stroke="#5d8fa8" stroke-width="1.2"/>`;
+  s += `<polygon points="150,68 158,72 182,110 176,112" fill="#a9d2e8" opacity=".6" stroke="#5d8fa8" stroke-width=".8"/>`;
+  s += `<line x1="146" y1="78" x2="133" y2="101" stroke="#fff" stroke-width="1.3" opacity=".8"/>`;
+  s += golge(152, 112, 28, 2, 0.25);
+  // etiketler
+  s += yazi(70, 50, 'beyaz ışık', { size: 11.5, renk: '#fff3c4', hale: '#2a3142' });
+  s += yazi(152, 138, 'prizma', { size: 11.5, renk: '#d6ecf7', hale: '#3a4256' });
+  s += yazi(258, 104, 'renkler', { size: 11.5, renk: '#ffe0a6', hale: '#2f3648' });
+  return s;
+}, { w: 320, h: 172, mm: 105, zemin: false }));
+
+/* Adım 3: üç çalışma biçimi. Deney ve ölçüm, kuram geliştirme, tasarım ve yapım. */
+BFY_FIG_EKLE('sf912_calisma', u => sahne(u, () => {
+  let s = '';
+  const panel = (x, renk, baslik) => `<rect x="${x}" y="6" width="100" height="160" rx="10" fill="${ton(renk, 0.86)}" stroke="${ton(renk, 0.4)}" stroke-width="1"/>` +
+    `<rect x="${x + 6}" y="104" width="88" height="6" rx="2" fill="#c9955a" stroke="#7a5530" stroke-width=".8"/><rect x="${x + 6}" y="110" width="88" height="10" fill="#a87a48"/><rect x="${x + 6}" y="120" width="88" height="2" fill="#7a5530"/>` +
+    yazi(x + 50, 142, baslik[0], { size: 11.5, renk: ton(renk, -0.35) }) + yazi(x + 50, 156, baslik[1], { size: 11.5, renk: ton(renk, -0.35) });
+  s += panel(6, '#2f7fb8', ['Deney ve', 'ölçüm']) + panel(110, '#7b5bc4', ['Kuram', 'geliştirme']) + panel(214, '#3f8a67', ['Tasarım', 've yapım']);
+  // 1: beher, termometre, ısıtıcı, defter
+  s += `<rect x="24" y="96" width="30" height="8" rx="2" fill="#5f6a70"/><rect x="28" y="92" width="22" height="4" fill="#3c4448"/>`;
+  s += N.beher(39, 92, 26, 32, 0.6, '#7cc3e8');
+  s += N.termometre(44, 86, 46, 0.55);
+  s += `<path d="M62 104 L90 104 L92 92 L64 92Z" fill="#fbfaf6" stroke="#8a7a62" stroke-width=".9"/>`;
+  for (let i = 0; i < 3; i++) s += `<line x1="${66 + i * 0.6}" y1="${96 + i * 3}" x2="${88 - i * 0.2}" y2="${96 + i * 3}" stroke="#7d93a6" stroke-width=".8"/>`;
+  s += `<line x1="77" y1="94" x2="76" y2="103" stroke="#7d93a6" stroke-width=".8"/>`;
+  // 2: kâğıtlar, grafik, kalem, düşünce balonu (saat)
+  s += `<path d="M122 104 L150 104 L153 80 L126 80Z" fill="#fbfaf6" stroke="#8a7a62" stroke-width=".9"/>`;
+  for (let i = 0; i < 5; i++) s += `<path d="M${129} ${85 + i * 4} q4 -2 8 0 t8 0" fill="none" stroke="#4b4fc0" stroke-width=".9"/>`;
+  s += `<path d="M156 104 L196 104 L194 76 L158 78Z" fill="#fffef8" stroke="#8a7a62" stroke-width=".9"/>`;
+  s += `<path d="M164 99 L164 82 M164 99 L190 99" stroke="#3c4448" stroke-width="1"/><path d="M165 97 Q174 95 180 88 T189 81" fill="none" stroke="#c0504d" stroke-width="1.4"/>`;
+  s += `<line x1="183" y1="108" x2="200" y2="94" stroke="#e7a93b" stroke-width="2.6" stroke-linecap="round"/><path d="M200 94 l2.4 -2 l-.6 3Z" fill="#3c4448"/>`;
+  [[150, 66, 2.5], [156, 58, 3.5]].forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="#9b8fc0" stroke-width=".9"/>`; });
+  s += `<ellipse cx="172" cy="34" rx="26" ry="20" fill="#fff" stroke="#9b8fc0" stroke-width="1"/>`;
+  s += `<circle cx="172" cy="34" r="12" fill="#f4f1ea" stroke="#3c4448" stroke-width="1.4"/><line x1="172" y1="34" x2="172" y2="26" stroke="#3c4448" stroke-width="1.4" stroke-linecap="round"/><line x1="172" y1="34" x2="178" y2="37" stroke="#3c4448" stroke-width="1.4" stroke-linecap="round"/>`;
+  // 3: su haznesi, dişliler, çizim
+  const disli = (cx, cy, R, n, renk, d0 = 0) => { let p = ''; for (let i = 0; i < n * 2; i++) { const a = d0 + i * Math.PI / n, rr = i % 2 ? R : R + 3.2, a2 = a + Math.PI / n; p += (i ? 'L' : 'M') + r1(cx + rr * Math.cos(a)) + ' ' + r1(cy + rr * Math.sin(a)) + 'L' + r1(cx + rr * Math.cos(a2)) + ' ' + r1(cy + rr * Math.sin(a2)); } return `<path d="${p}Z" fill="${renk}" stroke="${ton(renk, -0.45)}" stroke-width=".9" stroke-linejoin="round"/><circle cx="${cx}" cy="${cy}" r="${r1(R * 0.3)}" fill="${ton(renk, 0.4)}" stroke="${ton(renk, -0.45)}" stroke-width=".8"/>`; };
+  s += `<rect x="226" y="58" width="30" height="46" rx="2" fill="#cfe6f5" fill-opacity=".6" stroke="#6f8f9f" stroke-width="1.2"/><rect x="227" y="70" width="28" height="33" fill="#7cc3e8" opacity=".7"/>`;
+  s += `<path d="M234 70 Q241 78 248 70" fill="#d9c3a0" stroke="#8a6a2f" stroke-width=".9"/>`;
+  s += disli(276, 70, 13, 10, '#c9a33a') + disli(292, 92, 9, 7, '#b8c0c7', 0.2);
+  s += `<path d="M262 104 L300 104 L298 98 L264 98Z" fill="#dce9f5" stroke="#5d8fa8" stroke-width=".8"/>`;
+  return s;
+}, { w: 320, h: 172, mm: 105, zemin: false }));
+
+/* Adım 5: yol ayrımında tabela; fizik eğitiminin açtığı beş kariyer alanı. */
+BFY_FIG_EKLE('sf912_yol', u => sahne(u, () => {
+  let s = `<defs><linearGradient id="${u}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe6f5"/><stop offset="1" stop-color="#eef6fb"/></linearGradient>
+    <linearGradient id="${u}cm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a6d487"/><stop offset="1" stop-color="#76ad5c"/></linearGradient></defs>`;
+  s += `<rect x="0" y="0" width="320" height="172" rx="12" fill="url(#${u}gk)"/>`;
+  s += `<path d="M0 104 Q90 92 170 100 T320 96 L320 160 Q320 172 308 172 L12 172 Q0 172 0 160Z" fill="url(#${u}cm)"/>`;
+  // yollar
+  s += `<path d="M40 172 L96 172 L150 112 L136 112Z" fill="#e3d6bd" stroke="#c4b393" stroke-width=".8"/>`;
+  [[136, 112, 30, 100, 44, 100], [140, 112, 96, 98, 104, 98], [146, 112, 178, 97, 186, 97], [150, 112, 250, 98, 262, 98], [150, 112, 320, 104, 320, 112]].forEach(([a, b, c, d, e, f]) => { s += `<path d="M${a} ${b} L${c} ${d} L${e} ${f} L${a + 6} ${b}Z" fill="#e8dcc4" stroke="#c4b393" stroke-width=".6"/>`; });
+  // tabela direği
+  s += `<rect x="166" y="22" width="7" height="104" rx="2" fill="#8a5a33" stroke="#5e3b1f" stroke-width=".8"/>`;
+  s += golge(170, 126, 12, 2.5, 0.25);
+  const lev = [['Akademik kariyer', 1, '#2b4a8b'], ['Bilgi teknolojileri', -1, '#3f8a67'], ['Medikal fizik', 1, '#c0504d'], ['Eğitim', -1, '#aa693e'], ['AR-GE', 1, '#7b5bc4']];
+  lev.forEach(([t, yon, c], i) => {
+    const y = 24 + i * 19, w = t.length * 6.3 + 22, x0 = yon > 0 ? 173 : 166 - w, uc = yon > 0 ? x0 + w + 8 : x0 - 8;
+    const p = yon > 0 ? `${x0},${y} ${x0 + w},${y} ${uc},${y + 7.5} ${x0 + w},${y + 15} ${x0},${y + 15}` : `${x0 + w},${y} ${x0},${y} ${uc},${y + 7.5} ${x0},${y + 15} ${x0 + w},${y + 15}`;
+    s += `<polygon points="${p}" fill="${c}" stroke="${ton(c, -0.4)}" stroke-width=".9" stroke-linejoin="round"/>`;
+    s += `<text x="${r1(x0 + w / 2)}" y="${y + 11.5}" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif">${t}</text>`;
+  });
+  // sırt çantalı öğrenci
+  s += `<rect x="78" y="128" width="9" height="12" rx="3" fill="#c0504d" stroke="#7d3222" stroke-width=".8"/>`;
+  s += N.insan(u, 88, 160, 38, 'gok');
+  return s;
+}, { w: 320, h: 172, mm: 105, zemin: false }));
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -4889,6 +5315,183 @@ const KONU = {
     'SET 2: Nobel Fizik Ödülü alan beş kadın (2026 itibarıyla): Curie 1903, Goeppert Mayer 1963, Strickland 2018, Ghez 2020, L\'Huillier 2023',
     'ADIM 5: Curie 1898 elektrometre ölçümleri, zift cevheri uranyumdan etkin (temsilî sütun grafiği)', 'ADIM 5: uydu test merkezi istasyonları (ısıl vakum, sarsma tablası, yankısız oda) ve uzmanlıklar'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Hesap yok; sınıflandırma ve yorum. Bilim insanlarıyla ilgili bilgilerin kaynakları qa/9.1.2/dogrula.py içinde. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hesap yok; bilim insanlarının nasıl düşündüğünü, nasıl çalıştığını ve fiziğin hangi mesleklere kapı açtığını göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Bir bilim insanını tanımanın üç yolu',
+        sekil: 'sf912_prizma',
+        metin: r`Isaac Newton, 1660'lı yıllarda karanlık bir odada deneyler yaptı. Pencere kepengindeki küçük bir delikten giren güneş ışığını cam bir prizmadan geçirdi. Beyaz ışık, karşıdaki yüzeyde bir renk şeridine dönüştü. Newton bu deneylerle beyaz ışığın renklerin karışımı olduğunu gösterdi.
+
+Bir bilim insanını tanımak için üç soru sorulur:
+- **Bilime bakış açısı:** Bilgiye nasıl yaklaşır, neyi kanıt sayar?
+- **Çalışma biçimi:** Gözlem mi yapar, deney mi kurar, kuram mı geliştirir?
+- **Çalışmalarının etkisi:** Bilime, teknolojiye ve günlük hayata ne kazandırmıştır?`,
+        kontrol: {
+          soru: '"Newton\'un ışık ve renk çalışmaları bugün de gökkuşağının ve prizmanın renkleri nasıl ayırdığını açıklamakta kullanılır." Bu cümle hangi soruya cevap verir?',
+          secenekler: ['Bilime bakış açısı', 'Çalışma biçimi', 'Çalışmalarının etkisi'],
+          dogru: 2,
+          aciklama: 'Cümle, Newton\'un çalışmalarının bugüne ne kazandırdığını anlatıyor. Bu, çalışmalarının etkisidir.',
+          yanlisIpucu: 'Cümle Newton\'un nasıl düşündüğünü ya da nasıl çalıştığını mı anlatıyor, yoksa çalışmasının bugüne bıraktığını mı?'
+        }
+      },
+      {
+        baslik: 'Bakış açısı: ün mü, kanıt mı?',
+        metin: r`İbnülheysem, Basra'da doğup Kahire'de çalışmış bir bilgindir. Kendinden önceki ünlü bilginlerin kitaplarını dikkatle okudu. Ama yazılanlara "ünlü biri söyledi" diye inanmadı; onları gözlem ve deneyle sınadı.
+
+Ondan önce bazı ünlü bilginler görmenin, gözden çıkan ışınlarla gerçekleştiğini düşünüyordu. İbnülheysem, 1011–1021 yılları arasında yazdığı **Kitâbü'l-Menâzır** adlı eserinde görmenin, ışığın göze girmesiyle gerçekleştiğini savundu.
+
+Bir iddiayı ünlü biri söylediği için değil, **kanıtı olduğu için** kabul etmek bilimsel bir bakış açısıdır.`,
+        kontrol: {
+          soru: 'Bilimsel bakış açısına göre bir iddia ne zaman kabul edilir?',
+          secenekler: ['Ünlü bir bilgin söylediğinde', 'Gözlem ve deneyle desteklendiğinde', 'Çok eski bir kitapta yazdığında'],
+          dogru: 1,
+          aciklama: 'Bilimde iddianın kimden geldiği değil, kanıtı önemlidir. İddia gözlem ve deneyle sınanır; kanıtlar destekliyorsa kabul edilir.',
+          yanlisIpucu: 'İbnülheysem ünlü bilginlerin kitaplarını okuyunca ne yaptı? Hemen inandı mı, yoksa yazılanları sınadı mı?'
+        }
+      },
+      {
+        baslik: 'Çalışma biçimi: herkes aynı yoldan gitmez',
+        sekil: 'sf912_calisma',
+        metin: r`Bilim insanları farklı yollarla çalışır:
+- **Deney ve ölçüm:** Marie Curie ve eşi Pierre Curie, laboratuvarda tonlarca cevheri işlediler. Polonyum ve radyum adlı iki yeni elementi buldular ve ışımalarını ölçtüler.
+- **Kuram geliştirme:** Albert Einstein görelilik kuramlarını laboratuvarda değil; kâğıt, kalem, hesaplar ve kafasında kurduğu düşünce deneyleriyle geliştirdi.
+- **Tasarım ve yapım:** Cezeri, Artuklu sarayında su saatleri ve kendiliğinden çalışan düzenekler tasarlayıp yaptı.
+
+Bir bilim insanının tek başına mı ekiple mi çalıştığı ve bulgularını nasıl kaydedip paylaştığı da çalışma biçimine girer.`,
+        kontrol: {
+          soru: 'Bir fizikçi, bilgisayarda kara deliklerin çevresinde ışığın izlediği yolu hesaplayan bir model kuruyor. Hiç deney yapmıyor. Bu fizikçinin çalışma biçimi en çok kiminkine benzer?',
+          secenekler: ['Marie Curie', 'Albert Einstein', 'Cezeri'],
+          dogru: 1,
+          aciklama: 'Model kurup hesapla sonuç çıkarmak kuram geliştirmektir. Einstein da kuramlarını deneyle değil, hesap ve düşünce deneyleriyle kurdu.',
+          yanlisIpucu: 'Bu fizikçi laboratuvarda ölçüm mü yapıyor, bir düzenek mi yapıyor, yoksa hesapla bir model mi kuruyor?'
+        }
+      },
+      {
+        baslik: 'Yaşam öyküsünden çıkarım',
+        metin: r`Marie Curie, 1867'de Varşova'da doğdu. O yıllarda Varşova'daki üniversite kadınları öğrenci olarak kabul etmiyordu. Genç Maria, gizlice ders veren bir okulda okudu. Ablası Paris'te tıp okusun diye yıllarca mürebbiye (aile yanında çocuk eğiten öğretmen) olarak çalıştı ve ona para gönderdi. Sonra kendisi de Paris'e gidip üniversiteye başladı.
+
+Bir yaşam öyküsünden bilim insanının kişiliği hakkında **çıkarım** yapılabilir. Ama çıkarım metindeki bilgilere dayanmalıdır. Metinde dayanağı olmayan bir yargı çıkarım değil, tahmindir.`,
+        kontrol: {
+          soru: 'Bu öyküye dayanarak Marie Curie için hangi çıkarım yapılabilir?',
+          secenekler: ['Kararlı ve sabırlıdır; hedefine ulaşmak için yıllarca çalışmıştır.', 'Okumayı sevmeyen biridir.', 'Başarısı yalnız şansa bağlıdır.'],
+          dogru: 0,
+          aciklama: 'Yıllarca çalışıp önce ablasının okumasına destek olması, sonra kendisinin de üniversiteye başlaması kararlılık ve sabır gösterir. Bu çıkarımın dayanağı metinde vardır.',
+          yanlisIpucu: 'Metinde Maria\'nın okuyabilmek için neler yaptığı anlatılıyor. Hangi seçeneğin metinde bir dayanağı var?'
+        }
+      },
+      {
+        baslik: 'Fizik hangi kapıları açar?',
+        sekil: 'sf912_yol',
+        metin: r`Fizik eğitimi tek bir mesleğe değil, birçok yola kapı açar:
+- **Akademik kariyer:** Üniversitede araştırma yapmak ve ders vermek.
+- **Bilgi teknolojileri:** Yazılım, veri bilimi ve yapay zekâ.
+- **Medikal fizik:** Hastanelerde radyoloji, nükleer tıp ve radyoterapi.
+- **Eğitim:** Okullarda fizik öğretmenliği.
+- **AR-GE:** Savunma, enerji ve malzeme alanlarında araştırma ve geliştirme.
+
+Fizikçiler araştırma kurumlarında da çalışır. Türkiye'de TÜBİTAK, TENMAK, MTA, TUA ve ASELSAN; dünyada CERN, NASA ve ESA bunlardan bazılarıdır.`,
+        kontrol: {
+          soru: 'Lise öğrencileri için araştırma projesi yarışmaları ve bilim olimpiyatları düzenleyen, araştırmacılara burs ve proje desteği veren kurum hangisidir?',
+          secenekler: ['CERN', 'TÜBİTAK', 'MTA'],
+          dogru: 1,
+          aciklama: 'TÜBİTAK, Türkiye\'de bilimsel araştırmaları destekler. Burs ve proje desteği verir; öğrenciler için proje yarışmaları ve bilim olimpiyatları düzenler.',
+          yanlisIpucu: 'CERN, İsviçre ile Fransa sınırındaki bir parçacık fiziği laboratuvarıdır. MTA ise maden ve enerji kaynaklarını arar. Türkiye\'de bilimi destekleyen kurumu düşün.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Cezeri\'nin fil saati',
+        metin: 'Cezeri, 1206 yılında tamamladığı kitabında birçok düzeneği anlattı. Bunlardan biri **fil saatidir**. Filin gövdesindeki su haznesinde, tabanında küçük bir delik bulunan bir kap yüzer. Kap delikten giren suyla yavaş yavaş dolar ve yarım saatte batar. Kap batınca bir dizi düzenek harekete geçer ve bir ses çıkar. Ardından kap yeniden yukarı çekilir ve her şey baştan başlar.',
+        adimlar: [
+          {
+            soru: 'Fil saati zamanı ölçmek için hangi düzenli olaydan yararlanır?',
+            secenekler: ['Kabın her seferinde aynı sürede dolup batmasından', 'Filin gövdesinin renginden', 'Suyun sıcaklığının değişmesinden'],
+            dogru: 0,
+            ipucu: 'Bir saat, hep aynı sürede tekrarlanan bir olaya ihtiyaç duyar. Metinde yarım saatte bir tekrarlanan olay hangisi?',
+            aciklama: 'Kap her seferinde yaklaşık aynı sürede, yarım saatte dolup batar. Düzenli tekrarlanan bu olay zamanı ölçmeye yarar.'
+          },
+          {
+            soru: 'Kap batınca düzenek kendiliğinden ses çıkarır ve kap yeniden yukarı çekilir. Bu özellik, Cezeri\'yi hangi tür makinelerin öncülerinden biri yapar?',
+            secenekler: ['Elektrikle çalışan makinelerin', 'Kendiliğinden çalışan (otomatik) makinelerin', 'Buharla çalışan makinelerin'],
+            dogru: 1,
+            ipucu: 'Saatin çalışması için her yarım saatte bir birinin kabı boşaltması gerekiyor mu?',
+            aciklama: 'Kabı her yarım saatte bir yukarı kaldırmak için kimse gerekmez; düzenek bunu kendisi yapar. Cezeri bu yüzden otomatik makinelerin öncülerinden sayılır.'
+          },
+          {
+            soru: 'Cezeri\'nin düzeneklerini önce tasarlaması, sonra yapıp çalıştırarak denemesi hangi soruya cevap verir?',
+            secenekler: ['Bilime bakış açısı', 'Çalışma biçimi', 'Çalışmalarının etkisi'],
+            dogru: 1,
+            ipucu: 'Burada Cezeri\'nin nasıl düşündüğü mü, nasıl çalıştığı mı, yoksa bugüne etkisi mi anlatılıyor?',
+            aciklama: 'Tasarlamak, yapmak ve çalıştırarak denemek Cezeri\'nin çalışma biçimidir.'
+          }
+        ],
+        sonuc: 'Fil saati, düzenli tekrarlanan bir olayla zamanı ölçen ve kendi kendine çalışan bir düzenekti. Bir bilim insanını tanırken hem nasıl çalıştığına hem de çalışmalarının bugüne etkisine bakarız.'
+      },
+      {
+        baslik: 'Elif\'in proje günlüğü',
+        metin: 'Elif bir bilim projesinde, buz küplerinin farklı kaplarda ne kadar sürede eridiğini ölçüyor. Günlüğüne yazdığı üç durumu inceleyelim.',
+        adimlar: [
+          {
+            soru: 'Elif\'in ölçtüğü bir süre, öbür ölçümlerden çok farklı çıktı. Bilimsel tutuma uygun davranış hangisidir?',
+            secenekler: ['Bu ölçümü kimseye söylemeden siler.', 'Ölçümü tekrarlar ve sonucu olduğu gibi kaydeder.', 'Beklediği sonucu yazıp geçer.'],
+            dogru: 1,
+            ipucu: 'Bilim insanı beklemediği bir sonucu saklar mı, yoksa nedenini araştırır mı?',
+            aciklama: 'Beklenmedik sonuç saklanmaz ve değiştirilmez. Ölçüm tekrarlanır, sonuç olduğu gibi kaydedilir ve farkın nedeni araştırılır.'
+          },
+          {
+            soru: 'Sınıf arkadaşı aynı deneyde farklı bir sonuç buldu. Elif ne yapmalıdır?',
+            secenekler: ['Arkadaşının yanıldığını söyleyip konuyu kapatır.', 'İki deneyin yöntemlerini karşılaştırır ve farkın nedenini arar.', 'Hangi sonucun doğru olduğuna yazı turayla karar verir.'],
+            dogru: 1,
+            ipucu: 'Farklı sonuçlar bir yanlışlığı ya da gözden kaçan bir koşulu gösterebilir. Bunu bulmanın yolu nedir?',
+            aciklama: 'Bilim insanları farklı sonuçları tartışır, yöntemleri karşılaştırır ve gerekirse deneyi birlikte tekrarlar. Eleştiriye açık olmak bilimsel bir tutumdur.'
+          },
+          {
+            soru: 'Elif projesini sergide paylaşırken en çok neye dikkat etmelidir?',
+            secenekler: ['Yöntemini ve ölçümlerini, başkalarının deneyi tekrarlayabileceği kadar açık yazmaya', 'Yalnız en güzel görünen sonucu göstermeye', 'Deneyin nasıl yapıldığını gizli tutmaya'],
+            dogru: 0,
+            ipucu: 'Başka biri Elif\'in sonucunu kontrol etmek isterse neye ihtiyaç duyar?',
+            aciklama: 'Bulgular yöntemleriyle birlikte paylaşılır. Böylece başkaları deneyi tekrarlayıp sonucu sınayabilir. Bilgi, kontrol edilerek ve birikerek büyür.'
+          }
+        ],
+        sonuc: 'Elif\'in üç davranışı da bilimsel tutumu gösteriyor: dürüst kayıt, eleştiriye açıklık ve açık paylaşım. Bu davranışları büyük bilim insanlarının çalışmalarında da görürsün.'
+      },
+      {
+        baslik: 'Üç fizik mezunu',
+        metin: 'Mert, Selin ve Can üniversitede fizik okudu. Bugün üçü de farklı işlerde çalışıyor.',
+        adimlar: [
+          {
+            soru: 'Mert, bir şirkette büyük veri yığınlarını inceleyip tahmin yapan bilgisayar programları geliştiriyor. Mert hangi kariyer alanındadır?',
+            secenekler: ['Bilgi teknolojileri', 'Medikal fizik', 'Eğitim'],
+            dogru: 0,
+            ipucu: 'Yazılımla ve veriyle çalışan alanı ara.',
+            aciklama: 'Yazılım geliştirme ve veri bilimi bilgi teknolojileri alanındadır. Fizikte öğrenilen modelleme ve hesaplama becerisi burada çok işe yarar.'
+          },
+          {
+            soru: 'Selin, bir enerji şirketinde rüzgâr türbini kanatlarını daha verimli hâle getirmek için yeni tasarımlar deneyen bir ekipte çalışıyor. Selin hangi kariyer alanındadır?',
+            secenekler: ['Akademik kariyer', 'AR-GE', 'Bilgi teknolojileri'],
+            dogru: 1,
+            ipucu: 'Selin yeni bir ürün geliştirmek için araştırma yapıyor. Bu işin kısa adı neydi?',
+            aciklama: 'Yeni ürün ve yöntem geliştirmek için yapılan araştırmaya AR-GE (araştırma ve geliştirme) denir. Enerji, AR-GE\'nin önemli alanlarından biridir.'
+          },
+          {
+            soru: 'Can ise bir üniversitede yıldızların nasıl oluştuğunu araştırıyor ve öğrencilere ders veriyor. Üç mezunun ortak noktası nedir?',
+            secenekler: ['Üçü de fizikte öğrendikleri ölçme, modelleme ve problem çözme becerilerini kullanıyor.', 'Üçü de aynı kurumda çalışıyor.', 'Üçü de astronot olarak çalışıyor.'],
+            dogru: 0,
+            ipucu: 'Bir şirket, bir enerji ekibi ve bir üniversite. İşleri farklı; peki yanlarında getirdikleri ortak şey ne?',
+            aciklama: 'Can akademik kariyerde, Mert bilgi teknolojilerinde, Selin AR-GE\'de çalışıyor. İşleri farklı olsa da üçü de fizik eğitiminden gelen ölçme, modelleme ve problem çözme becerilerini kullanıyor.'
+          }
+        ],
+        sonuc: 'Fizik okumak yalnız fizikçi olmak demek değildir. Aynı eğitim; bilgisayardan enerjiye, hastaneden üniversiteye kadar birçok kapı açar.'
+      }
+    ],
+    hazir: 'Bilim insanlarını üç soruyla incelemeyi, yaşam öyküsünden çıkarım yapmayı ve fizik eğitiminin açtığı yolları gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -6338,6 +6941,98 @@ BFY_FIG_EKLE('i921_kart_agirlik', u => KART(u, I => {
 }, { oy: 50 }));
 })();
 
+/* =============== SIFIRDAN BAŞLA: sahneler (konu.baslangic) =============== */
+(function () {
+const { kure, golge, ok, etiket, yazi, N, sahne, ton } = window.BFY_ISO;
+const r1 = v => Math.round(v * 10) / 10;
+const gok = (u, h) => `<defs><linearGradient id="${u}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe6f5"/><stop offset="1" stop-color="#eef6fb"/></linearGradient></defs><rect x="0" y="0" width="320" height="${h}" rx="12" fill="url(#${u}gk)"/>`;
+const domates = (u, x, y, r = 6) => kure(u, x, y, r, '#d9402f', { golge: false }) + `<path d="M${r1(x - 2.6)} ${r1(y - r + 1)} l2.6 -1.6 l2.6 1.6 l-2.6 .6Z" fill="#3f8a3a"/>`;
+
+/* Adım 1: pazarda tartı. Müşteri "3 kg" der; ölçüm sonucu sayı ve birimle söylenir. */
+BFY_FIG_EKLE('sf921_pazar', u => sahne(u, () => {
+  let s = gok(u, 172);
+  s += `<rect x="0" y="146" width="320" height="26" fill="#d8d2c4"/><path d="M0 172 L0 146 L320 146 L320 160 Q320 172 308 172Z" fill="#d8d2c4"/>`;
+  // tente
+  for (let i = 0; i < 9; i++) s += `<path d="M${120 + i * 22} 14 L${142 + i * 22} 14 L${142 + i * 22} 30 Q${131 + i * 22} 38 ${120 + i * 22} 30Z" fill="${i % 2 ? '#f7f3ea' : '#c0504d'}" stroke="#8f3a2e" stroke-width=".6"/>`;
+  s += `<rect x="122" y="30" width="5" height="70" fill="#8a5a33"/><rect x="309" y="30" width="5" height="70" fill="#8a5a33"/>`;
+  // tezgâh
+  s += `<rect x="116" y="100" width="204" height="10" fill="#c9955a" stroke="#7a5530" stroke-width=".8"/><rect x="120" y="110" width="196" height="36" fill="#a87a48" stroke="#7a5530" stroke-width=".8"/>`;
+  for (let x = 130; x < 316; x += 22) s += `<line x1="${x}" y1="112" x2="${x}" y2="144" stroke="#8f6538" stroke-width=".8"/>`;
+  // kasa ve domatesler
+  s += `<path d="M232 78 L300 78 L296 100 L236 100Z" fill="#d9b27a" stroke="#8a6a2f" stroke-width=".9"/><line x1="234" y1="89" x2="298" y2="89" stroke="#8a6a2f" stroke-width=".7"/>`;
+  // kasa ağzına kadar dolu (domates boyu tartıdakilerle aynı)
+  [[7, 75], [6, 68], [5, 61]].forEach(([n, y]) => { for (let i = 0; i < n; i++) s += domates(u, r1(266 - (n - 1) * 4.3 + i * 8.6), y, 4.5); });
+  s += etiket(266, 118, 'domates', { size: 10.5, renk: '#7a3a22', zemin: '#fbf3e6' });
+  // dijital tartı
+  s += `<rect x="146" y="88" width="62" height="12" rx="2.5" fill="#e3e7ea" stroke="#5f6a70" stroke-width=".9"/>`;
+  s += `<rect x="152" y="90.5" width="30" height="7.5" rx="1.2" fill="#1e2a22"/><text x="167" y="96.9" font-size="7" font-weight="700" fill="#7ef0a0" text-anchor="middle" font-family="monospace">3</text>`;
+  s += `<text x="194" y="97" font-size="6.5" font-weight="800" fill="#3c4448" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif">kg</text>`;
+  s += `<path d="M150 88 L204 88 L200 82 L154 82Z" fill="#cfd6db" stroke="#5f6a70" stroke-width=".8"/>`;
+  // 3 kg yaklaşık 20 orta boy domates eder: tartıda bir yığın
+  [[6, 78], [5, 71], [4, 64], [3, 57], [2, 50]].forEach(([n, y]) => { for (let i = 0; i < n; i++) s += domates(u, r1(177 - (n - 1) * 4.3 + i * 8.6), y, 4.5); });
+  // müşteri ve konuşma balonu
+  s += N.insan(u, 70, 150, 44, 'mor', { pantolon: '#2f3e4e' });
+  s += `<path d="M14 26 Q14 16 24 16 L104 16 Q114 16 114 26 L114 46 Q114 56 104 56 L78 56 L70 66 L70 56 L24 56 Q14 56 14 46Z" fill="#fff" stroke="#7b5bc4" stroke-width="1.1"/>`;
+  s += yazi(64, 33, '3 kg domates', { size: 11.5, renk: '#3c2f6e' }) + yazi(64, 48, 'tartar mısınız?', { size: 11.5, renk: '#3c2f6e' });
+  return s;
+}, { w: 320, h: 172, mm: 105, zemin: false }));
+
+/* Adım 3: kaykaycı başlangıç bayrağından bitiş bayrağına 40 m'yi 8 s'de gider (ölçekli değildir). */
+BFY_FIG_EKLE('sf921_kaykay', u => sahne(u, () => {
+  let s = gok(u, 160);
+  s += `<path d="M0 108 L320 108 L320 148 Q320 160 308 160 L12 160 Q0 160 0 148Z" fill="#b9bcc0"/><rect x="0" y="104" width="320" height="5" fill="#8d9298"/>`;
+  [[30, 116], [110, 126], [210, 118], [270, 130]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="1.4" fill="#9a9ea3"/>`; });
+  const bayrak = (x, c, t) => `<rect x="${x - 1.5}" y="58" width="3" height="48" fill="#5f6a70"/><path d="M${x + 1.5} 60 L${x + 26} 66 L${x + 1.5} 74Z" fill="${c}" stroke="${ton(c, -0.4)}" stroke-width=".8"/>` + yazi(x, 52, t, { size: 11.5, renk: ton(c, -0.4) });
+  s += bayrak(34, '#3f8a67', 'başlangıç') + bayrak(282, '#c0504d', 'bitiş');
+  // ölçü oku
+  s += ok(170, 136, 36, 136, { renk: '#2b3330', w: 1.3, bas: 6, basG: 3.2 }) + ok(170, 136, 280, 136, { renk: '#2b3330', w: 1.3, bas: 6, basG: 3.2 });
+  s += `<line x1="34" y1="128" x2="34" y2="144" stroke="#2b3330" stroke-width="1"/><line x1="282" y1="128" x2="282" y2="144" stroke="#2b3330" stroke-width="1"/>`;
+  s += yazi(158, 128, '40 m', { size: 12, renk: '#2b3330', hale: '#b9bcc0' });
+  // kaykaycı (sağa gidiyor)
+  const x = 150, y = 104;
+  s += golge(x, y + 1, 18, 2.4, 0.25);
+  s += `<rect x="${x - 17}" y="${y - 6}" width="34" height="3.4" rx="1.7" fill="#2a2f33"/><circle cx="${x - 11}" cy="${y - 1}" r="2.6" fill="#f2c94c" stroke="#8a6a2f" stroke-width=".6"/><circle cx="${x + 11}" cy="${y - 1}" r="2.6" fill="#f2c94c" stroke="#8a6a2f" stroke-width=".6"/>`;
+  s += `<path d="M${x - 8} ${y - 7} L${x - 4} ${y - 22} L${x + 2} ${y - 30} M${x + 8} ${y - 7} L${x + 6} ${y - 20} L${x + 2} ${y - 30}" fill="none" stroke="#34495e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += `<rect x="${x - 4}" y="${y - 48}" width="12" height="20" rx="5" fill="#ee8a3a" stroke="${ton('#ee8a3a', -0.4)}" stroke-width=".8" transform="rotate(10 ${x + 2} ${y - 38})"/>`;
+  s += `<path d="M${x} ${y - 44} L${x - 12} ${y - 38} M${x + 6} ${y - 44} L${x + 18} ${y - 48}" stroke="#e8b892" stroke-width="2.6" stroke-linecap="round"/>`;
+  s += kure(u, x + 5, y - 54, 5.8, '#e8b892', { golge: false, cizgi: false }) + `<path d="M${x - 1} ${y - 55} A6 6 0 0 1 ${x + 11} ${y - 55} L${x + 11} ${y - 53} L${x - 1} ${y - 53}Z" fill="#2f7fb8"/>`;
+  [[0, 0], [4, 10], [-2, 20]].forEach(([dx, dy]) => { s += `<line x1="${x - 40 + dx}" y1="${y - 40 + dy}" x2="${x - 24 + dx}" y2="${y - 40 + dy}" stroke="#7d8a91" stroke-width="1.4" stroke-linecap="round"/>`; });
+  // kronometre
+  s += `<rect x="196" y="10" width="8" height="5" rx="1" fill="#5f6a70"/><circle cx="200" cy="34" r="17" fill="#f7f8f6" stroke="#3c4448" stroke-width="2.4"/>`;
+  // 60 s'lik kadran: 8 s, 48°'lik dilimdir
+  for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; s += `<line x1="${r1(200 + 14.2 * Math.sin(a))}" y1="${r1(34 - 14.2 * Math.cos(a))}" x2="${r1(200 + 16 * Math.sin(a))}" y2="${r1(34 - 16 * Math.cos(a))}" stroke="#3c4448" stroke-width="${k % 3 ? .7 : 1.3}"/>`; }
+  s += `<path d="M200 34 L200 17 A17 17 0 0 1 212.63 22.62Z" fill="#f2c94c" opacity=".55"/><line x1="200" y1="34" x2="212.63" y2="22.62" stroke="#c0504d" stroke-width="1.6" stroke-linecap="round"/><circle cx="200" cy="34" r="1.8" fill="#3c4448"/>`;
+  s += yazi(225, 38, '8 s', { size: 12.5, anchor: 'start', renk: '#2b3330' });
+  return s;
+}, { w: 320, h: 160, mm: 105, zemin: false }));
+
+/* Adım 4: termometre yalnız sayı ve birim verir; rüzgâr tulumu rüzgârın yönünü de gösterir.
+   Rüzgâr batıdan doğuya eser: tulum doğuya (sağa) uzanır. */
+BFY_FIG_EKLE('sf921_ruzgar', u => sahne(u, () => {
+  let s = gok(u, 172);
+  s += `<path d="M0 128 Q100 120 200 126 T320 124 L320 160 Q320 172 308 172 L12 172 Q0 172 0 160Z" fill="#8fc171"/>`;
+  // duvardaki termometre
+  s += `<rect x="20" y="40" width="74" height="100" rx="3" fill="#e9dcc6" stroke="#b8a586" stroke-width="1"/>`;
+  for (let y = 52; y < 140; y += 12) s += `<line x1="20" y1="${y}" x2="94" y2="${y}" stroke="#d6c6aa" stroke-width=".8"/>`;
+  s += `<rect x="38" y="48" width="38" height="84" rx="6" fill="#fff" stroke="#7d8a91" stroke-width="1.1"/>`;
+  s += N.termometre(57, 116, 58, 0.5);
+  s += yazi(57, 30, '18 °C', { size: 13, renk: '#b5401f' });
+  // direk ve rüzgâr tulumu
+  s += `<rect x="186" y="40" width="5" height="96" fill="#7d8a91" stroke="#5f6a70" stroke-width=".6"/>` + golge(188, 136, 10, 2, 0.25);
+  const seg = [['#ee8a3a', 0], ['#f7f8f6', 1], ['#ee8a3a', 2], ['#f7f8f6', 3], ['#ee8a3a', 4]];
+  seg.forEach(([c, i]) => { const x0 = 191 + i * 16, x1 = x0 + 16, h0 = 13 - i * 2, h1 = 13 - (i + 1) * 2, y0 = 46 + i * 1.6, y1 = y0 + 1.6; s += `<path d="M${x0} ${r1(y0 - h0)} L${x1} ${r1(y1 - h1)} L${x1} ${r1(y1 + h1)} L${x0} ${r1(y0 + h0)}Z" fill="${c}" stroke="#a85a1f" stroke-width=".7"/>`; });
+  s += `<ellipse cx="191" cy="46" rx="3" ry="13" fill="#c4692a" stroke="#a85a1f" stroke-width=".7"/>`;
+  // rüzgâr oku
+  s += ok(196, 92, 292, 92, { renk: '#2b4a8b', w: 3, bas: 10, basG: 6 });
+  s += yazi(244, 112, '5 m/s, doğuya', { size: 12, renk: '#2b4a8b' });
+  [[150, 70], [140, 84], [154, 98]].forEach(([x, y]) => { s += `<path d="M${x} ${y} q6 -3 12 0 t12 0" fill="none" stroke="#7d93a6" stroke-width="1.3" stroke-linecap="round"/>`; });
+  // yön gülü
+  s += `<circle cx="286" cy="34" r="16" fill="#fff" stroke="#9aa5ad" stroke-width="1"/><path d="M286 20 L289 34 L286 48 L283 34Z" fill="#c0504d"/><path d="M272 34 L286 31 L300 34 L286 37Z" fill="#5f6a70"/>`;
+  s += yazi(286, 15, 'K', { size: 9.5 }) + yazi(306, 37.5, 'D', { size: 9.5 });
+  return s;
+}, { w: 320, h: 172, mm: 105, zemin: false }));
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -6372,6 +7067,196 @@ const KONU = {
     'SET 1: NASA gezegen bilgi tablosu (Merkür, Dünya, Ay, Mars, Satürn): SI birimi ve temel nicelik, eksi sıcaklık ve yer çekimi ivmesi, Satürn yoğunluğu g/cm³',
     'SET 2: okul servisinde telefon sensörleri (ivmeölçer, manyetometre, barometre, GPS, ışık, batarya termometresi), barometre "doğrudan ölçülen temeldir" iddiası, 41 km/h gösterge ile 11,4 m/s GPS'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.2.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda ölçtüğümüz şeylere, yani niceliklere bakacağız. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Sayı tek başına yetmez',
+        sekil: 'sf921_pazar',
+        metin: r`Pazarda satıcıya yalnızca "3 tane ver." dersen eline 3 domates geçer. "3 kg domates tartar mısınız?" dersen tartıya bir yığın domates konur. Sayı aynı, ama birim değişince miktar çok değişti.
+
+Ölçülebilen her büyüklüğe **fiziksel nicelik** denir. Kütle, uzunluk, zaman ve sıcaklık birer niceliktir. Bir ölçüm sonucu her zaman **sayı ve birim** ile yazılır: 3 kg, 250 g, 2 L gibi.
+
+Herkesin aynı birimleri kullanması için **Uluslararası Birimler Sistemi (SI)** kabul edilmiştir. Türkiye de SI'yı kullanır.`,
+        kontrol: {
+          soru: 'Hangisi bir ölçüm sonucunu tam olarak yazar?',
+          secenekler: ['250', '250 g', 'gram'],
+          dogru: 1,
+          aciklama: 'Ölçüm sonucu sayı ve birimle birlikte yazılır. Yalnız "250" neyden 250 olduğunu söylemez. Yalnız "gram" ise kaç gram olduğunu söylemez.',
+          yanlisIpucu: 'Ölçüm sonucunda iki parça olmalı: kaç tane ve neyden kaç tane. Hangi seçenekte ikisi birden var?'
+        }
+      },
+      {
+        baslik: 'Yedi temel nicelik',
+        metin: r`Bazı nicelikler başka niceliklerden türetilmez; doğrudan tanımlanır. Bunlara **temel nicelik** denir. SI'da yedi temel nicelik vardır:
+- Uzunluk (ℓ): metre, m.
+- Kütle (m): kilogram, kg.
+- Zaman (t): saniye, s.
+- Elektrik akımı (i): amper, A.
+- Sıcaklık (T): kelvin, K.
+- Işık şiddeti (I): kandela, cd.
+- Madde miktarı (n): mol, mol.
+
+Günlük hayatta kullandığımız saat, gram ve derece Celsius da birer birimdir. Ama bunlar SI'nın yedi temel birimi arasında yer almaz.`,
+        kontrol: {
+          soru: 'Hangisi SI\'daki yedi temel nicelikten biri değildir?',
+          secenekler: ['Zaman', 'Hacim', 'Sıcaklık'],
+          dogru: 1,
+          aciklama: 'Hacim yedi temel nicelik arasında yoktur. Hacim uzunluktan türetilir; SI birimi metreküptür (m³).',
+          yanlisIpucu: 'Yedi temel nicelik listesini yeniden oku. Seçeneklerden hangisi listede yok?'
+        }
+      },
+      {
+        baslik: 'Türetilmiş nicelik: temellerden kurulur',
+        sekil: 'sf921_kaykay',
+        metin: r`Bir kaykaycı 40 m'lik yolu 8 s'de gidiyor. Saniyede kaç metre yol aldığını bulmak için alınan yolu geçen süreye böleriz. Bu niceliğe **sürat** denir ve $\vartheta$ ile gösterilir:
+
+$\vartheta = \dfrac{\text{alınan yol}}{\text{geçen süre}} = \dfrac{40\ \text{m}}{8\ \text{s}} = 5\ \text{m/s}$
+
+Sürat, uzunluk ve zamandan kurulmuştur. Temel niceliklerle kurulan böyle niceliklere **türetilmiş nicelik** denir. Türetilmiş niceliğin birimi de temel birimlerden oluşur: m/s, metre ile saniyenin birleşimidir.`,
+        kontrol: {
+          soru: 'Yoğunluğun SI birimi kg/m³\'tür. Yoğunluk hangi temel niceliklerden türetilir?',
+          secenekler: ['Kütle ve uzunluk', 'Kütle ve zaman', 'Uzunluk ve zaman'],
+          dogru: 0,
+          aciklama: 'kg kütlenin birimi, m³ ise uzunluktan kurulan hacmin birimidir (m × m × m). Yoğunluk bu yüzden kütle ve uzunluktan türetilir.',
+          yanlisIpucu: 'Birimi parçalarına ayır: kg hangi niceliğin, m hangi niceliğin birimi? Birimde saniye var mı?'
+        }
+      },
+      {
+        baslik: 'Yönü olan nicelikler',
+        sekil: 'sf921_ruzgar',
+        metin: r`Termometre 18 °C gösteriyor. "Hangi yönde 18 °C?" diye sormak anlamsızdır. Sıcaklığı söylemek için sayı ve birim yeter.
+
+Rüzgârı anlatırken ise "5 m/s" yetmez. Rüzgâr tulumu rüzgârın hangi yöne estiğini de gösterir. Rüzgârı tam anlatmak için yönü de söyleriz: 5 m/s, doğuya doğru.
+- **Skaler nicelik:** Sayı ve birimle tam olarak belirtilir. Kütle, sıcaklık, zaman, hacim ve sürat skalerdir.
+- **Vektörel nicelik:** Sayı ve birimin yanında **yön** de gerekir. Hız, kuvvet, ağırlık ve ivme vektöreldir.
+
+Kendine "Hangi yönde?" diye sor. Bu soru anlamlıysa nicelik vektöreldir.`,
+        kontrol: {
+          soru: 'Hangi bilgiyi tam olarak vermek için yön de söylemek gerekir?',
+          secenekler: ['Odanın sıcaklığı 22 °C.', 'Dolabı iten kuvvet 30 N.', 'Şişede 2 L su var.'],
+          dogru: 1,
+          aciklama: 'Kuvvet vektöreldir. Dolabı sağa ya da sola itmek farklı sonuç verir. Sıcaklık ve hacim skalerdir; onlar için yön sorusu anlamsızdır.',
+          yanlisIpucu: 'Her seçenek için "Hangi yönde?" diye sor. Hangisinde bu soru anlamlı?'
+        }
+      },
+      {
+        baslik: 'Bir nicelik, iki soru',
+        metin: r`Bir niceliği tanımak için iki ayrı soru sorulur:
+- **Temel mi, türetilmiş mi?** Başka niceliklerden kuruluyor mu?
+- **Skaler mi, vektörel mi?** Yönü var mı?
+
+Bu iki soru birbirinden bağımsızdır:
+- Kütle temel ve skalerdir.
+- Sürat türetilmiş ve skalerdir.
+- Kuvvet türetilmiş ve vektöreldir.
+
+Kütle ile ağırlığı karıştırma. Kütle temel bir niceliktir, birimi kilogramdır (kg). Ağırlık ise Dünya'nın cisme uyguladığı çekim kuvvetidir; birimi newtondur (N) ve yönü aşağı doğrudur.`,
+        kontrol: {
+          soru: 'Ağırlık için hangisi doğrudur?',
+          secenekler: ['Temel ve skaler bir niceliktir.', 'Türetilmiş ve skaler bir niceliktir.', 'Türetilmiş ve vektörel bir niceliktir.'],
+          dogru: 2,
+          aciklama: r`Ağırlık bir kuvvettir. Kuvvet gibi türetilmiştir ($1\ \text{N} = 1\ \text{kg}\times\text{m/s}^2$) ve yönü vardır: aşağı doğru. Bu yüzden türetilmiş ve vektöreldir.`,
+          yanlisIpucu: 'Ağırlık bir kuvvettir. Metinde kuvvet için iki sorunun cevabı ne verilmişti?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Ada\'nın ölçüm defteri',
+        metin: r`Ada, fizik dersi için birkaç ölçüm yaptı ve defterine şunları yazdı:
+- Masanın boyu: 120.
+- Sınıfın sıcaklığı: 295 K.
+- Kalemin kütlesi: 8 g.
+- Koridoru yürüme süresi: 1 dk 20 s.`,
+        adimlar: [
+          {
+            soru: 'Hangi kayıt eksik yazılmıştır?',
+            secenekler: ['Masanın boyu: 120.', 'Kalemin kütlesi: 8 g.', 'Sınıfın sıcaklığı: 295 K.'],
+            dogru: 0,
+            ipucu: 'Her ölçüm sonucunda sayı ve birim olmalı. Birimi olmayan kayıt hangisi?',
+            aciklama: '"120" yalnız bir sayıdır; 120 cm mi, 120 mm mi belli değildir. Doğru kayıt örneğin "120 cm" olmalıdır.'
+          },
+          {
+            soru: 'Sınıfın sıcaklığı için yazılan 295 K hakkında hangisi doğrudur?',
+            secenekler: ['K, kilogramın kısaltmasıdır.', 'Sıcaklık, SI\'daki temel birimi olan kelvinle yazılmıştır.', 'Sıcaklık türetilmiş bir niceliktir.'],
+            dogru: 1,
+            ipucu: 'Yedi temel nicelikte sıcaklığın birimi neydi? kg ile K aynı şey mi?',
+            aciklama: 'K, kelvinin sembolüdür. Sıcaklık temel bir niceliktir ve SI birimi kelvindir. 295 K, yaklaşık 22 °C\'lik bir oda sıcaklığıdır.'
+          },
+          {
+            soru: 'Koridoru yürüme süresi SI birimiyle kaç saniyedir?',
+            secenekler: ['80 s', '120 s', '21 s'],
+            dogru: 0,
+            ipucu: '1 dakika 60 saniyedir. 60 saniyeye 20 saniye ekle.',
+            aciklama: '1 dk = 60 s olduğu için süre 60 + 20 = 80 s olur. Zamanın SI birimi saniyedir.'
+          }
+        ],
+        sonuc: 'Bir ölçüm, sayı ve birim birlikte yazıldığında anlam kazanır. SI birimleri kullanılınca herkes aynı sonucu aynı biçimde okur.'
+      },
+      {
+        baslik: 'Dronla paket teslimatı',
+        metin: 'Bir kargo dronu, kütlesi 2 kg olan bir paketi taşıyacak. Kontrol merkezi drona şu bilgileri gönderiyor: uçuş süresi 4 dakika, hız "kuzeye doğru 10 m/s". Dünya\'da 1 kg kütleli bir cismin ağırlığı yaklaşık 10 N\'dur.',
+        adimlar: [
+          {
+            soru: 'Bu bilgilerden hangisi vektörel bir niceliktir?',
+            secenekler: ['Paketin kütlesi', 'Uçuş süresi', 'Dronun hızı'],
+            dogru: 2,
+            ipucu: 'Her bilgi için "Hangi yönde?" diye sor. Hangisinde yön de verilmiş?',
+            aciklama: 'Hız vektöreldir; büyüklüğü (10 m/s) ve yönü (kuzey) vardır. Kütle ve süre skalerdir.'
+          },
+          {
+            soru: 'Merkez yalnız "10 m/s" gönderseydi ne eksik kalırdı?',
+            secenekler: ['Dronun ne kadar hızlı gideceği', 'Dronun hangi yöne gideceği', 'Paketin kütlesi'],
+            dogru: 1,
+            ipucu: '10 m/s, ne kadar hızlı gidileceğini söyler. Bunun yanında neye ihtiyaç var?',
+            aciklama: 'Yalnız 10 m/s, dronun süratini söyler. Yön olmadan dron paketi doğru yere götüremez. Vektörel niceliklerde yön de söylenmelidir.'
+          },
+          {
+            soru: 'Paketin ağırlığını tam olarak bildiren ifade hangisidir?',
+            secenekler: ['2 kg, aşağı doğru', 'Yaklaşık 20 N', 'Yaklaşık 20 N, aşağı doğru'],
+            dogru: 2,
+            ipucu: 'Ağırlık bir kuvvettir: birimi kg değil N\'dur. Kuvvet vektörel olduğu için yönü de söylenmelidir.',
+            aciklama: '1 kg için ağırlık yaklaşık 10 N olduğundan 2 kg\'lık paketin ağırlığı yaklaşık 20 N\'dur ve yönü aşağı doğrudur. "2 kg" ise paketin kütlesidir.'
+          }
+        ],
+        sonuc: 'Kütle ve süre skalerdir; hız ve ağırlık vektöreldir. Vektörel bir niceliği anlatırken büyüklüğünü, birimini ve yönünü birlikte söyle.'
+      },
+      {
+        baslik: 'Fırın tepsisi',
+        metin: 'Bir fırıncı, 40 cm uzunluğunda ve 30 cm genişliğinde dikdörtgen bir tepsiye 2 cm kalınlığında hamur yayıyor.',
+        adimlar: [
+          {
+            soru: 'Tepsinin taban alanı kaç cm²\'dir?',
+            secenekler: ['70 cm²', '1200 cm²', '140 cm²'],
+            dogru: 1,
+            ipucu: 'Dikdörtgenin alanı uzunluk ile genişliğin çarpımıdır. Toplama değil, çarpma yap.',
+            aciklama: r`Alan $= 40\ \text{cm} \times 30\ \text{cm} = 1200\ \text{cm}^2$ olur. Birimler de çarpılır: cm × cm = cm².`
+          },
+          {
+            soru: 'Alan hangi temel nicelikten türetilir?',
+            secenekler: ['Yalnız uzunluktan', 'Uzunluk ve kütleden', 'Hiçbirinden; alan temel bir niceliktir'],
+            dogru: 0,
+            ipucu: 'cm² birimini parçalarına ayır: cm × cm. İçinde hangi temel birim var?',
+            aciklama: 'cm² = cm × cm olduğu için alan yalnız uzunluktan türetilir. Birimi tek bir temel birimden oluşsa da alan temel nicelik değildir; yedi temel nicelik arasında yoktur.'
+          },
+          {
+            soru: 'Hamurun hacmi kaç cm³\'tür?',
+            secenekler: ['72 cm³', '600 cm³', '2400 cm³'],
+            dogru: 2,
+            ipucu: 'Hacim, taban alanı ile kalınlığın çarpımıdır. Taban alanını bir önceki adımlarda buldun.',
+            aciklama: r`Hacim $= 1200\ \text{cm}^2 \times 2\ \text{cm} = 2400\ \text{cm}^3$ olur. Hacim de yalnız uzunluktan türetilir: cm × cm × cm = cm³.`
+          }
+        ],
+        sonuc: 'Alanın ve hacmin birimleri yalnız uzunluk biriminden oluşur, ama ikisi de türetilmiş niceliktir. Birimi tek bir temel birimden oluşan bir nicelik de türetilmiş olabilir. Bir niceliğin temel olup olmadığına yedi temel nicelik listesine bakarak karar verilir.'
+      }
+    ],
+    hazir: 'Temel ve türetilmiş nicelikleri, SI birimlerini, skaler ve vektörel nicelikleri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
