@@ -8639,6 +8639,229 @@ BFY_FIG_EKLE('k922_artieksi', function (u) {
 });
 })();
 
+/* =============== SIFIRDAN BAŞLA şekilleri (konu.baslangic) ===============
+   Gerçekçi, dolgun sahneler; vektörler beyaz haleli oklar. Doğu sağa. */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const { ton } = window.BFY_ISO;
+const r1 = v => Math.round(v * 10) / 10;
+const SF = { A: '#2f7fb8', B: '#3f8a67', R: '#d9573b', mor: '#c2255c', tur: '#d9480f' };
+/* vektör adı: eğik harf, alt indis ve üstte küçük ok; o.on: önündeki katsayı ('2', '−') */
+function vh(x, y, harf, renk, o = {}) {
+  const size = o.size || 15, alt = o.alt || '', on = o.on || '';
+  const wOn = on ? on.length * size * 0.62 + 1 : 0, wH = size * 0.62 * harf.length, wA = alt ? alt.length * size * 0.46 + 1 : 0;
+  const top = wOn + wH + wA, sx = o.anchor === 'start' ? x : o.anchor === 'end' ? x - top : x - top / 2;
+  let s = '';
+  if (on) s += T(r1(sx), y, on, { size, weight: 800, fill: renk });
+  s += T(r1(sx + wOn), y, harf + (alt ? '_{' + alt + '}' : ''), { size, weight: 800, fill: renk, italic: true });
+  const ay = r1(y - size * 0.95), a1 = r1(sx + wOn + 1), a2 = r1(sx + wOn + wH + 1);
+  return s + `<line x1="${a1}" y1="${ay}" x2="${r1(a2 - 3)}" y2="${ay}" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>` +
+    `<line x1="${a1}" y1="${ay}" x2="${r1(a2 - 3)}" y2="${ay}" stroke="${renk}" stroke-width="1.4" stroke-linecap="round"/>` +
+    `<polygon points="${r1(a2 + 1)},${ay} ${r1(a2 - 4)},${r1(ay - 2.6)} ${r1(a2 - 4)},${r1(ay + 2.6)}" fill="${renk}"/>`;
+}
+/* beyaz haleli vektör oku */
+function vok(x1, y1, x2, y2, c, o = {}) {
+  const w = o.w || 3.2, h = o.head || 11, hw = o.headW || 6;
+  return arrow(x1, y1, x2, y2, { color: '#fff', w: w + 3.2, head: h + 2, headW: hw + 1.8 }) +
+    arrow(x1, y1, x2, y2, { color: c, w, head: h, headW: hw }) + (o.nokta === false ? '' : `<circle cx="${x1}" cy="${y1}" r="3" fill="${c}" stroke="#fff" stroke-width="1"/>`);
+}
+const izgaraD = (x0, y0, n, m, S, renk = '#d3dde4') => {
+  let s = `<rect x="${x0}" y="${y0}" width="${n * S}" height="${m * S}" fill="#fbfdfc" stroke="#b9c8c1" stroke-width="1.2"/>`;
+  for (let i = 1; i < n; i++) s += `<line x1="${x0 + i * S}" y1="${y0}" x2="${x0 + i * S}" y2="${y0 + m * S}" stroke="${renk}" stroke-width="1"/>`;
+  for (let j = 1; j < m; j++) s += `<line x1="${x0}" y1="${y0 + j * S}" x2="${x0 + n * S}" y2="${y0 + j * S}" stroke="${renk}" stroke-width="1"/>`;
+  return s;
+};
+/* yandan görünen insan: (x, y) iki ayağın ortası; yon +1 sağa bakar; el: [x, y] elin değdiği nokta */
+function kisiYan(u, x, y, o) {
+  const yon = o.yon || 1, g = o.egim || 0, ten = '#e8b892', gom = o.renk || '#2f7fb8', pan = o.pantolon || '#34495e', sac = o.sac || '#3b2a20';
+  const kal = [x, y - 40], om = [x + g * yon, y - 68], bas = [x + (g * 1.2 + 2) * yon, y - 80];
+  let s = `<ellipse cx="${x}" cy="${y + 1}" rx="17" ry="3.2" fill="#0b1f18" opacity=".18"/>`;
+  [[-9, '#2b3a48'], [9, pan]].forEach(([d, c]) => {
+    s += `<line x1="${kal[0]}" y1="${kal[1]}" x2="${x + d * yon}" y2="${y - 3}" stroke="${c}" stroke-width="7.5" stroke-linecap="round"/>`;
+    s += `<path d="M${x + d * yon - 4 * yon} ${y} h${12 * yon} q${2 * yon} -4 ${-3 * yon} -5 h${-9 * yon} z" fill="#2a2f33"/>`;
+  });
+  s += `<line x1="${kal[0]}" y1="${kal[1]}" x2="${om[0]}" y2="${om[1]}" stroke="${gom}" stroke-width="17" stroke-linecap="round"/>`;
+  s += `<line x1="${kal[0] - 3 * yon}" y1="${kal[1] - 2}" x2="${om[0] - 3 * yon}" y2="${om[1] + 4}" stroke="#fff" stroke-opacity=".18" stroke-width="4" stroke-linecap="round"/>`;
+  if (o.el) {
+    const e = o.el, m = [om[0] + (e[0] - om[0]) * 0.45, om[1] + (e[1] - om[1]) * 0.45];
+    s += `<line x1="${om[0]}" y1="${om[1] + 2}" x2="${r1(m[0])}" y2="${r1(m[1])}" stroke="${ton(gom, -0.12)}" stroke-width="7" stroke-linecap="round"/>`;
+    s += `<line x1="${r1(m[0])}" y1="${r1(m[1])}" x2="${e[0]}" y2="${e[1]}" stroke="${ten}" stroke-width="5" stroke-linecap="round"/><circle cx="${e[0]}" cy="${e[1]}" r="3.4" fill="${ten}" stroke="#b07a55" stroke-width=".6"/>`;
+  }
+  s += `<defs><radialGradient id="${u}ten${x}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#f6d3b5"/><stop offset="1" stop-color="#d79f78"/></radialGradient></defs>`;
+  if (o.atkuyrugu) s += `<ellipse cx="${bas[0] - 9 * yon}" cy="${bas[1] + 2}" rx="4.5" ry="8" fill="${sac}" transform="rotate(${-20 * yon} ${bas[0] - 9 * yon} ${bas[1] + 2})"/>`;
+  s += `<circle cx="${bas[0] - 2 * yon}" cy="${bas[1] - 2}" r="9.2" fill="${sac}"/>`;
+  s += `<circle cx="${bas[0]}" cy="${bas[1]}" r="8.4" fill="url(#${u}ten${x})"/>`;
+  s += `<path d="M${bas[0] - 8.8 * yon} ${bas[1] - 1} q${3 * yon} -9.5 ${12 * yon} -7.5 q${-6 * yon} 1 ${-8 * yon} 5 z" fill="${sac}"/>`;
+  s += `<circle cx="${bas[0] + 4.6 * yon}" cy="${bas[1] - 1.5}" r="1.1" fill="#2a2f33"/>`;
+  return s;
+}
+
+/* Adım 2: çift hatlı demiryolu; ön hatta doğuya, arka hatta batıya giden tren */
+function tren(u, x, yb, L, yon, renk, id) {
+  const h = 30, g = `${u}tr${id}`, k = ton(renk, -0.45);
+  let s = `<defs><linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${ton(renk, 0.4)}"/><stop offset=".55" stop-color="${renk}"/><stop offset="1" stop-color="${ton(renk, -0.3)}"/></linearGradient></defs>`;
+  let b = `<ellipse cx="${L / 2}" cy="1" rx="${L / 2 + 4}" ry="3.2" fill="#0b1f18" opacity=".2"/>`;
+  b += `<rect x="6" y="-9" width="${L - 14}" height="5" fill="#3a4246"/>`;
+  [12, 26, L - 38, L - 24].forEach(wx => { b += `<circle cx="${wx}" cy="-4" r="4.2" fill="#2a3330" stroke="#8a969c" stroke-width="1.1"/>`; });
+  b += `<path d="M2 -8 V${-h + 5} Q2 ${-h - 1} 8 ${-h - 1} H${L - 28} Q${L - 8} ${-h - 1} ${L} ${-12} V-8 Z" fill="url(#${g})" stroke="${k}" stroke-width="1"/>`;
+  for (let wx = 10; wx < L - 44; wx += 17) b += `<rect x="${wx}" y="${-h + 5}" width="12" height="9" rx="2" fill="#d6edf8" stroke="${k}" stroke-width=".6"/>`;
+  b += `<path d="M${L - 27} ${-h + 4} H${L - 15} L${L - 5} ${-h + 14} H${L - 27} Z" fill="#d6edf8" stroke="${k}" stroke-width=".6"/>`;
+  b += `<rect x="2" y="-15" width="${L - 4}" height="3" fill="#fff" opacity=".85"/>`;
+  b += `<path d="M${L * 0.35} ${-h - 1} l7 -7 l7 7 M${L * 0.35 + 7} ${-h - 8} h12" fill="none" stroke="#4a5459" stroke-width="1.3"/>`;
+  const tr = yon > 0 ? `translate(${x} ${yb})` : `translate(${x + L} ${yb}) scale(-1 1)`;
+  return s + `<g transform="${tr}">${b}</g>`;
+}
+function hat(y, W) {
+  let s = `<rect x="0" y="${y - 2}" width="${W}" height="13" fill="#b4ab9d"/>`;
+  for (let x = 4; x < W; x += 11) s += `<rect x="${x}" y="${y - 1}" width="6" height="11" rx="1" fill="#7a5c3e"/>`;
+  return s + `<line x1="0" y1="${y + 1}" x2="${W}" y2="${y + 1}" stroke="#5d666b" stroke-width="2.2"/><line x1="0" y1="${y + 8}" x2="${W}" y2="${y + 8}" stroke="#5d666b" stroke-width="2.2"/>`;
+}
+BFY_FIG_EKLE('sf922_ray', function (u) {
+  const W = 340, H = 206;
+  let s = `<defs><linearGradient id="${u}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe6f5"/><stop offset="1" stop-color="#eef6fb"/></linearGradient>` +
+    `<linearGradient id="${u}cm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd9a4"/><stop offset="1" stop-color="#9cc47f"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}gk)"/>`;
+  s += `<path d="M0 74 Q60 56 120 70 T240 64 T340 70 V${H - 14} Q340 ${H} 326 ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="url(#${u}cm)"/>`;
+  s += hat(96, W) + hat(180, W);
+  s += tren(u, 168, 96, 150, -1, '#c2553b', 'b');
+  s += tren(u, 26, 180, 150, 1, '#2f7fb8', 'f');
+  // doğrultu çizgileri
+  [52, 132].forEach(y => { s += `<line x1="10" y1="${y}" x2="${W - 10}" y2="${y}" stroke="#5c6b66" stroke-width="1.3" stroke-dasharray="6 5"/>`; });
+  s += T(W - 12, 46, 'doğrultu', { size: 11.5, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += T(W - 12, 126, 'doğrultu', { size: 11.5, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += vok(101, 132, 196, 132, SF.A) + vh(148, 124, 'ϑ', ton(SF.A, -0.25), { alt: '1' });
+  s += vok(243, 52, 148, 52, SF.R) + vh(196, 44, 'ϑ', ton(SF.R, -0.25), { alt: '2' });
+  s += arrow(16, 20, 50, 20, { color: P.ink, w: 1.6, head: 7, headW: 4 }) + T(55, 24, 'Doğu', { size: 11.5, weight: 700 });
+  return svg(W, H, s, u, 84);
+});
+
+/* Adım 3: çarpışan arabalar, kuşbakışı; 1 ve 2 doğuya, 3 batıya; hızların büyüklükleri eşit */
+function araba(u, cx, cy, yon, renk, no) {
+  const g = `${u}ar${no}`;
+  let b = `<defs><radialGradient id="${g}" cx="62%" cy="35%" r="75%"><stop offset="0" stop-color="${ton(renk, 0.45)}"/><stop offset=".6" stop-color="${renk}"/><stop offset="1" stop-color="${ton(renk, -0.35)}"/></radialGradient></defs>`;
+  b += `<g transform="translate(${cx} ${cy}) scale(${yon} 1)">`;
+  b += `<ellipse cx="3" cy="5" rx="28" ry="18" fill="#0b1f18" opacity=".2"/>`;
+  b += `<rect x="-26" y="-17" width="52" height="34" rx="16" fill="#30393d"/>`;
+  b += `<rect x="-22" y="-14" width="44" height="28" rx="11" fill="url(#${g})" stroke="${ton(renk, -0.45)}" stroke-width=".8"/>`;
+  b += `<rect x="-15" y="-9" width="12" height="18" rx="4" fill="#2a2f33"/>`;
+  b += `<circle cx="-7" cy="0" r="5.4" fill="#4a3426"/>`;
+  b += `<circle cx="4" cy="0" r="4" fill="none" stroke="#1f2426" stroke-width="2"/>`;
+  b += `<circle cx="-20" cy="0" r="2.4" fill="#c4ccd1" stroke="#5c6b66" stroke-width=".6"/>`;
+  b += `<circle cx="14.5" cy="0" r="5" fill="#fff" stroke="${ton(renk, -0.45)}" stroke-width=".8"/></g>`;
+  return b + T(cx + 14.5 * yon, cy + 3.6, String(no), { size: 9.5, weight: 800, anchor: 'middle', halo: false });
+}
+BFY_FIG_EKLE('sf922_carpisan', function (u) {
+  const W = 320, H = 222, S = 20, x0 = 20, y0 = 20;
+  let s = `<defs><linearGradient id="${u}pz" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9eef1"/><stop offset="1" stop-color="#c9d3d9"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f2ede4"/>`;
+  s += `<rect x="${x0}" y="${y0}" width="${14 * S}" height="${9 * S}" fill="url(#${u}pz)"/>`;
+  for (let i = 1; i < 14; i++) s += `<line x1="${x0 + i * S}" y1="${y0}" x2="${x0 + i * S}" y2="${y0 + 9 * S}" stroke="#aebbc3" stroke-width=".8"/>`;
+  for (let j = 1; j < 9; j++) s += `<line x1="${x0}" y1="${y0 + j * S}" x2="${x0 + 14 * S}" y2="${y0 + j * S}" stroke="#aebbc3" stroke-width=".8"/>`;
+  s += `<rect x="${x0 - 4}" y="${y0 - 4}" width="${14 * S + 8}" height="${9 * S + 8}" rx="9" fill="none" stroke="#2f3a3f" stroke-width="7"/>`;
+  s += `<rect x="${x0 - 4}" y="${y0 - 4}" width="${14 * S + 8}" height="${9 * S + 8}" rx="9" fill="none" stroke="#e0a43a" stroke-width="1.6" stroke-dasharray="10 8"/>`;
+  s += araba(u, 56, 60, 1, '#d24b3e', 1) + araba(u, 96, 160, 1, '#2f7fb8', 2) + araba(u, 264, 100, -1, '#e0a43a', 3);
+  s += vok(82, 60, 122, 60, '#7b1d3f', { nokta: false }) + vh(102, 50, 'ϑ', '#7b1d3f', { alt: '1' });
+  s += vok(122, 160, 162, 160, '#7b1d3f', { nokta: false }) + vh(142, 150, 'ϑ', '#7b1d3f', { alt: '2' });
+  s += vok(238, 100, 198, 100, '#7b1d3f', { nokta: false }) + vh(218, 90, 'ϑ', '#7b1d3f', { alt: '3' });
+  s += T(30, 194, '1 kare = 1 m/s', { size: 11, weight: 700, fill: P.ink2 });
+  s += arrow(252, 190, 286, 190, { color: P.ink, w: 1.5, head: 6.5, headW: 3.6 }) + T(247, 194, 'Doğu', { size: 11, weight: 700, anchor: 'end' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 4: bir adım ileri (A), iki adım ileri (2A), bir adım geri (−A); 1 adım = 2 kare */
+BFY_FIG_EKLE('sf922_kat', function (u) {
+  const W = 320, H = 168, S = 20, x0 = 86, y0 = 12, n = 10, m = 6;
+  const X = i => x0 + i * S, Y = j => y0 + (m - j) * S;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>` + izgaraD(x0, y0, n, m, S);
+  s += `<line x1="${X(4)}" y1="${y0 - 2}" x2="${X(4)}" y2="${y0 + m * S + 2}" stroke="#7a8c85" stroke-width="1.3" stroke-dasharray="4 4"/>`;
+  s += vok(X(4), Y(5), X(6), Y(5), SF.mor) + vok(X(4), Y(3), X(8), Y(3), SF.mor) + vok(X(4), Y(1), X(2), Y(1), SF.tur);
+  s += vh(70, Y(5) + 5, 'A', SF.mor, { anchor: 'end', size: 15 });
+  s += vh(70, Y(3) + 5, 'A', SF.mor, { anchor: 'end', size: 15, on: '2' });
+  s += vh(70, Y(1) + 5, 'A', SF.tur, { anchor: 'end', size: 15, on: '−' });
+  s += T(X(4) - 8, Y(5) + 4, '1 adım ileri', { size: 11.5, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += T(X(4) - 8, Y(3) + 4, '2 adım ileri', { size: 11.5, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += T(X(4) + 8, Y(1) + 4, '1 adım geri', { size: 11.5, weight: 700, fill: P.ink2 });
+  s += T(x0, y0 + m * S + 18, '1 adım = 2 kare', { size: 11, weight: 700, fill: P.ink2 });
+  s += arrow(W - 70, y0 + m * S + 14, W - 38, y0 + m * S + 14, { color: P.ink, w: 1.5, head: 6.5, headW: 3.6 }) + T(W - 34, y0 + m * S + 18, 'ileri', { size: 11, weight: 700 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 5: market arabası; Ali önden çeker (F1 = 30 N), Ayşe arkadan iter (F2 = 20 N); üstte uç uca ekleme, 1 kare = 10 N */
+BFY_FIG_EKLE('sf922_market', function (u) {
+  const W = 340, H = 228, S = 18, gx = 60, gy = 10, yz = 214;
+  let s = `<defs><linearGradient id="${u}zm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f1e7"/><stop offset="1" stop-color="#e6dccb"/></linearGradient>` +
+    `<linearGradient id="${u}sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3e9ec"/><stop offset="1" stop-color="#b9c4ca"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}zm)"/>`;
+  // raf (arka plan)
+  s += `<rect x="18" y="112" width="304" height="70" rx="3" fill="#efe7d8" stroke="#d6c9b1"/>`;
+  [134, 158].forEach(y => { s += `<rect x="18" y="${y}" width="304" height="3" fill="#cdbd9f"/>`; });
+  const urun = ['#e9c46a', '#e76f51', '#2a9d8f', '#8ab17d', '#f4a261', '#7aa6c2'];
+  for (let i = 0; i < 24; i++) { const x = 24 + i * 12.4, r = i % 2 ? 134 : 158; s += `<rect x="${r1(x)}" y="${r - 13 - (i % 3) * 2}" width="9" height="${13 + (i % 3) * 2}" rx="1.5" fill="${urun[i % 6]}" opacity=".75"/>`; }
+  s += `<rect x="0" y="${yz}" width="${W}" height="${H - yz}" fill="#d8ccb6"/>`;
+  for (let x = 0; x < W; x += 28) s += `<line x1="${x}" y1="${yz}" x2="${x - 8}" y2="${H}" stroke="#c8baa1" stroke-width="1"/>`;
+  // vektör panosu
+  s += izgaraD(gx, gy, 10, 5, S);
+  const X = i => gx + i * S, Y = j => gy + (5 - j) * S;
+  s += `<line x1="${X(1)}" y1="${Y(3)}" x2="${X(1)}" y2="${Y(1)}" stroke="#7a8c85" stroke-width="1.2" stroke-dasharray="3 3"/><line x1="${X(6)}" y1="${Y(3)}" x2="${X(6)}" y2="${Y(1)}" stroke="#7a8c85" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  s += vok(X(1), Y(3), X(4), Y(3), SF.A) + vok(X(4), Y(3), X(6), Y(3), SF.B) + vok(X(1), Y(1), X(6), Y(1), SF.R, { w: 3.6 });
+  s += vh(X(2.5), Y(3) - 7, 'F', SF.A, { alt: '1' }) + vh(X(5), Y(3) - 7, 'F', SF.B, { alt: '2' }) + vh(X(3.5), Y(1) - 7, 'R', SF.R);
+  s += T(X(10) + 8, Y(2.5), '1 kare', { size: 11, weight: 700, fill: P.ink2 }) + T(X(10) + 8, Y(2.5) + 14, '= 10 N', { size: 11, weight: 700, fill: P.ink2 });
+  // market arabası (doğuya bakar; sapı batıda)
+  const bx0 = 142, bx1 = 238, by0 = 134, by1 = 176;
+  s += `<ellipse cx="${(bx0 + bx1) / 2}" cy="${yz + 1}" rx="54" ry="3.5" fill="#0b1f18" opacity=".18"/>`;
+  s += `<path d="M${bx0 + 12} ${by1} L${bx0 + 8} ${yz - 9} M${bx1 - 12} ${by1} L${bx1 - 18} ${yz - 9} M${bx0 + 4} ${yz - 13} H${bx1 - 10}" stroke="#7d8a91" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  [bx0 + 8, bx1 - 18].forEach(x => { s += `<circle cx="${x}" cy="${yz - 6}" r="6.2" fill="#2a3330"/><circle cx="${x}" cy="${yz - 6}" r="2.2" fill="#b8c0c7"/>`; });
+  s += `<ellipse cx="166" cy="${by0 - 3}" rx="15" ry="7" fill="#c98b4a" stroke="#8a5a2a" stroke-width=".8"/><rect x="186" y="${by0 - 16}" width="13" height="26" rx="2" fill="#f4f6f7" stroke="#7aa6c2"/><rect x="186" y="${by0 - 8}" width="13" height="7" fill="#7aa6c2"/>`;
+  s += `<circle cx="212" cy="${by0 - 2}" r="6" fill="#d24b3e"/><circle cx="222" cy="${by0}" r="5.5" fill="#e0a43a"/>`;
+  s += `<path d="M${bx0} ${by0} H${bx1} L${bx1 - 8} ${by1} H${bx0 + 12} Z" fill="url(#${u}sp)" fill-opacity=".55" stroke="#6f7d84" stroke-width="2"/>`;
+  for (let x = bx0 + 9; x < bx1 - 4; x += 9) { const t = (x - bx0) / (bx1 - bx0); s += `<line x1="${x}" y1="${by0}" x2="${r1(x + 12 * (1 - t) - 8 * t)}" y2="${by1}" stroke="#8b9aa3" stroke-width="1"/>`; }
+  [by0 + 14, by0 + 28].forEach(y => { s += `<line x1="${bx0 + (y - by0) * 0.29}" y1="${y}" x2="${bx1 - (y - by0) * 0.19}" y2="${y}" stroke="#8b9aa3" stroke-width="1"/>`; });
+  s += `<path d="M${bx0} ${by0} L${bx0 - 14} ${by0 - 12}" stroke="#6f7d84" stroke-width="2.6" stroke-linecap="round"/><rect x="${bx0 - 20}" y="${by0 - 16}" width="10" height="7" rx="3" fill="#d24b3e"/>`;
+  // insanlar
+  s += kisiYan(u, 100, yz, { yon: 1, egim: 7, renk: '#3f8a67', el: [bx0 - 15, by0 - 12], atkuyrugu: true, pantolon: '#46536a' });
+  s += kisiYan(u, 270, yz, { yon: 1, egim: 6, renk: '#2f7fb8', el: [bx1 + 2, by0 + 2] });
+  s += T(104, 118, 'Ayşe', { size: 11.5, weight: 800, anchor: 'middle' }) + T(276, 118, 'Ali', { size: 11.5, weight: 800, anchor: 'middle' });
+  s += arrow(278, 28, 312, 28, { color: P.ink, w: 1.5, head: 6.5, headW: 3.6 }) + T(295, 20, 'Doğu', { size: 11, weight: 700, anchor: 'middle' });
+  return svg(W, H, s, u, 84);
+});
+
+/* Isınma 2: nilüfer yaprakları düz bir sırada, aralık 40 cm; kurbağa ilk yaprakta, bir sıçrayış S */
+function yaprak(u, x, y, i) {
+  return `<ellipse cx="${x + 1}" cy="${y + 3}" rx="25" ry="10" fill="#2e6f6a" opacity=".35"/>` +
+    `<ellipse cx="${x}" cy="${y}" rx="24" ry="9.5" fill="url(#${u}yp)" stroke="#3d7a3a" stroke-width=".9"/>` +
+    `<path d="M${x} ${y} L${x + 25} ${y - 3.5} L${x + 25} ${y + 3.5} Z" fill="#7cbfd6"/>` +
+    [[-16, -5], [-18, 3], [-6, 8], [8, 7], [-4, -8]].map(([dx, dy]) => `<line x1="${x}" y1="${y}" x2="${x + dx}" y2="${y + dy}" stroke="#a9d58e" stroke-width=".7" opacity=".8"/>`).join('');
+}
+function kurbaga(u, x, y) {
+  return `<ellipse cx="${x - 8}" cy="${y + 4}" rx="10" ry="6" fill="#4f8f3a" stroke="#2f5e22" stroke-width=".8"/>` +
+    `<path d="M${x - 14} ${y + 8} q-6 2 -9 0" stroke="#4f8f3a" stroke-width="3" stroke-linecap="round" fill="none"/>` +
+    `<ellipse cx="${x}" cy="${y}" rx="14" ry="9" fill="url(#${u}kb)" stroke="#2f5e22" stroke-width=".9" transform="rotate(-14 ${x} ${y})"/>` +
+    `<ellipse cx="${x + 3}" cy="${y + 4}" rx="8" ry="3.5" fill="#d9e8a8" opacity=".85"/>` +
+    `<path d="M${x + 8} ${y + 4} l3 7 l3 0" stroke="#4f8f3a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>` +
+    `<circle cx="${x - 4}" cy="${y - 3}" r="1.6" fill="#2f5e22"/><circle cx="${x - 9}" cy="${y + 1}" r="1.3" fill="#2f5e22"/>` +
+    `<circle cx="${x + 9}" cy="${y - 7}" r="4.4" fill="#6fae4f" stroke="#2f5e22" stroke-width=".8"/><circle cx="${x + 10}" cy="${y - 7.5}" r="2.6" fill="#fff"/><circle cx="${x + 10.8}" cy="${y - 7.5}" r="1.4" fill="#1f2426"/>` +
+    `<path d="M${x + 10} ${y - 1} q3 1 5 -1" stroke="#2f5e22" stroke-width=".9" fill="none"/>`;
+}
+BFY_FIG_EKLE('sf922_kurbaga', function (u) {
+  const W = 340, H = 184, yy = 108;
+  let s = `<defs><linearGradient id="${u}su" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ccbe0"/><stop offset="1" stop-color="#4f9cb8"/></linearGradient>` +
+    `<radialGradient id="${u}yp" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#8fca6b"/><stop offset="1" stop-color="#4f9a45"/></radialGradient>` +
+    `<radialGradient id="${u}kb" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#9fd27a"/><stop offset="1" stop-color="#4f8f3a"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}su)"/>`;
+  s += `<path d="M0 30 Q50 22 110 28 T230 26 T340 30 V14 Q340 0 326 0 H14 Q0 0 0 14 Z" fill="#9cc47f"/><path d="M0 30 Q50 22 110 28 T230 26 T340 30" fill="none" stroke="#7aa35e" stroke-width="2"/>`;
+  [[14, 30], [22, 34], [30, 28], [318, 30], [326, 26]].forEach(([x, h]) => { s += `<path d="M${x} 32 q2 ${-h / 2} ${-1} ${-h}" stroke="#5b8a3e" stroke-width="2" fill="none"/><ellipse cx="${x - 1}" cy="${32 - h + 3}" rx="2.2" ry="5" fill="#7a4f2a"/>`; });
+  [[60, 60], [160, 52], [270, 64], [120, 160], [230, 168], [40, 150], [300, 150]].forEach(([x, y]) => { s += `<path d="M${x} ${y} q5 -3 10 0 t10 0" fill="none" stroke="#e3f3fa" stroke-width="1.3" opacity=".8"/>`; });
+  const xs = [50, 110, 170, 230, 290];
+  xs.forEach((x, i) => { s += yaprak(u, x, yy, i); });
+  s += `<path d="M${xs[0] + 6} ${yy - 14} Q${(xs[0] + xs[1]) / 2} 46 ${xs[1] - 2} ${yy - 6}" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+  s += kurbaga(u, xs[0], yy - 8);
+  s += vok(xs[0], 140, xs[1], 140, '#c2255c');
+  s += vh(70, 164, 'S', '#c2255c', { anchor: 'end' }) + T(76, 164, '40 cm', { size: 12, weight: 800, fill: '#7b1d3f' });
+  s += arrow(278, 48, 314, 48, { color: P.ink, w: 1.6, head: 7, headW: 4 }) + T(296, 66, 'Doğu', { size: 11.5, weight: 700, anchor: 'middle' });
+  return svg(W, H, s, u, 84);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -8674,6 +8897,182 @@ const KONU = {
     'SET 1: 2023 Dünya Atletizm Şampiyonası (Budapeşte) erkekler 100 m rüzgâr ölçümleri, işaretin yön anlamı, −2 kat (−1 zıt vektör çeldiricisi), yanlış çıkarımlar',
     'SET 2: akıntılı nehirde tek kişilik kürek teknesi, tempo ve GPS hızları, akıntı hızı, suya göre hız, akıntı iki katına çıkınca'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.2.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Vektörü bir ok gibi düşüneceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Sayı yetmez, yön de gerek',
+        sekil: 'k922_kart_vektorel',
+        metin: r`Arkadaşın sana "Kutuyu 50 N'luk kuvvetle it." diyor. Hemen aklına bir soru gelir: Hangi yöne? Kutuyu doğuya itmekle batıya itmek aynı sonucu vermez.
+
+Bazı nicelikler yalnız bir sayı ve birimle tam anlatılır. Kütle (2 kg), süre (40 dakika) ve sıcaklık (25 °C) böyledir. Bunlara **skaler nicelik** denir.
+
+Kuvvet, hız ve yer değiştirme gibi niceliklerde ise yön de gerekir. Bunlara **vektörel nicelik** denir ve bir okla gösterilir. Şekildeki $\vec{F}$ oku, kutuya uygulanan kuvvetin hem büyüklüğünü hem de yönünü gösterir.`,
+        kontrol: {
+          soru: 'Hangisi vektörel bir niceliktir?',
+          secenekler: ['Bir karpuzun kütlesi', 'Bir filmin süresi', 'Bir topa vurulan tekmenin kuvveti'],
+          dogru: 2,
+          aciklama: 'Tekmenin hangi yöne vurulduğu sonucu değiştirir: Top doğuya da gidebilir, batıya da. Kütle ve süre ise yalnız sayı ve birimle tam anlatılır.',
+          yanlisIpucu: 'Her seçenek için "Hangi yöne?" diye sor. Bu soru hangisinde anlamlı?'
+        }
+      },
+      {
+        baslik: 'Okun dört özelliği',
+        sekil: 'sf922_ray',
+        metin: r`Çift hatlı, düz bir demiryolu düşün. Raylar doğu-batı boyunca uzanıyor. Bir tren doğuya, öbürü batıya gidiyor. Şekilde trenlerin hızları $\vec{\vartheta}_1$ ve $\vec{\vartheta}_2$ oklarıyla gösterildi. Her okun dört özelliği vardır:
+- **Başlangıç noktası:** Okun çıktığı noktadır.
+- **Doğrultu:** Okun üzerinde durduğu doğrudur. Burada doğrultu, rayların uzandığı doğu-batı doğrusudur.
+- **Yön:** Okun ucunun gösterdiği taraftır. Bir doğrultuda iki yön vardır.
+- **Büyüklük:** Okun boyudur. Büyüklük hiçbir zaman negatif olmaz.`,
+        kontrol: {
+          soru: r`Şekildeki $\vec{\vartheta}_1$ ve $\vec{\vartheta}_2$ hız vektörleri için hangisi doğrudur?`,
+          secenekler: ['Doğrultuları aynı, yönleri zıttır.', 'Doğrultuları da yönleri de farklıdır.', 'Yönleri aynı, doğrultuları farklıdır.'],
+          dogru: 0,
+          aciklama: 'İki ray da doğu-batı doğrultusundadır; bu yüzden iki okun doğrultusu aynıdır. Okların uçları ise ters taraflara bakar: biri doğuya, öbürü batıya.',
+          yanlisIpucu: 'Doğrultu okun durduğu doğrudur, yön ise okun ucunun baktığı taraftır. Önce rayların hangi doğrultuda uzandığına bak.'
+        }
+      },
+      {
+        baslik: 'Eşit vektör, zıt vektör',
+        sekil: 'sf922_carpisan',
+        metin: r`Lunaparkta çarpışan arabalar pistini yukarıdan izliyorsun. 1 ve 2 numaralı arabalar doğuya, 3 numaralı araba batıya gidiyor. Üçünün de hızının büyüklüğü aynı: 2 m/s.
+- Yönleri ve büyüklükleri aynı olan vektörler **eşit vektördür**. 1 ve 2 numaralı arabaların hızları eşittir: $\vec{\vartheta}_1 = \vec{\vartheta}_2$. Arabaların pistin farklı yerlerinde olması eşitliği bozmaz.
+- Büyüklükleri aynı, yönleri ters olan vektörler **zıt vektördür**. 3 numaralı arabanın hızı, 1 numaralınınkinin zıttıdır: $\vec{\vartheta}_3 = -\vec{\vartheta}_1$.`,
+        kontrol: {
+          soru: 'Bir çarpışan araba doğuya 3 m/s, başka biri batıya 2 m/s ile gidiyor. Bu iki hız vektörü zıt vektör müdür?',
+          secenekler: ['Evet, yönleri ters olduğu için zıttır.', 'Hayır, büyüklükleri farklı olduğu için zıt değildir.', 'Hayır, arabalar farklı yerlerde olduğu için zıt değildir.'],
+          dogru: 1,
+          aciklama: 'Zıt vektör olmak için iki şart birlikte gerekir: Yönler ters, büyüklükler eşit olmalıdır. 3 m/s ile 2 m/s eşit değildir. Başlangıç noktasının ise eşitlikte de zıtlıkta da önemi yoktur.',
+          yanlisIpucu: 'Zıt vektörün tanımında yalnız yön mü var? Büyüklüklere de bak.'
+        }
+      },
+      {
+        baslik: 'Vektörü bir sayıyla çarp',
+        sekil: 'sf922_kat',
+        metin: r`Dans hocası "Bir adım ileri." diyor. Bu adımı $\vec{A}$ vektörü olarak düşün. Hoca "İki adım ileri." derse yer değiştirmen $2\vec{A}$ olur: Yön aynı kalır, büyüklük 2 katına çıkar. "Bir adım geri." derse yer değiştirmen $-\vec{A}$ olur: Büyüklük aynı kalır, yön tersine döner.
+
+Bir vektör bir sayıyla çarpılınca:
+- Sayı artı işaretliyse yön aynı kalır.
+- Sayı eksi işaretliyse yön tersine döner.
+- Büyüklük, sayının işaretine bakılmadan o sayı ile çarpılır.`,
+        kontrol: {
+          soru: r`$\vec{A}$ vektörü doğuya doğru 3 birimdir. $-2\vec{A}$ vektörü hangisidir?`,
+          secenekler: ['Doğuya doğru 6 birim', 'Batıya doğru 6 birim', 'Batıya doğru 2 birim'],
+          dogru: 1,
+          aciklama: r`Eksi işaret yönü tersine çevirir: doğu yerine batı. 2 ise büyüklüğü 2 katına çıkarır: $2 \times 3 = 6$ birim.`,
+          yanlisIpucu: 'İki şeyi ayrı ayrı düşün: Eksi işaret yöne ne yapar? 2 sayısı büyüklüğe ne yapar?'
+        }
+      },
+      {
+        baslik: 'Aynı doğrultuda topla',
+        sekil: 'sf922_market',
+        metin: r`Ali dolu bir market arabasını önden 30 N ile doğuya çekiyor ($\vec{F}_1$). Ayşe de arkadan 20 N ile doğuya itiyor ($\vec{F}_2$). İki kuvvet aynı doğrultuda ve aynı yöndedir.
+
+Bu iki kuvvetin yaptığı işi tek başına yapan kuvvete **bileşke kuvvet** ($\vec{R}$) denir. Şekilde iki ok uç uca eklendi. Bileşke, ilk okun başlangıcından son okun ucuna çizilir.
+- Aynı yönlü iki vektörde büyüklükler toplanır: $R = 30 + 20 = 50$ N, doğuya doğru.
+- Zıt yönlü iki vektörde büyükten küçük çıkarılır. Bileşke, büyük olanın yönündedir.`,
+        kontrol: {
+          soru: 'Aynı doğrultudaki iki vektörden biri doğuya doğru 7 birim, öbürü batıya doğru 3 birimdir. Bileşke hangisidir?',
+          secenekler: ['Doğuya doğru 10 birim', 'Doğuya doğru 4 birim', 'Batıya doğru 4 birim'],
+          dogru: 1,
+          aciklama: r`Doğuyu (+) seçersen $(+7) + (-3) = +4$ olur. Artı işaret, bileşkenin doğuya doğru olduğunu söyler. Büyük olan vektör doğuya baktığı için bileşke de doğuya bakar.`,
+          yanlisIpucu: 'Vektörler zıt yönlü. Zıt yönlü vektörlerde büyüklükler toplanmaz; büyükten küçük çıkarılır. Sonra bileşkenin yönünü büyük olana göre seç.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'İpli kayık ve rüzgâr',
+        metin: r`Göl kıyısında Selin, suda duran bir kayığı iple 40 N'luk kuvvetle doğuya doğru çekiyor. Bu sırada rüzgâr da kayığa 10 N'luk bir kuvvet uyguluyor. Kayığa etki eden yalnız bu iki yatay kuvveti düşünelim. Doğuyu (+) seçelim.`,
+        adimlar: [
+          {
+            soru: 'Rüzgâr da kayığı doğuya doğru iterse iki kuvvetin bileşkesi nedir?',
+            secenekler: ['Doğuya doğru 30 N', 'Doğuya doğru 50 N', 'Doğuya doğru 40 N'],
+            dogru: 1,
+            ipucu: 'İki kuvvet de doğuya doğru, yani aynı yönlü. Aynı yönlü vektörlerin büyüklükleri ne olur?',
+            aciklama: r`$(+40) + (+10) = +50$ olur. Bileşke 50 N'dur ve doğuya doğrudur.`
+          },
+          {
+            soru: 'Rüzgâr döner ve kayığı yine 10 N ile batıya doğru iterse bileşke nedir?',
+            secenekler: ['Doğuya doğru 30 N', 'Batıya doğru 30 N', 'Batıya doğru 50 N'],
+            dogru: 0,
+            ipucu: r`Bu kez rüzgârın kuvveti $-10$ N olur. $(+40)$ ile $(-10)$'u topla. Sonucun işareti yönü söyler.`,
+            aciklama: r`$(+40) + (-10) = +30$ olur. İp kuvveti daha büyük olduğu için bileşke 30 N'dur ve doğuya doğrudur.`
+          },
+          {
+            soru: 'Rüzgâr kayığı batıya doğru kaç N ile iterse iki kuvvetin bileşkesi sıfır olur?',
+            secenekler: ['10 N', '40 N', '80 N'],
+            dogru: 1,
+            ipucu: 'Bileşkenin sıfır olması için iki kuvvet zıt vektör olmalıdır. Zıt vektörlerin büyüklükleri nasıldır?',
+            aciklama: r`$(+40) + (-40) = 0$ olur. Rüzgârın kuvveti ip kuvvetinin zıt vektörü olursa iki kuvvet birbirini dengeler ve bileşke sıfır vektörü olur.`
+          }
+        ],
+        sonuc: 'Aynı doğrultudaki iki kuvvetin bileşkesi, işaretli sayılar gibi toplanarak bulunur. Sonucun sayısı büyüklüğü, işareti yönü verir.'
+      },
+      {
+        baslik: 'Nilüfer yapraklarında kurbağa',
+        sekil: 'sf922_kurbaga',
+        metin: r`Bir kurbağa, göldeki düz bir sıra nilüfer yaprağının üstünde zıplıyor. Her sıçrayışta doğuya doğru 40 cm yer değiştiriyor. Bir sıçrayışı $\vec{S}$ vektörü ile gösterelim. Kurbağa önce 3 kez doğuya sıçrıyor. Sonra bir sesten ürküp yine 40 cm'lik sıçrayışlarla 2 kez batıya, geri dönüyor.`,
+        adimlar: [
+          {
+            soru: 'Doğuya doğru yapılan 3 sıçrayışın toplam yer değiştirmesi hangisidir?',
+            secenekler: ['Doğuya doğru 40 cm', 'Doğuya doğru 120 cm', 'Batıya doğru 120 cm'],
+            dogru: 1,
+            ipucu: r`Aynı vektör 3 kez uç uca eklenir: $\vec{S} + \vec{S} + \vec{S} = 3\vec{S}$. Pozitif bir sayıyla çarpmak yönü değiştirir mi?`,
+            aciklama: r`$3\vec{S}$, $\vec{S}$ ile aynı yöndedir ve büyüklüğü $3 \times 40 = 120$ cm'dir.`
+          },
+          {
+            soru: 'Geri dönüşteki 2 sıçrayış hangi vektörle gösterilir?',
+            secenekler: [r`$2\vec{S}$`, r`$-2\vec{S}$`, r`$-\vec{S}$`],
+            dogru: 1,
+            ipucu: r`Geri sıçrayışların yönü $\vec{S}$'nin yönüne terstir. Yönü ters çeviren işaret hangisi? Kaç sıçrayış var?`,
+            aciklama: r`Her geri sıçrayış $-\vec{S}$'dir. İki tanesi $-2\vec{S}$ eder: batıya doğru $2 \times 40 = 80$ cm.`
+          },
+          {
+            soru: 'Kurbağanın başladığı yaprağa göre toplam yer değiştirmesi nedir?',
+            secenekler: ['Doğuya doğru 40 cm', 'Doğuya doğru 200 cm', 'Batıya doğru 40 cm'],
+            dogru: 0,
+            ipucu: r`Doğuyu (+) seç ve $(+120) + (-80)$ işlemini yap.`,
+            aciklama: r`$3\vec{S} + (-2\vec{S}) = \vec{S}$ olur. Sayılarla $(+120) + (-80) = +40$ cm: Kurbağa, başladığı yaprağın 40 cm doğusundaki yaprakta durur.`
+          }
+        ],
+        sonuc: 'Kurbağa toplam 5 kez sıçradı ama başladığı yerden yalnız bir sıçrayış uzakta. Vektörü sayıyla çarpmak ve zıt yönlü vektörleri toplamak, hareketi kısa yoldan özetler.'
+      },
+      {
+        baslik: 'Tramvayın ikinci yolculuğu',
+        metin: r`Bir tramvay, düz bir cadde boyunca uzanan raylarda depodan çıkıyor. Önce doğuya doğru 500 m gidiyor; bu yer değiştirme $\vec{A}$ olsun. Sonra ikinci bir yer değiştirme ($\vec{B}$) yapıyor ve deponun 200 m batısındaki durakta duruyor. Toplam yer değiştirme $\vec{R} = \vec{A} + \vec{B}$'dir. Doğuyu (+) seçelim.`,
+        adimlar: [
+          {
+            soru: r`$\vec{B}$ vektörünü bulmak için hangi işlem yapılır?`,
+            secenekler: [r`$\vec{B} = \vec{R} - \vec{A}$`, r`$\vec{B} = \vec{R} + \vec{A}$`, r`$\vec{B} = \vec{A} - \vec{R}$`],
+            dogru: 0,
+            ipucu: r`$\vec{R} = \vec{A} + \vec{B}$ eşitliğinde $\vec{B}$'yi yalnız bırak. Sayılarda $7 = 5 + B$ ise $B$ nasıl bulunur?`,
+            aciklama: r`Eşitliğin iki yanından $\vec{A}$ çıkarılır: $\vec{B} = \vec{R} - \vec{A}$. Vektörlerde çıkarmak, zıt vektörü eklemektir: $\vec{R} + (-\vec{A})$.`
+          },
+          {
+            soru: r`$\vec{R}$ ve $\vec{A}$ işaretli sayılarla nasıl yazılır?`,
+            secenekler: [r`$R = +200$ m, $A = +500$ m`, r`$R = -200$ m, $A = +500$ m`, r`$R = -200$ m, $A = -500$ m`],
+            dogru: 1,
+            ipucu: 'Durak deponun batısında. Batıya doğru olan bir vektörün işareti nedir?',
+            aciklama: r`Doğu (+) seçildiği için doğuya doğru 500 m, $+500$ m; batıya doğru 200 m, $-200$ m yazılır.`
+          },
+          {
+            soru: r`$\vec{B}$ hangisidir?`,
+            secenekler: ['Batıya doğru 700 m', 'Batıya doğru 300 m', 'Doğuya doğru 700 m'],
+            dogru: 0,
+            ipucu: r`$B = R - A = (-200) - (+500)$ işlemini yap. Sonucun işareti yönü söyler.`,
+            aciklama: r`$B = -200 - 500 = -700$ m olur. Eksi işaret batıyı gösterir: Tramvay ikinci yolculukta batıya doğru 700 m gitti.`
+          }
+        ],
+        sonuc: 'Tramvay önce doğuya 500 m, sonra batıya 700 m gitti ve deponun 200 m batısında durdu. Bilinmeyen bir vektörü bulmak için çıkarma kullanılır; vektörlerde çıkarmak, zıt vektörü eklemektir.'
+      }
+    ],
+    hazir: 'Vektörün özelliklerini, eşit ve zıt vektörleri, sayıyla çarpmayı ve aynı doğrultudaki vektörlerin toplanmasını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -12504,6 +12903,169 @@ BFY_FIG_EKLE('k924_kesit', function (u) {
 });
 })();
 
+/* =============== SIFIRDAN BAŞLA şekilleri (konu.baslangic) ===============
+   Gerçekçi, dolgun sahneler; formül ve sayı yok. */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const { ton } = window.BFY_ISO;
+const r1 = v => Math.round(v * 10) / 10;
+/* yandan görünen insan: (x, y) iki ayağın ortası; yon +1 sağa bakar; el: [x, y] elin ucu */
+function kisiYan(u, x, y, o) {
+  const yon = o.yon || 1, g = o.egim || 0, ten = '#e8b892', gom = o.renk || '#2f7fb8', pan = o.pantolon || '#34495e', sac = o.sac || '#3b2a20';
+  const kal = [x, y - 40], om = [x + g * yon, y - 68], bas = [x + (g * 1.2 + 2) * yon, y - 80];
+  let s = `<ellipse cx="${x}" cy="${y + 1}" rx="17" ry="3.2" fill="#0b1f18" opacity=".18"/>`;
+  [[-8, '#2b3a48'], [8, pan]].forEach(([d, c]) => {
+    s += `<line x1="${kal[0]}" y1="${kal[1]}" x2="${x + d * yon}" y2="${y - 3}" stroke="${c}" stroke-width="7.5" stroke-linecap="round"/>`;
+    s += `<path d="M${x + d * yon - 4 * yon} ${y} h${12 * yon} q${2 * yon} -4 ${-3 * yon} -5 h${-9 * yon} z" fill="#f4f6f7" stroke="#8a969c" stroke-width=".6"/>`;
+  });
+  s += `<line x1="${kal[0]}" y1="${kal[1]}" x2="${om[0]}" y2="${om[1]}" stroke="${gom}" stroke-width="17" stroke-linecap="round"/>`;
+  if (o.el) {
+    const e = o.el, m = [om[0] + (e[0] - om[0]) * 0.45, om[1] + (e[1] - om[1]) * 0.45];
+    s += `<line x1="${om[0]}" y1="${om[1] + 2}" x2="${r1(m[0])}" y2="${r1(m[1])}" stroke="${ton(gom, -0.12)}" stroke-width="7" stroke-linecap="round"/>`;
+    s += `<line x1="${r1(m[0])}" y1="${r1(m[1])}" x2="${e[0]}" y2="${e[1]}" stroke="${ten}" stroke-width="5" stroke-linecap="round"/><circle cx="${e[0]}" cy="${e[1]}" r="3.4" fill="${ten}" stroke="#b07a55" stroke-width=".6"/>`;
+  }
+  s += `<defs><radialGradient id="${u}ten${x}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#f6d3b5"/><stop offset="1" stop-color="#d79f78"/></radialGradient></defs>`;
+  s += `<circle cx="${bas[0] - 2 * yon}" cy="${bas[1] - 2}" r="9.2" fill="${sac}"/><circle cx="${bas[0]}" cy="${bas[1]}" r="8.4" fill="url(#${u}ten${x})"/>`;
+  s += `<path d="M${bas[0] - 8.8 * yon} ${bas[1] - 1} q${3 * yon} -9.5 ${12 * yon} -7.5 q${-6 * yon} 1 ${-8 * yon} 5 z" fill="${sac}"/>`;
+  s += `<circle cx="${bas[0] + 4.6 * yon}" cy="${bas[1] - 1.5}" r="1.1" fill="#2a2f33"/>`;
+  return s;
+}
+function okH(x1, y1, x2, y2, c, w = 3) {
+  return arrow(x1, y1, x2, y2, { color: '#fff', w: w + 3, head: 12, headW: 7.4 }) + arrow(x1, y1, x2, y2, { color: c, w, head: 10, headW: 5.6 });
+}
+
+/* Adım 1: tekme anında basıklaşan top; sonra harekete geçer */
+BFY_FIG_EKLE('sf924_top', function (u) {
+  const W = 320, H = 200, bx = 150, by = 150;
+  let s = `<defs><linearGradient id="${u}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe6f5"/><stop offset="1" stop-color="#eef6fb"/></linearGradient>` +
+    `<radialGradient id="${u}tp" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#e9eef1"/><stop offset="1" stop-color="#b9c4ca"/></radialGradient>` +
+    `<clipPath id="${u}tc"><ellipse cx="${bx}" cy="${by}" rx="18.5" ry="23"/></clipPath></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}gk)"/>`;
+  s += `<path d="M0 110 H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="#8fc070"/>`;
+  for (let i = 0; i < 6; i++) s += `<path d="M${i * 60} 110 h30 l${18 + i * 4} ${H - 110} h-30 z" fill="#9fcb80" opacity=".7"/>`;
+  // kale ağı (arka planda)
+  s += `<rect x="252" y="58" width="62" height="52" fill="none" stroke="#f7f8f6" stroke-width="4"/>`;
+  for (let i = 1; i < 6; i++) s += `<line x1="${252 + i * 10.3}" y1="60" x2="${252 + i * 10.3}" y2="110" stroke="#fff" stroke-width=".7" opacity=".8"/>`;
+  for (let j = 1; j < 5; j++) s += `<line x1="254" y1="${58 + j * 10.4}" x2="314" y2="${58 + j * 10.4}" stroke="#fff" stroke-width=".7" opacity=".8"/>`;
+  // topun sonraki yolu ve hayalet toplar
+  s += `<path d="M${bx + 22} ${by - 6} Q 225 96 286 84" fill="none" stroke="#5c6b66" stroke-width="1.4" stroke-dasharray="5 5"/>`;
+  [[214, 112, 0.28], [266, 88, 0.45]].forEach(([x, y, o]) => { s += `<circle cx="${x}" cy="${y}" r="15" fill="#fff" stroke="#5c6b66" stroke-width="1" opacity="${o}"/>`; });
+  s += T(266, 60, 'harekete geçer', { size: 11.5, weight: 800, anchor: 'middle', fill: P.ink });
+  // hız çizgileri
+  [[-6], [6], [16]].forEach(([d]) => { s += `<line x1="${bx + 26}" y1="${by + d}" x2="${bx + 44}" y2="${by + d - 3}" stroke="#5c6b66" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>`; });
+  // basık top
+  s += `<ellipse cx="${bx + 3}" cy="${by + 26}" rx="20" ry="4" fill="#0b1f18" opacity=".2"/>`;
+  s += `<ellipse cx="${bx}" cy="${by}" rx="18.5" ry="23" fill="url(#${u}tp)" stroke="#5c6b66" stroke-width="1"/>`;
+  s += `<g clip-path="url(#${u}tc)"><polygon points="${bx + 2},${by - 9} ${bx + 10},${by - 3} ${bx + 7},${by + 7} ${bx - 3},${by + 7} ${bx - 5},${by - 3}" fill="#2a3330"/>` +
+    `<polygon points="${bx - 16},${by - 22} ${bx - 8},${by - 18} ${bx - 10},${by - 9} ${bx - 19},${by - 10}" fill="#2a3330"/><polygon points="${bx - 15},${by + 12} ${bx - 8},${by + 16} ${bx - 11},${by + 25} ${bx - 19},${by + 21}" fill="#2a3330"/>` +
+    `<polygon points="${bx + 16},${by - 20} ${bx + 22},${by - 12} ${bx + 20},${by - 4} ${bx + 14},${by - 11}" fill="#2a3330"/><polygon points="${bx + 13},${by + 14} ${bx + 21},${by + 10} ${bx + 22},${by + 20} ${bx + 15},${by + 24}" fill="#2a3330"/></g>`;
+  // bacak: şort, çorap, krampon (topa soldan değer)
+  s += `<path d="M8 6 L52 0 L76 58 L50 70 Z" fill="#2b4a8b"/><path d="M8 6 L52 0" stroke="#fff" stroke-width="3"/>`;
+  s += `<line x1="62" y1="62" x2="104" y2="126" stroke="#e8b892" stroke-width="15" stroke-linecap="round"/>`;
+  s += `<line x1="84" y1="94" x2="108" y2="132" stroke="#f4f6f7" stroke-width="16" stroke-linecap="round"/><line x1="87" y1="99" x2="98" y2="116" stroke="#d24b3e" stroke-width="16"/>`;
+  s += `<path d="M100 124 Q118 128 ${bx - 17} ${by - 6} Q${bx - 16} ${by + 6} ${bx - 22} ${by + 8} L104 150 Q94 146 98 134 Z" fill="#1f2426"/>`;
+  s += `<path d="M104 150 L${bx - 22} ${by + 8}" stroke="#e0a43a" stroke-width="2"/>`;
+  s += `<line x1="${bx + 2}" y1="${by + 30}" x2="${bx + 2}" y2="${by + 34}" stroke="#4b6059" stroke-width="1"/>`;
+  s += T(bx + 2, H - 8, 'şekli değişir', { size: 11.5, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 3: havaya atılan basketbol topu; yolun her yerinde Dünya'nın çekimi aşağı doğru */
+function basket(u, x, y, r) {
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u}bk)" stroke="#8a3d12" stroke-width=".9"/>` +
+    `<path d="M${x - r} ${y} H${x + r} M${x} ${y - r} V${y + r}" stroke="#3a1a08" stroke-width="1"/>` +
+    `<path d="M${x - r * 0.7} ${y - r * 0.72} Q${x - r * 0.25} ${y} ${x - r * 0.7} ${y + r * 0.72} M${x + r * 0.7} ${y - r * 0.72} Q${x + r * 0.25} ${y} ${x + r * 0.7} ${y + r * 0.72}" fill="none" stroke="#3a1a08" stroke-width="1"/>`;
+}
+BFY_FIG_EKLE('sf924_kutle', function (u) {
+  const W = 320, H = 210, yz = 188, a = 42 / (74 * 74), yol = x => 58 + a * (x - 160) * (x - 160);
+  let s = `<defs><linearGradient id="${u}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe6f5"/><stop offset="1" stop-color="#f1f7fb"/></linearGradient>` +
+    `<radialGradient id="${u}bk" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f6a35a"/><stop offset="1" stop-color="#c9581d"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}gk)"/>`;
+  [[30, 120, 40, 68], [74, 132, 34, 56], [236, 112, 44, 76], [282, 128, 38, 60]].forEach(([x, y, w, h]) => { s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#d9e2e8" stroke="#c3ced6"/>`; });
+  s += `<path d="M0 ${yz} H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="#d98c5f"/><line x1="0" y1="${yz}" x2="${W}" y2="${yz}" stroke="#b86f45" stroke-width="2"/>`;
+  let d = ''; for (let x = 86; x <= 290; x += 4) d += (x === 86 ? 'M' : 'L') + x + ' ' + r1(yol(x));
+  s += `<path d="${d}" fill="none" stroke="#5c6b66" stroke-width="1.4" stroke-dasharray="5 5"/>`;
+  s += kisiYan(u, 62, yz, { yon: 1, egim: 3, renk: '#3f8a67', el: [84, 104] });
+  [[106, 0.45], [160, 1], [238, 0.45]].forEach(([x, o]) => { const y = r1(yol(x)); s += `<g opacity="${o}">${basket(u, x, y, 11)}</g>`; s += okH(x, y, x, y + 36, '#d9573b'); });
+  s += T(14, 24, 'Kırmızı oklar: Dünya\'nın çekimi.', { size: 11.5, weight: 800, fill: '#a23a22' });
+  s += T(14, 39, 'Yolun her yerinde aşağı doğru.', { size: 11, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 4: saça sürtülen balon saç tellerini değmeden çeker; balon (−), saç (+) yüklenir */
+BFY_FIG_EKLE('sf924_balon', function (u) {
+  const W = 300, H = 200, hx = 104, hy = 122, R = 30, B = [218, 84];
+  let s = `<defs><linearGradient id="${u}dv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3eee6"/><stop offset="1" stop-color="#e2d9ca"/></linearGradient>` +
+    `<radialGradient id="${u}bl" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f28b7e"/><stop offset=".55" stop-color="#d24b3e"/><stop offset="1" stop-color="#8f2a20"/></radialGradient>` +
+    `<radialGradient id="${u}yz" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="#f6d3b5"/><stop offset="1" stop-color="#d79f78"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}dv)"/>`;
+  // gövde ve boyun
+  s += `<path d="M${hx - 62} ${H} Q${hx - 58} ${hy + 42} ${hx} ${hy + 40} Q${hx + 58} ${hy + 42} ${hx + 62} ${H} Z" fill="#7b5bc4" stroke="#53399a" stroke-width="1"/>`;
+  s += `<rect x="${hx - 9}" y="${hy + 22}" width="18" height="20" fill="#d9a580"/>`;
+  // saç telleri: kafa derisinden çıkar, balona doğru kalkar
+  const arti = [];
+  for (let i = 0; i < 26; i++) {
+    const t = -170 + i * 6.4, aR = t * Math.PI / 180, p0 = [hx + R * Math.cos(aR), hy + R * Math.sin(aR)];
+    const dx = B[0] - p0[0], dy = B[1] - p0[1], L = Math.hypot(dx, dy), k = Math.min(30 + i * 1.2, L - 44);
+    const p2 = [p0[0] + dx / L * k, p0[1] + dy / L * k], c = [p0[0] + Math.cos(aR) * 14, p0[1] + Math.sin(aR) * 14];
+    s += `<path d="M${r1(p0[0])} ${r1(p0[1])} Q${r1(c[0])} ${r1(c[1])} ${r1(p2[0])} ${r1(p2[1])}" fill="none" stroke="${i % 2 ? '#5a3a24' : '#6e4a2f'}" stroke-width="2" stroke-linecap="round"/>`;
+    if (i === 9 || i === 17 || i === 25) arti.push([p2[0] + 2, p2[1] - 8]);
+  }
+  // baş
+  s += `<circle cx="${hx}" cy="${hy}" r="${R}" fill="url(#${u}yz)" stroke="#b07a55" stroke-width=".8"/>`;
+  s += `<path d="M${hx - R} ${hy - 2} Q${hx - R + 2} ${hy - R - 4} ${hx} ${hy - R - 1} Q${hx + R - 2} ${hy - R - 4} ${hx + R} ${hy - 2} Q${hx + 12} ${hy - 22} ${hx} ${hy - 20} Q${hx - 14} ${hy - 22} ${hx - R} ${hy - 2} Z" fill="#5a3a24"/>`;
+  s += `<ellipse cx="${hx - R}" cy="${hy + 3}" rx="4" ry="6" fill="#d9a580"/><ellipse cx="${hx + R}" cy="${hy + 3}" rx="4" ry="6" fill="#d9a580"/>`;
+  s += `<circle cx="${hx - 10}" cy="${hy}" r="2.6" fill="#2a2f33"/><circle cx="${hx + 10}" cy="${hy}" r="2.6" fill="#2a2f33"/><circle cx="${hx - 9}" cy="${hy - 1}" r=".8" fill="#fff"/><circle cx="${hx + 11}" cy="${hy - 1}" r=".8" fill="#fff"/>`;
+  s += `<path d="M${hx - 9} ${hy + 13} Q${hx} ${hy + 20} ${hx + 9} ${hy + 13}" fill="none" stroke="#9a4a3a" stroke-width="2" stroke-linecap="round"/>`;
+  s += `<ellipse cx="${hx - 17}" cy="${hy + 9}" rx="5" ry="3" fill="#e88a8a" opacity=".45"/><ellipse cx="${hx + 17}" cy="${hy + 9}" rx="5" ry="3" fill="#e88a8a" opacity=".45"/>`;
+  // balon ve ipi
+  s += `<path d="M${B[0] + 2} ${B[1] + 40} q-8 26 6 48 t4 60" fill="none" stroke="#6b767b" stroke-width="1.2"/>`;
+  s += `<ellipse cx="${B[0]}" cy="${B[1]}" rx="30" ry="36" fill="url(#${u}bl)" stroke="#7d2219" stroke-width=".9"/>`;
+  s += `<ellipse cx="${B[0] - 11}" cy="${B[1] - 14}" rx="7" ry="11" fill="#fff" opacity=".35" transform="rotate(25 ${B[0] - 11} ${B[1] - 14})"/>`;
+  s += `<path d="M${B[0] - 4} ${B[1] + 40} L${B[0] + 4} ${B[1] + 40} L${B[0] + 2} ${B[1] + 35} L${B[0] - 2} ${B[1] + 35} Z" fill="#a8332a"/>`;
+  [[-14, -2], [-6, 14], [6, -20], [10, 6], [-18, 18]].forEach(([dx, dy]) => { s += T(B[0] + dx, B[1] + dy + 4, '−', { size: 14, weight: 800, anchor: 'middle', fill: '#fff', halo: false }); });
+  arti.forEach(([x, y]) => { s += T(r1(x), r1(y), '+', { size: 13, weight: 800, anchor: 'middle', fill: '#1f6f4a' }); });
+  s += T(W - 14, 22, 'Balon saça değmeden', { size: 11.5, weight: 800, anchor: 'end' }) + T(W - 14, 37, 'saç tellerini çeker.', { size: 11.5, weight: 800, anchor: 'end' });
+  return svg(W, H, s, u, 76);
+});
+
+/* Adım 5: kalem ucundan atomlara, atomdan çekirdeğe yakınlaşma (ölçekli değildir) */
+BFY_FIG_EKLE('sf924_zoom', function (u) {
+  const W = 340, H = 176, A = [168, 82, 50], C = [284, 82, 46];
+  let s = `<defs><linearGradient id="${u}kl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f6c64e"/><stop offset=".5" stop-color="#f2d27a"/><stop offset="1" stop-color="#d9a52a"/></linearGradient>` +
+    `<radialGradient id="${u}at" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#eef2f4"/><stop offset="1" stop-color="#8a969c"/></radialGradient>` +
+    `<radialGradient id="${u}pr" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f28b7e"/><stop offset="1" stop-color="#b8372b"/></radialGradient>` +
+    `<radialGradient id="${u}nt" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#d7dde1"/><stop offset="1" stop-color="#7d8a91"/></radialGradient>` +
+    `<clipPath id="${u}ca"><circle cx="${A[0]}" cy="${A[1]}" r="${A[2]}"/></clipPath><clipPath id="${u}cc"><circle cx="${C[0]}" cy="${C[1]}" r="${C[2]}"/></clipPath></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f6f8"/>`;
+  // kalem (ucu 66, 112)
+  s += `<g transform="rotate(-140 66 112)">` +
+    `<polygon points="66,112 86,104 86,120" fill="#e8c9a0" stroke="#a5814f" stroke-width=".8"/><polygon points="66,112 74,109 74,115" fill="#3a4246"/>` +
+    `<rect x="86" y="104" width="64" height="16" fill="url(#${u}kl)" stroke="#b08a2a" stroke-width=".8"/><line x1="86" y1="112" x2="150" y2="112" stroke="#c99b2e" stroke-width=".8"/></g>`;
+  s += `<circle cx="67" cy="112" r="9" fill="none" stroke="#2a3330" stroke-width="1.6"/>`;
+  // yakınlaşma çizgileri
+  s += `<line x1="67" y1="103" x2="${A[0] - 18}" y2="${A[1] - A[2] + 3}" stroke="#7d8a91" stroke-width="1" stroke-dasharray="3 3"/><line x1="67" y1="121" x2="${A[0] - 18}" y2="${A[1] + A[2] - 3}" stroke="#7d8a91" stroke-width="1" stroke-dasharray="3 3"/>`;
+  // atomlar
+  s += `<circle cx="${A[0]}" cy="${A[1]}" r="${A[2]}" fill="#e8edf0"/><g clip-path="url(#${u}ca)">`;
+  for (let j = -3; j <= 3; j++) for (let i = -4; i <= 4; i++) { const x = A[0] + i * 21 + (j % 2 ? 10.5 : 0), y = A[1] + j * 18; s += `<circle cx="${r1(x)}" cy="${y}" r="10" fill="url(#${u}at)" stroke="#6b767b" stroke-width=".6"/>`; }
+  s += `</g><circle cx="${A[0]}" cy="${A[1]}" r="${A[2]}" fill="none" stroke="#2a3330" stroke-width="2"/>`;
+  const N = [A[0] + 10.5, A[1] + 18];
+  s += `<circle cx="${N[0]}" cy="${N[1]}" r="10" fill="none" stroke="#d24b3e" stroke-width="1.8"/><circle cx="${N[0]}" cy="${N[1]}" r="1.8" fill="#b8372b"/>`;
+  s += `<line x1="${N[0]}" y1="${N[1] - 2}" x2="${C[0] - 20}" y2="${C[1] - C[2] + 5}" stroke="#7d8a91" stroke-width="1" stroke-dasharray="3 3"/><line x1="${N[0]}" y1="${N[1] + 2}" x2="${C[0] - 20}" y2="${C[1] + C[2] - 5}" stroke="#7d8a91" stroke-width="1" stroke-dasharray="3 3"/>`;
+  // çekirdek
+  s += `<circle cx="${C[0]}" cy="${C[1]}" r="${C[2]}" fill="#fbf8f2" stroke="#2a3330" stroke-width="2"/>`;
+  const nk = [[0, 0, 1], [-15, -6, 0], [14, -8, 1], [-4, -18, 0], [10, 12, 0], [-13, 11, 1], [3, 22, 1], [-22, 4, 0], [22, 6, 1], [-6, 6, 0], [6, -4, 0], [-2, -8, 1]];
+  nk.sort((p, q) => p[1] - q[1]).forEach(([dx, dy, p]) => {
+    s += `<circle cx="${C[0] + dx}" cy="${C[1] + dy}" r="9.5" fill="url(#${u}${p ? 'pr' : 'nt'})" stroke="${p ? '#7d2219' : '#4a5459'}" stroke-width=".7"/>`;
+    if (p) s += T(C[0] + dx, C[1] + dy + 4, '+', { size: 11, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  });
+  s += T(67, 158, 'kalem ucu', { size: 11.5, weight: 800, anchor: 'middle' }) + T(A[0], 158, 'atomlar', { size: 11.5, weight: 800, anchor: 'middle' }) + T(C[0], 158, 'çekirdek', { size: 11.5, weight: 800, anchor: 'middle' });
+  s += T(C[0], 172, 'proton (+), nötron', { size: 10, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(14, 22, 'Ölçekli değildir.', { size: 10, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 84);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -12541,6 +13103,175 @@ const KONU = {
     'SET 2: Zeynep\'in 0,01 g terazisi, çelik ataş ve neodimyum mıknatıs, d = 40…6 mm, alüminyum parça kontrolü, Ay\'da tahmin',
     'ADIM 5: masaya vidalı mıknatıs ve demir blok kuvvet diyagramı', 'ADIM 5: hızlandırıcıda alfa parçacığı ve altın çekirdeği, iki konumda etkin kuvvetler'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Konu sayısal değil; doğru şıklar ve şiddet sırası qa/9.2.4/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hiç hesap yok; çevrende her gün gördüğün olaylardan yola çıkacağız. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Kuvvet ne yapar?',
+        sekil: 'sf924_top',
+        metin: r`Bir futbol topuna tekme attığını düşün. Duran top harekete geçer. Kaleci topu yakalayınca top durur. Topa yandan vurursan gittiği yön değişir. Ayağın topa değdiği an top biraz da basıklaşır.
+
+Bu değişikliklerin hepsine yol açan etkiye **kuvvet** denir. Kuvvet bir cismi harekete geçirebilir, hızlandırabilir, yavaşlatabilir ya da durdurabilir. Cismin hareket yönünü ya da şeklini de değiştirebilir. Kuvvetin birimi newtondur (N).`,
+        kontrol: {
+          soru: 'Hangisi kuvvetin bir cisim üzerindeki etkilerinden biri değildir?',
+          secenekler: ['Duran bir topu harekete geçirmek', 'Bir topun rengini değiştirmek', 'Bir topun gittiği yönü değiştirmek'],
+          dogru: 1,
+          aciklama: 'Kuvvet cismin hareketini ya da şeklini değiştirir. Bir topun rengi, ona vurulduğu için değişmez.',
+          yanlisIpucu: 'Tekme atılan bir topta neyin değiştiğini düşün: hareketi, yönü, şekli. Hangi seçenek bunlardan biri değil?'
+        }
+      },
+      {
+        baslik: 'Hepsi dört kuvvetten',
+        metin: r`Bir mutfakta yüzlerce farklı yemek pişer ama hepsi birkaç temel malzemeden yapılır. Kuvvetler de böyledir. Çevremizde itme, çekme, sürtünme, ağırlık gibi pek çok kuvvet görürüz. Fizikçiler bunların hepsinin yalnız dört **temel kuvvet**ten kaynaklandığını bulmuştur. Bu dört kuvvet kütle çekim kuvveti, elektromanyetik kuvvet, güçlü nükleer kuvvet ve zayıf nükleer kuvvettir.
+
+İlk ikisi, gözle görülen büyüklükteki cisimlerde de etkilidir; buna **makro düzey** denir. Nükleer kuvvetler ise yalnız atom çekirdeği kadar küçük uzaklıklarda etkilidir; buna **mikro düzey** denir.`,
+        kontrol: {
+          soru: 'Hangi iki temel kuvvetin etkisini günlük hayatta doğrudan görebiliriz?',
+          secenekler: ['Kütle çekim kuvveti ve elektromanyetik kuvvet', 'Güçlü nükleer kuvvet ve zayıf nükleer kuvvet', 'Güçlü nükleer kuvvet ve kütle çekim kuvveti'],
+          dogru: 0,
+          aciklama: 'Düşen bir elmada kütle çekim kuvvetini, kapıya tutunan bir mıknatısta elektromanyetik kuvveti görürüz. Nükleer kuvvetlerin etki uzaklığı ise çekirdeğin boyutları kadar kısadır; bu kuvvetleri gözle doğrudan göremeyiz.',
+          yanlisIpucu: 'Nükleer kuvvetler nerede etkiliydi? Atom çekirdeği gözle görülebilir mi?'
+        }
+      },
+      {
+        baslik: 'Kütle çekimi: hep çeker',
+        sekil: 'sf924_kutle',
+        metin: r`Basketbol topunu havaya at. Ne kadar güçlü atarsan at, top yavaşlar ve geri döner. Topu Dünya'ya doğru çeken bu kuvvet **kütle çekim kuvveti**dir. Bir cismin ağırlığı, Dünya'nın o cisme uyguladığı kütle çekim kuvvetidir.
+- Kütlesi olan her cisim, kütlesi olan öbür cisimleri çeker. Sen de elindeki topu çekersin ama bu çekim hissedilemeyecek kadar küçüktür.
+- Kütle çekimi yalnız çeker, hiçbir zaman itmez.
+- Dört temel kuvvetin en zayıfıdır. Yine de etki uzaklığı sonsuz kabul edilir. Ay'ı Dünya'nın çevresinde tutan da bu kuvvettir.`,
+        kontrol: {
+          soru: 'Kütle çekim kuvveti için hangisi doğrudur?',
+          secenekler: ['Cisimleri yalnız çeker, hiç itmez.', 'Yalnız gezegenler gibi çok büyük cisimler arasında vardır.', 'Cisimler birbirinden uzaklaşınca birden sıfır olur.'],
+          dogru: 0,
+          aciklama: 'Kütle çekimi her zaman çekme etkisi gösterir. Kütlesi olan bütün cisimler arasında vardır. Uzaklık arttıkça azalır ama sıfır olmaz.',
+          yanlisIpucu: 'Sen de elindeki topu çekiyordun, hatırla. Ay da Dünya\'dan çok uzakta olduğu hâlde çekiliyor.'
+        }
+      },
+      {
+        baslik: 'Elektromanyetik kuvvet: iter de çeker de',
+        sekil: 'sf924_balon',
+        metin: r`Bir balonu saçına birkaç kez sürt, sonra yavaşça uzaklaştır. Saç telleri balona doğru kalkar. Balon saça değmeden saçları çeker. Bunu yapan kuvvet **elektromanyetik kuvvet**tir.
+- Elektrik yükleri ve mıknatıslar arasında etkilidir.
+- Kütle çekiminden farklı olarak hem itebilir hem çekebilir. İki mıknatısın aynı kutupları birbirini iter, zıt kutupları çeker.
+- Etki uzaklığı sonsuz kabul edilir ve kütle çekiminden çok daha güçlüdür.`,
+        kontrol: {
+          soru: 'Elektromanyetik kuvveti kütle çekim kuvvetinden ayıran özellik hangisidir?',
+          secenekler: ['İtme etkisi de gösterebilmesi', 'Etki uzaklığının sonsuz kabul edilmesi', 'Etki etmek için temas gerektirmemesi'],
+          dogru: 0,
+          aciklama: 'Kütle çekimi yalnız çeker; elektromanyetik kuvvet ise iter de çeker de. Etki uzaklığının sonsuz kabul edilmesi ve temas gerektirmemesi iki kuvvetin ortak özellikleridir.',
+          yanlisIpucu: 'Bu seçeneklerden ikisi iki kuvvet için de doğru. Kütle çekiminin hiç yapamadığı şey neydi?'
+        }
+      },
+      {
+        baslik: 'Çekirdeğin iki kuvveti',
+        sekil: 'sf924_zoom',
+        metin: r`Kalemin ucunu çok büyük bir mercekle büyütebildiğini düşün. Önce atomları, sonra atomun ortasındaki çok küçük **çekirdeği** görürsün. Çekirdekte artı yüklü protonlar ve yüksüz nötronlar vardır.
+- Protonlar birbirini elektromanyetik kuvvetle iter. Çekirdeği dağılmaktan **güçlü nükleer kuvvet** korur. Bu, dört temel kuvvetin en güçlüsüdür.
+- **Zayıf nükleer kuvvet** ise bazı çekirdeklerde bir nötronu protona ya da bir protonu nötrona dönüştürür. Elektromanyetik kuvvetten zayıf, kütle çekiminden ise çok güçlüdür.
+
+İki nükleer kuvvetin de etki uzaklığı çok kısadır; çekirdeğin boyutlarını aşmaz.`,
+        kontrol: {
+          soru: 'Bazı çekirdeklerde bir nötronun protona dönüşmesini sağlayan kuvvet hangisidir?',
+          secenekler: ['Güçlü nükleer kuvvet', 'Zayıf nükleer kuvvet', 'Kütle çekim kuvveti'],
+          dogru: 1,
+          aciklama: 'Parçacıkları dönüştüren zayıf nükleer kuvvettir. Güçlü nükleer kuvvet ise proton ve nötronları bir arada tutar; onları dönüştürmez.',
+          yanlisIpucu: 'Çekirdekteki iki kuvvetten biri parçacıkları bir arada tutar, öbürü dönüştürür. Dönüştüren hangisiydi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Yokuş aşağı bisiklet',
+        metin: 'Ece bisikletiyle bir yokuştan aşağı iniyor. Pedal çevirmediği hâlde bisiklet hızlanıyor. Yokuşun sonunda fren yapınca fren pabuçları tekerleğin jantını sıkıştırıyor ve bisiklet yavaşlıyor. Bu olaylardaki kuvvetlerin hangi temel kuvvetten kaynaklandığını bulalım.',
+        adimlar: [
+          {
+            soru: 'Pedal çevrilmeden bisikleti yokuş aşağı hızlandıran kuvvet hangi temel kuvvettir?',
+            secenekler: ['Elektromanyetik kuvvet', 'Kütle çekim kuvveti', 'Zayıf nükleer kuvvet'],
+            dogru: 1,
+            ipucu: 'Bisikleti ve Ece\'yi aşağıya doğru çeken bir kuvvet var. Bu kuvvetin kaynağı, ayaklarının altındaki koca gezegen.',
+            aciklama: 'Dünya, bisikleti ve Ece\'yi kütle çekim kuvvetiyle aşağı çeker. Yokuşta bu çekim bisikleti yokuş aşağı hızlandırır.'
+          },
+          {
+            soru: 'Fren pabucu ile jant arasındaki sürtünme kuvveti hangi temel kuvvetten kaynaklanır?',
+            secenekler: ['Elektromanyetik kuvvet', 'Kütle çekim kuvveti', 'Güçlü nükleer kuvvet'],
+            dogru: 0,
+            ipucu: 'Sürtünme, birbirine değen iki yüzeyin atomları arasında ortaya çıkar. Atomlarda elektrik yüklü parçacıklar vardır. Elektrik yükleri arasında hangi kuvvet etkiliydi?',
+            aciklama: 'Sürtünme ayrı bir temel kuvvet değildir. Birbirine değen yüzeylerdeki atomlar arasındaki elektromanyetik etkileşimlerin sonucudur.'
+          },
+          {
+            soru: 'Ece ile Dünya arasındaki kütle çekimi için hangisi doğrudur?',
+            secenekler: ['Yalnız Dünya Ece\'yi çeker; Ece Dünya\'yı çekmez.', 'Dünya Ece\'yi çeker; Ece de Dünya\'yı çeker.', 'Dünya Ece\'yi yokuş aşağı iter.'],
+            dogru: 1,
+            ipucu: 'Kütlesi olan her cisim, kütlesi olan öbür cisimleri çeker. Ece\'nin de kütlesi var. Kütle çekimi hiç iter mi?',
+            aciklama: 'Kütle çekimi karşılıklıdır: Dünya Ece\'yi, Ece de Dünya\'yı çeker. Dünya\'nın kütlesi çok büyük olduğu için Ece\'nin çekiminin Dünya üzerindeki etkisi fark edilmez.'
+          }
+        ],
+        sonuc: 'Bu yolculukta gördüğümüz kuvvetler iki temel kuvvetten gelir: kütle çekim kuvveti ve elektromanyetik kuvvet. Bir cisme aynı anda birden çok temel kuvvet etki edebilir.'
+      },
+      {
+        baslik: 'Helyum balonundaki çekirdek',
+        metin: 'Doğum günü balonları helyum gazıyla dolu. Her helyum atomunun çekirdeğinde 2 proton ve 2 nötron vardır. Bu küçücük çekirdeğe yakından bakalım.',
+        adimlar: [
+          {
+            soru: 'Çekirdekteki iki proton, elektromanyetik kuvvetle birbirine nasıl etki eder?',
+            secenekler: ['Birbirini iter.', 'Birbirini çeker.', 'Birbirini hiç etkilemez.'],
+            dogru: 0,
+            ipucu: 'İki proton da artı yüklüdür. Aynı işaretli yükler, mıknatısların aynı kutupları gibi davranır.',
+            aciklama: 'Aynı işaretli yükler birbirini iter. Bu yüzden iki proton arasında elektriksel itme vardır.'
+          },
+          {
+            soru: 'Protonlar birbirini ittiği hâlde çekirdek neden dağılmaz?',
+            secenekler: ['Kütle çekim kuvveti itmeyi yener.', 'Güçlü nükleer kuvvet proton ve nötronları birbirine çeker ve itmeyi yener.', 'Nötronlar protonların yükünü ortadan kaldırır.'],
+            dogru: 1,
+            ipucu: 'Kütle çekimi dört kuvvetin en zayıfıydı; itmeyi yenebilir mi? Çekirdekte etkili en güçlü kuvveti düşün.',
+            aciklama: 'Çekirdeğin içindeki çok kısa uzaklıklarda güçlü nükleer kuvvet, elektriksel itmeden daha güçlüdür. Proton ile proton, proton ile nötron ve nötron ile nötron arasında çekme etkisi gösterir.'
+          },
+          {
+            soru: 'Güçlü nükleer kuvvet bu kadar güçlüyse, balondaki iki helyum atomunu neden birbirine yapıştırmaz?',
+            secenekler: ['Helyum atomlarında güçlü nükleer kuvvet yoktur.', 'Etki uzaklığı çok kısadır; çekirdeğin dışına taşmaz.', 'Balonun lastiği bu kuvveti engeller.'],
+            dogru: 1,
+            ipucu: 'Her kuvvetin bir etki uzaklığı vardır. Nükleer kuvvetlerin etkisi nereye kadar ulaşıyordu?',
+            aciklama: 'Güçlü nükleer kuvvet yalnız çekirdek boyutundaki uzaklıklarda etkilidir. İki ayrı atomun çekirdekleri birbirinden çok uzaktır; aralarında bu kuvvet etkili olmaz.'
+          }
+        ],
+        sonuc: 'En güçlü temel kuvvet, etki uzaklığı en kısa kuvvetlerden biridir. Bir kuvveti tanımak için hem şiddetine hem de etki uzaklığına bakmak gerekir.'
+      },
+      {
+        baslik: 'Güneş sisteminden çıkan uzay aracı',
+        metin: 'Yıllar önce fırlatılan bir uzay aracı bugün Güneş\'ten çok çok uzakta yol alıyor. Motorları çalışmıyor. Bu aracı etkileyen kuvvetleri düşünelim.',
+        adimlar: [
+          {
+            soru: 'Bu kadar uzaktaki uzay aracını hâlâ Güneş\'e doğru çeken kuvvet hangisidir?',
+            secenekler: ['Kütle çekim kuvveti', 'Güçlü nükleer kuvvet', 'Hiçbiri, çünkü araç çok uzakta.'],
+            dogru: 0,
+            ipucu: 'Etki uzaklığı sonsuz kabul edilen ve yalnız çeken kuvveti hatırla.',
+            aciklama: 'Kütle çekiminin etki uzaklığı sonsuz kabul edilir. Güneş, çok uzaktaki uzay aracını da çeker. Bu çekim uzaklık arttıkça azalır ama sıfır olmaz.'
+          },
+          {
+            soru: 'Dört temel kuvvetin görece şiddeti güçlüden zayıfa nasıl sıralanır?',
+            secenekler: ['Güçlü nükleer, elektromanyetik, zayıf nükleer, kütle çekim', 'Kütle çekim, elektromanyetik, güçlü nükleer, zayıf nükleer', 'Elektromanyetik, güçlü nükleer, kütle çekim, zayıf nükleer'],
+            dogru: 0,
+            ipucu: 'En güçlüsü çekirdeği bir arada tutan kuvvetti. En zayıfı ise yalnız çeken kuvvetti.',
+            aciklama: 'Sıra güçlü nükleer kuvvet, elektromanyetik kuvvet, zayıf nükleer kuvvet ve kütle çekim kuvvetidir. Kütle çekimi açık ara en zayıf olanıdır.'
+          },
+          {
+            soru: 'En zayıf kuvvet olan kütle çekimi, gökyüzünde gezegenlerin ve uzay araçlarının hareketini nasıl belirleyebiliyor?',
+            secenekler: ['Uzayda kütle çekimi daha güçlü hâle gelir.', 'Gezegenler ve yıldızlar yaklaşık yüksüzdür; kütle çekimi ise hep çeker ve büyük kütlelerde etkisi büyür.', 'Elektromanyetik kuvvetin etki uzaklığı kısadır.'],
+            dogru: 1,
+            ipucu: 'Elektromanyetik kuvvet iter de çeker de. Büyük bir cisimde artı ve eksi yükler bir aradaysa etkileri ne olur?',
+            aciklama: 'Artı ve eksi yüklerin etkileri birbirini götürür; bu yüzden büyük cisimler arasında elektriksel kuvvet çok küçük kalır. Kütle çekimi ise hep çeker ve kütle büyüdükçe toplanarak büyür.'
+          }
+        ],
+        sonuc: 'Bir kuvvetin etkisini yalnız şiddeti belirlemez. Etki uzaklığı ve yalnız çekip çekmediği de önemlidir.'
+      }
+    ],
+    hazir: 'Dört temel kuvveti, şiddetlerini ve etki uzaklıklarını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -14098,6 +14829,174 @@ BFY_FIG_EKLE('k925_devriye', function (u) {
 });
 })();
 
+/* =============== SIFIRDAN BAŞLA şekilleri (konu.baslangic) ===============
+   Gerçekçi, dolgun sahneler; doğu sağa. */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const { ton } = window.BFY_ISO;
+const r1 = v => Math.round(v * 10) / 10;
+function vh(x, y, harf, renk, o = {}) {
+  const size = o.size || 15, alt = o.alt || '', on = o.on || '';
+  const wOn = on ? on.length * size * 0.62 + 1 : 0, wH = size * 0.62 * harf.length, wA = alt ? alt.length * size * 0.46 + 1 : 0;
+  const top = wOn + wH + wA, sx = o.anchor === 'start' ? x : o.anchor === 'end' ? x - top : x - top / 2;
+  const hx = sx + wOn + (on === 'Δ' ? 0 : 0);
+  let s = '';
+  if (on) s += T(r1(sx), y, on, { size, weight: 800, fill: renk });
+  s += T(r1(hx), y, harf + (alt ? '_{' + alt + '}' : ''), { size, weight: 800, fill: renk, italic: true });
+  const ay = r1(y - size * 0.95), a1 = r1((o.okTum ? sx : hx) + 1), a2 = r1(hx + wH + 1);
+  return s + `<line x1="${a1}" y1="${ay}" x2="${r1(a2 - 3)}" y2="${ay}" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>` +
+    `<line x1="${a1}" y1="${ay}" x2="${r1(a2 - 3)}" y2="${ay}" stroke="${renk}" stroke-width="1.4" stroke-linecap="round"/>` +
+    `<polygon points="${r1(a2 + 1)},${ay} ${r1(a2 - 4)},${r1(ay - 2.6)} ${r1(a2 - 4)},${r1(ay + 2.6)}" fill="${renk}"/>`;
+}
+function vok(x1, y1, x2, y2, c, o = {}) {
+  const w = o.w || 3.2, h = o.head || 11, hw = o.headW || 6;
+  return arrow(x1, y1, x2, y2, { color: '#fff', w: w + 3.2, head: h + 2, headW: hw + 1.8 }) +
+    arrow(x1, y1, x2, y2, { color: c, w, head: h, headW: hw }) + (o.nokta === false ? '' : `<circle cx="${x1}" cy="${y1}" r="3" fill="${c}" stroke="#fff" stroke-width="1"/>`);
+}
+function kisiYan(u, x, y, o) {
+  const yon = o.yon || 1, g = o.egim || 0, ten = '#e8b892', gom = o.renk || '#2f7fb8', pan = o.pantolon || '#34495e', sac = o.sac || '#3b2a20';
+  const kal = [x, y - 40], om = [x + g * yon, y - 68], bas = [x + (g * 1.2 + 2) * yon, y - 80];
+  let s = o.golge === false ? '' : `<ellipse cx="${x}" cy="${y + 1}" rx="17" ry="3.2" fill="#0b1f18" opacity=".18"/>`;
+  [[-(o.adim ?? 8), '#2b3a48'], [o.adim ?? 8, pan]].forEach(([d, c]) => {
+    s += `<line x1="${kal[0]}" y1="${kal[1]}" x2="${x + d * yon}" y2="${y - 3}" stroke="${c}" stroke-width="7.5" stroke-linecap="round"/>`;
+    s += `<path d="M${x + d * yon - 4 * yon} ${y} h${12 * yon} q${2 * yon} -4 ${-3 * yon} -5 h${-9 * yon} z" fill="#2a2f33"/>`;
+  });
+  s += `<line x1="${kal[0]}" y1="${kal[1]}" x2="${om[0]}" y2="${om[1]}" stroke="${gom}" stroke-width="17" stroke-linecap="round"/>`;
+  (o.eller || []).forEach(e => {
+    const m = [om[0] + (e[0] - om[0]) * 0.45, om[1] + (e[1] - om[1]) * 0.45];
+    s += `<line x1="${om[0]}" y1="${om[1] + 2}" x2="${r1(m[0])}" y2="${r1(m[1])}" stroke="${ton(gom, -0.12)}" stroke-width="7" stroke-linecap="round"/>`;
+    s += `<line x1="${r1(m[0])}" y1="${r1(m[1])}" x2="${e[0]}" y2="${e[1]}" stroke="${ten}" stroke-width="5" stroke-linecap="round"/><circle cx="${e[0]}" cy="${e[1]}" r="3.4" fill="${ten}" stroke="#b07a55" stroke-width=".6"/>`;
+  });
+  s += `<defs><radialGradient id="${u}ten${x}" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#f6d3b5"/><stop offset="1" stop-color="#d79f78"/></radialGradient></defs>`;
+  s += `<circle cx="${bas[0] - 2 * yon}" cy="${bas[1] - 2}" r="9.2" fill="${sac}"/><circle cx="${bas[0]}" cy="${bas[1]}" r="8.4" fill="url(#${u}ten${x})"/>`;
+  s += `<path d="M${bas[0] - 8.8 * yon} ${bas[1] - 1} q${3 * yon} -9.5 ${12 * yon} -7.5 q${-6 * yon} 1 ${-8 * yon} 5 z" fill="${sac}"/>`;
+  s += `<circle cx="${bas[0] + 4.6 * yon}" cy="${bas[1] - 1.5}" r="1.1" fill="#2a2f33"/>`;
+  return s;
+}
+const gokyuzu = (u, W, H) => `<defs><linearGradient id="${u}gk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe6f5"/><stop offset="1" stop-color="#f1f7fb"/></linearGradient></defs>` +
+  `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}gk)"/>`;
+
+/* Adım 1 ve 2: düz cadde; referans noktası durak (0), kırtasiye −20 m, eczane +40 m. yol: gidiş, dönüş ve yer değiştirme okları */
+function cadde(u, yolGoster) {
+  const W = 340, H = yolGoster ? 246 : 192, X = m => 130 + 3.6 * m, ys = 128;
+  let s = gokyuzu(u, W, H);
+  s += `<path d="M0 ${ys} H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="#eef1ea"/>`;
+  // binalar
+  const bina = (x, y, w, renk) => `<rect x="${x + 3}" y="${y + 3}" width="${w}" height="${ys - y}" fill="#0b1f18" opacity=".08"/><rect x="${x}" y="${y}" width="${w}" height="${ys - y}" fill="${renk}" stroke="${ton(renk, -0.3)}" stroke-width="1"/>`;
+  s += bina(164, 46, 74, '#d9c3a0');
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) s += `<rect x="${172 + i * 22}" y="${54 + j * 22}" width="13" height="14" rx="1.5" fill="#bcd9ea" stroke="#8a7458" stroke-width=".7"/>`;
+  s += bina(26, 58, 66, '#efe1c4') + `<rect x="26" y="64" width="66" height="14" fill="#2f7fb8"/>` + T(59, 75, 'KIRTASİYE', { size: 9, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  s += `<rect x="32" y="86" width="30" height="26" fill="#cfe6f5" stroke="#8a7458"/><rect x="68" y="88" width="18" height="40" fill="#8a5a33"/>` + [36, 44, 52].map((x, i) => `<rect x="${x}" y="${100 - i * 3}" width="6" height="${12 + i * 3}" fill="${['#e76f51', '#e9c46a', '#2a9d8f'][i]}"/>`).join('');
+  s += bina(242, 60, 64, '#f4f1ea') + `<rect x="242" y="66" width="64" height="14" fill="#fff" stroke="#d24b3e"/>` + T(274, 77, 'ECZANE', { size: 9, weight: 800, anchor: 'middle', fill: '#d24b3e', halo: false });
+  s += `<rect x="248" y="88" width="26" height="26" fill="#cfe6f5" stroke="#9aa5ad"/><rect x="282" y="88" width="18" height="40" fill="#cfe6f5" stroke="#9aa5ad"/>`;
+  s += bina(308, 40, 40, '#cbb48f');
+  // durak
+  s += `<rect x="108" y="96" width="44" height="32" fill="#cfe6f5" opacity=".7" stroke="#7d8a91"/><rect x="104" y="88" width="52" height="8" rx="2" fill="#3f8a67" stroke="#2b5e47"/>`;
+  s += `<line x1="108" y1="96" x2="108" y2="${ys}" stroke="#5c6b66" stroke-width="2"/><line x1="152" y1="96" x2="152" y2="${ys}" stroke="#5c6b66" stroke-width="2"/><rect x="114" y="116" width="32" height="4" fill="#8a5a33"/>`;
+  s += `<line x1="160" y1="${ys}" x2="160" y2="82" stroke="#5c6b66" stroke-width="2"/><rect x="152" y="70" width="18" height="14" rx="2" fill="#e0a43a" stroke="#9a6a1a"/>` + T(161, 80.5, 'D', { size: 9, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  // kaldırım
+  s += `<rect x="0" y="${ys}" width="${W}" height="14" fill="#cfd5d0"/>`;
+  for (let x = 6; x < W; x += 18) s += `<line x1="${x}" y1="${ys}" x2="${x}" y2="${ys + 14}" stroke="#b6bfb9" stroke-width="1"/>`;
+  s += `<line x1="0" y1="${ys + 14}" x2="${W}" y2="${ys + 14}" stroke="#9aa5ad" stroke-width="2"/>`;
+  // sayı doğrusu
+  const yn = 164;
+  [[-20, '#2f7fb8'], [0, '#3f8a67'], [40, '#d24b3e']].forEach(([m, c]) => { s += `<line x1="${X(m)}" y1="${ys + 8}" x2="${X(m)}" y2="${yn - 5}" stroke="${c}" stroke-width="1.2" stroke-dasharray="3 3"/><circle cx="${X(m)}" cy="${ys + 7}" r="3.6" fill="${c}" stroke="#fff" stroke-width="1"/>`; });
+  s += arrow(14, yn, W - 12, yn, { color: P.ink, w: 1.6, head: 8, headW: 4.4 });
+  for (let m = -30; m <= 50; m += 10) { const x = X(m); s += `<line x1="${x}" y1="${yn - 4}" x2="${x}" y2="${yn + 4}" stroke="${P.ink}" stroke-width="1.3"/>`; if (m % 20 === 0 && m >= -20 && m <= 40) s += T(x, yn + 18, m < 0 ? '−' + (-m) : String(m), { size: 11.5, weight: 700, anchor: 'middle' }); }
+  s += T(W - 12, yn - 9, 'x (m)', { size: 11.5, weight: 700, anchor: 'end', italic: false });
+  s += arrow(16, 22, 50, 22, { color: P.ink, w: 1.6, head: 7, headW: 4 }) + T(55, 26, 'Doğu', { size: 11.5, weight: 700 });
+  if (yolGoster) {
+    s += vok(X(0), 200, X(40), 200, '#2f7fb8') + T(X(40) + 8, 204, '40 m', { size: 12, weight: 800, fill: ton('#2f7fb8', -0.25) });
+    s += vok(X(40), 216, X(-20), 216, '#3f8a67') + T(X(-20) - 8, 220, '60 m', { size: 12, weight: 800, anchor: 'end', fill: ton('#3f8a67', -0.25) });
+    s += vok(X(0), 234, X(-20), 234, '#d9573b', { w: 3.6 }) + vh(X(-20) - 8, 239, 'x', '#b8442b', { on: 'Δ', anchor: 'end', size: 14, okTum: true });
+  }
+  return svg(W, H, s, u, 84);
+}
+BFY_FIG_EKLE('sf925_cadde', u => cadde(u, false));
+BFY_FIG_EKLE('sf925_cadde_yol', u => cadde(u, true));
+
+/* Adım 4: köpek topu getirir; gidiş 30 m 9 s, bekleme 5 s, dönüş 30 m 6 s */
+function kopek(x, y) {
+  return `<ellipse cx="${x}" cy="${y + 20}" rx="24" ry="3.2" fill="#0b1f18" opacity=".18"/>` +
+    `<path d="M${x - 20} ${y - 2} q-14 -6 -16 -16" fill="none" stroke="#a8743f" stroke-width="4" stroke-linecap="round"/>` +
+    `<path d="M${x - 14} ${y + 4} L${x - 26} ${y + 18} M${x - 8} ${y + 6} L${x - 12} ${y + 19} M${x + 10} ${y + 5} L${x + 22} ${y + 17} M${x + 14} ${y + 4} L${x + 28} ${y + 12}" stroke="#8a5a2a" stroke-width="4.2" stroke-linecap="round"/>` +
+    `<ellipse cx="${x}" cy="${y}" rx="22" ry="10" fill="#c98b4a" stroke="#8a5a2a" stroke-width="1"/>` +
+    `<ellipse cx="${x - 2}" cy="${y - 4}" rx="14" ry="4" fill="#e0a86a" opacity=".6"/>` +
+    `<circle cx="${x + 22}" cy="${y - 9}" r="9" fill="#c98b4a" stroke="#8a5a2a" stroke-width="1"/>` +
+    `<ellipse cx="${x + 31}" cy="${y - 6}" rx="7" ry="4.5" fill="#d9a066" stroke="#8a5a2a" stroke-width="1"/><circle cx="${x + 37}" cy="${y - 7}" r="2" fill="#2a2f33"/>` +
+    `<path d="M${x + 17} ${y - 16} q-7 4 -5 13 q5 -2 9 -10 z" fill="#7a4a22"/><circle cx="${x + 25}" cy="${y - 12}" r="1.4" fill="#2a2f33"/>`;
+}
+BFY_FIG_EKLE('sf925_kopek', function (u) {
+  const W = 340, H = 206, yz = 158;
+  let s = gokyuzu(u, W, H);
+  s += `<path d="M0 72 Q90 60 170 70 T340 66 V${H - 14} Q340 ${H} 326 ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="#a9d08a"/>`;
+  [[110, 72, 30], [210, 70, 24], [318, 68, 34]].forEach(([x, y, h]) => { s += `<rect x="${x - 2}" y="${y - h * 0.4}" width="4" height="${h * 0.4}" fill="#8a5a33"/><circle cx="${x}" cy="${y - h * 0.62}" r="${h * 0.32}" fill="#5f9e5a"/>`; });
+  s += kisiYan(u, 36, yz, { yon: 1, renk: '#7b5bc4', eller: [[56, yz - 52]] });
+  s += `<circle cx="292" cy="${yz - 5}" r="6" fill="#d8e65a" stroke="#8a9a2a" stroke-width="1"/><path d="M287 ${yz - 8} q5 4 10 0" fill="none" stroke="#fff" stroke-width="1"/>`;
+  s += kopek(168, yz - 20);
+  s += arrow(62, 98, 284, 98, { color: '#2f7fb8', w: 2.6, head: 10, headW: 5.6 }) + T(173, 90, 'gidiş: 30 m, 9 s', { size: 12, weight: 800, anchor: 'middle', fill: ton('#2f7fb8', -0.25) });
+  s += arrow(284, 178, 62, 178, { color: '#3f8a67', w: 2.6, head: 10, headW: 5.6 }) + T(173, 192, 'dönüş: 30 m, 6 s', { size: 12, weight: 800, anchor: 'middle', fill: ton('#3f8a67', -0.25) });
+  s += `<circle cx="292" cy="126" r="9" fill="#fff" stroke="${P.ink}" stroke-width="1.5"/><path d="M292 120 V126 H297" fill="none" stroke="${P.ink}" stroke-width="1.5" stroke-linecap="round"/>`;
+  s += T(306, 130, '5 s', { size: 12, weight: 800 });
+  s += T(292, 112, 'bekleme', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 84);
+});
+
+/* Adım 5: yavaşlayan kaykaycı; hız okları kısalır, ivme batıya */
+function kaykay(u, x, y, o) {
+  let s = `<rect x="${x - 22}" y="${y - 7}" width="44" height="4.5" rx="2.2" fill="#8a5a33" stroke="#5c3a1e" stroke-width=".8"/>`;
+  s += `<circle cx="${x - 14}" cy="${y - 1}" r="3.4" fill="#e0a43a" stroke="#7a5a1e" stroke-width=".8"/><circle cx="${x + 14}" cy="${y - 1}" r="3.4" fill="#e0a43a" stroke="#7a5a1e" stroke-width=".8"/>`;
+  return `<ellipse cx="${x}" cy="${y + 3}" rx="24" ry="3" fill="#0b1f18" opacity=".18"/>` + kisiYan(u, x, y - 7, { yon: 1, egim: o.egim, renk: '#d9573b', golge: false, adim: 11, eller: [[x - 18, y - 60], [x + 20, y - 58]] }) + s;
+}
+BFY_FIG_EKLE('sf925_kaykay', function (u) {
+  const W = 340, H = 184, yz = 140;
+  let s = gokyuzu(u, W, H);
+  s += `<rect x="0" y="${yz}" width="${W}" height="${H - yz - 14}" fill="#b9c1c5"/><path d="M0 ${H - 14} H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="#b9c1c5"/>`;
+  for (let x = 10; x < W; x += 40) s += `<rect x="${x}" y="${yz + 18}" width="20" height="3" fill="#f4f6f7"/>`;
+  [[0.38, 60, 66, 1], [0.66, 160, 44, 2], [1, 256, 22, 3]].forEach(([o, x, L, i]) => {
+    s += `<g opacity="${o}">${kaykay(u, x, yz, { egim: 0 })}</g>`;
+    s += vok(x, 34, x + L, 34, '#2f7fb8', { nokta: true }) + vh(x + L / 2, 24, 'ϑ', ton('#2f7fb8', -0.25), { alt: String(i), size: 14 });
+  });
+  s += vok(214, 164, 168, 164, '#d9573b') + vh(160, 169, 'a', '#b8442b', { anchor: 'end', size: 15 });
+  s += arrow(262, 164, 294, 164, { color: P.ink, w: 1.5, head: 6.5, headW: 3.6 }) + T(298, 168, 'Doğu', { size: 11, weight: 700 });
+  return svg(W, H, s, u, 84);
+});
+
+/* Isınma 3: kuşbakışı harita; dron dümdüz (2100 m), kurye nehir kıyısındaki kıvrımlı yoldan (3000 m) */
+BFY_FIG_EKLE('sf925_kurye', function (u) {
+  const W = 340, H = 224, A = [52, 182], E = [292, 50];
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#e6eed9"/>`;
+  for (let i = 0; i < 9; i++) for (let j = 0; j < 6; j++) if ((i * 7 + j * 3) % 5 === 0) s += `<rect x="${12 + i * 37}" y="${10 + j * 36}" width="22" height="18" rx="2" fill="#d5dfc6"/>`;
+  // nehir
+  s += `<path d="M-6 92 C 60 70, 110 120, 170 108 S 260 70, 346 96" fill="none" stroke="#7cc0d8" stroke-width="26" stroke-linecap="round"/>`;
+  s += `<path d="M-6 92 C 60 70, 110 120, 170 108 S 260 70, 346 96" fill="none" stroke="#a9d6e6" stroke-width="6" stroke-linecap="round" opacity=".7"/>`;
+  // kıvrımlı yol (nehrin güney kıyısı), köprüden geçip eve
+  const yol = `M${A[0]} ${A[1]} C 52 150, 70 128, 100 126 S 160 140, 196 130 S 250 112, 262 104 L 276 74 S 286 56, ${E[0]} ${E[1]}`;
+  s += `<path d="${yol}" fill="none" stroke="#b9a37a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/><path d="${yol}" fill="none" stroke="#e8d6b0" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += `<path d="${yol}" fill="none" stroke="#fff" stroke-width="1.2" stroke-dasharray="5 5"/>`;
+  s += `<path d="M255.6 101.1 L269.6 71.1 M268.4 106.9 L282.4 76.9" stroke="#6b767b" stroke-width="2.2"/>`;
+  // dronun rotası = yer değiştirme
+  s += arrow(A[0] + 6, A[1] - 4, E[0] - 8, E[1] + 5, { color: '#fff', w: 5.6, head: 13, headW: 7.6 }) + arrow(A[0] + 6, A[1] - 4, E[0] - 8, E[1] + 5, { color: '#d9573b', w: 2.6, head: 11, headW: 6, dash: '7 5' });
+  // pastane ve ev
+  s += `<rect x="${A[0] - 16}" y="${A[1] - 4}" width="30" height="24" fill="#f3d3dc" stroke="#b5657e"/><path d="M${A[0] - 18} ${A[1] - 4} h34 l-3 -6 h-28 z" fill="#d97a96"/><rect x="${A[0] - 12}" y="${A[1] - 10}" width="4" height="6" fill="#fff"/><rect x="${A[0] - 4}" y="${A[1] - 10}" width="4" height="6" fill="#fff"/><rect x="${A[0] + 4}" y="${A[1] - 10}" width="4" height="6" fill="#fff"/>`;
+  s += `<polygon points="${E[0] - 16},${E[1] - 12} ${E[0] + 16},${E[1] - 12} ${E[0] + 16},${E[1] + 12} ${E[0] - 16},${E[1] + 12}" fill="#c2553b" stroke="#7d3222"/><line x1="${E[0] - 16}" y1="${E[1]}" x2="${E[0] + 16}" y2="${E[1]}" stroke="#7d3222" stroke-width="1.4"/>`;
+  // dron (kuşbakışı)
+  const D = [176, 112];
+  s += `<path d="M${D[0] - 9} ${D[1] - 9} L${D[0] + 9} ${D[1] + 9} M${D[0] + 9} ${D[1] - 9} L${D[0] - 9} ${D[1] + 9}" stroke="#2a3330" stroke-width="2.4"/>`;
+  [[-9, -9], [9, -9], [9, 9], [-9, 9]].forEach(([dx, dy]) => { s += `<circle cx="${D[0] + dx}" cy="${D[1] + dy}" r="5.4" fill="#cfe6f5" fill-opacity=".85" stroke="#2a3330" stroke-width="1"/>`; });
+  s += `<rect x="${D[0] - 4}" y="${D[1] - 4}" width="8" height="8" rx="2" fill="#e0a43a" stroke="#2a3330" stroke-width=".8"/>`;
+  // motosiklet (kuşbakışı), yolda
+  const M = [128, 135];
+  s += `<g transform="rotate(14 ${M[0]} ${M[1]})"><rect x="${M[0] - 10}" y="${M[1] - 3}" width="20" height="6" rx="3" fill="#2a3330"/><circle cx="${M[0] - 1}" cy="${M[1]}" r="4.2" fill="#2f7fb8"/><rect x="${M[0] - 14}" y="${M[1] - 5}" width="8" height="10" rx="1.5" fill="#e0a43a" stroke="#7a5a1e" stroke-width=".6"/><line x1="${M[0] + 6}" y1="${M[1] - 6}" x2="${M[0] + 6}" y2="${M[1] + 6}" stroke="#2a3330" stroke-width="1.6"/></g>`;
+  s += T(A[0] + 20, A[1] + 30, 'Pastane', { size: 12, weight: 800, anchor: 'middle' }) + T(E[0], E[1] - 18, 'Ev', { size: 12, weight: 800, anchor: 'middle' });
+  s += T(206, 156, 'dron: dümdüz, 2100 m', { size: 11.5, weight: 800, fill: '#a23a22' });
+  s += T(150, 206, 'kurye: kıvrımlı yol, 3000 m', { size: 11.5, weight: 800, fill: '#6b5a3a' });
+  s += T(28, 30, 'nehir', { size: 11, weight: 700, italic: true, fill: '#2e6f95' });
+  s += arrow(118, 26, 150, 26, { color: P.ink, w: 1.5, head: 6.5, headW: 3.6 }) + T(155, 30, 'Doğu', { size: 11, weight: 700 });
+  return svg(W, H, s, u, 84);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -14136,6 +15035,184 @@ const KONU = {
     'SET 1: Usain Bolt, Berlin 2009 Dünya Şampiyonası 100 m (9,58 s) 10 m ara süreleri, rüzgâr +0,9 m/s',
     'SET 2: yeşil dalga bulvarı K1–K4 (0, 250, 600, 1000 m), yeşilin yandığı anlar 0, 18, 43, 72 s, yeşil süresi 25 s, günlük araç sayısı'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.2.5/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Her gün yürüyor, koşuyor, araçlara biniyorsun; bu konu tam olarak bunu anlatıyor. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Nereye göre?',
+        sekil: 'sf925_cadde',
+        metin: r`Otobüs durağında biri sana "Eczane 40 m ileride." diyor. Bu bilgi işe yarar, çünkü üç şey söylüyor: nereden (duraktan), ne kadar (40 m) ve hangi yöne (ileri, yani doğuya).
+- Konumu ölçmeye başladığımız noktaya **referans noktası** denir. Burada referans noktası duraktır.
+- Bir cismin referans noktasına göre bulunduğu yere **konum** denir. Konum vektöreldir ve $\vec{x}$ ile gösterilir.
+
+Şekilde durak 0 noktasıdır. Doğuyu (+) seçersek eczanenin konumu $+40$ m, kırtasiyenin konumu $-20$ m olur.`,
+        kontrol: {
+          soru: 'Referans noktası olarak durak yerine kırtasiye seçilirse eczanenin konumu ne olur?',
+          secenekler: ['Doğuya doğru 40 m', 'Doğuya doğru 60 m', 'Batıya doğru 20 m'],
+          dogru: 1,
+          aciklama: r`Kırtasiye duraktan 20 m batıda, eczane duraktan 40 m doğuda. Kırtasiyeden eczaneye doğuya doğru $20 + 40 = 60$ m gidilir. Referans noktası değişince konum da değişir.`,
+          yanlisIpucu: 'Artık 0 noktası kırtasiye. Kırtasiyeden eczaneye kadar kaç metre ve hangi yöne gidersin? Şekildeki sayı doğrusundan say.'
+        }
+      },
+      {
+        baslik: 'Yol mu, yer değiştirme mi?',
+        sekil: 'sf925_cadde_yol',
+        metin: r`Durakta otobüs beklerken eczaneye gidip bir şey aldın. Otobüs gelmeden geri döndün ve kırtasiyeye uğradın. Önce 40 m doğuya, sonra 60 m batıya yürüdün.
+- **Alınan yol ($x$):** Yürüdüğün yolun toplam uzunluğudur: $40 + 60 = 100$ m. Yönü yoktur; skalerdir.
+- **Yer değiştirme ($\Delta\vec{x}$):** Son konum ile ilk konum arasındaki farktır: $\Delta\vec{x} = \vec{x}_\text{son} - \vec{x}_\text{ilk}$. Vektöreldir.
+
+İlk konumun 0, son konumun $-20$ m olduğu için $\Delta x = -20 - 0 = -20$ m olur. Yani yer değiştirmen batıya doğru 20 m'dir. Arada nereye uğradığın yer değiştirmeyi değiştirmez.`,
+        kontrol: {
+          soru: 'Biri duraktan önce kırtasiyeye, sonra oradan eczaneye yürüyor. Hangisi doğrudur?',
+          secenekler: ['Yol 80 m, yer değiştirme doğuya doğru 40 m', 'Yol 40 m, yer değiştirme doğuya doğru 80 m', 'Yol 60 m, yer değiştirme doğuya doğru 60 m'],
+          dogru: 0,
+          aciklama: r`Önce batıya 20 m, sonra doğuya 60 m yürünür: Yol $20 + 60 = 80$ m olur. Son konum $+40$ m, ilk konum 0 olduğu için yer değiştirme doğuya doğru 40 m'dir.`,
+          yanlisIpucu: 'Yol için yürünen bütün parçaları topla. Yer değiştirme için yalnız nerede başlayıp nerede bittiğine bak.'
+        }
+      },
+      {
+        baslik: 'Sürat ve hız',
+        sekil: 'k925_kart_hiz',
+        metin: r`Düz bir yolda doğuya giden bir otomobil 60 m'yi 3 s'de alıyor.
+- **Sürat**, birim zamanda alınan yoldur: $\vartheta = \dfrac{x}{\Delta t} = \dfrac{60}{3} = 20$ m/s. Sürat skalerdir; yalnız ne kadar hızlı gidildiğini söyler.
+- **Hız**, birim zamandaki yer değiştirmedir: $\vec{\vartheta} = \dfrac{\Delta\vec{x}}{\Delta t}$. Hız vektöreldir. Otomobilin hızı doğuya doğru 20 m/s'dir.
+
+Hız ile süratin farkı yöndür. Araçtaki gösterge yön söylemediği için anlık sürati gösterir.`,
+        kontrol: {
+          soru: 'Bir koşucu kuzeye doğru 5 m/s ile koşuyor. Hangisi koşucunun hızını anlatır?',
+          secenekler: ['5 m/s', 'Kuzeye doğru 5 m/s', 'Kuzeye doğru'],
+          dogru: 1,
+          aciklama: 'Hız vektöreldir; büyüklüğü (5 m/s) ve yönü (kuzey) birlikte söylenir. Yalnız 5 m/s, koşucunun süratidir.',
+          yanlisIpucu: 'Hız vektörel bir nicelikti. Vektörel bir nicelik için hangi iki bilgi birlikte gerekir?'
+        }
+      },
+      {
+        baslik: 'Ortalama: bütün hareketi özetle',
+        sekil: 'sf925_kopek',
+        metin: r`Bir köpek, sahibinin attığı topu getirmek için düz bir çimde 30 m koşuyor ve 9 s'de topa ulaşıyor. Topu ağzına almak için 5 s duruyor. Sonra 6 s'de koşarak sahibine geri dönüyor.
+- **Ortalama sürat**, toplam yolun toplam süreye oranıdır: $\vartheta_\text{ort} = \dfrac{x_\text{toplam}}{\Delta t_\text{toplam}}$. Duraklanan süre de toplam süreye eklenir.
+- **Ortalama hız**, toplam yer değiştirmenin toplam süreye oranıdır. Köpek başladığı yere döndüğü için yer değiştirmesi sıfırdır. Bu yüzden ortalama hızı da sıfırdır.`,
+        kontrol: {
+          soru: 'Köpeğin bütün hareketteki ortalama sürati kaç m/s\'dir?',
+          secenekler: ['3 m/s', '4 m/s', '0'],
+          dogru: 0,
+          aciklama: r`Toplam yol $30 + 30 = 60$ m, toplam süre $9 + 5 + 6 = 20$ s. Ortalama sürat $\dfrac{60}{20} = 3$ m/s olur.`,
+          yanlisIpucu: 'Toplam yolu ve toplam süreyi ayrı ayrı bul. Köpeğin topu ağzına aldığı 5 s de süreye girer.'
+        }
+      },
+      {
+        baslik: 'İvme: hız değişiyorsa',
+        sekil: 'sf925_kaykay',
+        metin: r`Bir kaykaycı düz bir yolda doğuya gidiyor. Ayağını yere sürterek yavaşlıyor; hızı her saniye biraz azalıyor.
+
+Hızdaki değişimi anlatan niceliğe **ivme** denir. İvme $\vec{a}$ ile gösterilir; vektöreldir ve birimi $\text{m/s}^2$'dir.
+- Hızlanan cismin ivmesi hızıyla aynı yöndedir.
+- Yavaşlayan cismin ivmesi hızına zıt yöndedir.
+- Hızı hiç değişmeyen cismin ivmesi sıfırdır.
+
+Şekilde kaykaycının hız okları gittikçe kısalıyor. Kaykaycı yavaşladığı için ivme oku batıya doğrudur.`,
+        kontrol: {
+          soru: 'Güneye doğru giderken yavaşlayan bir otobüsün ivmesi hangi yöndedir?',
+          secenekler: ['Güneye doğru', 'Kuzeye doğru', 'İvmesi yoktur.'],
+          dogru: 1,
+          aciklama: 'Otobüs yavaşladığı için ivmesi hızına zıttır. Hız güneye doğru olduğundan ivme kuzeye doğrudur.',
+          yanlisIpucu: 'Otobüs hızlanıyor mu, yavaşlıyor mu? Yavaşlayan cismin ivmesi hızıyla aynı yönde miydi, zıt yönde mi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Ağaca tırmanan sincap',
+        metin: 'Bir sincap ağacın dibinden düz gövde boyunca 6 m yukarı tırmanıyor. Bir sesten ürküp 2 m aşağı iniyor ve orada duruyor. Bütün hareket 4 s sürüyor. Yukarı yönü (+) seçelim.',
+        adimlar: [
+          {
+            soru: 'Sincabın aldığı yol kaç metredir?',
+            secenekler: ['4 m', '6 m', '8 m'],
+            dogru: 2,
+            ipucu: 'Yol, gidilen bütün parçaların uzunluklarının toplamıdır. Aşağı inilen parça da yola eklenir.',
+            aciklama: r`Yol $6 + 2 = 8$ m'dir. Yol skalerdir; aşağı inmek onu azaltmaz.`
+          },
+          {
+            soru: 'Sincabın yer değiştirmesi hangisidir?',
+            secenekler: ['Yukarı doğru 4 m', 'Yukarı doğru 8 m', 'Aşağı doğru 2 m'],
+            dogru: 0,
+            ipucu: r`Yalnız başlangıç ve bitiş noktalarına bak: $\Delta x = x_\text{son} - x_\text{ilk}$.`,
+            aciklama: r`İlk konum 0, son konum $6 - 2 = +4$ m'dir. $\Delta x = +4 - 0 = +4$ m, yani yer değiştirme yukarı doğru 4 m'dir.`
+          },
+          {
+            soru: 'Sincabın ortalama sürati ve ortalama hızı hangisidir?',
+            secenekler: ['Sürat 2 m/s; hız yukarı doğru 1 m/s', 'Sürat 1 m/s; hız yukarı doğru 2 m/s', 'Sürat 2 m/s; hız yukarı doğru 2 m/s'],
+            dogru: 0,
+            ipucu: 'Sürat için yolu, hız için yer değiştirmeyi aynı süreye (4 s) böl.',
+            aciklama: r`Ortalama sürat $\dfrac{8}{4} = 2$ m/s olur. Ortalama hız $\dfrac{4}{4} = 1$ m/s, yönü yukarı doğrudur.`
+          }
+        ],
+        sonuc: 'Aynı hareketin sürati ve hızı farklı çıkabilir. Ortalama hızın büyüklüğü, ortalama süratten büyük olamaz.'
+      },
+      {
+        baslik: 'Sahil yolunda paten',
+        metin: 'Zeynep paten kayarak sahildeki düz yolda iskeleden fenere kadar 1800 m gidiyor. Bu yolculuk 6 dakika sürüyor. Ortalama süratini önce m/s, sonra km/h olarak bulalım.',
+        adimlar: [
+          {
+            soru: '6 dakika kaç saniyedir?',
+            secenekler: ['60 s', '360 s', '600 s'],
+            dogru: 1,
+            ipucu: '1 dakika 60 s\'dir. 6 dakikada kaç tane 60 s vardır?',
+            aciklama: r`$6 \times 60 = 360$ s.`
+          },
+          {
+            soru: 'Zeynep\'in ortalama sürati kaç m/s\'dir?',
+            secenekler: ['5 m/s', '300 m/s', '30 m/s'],
+            dogru: 0,
+            ipucu: 'Ortalama sürat, alınan yolun geçen süreye oranıdır. Süreyi saniye olarak kullan.',
+            aciklama: r`$\vartheta_\text{ort} = \dfrac{1800}{360} = 5$ m/s.`
+          },
+          {
+            soru: 'Bu sürat kaç km/h\'tir?',
+            secenekler: ['18 km/h', '5 km/h', '180 km/h'],
+            dogru: 0,
+            ipucu: r`1 m/s, 3,6 km/h'tir. m/s'den km/h'e geçerken 3,6 ile çarp. İstersen önce $5 \times 36$'yı bul, sonra 10'a böl.`,
+            aciklama: r`$5 \times 3{,}6 = 18$ km/h. Bu, sakin giden bir bisikletlinin süratine yakındır.`
+          }
+        ],
+        sonuc: 'Zeynep\'in ortalama sürati 5 m/s, yani 18 km/h\'tir. Zeynep düz yolda yön değiştirmeden gittiği için ortalama hızının büyüklüğü de aynıdır; yönü iskeleden fenere doğrudur.'
+      },
+      {
+        baslik: 'Dron mu, kurye mi?',
+        sekil: 'sf925_kurye',
+        metin: 'Bir pastane aynı eve iki paket gönderiyor. Dron pastaneden eve dümdüz uçarak 2100 m yer değiştiriyor. Motosikletli kurye ise nehir kıyısındaki kıvrımlı yolu izleyerek 3000 m yol gidiyor. İkisi de aynı anda yola çıkıyor ve 5 dakika sonra aynı anda eve varıyor.',
+        adimlar: [
+          {
+            soru: 'Dron ile kuryenin yer değiştirmeleri için hangisi doğrudur?',
+            secenekler: ['Kuryeninki daha büyüktür.', 'İkisininki eşittir.', 'Dronunki daha büyüktür.'],
+            dogru: 1,
+            ipucu: 'Yer değiştirme yalnız başlangıç ve bitiş noktalarına bağlıdır. İkisi nereden çıkıp nereye vardı?',
+            aciklama: 'İkisi de pastaneden çıkıp aynı eve vardı. Bu yüzden yer değiştirmeleri eşittir: eve doğru 2100 m. İzlenen yolun biçimi yer değiştirmeyi değiştirmez.'
+          },
+          {
+            soru: 'Kuryenin ortalama sürati kaç m/s\'dir?',
+            secenekler: ['7 m/s', '10 m/s', '600 m/s'],
+            dogru: 1,
+            ipucu: 'Önce 5 dakikayı saniyeye çevir. Sonra kuryenin aldığı yolu bu süreye böl.',
+            aciklama: r`5 dakika $5 \times 60 = 300$ s'dir. Ortalama sürat $\dfrac{3000}{300} = 10$ m/s olur.`
+          },
+          {
+            soru: 'Kuryenin ortalama hızının büyüklüğü kaç m/s\'dir?',
+            secenekler: ['10 m/s', '7 m/s', '0'],
+            dogru: 1,
+            ipucu: 'Ortalama hız için yol değil, yer değiştirme kullanılır. Kuryenin yer değiştirmesi dronunkiyle aynıydı.',
+            aciklama: r`Ortalama hızın büyüklüğü $\dfrac{2100}{300} = 7$ m/s'dir. Dronun ortalama hızı da aynıdır: eve doğru 7 m/s.`
+          }
+        ],
+        sonuc: 'Kurye daha uzun yol gittiği için sürati daha büyüktü. Ama ikisi aynı yerden aynı yere aynı sürede gittiği için ortalama hızları eşittir.'
+      }
+    ],
+    hazir: 'Konum, alınan yol, yer değiştirme, sürat, hız ve ivmeyi gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
