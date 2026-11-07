@@ -21377,6 +21377,121 @@ BFY_FIG_EKLE('i932_kart_yogun', u => KART(u, I => {
 }, { oy: 60 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf932_ öneki) ---------- */
+(function () {
+const { P, T, arrow, dimV, svg, dashLine } = window.BFY_FIGLIB;
+const suDefs = u => `<defs>
+  <linearGradient id="${u}sfsu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd0ee"/><stop offset="1" stop-color="#3f8fc4"/></linearGradient>
+  <linearGradient id="${u}sfplas" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3eef5"/><stop offset=".3" stop-color="#ffffff"/><stop offset="1" stop-color="#bcd2e0"/></linearGradient>
+  <linearGradient id="${u}sfcam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset=".12" stop-color="#ffffff" stop-opacity=".7"/><stop offset=".24" stop-color="#ffffff" stop-opacity="0"/><stop offset=".85" stop-color="#ffffff" stop-opacity="0"/><stop offset=".93" stop-color="#ffffff" stop-opacity=".45"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="${u}sfleg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9824a"/><stop offset=".4" stop-color="#f2a86f"/><stop offset="1" stop-color="#b8612f"/></linearGradient>
+</defs>`;
+
+/* Adım 1: alt köşesinde musluk olan iki kamp bidonu; dolu olanda su uzağa fışkırır */
+BFY_FIG_EKLE('sf932_bidon', function (u) {
+  const W = 340, H = 250, yer = 214;
+  let s = suDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="#d8cdb8"/><line class="bg" x1="0" y1="${yer}" x2="${W}" y2="${yer}" stroke="#a99e88" stroke-width="1.2"/>`;
+  s += `<line class="bg" x1="170" y1="12" x2="170" y2="${yer - 4}" stroke="#c9d3cc" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  const panel = (x0, seviye, menzil, etiket, renk) => {
+    let g = '';
+    const bx = x0 + 30, bw = 66, by = 52, bh = 112, alt = by + bh, tx = bx + bw, ty = alt - 12;
+    // tabure
+    g += `<rect x="${bx - 8}" y="${alt}" width="${bw + 16}" height="8" rx="2" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+    g += `<rect x="${bx}" y="${alt + 8}" width="7" height="${yer - alt - 8}" fill="#b98f55"/><rect x="${bx + bw - 7}" y="${alt + 8}" width="7" height="${yer - alt - 8}" fill="#a07b45"/>`;
+    // bidon gövdesi, su, sap ve kapak
+    const sy = alt - seviye;
+    g += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="9" fill="url(#${u}sfplas)" stroke="#5f7f94" stroke-width="1.3"/>`;
+    g += `<path d="M${bx + 1.5} ${sy} L${bx + bw - 1.5} ${sy} L${bx + bw - 1.5} ${alt - 9} Q${bx + bw - 1.5} ${alt - 1.5} ${bx + bw - 9} ${alt - 1.5} L${bx + 9} ${alt - 1.5} Q${bx + 1.5} ${alt - 1.5} ${bx + 1.5} ${alt - 9} Z" fill="url(#${u}sfsu)" opacity=".9"/>`;
+    g += `<line x1="${bx + 1.5}" y1="${sy}" x2="${bx + bw - 1.5}" y2="${sy}" stroke="#2a6f9e" stroke-width="1.6"/>`;
+    g += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="9" fill="url(#${u}sfcam)"/>`;
+    g += `<path d="M${bx + 12} ${by} L${bx + 12} ${by - 16} Q${bx + 12} ${by - 22} ${bx + 18} ${by - 22} L${bx + 38} ${by - 22} Q${bx + 44} ${by - 22} ${bx + 44} ${by - 16} L${bx + 44} ${by}" fill="none" stroke="#4f7389" stroke-width="5" stroke-linecap="round"/>`;
+    g += `<rect x="${bx + 50}" y="${by - 11}" width="12" height="11" rx="2" fill="#e0553a" stroke="#a3301c" stroke-width=".8"/>`;
+    // musluk
+    g += `<rect x="${tx}" y="${ty - 4}" width="13" height="8" rx="2" fill="url(#${u}metal)" stroke="#5b646b" stroke-width=".9"/>`;
+    g += `<rect x="${tx + 4}" y="${ty - 12}" width="4" height="8" rx="1.5" fill="#5b646b"/>`;
+    // su jeti: yatay çıkıp yere düşen parabol
+    const x1 = tx + 13, y1 = ty;
+    g += `<path d="M${x1} ${y1} Q${x1 + menzil / 2} ${y1} ${x1 + menzil} ${yer - 2}" fill="none" stroke="#3f8fc4" stroke-width="4" stroke-linecap="round" opacity=".85"/>`;
+    g += `<path d="M${x1} ${y1 - 1} Q${x1 + menzil / 2} ${y1 - 1} ${x1 + menzil} ${yer - 3}" fill="none" stroke="#d7eefb" stroke-width="1.2" opacity=".9"/>`;
+    g += `<ellipse cx="${x1 + menzil}" cy="${yer + 2}" rx="12" ry="3" fill="#8dc2e4" opacity=".8"/>`;
+    // h: serbest yüzeyden musluğa
+    g += dimV(bx - 12, sy, ty, 'h', { size: 14, textColor: P.coral, color: P.coral });
+    g += T(x0 + 85, yer + 26, etiket, { size: 12, anchor: 'middle', weight: 800, fill: renk });
+    return g;
+  };
+  s += panel(0, 98, 62, 'dolu: su uzağa fışkırır', P.green) + panel(170, 34, 26, 'az su: su yakına düşer', P.coral);
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 2: içinde 40 cm su ve çiçek sapları olan cam vazo; K noktası tabandan 10 cm yukarıda */
+BFY_FIG_EKLE('sf932_vazo', function (u) {
+  const W = 300, H = 290, k = 4.4, taban = 262, vx = 112, vw = 80;
+  const sy = taban - 40 * k, ky = taban - 10 * k, kx = vx + 52;
+  let s = suDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  s += `<rect class="bg" x="40" y="${taban}" width="220" height="10" rx="3" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+  s += `<ellipse class="bg" cx="${vx + vw / 2}" cy="${taban + 1}" rx="${vw / 2 + 8}" ry="4" fill="#000" opacity=".1"/>`;
+  // çiçekler ve saplar (suyun içine iner)
+  const sap = [[vx + 26, 36, '#e0553a'], [vx + 44, 22, '#e7a93b'], [vx + 60, 42, '#c2417a']];
+  sap.forEach(([x, top, c], i) => {
+    s += `<path d="M${x} ${top + 10} Q${x + (i - 1) * 6} ${sy - 20} ${x + (i - 1) * 3} ${taban - 30}" fill="none" stroke="#4f8a3a" stroke-width="2.4"/>`;
+    for (let a = 0; a < 6; a++) {
+      const t = a * Math.PI / 3; s += `<ellipse cx="${(x + 7 * Math.cos(t)).toFixed(1)}" cy="${(top + 7 * Math.sin(t)).toFixed(1)}" rx="6" ry="4" transform="rotate(${a * 60} ${(x + 7 * Math.cos(t)).toFixed(1)} ${(top + 7 * Math.sin(t)).toFixed(1)})" fill="${c}"/>`;
+    }
+    s += `<circle cx="${x}" cy="${top}" r="4" fill="#f7e08a"/>`;
+  });
+  // su ve cam
+  s += `<rect x="${vx + 2}" y="${sy}" width="${vw - 4}" height="${taban - sy - 2}" fill="url(#${u}sfsu)" opacity=".75"/>`;
+  s += `<line x1="${vx + 2}" y1="${sy}" x2="${vx + vw - 2}" y2="${sy}" stroke="#2a6f9e" stroke-width="1.8"/>`;
+  s += `<path d="M${vx} 66 L${vx} ${taban - 6} Q${vx} ${taban} ${vx + 6} ${taban} L${vx + vw - 6} ${taban} Q${vx + vw} ${taban} ${vx + vw} ${taban - 6} L${vx + vw} 66" fill="url(#${u}sfcam)" stroke="#5d7d8f" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${vx + vw / 2}" cy="66" rx="${vw / 2}" ry="4" fill="none" stroke="#5d7d8f" stroke-width="1.4"/>`;
+  // K noktası
+  s += `<circle cx="${kx}" cy="${ky}" r="4.5" fill="${P.ink}" stroke="#fff" stroke-width="1.2"/>`;
+  s += T(kx + 9, ky + 5, 'K', { size: 14, weight: 800 });
+  // ölçüler: solda tabandan 10 cm, sağda serbest yüzeyden h = 30 cm
+  s += dashLine(vx - 26, ky, kx - 6, ky, P.ink2, '3 3', 1);
+  s += dimV(vx - 20, ky, taban, '10 cm', { size: 12, textColor: P.ink2 });
+  s += dashLine(vx + vw, sy, vx + vw + 28, sy, P.ink2, '3 3', 1) + dashLine(kx + 22, ky, vx + vw + 28, ky, P.ink2, '3 3', 1);
+  s += dimV(vx + vw + 22, sy, ky, 'h = 30 cm', { size: 13, side: 'right', textColor: P.coral, color: P.coral });
+  s += T(vx - 8, sy - 10, 'serbest yüzey', { size: 12, anchor: 'end', weight: 800, fill: '#2a6f9e' });
+  s += arrow(vx - 30, sy - 6, vx + 4, sy - 1, { color: '#2a6f9e', w: 1.4, head: 6, headW: 3.4 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Adım 4: geniş leğen ve dar sürahi, ikisinde de 20 cm su; taban basınçları eşit */
+BFY_FIG_EKLE('sf932_kaplar', function (u) {
+  const W = 340, H = 246, k = 3.2, yer = 196, sy = yer - 20 * k;
+  let s = suDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f8"/>`;
+  s += `<rect class="bg" x="10" y="${yer}" width="${W - 20}" height="9" rx="3" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+  // leğen: üstte 56 cm, altta 44 cm, 24 cm derin
+  const lx = 70, ust = 56 * k, alt = 44 * k, lh = 24 * k, lt = yer - lh, kay = (ust - alt) / 2;
+  const kenar = y => kay * (y - lt) / lh;   // y yüksekliğinde sol duvarın içe kayması
+  s += `<ellipse class="bg" cx="${lx + ust / 2}" cy="${yer + 1}" rx="${alt / 2 + 10}" ry="4" fill="#000" opacity=".1"/>`;
+  s += `<path d="M${lx} ${lt} L${lx + kay} ${yer} L${lx + kay + alt} ${yer} L${lx + ust} ${lt} Z" fill="url(#${u}sfleg)" stroke="#8a4a22" stroke-width="1.2"/>`;
+  s += `<path d="M${lx + kenar(sy) + 3} ${sy} L${lx + kay + 4} ${yer - 4} L${lx + kay + alt - 4} ${yer - 4} L${lx + ust - kenar(sy) - 3} ${sy} Z" fill="url(#${u}sfsu)" opacity=".8"/>`;
+  s += `<line x1="${lx + kenar(sy) + 3}" y1="${sy}" x2="${lx + ust - kenar(sy) - 3}" y2="${sy}" stroke="#2a6f9e" stroke-width="1.8"/>`;
+  s += `<ellipse cx="${lx + ust / 2}" cy="${lt}" rx="${ust / 2 + 3}" ry="5" fill="none" stroke="#8a4a22" stroke-width="2.4"/>`;
+  // sürahi: 11 cm genişlik, 30 cm boy
+  const jx = 276, jw = 11 * k, jt = yer - 30 * k;
+  s += `<ellipse class="bg" cx="${jx + jw / 2}" cy="${yer + 1}" rx="${jw / 2 + 6}" ry="3" fill="#000" opacity=".1"/>`;
+  s += `<path d="M${jx + jw} ${jt + 14} Q${jx + jw + 22} ${jt + 18} ${jx + jw + 20} ${jt + 46} Q${jx + jw + 18} ${jt + 70} ${jx + jw} ${jt + 74}" fill="none" stroke="#5d7d8f" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<rect x="${jx + 2}" y="${sy}" width="${jw - 4}" height="${yer - sy - 2}" fill="url(#${u}sfsu)" opacity=".8"/>`;
+  s += `<line x1="${jx + 2}" y1="${sy}" x2="${jx + jw - 2}" y2="${sy}" stroke="#2a6f9e" stroke-width="1.8"/>`;
+  s += `<path d="M${jx - 6} ${jt - 4} L${jx} ${jt + 4} L${jx} ${yer - 4} Q${jx} ${yer} ${jx + 4} ${yer} L${jx + jw - 4} ${yer} Q${jx + jw} ${yer} ${jx + jw} ${yer - 4} L${jx + jw} ${jt}" fill="url(#${u}sfcam)" stroke="#5d7d8f" stroke-width="1.5"/>`;
+  // aynı seviye çizgisi ve 20 cm ölçüsü
+  s += dashLine(lx + ust + 4, sy, jx - 2, sy, '#2a6f9e', '5 4', 1.2);
+  s += T(W / 2, 26, 'İki kapta da su 20 cm yüksekliğinde.', { size: 12.5, anchor: 'middle', weight: 800, fill: '#2a6f9e' });
+  s += dashLine(lx - 24, sy, lx + kenar(sy), sy, P.ink2, '3 3', 1);
+  s += dimV(lx - 16, sy, yer, "20 cm", { size: 12 });
+  // taban noktaları
+  const p1x = lx + ust / 2, p2x = jx + jw / 2, py = yer - 7;
+  s += `<circle cx="${p1x}" cy="${py}" r="4" fill="${P.ink}" stroke="#fff" stroke-width="1.1"/><circle cx="${p2x}" cy="${py}" r="4" fill="${P.ink}" stroke="#fff" stroke-width="1.1"/>`;
+  s += T(p1x + 8, py - 4, 'P_1', { size: 13, weight: 800 }) + T(p2x, py - 12, 'P_2', { size: 13, weight: 800, anchor: 'middle' });
+  s += T(W / 2, yer + 34, 'P_1 = P_2', { size: 14, anchor: 'middle', weight: 800, fill: P.green });
+  return svg(W, H, s, u, 74);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -21416,6 +21531,185 @@ const KONU = {
     'SET 2: Ece\'nin "basınç sıvı miktarına bağlı" hipotezi, beş kap (silindirler, huni biçimli kap, tuzlu su), kontrol değişkeni',
     'süt fabrikası tankları: iki sensör arası 25 cm, 2549–2582 Pa fark, 1028–1034 kg/m³ kabul aralığı', 'kareli üç kap: dikdörtgen, yukarı genişleyen (2d), yukarı daralan; P, F ve sıvı ağırlığı', 'katmanlı kap X 800 / su / Z 1600 ve su dolu kap, altı nokta (sırala)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.3.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde suyun içindeki basıncın nereden geldiğini ve neye bağlı olduğunu kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Su da ağırlığıyla bastırır`,
+        sekil: 'sf932_bidon',
+        metin: r`Kamp bidonunun alt köşesinde küçük bir musluk var. Bidon doluyken musluğu açınca su uzağa fışkırır. Bidon boşaldıkça su daha yakına düşer.
+
+Suyun da ağırlığı vardır. Musluğun üstündeki su, ağırlığıyla alttaki suya bastırır. Musluğun üstündeki su ne kadar yüksekse bu bastırma o kadar büyük olur. Sıvının ağırlığından doğan bu etkiye **sıvı basıncı** denir.
+
+Sıvı basıncı yalnız kabın tabanına etki etmez. Sıvı, değdiği her yüzeye, yan duvarlara da basınç uygular. Suyun musluktan yana doğru fışkırması bunu gösterir.`,
+        kontrol: {
+          soru: r`Aynı bidonun musluğu bir kez bidon doluyken, bir kez de yarı boşken açılıyor. Hangisinde su musluktan daha güçlü fışkırır?`,
+          secenekler: [r`Yarı boşken.`, r`Doluyken.`, r`İkisinde de aynı güçte.`],
+          dogru: 1,
+          aciklama: r`Bidon doluyken musluğun üstünde daha yüksek bir su sütunu vardır. Musluktaki sıvı basıncı daha büyük olur ve su daha güçlü fışkırır.`,
+          yanlisIpucu: r`Musluğun yeri değişmedi. Değişen, musluğun üstündeki suyun yüksekliğidir.`
+        }
+      },
+      {
+        baslik: r`Derinlik yüzeyden aşağı doğru ölçülür`,
+        sekil: 'sf932_vazo',
+        metin: r`Sıvının açık havaya değen üst yüzeyine **serbest yüzey** denir. Sıvının içindeki bir noktanın **derinliği** ($h$), o noktanın serbest yüzeyden aşağı doğru dik uzaklığıdır.
+
+Uzun bir cam vazoda 40 cm su olsun. Vazonun içinde, tabandan 10 cm yukarıda bir K noktası seçelim. K'nin derinliği 10 cm değildir. Serbest yüzeyden aşağı doğru ölçersek $40 - 10 = 30$ cm buluruz.
+
+Bir noktanın tabana uzaklığı basıncı belirlemez. Basıncı, noktanın üstündeki sıvının yüksekliği belirler.`,
+        kontrol: {
+          soru: r`Bir kovada 25 cm yüksekliğinde su var. L noktası kovanın tabanından 5 cm yukarıdadır. L noktasının derinliği kaç cm'dir?`,
+          secenekler: [r`5 cm`, r`30 cm`, r`20 cm`],
+          dogru: 2,
+          aciklama: r`Derinlik serbest yüzeyden aşağı doğru ölçülür: $25 - 5 = 20$ cm olur.`,
+          yanlisIpucu: r`5 cm, L'nin tabana uzaklığıdır. L'nin üstünde kaç cm su kalıyor?`
+        }
+      },
+      {
+        baslik: r`Basıncı hesaplamak`,
+        metin: r`Bir noktadaki sıvı basıncını üç şey belirler:
+- Noktanın derinliği ($h$).
+- Sıvının yoğunluğu ($d$).
+- Yer çekimi ivmesi ($g$).
+
+Sıvı basıncı bu üçünün çarpımıdır:
+$$P = h \times d \times g$$
+Derinlik metre, yoğunluk kg/m³ ile yazılırsa basınç pascal (Pa) çıkar. Suyun yoğunluğu $1000\ \text{kg/m}^3$, yer çekimi ivmesi $g = 10\ \text{m/s}^2$'dir.
+
+Bir su deposunda 1 m derinlikte basınç $1 \times 1000 \times 10 = 10\,000$ Pa olur. 2 m derinlikte $2 \times 1000 \times 10 = 20\,000$ Pa olur. Derinlik 2 katına çıkınca basınç da 2 katına çıkar.`,
+        kontrol: {
+          soru: r`Bir gölette 5 m derinlikteki bir noktada suyun oluşturduğu basınç kaç Pa olur?`,
+          secenekler: [r`5000 Pa`, r`50 000 Pa`, r`50 Pa`],
+          dogru: 1,
+          aciklama: r`$P = h \times d \times g = 5 \times 1000 \times 10 = 50\,000$ Pa olur.`,
+          yanlisIpucu: r`Üç sayıyı da çarp: derinlik, suyun yoğunluğu ve $g$.`
+        }
+      },
+      {
+        baslik: r`Kabın şekli önemli değil`,
+        sekil: 'sf932_kaplar',
+        metin: r`Geniş bir leğene ve dar bir sürahiye 20 cm yüksekliğinde su koyalım. Leğendeki su çok daha fazladır. Peki leğenin tabanındaki basınç daha mı büyüktür?
+
+Hayır. İki kabın tabanında da derinlik 20 cm, sıvı da aynı sudur. $P = h \times d \times g$ modelinde kabın genişliği ya da sıvının miktarı yoktur. Bu yüzden iki tabandaki sıvı basıncı eşittir.
+
+Sıvı basıncı kabın şekline ve içindeki sıvının miktarına bağlı değildir. Yalnız derinliğe, sıvının yoğunluğuna ve $g$'ye bağlıdır.`,
+        kontrol: {
+          soru: r`Geniş bir tencerede ve bir su bardağında 8 cm yüksekliğinde su var. Hangisinin tabanında sıvı basıncı daha büyüktür?`,
+          secenekler: [r`Tencerenin.`, r`Bardağın.`, r`İkisinde eşittir.`],
+          dogru: 2,
+          aciklama: r`Derinlik ve sıvı aynı olduğu için iki tabandaki basınç eşittir. Tencerede daha çok su olması basıncı değiştirmez.`,
+          yanlisIpucu: r`Basınç modelinde suyun miktarı var mı? Yalnız derinliğe ve sıvıya bak.`
+        }
+      },
+      {
+        baslik: r`Yoğun sıvı daha çok bastırır`,
+        metin: r`Aynı derinlikte farklı sıvıların basıncı farklıdır. Yoğunluğu büyük olan sıvının aynı hacmi daha ağırdır ve daha çok bastırır.
+
+Deniz suyu tatlı sudan biraz daha yoğundur. Bu yüzden aynı derinlikte denizdeki basınç, göldekinden biraz büyüktür. Sıvı yağ ise sudan az yoğundur. Aynı derinlikte yağdaki basınç sudakinden küçüktür.
+
+Derinlik ve $g$ aynıysa sıvı basıncı yoğunlukla **doğru orantılıdır**. Yoğunluk 2 katına çıkarsa basınç da 2 katına çıkar.`,
+        kontrol: {
+          soru: r`Üç kavanozda aynı yükseklikte su ($1000\ \text{kg/m}^3$), sıvı yağ ($900\ \text{kg/m}^3$) ve pekmez ($1400\ \text{kg/m}^3$) var. Hangi kavanozun tabanında sıvı basıncı en büyüktür?`,
+          secenekler: [r`Pekmez olanın.`, r`Su olanın.`, r`Sıvı yağ olanın.`],
+          dogru: 0,
+          aciklama: r`Üç kavanozda derinlik aynıdır. Yoğunluğu en büyük olan pekmez olduğu için basınç en büyük pekmezli kavanozda olur.`,
+          yanlisIpucu: r`Derinlikler eşit. Basıncı bu durumda yalnız yoğunluk belirler; en yoğun sıvı hangisi?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Sulama göletinin vanası`,
+        metin: r`Bir sulama göletinin tabanına yakın bir vana var. Vananın su yüzeyinden derinliği 6 m'dir. Suyun yoğunluğu $1000\ \text{kg/m}^3$, $g = 10\ \text{m/s}^2$ alınıyor.`,
+        adimlar: [
+          {
+            soru: r`Vananın bulunduğu noktada suyun oluşturduğu basınç kaç Pa olur?`,
+            secenekler: [r`60 000 Pa`, r`6000 Pa`, r`60 Pa`],
+            dogru: 0,
+            ipucu: r`$P = h \times d \times g$ modelinde $h$ yerine 6 yaz. Derinlik zaten metre ile verildi.`,
+            aciklama: r`$P = 6 \times 1000 \times 10 = 60\,000$ Pa olur.`
+          },
+          {
+            soru: r`Yaz sonunda göletin su seviyesi 2 m alçalıyor. Vananın yeni derinliği kaç m olur?`,
+            secenekler: [r`8 m`, r`2 m`, r`4 m`],
+            dogru: 2,
+            ipucu: r`Vana yerinden oynamadı. Su yüzeyi 2 m aşağı indi; vananın üstünde ne kadar su kaldı?`,
+            aciklama: r`Yeni derinlik $6 - 2 = 4$ m olur.`
+          },
+          {
+            soru: r`Vanadaki sıvı basıncı şimdi kaç Pa olur?`,
+            secenekler: [r`40 000 Pa`, r`20 000 Pa`, r`80 000 Pa`],
+            dogru: 0,
+            ipucu: r`Aynı modeli yeni derinlikle kullan.`,
+            aciklama: r`$P = 4 \times 1000 \times 10 = 40\,000$ Pa olur. Derinlik azaldığı için basınç da azaldı.`
+          }
+        ],
+        sonuc: r`Göletin suyu azaldıkça vananın üstündeki su sütunu kısalır ve basınç düşer. Basıncı vananın tabana uzaklığı değil, üstündeki suyun yüksekliği belirler.`
+      },
+      {
+        baslik: r`Çiftlikteki iki su tankı`,
+        metin: r`Bir çiftlikte iki su tankı var. K tankının taban alanı 1 m², L tankınınki 4 m²'dir. İki tankta da su yüksekliği 3 m'dir. Suyun yoğunluğu $1000\ \text{kg/m}^3$, $g = 10\ \text{m/s}^2$ alınıyor.`,
+        adimlar: [
+          {
+            soru: r`Hangi tankın tabanında sıvı basıncı daha büyüktür?`,
+            secenekler: [r`L tankının.`, r`K tankının.`, r`İkisinde eşittir.`],
+            dogru: 2,
+            ipucu: r`Basınç modelinde taban alanı var mı? Derinlikleri ve sıvıları karşılaştır.`,
+            aciklama: r`İki tankta da derinlik 3 m ve sıvı sudur. Taban basınçları eşittir.`
+          },
+          {
+            soru: r`Tankların tabanındaki sıvı basıncı kaç Pa'dır?`,
+            secenekler: [r`30 000 Pa`, r`3000 Pa`, r`30 Pa`],
+            dogru: 0,
+            ipucu: r`$P = h \times d \times g$ ile hesapla. Taban alanını bu hesaba katma.`,
+            aciklama: r`$P = 3 \times 1000 \times 10 = 30\,000$ Pa olur.`
+          },
+          {
+            soru: r`Suyun L tankının tabanına uyguladığı kuvvet kaç N olur?`,
+            secenekler: [r`30 000 N`, r`7500 N`, r`120 000 N`],
+            dogru: 2,
+            ipucu: r`Yatay tabana etki eden kuvvet, basınç ile taban alanının çarpımıdır: $F = P \times A$.`,
+            aciklama: r`$F = 30\,000 \times 4 = 120\,000$ N olur. Basınçlar eşit olsa da geniş tabana daha büyük kuvvet etki eder.`
+          }
+        ],
+        sonuc: r`Basınç yalnız derinliğe ve sıvıya bağlıdır; bu yüzden iki tankın tabanında eşittir. Tabana etki eden kuvvet ise alana da bağlıdır: $F = P \times A$.`
+      },
+      {
+        baslik: r`Fabrikadaki alkol tankı`,
+        metin: r`Bir dezenfektan fabrikasındaki tankta 10 m yüksekliğinde etil alkol var. Etil alkolün yoğunluğu $800\ \text{kg/m}^3$'tür. Yandaki başka bir tankta ise su bulunuyor. $g = 10\ \text{m/s}^2$ alınıyor.`,
+        adimlar: [
+          {
+            soru: r`Alkol tankının tabanındaki sıvı basıncı kaç Pa olur?`,
+            secenekler: [r`100 000 Pa`, r`80 000 Pa`, r`8000 Pa`],
+            dogru: 1,
+            ipucu: r`Yoğunluk yerine alkolün yoğunluğunu yaz, suyunkini değil.`,
+            aciklama: r`$P = 10 \times 800 \times 10 = 80\,000$ Pa olur.`
+          },
+          {
+            soru: r`Su tankının tabanında da aynı basınç olması için tankta kaç m su bulunmalıdır?`,
+            secenekler: [r`10 m`, r`80 m`, r`8 m`],
+            dogru: 2,
+            ipucu: r`Su için $h \times 1000 \times 10$ çarpımı 80 000 olmalı. $h \times 10\,000 = 80\,000$ eşitliğinden $h$'yi bul.`,
+            aciklama: r`$h = \dfrac{80\,000}{10\,000} = 8$ m olur.`
+          },
+          {
+            soru: r`Aynı basıncı oluşturmak için hangi sıvının sütunu daha uzun olmalıdır?`,
+            secenekler: [r`Yoğunluğu küçük olanın.`, r`Yoğunluğu büyük olanın.`, r`İkisinin sütunu eşit olmalıdır.`],
+            dogru: 0,
+            ipucu: r`Alkol 10 m ile, su 8 m ile aynı basıncı oluşturdu. Hangisi daha az yoğun?`,
+            aciklama: r`Alkol sudan az yoğundur ve aynı basınç için daha uzun bir sütun gerekir. Yoğunluk küçüldükçe gereken yükseklik büyür.`
+          }
+        ],
+        sonuc: r`Basınç, derinlik ile yoğunluğun birlikte etkisidir. Az yoğun bir sıvı aynı basıncı ancak daha yüksek bir sütunla oluşturur.`
+      }
+    ],
+    hazir: r`Sıvı basıncının sıvının ağırlığından geldiğini, derinliğin serbest yüzeyden ölçüldüğünü, $P = h \times d \times g$ modelini, basıncın kabın şekline bağlı olmadığını ve yoğunlukla arttığını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -57380,6 +57674,133 @@ BFY_FIG_EKLE('i1025_kart_bagimlilik', u => S(u, I => {
 }, { oy: 60 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1025_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const ekDefs = u => `<defs>
+  <linearGradient id="${u}sfpan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d6fa8"/><stop offset=".5" stop-color="#1f4f86"/><stop offset="1" stop-color="#16395f"/></linearGradient>
+  <linearGradient id="${u}sfgece" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0f2240"/><stop offset="1" stop-color="#2b4468"/></linearGradient>
+  <linearGradient id="${u}sfgol" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fb6e0"/><stop offset="1" stop-color="#2a79ad"/></linearGradient>
+  <radialGradient id="${u}sfgun" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff3b0"/><stop offset=".6" stop-color="#f6c64a"/><stop offset="1" stop-color="#e7a93b"/></radialGradient>
+</defs>`;
+/* güneş paneli: (x, y) sol alt köşe, w genişlik, eğik ön yüz */
+function panel(u, x, y, w, karanlik) {
+  const h = w * 0.42, ex = w * 0.18;
+  let g = `<line x1="${x + w * 0.3}" y1="${y}" x2="${x + w * 0.3}" y2="${y + 16}" stroke="#7f8a92" stroke-width="2.4"/><line x1="${x + w * 0.75}" y1="${y - 6}" x2="${x + w * 0.75}" y2="${y + 16}" stroke="#7f8a92" stroke-width="2.4"/>`;
+  g += `<polygon points="${x},${y} ${x + w},${y} ${x + w - ex},${y - h} ${x + ex * 0.4},${y - h}" fill="url(#${u}sfpan)" stroke="#0f2a47" stroke-width="1"/>`;
+  for (let i = 1; i < 4; i++) { const t = i / 4; g += `<line x1="${x + t * w}" y1="${y}" x2="${x + ex * 0.4 + t * (w - ex - ex * 0.4)}" y2="${y - h}" stroke="#7fa7d4" stroke-width=".7"/>`; }
+  g += `<line x1="${x + ex * 0.2}" y1="${y - h / 2}" x2="${x + w - ex / 2}" y2="${y - h / 2}" stroke="#7fa7d4" stroke-width=".7"/>`;
+  if (!karanlik) g += `<polygon points="${x + w * 0.25},${y - 2} ${x + w * 0.45},${y - 2} ${x + w * 0.4},${y - h + 2} ${x + w * 0.25},${y - h + 2}" fill="#fff" opacity=".22"/>`;
+  return g;
+}
+
+/* Adım 1: barajdan prize: kaynak, santral, iletim hattı, ev ve şarj olan telefon */
+BFY_FIG_EKLE('sf1025_sarj', function (u) {
+  const W = 340, H = 236, yer = 176;
+  let s = ekDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<path class="bg" d="M0 120 Q40 70 90 96 Q120 60 160 100 Q200 130 250 ${yer} L0 ${yer} Z" fill="#9cb98a"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="url(#${u}grass)"/>`;
+  // baraj gölü ve gövde
+  s += `<path d="M0 118 L74 118 L74 ${yer} L0 ${yer} Z" fill="url(#${u}sfgol)"/>`;
+  s += `<path d="M2 118 L72 118" stroke="#d7eefb" stroke-width="1.4"/>`;
+  s += `<path d="M70 104 L88 104 L104 ${yer} L70 ${yer} Z" fill="url(#${u}concrete)" stroke="#7d868c" stroke-width="1"/>`;
+  s += `<rect x="102" y="${yer - 22}" width="30" height="22" fill="#d9d2c4" stroke="#7d868c" stroke-width="1"/><rect x="108" y="${yer - 16}" width="7" height="8" fill="#6d8fa8"/><rect x="119" y="${yer - 16}" width="7" height="8" fill="#6d8fa8"/>`;
+  s += `<path d="M104 ${yer - 3} Q118 ${yer + 4} 140 ${yer + 2}" stroke="#7cc3e8" stroke-width="3" fill="none"/>`;
+  // iletim direkleri ve teller
+  const direk = x => `<path d="M${x - 9} ${yer} L${x - 2} 92 L${x + 2} 92 L${x + 9} ${yer} M${x - 7} ${yer - 20} L${x + 7} ${yer - 20} M${x - 5} ${yer - 50} L${x + 5} ${yer - 50} M${x - 8} ${yer - 20} L${x + 5} ${yer - 50} M${x + 8} ${yer - 20} L${x - 5} ${yer - 50}" stroke="#6b7780" stroke-width="1.6" fill="none"/>` +
+    `<line x1="${x - 16}" y1="100" x2="${x + 16}" y2="100" stroke="#6b7780" stroke-width="2"/>`;
+  s += direk(170) + direk(226);
+  s += `<path d="M132 ${yer - 20} Q150 108 154 100 M186 100 Q198 110 210 100 M242 100 Q252 110 262 122" stroke="#3b4248" stroke-width="1.1" fill="none"/>`;
+  // ev
+  s += `<path d="M254 ${yer} L254 128 L330 128 L330 ${yer} Z" fill="url(#${u}facade)" stroke="#8b7a5e" stroke-width="1"/>`;
+  s += `<path d="M246 130 L292 98 L338 130 Z" fill="#b5523b" stroke="#7d3626" stroke-width="1"/>`;
+  s += `<rect x="264" y="140" width="22" height="18" fill="#cfe5f4" stroke="#8b7a5e" stroke-width="1"/><rect x="300" y="146" width="18" height="30" fill="#8a5f30" stroke="#5f4020" stroke-width="1"/>`;
+  // büyüteç: priz ve şarjdaki telefon
+  const bx = 272, by = 52, r = 38;
+  s += dashLine(bx, by + r, 280, 128, P.ink2, '3 3', 1);
+  s += `<circle cx="${bx}" cy="${by}" r="${r}" fill="#fff" stroke="${P.ink2}" stroke-width="1.3"/>`;
+  s += `<rect x="${bx - 30}" y="${by - 20}" width="24" height="24" rx="4" fill="#f4f1ea" stroke="#9a9384" stroke-width="1"/><circle cx="${bx - 22}" cy="${by - 8}" r="2.2" fill="#555"/><circle cx="${bx - 14}" cy="${by - 8}" r="2.2" fill="#555"/>`;
+  s += `<path d="M${bx - 18} ${by + 4} Q${bx - 16} ${by + 26} ${bx + 2} ${by + 22} L${bx + 8} ${by + 20}" stroke="#333" stroke-width="2" fill="none"/>`;
+  s += `<rect x="${bx + 6}" y="${by - 26}" width="20" height="40" rx="4" fill="#26313a" stroke="#111" stroke-width="1"/><rect x="${bx + 9}" y="${by - 21}" width="14" height="28" rx="1.5" fill="#7fd1a5"/>`;
+  s += `<path d="M${bx + 17} ${by - 15} L${bx + 13} ${by - 6} L${bx + 18} ${by - 6} L${bx + 14} ${by + 3}" stroke="#1d6b45" stroke-width="1.6" fill="none"/>`;
+  // akış oku ve etiketler
+  s += arrow(118, 26, 196, 26, { color: P.green, w: 2.2 });
+  s += T(114, 30, 'enerji', { size: 12, anchor: 'end', weight: 800, fill: P.green });
+  s += T(40, yer + 20, 'kaynak: su', { size: 12, anchor: 'middle', weight: 800, fill: '#1d5a86' });
+  s += T(118, yer + 20, 'santral', { size: 12, anchor: 'middle', weight: 800 });
+  s += T(198, yer + 20, 'iletim hattı', { size: 12, anchor: 'middle', weight: 800 });
+  s += T(292, yer + 20, 'ev', { size: 12, anchor: 'middle', weight: 800 });
+  s += T(W / 2, H - 14, 'Priz ve kablo enerjiyi yalnızca taşır.', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 4: aynı güneş santrali öğlen ve gece; üretim çubuğu */
+BFY_FIG_EKLE('sf1025_gece', function (u) {
+  const W = 340, H = 226, yer = 160;
+  let s = ekDefs(u);
+  s += `<rect class="bg" x="0" y="0" width="170" height="${H}" rx="14" fill="url(#${u}sky)"/><rect class="bg" x="12" y="0" width="158" height="${H}" fill="url(#${u}sky)"/>`;
+  s += `<rect x="170" y="0" width="170" height="${H}" rx="14" fill="url(#${u}sfgece)"/><rect x="170" y="0" width="150" height="${H}" fill="url(#${u}sfgece)"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="170" height="${H - yer}" fill="url(#${u}grass)"/><rect x="170" y="${yer}" width="170" height="${H - yer}" fill="#2f4a3a"/>`;
+  // güneş ve ışınlar
+  s += `<circle cx="40" cy="38" r="16" fill="url(#${u}sfgun)"/>`;
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; s += `<line x1="${(40 + 21 * Math.cos(a)).toFixed(1)}" y1="${(38 + 21 * Math.sin(a)).toFixed(1)}" x2="${(40 + 28 * Math.cos(a)).toFixed(1)}" y2="${(38 + 28 * Math.sin(a)).toFixed(1)}" stroke="#e7a93b" stroke-width="2.2" stroke-linecap="round"/>`; }
+  // ay ve yıldızlar
+  s += `<circle cx="214" cy="38" r="14" fill="#f2efd8"/><circle cx="221" cy="33" r="13" fill="#132a4c"/>`;
+  [[250, 24], [290, 44], [318, 20], [270, 66], [196, 74]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="1.6" fill="#fff"/>`; });
+  // paneller
+  s += panel(u, 14, yer - 6, 64, false) + panel(u, 74, yer - 6, 64, false);
+  s += panel(u, 184, yer - 6, 64, true) + panel(u, 244, yer - 6, 64, true);
+  // üretim çubukları
+  const cub = (x, deger, karanlik) => {
+    let g = `<rect x="${x}" y="70" width="18" height="70" rx="3" fill="${karanlik ? '#1b3150' : '#fff'}" stroke="${karanlik ? '#8fa6c2' : P.ink2}" stroke-width="1"/>`;
+    if (deger > 0) g += `<rect x="${x + 2}" y="${138 - 66 * deger}" width="14" height="${66 * deger}" rx="2" fill="${P.green}"/>`;
+    return g;
+  };
+  s += cub(140, 0.92, false) + cub(312, 0, true);
+  s += T(130, 84, 'üretim', { size: 11.5, anchor: 'end', weight: 800, fill: P.green });
+  s += T(304, 84, 'üretim yok', { size: 11.5, anchor: 'end', weight: 800, fill: '#ffd28a', haloColor: '#132a4c' });
+  s += T(85, yer + 34, 'öğlen', { size: 13, anchor: 'middle', weight: 800, fill: '#fff', haloColor: '#3f7a2c' });
+  s += T(255, yer + 34, 'gece', { size: 13, anchor: 'middle', weight: 800, fill: '#fff', haloColor: '#132a4c' });
+  return svg(W, H, s, u, 74);
+});
+
+/* Isınma 1: güneş panelleri, pompa, yüksekteki depo ve tarla */
+BFY_FIG_EKLE('sf1025_pompa', function (u) {
+  const W = 340, H = 250, yer = 196;
+  let s = ekDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="url(#${u}soil)"/>`;
+  s += `<circle cx="36" cy="34" r="15" fill="url(#${u}sfgun)"/>`;
+  // paneller
+  s += panel(u, 14, yer - 18, 58, false) + panel(u, 66, yer - 18, 58, false);
+  // kuyu ve pompa
+  s += `<rect x="134" y="${yer - 6}" width="34" height="12" rx="2" fill="url(#${u}concrete)" stroke="#7d868c" stroke-width="1"/>`;
+  s += `<rect x="139" y="${yer + 6}" width="24" height="${H - yer - 8}" fill="#5b7c93"/><rect x="141" y="${yer + 20}" width="20" height="${H - yer - 22}" fill="url(#${u}sfgol)"/>`;
+  s += `<rect x="140" y="${yer - 30}" width="22" height="24" rx="4" fill="#2f8a57" stroke="#1c5a38" stroke-width="1"/><rect x="144" y="${yer - 24}" width="14" height="5" rx="1" fill="#1c5a38"/>`;
+  s += `<line x1="151" y1="${yer + 6}" x2="151" y2="${yer + 36}" stroke="#7f8a92" stroke-width="4"/>`;
+  // kablo
+  s += `<path d="M120 ${yer - 8} Q132 ${yer - 2} 140 ${yer - 16}" stroke="#222" stroke-width="1.6" fill="none"/>`;
+  // boru ve kule üstünde depo
+  const dx = 196, dy = 52, dw = 56, dh = 40;
+  s += `<path d="M162 ${yer - 20} L180 ${yer - 20} L180 ${dy + 8} L${dx} ${dy + 8}" stroke="#7f8a92" stroke-width="5" fill="none" stroke-linejoin="round"/>`;
+  s += `<path d="M${dx + 6} ${dy + dh} L${dx} ${yer} M${dx + dw - 6} ${dy + dh} L${dx + dw} ${yer} M${dx + 4} ${dy + dh + 50} L${dx + dw - 4} ${dy + dh + 50} M${dx + 6} ${dy + dh} L${dx + dw - 2} ${dy + dh + 50} M${dx + dw - 6} ${dy + dh} L${dx + 2} ${dy + dh + 50}" stroke="#6b7780" stroke-width="2.2" fill="none"/>`;
+  s += `<rect x="${dx}" y="${dy}" width="${dw}" height="${dh}" rx="5" fill="url(#${u}metalV)" stroke="#5b646b" stroke-width="1.2"/>`;
+  s += `<rect x="${dx + 3}" y="${dy + 12}" width="${dw - 6}" height="${dh - 15}" rx="3" fill="url(#${u}sfgol)" opacity=".85"/>`;
+  // depodan tarlaya inen boru ve tarla sıraları
+  s += `<path d="M${dx + dw} ${dy + dh - 6} L${dx + dw + 14} ${dy + dh - 6} L${dx + dw + 14} ${yer - 4} L${W - 12} ${yer - 4}" stroke="#7f8a92" stroke-width="4" fill="none" stroke-linejoin="round"/>`;
+  for (let i = 0; i < 5; i++) {
+    const x = dx + dw + 24 + i * 12;
+    s += `<path d="M${x} ${yer - 6} q-5 -10 -2 -18 q3 6 2 18 Z M${x} ${yer - 6} q5 -12 2 -20 q-3 8 -2 20 Z" fill="#5f9448" stroke="#3f7a2c" stroke-width=".6"/>`;
+  }
+  s += arrow(180, 140, 180, 112, { color: '#2a79ad', w: 2, head: 7, headW: 4 });
+  // etiketler
+  s += T(66, yer + 20, 'güneş panelleri', { size: 12, anchor: 'middle', weight: 800 });
+  s += T(170, yer + 26, 'pompa', { size: 12, weight: 800 });
+  s += T(dx + dw / 2, dy - 10, 'yüksekteki depo', { size: 12, anchor: 'middle', weight: 800 });
+  s += T(296, yer + 20, 'tarla', { size: 12, anchor: 'middle', weight: 800 });
+  return svg(W, H, s, u, 74);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -57428,6 +57849,189 @@ const KONU = {
     'EK: Akkuyu basınçlı su reaktörü zinciri sıralama', 'EK: enerjisinin kökeni Güneş olan/olmayan kaynaklar', 'EK: dört santralin günlük üretim profilleri (P barajlı HES, R GES, S RES, T nükleer)', 'EK: enerji etiketi kWh/yıl, kWh/1000 h, kWh/100 yıkama eşleştirme', 'EK: 2015/2020/2025 üretim payları ve toplam TWh (pay-miktar tuzağı)', 'EK: jeotermal deneme kuyuları X (90 °C/km) ve Y (30 °C/km)',
     'Ember Türkiye Elektrik Görünümü 2026: rüzgâr + güneş 40 GW (2025 sonu), 6,5 GW rekor ekleme, 2035 hedefi 120 GW, payların %11,1 / %10,5 / %16 (k1025_25)', 'aynı 50 MW hattı paylaşan hibrit RES + GES, üç saatlik bloklar, 18 MWh kısıntı (k1025_26)', 'EK: güneş ışığı, baraj suyu, meşe odunu, linyit, uranyum yenilenme süresi sıralama (k1025_27)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Hesap yükü düşük; sayısal sonuçlar qa/10.2.5/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde kullandığımız enerjinin nereden geldiğini, hangi kaynakların tükendiğini ve hangilerinin yenilendiğini kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Prizdeki elektrik nereden geliyor?`,
+        sekil: 'sf1025_sarj',
+        metin: r`Telefonunu prize takıp şarj ediyorsun. Elektrik prizin içinde kendiliğinden oluşmaz. Kilometrelerce uzaktaki bir santralde üretilir ve tellerle evine gelir.
+
+Santral, elektrik üretmek için doğadaki bir kaynağın enerjisini kullanır. Bu kaynak barajda biriken su, esen rüzgâr, Güneş'in ışığı ya da yakılan kömür ve doğal gaz olabilir. Enerji elde etmek için kullandığımız bu doğal kaynaklara **enerji kaynakları** denir.
+
+Priz, kablo ve şarj aleti enerji kaynağı değildir. Onlar enerjiyi yalnızca taşır.`,
+        kontrol: {
+          soru: r`Evdeki prizden aldığın elektrik, aşağıdakilerin hangisinden üretilmiş olabilir?`,
+          secenekler: [r`Evin elektrik sayacından.`, r`Bir tepede esen rüzgârdan.`, r`Telefonun şarj kablosundan.`],
+          dogru: 1,
+          aciklama: r`Rüzgâr, türbinin kanatlarını döndürür. Türbine bağlı jeneratör elektrik üretir. Sayaç ve kablo enerji üretmez; sayaç harcanan enerjiyi ölçer, kablo enerjiyi taşır.`,
+          yanlisIpucu: r`Enerjiyi taşıyan ya da ölçen bir aleti, enerjinin geldiği doğal kaynaktan ayır.`
+        }
+      },
+      {
+        baslik: r`Tükenen kaynaklar`,
+        metin: r`Kömür, petrol ve doğal gaz, milyonlarca yıl önce yaşamış canlıların kalıntılarından oluşmuştur. Bu kalıntılar yerin altında, basınç ve sıcaklığın etkisinde çok uzun süre kalmıştır. Bu yakıtlara **fosil yakıtlar** denir.
+
+Biz bu yakıtları, oluştukları hızdan çok daha hızlı harcıyoruz. Harcanan yakıtın yerine yenisi insan ömrü içinde oluşmaz. Nükleer santrallerin yakıtı olan uranyumun miktarı da sınırlıdır.
+
+Tükenme hızı oluşum hızından çok büyük olan kaynaklara **yenilenemeyen enerji kaynakları** denir. Fosil yakıtlar ve nükleer enerji bu gruptadır.`,
+        kontrol: {
+          soru: r`Petrol neden yenilenemeyen bir kaynak sayılır?`,
+          secenekler: [r`Yakıldığında duman çıkardığı için.`, r`Yerin altından çıkarıldığı için.`, r`Oluşumu, tüketiminden çok daha yavaş olduğu için.`],
+          dogru: 2,
+          aciklama: r`Bir kaynağı yenilenemeyen yapan, tükenme hızının oluşum hızından çok büyük olmasıdır. Jeotermal su da yerin altından gelir ama yenilenebilen bir kaynaktır.`,
+          yanlisIpucu: r`Ölçüt hızdır. Kaynak, harcandığı hızla yerine konabiliyor mu?`
+        }
+      },
+      {
+        baslik: r`Yenilenen kaynaklar`,
+        metin: r`Güneş her gün doğar, rüzgâr yeniden eser, yağmur barajları yeniden doldurur. Bu kaynakların enerjisi doğadaki süreçlerle sürekli yenilenir.
+
+Kullandığımız hızla yerine konabilen kaynaklara **yenilenebilen enerji kaynakları** denir. Güneş, rüzgâr, hidrolik (akan ve biriken su), jeotermal (yerin altındaki sıcak su ve buhar), biyokütle (odun, bitki ve hayvan atıkları), dalga ve hidrojen enerjisi bu gruptadır.
+
+Biyokütle yakıldığında da karbondioksit açığa çıkar. Onu yenilenebilen yapan, kullanılan bitkilerin yerine kısa sürede yenilerinin yetişebilmesidir.`,
+        kontrol: {
+          soru: r`Aşağıdakilerden hangisi yenilenebilen bir enerji kaynağıdır?`,
+          secenekler: [r`Doğal gaz.`, r`Jeotermal.`, r`Uranyum.`],
+          dogru: 1,
+          aciklama: r`Jeotermal enerji, yerin altındaki sıcak su ve buhardan gelir ve sürekli yenilenir. Doğal gaz bir fosil yakıttır; uranyum ise nükleer santrallerin sınırlı yakıtıdır.`,
+          yanlisIpucu: r`Fosil yakıtı ve nükleer yakıtı ele. Geriye kalan, doğada sürekli yenilenir.`
+        }
+      },
+      {
+        baslik: r`Her an hazır olmayan kaynaklar`,
+        sekil: 'sf1025_gece',
+        metin: r`Bir güneş santrali öğlen çok elektrik üretir. Akşam ışık azalır, gece üretim durur. Rüzgâr santrali de rüzgârsız havada çok az üretir. Bu kaynaklara **kesintili** kaynaklar denir; üretimleri hava koşuluna bağlıdır.
+
+Doğal gaz santrali ya da barajlı hidroelektrik santrali ise üretimini isteğe göre artırıp azaltabilir. Bunlara **ayarlanabilir** kaynaklar denir.
+
+Elektriği büyük miktarlarda depolamak zordur. Bu yüzden kesintili kaynakların yanında ayarlanabilir santraller ve enerji depolama sistemleri de gerekir.`,
+        kontrol: {
+          soru: r`Rüzgârsız bir gecede saat 23.00'te hangi santral elektrik üretmeye devam edebilir?`,
+          secenekler: [r`Güneş santrali.`, r`Rüzgâr santrali.`, r`Jeotermal santral.`],
+          dogru: 2,
+          aciklama: r`Jeotermal santral, yerin altındaki sıcak sudan gece gündüz neredeyse aynı güçte elektrik üretir. Gece ışık yoktur; rüzgârsız havada da türbinler dönmez.`,
+          yanlisIpucu: r`Gece hangi kaynağın enerjisi kesilir? Rüzgârsız havada hangisininki kesilir?`
+        }
+      },
+      {
+        baslik: r`Her kaynağın bir bedeli var`,
+        metin: r`Hiçbir enerji kaynağı her yönden kusursuz değildir.
+- Fosil yakıtlar yakılınca karbondioksit açığa çıkar. Bu gaz küresel ısınmayı artırır. Kömür ve petrol havayı da kirletir.
+- Nükleer santraller işletilirken sera gazı salmaz ama radyoaktif atıkları çok uzun süre güvenle saklanmalıdır.
+- Barajlar vadileri su altında bırakır. Rüzgâr ve güneş santralleri geniş alan ister.
+- Yerli ve yenilenebilen kaynaklar, yakıt satın almak için başka ülkelere olan bağımlılığı azaltır.
+
+Bu yüzden ülkeler birçok kaynağı birlikte kullanır ve her yeni santrali bu ölçütlerle tartar.`,
+        kontrol: {
+          soru: r`Kömürle çalışan bir santralin dezavantajı hangisidir?`,
+          secenekler: [r`Yakıldığında karbondioksit ve kirletici gazlar salması.`, r`Gece üretim yapamaması.`, r`Rüzgârsız havada durması.`],
+          dogru: 0,
+          aciklama: r`Kömür bir fosil yakıttır; yakıldığında karbondioksit ve havayı kirleten gazlar çıkar. Kömür santrali gece de, rüzgârsız havada da çalışabilir.`,
+          yanlisIpucu: r`Kömür santralinin üretimi hava koşuluna bağlı mıdır? Kömür yanınca ne olur?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Tarlada güneş enerjili pompa`,
+        sekil: 'sf1025_pompa',
+        metin: r`Bir çiftçi, tarlasını sulamak için kullandığı mazotlu pompayı güneş enerjili bir pompayla değiştiriyor. Tarlanın kenarına güneş panelleri kuruyor. Yeni pompa, panellerin ürettiği elektrikle çalışıyor.`,
+        adimlar: [
+          {
+            soru: r`Eski pompanın yakıtı olan mazot hangi kaynaktan elde edilir?`,
+            secenekler: [r`Petrolden; yenilenemeyen bir kaynaktır.`, r`Biyokütleden; yenilenebilen bir kaynaktır.`, r`Güneşten; yenilenebilen bir kaynaktır.`],
+            dogru: 0,
+            ipucu: r`Mazot (motorin), rafineride ham petrolden elde edilir.`,
+            aciklama: r`Mazot petrolden üretilir. Petrol bir fosil yakıttır ve yenilenemeyen bir kaynaktır.`
+          },
+          {
+            soru: r`Yeni pompanın gücü 4 kW'tır. Pompa güneşli bir günde 6 saat çalışırsa kaç kWh enerji harcar?`,
+            secenekler: [r`10 kWh`, r`24 kWh`, r`1440 kWh`],
+            dogru: 1,
+            ipucu: r`Harcanan enerji, güç ile sürenin çarpımıdır: $W = P \times t$. Gücü kW, süreyi saat olarak yaz.`,
+            aciklama: r`$W = P \times t = 4 \times 6 = 24$ kWh olur.`
+          },
+          {
+            soru: r`Çiftçi gündüz suyun bir kısmını yüksekteki depoya pompalıyor. Bunu neden yapıyor?`,
+            secenekler: [r`Suyu depoda ısıtmak için.`, r`Pompanın gücünü artırmak için.`, r`Paneller gece üretmediği için suyu gece depodan tarlaya akıtmak için.`],
+            dogru: 2,
+            ipucu: r`Gece paneller elektrik üretmez. Gündüzün enerjisi geceye nasıl taşınabilir?`,
+            aciklama: r`Güneş kesintili bir kaynaktır. Gündüz yüksekteki depoya çıkarılan su, gece kendiliğinden tarlaya akar. Enerji, suyun yüksekte beklemesiyle depolanmış olur.`
+          }
+        ],
+        sonuc: r`Güneş enerjili pompa yakıt istemez ve çalışırken sera gazı salmaz. Ama yalnız gündüz çalışır; enerjiyi geceye taşımak için depolama gerekir.`
+      },
+      {
+        baslik: r`Kıyıdaki dalga şamandırası`,
+        metin: r`Bir kıyı köyünün açığına bir dalga enerjisi şamandırası yerleştiriliyor. Dalgalar şamandırayı inip kaldırdıkça içindeki jeneratör elektrik üretiyor. Şamandıra dalgalı bir günde ortalama 20 kW güçle çalışıyor.`,
+        adimlar: [
+          {
+            soru: r`Dalga enerjisi hangi gruptadır?`,
+            secenekler: [r`Yenilenemeyen; çünkü deniz suyu bir gün tükenir.`, r`Yenilenebilen; çünkü dalgalar rüzgârla sürekli yeniden oluşur.`, r`Fosil yakıt; çünkü denizden elde edilir.`],
+            dogru: 1,
+            ipucu: r`Dalgaları oluşturan rüzgâr hiç durmadan yeniden eser. Şamandıra deniz suyunu harcıyor mu?`,
+            aciklama: r`Dalgalar, denizin üstünde esen rüzgârla sürekli yeniden oluşur. Şamandıra suyu tüketmez; dalga enerjisi yenilenebilen bir kaynaktır.`
+          },
+          {
+            soru: r`Şamandıra 24 saat boyunca 20 kW güçle çalışırsa kaç kWh elektrik üretir?`,
+            secenekler: [r`480 kWh`, r`44 kWh`, r`4800 kWh`],
+            dogru: 0,
+            ipucu: r`$W = P \times t$ eşitliğinde gücü kW, süreyi saat olarak yaz.`,
+            aciklama: r`$W = 20 \times 24 = 480$ kWh olur.`
+          },
+          {
+            soru: r`Köydeki bir evin günlük elektrik tüketimi 8 kWh'tir. Şamandıranın bir günlük üretimi kaç evin günlük tüketimini karşılar?`,
+            secenekler: [r`3840 evin.`, r`472 evin.`, r`60 evin.`],
+            dogru: 2,
+            ipucu: r`Toplam üretimi bir evin tüketimine böl.`,
+            aciklama: r`$\dfrac{480}{8} = 60$ evin günlük tüketimini karşılar.`
+          },
+          {
+            soru: r`Denizin çarşaf gibi durgun olduğu bir günde şamandıranın üretimi nasıl değişir?`,
+            secenekler: [r`Aynı kalır.`, r`Çok azalır.`, r`İki katına çıkar.`],
+            dogru: 1,
+            ipucu: r`Şamandıra dalgalar onu inip kaldırdıkça üretir. Durgun denizde dalga var mı?`,
+            aciklama: r`Durgun denizde şamandıra neredeyse hiç hareket etmez ve üretim çok azalır. Dalga enerjisi kesintili bir kaynaktır.`
+          }
+        ],
+        sonuc: r`Dalga enerjisi yenilenebilen ve yakıt istemeyen bir kaynaktır. Ama üretimi denizin durumuna bağlıdır; durgun günlerde başka kaynakların devreye girmesi gerekir.`
+      },
+      {
+        baslik: r`Bir petrol sahasının ömrü`,
+        metin: r`Bir petrol sahasında yerin altında yaklaşık 600 milyon varil petrol bulunduğu hesaplanıyor. Şirket bu sahadan her yıl 30 milyon varil petrol çıkarıyor. Bu petrolün oluşması milyonlarca yıl sürdü.`,
+        adimlar: [
+          {
+            soru: r`Petrol bu hızla çıkarılırsa saha yaklaşık kaç yılda tükenir?`,
+            secenekler: [r`20 yılda.`, r`570 yılda.`, r`18 000 yılda.`],
+            dogru: 0,
+            ipucu: r`Sahadaki toplam petrolü, her yıl çıkarılan miktara böl.`,
+            aciklama: r`$\dfrac{600}{30} = 20$ yıl olur.`
+          },
+          {
+            soru: r`Şirket her yıl çıkardığı petrolü 2 katına çıkarırsa saha kaç yılda tükenir?`,
+            secenekler: [r`40 yılda.`, r`10 yılda.`, r`20 yılda.`],
+            dogru: 1,
+            ipucu: r`Her yıl 60 milyon varil çıkarılırsa 600 milyon varil kaç yıl yeter?`,
+            aciklama: r`$\dfrac{600}{60} = 10$ yıl olur. Çıkarma hızı 2 katına çıkınca süre yarıya iner.`
+          },
+          {
+            soru: r`Saha tükendikten sonra aynı miktarda petrolün yeniden oluşması için ne kadar süre gerekir?`,
+            secenekler: [r`Milyonlarca yıl.`, r`Yaklaşık 20 yıl.`, r`Birkaç ay.`],
+            dogru: 0,
+            ipucu: r`Petrol, canlı kalıntılarının yerin altında çok uzun süre kalmasıyla oluşur.`,
+            aciklama: r`Petrolün oluşması milyonlarca yıl sürer. Birkaç on yılda harcanan petrol insan ömrü içinde yerine konamaz; bu yüzden yenilenemeyen bir kaynaktır.`
+          }
+        ],
+        sonuc: r`Yenilenemeyen bir kaynak ne kadar hızlı kullanılırsa o kadar çabuk tükenir. Oluşumu milyonlarca yıl süren bir yakıt birkaç on yılda bitebilir.`
+      }
+    ],
+    hazir: r`Enerji kaynaklarının ne olduğunu, yenilenemeyen ve yenilenebilen kaynakları, kesintili ve ayarlanabilir kaynakları ve her kaynağın bir bedeli olduğunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -95098,6 +95702,116 @@ BFY_FIG_EKLE('i1121_kart_kuvvet', u => S(u, I => {
 }, { oy: 56 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1121_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const RED = '#c8412b', BLU = '#1f64a8';
+const qDefs = u => `<defs>
+  <radialGradient id="${u}sfqp" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb4a2"/><stop offset=".55" stop-color="#e0553a"/><stop offset="1" stop-color="#a3301c"/></radialGradient>
+  <radialGradient id="${u}sfqn" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#b9dcf7"/><stop offset=".55" stop-color="#3a86c8"/><stop offset="1" stop-color="#18507f"/></radialGradient>
+  <linearGradient id="${u}sfser" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eef4f8" stop-opacity=".85"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#d5e2ea" stop-opacity=".85"/></linearGradient>
+</defs>`;
+/* işaretli yük küresi */
+function yuk(u, x, y, r, s) {
+  const a = r * 0.5, w = Math.max(2, r * 0.2);
+  let o = `<ellipse class="bg" cx="${x + 2}" cy="${y + r + 4}" rx="${r * 0.8}" ry="${r * 0.2}" fill="#000" opacity=".08"/>`;
+  o += `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u}${s > 0 ? 'sfqp' : 'sfqn'})" stroke="${s > 0 ? '#8a2716' : '#123f66'}" stroke-width="1.1"/>`;
+  o += `<line x1="${x - a}" y1="${y}" x2="${x + a}" y2="${y}" stroke="#fff" stroke-width="${w}" stroke-linecap="round"/>`;
+  if (s > 0) o += `<line x1="${x}" y1="${y - a}" x2="${x}" y2="${y + a}" stroke="#fff" stroke-width="${w}" stroke-linecap="round"/>`;
+  return o;
+}
+const dimH = (x1, x2, y, lab) => `<g stroke="${P.ink2}" stroke-width="1.1"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line x1="${x1}" y1="${y - 5}" x2="${x1}" y2="${y + 5}"/><line x1="${x2}" y1="${y - 5}" x2="${x2}" y2="${y + 5}"/></g>` +
+  `<polygon points="${x1},${y} ${x1 + 7},${y - 3} ${x1 + 7},${y + 3}" fill="${P.ink2}"/><polygon points="${x2},${y} ${x2 - 7},${y - 3} ${x2 - 7},${y + 3}" fill="${P.ink2}"/>` +
+  T((x1 + x2) / 2, y + 18, lab, { size: 13, anchor: 'middle', weight: 800 });
+
+/* Adım 1: yün atkıyla sıvazlanan iki poşet şeridi birbirinden açılır */
+BFY_FIG_EKLE('sf1121_serit', function (u) {
+  const W = 300, H = 284, ux = 150, uy = 92;
+  let s = qDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  // el: sağ üstten gelen kol; başparmak ile işaret parmağı şeritlerin üst ucunu sıkıştırıyor
+  const elG = `<g transform="translate(${ux} ${uy}) rotate(36) scale(1.3)">`;
+  const sk = '#b98463';
+  // kol ve kazak kolu (kenardan taşar, yalnız bileği görünür)
+  let elArka = elG +
+    `<path d="M-19 -96 L22 -96 L20 -64 Q0 -58 -18 -64 Z" fill="url(#${u}skin)" stroke="${sk}" stroke-width="1"/>` +
+    `<path d="M-31 -170 L33 -170 L31 -92 Q1 -84 -29 -92 Z" fill="#3f6f9e" stroke="#2b4f73" stroke-width="1"/>` +
+    `<path d="M-29 -100 Q1 -92 31 -100" stroke="#2b4f73" stroke-width="1" fill="none"/>` +
+    [-20, -12, -4, 4, 12, 20].map(x => `<line x1="${x}" y1="-99" x2="${x + 0.5}" y2="-90" stroke="#5d8bb8" stroke-width="1.6" stroke-linecap="round"/>`).join('') +
+    // kıvrık orta, yüzük ve serçe parmaklar (boğumlar)
+    `<path d="M-6 -20 Q-6 -6 2 -6 Q10 -6 10 -18" fill="#e8b996" stroke="${sk}" stroke-width="1"/>` +
+    `<path d="M8 -20 Q8 -9 15 -9 Q22 -9 22 -20" fill="#e2b08c" stroke="${sk}" stroke-width="1"/>` +
+    `<path d="M19 -24 Q20 -14 25 -14 Q30 -15 28 -27" fill="#dca783" stroke="${sk}" stroke-width="1"/>` +
+    // işaret parmağı: şeritlerin arkasında, ucu tutma noktasında
+    `<path d="M-23 -36 Q-22 -16 -12 -6 Q-6 0 -1 -1 Q4 -3 2 -9 Q-4 -16 -6 -30 Z" fill="url(#${u}skin)" stroke="${sk}" stroke-width="1"/>` +
+    // el sırtı
+    `<path d="M-20 -70 Q-26 -50 -24 -34 Q-22 -22 -14 -18 L18 -18 Q27 -24 26 -40 Q25 -58 20 -70 Q0 -76 -20 -70 Z" fill="url(#${u}skin)" stroke="${sk}" stroke-width="1"/>` +
+    `<path d="M-19 -24 Q-15 -22 -12 -24 M-12 -12 Q-9 -10 -7 -13" stroke="#c9906d" stroke-width=".9" fill="none"/>` +
+    `<path d="M-14 -46 Q-2 -50 12 -46" stroke="#c9906d" stroke-width=".9" fill="none" opacity=".7"/></g>`;
+  // başparmak: şeritlerin önünde, tırnağıyla
+  const elOn = elG +
+    `<path d="M24 -56 Q32 -38 22 -22 Q14 -8 6 -2 Q1 2 -3 -1 Q-6 -5 -2 -10 Q6 -20 8 -34 Z" fill="url(#${u}skin)" stroke="${sk}" stroke-width="1"/>` +
+    `<path d="M2 -4 Q-1 -8 3 -12 Q8 -11 7 -6 Q5 -3 2 -4 Z" fill="#f7ded0" stroke="#c9906d" stroke-width=".8"/>` +
+    `<path d="M14 -26 Q18 -24 20 -27" stroke="#c9906d" stroke-width=".9" fill="none"/></g>`;
+  s += elArka;
+  // iki şerit: üstte birleşik, aşağıda ayrılır
+  const serit = yon => {
+    const bx = ux + yon * 80, by = 250;
+    let g = `<path d="M${ux - 5} ${uy - 4} Q${ux + yon * 18} ${uy + 90} ${bx - 9} ${by} L${bx + 9} ${by} Q${ux + yon * 26} ${uy + 90} ${ux + 5} ${uy - 4} Z" fill="url(#${u}sfser)" stroke="#8fa3b0" stroke-width="1"/>`;
+    // eksi yükler (şerit boyunca)
+    [0.32, 0.55, 0.78].forEach(t => {
+      const x = ux + yon * (8 + 66 * t * t), y = uy + 10 + (by - uy - 10) * t;
+      g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6.5" fill="url(#${u}sfqn)"/><line x1="${(x - 3.3).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(x + 3.3).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`;
+    });
+    // itme kuvveti: alt uçtan dışarı
+    g += arrow(bx + yon * 14, by - 16, bx + yon * 58, by - 16, { color: P.coral, w: 2.6 });
+    g += T(bx + yon * 36, by - 26, 'F', { size: 15, weight: 800, fill: P.coral, anchor: 'middle' });
+    return g;
+  };
+  s += serit(-1) + serit(1) + elOn;
+  s += T(ux, H - 14, 'Aynı cins (negatif) yük: şeritler birbirini iter.', { size: 12, anchor: 'middle', weight: 800, fill: P.green });
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 4: uzaklık 2 katına çıkınca kuvvet 4'te 1'ine iner (ok boyları ölçekli) */
+BFY_FIG_EKLE('sf1121_uzaklik', function (u) {
+  const W = 340, H = 230, r = 15, L = 64;
+  let s = qDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f8"/>`;
+  const sira = (y, x1, x2, oran, lab, dl) => {
+    let g = dashLine(x1, y, x2, y, '#c9d3cc', '3 4', 1);
+    g += yuk(u, x1, y, r, 1) + yuk(u, x2, y, r, 1);
+    const l = L * oran;
+    g += arrow(x1 - r - 2, y, x1 - r - 2 - l, y, { color: P.coral, w: 2.6, head: 8, headW: 4.6 }) + arrow(x2 + r + 2, y, x2 + r + 2 + l, y, { color: P.coral, w: 2.6, head: 8, headW: 4.6 });
+    g += T(x1 - r - 4 - l / 2, y - 14, lab, { size: 14, anchor: 'middle', weight: 800, fill: P.coral });
+    g += T(x2 + r + 4 + l / 2, y - 14, lab, { size: 14, anchor: 'middle', weight: 800, fill: P.coral });
+    g += dimH(x1, x2, y + 30, dl);
+    return g;
+  };
+  s += sira(48, 134, 206, 1, 'F', 'd');
+  s += sira(140, 98, 242, 0.25, 'F/4', '2d');
+  s += T(W / 2, H - 14, "Uzaklık 2 katına çıkınca kuvvet 4'te 1'ine iner.", { size: 12, anchor: 'middle', weight: 700, fill: P.green });
+  return svg(W, H, s, u, 74);
+});
+
+/* Isınma 2: yalıtkan ayaklar üstünde K(+q) ve L(+q); orta noktada iki alan vektörü */
+BFY_FIG_EKLE('sf1121_orta', function (u) {
+  const W = 340, H = 214, yer = 176, y = 90, xK = 70, xL = 270, xM = 170, r = 17, L = 44;
+  let s = qDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f8"/>`;
+  s += `<rect class="bg" x="16" y="${yer}" width="${W - 32}" height="9" rx="3" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+  const ayak = x => `<rect x="${x - 4}" y="${y + r}" width="8" height="${yer - y - r - 8}" fill="#e7dcc2" stroke="#a99e88" stroke-width=".9"/><ellipse cx="${x}" cy="${yer - 4}" rx="18" ry="5" fill="#6b7780"/><rect x="${x - 18}" y="${yer - 8}" width="36" height="4" fill="#6b7780"/>`;
+  s += ayak(xK) + ayak(xL);
+  s += yuk(u, xK, y, r, 1) + yuk(u, xL, y, r, 1);
+  s += T(xK, y - 26, 'K (+q)', { size: 13, anchor: 'middle', weight: 800 }) + T(xL, y - 26, 'L (+q)', { size: 13, anchor: 'middle', weight: 800 });
+  s += dashLine(xK + r, y, xL - r, y, '#c9d3cc', '3 4', 1);
+  s += `<circle cx="${xM}" cy="${y}" r="4" fill="${P.ink}" stroke="#fff" stroke-width="1.1"/>`;
+  s += T(xM, y + 22, 'M', { size: 14, anchor: 'middle', weight: 800 });
+  // K'nin alanı sağa (üstte), L'nin alanı sola (altta biraz kaydırılmış)
+  s += arrow(xM, y - 12, xM + L, y - 12, { color: RED, w: 2.6 }) + T(xM + L + 6, y - 8, 'E_K', { size: 13, weight: 800, fill: RED });
+  s += arrow(xM, y + 6, xM - L, y + 6, { color: BLU, w: 2.6 }) + T(xM - L - 6, y + 11, 'E_L', { size: 13, anchor: 'end', weight: 800, fill: BLU });
+  s += dimH(xK, xM, yer - 34, 'd') + dimH(xM, xL, yer - 34, 'd');
+  return svg(W, H, s, u, 74);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -95131,6 +95845,195 @@ const KONU = {
     'SET: Coulomb\'un 1785 burulma terazisi ölçümleri (36°/18°/8,5°)', 'SET: metal küre önünde 6 ve 20 cm\'de beş test küresiyle F–q0 ölçümü (test yükü alanı bozar)', 'kareli zeminde tek +q, K–P noktalarında E/2…E/9 (eşleştir)', 'iki yük çiftinde bileşke alanın sıfır olduğu yer (eşleştir)', 'Q ve q0 değişikliklerinde alan/kuvvet vektörü (sınıfla)', 'kuvvet sensörlü Coulomb deneyinin basamakları (sırala)',
     'açık hava ve fırtına bulutu altında atmosferik elektriksel alan (AMS, Biagi ve ark. 2011), negatif toz parçacığı', 'aynı O noktasından ipek ipliklerle asılı aynı cins yüklü X ve Y küreleri, α > β', 'doğru üzerinde +4q ve +q (6a), K L M N P noktalarında bileşke alan (sırala)', 'SİM: iki küre, yük ve uzaklık kaydırıcısı, F/F0–d grafiği'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Program kısıtı gereği k'nin sayısal değeriyle hesap yok; yalnız yön, cins ve oran. Doğrulama: qa/11.2.1/dogrula.py. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde yüklü cisimlerin birbirini neden itip çektiğini, bu kuvvetin neye bağlı olduğunu ve elektriksel alanı kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`İki cins yük: iter ya da çeker`,
+        sekil: 'sf1121_serit',
+        metin: r`Market poşetinden iki ince şerit kes. İkisini üst uçlarından birlikte tut ve kuru bir yün atkıyla yukarıdan aşağı birkaç kez sıvazla. Atkıyı çekince şeritler birbirinden uzaklaşır ve açılır.
+
+Sıvazlarken atkıdan şeritlere elektron geçer. İki şerit de aynı cins yükle, negatif yükle yüklenir. Doğada iki cins elektrik yükü vardır: **pozitif** ve **negatif**. Yükün sembolü $q$, birimi coulomb'dur (C).
+- **Aynı cins** yükler birbirini **iter**.
+- **Zıt cins** yükler birbirini **çeker**.
+
+Yüklü cisimlerin birbirine uyguladığı bu itme ya da çekmeye **elektriksel kuvvet** denir.`,
+        kontrol: {
+          soru: r`Negatif yüklü bir şeride bir cisim yaklaştırılıyor ve şerit cisimden uzaklaşıyor. Cismin yükü hangi cinstir?`,
+          secenekler: [r`Pozitif.`, r`Negatif.`, r`Yüksüz.`],
+          dogru: 1,
+          aciklama: r`Şerit cisimden itiliyor. İtme yalnız aynı cins yükler arasında olur; cisim de negatif yüklüdür.`,
+          yanlisIpucu: r`Şerit cisme doğru mu gitti, cisimden uzağa mı? İtmeyi hangi yükler yapar?`
+        }
+      },
+      {
+        baslik: r`Kuvvetler eşit büyüklükte ve zıt yönlü`,
+        metin: r`Büyük yüklü bir küre ile küçük yüklü bir boncuk düşün. İkisi aynı cins yüklü olsun. Küre boncuğu iter, boncuk da küreyi iter. İki cisim birbirine elektriksel kuvvet uygular.
+
+Bu iki kuvvet **eşit büyüklükte** ve **zıt yönlüdür**. Yüklerden biri ötekinden çok büyük olsa bile bu değişmez. Kuvvetler, iki yükü birleştiren doğru boyunca yönelir.
+
+Boncuğun daha çok hareket etmesinin nedeni, ona etki eden kuvvetin büyük olması değildir. Boncuğun kütlesi küçüktür.`,
+        kontrol: {
+          soru: r`Yükü $+5q$ olan bir küre, yükü $+q$ olan bir boncuğa $F$ büyüklüğünde kuvvet uyguluyor. Boncuk küreye ne büyüklükte kuvvet uygular?`,
+          secenekler: [r`$5F$`, r`$\dfrac{F}{5}$`, r`$F$`],
+          dogru: 2,
+          aciklama: r`İki yük birbirine eşit büyüklükte kuvvet uygular. Boncuk da küreye $F$ büyüklüğünde kuvvet uygular; bu kuvvet küreyi boncuktan uzaklaştıracak yöndedir.`,
+          yanlisIpucu: r`Yükler farklı olabilir ama iki cismin birbirine uyguladığı kuvvetler her zaman eşit büyüklüktedir.`
+        }
+      },
+      {
+        baslik: r`Yükler büyürse kuvvet büyür`,
+        metin: r`İki yüklü cisim arasındaki uzaklığı değiştirmeden yüklerden birini 2 katına çıkaralım. Kuvvet de 2 katına çıkar. Öteki yükü de 2 katına çıkarırsak kuvvet bir kez daha 2 katına, yani başlangıçtakinin 4 katına çıkar.
+
+Elektriksel kuvvet, yüklerin **çarpımıyla doğru orantılıdır**. $q_1 \times q_2$ çarpımı kaç katına çıkarsa kuvvet de o kadar katına çıkar. Hangi yükün büyüdüğü önemli değildir.`,
+        kontrol: {
+          soru: r`Uzaklık değişmeden yüklerden biri 3 katına, öteki 2 katına çıkarılıyor. Aralarındaki elektriksel kuvvet kaç katına çıkar?`,
+          secenekler: [r`6 katına.`, r`5 katına.`, r`9 katına.`],
+          dogru: 0,
+          aciklama: r`Yüklerin çarpımı $3 \times 2 = 6$ katına çıkar. Kuvvet de 6 katına çıkar.`,
+          yanlisIpucu: r`Katları toplama; çarp.`
+        }
+      },
+      {
+        baslik: r`Uzaklık artarsa kuvvet hızla azalır`,
+        sekil: 'sf1121_uzaklik',
+        metin: r`Yükler aynı kalsın, aralarındaki uzaklık 2 katına çıksın. Kuvvet yarıya değil, **4'te 1'ine** iner. Çünkü elektriksel kuvvet uzaklığın **karesiyle ters orantılıdır**: $2 \times 2 = 4$.
+
+Yüklerin ve uzaklığın etkisi **Coulomb Yasası**'nda birleşir:
+$$F = k\,\dfrac{q_1\,q_2}{d^2}$$
+Burada $d$ yükler arasındaki uzaklık, $k$ ortama bağlı Coulomb sabitidir. Bu kural, boyutları aralarındaki uzaklığa göre çok küçük olan **noktasal** yükler içindir. Bu konuda $k$'nin sayısal değeriyle hesap yapmayacağız. Kuvvetin kaç katına çıktığını ya da kaçta birine indiğini oranla bulacağız.`,
+        kontrol: {
+          soru: r`İki yük arasındaki uzaklık 3 katına çıkarılıyor, yükler değişmiyor. Elektriksel kuvvet ne olur?`,
+          secenekler: [r`3'te 1'ine iner.`, r`9'da 1'ine iner.`, r`9 katına çıkar.`],
+          dogru: 1,
+          aciklama: r`Kuvvet uzaklığın karesiyle ters orantılıdır. Uzaklık 3 katına çıkınca kuvvet $3 \times 3 = 9$'da 1'ine iner.`,
+          yanlisIpucu: r`Uzaklık arttı; kuvvet artar mı, azalır mı? Uzaklığın karesini al.`
+        }
+      },
+      {
+        baslik: r`Elektriksel alan: yükün çevresindeki etki`,
+        metin: r`Yüklü bir cisim çevresindeki boşluğu değiştirir. Bu bölgeye giren başka bir yük, cisme değmeden kuvvet hisseder. Bir yükün etkisinin hissedildiği bölgeye **elektriksel alan** ($\vec E$) denir.
+
+Bir noktadaki alanı bulmak için oraya küçük bir pozitif **test yükü** ($q_0$) konduğunu düşünürüz. Alan, test yükü başına düşen kuvvettir: $E = \dfrac{F}{q_0}$. Birimi N/C'dir.
+- Pozitif yükün alanı yükten **dışarı** doğrudur.
+- Negatif yükün alanı yüke **doğrudur**.
+- Alandaki pozitif yüke etki eden kuvvet alanla **aynı** yönde, negatif yüke etki eden kuvvet alanla **zıt** yöndedir.`,
+        kontrol: {
+          soru: r`Negatif yüklü bir kürenin sağında bir P noktası var. P noktasındaki elektriksel alan hangi yöndedir?`,
+          secenekler: [r`Sola, küreye doğru.`, r`Sağa, küreden dışarı.`, r`P noktasında alan yoktur.`],
+          dogru: 0,
+          aciklama: r`Negatif yükün alanı yüke doğrudur. P kürenin sağında olduğundan alan sola, küreye doğru yönelir.`,
+          yanlisIpucu: r`P noktasına pozitif bir test yükü koy. Negatif küre onu iter mi, çeker mi?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Asılı köpük top ve yüklü bilye`,
+        metin: r`İpek iplikle asılı küçük bir köpük top pozitif yüklüdür. Yalıtkan saplı küçük bir metal bilye negatif yüklenmiştir. Bilye topun yanında tutuluyor; iki cismin merkezleri arasındaki uzaklık 6 cm'dir. Bu durumda aralarındaki elektriksel kuvvetin büyüklüğü $F$'dir.`,
+        adimlar: [
+          {
+            soru: r`Top bilyeye doğru mu çekilir, bilyeden uzağa mı itilir?`,
+            secenekler: [r`Bilyeden uzağa itilir.`, r`Bilyeye doğru çekilir.`, r`Hiç kuvvet etki etmez.`],
+            dogru: 1,
+            ipucu: r`Top pozitif, bilye negatif yüklü. Zıt cins yükler ne yapar?`,
+            aciklama: r`Zıt cins yükler birbirini çeker. Top bilyeye doğru çekilir ve ip bilye tarafına eğilir.`
+          },
+          {
+            soru: r`Bilye, merkezler arası uzaklık 3 cm olacak biçimde topa yaklaştırılıyor. Kuvvetin büyüklüğü ne olur?`,
+            secenekler: [r`$4F$`, r`$2F$`, r`$\dfrac{F}{2}$`],
+            dogru: 0,
+            ipucu: r`Uzaklık yarıya indi. Kuvvet uzaklığın karesiyle ters orantılıdır.`,
+            aciklama: r`Uzaklık yarıya inince kuvvet $2 \times 2 = 4$ katına çıkar ve $4F$ olur.`
+          },
+          {
+            soru: r`Bilye 3 cm uzakta dururken bilyenin yükünün yarısı nemli havaya kaçıyor. Topun yükü değişmiyor. Kuvvetin büyüklüğü ne olur?`,
+            secenekler: [r`$2F$`, r`$8F$`, r`$F$`],
+            dogru: 0,
+            ipucu: r`Bir önceki adımda kuvvet $4F$ idi. Yüklerden biri yarıya inerse yüklerin çarpımı ne olur?`,
+            aciklama: r`Yüklerin çarpımı yarıya iner. Kuvvet $\dfrac{4F}{2} = 2F$ olur.`
+          },
+          {
+            soru: r`Bu son durumda top, bilyeye ne büyüklükte kuvvet uygular?`,
+            secenekler: [r`$F$`, r`$4F$`, r`$2F$`],
+            dogru: 2,
+            ipucu: r`İki cisim birbirine her zaman eşit büyüklükte kuvvet uygular.`,
+            aciklama: r`Top da bilyeye $2F$ büyüklüğünde kuvvet uygular ve bilyeyi kendine doğru çeker. Bilyenin yükünün daha az olması bunu değiştirmez.`
+          }
+        ],
+        sonuc: r`Kuvvetin yönünü yüklerin cinsi belirler. Büyüklüğü ise yüklerin çarpımına ve uzaklığın karesine bağlıdır. İki cisim birbirine her zaman eşit büyüklükte kuvvet uygular.`
+      },
+      {
+        baslik: r`İki kürenin tam ortası`,
+        sekil: 'sf1121_orta',
+        metin: r`Yalıtkan ayaklar üstündeki iki küçük metal küreden soldaki K'nin yükü $+q$, sağdaki L'nin yükü de $+q$'dur. Kürelerin tam ortasında bir M noktası var. K'nin M noktasında tek başına oluşturduğu alanın büyüklüğü $E$'dir.`,
+        adimlar: [
+          {
+            soru: r`K'nin M noktasındaki alanı hangi yöndedir?`,
+            secenekler: [r`Sola, K'ye doğru.`, r`Sağa, K'den dışarı.`, r`Yukarı doğru.`],
+            dogru: 1,
+            ipucu: r`Pozitif yükün alanı yükten dışarı doğrudur. M, K'nin sağındadır.`,
+            aciklama: r`K pozitif olduğu için alanı K'den dışarı, yani sağa doğrudur.`
+          },
+          {
+            soru: r`L'nin M noktasındaki alanı hangi yönde ve ne büyüklüktedir?`,
+            secenekler: [r`Sola, $E$ büyüklüğünde.`, r`Sağa, $E$ büyüklüğünde.`, r`Sola, $2E$ büyüklüğünde.`],
+            dogru: 0,
+            ipucu: r`L de pozitiftir ve M'ye K ile aynı uzaklıktadır. M, L'nin solundadır.`,
+            aciklama: r`L'nin alanı L'den dışarı, yani sola doğrudur. Yükler ve uzaklıklar eşit olduğu için büyüklüğü de $E$'dir.`
+          },
+          {
+            soru: r`M noktasındaki bileşke alan nedir?`,
+            secenekler: [r`$2E$, sağa doğru.`, r`$E$, sola doğru.`, r`Sıfırdır.`],
+            dogru: 2,
+            ipucu: r`Eşit büyüklükte ve zıt yönlü iki vektörü topla.`,
+            aciklama: r`Sağa doğru $E$ ile sola doğru $E$ birbirini götürür. M noktasında bileşke alan sıfırdır.`
+          },
+          {
+            soru: r`L'nin yükü $-q$ yapılırsa M noktasındaki bileşke alan ne olur?`,
+            secenekler: [r`Sıfır olur.`, r`$2E$, sağa doğru.`, r`$2E$, sola doğru.`],
+            dogru: 1,
+            ipucu: r`Negatif yükün alanı yüke doğrudur. L, M'nin sağındadır.`,
+            aciklama: r`L'nin alanı artık L'ye doğru, yani sağa yönelir. K'nin alanı da sağa doğru olduğundan bileşke alan $E + E = 2E$ olur ve sağa doğrudur.`
+          }
+        ],
+        sonuc: r`Bir noktadaki bileşke alanı bulmak için her yükün alanını ayrı çiz, sonra yönleriyle topla. Aynı yönlü alanlar toplanır, zıt yönlü alanlar birbirinden çıkarılır.`
+      },
+      {
+        baslik: r`Üç pinpon topunun yükü`,
+        metin: r`İletken boyayla kaplanmış üç pinpon topu K, L ve M ipek ipliklerle asılıdır. İki gözlem yapılıyor: K ile L birbirini itiyor, L ile M birbirini çekiyor. M topunun negatif yüklü olduğu biliniyor.`,
+        adimlar: [
+          {
+            soru: r`K ile L'nin birbirini itmesinden ne anlaşılır?`,
+            secenekler: [r`İkisi de yüklüdür ve yükleri aynı cinstir.`, r`Yükleri zıt cinstir.`, r`Biri yüksüz olabilir.`],
+            dogru: 0,
+            ipucu: r`İtme yalnız aynı cins yüklü iki cisim arasında olur. Yüksüz bir cisim itilmez.`,
+            aciklama: r`İki top birbirini itiyorsa ikisi de yüklüdür ve yükleri aynı cinstir.`
+          },
+          {
+            soru: r`L topunun yükü hangi cinstir?`,
+            secenekler: [r`Negatif.`, r`Yüksüz.`, r`Pozitif.`],
+            dogru: 2,
+            ipucu: r`L'nin yüklü olduğunu biliyorsun. L, negatif yüklü M'yi çekiyor.`,
+            aciklama: r`L yüklüdür ve negatif yüklü M'yi çeker. Çekme zıt cins yükler arasında olduğu için L pozitiftir.`
+          },
+          {
+            soru: r`K ile M birbirine yaklaştırılırsa ne olur?`,
+            secenekler: [r`Birbirini iterler.`, r`Birbirini çekerler.`, r`Etkileşmezler.`],
+            dogru: 1,
+            ipucu: r`K, L ile aynı cins yüklüdür. K'nin ve M'nin yükleri hangi cinstir?`,
+            aciklama: r`K pozitif, M negatiftir. Zıt cins yükler birbirini çeker.`
+          }
+        ],
+        sonuc: r`İtme, iki cismin de yüklü ve aynı cins olduğunu kesin gösterir. Çekme tek başına yetmeyebilir, çünkü yüksüz bir cisim de yüklü bir cisme çekilir. Bu yüzden yük cinsini bulmaya itmeden başla.`
+      }
+    ],
+    hazir: r`Yüklerin cinsine göre itme ve çekmeyi, kuvvetlerin eşit ve zıt yönlü olduğunu, kuvvetin yükler ve uzaklıkla nasıl değiştiğini ve elektriksel alanın yönünü gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
