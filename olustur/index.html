@@ -35112,6 +35112,143 @@ BFY_FIG_EKLE('k942_S2_havuz_genis', function (u) {
   return svg(W, H, s, u, 150);
 });
 
+
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ (sf942_) =============== */
+// Beher (yan görünüş): cx merkez, yT ağız, yB taban, w genişlik, ys su yüzeyi; ton: 'soguk' | 'ilik'
+function sfBeher(u, cx, yT, yB, w, ys, ton) {
+  const xl = cx - w / 2, xr = cx + w / 2;
+  const suRenk = ton === 'ilik' ? '#f3c4a4' : '#a9d6f2', suKoyu = ton === 'ilik' ? '#e39a6c' : '#5aa9dc';
+  let s = `<ellipse cx="${cx}" cy="${yB + 4}" rx="${w / 2 + 10}" ry="5" fill="#000" opacity=".12"/>`;
+  s += `<defs><linearGradient id="${u}sf${ton}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${suRenk}"/><stop offset="1" stop-color="${suKoyu}"/></linearGradient></defs>`;
+  s += `<path d="M${xl + 3} ${ys} L${xl + 3} ${yB - 6} Q${xl + 3} ${yB - 2} ${xl + 8} ${yB - 2} L${xr - 8} ${yB - 2} Q${xr - 3} ${yB - 2} ${xr - 3} ${yB - 6} L${xr - 3} ${ys} Z" fill="url(#${u}sf${ton})" opacity=".8"/>`;
+  s += `<line x1="${xl + 3}" y1="${ys}" x2="${xr - 3}" y2="${ys}" stroke="#fff" stroke-width="2" opacity=".8"/>`;
+  s += `<path d="M${xl - 4} ${yT} L${xl} ${yT + 4} L${xl} ${yB - 6} Q${xl} ${yB} ${xl + 8} ${yB} L${xr - 8} ${yB} Q${xr} ${yB} ${xr} ${yB - 6} L${xr} ${yT}" fill="url(#${u}glass)" fill-opacity=".22" stroke="#8fa6b4" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s += `<line x1="${xl + 7}" y1="${yT + 10}" x2="${xl + 7}" y2="${yB - 12}" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/>`;
+  return s;
+}
+
+/* Adım 1: soğuk ve ılık suda sıvılı termometre */
+BFY_FIG_EKLE('sf942_termometre', function (u) {
+  const W = 340, H = 262;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  const Y = t => 214 - t * 3;                 // 0 °C → 214, 50 °C → 64
+  const panel = (cx, t, ad, renk) => {
+    let p = sfBeher(u, cx, 132, 236, 104, 146, renk === C.su ? 'soguk' : 'ilik');
+    p += termometre(cx, 40, 214, Y(t), { w: 13, r: 10, renk: C.kir });
+    for (let k = 0; k <= 50; k += 10) p += `<line x1="${cx + 7}" y1="${Y(k)}" x2="${cx + 13}" y2="${Y(k)}" stroke="#5f7480" stroke-width="1.1"/>`;
+    p += arrow(cx - 46, Y(t), cx - 10, Y(t), { color: P.ink2, w: 1.4, head: 6, headW: 3.4 });
+    p += T(cx - 50, Y(t) + 4.5, t + ' °C', { size: 13, anchor: 'end', weight: 800, fill: P.ink });
+    p += T(cx, 255, ad, { size: 13, anchor: 'middle', weight: 800, fill: renk });
+    return p;
+  };
+  s += panel(100, 10, 'soğuk su', C.su);
+  s += panel(260, 40, 'ılık su', C.kir);
+  s += T(170, 24, 'Sıvı ısınınca genleşir, boruda yükselir.', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 3: az ve çok su dolu elektrikli su ısıtıcıları */
+BFY_FIG_EKLE('sf942_isitici', function (u) {
+  const W = 360, H = 250;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  s += `<rect x="0" y="196" width="${W}" height="54" fill="url(#${u}wood)"/><line x1="0" y1="196" x2="${W}" y2="196" stroke="#b8925a" stroke-width="1.5"/>`;
+  const kettle = (cx, su, ad, sure) => {
+    const yT = 66, yB = 180, wT = 74, wB = 100;
+    const xl = x => cx - (wT / 2 + (wB - wT) / 2 * (x - yT) / (yB - yT)), xr = x => 2 * cx - xl(x);
+    let k = `<ellipse cx="${cx}" cy="${yB + 14}" rx="${wB / 2 + 12}" ry="5" fill="#000" opacity=".14"/>`;
+    k += `<rect x="${cx - wB / 2 - 6}" y="${yB}" width="${wB + 12}" height="12" rx="5" fill="#3b4247" stroke="#22272a" stroke-width="1"/>`;
+    // gövde
+    k += `<path d="M${xl(yT)} ${yT} L${xl(yB)} ${yB} L${xr(yB)} ${yB} L${xr(yT)} ${yT} Z" fill="url(#${u}metalV)" stroke="#6f7a83" stroke-width="1.6"/>`;
+    // kapak ve düğme
+    k += `<ellipse cx="${cx}" cy="${yT}" rx="${wT / 2}" ry="6" fill="#59636b" stroke="#3b4247" stroke-width="1.2"/>`;
+    k += `<rect x="${cx - 9}" y="${yT - 12}" width="18" height="8" rx="3" fill="#3b4247"/>`;
+    // emzik (sol) ve sap (sağ)
+    k += `<path d="M${xl(yT + 6)} ${yT + 8} L${xl(yT + 6) - 20} ${yT - 4} L${xl(yT + 6) - 18} ${yT + 4} L${xl(yT + 30)} ${yT + 30} Z" fill="url(#${u}metal)" stroke="#6f7a83" stroke-width="1.3"/>`;
+    k += `<path d="M${xr(yT + 4)} ${yT + 8} Q${xr(yT) + 34} ${yT + 14} ${xr(yB - 30) + 10} ${yB - 30}" fill="none" stroke="#3b4247" stroke-width="9" stroke-linecap="round"/>`;
+    // su seviye penceresi
+    const pw = 14, px = cx - pw / 2, p1 = yT + 18, p2 = yB - 10, ys = p2 - (p2 - p1) * su;
+    k += `<rect x="${px}" y="${p1}" width="${pw}" height="${p2 - p1}" rx="6" fill="#eef6fb" stroke="#5f7480" stroke-width="1.2"/>`;
+    k += `<rect x="${px + 1.5}" y="${ys}" width="${pw - 3}" height="${p2 - ys - 1.5}" rx="4.5" fill="url(#${u}water)"/>`;
+    k += T(cx, 36, ad, { size: 13, anchor: 'middle', weight: 800, fill: C.su });
+    // saat simgesi + süre
+    const sx = cx - 34, sy = 222;
+    k += `<circle cx="${sx}" cy="${sy}" r="10" fill="#fff" stroke="${P.ink2}" stroke-width="1.6"/><line x1="${sx}" y1="${sy}" x2="${sx}" y2="${sy - 6}" stroke="${P.ink}" stroke-width="1.6"/><line x1="${sx}" y1="${sy}" x2="${sx + (sure === 'kısa' ? 4 : 0)}" y2="${sy + (sure === 'kısa' ? -4 : 7)}" stroke="${P.ink}" stroke-width="1.6"/>`;
+    k += T(sx + 16, sy + 4.5, sure + ' süre', { size: 13, anchor: 'start', weight: 800, fill: P.ink });
+    return k;
+  };
+  s += kettle(100, 0.2, 'az su', 'kısa');
+  s += kettle(262, 0.92, 'çok su', 'uzun');
+  return svg(W, H, s, u, 76);
+});
+
+/* Adım 4: aynı güneş altında kum ve deniz */
+BFY_FIG_EKLE('sf942_kumsal', function (u) {
+  const W = 360, H = 240, yz = 150;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<defs><linearGradient id="${u}kum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3dca6"/><stop offset="1" stop-color="#d9b46a"/></linearGradient>` +
+    `<radialGradient id="${u}gunes" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff4c2"/><stop offset=".6" stop-color="#f6c443"/><stop offset="1" stop-color="#e7a93b"/></radialGradient></defs>`;
+  // deniz (sağ) ve kum (sol)
+  s += `<path d="M150 ${yz} L${W} ${yz} L${W} ${H - 14} Q${W} ${H} ${W - 14} ${H} L120 ${H} Z" fill="url(#${u}water)"/>`;
+  for (let y = yz + 14; y < H - 6; y += 18) s += `<path d="M${180 + (y % 36)} ${y} q8 -4 16 0 t16 0" fill="none" stroke="#e9f6fd" stroke-width="1.6" opacity=".8"/>`;
+  s += `<path d="M0 ${yz - 8} Q80 ${yz - 14} 150 ${yz} Q132 ${yz + 46} 120 ${H} L14 ${H} Q0 ${H} 0 ${H - 14} Z" fill="url(#${u}kum)" stroke="#c9a258" stroke-width="1"/>`;
+  [[30, 176], [62, 196], [92, 172], [44, 218], [86, 222]].forEach(([x, y]) => { s += `<ellipse cx="${x}" cy="${y}" rx="3" ry="1.6" fill="#c9a258" opacity=".7"/>`; });
+  // güneş ve ışınlar
+  s += `<circle cx="180" cy="36" r="20" fill="url(#${u}gunes)"/>`;
+  for (let a = 0; a < 360; a += 45) { const r1 = 25, r2 = 32, c = Math.cos(a * Math.PI / 180), sn = Math.sin(a * Math.PI / 180); s += `<line x1="${180 + r1 * c}" y1="${36 + r1 * sn}" x2="${180 + r2 * c}" y2="${36 + r2 * sn}" stroke="#e7a93b" stroke-width="2.4" stroke-linecap="round"/>`; }
+  s += arrow(164, 62, 92, 140, { color: '#e7a93b', w: 2.6 }) + arrow(196, 62, 268, 152, { color: '#e7a93b', w: 2.6 });
+  s += T(180, 120, 'aynı güneş', { size: 12.5, anchor: 'middle', weight: 800, fill: '#9a6a12' });
+  // küçük termometre rozetleri
+  const rozet = (x, y, seviye, ad, renk) => {
+    let r = `<rect x="${x - 40}" y="${y - 30}" width="80" height="58" rx="10" fill="#ffffff" opacity=".92" stroke="${renk}" stroke-width="1.6"/>`;
+    r += termometre(x - 22, y - 22, y + 14, y + 14 - seviye, { w: 9, r: 7, renk: C.kir });
+    r += T(x - 6, y - 4, ad, { size: 13, anchor: 'start', weight: 800, fill: renk });
+    return r;
+  };
+  s += rozet(56, 92, 30, 'sıcak', C.kir) + T(66, 186, 'kum', { size: 13, anchor: 'middle', weight: 800, fill: '#7a5a1c' });
+  s += rozet(300, 92, 10, 'serin', C.su) + T(300, 182, 'deniz', { size: 13, anchor: 'middle', weight: 800, fill: '#ffffff', haloColor: '#2a79ad' });
+  return svg(W, H, s, u, 76);
+});
+
+/* Isınma 2: tezgâhta demir ve alüminyum çubuk; ikisine de 36 kJ */
+BFY_FIG_EKLE('sf942_cubuk', function (u) {
+  const W = 360, H = 214;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  s += `<defs><linearGradient id="${u}demir" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b949a"/><stop offset=".4" stop-color="#5d666c"/><stop offset="1" stop-color="#33393d"/></linearGradient>` +
+    `<linearGradient id="${u}alu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#d7dde2"/><stop offset="1" stop-color="#9ea8b0"/></linearGradient></defs>`;
+  // tezgâh
+  s += `<path d="M14 150 L346 150 L334 128 L26 128 Z" fill="url(#${u}wood)" stroke="#b8925a" stroke-width="1.2"/>`;
+  s += `<rect x="14" y="150" width="332" height="16" fill="#c99b5d" stroke="#a37a43" stroke-width="1"/>`;
+  s += `<rect x="30" y="166" width="14" height="40" fill="#a37a43"/><rect x="316" y="166" width="14" height="40" fill="#a37a43"/>`;
+  // çubuklar: aynı kesit, alüminyum çubuk yoğunluğu küçük olduğu için daha uzun (hacim oranı yaklaşık 1,46)
+  const cubuk = (x, y, L, grad, kenar) => `<ellipse cx="${x + L / 2}" cy="${y + 15}" rx="${L / 2 + 4}" ry="3.5" fill="#000" opacity=".14"/>` +
+    `<rect x="${x}" y="${y}" width="${L}" height="13" rx="3" fill="url(#${u}${grad})" stroke="${kenar}" stroke-width="1"/>` +
+    `<ellipse cx="${x + L}" cy="${y + 6.5}" rx="3" ry="6.5" fill="${kenar}" opacity=".55"/>`;
+  s += cubuk(40, 120, 104, 'demir', '#2b3135');
+  s += cubuk(170, 120, 152, 'alu', '#7d8790');
+  s += T(92, 104, 'demir, 4 kg', { size: 13, anchor: 'middle', weight: 800, fill: P.ink });
+  s += T(246, 104, 'alüminyum, 2 kg', { size: 13, anchor: 'middle', weight: 800, fill: P.ink });
+  // ısı okları
+  [[92, '36 kJ'], [246, '36 kJ']].forEach(([x, et]) => {
+    s += arrow(x, 30, x, 82, { color: C.kir, w: 3, head: 9, headW: 5.2 });
+    s += T(x + 10, 52, et, { size: 13, anchor: 'start', weight: 800, fill: C.kir });
+  });
+  return svg(W, H, s, u, 76);
+});
+
+/* Isınma 3: P ve R blokları, sıcaklık–ısı grafiği (kütleler 2 kg) */
+BFY_FIG_EKLE('sf942_grafik', function (u) {
+  const W = 330, H = 262;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  const g = grafik({ ox: 56, oy: 226, sx: 8, sy: 4.6, x0: 0, x1: 24, y0: 0, y1: 40, xt: [6, 12, 18, 24], yt: [10, 15, 20, 25, 30, 35, 40], xAd: 'Q (kJ)', yAd: 'T (°C)' });
+  s += g.s;
+  const { X, Y } = g;
+  s += dashLine(X(24), Y(0), X(24), Y(40), '#7f93a0', '4 4', 1.2) + dashLine(X(0), Y(40), X(24), Y(40), '#7f93a0', '4 4', 1.2) + dashLine(X(0), Y(25), X(24), Y(25), '#7f93a0', '4 4', 1.2);
+  s += cizgi([[X(0), Y(10)], [X(24), Y(40)]], C.kir) + cizgi([[X(0), Y(10)], [X(24), Y(25)]], C.su);
+  s += `<circle cx="${X(24)}" cy="${Y(40)}" r="3.5" fill="${C.kir}"/><circle cx="${X(24)}" cy="${Y(25)}" r="3.5" fill="${C.su}"/>`;
+  s += T(X(14), Y(30) - 8, 'P', { size: 15, anchor: 'middle', weight: 800, fill: C.kir });
+  s += T(X(14), Y(19) + 20, 'R', { size: 15, anchor: 'middle', weight: 800, fill: C.su });
+  return svg(W, H, s, u, 72);
+});
 })();
 
 /* ---------- 3B KART, HİKÂYE, TANIM VE EFSANE ÇİZİMLERİ (izometrik) ---------- */
@@ -35683,6 +35820,196 @@ const KONU = {
     'Q/ΔT, Q/(m ΔT), C ΔT, C/c işlemlerini nicelik ve birimle eşleştirme (soru 21)',
     'simülasyon: su, zeytinyağı, alüminyum, demir; 0,2–1,0 kg; 0–24 kJ; 20 °C’den ısıtma'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen 3 ısınma sorusu.
+     Sayılar tam; hesaplar qa/9.4.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Sıcaklığı termometre ölçer',
+        sekil: 'sf942_termometre',
+        metin: r`Elini suya sokunca suyun ılık mı soğuk mu olduğunu anlarsın. Ama elin sana bir sayı söylemez. Sıcaklığı sayıyla ölçmek için **termometre** kullanırız.
+
+Sıvılı bir termometreyi ılık suya koy. İnce borudaki renkli sıvı genleşir ve yükselir. Soğuk suda ise sıvı büzülür ve aşağı iner. Termometre, sıcaklıkla değişen böyle bir özelliği izler.
+
+Ölçüm yapılacak yere göre farklı termometreler seçilir:
+- **Sıvılı termometre:** Hava ve su gibi günlük ölçümlerde kullanılır.
+- **Metal termometre:** Fırın gibi çok sıcak ortamlarda kullanılır.
+- **Gazlı termometre:** Çok düşük sıcaklıkları ölçer.
+- **Kızılötesi termometre:** Cisme dokunmadan ölçer.
+- **Dijital termometre:** Sonucu ekranda sayı olarak gösterir.`,
+        kontrol: {
+          soru: 'Bir elektrikçi, sigorta kutusunda ısınan bir kablonun sıcaklığını kabloya dokunmadan ölçmek istiyor. Hangi termometreyi seçmelidir?',
+          secenekler: ['Gazlı termometre', 'Kızılötesi termometre', 'Sıvılı termometre'],
+          dogru: 1,
+          aciklama: 'Kızılötesi termometre, cismin yaydığı kızılötesi ışınımı algılar. Cisme dokunmadan ölçtüğü için elektrikçi kabloya dokunmak zorunda kalmaz.',
+          yanlisIpucu: 'Hangi termometre cisme değmeden, uzaktan ölçüm yapabilir?'
+        }
+      },
+      {
+        baslik: 'Üç ölçek, iki sabit nokta',
+        metin: r`Termometredeki sayıları insanlar belirlemiştir. Bunun için iki **sabit nokta** seçilir: Deniz seviyesinde suyun donduğu ve kaynadığı sıcaklıklar. Aradaki aralık eşit parçalara, yani **bölmelere** ayrılır.
+- **Celsius (°C):** Su $0${DC}$'de donar, $100${DC}$'de kaynar. Arada 100 bölme vardır.
+- **Kelvin (K):** Su $273\ \text{K}$'de donar, $373\ \text{K}$'de kaynar. Arada yine 100 bölme vardır.
+- **Fahrenheit (°F):** Su $32\ ^{\circ}\text{F}$'de donar, $212\ ^{\circ}\text{F}$'de kaynar. Arada 180 bölme vardır.
+
+Celsius ve Kelvin ölçeklerinde bölme sayısı aynıdır. Bu yüzden sıcaklık $1${DC}$ artınca $1\ \text{K}$ de artar.`,
+        kontrol: {
+          soru: 'Kelvin ölçeğinde suyun kaynama sıcaklığı kaçtır?',
+          secenekler: [r`$100\ \text{K}$`, r`$373\ \text{K}$`, r`$212\ \text{K}$`],
+          dogru: 1,
+          aciklama: r`Kelvin ölçeğinde su $273\ \text{K}$'de donar. Arada 100 bölme olduğu için kaynama $273 + 100 = 373\ \text{K}$ olur.`,
+          yanlisIpucu: 'Kelvin ölçeğinde donma noktası 273\'tür. Kaynamaya kadar kaç bölme vardır?'
+        }
+      },
+      {
+        baslik: 'Daha çok su, daha çok ısı',
+        sekil: 'sf942_isitici',
+        metin: r`Elektrikli su ısıtıcısına yalnız iki bardak su koyarsan su çabuk ısınır. Isıtıcıyı ağzına kadar doldurursan aynı sıcaklığa çıkması çok daha uzun sürer. Isıtıcı her saniye aynı miktarda ısı verir. Uzun süren ısıtma, suya daha çok ısı verildiğini gösterir.
+
+Bir maddeyi ısıtmak için gereken ısı ($Q$) iki şeye bağlıdır:
+- **Kütle ($m$):** Kütle 2 katına çıkarsa gereken ısı da 2 katına çıkar.
+- **Sıcaklık değişimi ($\Delta T$):** Sıcaklığı 2 kat fazla artırmak için 2 kat fazla ısı gerekir.
+
+Sıcaklık değişimi, son sıcaklıktan ilk sıcaklık çıkarılarak bulunur: $\Delta T = T_{son} - T_{ilk}$.`,
+        kontrol: {
+          soru: 'Bir miktar suyun sıcaklığını 10 °C artırmak için Q kadar ısı gerekiyor. Aynı suyun sıcaklığını 30 °C artırmak için ne kadar ısı gerekir?',
+          secenekler: [r`$Q$`, r`$3Q$`, r`$30Q$`],
+          dogru: 1,
+          aciklama: r`Kütle aynı kaldı. Sıcaklık değişimi 3 katına çıktı ($30 \div 10 = 3$). Gereken ısı da 3 katına çıkar: $3Q$.`,
+          yanlisIpucu: 'Kütle değişmedi. Sıcaklık değişimi kaç katına çıktı?'
+        }
+      },
+      {
+        baslik: 'Her madde farklı ısınır: öz ısı',
+        sekil: 'sf942_kumsal',
+        metin: r`Yazın öğle saatinde kumsala git. Kum ayaklarını yakar ama deniz serindir. Oysa güneş ikisini de aynı süre ısıttı. Eşit kütleli farklı maddeler aynı ısıyı alsa da farklı ısınır.
+
+$1\ \text{kg}$ maddenin sıcaklığını $1${DC}$ artırmak için gereken ısıya **öz ısı** denir. Sembolü $c$, birimi $${CB}$'dir.
+- Suyun öz ısısı çok büyüktür. Su çok ısı alır ama sıcaklığı yavaş artar.
+- Kumun ve metallerin öz ısısı küçüktür. Az ısıyla bile çabuk ısınırlar.
+
+Öz ısı, maddeyi tanıtan bir özelliktir. Demir bir çivinin de demir bir kapının da öz ısısı aynıdır. Öz ısı kütleye bağlı değildir.`,
+        kontrol: {
+          soru: 'Eşit kütleli su ve bakır, aynı miktarda ısı alıyor. Hangisinin sıcaklığı daha çok artar?',
+          secenekler: ['Su', 'Bakır', 'İkisininki eşit artar'],
+          dogru: 1,
+          aciklama: 'Bakır bir metaldir ve öz ısısı sudan çok küçüktür. Aynı ısı, bakırın sıcaklığını daha çok artırır.',
+          yanlisIpucu: 'Öz ısısı küçük olan madde az ısıyla çabuk ısınır. Hangisinin öz ısısı küçük?'
+        }
+      },
+      {
+        baslik: 'Hepsi bir arada: ısı ve ısı sığası',
+        metin: r`Kütleyi, öz ısıyı ve sıcaklık değişimini birleştirince gereken ısı bulunur:
+$$Q = m \times c \times \Delta T$$
+Isının birimi joule (J) ya da kilojoule (kJ) olur. $1\ \text{kJ} = 1000\ \text{J}$'dür.
+
+Kütle ile öz ısının çarpımına **ısı sığası** denir:
+$$C = m \times c$$
+Isı sığası, cismin tamamının sıcaklığını $1${DC}$ artırmak için gereken ısıdır. Birimi $\text{J/}^{\circ}\text{C}$'dir. Isı sığası kütleye bağlıdır. Büyük demir bir kapının ısı sığası, küçük demir bir çivininkinden çok büyüktür.
+
+Isı sığası biliniyorsa gereken ısı daha kısa yoldan bulunur: $Q = C \times \Delta T$.`,
+        kontrol: {
+          soru: 'Isı sığası 600 J/°C olan bir cismin sıcaklığını 5 °C artırmak için kaç J ısı gerekir?',
+          secenekler: [r`$120\ \text{J}$`, r`$605\ \text{J}$`, r`$3000\ \text{J}$`],
+          dogru: 2,
+          aciklama: r`$Q = C \times \Delta T = 600 \times 5 = 3000\ \text{J}$.`,
+          yanlisIpucu: 'Isı sığası, 1 °C artış için gereken ısıdır. 5 °C artış için bunun kaç katı gerekir?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Güneşte ısınan bahçe kapısı',
+        metin: r`Kütlesi $20\ \text{kg}$ olan demir bir bahçe kapısının sıcaklığı sabah $15${DC}$'dir. Öğlen güneşte ısınan kapının sıcaklığı $35${DC}$ oluyor. Demirin öz ısısı $450\ ${CB}$'dir.`,
+        adimlar: [
+          {
+            soru: 'Kapının sıcaklık değişimi kaç °C\'tır?',
+            secenekler: [r`$20$`, r`$35$`, r`$50$`],
+            dogru: 0,
+            ipucu: 'Sıcaklık değişimi, son sıcaklıktan ilk sıcaklık çıkarılarak bulunur.',
+            aciklama: r`$\Delta T = 35 - 15 = 20${DC}$.`
+          },
+          {
+            soru: 'Kapının aldığı ısı hangi işlemle bulunur?',
+            secenekler: [r`$20 \times 450$`, r`$20 \times 450 \times 20$`, r`$20 \times 450 \times 35$`],
+            dogru: 1,
+            ipucu: r`$Q = m \times c \times \Delta T$. Üç niceliğin üçü de çarpılır. Sıcaklık değişimini kullanmayı unutma.`,
+            aciklama: r`$m = 20\ \text{kg}$, $c = 450$ ve $\Delta T = 20${DC}$ olduğundan $Q = 20 \times 450 \times 20$ olur.`
+          },
+          {
+            soru: 'Kapının aldığı ısı kaç kJ\'dür?',
+            secenekler: [r`$9\ \text{kJ}$`, r`$180\ \text{kJ}$`, r`$315\ \text{kJ}$`],
+            dogru: 1,
+            ipucu: r`Önce $20 \times 20 = 400$ bul. Sonra $400 \times 450$ çarpımını hesapla ve 1000'e böl.`,
+            aciklama: r`$Q = 400 \times 450 = 180\,000\ \text{J} = 180\ \text{kJ}$.`
+          }
+        ],
+        sonuc: 'Termometrenin son gösterdiği 35 °C\'yi doğrudan kullanmadık; önce sıcaklık değişimini bulduk. Sonra kütle, öz ısı ve sıcaklık değişimini çarptık.'
+      },
+      {
+        baslik: 'Atölyedeki iki çubuk',
+        sekil: 'sf942_cubuk',
+        metin: r`Bir atölyede $4\ \text{kg}$'lık demir bir çubuk ile $2\ \text{kg}$'lık alüminyum bir çubuk var. Demirin öz ısısı $450\ ${CB}$, alüminyumun öz ısısı $900\ ${CB}$'dir. İki çubuğa da hâl değişimi olmadan $36\ \text{kJ}$ ısı veriliyor.`,
+        adimlar: [
+          {
+            soru: 'Demir çubuğun ısı sığası kaç J/°C\'tır?',
+            secenekler: [r`$450$`, r`$1800$`, r`$3600$`],
+            dogru: 1,
+            ipucu: 'Isı sığası, kütle ile öz ısının çarpımıdır.',
+            aciklama: r`$C_{demir} = 4 \times 450 = 1800\ \text{J/}^{\circ}\text{C}$.`
+          },
+          {
+            soru: 'Alüminyum çubuğun ısı sığası kaç J/°C\'tır?',
+            secenekler: [r`$900$`, r`$3600$`, r`$1800$`],
+            dogru: 2,
+            ipucu: 'Alüminyum çubuğun kütlesini ve alüminyumun öz ısısını çarp.',
+            aciklama: r`$C_{al} = 2 \times 900 = 1800\ \text{J/}^{\circ}\text{C}$. İki çubuğun ısı sığası eşit çıktı.`
+          },
+          {
+            soru: 'Çubukların sıcaklık değişimleri için ne söylenebilir?',
+            secenekler: ['Demir çubuğunki daha çok artar.', 'İkisininki de 20 °C artar.', 'Alüminyum çubuğunki daha çok artar.'],
+            dogru: 1,
+            ipucu: r`$Q = C \times \Delta T$. İki çubuğun aldığı ısı da ısı sığası da aynı.`,
+            aciklama: r`$\Delta T = Q \div C = 36\,000 \div 1800 = 20${DC}$. Isı sığaları eşit olduğu için eşit ısı, eşit sıcaklık artışı sağlar.`
+          }
+        ],
+        sonuc: 'Demirin öz ısısı alüminyumunkinin yarısıdır. Ama demir çubuğun kütlesi 2 katı olduğu için ısı sığaları eşitlendi. Bir cismin ne kadar ısınacağını yalnız öz ısı değil, ısı sığası belirler.'
+      },
+      {
+        baslik: 'Grafikten öz ısı',
+        sekil: 'sf942_grafik',
+        metin: r`Kütleleri $2\ \text{kg}$ olan P ve R katı bloklarına hâl değişimi olmadan ısı veriliyor. Grafik, blokların sıcaklığını aldıkları ısıya göre gösteriyor. İki blok da $10${DC}$'den başlıyor.`,
+        adimlar: [
+          {
+            soru: '24 kJ ısı alınca hangi bloğun sıcaklığı daha çok artar?',
+            secenekler: ['P bloğunun', 'R bloğunun', 'İkisininki eşit artar'],
+            dogru: 0,
+            ipucu: 'Yatay eksende 24 kJ\'ye git. Hangi doğru daha yüksek sıcaklığa çıkmış?',
+            aciklama: r`P'nin sıcaklığı $10${DC}$'den $40${DC}$'ye, R'ninki $25${DC}$'ye çıkar. P'nin sıcaklığı $30${DC}$, R'ninki $15${DC}$ artar.`
+          },
+          {
+            soru: 'Hangi bloğun öz ısısı daha büyüktür?',
+            secenekler: ['P bloğunun', 'R bloğunun', 'İkisininki eşittir'],
+            dogru: 1,
+            ipucu: 'Kütleler eşit. Aynı ısıyla az ısınan maddenin öz ısısı küçük mü, büyük mü?',
+            aciklama: 'Kütleler ve verilen ısı eşitken R daha az ısındı. Isınmaya daha çok direnen R\'nin öz ısısı daha büyüktür.'
+          },
+          {
+            soru: 'R bloğunun öz ısısı kaç J/(kg × °C)\'tır?',
+            secenekler: [r`$400$`, r`$800$`, r`$1600$`],
+            dogru: 1,
+            ipucu: r`$c = Q \div (m \times \Delta T)$. Isıyı joule olarak yaz: $24\ \text{kJ} = 24\,000\ \text{J}$.`,
+            aciklama: r`R için $\Delta T = 25 - 10 = 15${DC}$. $c = 24\,000 \div (2 \times 15) = 24\,000 \div 30 = 800\ ${CB}$.`
+          }
+        ],
+        sonuc: 'Sıcaklık–ısı grafiğinde daha yatık doğru, aynı ısıyla daha az ısınan cismi gösterir. Kütleler eşitse yatık doğru, büyük öz ısı demektir.'
+      }
+    ],
+    hazir: 'Termometreleri, sıcaklık ölçeklerini, öz ısıyı ve ısı sığasını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -74146,6 +74473,102 @@ BFY_FIG_EKLE('k1041_orumcek', function (u) {
   s += T(204, 208, 'salınım', { size: 11.5, anchor: 'middle', weight: 700, fill: P.coral });
   return svg(W, H, s, u, 54);
 });
+
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ (sf1041_) =============== */
+// iple asılı cisim: (px, py) asılma noktası, R ip boyu, a açı (derece, sağ +)
+const sfUc = (px, py, R, a) => [px + R * Math.sin(a * Math.PI / 180), py + R * Math.cos(a * Math.PI / 180)];
+const sfYayAc = (px, py, R, a) => { const [x1, y1] = sfUc(px, py, R, -a), [x2, y2] = sfUc(px, py, R, a); return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${R} ${R} 0 0 0 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="${C.faint}" stroke-width="1.4" stroke-dasharray="5 4"/>`; };
+
+/* Adım 1: parktaki salıncak; K, O, L */
+BFY_FIG_EKLE('sf1041_salincak', function (u) {
+  const W = 340, H = 262, px = 170, py = 36, R = 166, a = 22;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect x="0" y="232" width="${W}" height="30" fill="url(#${u}grass)"/><path d="M0 232 H${W}" stroke="#5f9448" stroke-width="1.2"/>`;
+  // A çerçeve (arkada)
+  s += `<line x1="${px}" y1="${py - 4}" x2="14" y2="248" stroke="#8a6a3c" stroke-width="7" stroke-linecap="round" opacity=".8"/>`;
+  s += `<line x1="${px}" y1="${py - 4}" x2="326" y2="248" stroke="#8a6a3c" stroke-width="7" stroke-linecap="round" opacity=".8"/>`;
+  s += `<circle cx="${px}" cy="${py - 4}" r="9" fill="#6b5230" stroke="#4a3920" stroke-width="1.2"/>`;
+  s += sfYayAc(px, py, R + 6, a);
+  s += dashLine(px, py, px, 232, '#9fb3c2', '3 4', 1.1);
+  const salincak = (ang, op) => {
+    const [x, y] = sfUc(px, py, R, ang);
+    let k = `<g opacity="${op}"><line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="#59636b" stroke-width="2.4" stroke-dasharray="4 2"/>`;
+    k += `<g transform="rotate(${-ang} ${x} ${y})"><rect x="${x - 22}" y="${y - 2}" width="44" height="9" rx="3" fill="url(#${u}wood)" stroke="#8a6a3c" stroke-width="1.2"/></g></g>`;
+    return k;
+  };
+  s += salincak(-a, 0.45) + salincak(a, 0.45) + salincak(0, 1);
+  const [kx, ky] = sfUc(px, py, R, -a), [lx, ly] = sfUc(px, py, R, a);
+  s += T(kx - 28, ky + 4, 'K', { size: 15, anchor: 'end', weight: 800 });
+  s += T(lx + 28, ly + 4, 'L', { size: 15, anchor: 'start', weight: 800 });
+  s += T(px + 30, py + R + 26, 'O', { size: 15, anchor: 'start', weight: 800 });
+  s += T(px + 48, py + R + 25, 'denge konumu', { size: 12, anchor: 'start', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 4: basit sarkaçta ip uzunluğu ve kütle */
+BFY_FIG_EKLE('sf1041_sarkac', function (u) {
+  const W = 360, H = 270, py = 34, a = 14;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += tavan(18, 342, py);
+  const sarkac = (px, R, ton, r, ust, alt, renk) => {
+    let k = sfYayAc(px, py, R, a) + dashLine(px, py, px, py + R + 16, '#c9d3cc', '3 4', 1);
+    const [x, y] = sfUc(px, py, R, a);
+    k += `<line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="${C.rope}" stroke-width="1.6"/><circle cx="${px}" cy="${py}" r="2.6" fill="${P.ink}"/>`;
+    k += ball(u, x, y, r, ton);
+    k += T(px, 236, ust, { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+    k += T(px, 255, alt, { size: 12.5, anchor: 'middle', weight: 800, fill: renk });
+    return k;
+  };
+  s += sarkac(66, 112, 'blue', 11, 'ilk sarkaç', 'periyot T', P.ink2);
+  s += sarkac(180, 168, 'blue', 11, 'ip daha uzun', 'T artar', P.coral);
+  s += sarkac(294, 112, 'copper', 11, 'top daha ağır', 'T değişmez', P.green);
+  return svg(W, H, s, u, 76);
+});
+
+/* Adım 5: yay sarkacında kütle ve yay sertliği */
+BFY_FIG_EKLE('sf1041_yaylar', function (u) {
+  const W = 360, H = 270, ty = 34;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += tavan(18, 342, ty);
+  const duzen = (cx, uz, bw, bh, et, sert, ust, alt, renk) => {
+    let k = sert ? yay(cx, ty, ty + uz, 7, 10, '#3d454b').replace('stroke-width="1.8"', 'stroke-width="3.4"') : yay(cx, ty, ty + uz, 10, 9);
+    k += blok(u, cx, ty + uz, bw, bh, et);
+    k += arrow(cx + bw / 2 + 12, ty + uz + bh / 2, cx + bw / 2 + 12, ty + uz + bh / 2 - 22, { color: P.ink2, w: 1.5, head: 6, headW: 3.4 });
+    k += arrow(cx + bw / 2 + 12, ty + uz + bh / 2, cx + bw / 2 + 12, ty + uz + bh / 2 + 22, { color: P.ink2, w: 1.5, head: 6, headW: 3.4 });
+    k += T(cx, 236, ust, { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+    k += T(cx, 255, alt, { size: 12.5, anchor: 'middle', weight: 800, fill: renk });
+    return k;
+  };
+  s += duzen(66, 104, 34, 26, 'm', false, 'ilk durum', 'periyot T', P.ink2);
+  s += duzen(180, 140, 44, 36, '2m', false, 'kütle daha büyük', 'T artar', P.coral);
+  s += duzen(294, 78, 34, 26, 'm', true, 'yay daha sert', 'T azalır', P.green);
+  return svg(W, H, s, u, 76);
+});
+
+/* Isınma 3: müzede yüksek tavandan asılı ağır top; K, O, L */
+BFY_FIG_EKLE('sf1041_muze', function (u) {
+  const W = 320, H = 300, px = 160, py = 30, R = 214, a = 15;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f1ea"/>`;
+  // tavan ve galeri katı
+  s += `<rect x="0" y="0" width="${W}" height="${py}" rx="14" fill="#d9d4c7"/><rect x="0" y="${py - 6}" width="${W}" height="6" fill="#b9b2a3"/>`;
+  s += `<rect x="0" y="120" width="44" height="10" fill="#c9c2b2"/><rect x="${W - 44}" y="120" width="44" height="10" fill="#c9c2b2"/>`;
+  for (let x = 6; x < 44; x += 9) s += `<line x1="${x}" y1="96" x2="${x}" y2="120" stroke="#a69e90" stroke-width="2"/><line x1="${W - x}" y1="96" x2="${W - x}" y2="120" stroke="#a69e90" stroke-width="2"/>`;
+  s += `<line x1="0" y1="96" x2="44" y2="96" stroke="#8a8172" stroke-width="2.4"/><line x1="${W - 44}" y1="96" x2="${W}" y2="96" stroke="#8a8172" stroke-width="2.4"/>`;
+  // zemin: halka biçimli kadran
+  s += `<rect x="0" y="262" width="${W}" height="38" fill="#cfc6b4"/>`;
+  s += `<ellipse cx="${px}" cy="276" rx="118" ry="16" fill="#e8e1d1" stroke="#9a8f7a" stroke-width="1.6"/><ellipse cx="${px}" cy="276" rx="98" ry="12" fill="#d9d0bd" stroke="#9a8f7a" stroke-width="1"/>`;
+  for (let k = 0; k < 24; k++) { const t = k * Math.PI / 12, c = Math.cos(t), sn = Math.sin(t); s += `<line x1="${px + 98 * c}" y1="${276 + 12 * sn}" x2="${px + 118 * c}" y2="${276 + 16 * sn}" stroke="#9a8f7a" stroke-width="1"/>`; }
+  s += sfYayAc(px, py, R, a) + dashLine(px, py, px, py + R + 18, '#b7c3cc', '3 4', 1);
+  const top = (ang, op) => { const [x, y] = sfUc(px, py, R, ang); return `<g opacity="${op}"><line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="#59636b" stroke-width="1.4"/>${ball(u, x, y, 13, 'copper')}</g>`; };
+  s += top(-a, 0.45) + top(a, 0.45) + top(0, 1);
+  s += `<circle cx="${px}" cy="${py}" r="3.2" fill="${P.ink}"/>`;
+  const [kx, ky] = sfUc(px, py, R, -a), [lx, ly] = sfUc(px, py, R, a);
+  s += T(kx - 20, ky + 5, 'K', { size: 15, anchor: 'end', weight: 800 });
+  s += T(lx + 20, ly + 5, 'L', { size: 15, anchor: 'start', weight: 800 });
+  s += T(px, py + R + 36, 'O', { size: 15, anchor: 'middle', weight: 800 });
+  s += T(px + 22, 80, 'uzun tel', { size: 12, anchor: 'start', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
 })();
 /* ---------- 3B GÖRÜNÜMLÜ ÇİZİMLER (izometrik): hikâye, tanım ve efsane kartları ---------- */
 (function () {
@@ -74796,6 +75219,187 @@ const KONU = {
     'SET 2: kule vincinde kancaya takılı ivme sensörü, halat 8/18/32 m, yük 600/1500/2400 kg, genlik sütunu; uzunluk-periyot eğilimi, 50 m kestirimi, operatörün kütle iddiası',
     'ADIM 3: metronom 45 salınım/30 s, salıncak uçtan uca 1,25 s, gitar teli 11 titreşim/0,05 s, yay sarkacı O geçişleri 0,25 s frekans eşleştirmesi', 'korsan gemisi, avize, trapez / bungee, otomobil süspansiyonu, yaylı terazi, bebek hoplatıcısı model sınıflaması', 'ip uzunluğu-periyot deney basamakları', 'kronometre gecikmeleri ve salınım sayma hatalarının periyoda etkisi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen 3 ısınma sorusu.
+     Periyot formülü verilmez (program kısıtı); periyodu etkileyen etmenler nitel. Sayılar qa/10.4.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Kendini tekrar eden hareket',
+        sekil: 'sf1041_salincak',
+        metin: r`Parktaki bir salıncağı biraz itip bırak. Salıncak bir öne bir arkaya gidip gelir. Her gidip gelişini yaklaşık aynı sürede yapar.
+
+Salıncağın zincirleri düşey dururken salıncak **denge konumundadır**. Bu konumu O ile gösteririz. Salıncağın en uzağa gidebildiği iki noktaya **uç noktalar** deriz ve onları K ile L ile gösteririz.
+
+Belirli zaman aralıklarında denge konumu etrafında tekrarlanan harekete **periyodik hareket** denir. Duvar saatinin sarkacı ve yaya asılıp sallanan bir cisim de periyodik hareket yapar.`,
+        kontrol: {
+          soru: 'Aşağıdakilerden hangisi periyodik harekettir?',
+          secenekler: ['Daldan kopup yere düşen bir elma', 'Tavana iple asılı, hafifçe itilmiş bir saksı', 'Yokuştan aşağı yuvarlanan bir top'],
+          dogru: 1,
+          aciklama: 'Saksı, ipin düşey durduğu denge konumunun iki yanında gidip gelir ve hareketini aynı sürede tekrarlar. Düşen elma ve yuvarlanan top bir kez gider, geri dönmez.',
+          yanlisIpucu: 'Periyodik harekette cisim bir denge konumunun iki yanında gidip gelir. Hangisi geri dönüyor?'
+        }
+      },
+      {
+        baslik: 'Bir tam salınım ve periyot',
+        metin: r`Salıncağı K ucundan bıraktığını düşün. Salıncak O'dan geçer ve L ucuna gider. Sonra yeniden O'dan geçer ve K'ye geri döner. Bu gidip gelişe **bir tam salınım** denir.
+
+Bir tam salınımın süresine **periyot** denir. Sembolü $T$, birimi saniyedir (s).
+
+Tek bir salınımın süresini kronometreyle ölçmek zordur. Bu yüzden birkaç tam salınım sayılır ve toplam süre salınım sayısına bölünür:
+$$T = \frac{t}{N}$$
+Burada $t$ toplam süre, $N$ tam salınım sayısıdır.`,
+        kontrol: {
+          soru: 'Bir salıncak 5 tam salınımı 15 s\'de yapıyor. Salıncağın periyodu kaç saniyedir?',
+          secenekler: [r`$75$ s`, r`$3$ s`, r`$\frac{1}{3}$ s`],
+          dogru: 1,
+          aciklama: r`$T = \dfrac{t}{N} = \dfrac{15}{5} = 3$ s.`,
+          yanlisIpucu: 'Periyot, bir tam salınımın süresidir. Toplam süreyi salınım sayısına böl.'
+        }
+      },
+      {
+        baslik: 'Frekans: bir saniyede kaç salınım?',
+        metin: r`Bir saniyede yapılan tam salınım sayısına **frekans** denir. Sembolü $f$, birimi hertzdir (Hz). $1$ Hz, saniyede bir tam salınım demektir.
+
+Elektrikli diş fırçasının başı saniyede yüzlerce kez titreşir; frekansı büyüktür. Büyük bir duvar saatinin sarkacı ise ağır ağır salınır; frekansı küçüktür.
+
+Periyot ile frekans birbirinin tersidir:
+$$f = \frac{1}{T} \qquad T \times f = 1$$
+Periyot büyürse frekans küçülür. Örneğin periyodu $2$ s olan bir sarkacın frekansı $\frac{1}{2}$ Hz'dir. Bu sarkaç her saniyede yarım salınım yapar.`,
+        kontrol: {
+          soru: 'Frekansı 5 Hz olan bir yay sarkacı 2 s\'de kaç tam salınım yapar?',
+          secenekler: [r`$10$`, r`$5$`, r`$\frac{2}{5}$`],
+          dogru: 0,
+          aciklama: r`$5$ Hz, saniyede 5 tam salınım demektir. 2 s'de $5 \times 2 = 10$ tam salınım yapar.`,
+          yanlisIpucu: 'Frekans, bir saniyedeki salınım sayısıdır. İki saniyede bunun kaç katı olur?'
+        }
+      },
+      {
+        baslik: 'Basit sarkacın periyodunu ne değiştirir?',
+        sekil: 'sf1041_sarkac',
+        metin: r`Bir ipin ucuna bağlı küçük bir cisim **basit sarkaçtır**. Periyodu neyin değiştirdiğini anlamak için her denemede yalnız bir şeyi değiştir, gerisini aynı bırak.
+- **İpi uzatırsan** sarkaç daha ağır ağır gidip gelir. Periyot **artar**.
+- **Daha ağır bir cisim** asarsan periyot **değişmez**.
+- Küçük açılarla salınırken cismi **biraz daha fazla çekip** bırakırsan periyot yine **değişmez**.
+
+Yer çekimi de periyodu etkiler. Ay'da yer çekimi Dünya'dakinden küçüktür. Aynı sarkaç Ay'da daha yavaş salınır; periyodu büyür.`,
+        kontrol: {
+          soru: 'Bir basit sarkacın demir topu, aynı büyüklükte ama daha hafif tahta bir topla değiştiriliyor. İp uzunluğu aynı kalıyor. Periyot ne olur?',
+          secenekler: ['Artar', 'Azalır', 'Değişmez'],
+          dogru: 2,
+          aciklama: 'Basit sarkacın periyodu cismin kütlesine bağlı değildir. İp uzunluğu ve yer çekimi aynı kaldığı için periyot değişmez.',
+          yanlisIpucu: 'Basit sarkaçta periyodu ip uzunluğu ve yer çekimi belirler. Bunlardan biri değişti mi?'
+        }
+      },
+      {
+        baslik: 'Yay sarkacında kütle de önemli',
+        sekil: 'sf1041_yaylar',
+        metin: r`Bir yaya asılı cismi biraz aşağı çekip bırak. Cisim denge konumunun iki yanında aşağı yukarı salınır. Buna **yay sarkacı** denir.
+- Yaya **daha ağır bir cisim** asarsan cisim daha yavaş salınır. Periyot **artar**.
+- **Daha sert bir yay** kullanırsan cisim daha hızlı salınır. Periyot **azalır**. Yayın sertliğini yay sabiti $k$ gösterir.
+- Cismi biraz daha fazla çekip bırakmak periyodu **değiştirmez**.
+
+Dikkat et: Kütle, basit sarkacın periyodunu değiştirmez ama yay sarkacınınkini değiştirir.`,
+        kontrol: {
+          soru: 'Bir yay sarkacında yay, daha sert bir yayla değiştiriliyor. Asılı cisim aynı kalıyor. Periyot ne olur?',
+          secenekler: ['Artar', 'Azalır', 'Değişmez'],
+          dogru: 1,
+          aciklama: 'Sert yay cismi denge konumuna daha güçlü çeker. Cisim daha hızlı gidip gelir ve periyot azalır.',
+          yanlisIpucu: 'Sert yay cismi daha güçlü çeker. Cisim daha hızlı mı, daha yavaş mı salınır?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Dede saatinin sarkacı',
+        metin: r`Salondaki bir dede saatinin sarkacı, bir uçtan öbür uca $1$ s'de gidiyor. Saatin doğru çalışması bu sarkacın düzenli salınımına bağlıdır.`,
+        adimlar: [
+          {
+            soru: 'Sarkacın periyodu kaç saniyedir?',
+            secenekler: [r`$1$ s`, r`$2$ s`, r`$4$ s`],
+            dogru: 1,
+            ipucu: 'Bir uçtan öbür uca gitmek, tam salınımın yarısıdır. Sarkacın bir de geri dönmesi gerekir.',
+            aciklama: r`Uçtan uca gidiş $\frac{T}{2}$ sürer. $\frac{T}{2} = 1$ s ise $T = 2$ s olur.`
+          },
+          {
+            soru: 'Sarkaç 1 dakikada kaç tam salınım yapar?',
+            secenekler: [r`$120$`, r`$60$`, r`$30$`],
+            dogru: 2,
+            ipucu: '1 dakika 60 saniyedir. Her tam salınım 2 s sürer.',
+            aciklama: r`$N = \dfrac{t}{T} = \dfrac{60}{2} = 30$ tam salınım.`
+          },
+          {
+            soru: 'Bir gün saatin geri kaldığı fark ediliyor: Sarkaç olması gerekenden yavaş salınıyor. Saatçi ne yapmalıdır?',
+            secenekler: ['Sarkacın ucuna daha ağır bir ağırlık takmalı.', 'Sarkacı daha geniş bir açıyla başlatmalı.', 'Sarkacın boyunu biraz kısaltmalı.'],
+            dogru: 2,
+            ipucu: 'Periyodun küçülmesi gerekiyor. Basit sarkaçta periyodu hangisi değiştirir?',
+            aciklama: 'Sarkaç yavaş salınıyor, yani periyodu büyük. Boy kısalınca periyot küçülür ve saat doğru çalışır. Daha ağır bir ağırlık takmak ya da sarkacı biraz daha geniş açıyla başlatmak periyodu değiştirmez.'
+          }
+        ],
+        sonuc: 'Uçtan uca gidişin yarım salınım olduğunu unutma. Gerçek saatlerde de sarkacın ağırlığı bir vidayla yukarı ya da aşağı kaydırılır. Böylece kütle aynı kalır, sarkacın boyu ayarlanmış olur.'
+      },
+      {
+        baslik: 'Balıkçının yaylı kantarı',
+        metin: r`Bir balıkçı, tuttuğu balığı yaylı kantarına asıyor. Balık, kantarın yayıyla birlikte aşağı yukarı salınıyor. Balıkçı $10$ s'de $20$ tam salınım sayıyor.`,
+        adimlar: [
+          {
+            soru: 'Salınımın frekansı kaç Hz\'dir?',
+            secenekler: [r`$2$ Hz`, r`$\frac{1}{2}$ Hz`, r`$200$ Hz`],
+            dogru: 0,
+            ipucu: r`Frekans, bir saniyedeki tam salınım sayısıdır: $f = \dfrac{N}{t}$.`,
+            aciklama: r`$f = \dfrac{20}{10} = 2$ Hz.`
+          },
+          {
+            soru: 'Salınımın periyodu kaç saniyedir?',
+            secenekler: [r`$2$ s`, r`$\frac{1}{2}$ s`, r`$20$ s`],
+            dogru: 1,
+            ipucu: r`$T \times f = 1$. Frekans 2 Hz ise periyot kaçtır?`,
+            aciklama: r`$T = \dfrac{1}{f} = \dfrac{1}{2}$ s. Balık her yarım saniyede bir tam salınım yapar.`
+          },
+          {
+            soru: 'Balıkçı daha büyük bir balığı aynı kantara asıyor. Salınımın periyodu nasıl değişir?',
+            secenekler: ['Azalır', 'Değişmez', 'Artar'],
+            dogru: 2,
+            ipucu: 'Bu bir yay sarkacıdır. Yay sarkacında kütle periyodu etkiler mi?',
+            aciklama: 'Yay sarkacında kütle artınca periyot artar. Büyük balık daha yavaş salınır.'
+          }
+        ],
+        sonuc: 'Frekans ve periyot birbirinin tersidir; 2 Hz\'lik salınımın periyodu yarım saniyedir. Yay sarkacında kütle periyodu değiştirir, basit sarkaçta değiştirmez.'
+      },
+      {
+        baslik: 'Müzedeki dev sarkaç',
+        sekil: 'sf1041_muze',
+        metin: r`Bir bilim müzesinde, yüksek tavandan uzun bir telle ağır bir top asılıdır. Görevli topu K ucuna çekip bırakıyor ve top küçük açılarla salınmaya başlıyor. Bu sarkacın periyodu $8$ s'dir. O, denge konumudur.`,
+        adimlar: [
+          {
+            soru: 'Top bırakıldıktan kaç saniye sonra ilk kez O\'dan geçer?',
+            secenekler: [r`$2$ s`, r`$4$ s`, r`$8$ s`],
+            dogru: 0,
+            ipucu: 'K\'den O\'ya gitmek, bir tam salınımın dörtte biridir.',
+            aciklama: r`K'den O'ya gidiş $\frac{T}{4}$ sürer: $\frac{8}{4} = 2$ s.`
+          },
+          {
+            soru: 'Top bir tam salınımda O\'dan kaç kez geçer?',
+            secenekler: [r`$1$`, r`$2$`, r`$4$`],
+            dogru: 1,
+            ipucu: 'Bir tam salınımın yolunu yaz: K\'den başla, L\'ye git, K\'ye dön.',
+            aciklama: 'Yol K → O → L → O → K olur. Top O\'dan bir kez gidişte, bir kez dönüşte geçer.'
+          },
+          {
+            soru: 'Top bırakıldıktan 12 s sonra nerededir?',
+            secenekler: ['K noktasında', 'O noktasında', 'L noktasında'],
+            dogru: 2,
+            ipucu: '12 saniyeyi periyoda göre böl. Her tam salınımın sonunda top K\'ye döner.',
+            aciklama: r`$12 = 8 + 4$. İlk $8$ s'nin sonunda top K'dedir. Kalan $4$ s, yani $\frac{T}{2}$ içinde K'den L'ye gider.`
+          }
+        ],
+        sonuc: 'Bir tam salınımı dört eşit parçaya bölebilirsin: K\'den O\'ya, O\'dan L\'ye, L\'den O\'ya ve O\'dan K\'ye. Her parça T/4 sürer.'
+      }
+    ],
+    hazir: 'Periyodik hareketi, periyodu, frekansı ve periyodu değiştiren etmenleri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -115445,6 +116049,138 @@ BFY_FIG_EKLE('k134_q24', function (u) {
   s += T(lx, yb + 22, 'LED', { size: 12, weight: 700, anchor: 'middle' });
   return svg(W, H, s, u, 66);
 });
+
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ (sf1134_) =============== */
+// el feneri: ucu (x, y), ışık yönü birim vektörü (ux, uy)
+const sfFener = (x, y, ux, uy) => {
+  const a = Math.atan2(uy, ux) / D;
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(a)})"><rect x="-46" y="-7" width="34" height="14" rx="4" fill="#3b4247" stroke="#22272a" stroke-width="1"/>` +
+    `<path d="M-13 -7 L0 -11 L0 11 L-13 7 Z" fill="#59636b" stroke="#22272a" stroke-width="1"/><rect x="-1" y="-11" width="3" height="22" rx="1" fill="#ffe8a3"/>` +
+    `<rect x="-40" y="-9" width="6" height="4" rx="1" fill="#d6336c"/></g>`;
+};
+
+/* Adım 1: havadan suya eğik giren fener ışığı */
+BFY_FIG_EKLE('sf1134_kap', function (u) {
+  const W = 340, H = 280, Y = 124, X = 150, i = 50, r = snell(1, 4 / 3, i);
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}hava)"/>`;
+  // cam kap ve su
+  s += `<ellipse cx="170" cy="262" rx="140" ry="6" fill="#000" opacity=".10"/>`;
+  s += `<rect x="36" y="${Y}" width="268" height="${254 - Y}" fill="url(#${u}su)" opacity=".9"/>`;
+  s += `<path d="M30 92 L30 258 L310 258 L310 92" fill="none" stroke="#8fa6b4" stroke-width="6" stroke-linejoin="round" opacity=".75"/>`;
+  s += `<line x1="36" y1="${Y}" x2="304" y2="${Y}" stroke="#4d7894" stroke-width="1.8"/>`;
+  s += normal(X, 40, 244) + T(X + 6, 50, 'normal', { size: 12, fill: NRM, weight: 700 });
+  const L = 116, Sx = X - L * Math.sin(i * D), Sy = Y - L * Math.cos(i * D);
+  s += sfFener(Sx, Sy, Math.sin(i * D), Math.cos(i * D));
+  s += ray(Sx, Sy, X, Y);
+  s += ray(X, Y, X + 60 * Math.sin(i * D), Y - 60 * Math.cos(i * D), { op: 0.35, w: 1.6, at: 0.7 });
+  const Lr = (250 - Y) / Math.cos(r * D);
+  s += ray(X, Y, X + Lr * Math.sin(r * D), 250, { at: 0.6 });
+  s += yay(X, Y, 32, -90 - i, -90) + yayEt(X, Y, 46, -90 - i / 2, 'î', { italic: true });
+  s += yay(X, Y, 32, 90 - r, 90) + yayEt(X, Y, 46, 90 - r / 2, 'r̂', { italic: true });
+  s += T(286, 112, 'hava', { size: 13, anchor: 'end', weight: 800, fill: '#2b5470' });
+  s += T(286, 146, 'su', { size: 13, anchor: 'end', weight: 800, fill: '#174a73' });
+  s += T(X + Lr * Math.sin(r * D) + 10, 236, 'kırılan ışın', { size: 12, anchor: 'start', weight: 700, fill: LZ });
+  s += T(14, 84, 'el feneri', { size: 12, anchor: 'start', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 3: havadan cama (yaklaşır) ve camdan havaya (uzaklaşır) */
+BFY_FIG_EKLE('sf1134_yon', function (u) {
+  const W = 360, H = 236, Y = 116;
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f7fafc"/>`;
+  const panel = (x0, asagi) => {
+    const X = x0 + 86, n1 = asagi ? 1 : 3 / 2, n2 = asagi ? 3 / 2 : 1, i = asagi ? 50 : 30, r = snell(n1, n2, i), L = 82;
+    let p = `<rect x="${x0}" y="24" width="172" height="${Y - 24}" fill="url(#${u}hava)"/><rect x="${x0}" y="${Y}" width="172" height="${196 - Y}" fill="url(#${u}cam)"/>`;
+    p += `<line x1="${x0}" y1="${Y}" x2="${x0 + 172}" y2="${Y}" stroke="#4d8a78" stroke-width="1.8"/>`;
+    p += normal(X, 30, 192);
+    if (asagi) {
+      p += ray(X - L * Math.sin(i * D), Y - L * Math.cos(i * D), X, Y) + ray(X, Y, X + L * Math.sin(r * D), Y + L * Math.cos(r * D), { at: 0.65 });
+      p += yay(X, Y, 28, -90 - i, -90) + yayEt(X, Y, 41, -90 - i / 2, 'î', { italic: true, size: 12.5 });
+      p += yay(X, Y, 28, 90 - r, 90) + yayEt(X, Y, 41, 90 - r / 2, 'r̂', { italic: true, size: 12.5 });
+    } else {
+      p += ray(X - L * Math.sin(i * D), Y + L * Math.cos(i * D), X, Y) + ray(X, Y, X + L * Math.sin(r * D), Y - L * Math.cos(r * D), { at: 0.65 });
+      p += yay(X, Y, 28, 90, 90 + i) + yayEt(X, Y, 41, 90 + i / 2, 'î', { italic: true, size: 12.5 });
+      p += yay(X, Y, 28, -90, -90 + r) + yayEt(X, Y, 41, -90 + r / 2, 'r̂', { italic: true, size: 12.5 });
+    }
+    p += T(x0 + 8, 42, 'hava', { size: 12, weight: 800, fill: '#2b5470' }) + T(x0 + 8, 188, 'cam', { size: 12, weight: 800, fill: '#245a4a' });
+    p += T(X, 18, asagi ? 'havadan cama' : 'camdan havaya', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+    p += T(X, 220, asagi ? 'normale yaklaşır' : 'normalden uzaklaşır', { size: 12.5, anchor: 'middle', weight: 800, fill: LZ });
+    return p;
+  };
+  s += panel(6, true) + panel(182, false);
+  return svg(W, H, s, u, 78);
+});
+
+/* Adım 5: camdan havaya; î < θs, î = θs, î > θs */
+BFY_FIG_EKLE('sf1134_sinir', function (u) {
+  const W = 360, H = 226, Y = 92, n = 3 / 2, ts = Math.asin(1 / n) / D;
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f7fafc"/>`;
+  const panel = (x0, i, ust, alt) => {
+    const X = x0 + 62, L = Math.min(76, 56 / Math.sin(i * D));
+    let p = `<rect x="${x0}" y="26" width="112" height="${Y - 26}" fill="url(#${u}hava)"/><rect x="${x0}" y="${Y}" width="112" height="${180 - Y}" fill="url(#${u}cam)"/>`;
+    p += `<line x1="${x0}" y1="${Y}" x2="${x0 + 112}" y2="${Y}" stroke="#4d8a78" stroke-width="1.8"/>` + normal(X, 32, 176);
+    const Sx = X - L * Math.sin(i * D), Sy = Y + L * Math.cos(i * D);
+    p += ray(Sx, Sy, X, Y);
+    if (i < ts - 0.5) { const r = snell(n, 1, i); p += ray(X, Y, X + 60 * Math.sin(r * D), Y - 60 * Math.cos(r * D), { at: 0.7 }); }
+    else if (i < ts + 0.5) p += ray(X, Y - 2.5, x0 + 110, Y - 2.5, { at: 0.75 });
+    else p += ray(X, Y, X + (L - 14) * Math.sin(i * D), Y + (L - 14) * Math.cos(i * D), { at: 0.6 });
+    p += yay(X, Y, 24, 90, 90 + i, P.copper);
+    p += T(x0 + 56, 20, ust, { size: 12, anchor: 'middle', weight: 800, fill: LZ });
+    p += T(x0 + 56, 202, alt, { size: 12.5, anchor: 'middle', weight: 800, fill: P.copper });
+    return p;
+  };
+  s += panel(4, 24, 'kırılır', 'î < θ_s') + panel(124, ts, 'yüzeyi yalar', 'î = θ_s') + panel(244, 62, 'tam yansıma', 'î > θ_s');
+  s += T(10, 44, 'hava', { size: 12, weight: 800, fill: '#2b5470' }) + T(10, 172, 'cam', { size: 12, weight: 800, fill: '#245a4a' });
+  return svg(W, H, s, u, 78);
+});
+
+/* Isınma 2: havuz tabanındaki su altı lambasından havaya çıkan ışın */
+BFY_FIG_EKLE('sf1134_havuz', function (u) {
+  const W = 360, H = 276, Y = 134, i = 37, r = snell(4 / 3, 1, i);
+  const cx = 52, cy = 254, X = cx + (cy - Y) * Math.tan(i * D), L = 150;
+  const ex = X + L * Math.sin(r * D), ey = Y - L * Math.cos(r * D);
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}hava)"/>`;
+  // havuz: su, taban, sağda kenar (deck)
+  s += `<rect x="0" y="${Y}" width="268" height="${262 - Y}" fill="url(#${u}su)"/>`;
+  s += `<rect x="0" y="262" width="${W}" height="14" fill="#9aa9b3"/>`;
+  for (let x = 6; x < 268; x += 22) s += `<line x1="${x}" y1="262" x2="${x}" y2="276" stroke="#7f8f99" stroke-width="1"/>`;
+  s += `<path d="M268 ${Y - 4} L${W} ${Y - 4} L${W} 276 L268 276 Z" fill="url(#${u}tas)" stroke="#8fa0b4" stroke-width="1.2"/><rect x="264" y="${Y - 8}" width="${W - 264}" height="9" rx="3" fill="#d8d2c4" stroke="#a69e90" stroke-width="1"/>`;
+  for (let y = Y + 26; y < 262; y += 26) s += `<line x1="268" y1="${y}" x2="${W}" y2="${y}" stroke="#b9c6d6" stroke-width="1"/>`;
+  s += `<line x1="0" y1="${Y}" x2="268" y2="${Y}" stroke="#4d7894" stroke-width="1.8"/>`;
+  s += dalga(8, 250, Y + 10, '#ffffff', 1.1);
+  // su altı lambası (tabana gömülü gövde, parlayan cam kubbe)
+  s += `<circle cx="${cx}" cy="${cy - 2}" r="24" fill="#fff3c4" opacity=".28"/><circle cx="${cx}" cy="${cy - 2}" r="14" fill="#fff3c4" opacity=".45"/>`;
+  s += `<rect x="${cx - 16}" y="${cy + 1}" width="32" height="7" rx="2" fill="#59636b" stroke="#3b4247" stroke-width="1"/>`;
+  s += `<path d="M${cx - 12} ${cy + 1} A12 9 0 0 1 ${cx + 12} ${cy + 1} Z" fill="#fff6d0" stroke="#c9a23e" stroke-width="1.2"/><path d="M${cx - 6} ${cy - 3} Q${cx - 3} ${cy - 6} ${cx + 1} ${cy - 6}" fill="none" stroke="#fff" stroke-width="1.4" opacity=".9"/>`;
+  s += T(cx + 24, cy + 4, 'lamba', { size: 12, weight: 800, fill: '#174a73', haloColor: '#cfe7f6' });
+  // ışın
+  s += normal(X, Y - 70, Y + 70);
+  s += ray(cx, cy - 6, X, Y, { at: 0.5 }) + ray(X, Y, ex, ey, { at: 0.6 });
+  s += yay(X, Y, 34, 90 + i, 90) + yayEt(X, Y, 50, 90 + i / 2, '37°', { size: 12 });
+  s += yay(X, Y, 30, -90, -90 + r) + yayEt(X, Y, 44, -90 + r / 2, 'r̂', { italic: true });
+  s += T(14, Y - 10, 'hava', { size: 13, weight: 800, fill: '#2b5470' }) + T(14, Y + 30, 'su', { size: 13, weight: 800, fill: '#174a73', haloColor: '#cfe7f6' });
+  return svg(W, H, s, u, 78);
+});
+
+/* Isınma 3: yarım daire blok, ışın O noktasına 45° ile geliyor */
+BFY_FIG_EKLE('sf1134_blok', function (u) {
+  const W = 320, H = 250, Ox = 160, Oy = 86, R = 132, i = 45;
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}hava)"/>`;
+  s += `<ellipse cx="${Ox}" cy="${Oy + R + 10}" rx="${R - 10}" ry="6" fill="#000" opacity=".08"/>`;
+  s += `<path d="M${Ox - R} ${Oy} A${R} ${R} 0 0 0 ${Ox + R} ${Oy} Z" fill="url(#${u}cam)" stroke="#4d8a78" stroke-width="2"/>`;
+  s += `<path d="M${Ox - R + 14} ${Oy + 10} A${R - 14} ${R - 14} 0 0 0 ${Ox - 30} ${Oy + R - 16}" fill="none" stroke="#fff" stroke-width="3" opacity=".6"/>`;
+  s += normal(Ox, 22, Oy + R - 6);
+  const Px = Ox - R * Math.sin(i * D), Py = Oy + R * Math.cos(i * D);
+  const Lx = Ox - (R + 34) * Math.sin(i * D), Ly = Oy + (R + 34) * Math.cos(i * D);
+  // lazer kutusu (blok dışında, ışın doğrultusunda)
+  s += `<g transform="translate(${f1(Lx)} ${f1(Ly)}) rotate(-45)"><rect x="-40" y="-8" width="40" height="16" rx="3" fill="#3b4247" stroke="#22272a" stroke-width="1"/><rect x="-2" y="-4" width="4" height="8" fill="${LZ}"/></g>`;
+  s += ray(Lx, Ly, Px, Py, { at: 0.6 }) + ray(Px, Py, Ox, Oy, { at: 0.55 });
+  s += yay(Ox, Oy, 34, 90 + i, 90, P.copper) + yayEt(Ox, Oy, 50, 90 + i / 2, '45°', { size: 12, fill: P.copper });
+  s += `<circle cx="${Ox}" cy="${Oy}" r="3" fill="${P.ink}"/>` + T(Ox + 8, Oy - 8, 'O', { size: 14, weight: 800 });
+  s += T(Ox + 50, Oy + 50, 'blok', { size: 13, anchor: 'start', weight: 800, fill: '#245a4a' }) + T(Ox + 50, Oy + 68, 'n = 5/3', { size: 12.5, anchor: 'start', weight: 800, fill: '#245a4a', italic: true });
+  s += T(18, 30, 'hava', { size: 13, weight: 800, fill: '#2b5470' });
+  return svg(W, H, s, u, 70);
+});
 })();
 
 /* ---------- i1134: HİKÂYE, TANIM ve EFSANE için 3B görünümlü çizimler ---------- */
@@ -116011,6 +116747,193 @@ const KONU = {
     'ZENGİN: şeker şurubu partileri, USDA sakaroz kırma indisi tablosu (20 °C), havadan 53° lazer, sin r̂ ölçümü, %40 eşiği', 'ZENGİN: kapta su üstünde yağ tabakası, tabanda LED, havaya çıkış koşulu yağın indisine bağlı değil (yargılı)',
     'ZENGİN ETK: beş ortamda ışık sürati, farklı verilerden kırma indisi (sırala)', 'SİM: hava/su/cam çiftleri, gelme açısı 0–89°, r̂–î grafiği, sınır açısı'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen 3 ısınma sorusu.
+     Açılar Snell Yasası ile qa/11.3.4/dogrula.py içinde doğrulanır; sinüsler kesirle verilir (ondalık yok). */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Işık yön değiştirir: kırılma',
+        sekil: 'sf1134_kap',
+        metin: r`Karanlık bir odada, su dolu cam bir kaba el fenerini eğik tut. Suya birkaç damla süt damlatırsan ışının yolu görünür. Işık havada düz gider. Su yüzeyine ulaşınca doğrultusu değişir ve suyun içinde başka bir doğrultuda ilerler.
+
+Işığın bir saydam ortamdan kırma indisi farklı başka bir saydam ortama geçerken doğrultu değiştirmesine **kırılma** denir.
+
+Açıları ölçmek için ışının yüzeye ulaştığı noktada yüzeye dik bir çizgi çizeriz. Bu çizgiye **normal** denir.
+- Gelen ışın ile normal arasındaki açı **gelme açısıdır** ($\hat{\imath}$).
+- Kırılan ışın ile normal arasındaki açı **kırılma açısıdır** ($\hat{r}$).
+
+Yüzeye gelen ışığın bir kısmı da geri yansır. Bu bölümde geçen ışına bakacağız.`,
+        kontrol: {
+          soru: 'Aşağıdakilerin hangisinde ışık kırılır?',
+          secenekler: ['Işık havadan suya eğik geçerken', 'Işık düz bir aynadan geri dönerken', 'Işık boş bir odada ilerlerken'],
+          dogru: 0,
+          aciklama: 'Kırılma için ışığın başka bir saydam ortama geçmesi gerekir. Havadan suya eğik geçen ışın doğrultu değiştirir. Aynadan dönen ışın yansır, odada ilerleyen ışın ise ortam değiştirmez.',
+          yanlisIpucu: 'Kırılmada ışık bir ortamdan başka bir ortama geçer. Hangi seçenekte ortam değişiyor?'
+        }
+      },
+      {
+        baslik: 'Kırma indisi: ışık ne kadar yavaşlar?',
+        metin: r`Işık boşlukta saniyede $3 \times 10^8$ m yol alır. Bu sürati $c$ ile gösteririz. Işık suya, cama ya da başka bir saydam maddeye girince yavaşlar.
+
+Bir ortamın **kırma indisi** ($n$), ışığın boşluktaki süratinin o ortamdaki süratine ($\vartheta$) oranıdır:
+$$n = \frac{c}{\vartheta}$$
+- Havada ışık neredeyse boşluktaki kadar hızlıdır. Havanın kırma indisi yaklaşık $1$'dir.
+- Suyun kırma indisi yaklaşık $\frac{4}{3}$, camınki yaklaşık $\frac{3}{2}$'dir.
+
+Kırma indisi büyük olan ortama **çok kırıcı**, küçük olana **az kırıcı** ortam denir. Işık çok kırıcı ortamda daha yavaş ilerler.`,
+        kontrol: {
+          soru: 'Işık, A ortamında B ortamındakinden daha yavaş ilerliyor. Hangisi doğrudur?',
+          secenekler: ['B\'nin kırma indisi daha büyüktür.', 'A\'nın kırma indisi daha büyüktür.', 'İki ortamın kırma indisi eşittir.'],
+          dogru: 1,
+          aciklama: r`$n = \dfrac{c}{\vartheta}$ olduğundan sürat küçüldükçe kırma indisi büyür. Işığın daha yavaş olduğu A ortamı daha çok kırıcıdır.`,
+          yanlisIpucu: 'Kırma indisi, boşluktaki süratin ortamdaki sürate oranıdır. Payda küçülürse oran ne olur?'
+        }
+      },
+      {
+        baslik: 'Normale yaklaşır mı, uzaklaşır mı?',
+        sekil: 'sf1134_yon',
+        metin: r`Kırılan ışının nereye gideceğini kırma indisleri belirler.
+- Işık **az kırıcıdan çok kırıcıya** geçerken (havadan cama) yavaşlar ve **normale yaklaşır**. Kırılma açısı gelme açısından küçük olur.
+- Işık **çok kırıcıdan az kırıcıya** geçerken (camdan havaya) hızlanır ve **normalden uzaklaşır**. Kırılma açısı gelme açısından büyük olur.
+- Işık yüzeye **dik** gelirse ($\hat{\imath} = 0°$) doğrultusunu değiştirmeden geçer. Sürati yine değişir.`,
+        kontrol: {
+          soru: 'Işık sudan havaya eğik olarak çıkıyor. Kırılan ışın için hangisi doğrudur?',
+          secenekler: ['Normale yaklaşır.', 'Doğrultusu değişmez.', 'Normalden uzaklaşır.'],
+          dogru: 2,
+          aciklama: 'Su, havadan daha çok kırıcıdır. Işık çok kırıcıdan az kırıcıya geçerken hızlanır ve normalden uzaklaşır.',
+          yanlisIpucu: 'Suyun kırma indisi havanınkinden büyüktür. Işık çok kırıcıdan az kırıcıya geçiyor.'
+        }
+      },
+      {
+        baslik: 'Snell Yasası ile açıyı bulmak',
+        metin: r`Kırılma açısını hesaplamak için **Snell Yasası** kullanılır:
+$$n_1 \sin\hat{\imath} = n_2 \sin\hat{r}$$
+Burada $n_1$ ışığın geldiği ortamın, $n_2$ geçtiği ortamın kırma indisidir.
+
+Örnek: Işık havadan ($n_1 = 1$) suya ($n_2 = \frac{4}{3}$) $53°$'lik gelme açısıyla geliyor. $\sin 53° = \frac{4}{5}$ alınırsa:
+$$1 \times \frac{4}{5} = \frac{4}{3} \times \sin\hat{r} \quad \Rightarrow \quad \sin\hat{r} = \frac{3}{5}$$
+Sinüsü $\frac{3}{5}$ olan açı $37°$'dir. Işık $53°$ ile gelip $37°$ ile kırılır, yani normale yaklaşır.`,
+        kontrol: {
+          soru: r`Işık havadan, kırma indisi $\frac{3}{2}$ olan cama geliyor. Gelme açısının sinüsü $\frac{3}{5}$'tir. Kırılma açısının sinüsü kaçtır?`,
+          secenekler: [r`$\frac{9}{10}$`, r`$\frac{3}{5}$`, r`$\frac{2}{5}$`],
+          dogru: 2,
+          aciklama: r`$1 \times \frac{3}{5} = \frac{3}{2} \times \sin\hat{r}$ olur. Buradan $\sin\hat{r} = \frac{3}{5} \times \frac{2}{3} = \frac{2}{5}$ bulunur. Kırılma açısının sinüsü küçüldü; ışın normale yaklaştı.`,
+          yanlisIpucu: r`$\frac{3}{5}$ değerini $\frac{3}{2}$ ile çarpma, $\frac{3}{2}$'ye böl. Çok kırıcı ortamda açı küçülür.`
+        }
+      },
+      {
+        baslik: 'Sınır açısı ve tam yansıma',
+        sekil: 'sf1134_sinir',
+        metin: r`Işık çok kırıcıdan az kırıcıya geçerken normalden uzaklaşır. Gelme açısını büyütürsen kırılma açısı da büyür. Bir an gelir, kırılma açısı $90°$ olur ve kırılan ışın yüzeyi yalayarak gider. Bu andaki gelme açısına **sınır açısı** ($\theta_s$) denir.
+- $\hat{\imath} < \theta_s$ ise ışın kırılarak öbür ortama geçer.
+- $\hat{\imath} = \theta_s$ ise kırılan ışın yüzeyi yalar.
+- $\hat{\imath} > \theta_s$ ise ışık öbür ortama hiç geçmez, tamamen geri yansır. Buna **tam yansıma** denir.
+
+Sınır açısı Snell Yasası'ndan bulunur. $\hat{r} = 90°$ ve $\sin 90° = 1$ olduğundan:
+$$\sin\theta_s = \frac{n_2}{n_1}$$
+Tam yansıma yalnız ışık çok kırıcı ortamdan az kırıcı ortama giderken olur.`,
+        kontrol: {
+          soru: 'Işık havadan suya geçerken tam yansıma olabilir mi?',
+          secenekler: ['Evet, gelme açısı yeterince büyükse olur.', 'Hayır, çünkü ışık az kırıcıdan çok kırıcıya geçiyor.', 'Evet, ışık yüzeye dik gelirse olur.'],
+          dogru: 1,
+          aciklama: 'Havadan suya geçen ışın normale yaklaşır. Kırılma açısı hiçbir zaman 90° olamaz, bu yüzden sınır açısı ve tam yansıma yoktur.',
+          yanlisIpucu: 'Tam yansıma için ışığın normalden uzaklaşması gerekir. Havadan suya geçen ışın ne yapar?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Akrilik vazodaki su',
+        metin: r`Bir çiçekçi, saydam akrilikten yapılmış bir vazoya su dolduruyor. Işığın akrilikteki sürati $2 \times 10^8$ m/s ölçülüyor. Işığın boşluktaki sürati $3 \times 10^8$ m/s, suyun kırma indisi $\frac{4}{3}$'tür.`,
+        adimlar: [
+          {
+            soru: 'Akriliğin kırma indisi kaçtır?',
+            secenekler: [r`$\frac{2}{3}$`, r`$\frac{3}{2}$`, r`$6$`],
+            dogru: 1,
+            ipucu: r`$n = \dfrac{c}{\vartheta}$. Boşluktaki sürati ortamdaki sürate böl.`,
+            aciklama: r`$n = \dfrac{3 \times 10^8}{2 \times 10^8} = \dfrac{3}{2}$.`
+          },
+          {
+            soru: 'Akrilik ile sudan hangisi daha çok kırıcıdır?',
+            secenekler: ['Akrilik', 'Su', 'İkisi eşit kırıcıdır'],
+            dogru: 0,
+            ipucu: r`Kesirlerin paydasını eşitle: $\frac{3}{2} = \frac{9}{6}$ ve $\frac{4}{3} = \frac{8}{6}$.`,
+            aciklama: r`$\frac{9}{6} > \frac{8}{6}$ olduğundan akriliğin kırma indisi daha büyüktür. Akrilik daha çok kırıcıdır.`
+          },
+          {
+            soru: 'Işık, vazonun içindeki sudan akriliğe eğik olarak geçiyor. Kırılan ışın için hangisi doğrudur?',
+            secenekler: ['Normalden uzaklaşır.', 'Normale yaklaşır.', 'Tam yansıma yapar.'],
+            dogru: 1,
+            ipucu: 'Işık az kırıcı ortamdan çok kırıcı ortama mı geçiyor, yoksa tersi mi?',
+            aciklama: 'Işık az kırıcı sudan çok kırıcı akriliğe geçer. Yavaşlar ve normale yaklaşır. Az kırıcıdan çok kırıcıya geçişte tam yansıma olmaz.'
+          }
+        ],
+        sonuc: 'Önce süratten kırma indisini bulduk, sonra iki ortamı karşılaştırdık. Hangi ortamın daha çok kırıcı olduğunu bilmek, ışının normale yaklaşıp yaklaşmayacağını söyler.'
+      },
+      {
+        baslik: 'Havuzdaki su altı lambası',
+        sekil: 'sf1134_havuz',
+        metin: r`Gece, bir havuzun tabanındaki su altı lambası yanıyor. Lambadan çıkan bir ışın, su yüzeyine $37°$'lik gelme açısıyla ulaşıyor ve havaya çıkıyor. Suyun kırma indisi $\frac{4}{3}$, havanınki $1$'dir. $\sin 37° = \frac{3}{5}$ ve $\sin 53° = \frac{4}{5}$ alınız.`,
+        adimlar: [
+          {
+            soru: r`Snell Yasası'nda $n_1$ ve $n_2$ hangi değerlerdir?`,
+            secenekler: [r`$n_1 = 1$ ve $n_2 = \frac{4}{3}$`, r`$n_1 = \frac{4}{3}$ ve $n_2 = 1$`, r`$n_1 = n_2 = \frac{4}{3}$`],
+            dogru: 1,
+            ipucu: r`$n_1$, ışığın geldiği ortamın kırma indisidir. Işık sudan mı geliyor, havadan mı?`,
+            aciklama: r`Işık sudan havaya gidiyor. Bu yüzden $n_1 = \frac{4}{3}$ (su), $n_2 = 1$ (hava) olur.`
+          },
+          {
+            soru: 'Kırılma açısının sinüsü kaçtır?',
+            secenekler: [r`$\frac{3}{5}$`, r`$\frac{9}{20}$`, r`$\frac{4}{5}$`],
+            dogru: 2,
+            ipucu: r`$\frac{4}{3} \times \frac{3}{5} = 1 \times \sin\hat{r}$ eşitliğini çöz.`,
+            aciklama: r`$\sin\hat{r} = \frac{4}{3} \times \frac{3}{5} = \frac{4}{5}$.`
+          },
+          {
+            soru: 'Kırılma açısı kaç derecedir?',
+            secenekler: [r`$37°$`, r`$53°$`, r`$90°$`],
+            dogru: 1,
+            ipucu: 'Soruda verilen sinüs değerlerine bak. Sinüsü 4/5 olan açı hangisi?',
+            aciklama: r`Sinüsü $\frac{4}{5}$ olan açı $53°$'dir. $53° > 37°$ olduğundan ışın sudan havaya çıkarken normalden uzaklaşmıştır.`
+          }
+        ],
+        sonuc: 'Snell Yasası örneğinde ışık havadan suya 53° ile girip 37° ile kırılmıştı. Burada ters yolda 37° ile gelip 53° ile çıktı. Işık aynı yolu ters yönde de izleyebilir.'
+      },
+      {
+        baslik: 'Yarım daire biçimli blok',
+        sekil: 'sf1134_blok',
+        metin: r`Fizik laboratuvarında, yüksek indisli özel bir camdan yapılmış yarım daire biçimli saydam bir blok var. Bloğun kırma indisi $\frac{5}{3}$, havanınki $1$'dir. Lazer ışını bloğun yuvarlak yüzünden girip düz yüzün ortasındaki O noktasına geliyor. Işın, düz yüzden havaya çıkmaya çalışıyor. $\sin 37° = \frac{3}{5}$ ve $\sin 53° = \frac{4}{5}$ alınız.`,
+        adimlar: [
+          {
+            soru: 'Bloktan havaya geçişte sınır açısının sinüsü kaçtır?',
+            secenekler: [r`$\frac{3}{5}$`, r`$\frac{5}{3}$`, r`$1$`],
+            dogru: 0,
+            ipucu: r`$\sin\theta_s = \dfrac{n_2}{n_1}$. Işık bloktan havaya gidiyor; $n_1$ bloğun, $n_2$ havanın kırma indisidir.`,
+            aciklama: r`$\sin\theta_s = \dfrac{1}{5/3} = \dfrac{3}{5}$. Sinüs 1'den büyük olamaz; bu yüzden $\frac{5}{3}$ cevap olamaz.`
+          },
+          {
+            soru: 'Sınır açısı kaç derecedir?',
+            secenekler: [r`$53°$`, r`$37°$`, r`$30°$`],
+            dogru: 1,
+            ipucu: 'Metnin sonunda verilen sinüs değerlerini kullan. Hangi açının sinüsü 3/5\'tir?',
+            aciklama: r`$\sin 37° = \frac{3}{5}$ olduğundan $\theta_s = 37°$.`
+          },
+          {
+            soru: 'Işın O noktasına 45°\'lik gelme açısıyla gelirse ne olur?',
+            secenekler: ['Havaya geçer ve normalden uzaklaşır.', 'Tamamen geri yansır.', 'Düz yüzeyi yalayarak ilerler.'],
+            dogru: 1,
+            ipucu: 'Gelme açısını sınır açısıyla karşılaştır.',
+            aciklama: r`$45° > 37°$ olduğundan tam yansıma olur. Işın havaya çıkamaz; bloğun içine $45°$'lik yansıma açısıyla geri döner.`
+          }
+        ],
+        sonuc: 'Sınır açısını bulmak için iki kırma indisi yeter. Gelme açısı sınır açısından büyükse ışık dışarı çıkamaz ve ayna gibi geri yansır.'
+      }
+    ],
+    hazir: 'Kırılmayı, kırma indisini, Snell Yasası\'nı ve tam yansımayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
