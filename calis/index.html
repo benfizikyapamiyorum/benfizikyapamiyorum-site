@@ -37776,6 +37776,113 @@ BFY_FIG_EKLE('k943_S1_genis', function (u) {
   s += `<line x1="${x0}" y1="${y0 - 8}" x2="${x0}" y2="${y0 + dy * 3 - 6}" stroke="${P.ink}" stroke-width="1.4"/>`;
   return svg(W, H, s, u, 150);
 });
+
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ =============== */
+// Eğri ok (ikinci dereceden), uçta ok başı
+const sfBall = window.BFY_FIGLIB.ball;
+function sfYay(x1, y1, x2, y2, cy, renk) {
+  const cx = (x1 + x2) / 2, dx = x2 - cx, dy = y2 - cy, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, bx = x2 - ux * 9, by = y2 - uy * 9;
+  return `<path d="M${x1},${y1} Q${cx},${cy} ${bx.toFixed(1)},${by.toFixed(1)}" fill="none" stroke="${renk}" stroke-width="2.4" stroke-linecap="round"/>` +
+    `<polygon points="${x2},${y2} ${(bx - uy * 5).toFixed(1)},${(by + ux * 5).toFixed(1)} ${(bx + uy * 5).toFixed(1)},${(by - ux * 5).toFixed(1)}" fill="${renk}"/>`;
+}
+/* Adım 1: katı, sıvı, gaz ve aralarındaki geçişler */
+BFY_FIG_EKLE('sf943_haller_genis', function (u) {
+  const W = 520, H = 238, py = 64, ph = 100, pw = 110, px = [22, 205, 388];
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9fa"/>`;
+  // katı: buz bloğu içinde düzenli tanecikler
+  s += `<rect x="${px[0] + 3}" y="${py + 4}" width="${pw}" height="${ph}" rx="12" fill="#000" opacity=".08"/>`;
+  s += `<rect x="${px[0]}" y="${py}" width="${pw}" height="${ph}" rx="12" fill="${C.buz}" stroke="${C.buzK}" stroke-width="1.6"/>`;
+  s += `<path d="M${px[0] + 12} ${py + 14} L${px[0] + 40} ${py + 8}" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>`;
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) s += sfBall(u, px[0] + 25 + i * 20, py + 22 + j * 20, 7, 'blue');
+  // sıvı: kapta gevşek tanecikler
+  s += `<rect x="${px[1] + 3}" y="${py + 4}" width="${pw}" height="${ph}" rx="12" fill="#000" opacity=".08"/>`;
+  s += `<rect x="${px[1]}" y="${py}" width="${pw}" height="${ph}" rx="12" fill="#eef6fa" stroke="#8fb0c4" stroke-width="1.6"/>`;
+  s += `<path d="M${px[1] + 1} ${py + 34} L${px[1] + pw - 1} ${py + 34} L${px[1] + pw - 1} ${py + ph - 12} Q${px[1] + pw - 1} ${py + ph - 1} ${px[1] + pw - 12} ${py + ph - 1} L${px[1] + 12} ${py + ph - 1} Q${px[1] + 1} ${py + ph - 1} ${px[1] + 1} ${py + ph - 12} Z" fill="url(#${u}water)" opacity=".4"/>`;
+  [[22, 48], [42, 54], [64, 46], [86, 52], [30, 70], [53, 70], [76, 68], [96, 68], [20, 87], [44, 88], [68, 86], [90, 88]].forEach(([dx, dy]) => s += sfBall(u, px[1] + dx, py + dy, 7, 'blue'));
+  // gaz: kapta seyrek, hızlı tanecikler
+  s += `<rect x="${px[2] + 3}" y="${py + 4}" width="${pw}" height="${ph}" rx="12" fill="#000" opacity=".08"/>`;
+  s += `<rect x="${px[2]}" y="${py}" width="${pw}" height="${ph}" rx="12" fill="#fbfdfe" stroke="#8fb0c4" stroke-width="1.6"/>`;
+  [[24, 26, 30], [80, 22, 160], [52, 54, -40], [20, 82, 60], [88, 76, 200]].forEach(([dx, dy, a]) => {
+    const x = px[2] + dx, y = py + dy, r = a * Math.PI / 180;
+    s += arrow(x + Math.cos(r) * 9, y - Math.sin(r) * 9, x + Math.cos(r) * 22, y - Math.sin(r) * 22, { color: P.ink2, w: 1.3, head: 5, headW: 3 });
+    s += sfBall(u, x, y, 7, 'blue');
+  });
+  // adlar
+  ['katı', 'sıvı', 'gaz'].forEach((ad, i) => s += T(px[i] + pw / 2, py + ph + 21, ad, { size: 16, anchor: 'middle', weight: 800 }));
+  // ısı alan geçişler (üstte), ısı veren geçişler (altta)
+  const ust = [['erime', 0], ['buharlaşma', 1]], alt = [['donma', 0], ['yoğuşma', 1]];
+  ust.forEach(([ad, i]) => {
+    const x1 = px[i] + pw - 22, x2 = px[i + 1] + 22, xm = (x1 + x2) / 2;
+    s += sfYay(x1, py - 4, x2, py - 4, 24, P.coral);
+    s += T(xm, 18, ad, { size: 16, anchor: 'middle', weight: 800, fill: P.coral }) + T(xm, 34, 'ısı alır', { size: 13.5, anchor: 'middle', weight: 700, fill: P.coral });
+  });
+  alt.forEach(([ad, i]) => {
+    const x1 = px[i + 1] + 22, x2 = px[i] + pw - 22, xm = (x1 + x2) / 2;
+    s += sfYay(x1, py + ph + 4, x2, py + ph + 4, 232, P.blue);
+    s += T(xm, 217, ad, { size: 16, anchor: 'middle', weight: 800, fill: P.blue }) + T(xm, 233, 'ısı verir', { size: 13.5, anchor: 'middle', weight: 700, fill: P.blue });
+  });
+  return svg(W, H, s, u, 150);
+});
+
+/* Adım 2: ocakta eriyen kar, termometre 0 °C'de bekliyor */
+BFY_FIG_EKLE('sf943_kar', function (u) {
+  const W = 320, H = 250;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  // ocak
+  s += `<ellipse cx="152" cy="236" rx="96" ry="6" fill="#000" opacity=".12"/>`;
+  s += `<rect x="62" y="194" width="180" height="40" rx="7" fill="#3d464b"/><rect x="62" y="194" width="180" height="8" rx="4" fill="#59646a"/>`;
+  s += `<circle cx="226" cy="218" r="6" fill="#20272a" stroke="#8e979f" stroke-width="1.4"/><line x1="226" y1="218" x2="226" y2="213" stroke="#d9dee2" stroke-width="1.6"/>`;
+  s += `<ellipse cx="150" cy="196" rx="62" ry="7" fill="#2f3538"/><ellipse cx="150" cy="196" rx="52" ry="5.4" fill="none" stroke="#ff7a3a" stroke-width="2"/><ellipse cx="150" cy="196" rx="40" ry="4" fill="none" stroke="#ff9a52" stroke-width="1.6"/>`;
+  // cam kap
+  const g = 'M96 64 L102 192 L198 192 L204 64';
+  s += `<path d="M99.5 138 L102.5 190 L197.5 190 L200.5 138 Z" fill="url(#${u}water)" opacity=".5"/>`;
+  s += `<path d="M104 152 Q106 122 122 126 Q130 104 148 112 Q160 96 176 110 Q192 108 196 132 Q198 146 196 152 Q170 160 150 154 Q128 160 104 152 Z" fill="#fbfdff" stroke="#b9d7e8" stroke-width="1.3"/>`;
+  [[118, 140], [140, 128], [164, 122], [182, 138], [154, 144], [128, 148]].forEach(([x, y]) => s += `<circle cx="${x}" cy="${y}" r="2.2" fill="#d6eaf5"/>`);
+  // termometre
+  const tx = 172;
+  s += `<rect x="${tx - 5}" y="26" width="10" height="160" rx="5" fill="#fff" stroke="#6f8794" stroke-width="1.4"/>`;
+  for (let i = 0; i < 8; i++) s += `<line x1="${tx + 5}" y1="${40 + i * 16}" x2="${tx + 9}" y2="${40 + i * 16}" stroke="#6f8794" stroke-width="1"/>`;
+  s += `<rect x="${tx - 2}" y="104" width="4" height="80" fill="#d9573b"/><circle cx="${tx}" cy="184" r="7.5" fill="#d9573b" stroke="#6f8794" stroke-width="1.4"/>`;
+  s += `<line x1="${tx + 5}" y1="104" x2="${tx + 12}" y2="104" stroke="#2f7fb8" stroke-width="2"/>`;
+  s += `<path d="${g}" fill="url(#${u}glass)" opacity=".22" stroke="#8fb0c4" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s += `<line x1="110" y1="74" x2="114" y2="180" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/>`;
+  // etiketler
+  s += T(tx + 14, 36, 'termometre', { size: 12, anchor: 'start', weight: 700 });
+  s += dashLine(tx + 13, 104, 228, 104, '#2f7fb8', '3 3', 1.1) + T(232, 108.5, '0 °C', { size: 13, anchor: 'start', weight: 800, fill: '#2f7fb8' });
+  s += `<line x1="64" y1="114" x2="112" y2="128" stroke="#2a6f9a" stroke-width="1.2"/>` + T(60, 116, 'kar', { size: 12, anchor: 'end', weight: 700, fill: '#2a6f9a' });
+  s += `<line x1="64" y1="174" x2="106" y2="172" stroke="#2a6f9a" stroke-width="1.2"/>` + T(60, 178, 'su', { size: 12, anchor: 'end', weight: 700, fill: '#2a6f9a' });
+  s += T(250, 230, 'ocak', { size: 12, anchor: 'start', weight: 700 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Adım 5: katı bir maddenin sıcaklık–zaman grafiği (I katı ısınır, II erime, III sıvı ısınır) */
+BFY_FIG_EKLE('sf943_zaman', function (u) {
+  const W = 320, H = 250, v = [[0, 20], [4, 60], [10, 60], [14, 90]];
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9fa"/>`;
+  const G = grafik({ x: 4, y: 6, w: W - 8, h: H - 12, q: [0, 16], t: [0, 100], sol: 40, sag: 96, alt: 26, xAd: 'Zaman (dk)' });
+  s += G.svg;
+  s += yIsaret(G, 20, '20') + yIsaret(G, 60, '60', 4) + yIsaret(G, 90, '90', 14);
+  s += xIsaret(G, 4, '4', 60) + xIsaret(G, 10, '10', 60) + xIsaret(G, 14, '14', 90);
+  s += `<rect x="${G.X(4)}" y="${G.Y(60) - 1}" width="${G.X(10) - G.X(4)}" height="${G.ex - G.Y(60) + 1}" fill="${C.erime}" opacity=".7"/>`;
+  s += egri(G, v, C.egri);
+  s += T(G.X(2) - 12, G.Y(40) - 4, 'I', { size: 14, anchor: 'end', weight: 800, fill: P.ink2 });
+  s += T(G.X(7), G.Y(60) - 10, 'II', { size: 14, anchor: 'middle', weight: 800, fill: P.ink2 });
+  s += T(G.X(12) - 12, G.Y(75) - 4, 'III', { size: 14, anchor: 'end', weight: 800, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 3: 3 kg saf katının sıcaklık–ısı grafiği */
+BFY_FIG_EKLE('sf943_isi', function (u) {
+  const W = 320, H = 250, v = [[0, 20], [30, 70], [150, 70], [180, 90]];
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9fa"/>`;
+  const G = grafik({ x: 4, y: 6, w: W - 8, h: H - 12, q: [0, 200], t: [0, 100], sol: 40, sag: 66, alt: 26 });
+  s += G.svg;
+  s += yIsaret(G, 20, '20') + yIsaret(G, 70, '70', 30) + yIsaret(G, 90, '90', 180);
+  s += xIsaret(G, 30, '30', 70) + xIsaret(G, 150, '150', 70) + xIsaret(G, 180, '180', 90);
+  s += egri(G, v, C.L);
+  s += T(G.R0 - 4, G.U0 + 2, 'm = 3 kg', { size: 12, anchor: 'end', weight: 800, fill: P.copper });
+  return svg(W, H, s, u, 70);
+});
 })();
 
 /* ---------- 3B KART, HİKÂYE, TANIM VE EFSANE ÇİZİMLERİ (izometrik) ---------- */
@@ -38355,6 +38462,189 @@ const KONU = {
     'CRC erime ısıları tablosu (buz, alüminyum, bakır, gümüş, kurşun) ile gereken ısıya göre sıralama (sırala, soru 21)',
     'simülasyon: −20 °C’deki 0,1–0,5 kg buza 0–300 kJ ısı, açık kap'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen 3 ısınma sorusu.
+     Sayılar tam; hesaplar qa/9.4.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Maddenin hâli değişebilir',
+        sekil: 'sf943_haller_genis',
+        metin: r`Dondurucudan çıkardığın buz küpü masada bir süre sonra suya dönüşür. Islak bir havlu güneşte kurur; içindeki su havaya karışır. Buzdolabından çıkan soğuk bir ayran şişesinin dışında küçük su damlaları belirir. Bu olayların hepsinde madde **hâl değiştirir**.
+
+Maddenin üç hâlini tanıyorsun: katı, sıvı ve gaz. Hâller arasındaki geçişlerin adları şunlardır:
+- **Erime:** Katının sıvıya dönüşmesidir.
+- **Donma:** Sıvının katıya dönüşmesidir.
+- **Buharlaşma:** Sıvının gaza dönüşmesidir.
+- **Yoğuşma:** Gazın sıvıya dönüşmesidir.
+
+Erime ve buharlaşmada madde çevresinden ısı alır. Donma ve yoğuşmada ise çevresine ısı verir.`,
+        kontrol: {
+          soru: 'Duştan sonra ıslak saçın, havlu kullanmasan da bir süre sonra kurur. Saçtaki su hangi hâl değişimini geçirir?',
+          secenekler: ['Yoğuşma', 'Buharlaşma', 'Erime'],
+          dogru: 1,
+          aciklama: 'Saçtaki sıvı su, gaz hâline geçip havaya karışır. Sıvının gaza dönüşmesine buharlaşma denir.',
+          yanlisIpucu: 'Su başta sıvı hâldeydi. Saçtan ayrılınca hangi hâle geçti?'
+        }
+      },
+      {
+        baslik: 'Hâl değişirken sıcaklık sabit kalır',
+        sekil: 'sf943_kar',
+        metin: r`Kışın cam bir kaba temiz kar doldurup ocağa koyduğunu düşün. Kabın içine bir termometre de daldır. Kar önce biraz ısınır. Sıcaklığı 0 °C'ye gelince erimeye başlar.
+
+Ocak ısı vermeye devam eder ama termometre **0 °C'de bekler**. Kar bitene kadar sıcaklık yükselmez; kapta kar ile su bir arada durur. Kar tamamen eriyince suyun sıcaklığı yeniden artmaya başlar.
+
+Peki verilen ısı nereye gider? Bu ısı, karı suya dönüştürmeye harcanır. Saf bir madde hâl değiştirirken sıcaklığı **sabit kalır**.`,
+        kontrol: {
+          soru: 'Erimekte olan bir buz parçasına ısı vermeye devam ediyoruz. Buzun hepsi erimeden önce buz ve su karışımının sıcaklığı ne olur?',
+          secenekler: ['Sürekli artar.', 'Önce düşer, sonra artar.', 'Sabit kalır.'],
+          dogru: 2,
+          aciklama: 'Hâl değişimi sürerken verilen ısı, buzu suya dönüştürmeye harcanır. Buz bitene kadar karışımın sıcaklığı değişmez.',
+          yanlisIpucu: 'Kardaki termometreyi hatırla. Kar bitene kadar termometre ne yapıyordu?'
+        }
+      },
+      {
+        baslik: 'Hâl değişimi için gereken ısı',
+        metin: r`Aynı sıcak odada küçük bir buz küpü birkaç dakikada erir. Büyük bir buz kalıbı ise saatlerce erimeden durur. Kütle büyüdükçe maddenin tamamını eritmek için daha çok ısı gerekir.
+
+Hâl değişim sıcaklığındaki bir maddenin **1 kg'ının** tamamen hâl değiştirmesi için gereken ısıya **hâl değişim ısısı** denir. Sembolü $L$, birimi kJ/kg ya da J/kg'dır.
+- Erime ısısı $L_e$ ile gösterilir.
+- Buharlaşma ısısı $L_b$ ile gösterilir.
+
+Kütlesi $m$ olan bir maddenin tamamı için bu ısı şöyle hesaplanır:
+$$Q = m \times L$$
+Deniz seviyesinde buzun erime ısısı 334 kJ/kg, suyun buharlaşma ısısı 2260 kJ/kg'dır.`,
+        kontrol: {
+          soru: 'Bir mum atölyesinde, erime sıcaklığındaki 4 kg parafin tamamen eritiliyor. Parafinin erime ısısı 200 kJ/kg ise kaç kJ ısı gerekir?',
+          secenekler: ['50 kJ', '204 kJ', '800 kJ'],
+          dogru: 2,
+          aciklama: r`$Q = m \times L_e = 4 \times 200 = 800\ \text{kJ}$.`,
+          yanlisIpucu: 'Erime ısısı, 1 kg için gereken ısıdır. 4 kg için bunun kaç katı gerekir?'
+        }
+      },
+      {
+        baslik: 'Erime ve kaynama sıcaklığını ne değiştirir?',
+        metin: r`Kışın tatlı su gölü donarken aynı soğukta deniz suyu çoğu zaman donmaz. Bunun bir nedeni deniz suyundaki tuzdur. Saf bir maddeye başka bir madde karışınca **saflık** bozulur ve hâl değişim sıcaklıkları değişir. Tuzlu su, saf sudan daha düşük sıcaklıkta donar ve daha yüksek sıcaklıkta kaynar.
+
+**Basınç** da etkilidir. Yüksek bir dağda hava basıncı küçüktür; orada su 100 °C'ye ulaşmadan kaynar. Basınç arttıkça kaynama sıcaklığı yükselir.
+
+**Kütle** ise hâl değişim sıcaklığını değiştirmez. Kütle yalnız gereken ısıyı ve süreyi değiştirir.`,
+        kontrol: {
+          soru: 'Deniz seviyesinde bir tencerede 1 kg, ötekinde 3 kg saf su kaynatılıyor. Kaynama sıcaklıkları için ne söylenebilir?',
+          secenekler: ['3 kg su daha yüksek sıcaklıkta kaynar.', 'İkisi de 100 °C\'de kaynar.', '1 kg su daha yüksek sıcaklıkta kaynar.'],
+          dogru: 1,
+          aciklama: 'Kütle, kaynama sıcaklığını değiştirmez. 3 kg suyun kaynaması için yalnız daha çok ısı ve daha uzun süre gerekir.',
+          yanlisIpucu: 'Kütle, kaynama sıcaklığını mı değiştirir, gereken ısıyı mı?'
+        }
+      },
+      {
+        baslik: 'Grafikte hâl değişimi',
+        sekil: 'sf943_zaman',
+        metin: r`Katı bir madde, her dakika eşit ısı veren bir ısıtıcıyla ısıtılıyor. Sıcaklık her dakika ölçülüp grafiğe işleniyor. Böyle bir grafiğe **sıcaklık–zaman grafiği** denir.
+- **Eğik bölüm:** Madde tek hâldedir ve sıcaklığı artar.
+- **Yatay bölüm:** Madde hâl değiştirir. Sıcaklık sabittir ve iki hâl bir arada bulunur.
+
+Şekildeki grafikte I. bölümde katı ısınır. II. bölümde madde erir. III. bölümde sıvı ısınır. Yatay bölümün hizasındaki 60 °C, maddenin **erime sıcaklığıdır**.`,
+        kontrol: {
+          soru: 'Grafiğe göre madde kaç dakika boyunca katı ve sıvı hâlde bir arada bulunur?',
+          secenekler: ['4 dk', '6 dk', '10 dk'],
+          dogru: 1,
+          aciklama: 'Yatay bölüm 4. dakikada başlar ve 10. dakikada biter. Erime 10 − 4 = 6 dakika sürer.',
+          yanlisIpucu: 'Yatay bölümün başladığı ve bittiği dakikaları bul. Aradaki fark ne kadar?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Dondurucudaki su',
+        metin: r`Evdeki dondurucuya, 0 °C'deki 2 kg suyla dolu bir kap konuyor. Bir süre sonra suyun tamamı 0 °C'de buza dönüşüyor. Buzun erime ısısı 334 kJ/kg'dır.`,
+        adimlar: [
+          {
+            soru: 'Su donarken ısı alır mı, verir mi?',
+            secenekler: ['Isı alır.', 'Isı verir.', 'Isı alışverişi olmaz.'],
+            dogru: 1,
+            ipucu: 'Donma, erimenin tersidir. Erime sırasında madde ısı alıyordu.',
+            aciklama: 'Donmada madde çevresine ısı verir. Dondurucu bu ısıyı sudan çekip dışarı atar.'
+          },
+          {
+            soru: 'Suyun donma ısısı kaç kJ/kg\'dır?',
+            secenekler: ['0 kJ/kg', '334 kJ/kg', '2260 kJ/kg'],
+            dogru: 1,
+            ipucu: 'Saf bir maddede donma ısısı, erime ısısına eşittir.',
+            aciklama: '1 kg buzu eritmek için 334 kJ ısı gerekir. 1 kg su donarken de çevresine 334 kJ ısı verir.'
+          },
+          {
+            soru: 'Su donarken toplam kaç kJ ısı verir?',
+            secenekler: ['167 kJ', '336 kJ', '668 kJ'],
+            dogru: 2,
+            ipucu: r`$Q = m \times L$. Kütleyi donma ısısıyla çarp.`,
+            aciklama: r`$Q = 2 \times 334 = 668\ \text{kJ}$.`
+          }
+        ],
+        sonuc: 'Erime ve donma aynı miktarda ısıyla olur; yalnız ısının yönü terstir. Erirken madde ısı alır, donarken aynı miktarda ısı verir.'
+      },
+      {
+        baslik: 'Ateşi açınca ne olur?',
+        metin: r`Deniz seviyesindeki bir mutfakta, büyük bir tencerede saf su kaynıyor. Aşçı, ocağın ateşini sonuna kadar açıyor. Suyun buharlaşma ısısı 2260 kJ/kg'dır.`,
+        adimlar: [
+          {
+            soru: 'Ateş açılınca kaynayan suyun sıcaklığı ne olur?',
+            secenekler: ['100 °C\'de kalır.', '100 °C\'nin üstüne çıkar.', 'Önce düşer, sonra yükselir.'],
+            dogru: 0,
+            ipucu: 'Su kaynarken hâl değiştirir. Hâl değişimi sırasında sıcaklık ne yapar?',
+            aciklama: 'Kaynama sürdükçe suyun sıcaklığı 100 °C\'de sabit kalır.'
+          },
+          {
+            soru: 'Ateşi açmak neyi değiştirir?',
+            secenekler: ['Kaynama sıcaklığını yükseltir.', 'Hiçbir şeyi değiştirmez.', 'Suyun daha hızlı buharlaşmasını sağlar.'],
+            dogru: 2,
+            ipucu: 'Tencereye daha çok ısı geliyor ama sıcaklık sabit. Bu ısı neye harcanıyor?',
+            aciklama: 'Tencereye her saniye daha çok ısı gelir. Bu ısı, her saniye daha çok suyu buhara dönüştürür. Su daha çabuk azalır.'
+          },
+          {
+            soru: 'Uzun süren kaynamada tencereden 3 kg su buharlaşıyor. Bunun için suya kaç kJ ısı verilmiştir?',
+            secenekler: ['678 kJ', '2263 kJ', '6780 kJ'],
+            dogru: 2,
+            ipucu: r`$Q = m \times L_b$. Buharlaşma ısısını buharlaşan kütleyle çarp.`,
+            aciklama: r`$Q = 3 \times 2260 = 6780\ \text{kJ}$.`
+          }
+        ],
+        sonuc: 'Ateşi açmak kaynayan suyun sıcaklığını yükseltmez, suyu daha çabuk buharlaştırır. Gereken toplam ısı ise buharlaşan kütleye bağlıdır.'
+      },
+      {
+        baslik: 'Grafikten erime ısısı',
+        sekil: 'sf943_isi',
+        metin: r`Kütlesi 3 kg olan saf bir katı ısıtılıyor. Katı tamamen eriyor ve sıvı bir süre daha ısınıyor. Grafik, maddenin sıcaklığını aldığı ısıya göre gösteriyor.`,
+        adimlar: [
+          {
+            soru: 'Maddenin erime sıcaklığı kaç °C\'tır?',
+            secenekler: ['20 °C', '70 °C', '90 °C'],
+            dogru: 1,
+            ipucu: 'Erime sırasında sıcaklık sabit kalır. Grafiğin yatay bölümü hangi sıcaklıkta?',
+            aciklama: 'Yatay bölüm 70 °C hizasındadır. Madde 70 °C\'de erir.'
+          },
+          {
+            soru: 'Erime için verilen ısı kaç kJ\'dür?',
+            secenekler: ['30 kJ', '120 kJ', '150 kJ'],
+            dogru: 1,
+            ipucu: 'Yatay bölüm 30 kJ\'de başlıyor, 150 kJ\'de bitiyor. Erimeye yalnız bu aralıktaki ısı harcanır.',
+            aciklama: 'Erime için 150 − 30 = 120 kJ ısı verilmiştir. İlk 30 kJ, katının 70 °C\'ye ısınmasına harcandı.'
+          },
+          {
+            soru: 'Maddenin erime ısısı kaç kJ/kg\'dır?',
+            secenekler: ['40 kJ/kg', '50 kJ/kg', '120 kJ/kg'],
+            dogru: 0,
+            ipucu: r`$L_e = Q \div m$. Erimeye harcanan ısıyı kütleye böl.`,
+            aciklama: r`$L_e = 120 \div 3 = 40\ \text{kJ/kg}$.`
+          }
+        ],
+        sonuc: 'Erime ısısını bulmak için önce yatay bölümün başı ile sonu arasındaki ısı farkını alırız. Sonra bu farkı kütleye böleriz.'
+      }
+    ],
+    hazir: 'Hâl değişimlerini, hâl değişim ısısını ve grafikteki yatay bölümü gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -77419,6 +77709,104 @@ BFY_FIG_EKLE('k1042_S2_kordon_genis', function (u) {
   });
   return svg(W, H, s, u, 165);
 });
+
+/* ================= SIFIRDAN BAŞLA ŞEKİLLERİ ================= */
+
+/* Adım 1: göletteki dalga ve yerinde inip kalkan yaprak (yandan kesit) */
+BFY_FIG_EKLE('sf1042_golet_genis', function (u) {
+  const W = 540, H = 210, yb = 112, A = 11, lam = 118, x0 = 64, xs = 30, xk = 470;
+  const yw = x => yb - A * Math.sin(2 * Math.PI * (x - x0) / lam);
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  // kıyı (sağ)
+  s += `<path d="M${xk - 20} ${H} L${xk + 6} 104 Q${xk + 30} 92 ${W} 96 L${W} ${H} Z" fill="url(#${u}soil)"/>`;
+  s += `<path d="M${xk + 4} 106 Q${xk + 30} 90 ${W} 94 L${W} 100 Q${xk + 30} 97 ${xk + 4} 110 Z" fill="url(#${u}grass)"/>`;
+  // su (dalgalı yüzeyin altı)
+  let d = `M${xs} ${H - 14}`;
+  for (let x = xs; x <= xk + 0.1; x += 3) d += ` L${x} ${yw(x).toFixed(1)}`;
+  d += ` L${xk} ${H - 14} Z`;
+  s += `<path d="${d}" fill="url(#${u}water)" opacity=".55"/>`;
+  s += `<rect x="${xs}" y="${H - 18}" width="${xk - xs + 6}" height="10" rx="4" fill="#cdbb9a"/>`;
+  [[70, 6], [150, 4], [232, 5], [318, 4], [400, 6]].forEach(([x, r]) => s += `<ellipse cx="${x}" cy="${H - 18}" rx="${r * 2}" ry="${r}" fill="#a99b84"/>`);
+  let yz = ''; for (let x = xs; x <= xk + 0.1; x += 3) yz += (x === xs ? 'M' : ' L') + x + ' ' + yw(x).toFixed(1);
+  s += `<path d="${yz}" fill="none" stroke="#2a79ad" stroke-width="2.4" stroke-linecap="round"/>`;
+  s += dashLine(xs, yb, xk, yb, '#5d7f93', '5 4', 1.1);
+  // taşın düştüğü yer: sıçrayan damlalar
+  [[-12, -18], [-4, -26], [6, -24], [14, -14]].forEach(([dx, dy]) => s += `<ellipse cx="${x0 - 30 + dx}" cy="${yw(x0 - 30) + dy}" rx="2.6" ry="3.6" fill="url(#${u}drop)"/>`);
+  s += T(12, yw(x0 - 30) - 38, 'taş düştü', { size: 15, weight: 700, fill: P.ink2 });
+  // yaprak: tepe noktasında
+  const xl = x0 + lam * 2.25, yl = yw(xl);
+  s += `<path d="M${xl - 18} ${yl - 2} Q${xl - 4} ${yl - 12} ${xl + 16} ${yl - 3} Q${xl} ${yl + 5} ${xl - 18} ${yl - 2} Z" fill="#6aa84f" stroke="#3e7a2c" stroke-width="1.2"/>`;
+  s += `<path d="M${xl - 16} ${yl - 2} L${xl + 14} ${yl - 3}" stroke="#3e7a2c" stroke-width=".9"/>`;
+  s += arrow(xl, yl - 16, xl, yl - 40, { color: P.coral, w: 2.2, head: 8 }) + arrow(xl, yl + 8, xl, yl + 32, { color: P.coral, w: 2.2, head: 8 });
+  s += T(xl + 12, yl - 33, 'yaprak yerinde', { size: 15, weight: 800, fill: P.coral }) + T(xl + 12, yl - 15, 'inip kalkar', { size: 15, weight: 800, fill: P.coral });
+  // ilerleme yönü
+  s += arrow(130, 30, 210, 30, { color: P.green, w: 2.4 }) + T(218, 35.5, 'dalganın ilerleme yönü', { size: 15, weight: 800, fill: P.green });
+  s += T(xk - 6, yb + 32, 'denge konumu', { size: 14, anchor: 'end', weight: 700, fill: '#3d5d70' });
+  return svg(W, H, s, u, 165);
+});
+
+/* Adım 3: musluktan leğene düşen damlalar, halka dalgalar */
+BFY_FIG_EKLE('sf1042_damla', function (u) {
+  const W = 320, H = 250, cx = 150, cy = 168;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  // musluk: duvardan çıkan boru, aşağı bakan ağız
+  s += `<rect x="0" y="20" width="22" height="70" fill="url(#${u}facade)"/>`;
+  s += `<rect x="18" y="38" width="112" height="14" rx="5" fill="url(#${u}metal)" stroke="#7d868d" stroke-width="1"/>`;
+  s += `<path d="M122 38 Q150 38 150 64 L150 74 L138 74 L138 64 Q138 52 122 52 Z" fill="url(#${u}metalV)" stroke="#7d868d" stroke-width="1"/>`;
+  s += `<rect x="60" y="26" width="16" height="12" rx="3" fill="#8e979f"/><rect x="52" y="20" width="32" height="8" rx="3" fill="#c0392b"/>`;
+  // düşen damlalar
+  [[86, 5], [120, 4.4]].forEach(([y, r]) => s += `<path d="M${cx} ${y - r * 1.8} Q${cx + r} ${y - r * 0.2} ${cx + r * 0.9} ${y + r * 0.4} A${r} ${r} 0 1 1 ${cx - r * 0.9} ${y + r * 0.4} Q${cx - r} ${y - r * 0.2} ${cx} ${y - r * 1.8} Z" fill="url(#${u}drop)" stroke="#2a79ad" stroke-width=".7"/>`);
+  // leğen: gövde, su yüzeyi, halkalar, ağız kenarı
+  s += `<ellipse cx="${cx}" cy="${cy + 58}" rx="86" ry="10" fill="#000" opacity=".12"/>`;
+  s += `<path d="M${cx - 124} ${cy} Q${cx - 112} ${cy + 54} ${cx - 76} ${cy + 56} L${cx + 76} ${cy + 56} Q${cx + 112} ${cy + 54} ${cx + 124} ${cy} Z" fill="#4f8fbf"/>`;
+  s += `<path d="M${cx - 124} ${cy} Q${cx - 112} ${cy + 54} ${cx - 76} ${cy + 56} L${cx - 40} ${cy + 56} Q${cx - 90} ${cy + 44} ${cx - 100} ${cy} Z" fill="#7fb4dc" opacity=".6"/>`;
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="124" ry="34" fill="#3b78a6"/>`;
+  s += `<ellipse cx="${cx}" cy="${cy + 3}" rx="114" ry="29" fill="url(#${u}water)" opacity=".85"/>`;
+  [18, 40, 62, 84].forEach((r, i) => s += `<ellipse cx="${cx}" cy="${cy + 3}" rx="${r}" ry="${r * 0.25}" fill="none" stroke="#e9f6fd" stroke-width="${2 - i * 0.3}" opacity="${0.95 - i * 0.15}"/>`);
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="124" ry="34" fill="none" stroke="#2c5f86" stroke-width="2.6"/>`;
+  // etiketler
+  s += T(196, 34, 'musluk', { size: 12, weight: 700 });
+  s += `<line x1="192" y1="30" x2="150" y2="46" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += T(176, 104, 'damla', { size: 12, weight: 700, fill: '#2a6f9a' }) + `<line x1="172" y1="100" x2="157" y2="92" stroke="#2a6f9a" stroke-width="1"/>`;
+  s += T(286, 136, 'halka', { size: 12, anchor: 'middle', weight: 700, fill: '#2a6f9a' }) + T(286, 150, 'dalgalar', { size: 12, anchor: 'middle', weight: 700, fill: '#2a6f9a' });
+  s += `<line x1="270" y1="152" x2="226" y2="166" stroke="#2a6f9a" stroke-width="1"/>`;
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 1: spor salonunda sallanan kalın halat, 1. ve 4. tepe arası 6 m, tepe ile çukur arası 1 m (ölçekli değil) */
+BFY_FIG_EKLE('sf1042_halat_genis', function (u) {
+  const W = 540, H = 214, yb = 120, A = 30, lam = 112, x0 = 66, x1 = 66, x2 = x0 + lam * 3.75;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f5f7"/>`;
+  s += `<rect x="0" y="176" width="${W}" height="38" fill="#c9cdd0"/><rect x="0" y="176" width="${W}" height="4" fill="#aeb4b8"/>`;
+  s += dashLine(x1 + 4, yb, 496, yb, C.eq, '5 4', 1.2);
+  // halat: koyu dış çizgi, açık gövde, parlak şerit
+  s += dalga(x1, x2, yb + 2, lam, A, x0, { color: '#000', w: 9 }).replace('<path', '<path opacity=".12"');
+  s += dalga(x1, x2, yb, lam, A, x0, { color: '#4a3b2b', w: 10 });
+  s += dalga(x1, x2, yb, lam, A, x0, { color: '#8d7558', w: 7 });
+  s += dalga(x1, x2, yb - 1.5, lam, A, x0, { color: '#c2ab8a', w: 1.6, dash: '6 5' });
+  // eller ve tutma yeri
+  s += `<rect x="${x1 - 26}" y="${yb - 7}" width="30" height="14" rx="5" fill="#2b2f33"/>`;
+  s += `<rect x="${x1 - 22}" y="${yb - 11}" width="14" height="22" rx="6" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".9"/>`;
+  s += `<rect x="-8" y="${yb - 8}" width="${x1 - 26}" height="16" rx="7" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".9"/><rect x="-8" y="${yb - 10}" width="12" height="20" rx="3" fill="#2f6f95"/>`;
+  s += `<rect x="${x1 - 40}" y="${yb - 9}" width="20" height="18" rx="6" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".9"/>`;
+  s += T(12, 201, 'sporcunun elleri', { size: 14.5, weight: 700, fill: P.ink2, haloColor: '#c9cdd0' });
+  // tepeler ve ölçüler
+  const tepe = k => x0 + lam * (0.25 + k);
+  [0, 1, 2, 3].forEach(k => s += nokta(tepe(k), yb - A));
+  s += dimH(tepe(0), tepe(3), yb - A - 22, '6 m', { size: 15 });
+  s += T(tepe(0), yb - A - 38, '1. tepe', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(tepe(3), yb - A - 38, '4. tepe', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += dashLine(tepe(3) + 8, yb - A, 502, yb - A, C.eq, '3 3', 1.1) + dashLine(x2 + 6, yb + A, 502, yb + A, C.eq, '3 3', 1.1);
+  s += dimVy(498, yb - A, yb + A, '1 m', yb + 5, { side: 'right', size: 15 });
+  s += T(W - 12, 201, '(Şekil ölçekli değildir.)', { size: 13.5, anchor: 'end', weight: 600, fill: P.ink2, haloColor: '#c9cdd0' });
+  return svg(W, H, s, u, 165);
+});
+
+/* Isınma 2: sismometre kaydı (sadeleştirilmiş), A = 6 mm, T = 2 s */
+BFY_FIG_EKLE('sf1042_sismo', function (u) {
+  const W = 320, H = 224;
+  let s = uzanimZaman({ W, H, ox: 50, top: 40, pw: 208, tMax: 8, tStep: 1, lblStep: 1, A: 6, Ay: 58, fn: t => 6 * Math.cos(Math.PI * t), yLab: 'Uzanım (mm)', tLab: 't (s)', aLab: '6' });
+  return svg(W, H, s, u, 72);
+});
 })();
 
 /* ---------- 3B görünümlü (izometrik) çizimler: hikâye, tanım ve efsane kartları ---------- */
@@ -77994,6 +78382,194 @@ const KONU = {
     'SET 1: Philips Compact 5000 ultrasonografi probları frekans aralıkları (C5-1, S5-1, C8-5, L12-3, L18-5), dokuda 1540 m/s, atma = 2 dalga, eksenel ayırma, atma tekrar sayısı',
     'SET 2: fizik kulübünde elle sallanan 6 m lastik kordon, K (1,0 m) ve L (2,5 m) bantlarının tepe anları ve genlikleri (9,0 / 6,5 cm), 3,2 Hz kestirimi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen 3 ısınma sorusu.
+     Sayılar tam; hesaplar qa/10.4.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Dalga ilerler, ortam yerinde kalır',
+        sekil: 'sf1042_golet_genis',
+        metin: r`Durgun bir gölete taş at. Taşın düştüğü yerden halkalar yayılır ve kıyıya doğru ilerler. Suyun üzerinde bir yaprak varsa ona bak. Yaprak dalgayla kıyıya gitmez; hemen hemen bulunduğu yerde inip kalkar.
+
+Taş, suyu düştüğü yerde titreştirir. Bu titreşim suda yayılır. Esnek bir ortamda titreşimle yayılan bu şekil değişikliğine **dalga** denir. Dalga ilerlerken ortamın parçaları yerinde titreşir. Dalgayla bir yerden başka bir yere taşınan şey **enerjidir**.
+
+Kaynak yalnız bir kez titreşirse tek bir dalga oluşur; buna **atma** denir. Kaynak düzenli olarak titreşirse birbirini izleyen dalgalar oluşur; bunlara **periyodik dalga** denir.`,
+        kontrol: {
+          soru: 'Gölette ilerleyen dalga, yaprağın altından geçip gidiyor. Dalga geçtikten sonra yaprak nerededir?',
+          secenekler: ['Dalgayla birlikte kıyıya gitmiştir.', 'Yaklaşık olarak eski yerindedir.', 'Taşın düştüğü yere geri gelmiştir.'],
+          dogru: 1,
+          aciklama: 'Dalga, suyu ve yaprağı taşımaz; enerjiyi taşır. Yaprak yerinde inip kalkar ve dalga geçince yaklaşık eski yerinde kalır.',
+          yanlisIpucu: 'Dalga ilerlerken ortamın parçaları ne yapıyordu: taşınıyor mu, yerinde mi titreşiyor?'
+        }
+      },
+      {
+        baslik: 'Tepe, çukur, dalga boyu ve genlik',
+        sekil: 'k1042_anatomi',
+        metin: r`Periyodik bir dalganın bir anlık fotoğrafını çektiğini düşün. Dalga, **denge konumu** denen düz çizginin bir üstüne bir altına iner çıkar. Denge konumunun üstündeki en yüksek noktalara **tepe**, altındaki en alçak noktalara **çukur** denir.
+- **Dalga boyu ($\lambda$):** Art arda gelen iki tepe arasındaki uzaklıktır. İki çukur arasında da ölçülebilir.
+- **Genlik ($A$):** Denge konumundan bir tepeye ya da bir çukura olan uzaklıktır.
+
+Genlik büyüdükçe dalganın taşıdığı enerji de büyür. Fırtınalı günlerde yüksek dalgaların kayalara sert çarpması bundandır.`,
+        kontrol: {
+          soru: 'Bir dalgada tepe ile çukur arasındaki düşey uzaklık 30 cm\'dir. Dalganın genliği kaç cm\'dir?',
+          secenekler: ['15 cm', '30 cm', '60 cm'],
+          dogru: 0,
+          aciklama: r`Denge konumu, tepe ile çukurun tam ortasındadır. Tepe ile çukur arası iki genliğe eşittir: $A = 30 \div 2 = 15$ cm.`,
+          yanlisIpucu: 'Genlik, denge konumundan ölçülür. Denge konumu tepe ile çukurun neresindedir?'
+        }
+      },
+      {
+        baslik: 'Periyot ve frekans',
+        sekil: 'sf1042_damla',
+        metin: r`Bozuk bir musluktan su dolu bir leğene düzenli aralıklarla damlalar düşüyor. Her damla, suda yayılan bir halka dalga oluşturur. Damlalar ne kadar sık düşerse halkalar da o kadar sık oluşur.
+- **Periyot ($T$):** Bir tam dalganın oluşması için geçen süredir. Birimi saniyedir (s).
+- **Frekans ($f$):** Bir saniyede oluşan dalga sayısıdır. Birimi hertzdir (Hz).
+
+Periyot ile frekans birbirinin tersidir: $T \times f = 1$. Saniyede 5 dalga oluşuyorsa her dalga $\frac{1}{5}$ saniyede oluşur. Dalganın frekansını ve periyodunu, dalgayı oluşturan **kaynak** belirler.`,
+        kontrol: {
+          soru: 'Leğene 20 saniyede 40 damla düşüyor. Oluşan dalgaların frekansı kaç Hz\'dir?',
+          secenekler: [r`$\frac{1}{2}$ Hz`, '2 Hz', '40 Hz'],
+          dogru: 1,
+          aciklama: r`Frekans, bir saniyede oluşan dalga sayısıdır: $f = 40 \div 20 = 2$ Hz. Periyot ise $T = \frac{1}{2}$ s olur.`,
+          yanlisIpucu: 'Toplam dalga sayısını geçen süreye böl.'
+        }
+      },
+      {
+        baslik: 'Dalga ne kadar hızlı ilerler?',
+        metin: r`Kaynak bir tam titreşim yaptığında, yani bir periyotta, dalga bir dalga boyu kadar ilerler. Kaynak saniyede $f$ kez titreşirse dalga bir saniyede $f$ tane dalga boyu kadar yol alır. Bu yüzden dalganın sürati şöyle bulunur:
+$$\vartheta = \lambda \times f \qquad \text{ya da} \qquad \vartheta = \frac{\lambda}{T}$$
+Dalga boyunu metre, frekansı hertz olarak kullanırsan sürat m/s olarak çıkar.`,
+        kontrol: {
+          soru: 'Dalga boyu 4 m, frekansı 2 Hz olan bir dalganın sürati kaç m/s\'dir?',
+          secenekler: ['2 m/s', '6 m/s', '8 m/s'],
+          dogru: 2,
+          aciklama: r`$\vartheta = \lambda \times f = 4 \times 2 = 8$ m/s. Dalga her saniye iki dalga boyu, yani 8 m ilerler.`,
+          yanlisIpucu: 'Dalga her saniye 2 dalga boyu ilerler. Bir dalga boyu 4 m\'dir.'
+        }
+      },
+      {
+        baslik: 'Frekansı kaynak, sürati ortam belirler',
+        metin: r`Bir dalganın frekansını onu üreten **kaynak** belirler. Kaynak daha sık titreşirse frekans artar. Dalga başka bir ortama geçse bile frekansı değişmez.
+
+Dalganın süratini ise dalganın ilerlediği **ortam** belirler. Örneğin aynı gerginlikteki aynı ipte bütün dalgalar aynı süratle ilerler.
+
+Aynı ortamda kaynak daha sık titreşirse sürat değişmez. Dalgalar sıklaşır ve dalga boyu küçülür. $\vartheta = \lambda \times f$ eşitliğinde $\vartheta$ sabitken $f$ artarsa $\lambda$ azalır.`,
+        kontrol: {
+          soru: 'Bir kaynak saniyede 6 dalga üretiyor. Dalgalar, sürati farklı olan başka bir ortama geçiyor. Yeni ortamda dalgaların frekansı kaç Hz olur?',
+          secenekler: ['3 Hz', '6 Hz', '12 Hz'],
+          dogru: 1,
+          aciklama: 'Frekansı kaynak belirler. Ortam değişse de her saniye yine 6 dalga gelir: f = 6 Hz. Ortam değişince sürat ve dalga boyu değişir.',
+          yanlisIpucu: 'Frekansı kaynak mı belirler, ortam mı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Spor salonundaki kalın halat',
+        sekil: 'sf1042_halat_genis',
+        metin: r`Bir sporcu, ucu 12 m ötedeki duvara bağlı kalın bir halatı iki eliyle düzenli olarak aşağı yukarı sallıyor. Şekil, halatın sporcuya yakın bölümünün bir anlık görünümünü gösteriyor. Şekilde 1. tepe ile 4. tepe arası 6 m, bir tepe ile bir çukur arasındaki düşey uzaklık 1 m'dir.`,
+        adimlar: [
+          {
+            soru: 'Halattaki dalganın genliği nedir?',
+            secenekler: ['1 m', '50 cm', '2 m'],
+            dogru: 1,
+            ipucu: 'Tepe ile çukur arasındaki düşey uzaklık iki genliğe eşittir.',
+            aciklama: 'Genlik, tepe ile çukur arasının yarısıdır: 1 m\'nin yarısı 50 cm eder.'
+          },
+          {
+            soru: 'Dalga boyu kaç m\'dir?',
+            secenekler: ['2 m', '3 m', '6 m'],
+            dogru: 0,
+            ipucu: '1. tepeden 4. tepeye kaç dalga boyu vardır? Tepeleri tek tek say.',
+            aciklama: r`1. tepeden 4. tepeye 3 dalga boyu vardır: $\lambda = 6 \div 3 = 2$ m.`
+          },
+          {
+            soru: 'Sporcu halatı saniyede 3 kez sallıyor. Dalganın sürati kaç m/s\'dir?',
+            secenekler: ['5 m/s', '6 m/s', r`$\frac{2}{3}$ m/s`],
+            dogru: 1,
+            ipucu: r`$\vartheta = \lambda \times f$. Saniyede 3 sallama, frekansın 3 Hz olması demektir.`,
+            aciklama: r`$f = 3$ Hz. $\vartheta = 2 \times 3 = 6$ m/s.`
+          },
+          {
+            soru: 'Sporcunun elinde oluşan bir tepe, kaç saniyede duvara ulaşır?',
+            secenekler: ['2 s', '4 s', '72 s'],
+            dogru: 0,
+            ipucu: 'Süre, alınan yolun sürate bölümüdür. Yol 12 m.',
+            aciklama: r`$t = 12 \div 6 = 2$ s.`
+          }
+        ],
+        sonuc: 'Şekilden dalga boyunu bulduk, frekansı sallama sayısından aldık. İkisinin çarpımı sürati verdi. Genlik ise sürati bulmakta kullanılmadı; genlik dalganın enerjisini gösterir.'
+      },
+      {
+        baslik: 'Sismometre kaydı',
+        sekil: 'sf1042_sismo',
+        metin: r`Sismometre, bir deprem dalgası geçerken yerin bir noktasının uzanımını zamana göre kaydeder. Şekilde bir deprem dalgasının kaydı sadeleştirilerek verilmiştir.`,
+        adimlar: [
+          {
+            soru: 'Dalganın genliği kaç mm\'dir?',
+            secenekler: ['3 mm', '6 mm', '12 mm'],
+            dogru: 1,
+            ipucu: 'Genlik, sıfır çizgisinden bir tepeye olan uzaklıktır.',
+            aciklama: 'Grafiğin en büyük değeri 6 mm\'dir: A = 6 mm. 12 mm ise tepe ile çukur arasıdır.'
+          },
+          {
+            soru: 'Dalganın periyodu kaç saniyedir?',
+            secenekler: ['1 s', '2 s', '4 s'],
+            dogru: 1,
+            ipucu: 'Art arda gelen iki tepe arasındaki zaman farkını oku.',
+            aciklama: 'Tepeler 0, 2, 4, 6 ve 8. saniyededir: T = 2 s. 1 s, tepeden çukura iniş süresidir.'
+          },
+          {
+            soru: 'Kayıt 20 saniye aynı biçimde sürseydi yerdeki nokta kaç tam titreşim yapardı?',
+            secenekler: ['10', '20', '40'],
+            dogru: 0,
+            ipucu: 'Her tam titreşim bir periyot sürer.',
+            aciklama: r`$20 \div 2 = 10$ tam titreşim.`
+          },
+          {
+            soru: 'Dalganın yerdeki sürati 3000 m/s ise dalga boyu kaç m\'dir?',
+            secenekler: ['1500 m', '3002 m', '6000 m'],
+            dogru: 2,
+            ipucu: r`Dalga bir periyotta bir dalga boyu ilerler: $\lambda = \vartheta \times T$.`,
+            aciklama: r`$\lambda = 3000 \times 2 = 6000$ m.`
+          }
+        ],
+        sonuc: 'Uzanım-zaman grafiğinden genliği ve periyodu okuduk. Sürat de bilinince dalga boyunu bulduk.'
+      },
+      {
+        baslik: 'Koridordaki sarmal yay',
+        metin: r`Okul koridorunda yere uzatılmış uzun bir sarmal yayın bir ucu sabit tutuluyor. Öğrenci öbür ucu yerde sağa sola düzenli olarak sallıyor. Bu yayda dalgalar 2 m/s süratle ilerliyor.`,
+        adimlar: [
+          {
+            soru: 'Öğrenci yayı saniyede 2 kez sallıyor. Dalga boyu kaç m\'dir?',
+            secenekler: ['1 m', '2 m', '4 m'],
+            dogru: 0,
+            ipucu: r`$\lambda = \vartheta \div f$. Sürat 2 m/s, frekans 2 Hz.`,
+            aciklama: r`$\lambda = 2 \div 2 = 1$ m.`
+          },
+          {
+            soru: 'Öğrenci şimdi yayı saniyede 4 kez sallıyor. Dalgaların sürati ne olur?',
+            secenekler: ['4 m/s olur.', '2 m/s olarak kalır.', '1 m/s olur.'],
+            dogru: 1,
+            ipucu: 'Sürati kaynak mı belirler, ortam mı? Yay aynı yay.',
+            aciklama: 'Ortam değişmediği için sürat 2 m/s olarak kalır. Değişen frekanstır.'
+          },
+          {
+            soru: 'Yeni dalga boyu kaç cm\'dir?',
+            secenekler: ['50 cm', '100 cm', '200 cm'],
+            dogru: 0,
+            ipucu: r`$\lambda = \vartheta \div f$. Sürati ve yeni frekansı kullan.`,
+            aciklama: r`$\lambda = \frac{2}{4}$ m, yani 50 cm. Frekans 2 katına çıktı, dalga boyu yarıya indi.`
+          }
+        ],
+        sonuc: 'Aynı ortamda sürat değişmez. Kaynak daha sık titreşirse dalgalar sıklaşır ve dalga boyu küçülür.'
+      }
+    ],
+    hazir: 'Dalga boyunu, genliği, periyodu, frekansı ve dalganın süratini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -119247,6 +119823,118 @@ BFY_FIG_EKLE('k135_camtekne', function (u) {
   s += T(W - 14, 200, 'deniz suyu', { size: 13, weight: 800, fill: '#fff', halo: false, anchor: 'end' });
   return svg(W, H, s, u, 70);
 });
+
+/* ================= SIFIRDAN BAŞLA ŞEKİLLERİ ================= */
+
+/* Adım 2: sudan havaya geçen ışın; dik ışın kırılmaz, eğik ışın normalden uzaklaşır */
+BFY_FIG_EKLE('sf1135_isin', function (u) {
+  const W = 320, H = 236, ys = 112;
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += suBlok(u, 0, ys, W, H - ys);
+  s += `<rect class="bg" x="0" y="${H - 14}" width="${W}" height="14" fill="url(#${u}sand)"/>`;
+  const O = [96, 210], g = klasik(O, ys, N_SU, 1, 30, 112);
+  // eğik ışın doğrultusunu korusaydı (soluk kesikli)
+  const Lz = 90, dx = (g.S[0] - O[0]) / (O[1] - ys);
+  s += `<line x1="${f1(g.S[0])}" y1="${ys}" x2="${f1(g.S[0] + Lz * dx / Math.hypot(dx, 1))}" y2="${f1(ys - Lz / Math.hypot(dx, 1))}" stroke="${RAY}" stroke-width="1.3" stroke-dasharray="3 4" opacity=".45"/>`;
+  s += normal(g.S[0], ys, 46) + T(g.S[0] - 6, ys - 38, 'normal', { size: 12, fill: P.ink2, weight: 600, anchor: 'end' });
+  s += isin(O[0], O[1], O[0], 16, { t: 0.66 }) + T(O[0] - 8, 30, 'dik çıkan ışın', { size: 12, weight: 700, fill: P.ink2, anchor: 'end' }) + T(O[0] - 8, 44, 'kırılmaz', { size: 12, weight: 700, fill: P.ink2, anchor: 'end' });
+  s += isin(O[0], O[1], g.S[0], ys) + isin(g.S[0], ys, g.E[0], g.E[1], { t: 0.6 });
+  s += T(g.E[0] - 2, g.E[1] - 8, 'normalden', { size: 12, weight: 800, fill: RAY, anchor: 'middle' }) + T(g.E[0] - 2, g.E[1] + 6, 'uzaklaşır', { size: 12, weight: 800, fill: RAY, anchor: 'middle' });
+  s += para(u, O[0], O[1] + 3, 12);
+  s += T(O[0] + 18, O[1] + 7, 'para', { size: 12.5, weight: 700 });
+  s += T(W - 14, 26, 'Hava', { size: 13, weight: 800, fill: P.ink2, anchor: 'end' });
+  s += T(W - 14, ys + 22, 'Su', { size: 13, weight: 800, fill: '#fff', halo: false, anchor: 'end' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Adım 3: dilek havuzundaki para; gerçek derinlik h, görünür derinlik h′ */
+BFY_FIG_EKLE('sf1135_dilek_genis', function (u) {
+  const W = 520, H = 262, ys = 112, yt = 232;
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect x="0" y="80" width="${W}" height="${H - 80}" fill="url(#${u}grass)"/>`;
+  // havuz: taş duvarlar, su, karo taban
+  s += `<rect x="40" y="${ys}" width="420" height="${yt - ys + 8}" fill="url(#${u}pool)"/>`;
+  s += `<line x1="40" y1="${ys}" x2="460" y2="${ys}" stroke="#2a79ad" stroke-width="1.6"/>`;
+  s += `<rect x="40" y="${yt}" width="420" height="10" fill="url(#${u}tile)"/>`;
+  for (let x = 40; x < 460; x += 30) s += `<line x1="${x}" y1="${yt}" x2="${x}" y2="${yt + 10}" stroke="#b8c6cf" stroke-width="1"/>`;
+  s += `<rect x="18" y="70" width="24" height="${yt - 70 + 22}" rx="4" fill="url(#${u}stone)" stroke="#a89c86" stroke-width="1"/>`;
+  s += `<rect x="458" y="70" width="24" height="${yt - 70 + 22}" rx="4" fill="url(#${u}stone)" stroke="#a89c86" stroke-width="1"/>`;
+  s += `<rect x="14" y="64" width="32" height="10" rx="3" fill="#d6ccb8"/><rect x="454" y="64" width="32" height="10" rx="3" fill="#d6ccb8"/>`;
+  s += dalga(60, 440, ys + 12, '#d8f0fa');
+  [[110, 6], [190, 5], [250, 6]].forEach(([x, r]) => s += para(u, x, yt - 2, r + 4));
+  const O = [300, yt - 4], g = klasik(O, ys, N_SU, 1, 20, 84), ang = Math.atan2(g.S[1] - g.E[1], g.S[0] - g.E[0]) / D;
+  s += normal(g.S[0], ys, 36);
+  s += isin(O[0], O[1], O[0], 40, { t: 0.72 });
+  s += uzanti(g.S, g.I);
+  s += isin(O[0], O[1], g.S[0], ys, { t: 0.5 }) + isin(g.S[0], ys, g.E[0], g.E[1], { t: 0.55 });
+  s += para(u, O[0], O[1], 12) + para(u, g.I[0], g.I[1], 12, true);
+  s += goz(g.E[0], g.E[1], ang, 1.1);
+  s += dimV(O[0] - 74, ys, O[1], 'h', { side: 'left', size: 17 });
+  s += dimV(O[0] - 34, ys, g.I[1], 'h′', { side: 'left', size: 17 });
+  s += T(g.I[0] + 30, g.I[1] + 5, 'görüntü', { size: 15.5, weight: 700, fill: EXT });
+  s += T(O[0] + 20, O[1] - 6, 'para', { size: 15.5, weight: 700, fill: P.ink });
+  s += T(g.E[0] - 20, g.E[1] - 2, 'göz', { size: 15.5, weight: 700, anchor: 'end' });
+  return svg(W, H, s, u, 165);
+});
+
+/* Adım 4: su altındaki yüzücünün gözü, havuzun üstündeki bayraklar daha yüksekte görünür */
+BFY_FIG_EKLE('sf1135_bayrak_genis', function (u) {
+  const W = 520, H = 300, ys = 168;
+  const ry = x => { const t = (x - 16) / 488; return (1 - t) * (1 - t) * 52 + 2 * t * (1 - t) * 68 + t * t * 52; };
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef3f6"/>`;
+  s += suBlok(u, 0, ys, W, H - ys, `url(#${u}pool)`);
+  s += `<rect x="0" y="${H - 12}" width="${W}" height="12" fill="url(#${u}tile)"/>`;
+  s += dalga(10, 510, ys + 12, '#d8f0fa');
+  // bayrak ipi ve bayraklar
+  s += `<path d="M16 52 Q260 84 504 52" fill="none" stroke="#5b4a3a" stroke-width="1.4"/>`;
+  const renk = ['#d9573b', '#2f7fb8', '#e7a93b'];
+  const bayrak = (x, y0, fill, ghost) => ghost
+    ? `<path d="M${f1(x - 9)} ${f1(y0)} L${f1(x + 9)} ${f1(y0)} L${f1(x)} ${f1(y0 + 18)} Z" fill="none" stroke="${EXT}" stroke-width="1.4" stroke-dasharray="3 2.5"/>`
+    : `<path d="M${f1(x - 9)} ${f1(y0)} L${f1(x + 9)} ${f1(y0)} L${f1(x)} ${f1(y0 + 18)} Z" fill="${fill}" stroke="${ton2(fill)}" stroke-width=".8"/>`;
+  const ton2 = c => c === '#d9573b' ? '#9e3a22' : c === '#2f7fb8' ? '#1d5a86' : '#a8741f';
+  for (let i = 0; i < 12; i++) { const x = 40 + i * 40; s += bayrak(x, ry(x), renk[i % 3]); }
+  const xb = 280, O = [xb, ry(xb) + 7], g = klasik(O, ys, 1, N_SU, 30, 70), ang = Math.atan2(g.S[1] - g.E[1], g.S[0] - g.E[0]) / D;
+  s += normal(g.S[0], ys, 34);
+  s += uzanti(g.S, g.I);
+  s += isin(O[0], O[1], g.S[0], ys, { t: 0.55 }) + isin(g.S[0], ys, g.E[0], g.E[1], { t: 0.5 });
+  s += bayrak(xb, g.I[1] - 7, '', true);
+  // yüzücünün başı (bone) ve gözü
+  const hx = g.E[0] + 22, hy = g.E[1] + 14;
+  s += `<ellipse cx="${f1(hx)}" cy="${f1(hy)}" rx="26" ry="22" fill="url(#${u}skin)" stroke="#b98463" stroke-width="1"/>`;
+  s += `<path d="M${f1(hx - 24)} ${f1(hy - 4)} Q${f1(hx - 6)} ${f1(hy - 34)} ${f1(hx + 24)} ${f1(hy - 6)} Q${f1(hx + 28)} ${f1(hy + 10)} ${f1(hx + 18)} ${f1(hy + 16)} Q${f1(hx + 4)} ${f1(hy - 12)} ${f1(hx - 24)} ${f1(hy - 4)} Z" fill="#c0392b"/>`;
+  s += goz(g.E[0], g.E[1], ang, 0.9);
+  s += T(hx + 32, hy + 6, 'yüzücü', { size: 15.5, weight: 700, anchor: 'start', fill: P.ink });
+  s += T(xb - 14, g.I[1] + 5, 'görüntü', { size: 15.5, weight: 700, fill: EXT, anchor: 'end' });
+  s += T(xb - 12, O[1] + 32, 'bayrak', { size: 15.5, weight: 700, anchor: 'end' });
+  s += T(14, ys - 10, 'Hava', { size: 16, weight: 800, fill: P.ink2 });
+  s += T(14, ys + 27, 'Su', { size: 16, weight: 800, fill: '#fff', halo: false });
+  return svg(W, H, s, u, 165);
+});
+
+/* Adım 5: aynı derinlikte su ve bal; baldaki fasulye yüzeye daha yakın görünür (tam üstten bakış) */
+BFY_FIG_EKLE('sf1135_kavanoz', function (u) {
+  const W = 320, H = 250, ys = 96, yb = 206, N_BAL = 1.49;
+  let s = GR(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  s += `<rect x="0" y="214" width="${W}" height="36" fill="url(#${u}wood)"/>`;
+  const fas = (x, y, ghost) => ghost
+    ? `<path d="M${f1(x - 11)} ${f1(y)} Q${f1(x - 11)} ${f1(y - 6)} ${f1(x - 2)} ${f1(y - 5)} Q${f1(x + 1)} ${f1(y - 2)} ${f1(x + 4)} ${f1(y - 5)} Q${f1(x + 12)} ${f1(y - 6)} ${f1(x + 11)} ${f1(y)} Q${f1(x + 9)} ${f1(y + 5)} ${f1(x)} ${f1(y + 5)} Q${f1(x - 10)} ${f1(y + 5)} ${f1(x - 11)} ${f1(y)} Z" fill="none" stroke="${EXT}" stroke-width="1.4" stroke-dasharray="3 2.5"/>`
+    : `<path d="M${f1(x - 11)} ${f1(y)} Q${f1(x - 11)} ${f1(y - 6)} ${f1(x - 2)} ${f1(y - 5)} Q${f1(x + 1)} ${f1(y - 2)} ${f1(x + 4)} ${f1(y - 5)} Q${f1(x + 12)} ${f1(y - 6)} ${f1(x + 11)} ${f1(y)} Q${f1(x + 9)} ${f1(y + 5)} ${f1(x)} ${f1(y + 5)} Q${f1(x - 10)} ${f1(y + 5)} ${f1(x - 11)} ${f1(y)} Z" fill="#f4ecd8" stroke="#a8946a" stroke-width="1"/>`;
+  [[86, 'su', `url(#${u}lake)`, N_SU], [234, 'bal', '#e9a93a', N_BAL]].forEach(([cx, ad, fill, n]) => {
+    const x0 = cx - 48, x1 = cx + 48;
+    s += `<ellipse cx="${cx}" cy="${yb + 9}" rx="54" ry="5" fill="#000" opacity=".12"/>`;
+    s += `<path d="M${x0 + 2} ${ys} L${x0 + 2} ${yb - 2} Q${x0 + 2} ${yb + 6} ${x0 + 12} ${yb + 6} L${x1 - 12} ${yb + 6} Q${x1 - 2} ${yb + 6} ${x1 - 2} ${yb - 2} L${x1 - 2} ${ys} Z" fill="${fill}" opacity="${ad === 'bal' ? 0.82 : 1}"/>`;
+    s += `<line x1="${x0 + 2}" y1="${ys}" x2="${x1 - 2}" y2="${ys}" stroke="${ad === 'bal' ? '#b5761a' : '#2a79ad'}" stroke-width="1.6"/>`;
+    const yO = yb - 2, yI = ys + (yO - ys) / n;
+    s += fas(cx, yO) + fas(cx, yI, true);
+    s += `<path d="M${x0} 74 L${x0} ${yb - 4} Q${x0} ${yb + 8} ${x0 + 12} ${yb + 8} L${x1 - 12} ${yb + 8} Q${x1} ${yb + 8} ${x1} ${yb - 4} L${x1} 74" fill="url(#${u}crys)" fill-opacity=".25" stroke="#7f9fb3" stroke-width="2"/>`;
+    s += `<line x1="${x0 + 9}" y1="84" x2="${x0 + 9}" y2="${yb - 6}" stroke="#fff" stroke-width="2.4" opacity=".6"/>`;
+    s += `<rect x="${x0 - 3}" y="68" width="${x1 - x0 + 6}" height="8" rx="3" fill="#c9d6de" stroke="#7f9fb3" stroke-width="1"/>`;
+    s += goz(cx, 40, 90, 0.9);
+    s += T(cx, 238, ad, { size: 13, anchor: 'middle', weight: 800, haloColor: '#f1d8a8' });
+  });
+  s += T(W / 2, 20, 'kesikli fasulye: görüntü', { size: 11.5, anchor: 'middle', weight: 700, fill: EXT });
+  return svg(W, H, s, u, 70);
+});
 })();
 
 /* ===== 3B görünümlü çizimler (i1135_*): hikâye, tanım ve efsane kartları =====
@@ -119969,6 +120657,188 @@ const KONU = {
     'EK: balıkçıl ile balığın birbirini görmesi (aday noktalar); akvaryumda kedi (yan cam) ve Ayşe (üstten); dalış ipinde 1 m işaretler; kuyumcu vitrininin kalın camı, etiket ve yüzük',
     'EK (H): opak kupanın kenarının gizlediği para ve su doldurdukça görünmesi (tablo); cam tabanlı teknede panel, plastik panel ve panel üstüne dolan su; toplu iğne ile paralaks yöntemi basamakları (sıralama)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen 3 ısınma sorusu.
+     Program kısıtı gereği formül ve sayısal hesap yok; ışın yolu ve karşılaştırma. Şekillerin geometrisi Snell Yasası ile
+     figs.js içinde çözülür; sonuçlar qa/11.3.5/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Göz, ışığın geldiği doğrultuya bakar',
+        metin: r`Aynaya baktığında kendini aynanın arkasında görürsün. Oysa aynanın arkasında kimse yoktur. Bunun nedeni gözün çalışma biçimidir.
+
+Göz, kendisine gelen ışının yolda nerede yön değiştirdiğini bilemez. Gelen ışını geriye doğru **düz bir çizgi** boyunca uzatır. Cismi bu uzantıların kesiştiği yerde görür. Bu noktaya cismin **görüntüsü** denir.
+
+Işık yolda kırılırsa da durum aynıdır. Göz yine gelen ışını geriye doğru düz uzatır. Bu yüzden cismi, gerçek yerinden farklı bir yerde görebilir.`,
+        kontrol: {
+          soru: 'Bir cisimden çıkan ışınlar göze gelmeden önce yön değiştirmiş olsun. Göz cismi nerede görür?',
+          secenekler: ['Her zaman cismin gerçek yerinde', 'Göze gelen ışınların geriye doğru uzantıları üzerinde', 'Işınların yön değiştirdiği noktada'],
+          dogru: 1,
+          aciklama: 'Göz, ışınların nerede yön değiştirdiğini bilemez. Göze gelen ışınları geriye doğru düz uzatır ve cismi uzantıların kesiştiği yerde görür.',
+          yanlisIpucu: 'Aynadaki görüntüyü hatırla. Göz, gelen ışını hangi yöne doğru uzatıyordu?'
+        }
+      },
+      {
+        baslik: 'Sudan havaya çıkan ışık kırılır',
+        sekil: 'sf1135_isin',
+        metin: r`Su dolu bir kabın dibindeki bir paradan her yöne ışık yayılır. Bu ışınlar su yüzeyine gelir ve havaya çıkar.
+
+Işığın geçtiği noktada yüzeye dik bir çizgi düşün. Bu çizgiye **normal** denir.
+- Yüzeye **dik** gelen, yani normal boyunca çıkan ışın kırılmadan geçer.
+- Yüzeye **eğik** gelen ışın havaya çıkarken **normalden uzaklaşarak** kırılır.
+
+Işık, ışığı kırma indisi büyük olan sudan kırma indisi küçük olan havaya geçiyor. Bu yüzden normalden uzaklaşır.`,
+        kontrol: {
+          soru: 'Kabın dibindeki paradan su yüzeyine dik olarak çıkan ışın havaya geçerken ne olur?',
+          secenekler: ['Kırılmadan geçer.', 'Normale yaklaşarak kırılır.', 'Normalden uzaklaşarak kırılır.'],
+          dogru: 0,
+          aciklama: 'Normal boyunca, yani yüzeye dik gelen ışın doğrultusunu değiştirmez. Yalnız eğik gelen ışınlar kırılır.',
+          yanlisIpucu: 'Şekildeki dik çıkan ışına bak. Yüzeyde yönü değişiyor mu?'
+        }
+      },
+      {
+        baslik: 'Havadan bakınca dip yakın görünür',
+        sekil: 'sf1135_dilek_genis',
+        metin: r`Bir parkın dilek havuzunda dipte paralar parlıyor. Havuzun kenarından paraya bakıyorsun. Paradan gelen eğik ışın yüzeyde normalden uzaklaşarak kırılır ve gözüne gelir. Gözün bu ışını geriye doğru düz uzatır. Uzantı, paranın düşeyini paradan daha yukarıdaki bir noktada keser. Para sana orada, yani yüzeye daha yakın görünür.
+- **Gerçek derinlik ($h$):** Cismin su yüzeyine gerçek uzaklığıdır.
+- **Görünür derinlik ($h'$):** Cismin yüzeyden itibaren görüldüğü uzaklıktır.
+
+Suya havadan bakan biri için $h' < h$ olur. Sudaki cisimler yüzeye **daha yakın** görünür. Bu konuda görünür derinliği hesaplamayız; ışın çizer ve karşılaştırırız.`,
+        kontrol: {
+          soru: 'Dilek havuzunun 40 cm derinliğindeki bir para, kenardan bakan birine hangi derinlikte görünür?',
+          secenekler: ['40 cm\'den az', 'Tam 40 cm', '40 cm\'den fazla'],
+          dogru: 0,
+          aciklama: 'Havadan bakan biri sudaki cismi yüzeye daha yakın görür. Görünür derinlik gerçek derinlikten küçüktür.',
+          yanlisIpucu: 'Şekilde görüntü paranın üstünde mi, altında mı?'
+        }
+      },
+      {
+        baslik: 'Sudan bakınca havadaki cisim uzak görünür',
+        sekil: 'sf1135_bayrak_genis',
+        metin: r`Kapalı bir yüzme havuzunda suyun üstüne bayraklar gerilmiş. Gözlüksüz bir yüzücü suyun altında gözlerini açıp bayraklara bakıyor.
+
+Bu kez ışık havadan suya geçiyor. Bayraktan gelen eğik ışın suya girerken **normale yaklaşarak** kırılır. Yüzücünün gözü bu ışını geriye doğru düz uzatır. Uzantı, bayrağın düşeyini bayraktan daha yüksekteki bir noktada keser.
+
+Kırma indisi büyük ortamdaki göz, kırma indisi küçük ortamdaki cismi yüzeyden **daha uzakta** görür. Yüzücü için bayraklar olduklarından daha yüksektedir.`,
+        kontrol: {
+          soru: 'Su altındaki yüzücü, bayrakları gerçek yüksekliklerine göre nerede görür?',
+          secenekler: ['Daha alçakta', 'Gerçek yüksekliklerinde', 'Daha yüksekte'],
+          dogru: 2,
+          aciklama: 'Işık havadan suya geçerken normale yaklaşır. Gözün çizdiği uzantı bayrağın üstünde kesişir. Bayraklar yüzeyden daha uzakta, yani daha yüksekte görünür.',
+          yanlisIpucu: 'Göz suyun içinde, cisim havada. Göz kırma indisi büyük ortamdayken cisim yakın mı görünür, uzak mı?'
+        }
+      },
+      {
+        baslik: 'Görünür derinliği ne değiştirir?',
+        sekil: 'sf1135_kavanoz',
+        metin: r`Mutfakta iki cam kavanoz var. Birinde su, ötekinde süzme bal var; iki sıvının yüksekliği aynı. İkisinin de dibinde birer fasulye duruyor. Kavanozlara tam üstten bakıyorsun.
+
+Balın ışığı kırma indisi sudan büyüktür. Hava ile bal arasındaki kırma indisi farkı daha büyüktür; ışık daha çok kırılır. Bu yüzden baldaki fasulye yüzeye **daha yakın** görünür.
+
+Görünür derinliği değiştiren iki şey vardır:
+- **Ortamlar arasındaki kırma indisi farkı:** Fark büyüdükçe cisim ile görüntüsü arasındaki uzaklık artar.
+- **Gerçek derinlik:** Cisim derindeyse görüntüsü de derindedir; cisim ile görüntüsü arasındaki uzaklık da büyür.
+
+Cisme yüzeye dik doğrultuya yakın bakarken başını yüzeye yaklaştırman ya da uzaklaştırman görünür derinliği değiştirmez.`,
+        kontrol: {
+          soru: 'Şekildeki kavanozlarda hangi fasulye yüzeye daha yakın görünür?',
+          secenekler: ['Sudaki fasulye', 'Baldaki fasulye', 'İkisi aynı derinlikte görünür.'],
+          dogru: 1,
+          aciklama: 'Gerçek derinlikler eşit. Bal ile hava arasındaki kırma indisi farkı daha büyük olduğu için baldaki fasulye yüzeye daha yakın görünür.',
+          yanlisIpucu: 'Hangi sıvının ışığı kırma indisi havanınkinden daha çok farklı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kovaya düşen anahtar',
+        metin: r`Bahçede su dolu bir kovanın dibine bir anahtar düşüyor. Ela, kovanın tam üstünden anahtara bakıyor ve elini suya daldırmaya hazırlanıyor.`,
+        adimlar: [
+          {
+            soru: 'Anahtardan çıkıp Ela\'nın gözüne eğik gelen ışınlar su yüzeyinde nasıl kırılır?',
+            secenekler: ['Normale yaklaşarak kırılır.', 'Normalden uzaklaşarak kırılır.', 'Hiç kırılmaz.'],
+            dogru: 1,
+            ipucu: 'Işık sudan havaya geçiyor. Suyun kırma indisi havanınkinden büyük.',
+            aciklama: 'Kırma indisi büyük ortamdan küçük ortama geçen eğik ışın normalden uzaklaşarak kırılır.'
+          },
+          {
+            soru: 'Ela anahtarı nerede görür?',
+            secenekler: ['Gerçek yerinde', 'Gerçek yerinin biraz üstünde', 'Gerçek yerinin biraz altında'],
+            dogru: 1,
+            ipucu: 'Göz ışınları geriye düz uzatır. Havadan bakan biri için sudaki cisim yakın mı görünür, uzak mı?',
+            aciklama: 'Uzantılar anahtarın üstünde kesişir. Ela anahtarı yüzeye daha yakın, yani biraz yukarıda görür.'
+          },
+          {
+            soru: 'Ela elini, anahtarı gördüğü yere kadar uzatıyor. Ne olur?',
+            secenekler: ['Eli anahtara tam değer.', 'Eli anahtarın altına iner.', 'Eli anahtarın üstünde kalır; daha derine uzanmalıdır.'],
+            dogru: 2,
+            ipucu: 'Anahtarın gerçek yeri, Ela\'nın gördüğü yerin üstünde mi, altında mı?',
+            aciklama: 'Anahtar, görüldüğü yerin biraz altındadır. Ela elini biraz daha derine uzatmalıdır.'
+          }
+        ],
+        sonuc: 'Sudaki cisim havadan bakana yüzeye daha yakın görünür. Cismin gerçek yeri, gördüğümüz yerin biraz altındadır.'
+      },
+      {
+        baslik: 'Bardaktaki pipet',
+        metin: r`Su dolu cam bir bardakta düz bir pipet eğik duruyor. Bardağa, su yüzeyinin üstünden eğik olarak bakıyorsun. Pipet su yüzeyinde kırılmış gibi görünüyor.`,
+        adimlar: [
+          {
+            soru: 'Pipetin sudaki ucu sana nerede görünür?',
+            secenekler: ['Gerçek yerinden daha yukarıda', 'Gerçek yerinde', 'Gerçek yerinden daha aşağıda'],
+            dogru: 0,
+            ipucu: 'Göz havada, pipetin ucu suda. Sudaki cisim havadan bakana nasıl görünür?',
+            aciklama: 'Havadan bakan biri için sudaki her nokta yüzeye daha yakın, yani daha yukarıda görünür.'
+          },
+          {
+            soru: 'Pipetin yüzeye yakın bir noktası ile en dipteki ucu karşılaştırılıyor. Hangisi gerçek yerinden daha çok yukarı kalkmış görünür?',
+            secenekler: ['Yüzeye yakın nokta', 'Dipteki uç', 'İkisi eşit kalkar.'],
+            dogru: 1,
+            ipucu: 'Gerçek derinlik arttıkça cisim ile görüntüsü arasındaki uzaklık nasıl değişir?',
+            aciklama: 'Gerçek derinlik arttıkça cisim ile görüntüsü arasındaki uzaklık da artar. Dipteki uç daha çok yukarı kalkmış görünür.'
+          },
+          {
+            soru: 'Pipet neden su yüzeyinde kırılmış gibi görünür?',
+            secenekler: ['Pipet suyun içinde gerçekten bükülür.', 'Sudaki kısmın görüntüsü yukarı kalkar; derindeki noktalar daha çok kalkar.', 'Işık bardağın camından yansır.'],
+            dogru: 1,
+            ipucu: 'Önceki iki adımı birleştir: Sudaki her nokta yukarı kalkıyor ama hepsi eşit kalkmıyor.',
+            aciklama: 'Havadaki kısım olduğu yerde görünür. Sudaki kısmın her noktası yukarı kalkar, derindeki noktalar daha çok kalkar. Bu yüzden pipet yüzeyde kırılmış gibi görünür.'
+          }
+        ],
+        sonuc: 'Pipet düzdür. Gözümüz sudaki kısmı yukarı kalkmış görür ve pipet yüzeyde kırık gibi görünür.'
+      },
+      {
+        baslik: 'İskele, yengeç ve martı',
+        metin: r`Sığ bir koyda Selin iskeleden aşağı eğilmiş, dipteki bir yengece bakıyor. Yengeç de suyun içinden, iskelenin direğine konmuş bir martıya bakıyor.`,
+        adimlar: [
+          {
+            soru: 'Selin yengeci nerede görür?',
+            secenekler: ['Gerçek yerinden daha derinde', 'Gerçek yerinde', 'Gerçek yerinden yüzeye daha yakın'],
+            dogru: 2,
+            ipucu: 'Selin\'in gözü havada, yengeç suda.',
+            aciklama: 'Havadaki göz sudaki cismi yüzeye daha yakın görür. Selin yengeci olduğundan sığda görür.'
+          },
+          {
+            soru: 'Yengeç martıyı nerede görür?',
+            secenekler: ['Gerçek yerinden daha yukarıda', 'Gerçek yerinde', 'Gerçek yerinden daha aşağıda'],
+            dogru: 0,
+            ipucu: 'Bu kez göz suda, cisim havada. Işık havadan suya geçerken normale yaklaşır.',
+            aciklama: 'Sudaki göz havadaki cismi yüzeyden daha uzakta görür. Yengeç martıyı olduğundan daha yukarıda görür.'
+          },
+          {
+            soru: 'İki gözlemden hangi genel kural çıkar?',
+            secenekler: ['Göz hangi ortamda olursa olsun cisim yakın görünür.', 'Göz kırma indisi küçük ortamdaysa cisim yakın, büyük ortamdaysa uzak görünür.', 'Göz kırma indisi büyük ortamdaysa cisim yakın görünür.'],
+            dogru: 1,
+            ipucu: 'Selin\'in gözü havada, yengecinki suda. Kim yakın gördü, kim uzak gördü?',
+            aciklama: 'Selin (havada, kırma indisi küçük) yengeci yakın gördü. Yengeç (suda, kırma indisi büyük) martıyı uzak gördü.'
+          }
+        ],
+        sonuc: 'Selin ile yengeç aynı yüzeyin iki yanından bakıyor ama farklı şeyler görüyor. Görüntünün yakın mı uzak mı olduğunu, gözün hangi ortamda olduğu belirler.'
+      }
+    ],
+    hazir: 'Görünür derinliğin nasıl oluştuğunu, havadan ve sudan bakışın farkını ve görünür derinliği değiştiren etkenleri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
