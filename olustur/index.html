@@ -46581,6 +46581,160 @@ BFY_FIG_EKLE('i1022_kart_wh', u => S(u, I0_ => {
 }, { oy: 62 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1022_ öneki) ---------- */
+(function () {
+const { P, T, arrow, dimV, svg, dashLine } = window.BFY_FIGLIB;
+const MOR = '#6b4fa0', YESIL = '#3f8a67';
+/* yatay ölçü çizgisi */
+const dimH = (x1, x2, y, c = P.ink2) => `<g stroke="${c}" stroke-width="1.2"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line x1="${x1}" y1="${y - 5}" x2="${x1}" y2="${y + 5}"/><line x1="${x2}" y1="${y - 5}" x2="${x2}" y2="${y + 5}"/></g>` +
+  `<polygon points="${x1},${y} ${x1 + 7},${y - 3.2} ${x1 + 7},${y + 3.2}" fill="${c}"/><polygon points="${x2},${y} ${x2 - 7},${y - 3.2} ${x2 - 7},${y + 3.2}" fill="${c}"/>`;
+
+/* Adım 1: buz pistinde curling taşını itme (F ve Δx aynı yönde) */
+BFY_FIG_EKLE('sf1022_curling', function (u) {
+  const W = 330, H = 204;
+  let s = `<defs><linearGradient id="${u}buz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f8fc"/><stop offset="1" stop-color="#d3e6f1"/></linearGradient>` +
+    `<linearGradient id="${u}granit" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6f777d"/><stop offset=".35" stop-color="#b9c0c5"/><stop offset=".6" stop-color="#9aa2a8"/><stop offset="1" stop-color="#596167"/></linearGradient>` +
+    `<radialGradient id="${u}granitU" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#d7dcdf"/><stop offset="1" stop-color="#8d959b"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}buz)"/>`;
+  // hedef halkaları (sağ kenarda, perspektifli)
+  s += `<g class="bg"><ellipse cx="356" cy="92" rx="62" ry="22" fill="#3b7fc0" opacity=".55"/><ellipse cx="356" cy="92" rx="44" ry="15.5" fill="#fff" opacity=".9"/><ellipse cx="356" cy="92" rx="27" ry="9.5" fill="#d9573b" opacity=".6"/></g>`;
+  s += `<line class="bg" x1="28" y1="40" x2="28" y2="170" stroke="#d9573b" stroke-width="2" opacity=".45"/>`;
+  s += T(18, 26, 'buz pisti', { size: 12, weight: 700, fill: P.ink2 });
+  const tas = (x, y, hayalet) => {
+    let g = '';
+    if (!hayalet) g += `<ellipse cx="${x + 3}" cy="${y + 3}" rx="31" ry="8" fill="#0b2233" opacity=".14"/>`;
+    g += `<path d="M${x - 27} ${y - 16} v14 a27 8 0 0 0 54 0 v-14 Z" fill="${hayalet ? 'none' : `url(#${u}granit)`}" stroke="${hayalet ? '#7f8a92' : '#3f464b'}" stroke-width="1.2"${hayalet ? ' stroke-dasharray="4 3"' : ''}/>`;
+    if (!hayalet) g += `<path d="M${x - 27} ${y - 10} a27 8 0 0 0 54 0 v3 a27 8 0 0 1 -54 0 Z" fill="#4a5257" opacity=".6"/>`;
+    g += `<ellipse cx="${x}" cy="${y - 16}" rx="27" ry="8" fill="${hayalet ? 'none' : `url(#${u}granitU)`}" stroke="${hayalet ? '#7f8a92' : '#3f464b'}" stroke-width="1.2"${hayalet ? ' stroke-dasharray="4 3"' : ''}/>`;
+    // tutamak
+    g += `<path d="M${x - 9} ${y - 18} v-6 q0 -3 4 -3 h18 q5 0 5 4 v4" fill="${hayalet ? 'none' : '#c8402a'}" stroke="${hayalet ? '#7f8a92' : '#7a2a18'}" stroke-width="1.2"${hayalet ? ' stroke-dasharray="3 3"' : ''}/>`;
+    if (!hayalet) g += `<ellipse cx="${x - 4}" cy="${y - 18}" rx="8" ry="2.6" fill="#a8341f"/>`;
+    return g;
+  };
+  const x0 = 72, x1 = 188, y = 128;
+  s += tas(x0, y, true) + tas(x1, y, false);
+  s += T(x0, y + 22, 'başlangıç', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += arrow(x1 + 20, y - 28, x1 + 82, y - 28, { color: P.coral, w: 3 });
+  s += T(x1 + 52, y - 38, 'F = 10 N', { size: 13, anchor: 'middle', weight: 800, fill: P.coral });
+  s += dimH(x0, x1, 164);
+  s += T((x0 + x1) / 2, 186, 'Δx = 3 m', { size: 13, anchor: 'middle', weight: 800 });
+  return svg(W, H, s, u, 72);
+});
+
+/* Adım 2-3: balkondan sarkıtılan sepet (çıkarken ve inerken) */
+function sepetSahne(u, cik) {
+  const W = 320, H = 286, zem = 254;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  // bina
+  s += `<rect class="bg" x="0" y="8" width="118" height="${zem - 8}" fill="url(#${u}facade)"/>`;
+  s += `<line class="bg" x1="118" y1="8" x2="118" y2="${zem}" stroke="#bfae92" stroke-width="1.2"/>`;
+  [[18, 20], [66, 20], [18, 112], [66, 112]].forEach(([x, y]) => { s += `<rect class="bg" x="${x}" y="${y}" width="34" height="42" rx="2" fill="url(#${u}glass)" stroke="#a89878" stroke-width="1.2"/><line class="bg" x1="${x + 17}" y1="${y}" x2="${x + 17}" y2="${y + 42}" stroke="#a89878" stroke-width="1"/>`; });
+  // zemin kat: bakkal
+  s += `<rect class="bg" x="10" y="196" width="98" height="${zem - 196}" fill="url(#${u}glass)" stroke="#8a7a5c" stroke-width="1.2"/>`;
+  s += `<path class="bg" d="M4 178 h110 l8 16 h-126 Z" fill="#f4f1ea" stroke="#9a3a26" stroke-width="1"/>`;
+  for (let i = 0; i < 7; i++) s += `<path class="bg" d="M${4 + i * 15.7} 178 h7.8 l1.2 16 h-7.8 Z" fill="#d9573b" opacity=".85"/>`;
+  s += T(59, 172, 'BAKKAL', { size: 11, anchor: 'middle', weight: 800, fill: '#7a2a18' });
+  // kaldırım
+  s += `<rect class="bg" x="0" y="${zem}" width="${W}" height="${H - zem}" fill="url(#${u}concrete)"/><line x1="0" y1="${zem}" x2="${W}" y2="${zem}" stroke="#8e979f" stroke-width="1.2"/>`;
+  // balkon: döşeme ve korkuluk
+  const bY = 72;
+  s += `<rect x="96" y="${bY}" width="86" height="8" fill="#cfc6b6" stroke="#8c816c" stroke-width="1"/>`;
+  s += `<rect x="96" y="${bY - 30}" width="86" height="4" rx="2" fill="#5b646b"/>`;
+  for (let x = 100; x <= 178; x += 9.5) s += `<line x1="${x}" y1="${bY - 26}" x2="${x}" y2="${bY}" stroke="#6d757c" stroke-width="1.6"/>`;
+  // ip ve sepet
+  const sx = 166, sY = cik ? 168 : 152;
+  s += `<line x1="${sx}" y1="${bY - 28}" x2="${sx}" y2="${sY - 26}" stroke="#8a6a44" stroke-width="1.8"/>`;
+  s += `<circle cx="${sx}" cy="${bY - 28}" r="2.6" fill="#8a6a44"/>`;
+  s += `<path d="M${sx - 19} ${sY - 2} Q${sx} ${sY - 46} ${sx + 19} ${sY - 2}" fill="none" stroke="#8a6440" stroke-width="2.6"/>`;
+  if (cik) s += `<ellipse cx="${sx - 6}" cy="${sY - 3}" rx="13" ry="6" fill="#d9a35b" stroke="#9a6a2c" stroke-width="1"/><rect x="${sx + 4}" y="${sY - 16}" width="9" height="16" rx="2.5" fill="#fff" stroke="#7f8a92" stroke-width="1"/><rect x="${sx + 4}" y="${sY - 16}" width="9" height="4" rx="1.5" fill="${P.blue}"/>`;
+  s += `<path d="M${sx - 24} ${sY - 2} h48 l-5 28 h-38 Z" fill="url(#${u}sack)" stroke="#8a6440" stroke-width="1.4"/>`;
+  for (let k = 1; k < 4; k++) s += `<line x1="${sx - 24 + k * 1.2}" y1="${sY - 2 + k * 7}" x2="${sx + 24 - k * 1.2}" y2="${sY - 2 + k * 7}" stroke="#a6824d" stroke-width="1"/>`;
+  s += `<ellipse cx="${sx + 4}" cy="${zem + 6}" rx="22" ry="4" fill="#000" opacity=".08"/>`;
+  // kuvvetler: ipin kuvveti yukarı, ağırlık aşağı (eşit boy)
+  const Lk = 40;
+  s += arrow(sx, sY - 26, sx, sY - 26 - Lk, { color: YESIL, w: 3 });
+  s += T(sx - 8, sY - 44, 'F', { size: 15, anchor: 'end', weight: 800, italic: true, fill: YESIL });
+  s += arrow(sx, sY + 14, sx, sY + 14 + Lk, { color: P.coral, w: 3 });
+  s += T(sx + 8, sY + 46, 'ağırlık', { size: 12, weight: 800, fill: P.coral });
+  // hız
+  const vx = 238;
+  if (cik) s += arrow(vx, sY + 6, vx, sY - 38, { color: MOR, w: 2.6 }); else s += arrow(vx, sY - 30, vx, sY + 14, { color: MOR, w: 2.6 });
+  const vm = cik ? sY - 16 : sY - 8;
+  s += T(vx + 8, vm + 5, 'ϑ', { size: 15, weight: 800, fill: MOR });
+  s += T(vx + 22, vm - 2, 'sabit', { size: 11.5, weight: 700, fill: MOR }) + T(vx + 22, vm + 13, 'hız', { size: 11.5, weight: 700, fill: MOR });
+  if (cik) { s += dimV(304, bY + 8, zem, '', { side: 'left' }) + T(297, (bY + zem) / 2 + 30, '6 m', { size: 13, anchor: 'end', weight: 800 }); s += T(sx + 30, sY - 8, '4 kg', { size: 12, weight: 800, fill: '#7a5a2e' }); }
+  else s += T(sx + 28, sY + 18, 'boş', { size: 12, weight: 800, fill: '#7a5a2e' });
+  return svg(W, H, s, u, 70);
+}
+BFY_FIG_EKLE('sf1022_sepet', u => sepetSahne(u, true));
+BFY_FIG_EKLE('sf1022_sepet_in', u => sepetSahne(u, false));
+
+/* Adım 4: aynı iş, farklı süre; kronometre ve güç çubukları */
+BFY_FIG_EKLE('sf1022_guc', function (u) {
+  const W = 340, H = 214;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  s += T(W / 2, 24, 'İkisi de sepete 240 J iş yapar.', { size: 13, anchor: 'middle', weight: 800, fill: P.green });
+  const krono = (cx, cy, t, ad) => {
+    const r = 30, a = t / 60 * 2 * Math.PI, ex = cx + r * 0.78 * Math.sin(a), ey = cy - r * 0.78 * Math.cos(a);
+    let g = `<ellipse cx="${cx + 3}" cy="${cy + r + 4}" rx="${r * 0.8}" ry="4" fill="#000" opacity=".08"/>`;
+    g += `<rect x="${cx - 5}" y="${cy - r - 11}" width="10" height="8" rx="2" fill="#5b646b"/><rect x="${cx - 8}" y="${cy - r - 14}" width="16" height="4" rx="2" fill="#39434b"/>`;
+    g += `<circle cx="${cx}" cy="${cy}" r="${r + 4}" fill="url(#${u}metal)" stroke="#5b646b" stroke-width="1.2"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="#fff" stroke="#8e979f" stroke-width="1"/>`;
+    g += `<path d="M${cx} ${cy} L${cx} ${cy - r * 0.9} A${r * 0.9} ${r * 0.9} 0 0 1 ${cx + r * 0.9 * Math.sin(a)} ${cy - r * 0.9 * Math.cos(a)} Z" fill="${MOR}" opacity=".18"/>`;
+    for (let k = 0; k < 12; k++) { const b = k / 12 * 2 * Math.PI; g += `<line x1="${cx + r * 0.82 * Math.sin(b)}" y1="${cy - r * 0.82 * Math.cos(b)}" x2="${cx + r * 0.97 * Math.sin(b)}" y2="${cy - r * 0.97 * Math.cos(b)}" stroke="${P.ink}" stroke-width="${k % 3 ? 1 : 1.8}"/>`; }
+    g += `<line x1="${cx}" y1="${cy}" x2="${ex}" y2="${ey}" stroke="${P.coral}" stroke-width="2.2" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="2.6" fill="${P.ink}"/>`;
+    g += T(cx + r + 12, cy - 4, ad, { size: 12.5, weight: 800 }) + T(cx + r + 12, cy + 14, `t = ${t} s`, { size: 12.5, weight: 700, fill: MOR });
+    return g;
+  };
+  s += krono(58, 84, 12, 'Nuran Teyze') + krono(218, 84, 6, 'Efe');
+  // güç çubukları
+  const bx = 24, olc = 3.8;
+  [[20, 156, 'Nuran Teyze'], [40, 186, 'Efe']].forEach(([p, y]) => {
+    s += `<rect x="${bx}" y="${y - 11}" width="${p * olc}" height="18" rx="4" fill="${P.blue}" opacity=".85"/><rect x="${bx}" y="${y - 11}" width="${p * olc}" height="6" rx="3" fill="#fff" opacity=".25"/>`;
+    s += T(bx + p * olc + 8, y + 4, `P = ${p} W`, { size: 13, weight: 800, fill: P.blue });
+  });
+  s += T(W - 16, 150, 'yarı süre,', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 }) + T(W - 16, 166, 'iki kat güç', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Isınma 2: çatıya vinçle çekilen güneş paneli */
+BFY_FIG_EKLE('sf1022_panel', function (u) {
+  const W = 340, H = 300, zem = 270, cat = 52;
+  let s = `<defs><linearGradient id="${u}pv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3d5f99"/><stop offset="1" stop-color="#1c3260"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${zem}" width="${W}" height="${H - zem}" fill="url(#${u}grass)"/>`;
+  // bina
+  s += `<rect class="bg" x="14" y="${cat}" width="152" height="${zem - cat}" fill="url(#${u}facade)" stroke="#bfae92" stroke-width="1.2"/>`;
+  s += `<rect x="10" y="${cat - 8}" width="160" height="9" fill="#cfc6b6" stroke="#8c816c" stroke-width="1"/>`;
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 3; c++) s += `<rect class="bg" x="${28 + c * 46}" y="${cat + 16 + r * 52}" width="30" height="34" rx="2" fill="url(#${u}glass)" stroke="#a89878" stroke-width="1"/>`;
+  // vinç: direk, kol, motor, makara
+  s += `<rect x="128" y="${cat - 26}" width="24" height="18" rx="3" fill="#e7a93b" stroke="#8a6420" stroke-width="1"/><circle cx="140" cy="${cat - 17}" r="5" fill="#5b646b"/>`;
+  s += `<rect x="152" y="12" width="7" height="${cat - 20}" fill="url(#${u}metalV)" stroke="#5b646b" stroke-width="1"/>`;
+  s += `<rect x="152" y="10" width="76" height="7" fill="url(#${u}metal)" stroke="#5b646b" stroke-width="1"/>`;
+  s += `<line x1="158" y1="${cat - 10}" x2="190" y2="17" stroke="#7f8a92" stroke-width="2"/>`;
+  s += `<path d="M140 ${cat - 22} L156 14 L222 14" fill="none" stroke="#8a6a44" stroke-width="1.3" opacity=".8"/>`;
+  s += `<circle cx="222" cy="20" r="5.5" fill="#d9dee2" stroke="#5b646b" stroke-width="1.2"/>`;
+  // ip ve askı
+  const px = 222, ipSon = 128;
+  s += `<line x1="${px}" y1="25" x2="${px}" y2="${ipSon}" stroke="#8a6a44" stroke-width="1.8"/>`;
+  s += `<circle cx="${px}" cy="${ipSon + 1}" r="3.2" fill="none" stroke="#5b646b" stroke-width="1.8"/>`;
+  const pL = 192, pR = 252, pT = 150, pB = 236;
+  s += `<line x1="${px}" y1="${ipSon + 4}" x2="${pL + 4}" y2="${pT}" stroke="#5b646b" stroke-width="1.4"/><line x1="${px}" y1="${ipSon + 4}" x2="${pR - 4}" y2="${pT}" stroke="#5b646b" stroke-width="1.4"/>`;
+  // panel
+  s += `<rect x="${pL}" y="${pT}" width="${pR - pL}" height="${pB - pT}" rx="2" fill="url(#${u}pv)" stroke="#c9cdd0" stroke-width="3"/>`;
+  for (let i = 1; i < 4; i++) s += `<line x1="${pL + i * 15}" y1="${pT + 2}" x2="${pL + i * 15}" y2="${pB - 2}" stroke="#a9c1e6" stroke-width=".7" opacity=".7"/>`;
+  for (let i = 1; i < 6; i++) s += `<line x1="${pL + 2}" y1="${pT + i * 14.3}" x2="${pR - 2}" y2="${pT + i * 14.3}" stroke="#a9c1e6" stroke-width=".7" opacity=".7"/>`;
+  s += `<path d="M${pL + 6} ${pT + 6} l18 0 l-14 30 Z" fill="#fff" opacity=".12"/>`;
+  s += T((pL + pR) / 2, pB + 18, '20 kg', { size: 12.5, anchor: 'middle', weight: 800 });
+  // hız
+  s += arrow(272, 214, 272, 160, { color: MOR, w: 2.6 });
+  s += T(279, 176, 'ϑ', { size: 15, weight: 800, fill: MOR });
+  // yükseklik
+  s += dimV(306, cat, zem, '', { side: 'left' }) + T(299, 248, '15 m', { size: 13, anchor: 'end', weight: 800 });
+  s += T(W - 10, H - 10, '(Şekil ölçekli değildir.)', { size: 11, anchor: 'end', weight: 600, fill: P.ink2 });
+  return svg(W, H, s, u, 72);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -46624,6 +46778,191 @@ const KONU = {
     'elektrikli skuter göstergesi %90 → %65, 24 dk, 480 Wh batarya',
     'merdiven koşusu güç testi: 3. ve 9. basamak, 17,5 cm, Deniz/Ege/Kaan/Arda (k1022_25)', 'dolabı halı (60 N, 6 m, 4 s) ve parke (30 N, 4 m, 6 s) üzerinde itme, ortalama güç (k1022_26)', 'şantiyede beş kaldırma işi: işçi, makaralı vinç, kule vinç, yük asansörü, forklift (güç sıralama, k1022_27)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene. Hesaplarda $g = 10$ m/s² alınır.',
+    adimlar: [
+      {
+        baslik: 'İş, enerji aktarır',
+        sekil: 'sf1022_curling',
+        metin: r`Buz pistinde bir curling taşını elinle ileri itiyorsun. Taşa ileri doğru bir kuvvet uyguluyorsun ve taş da ileri doğru yer değiştiriyor. Cisim, kendisine uygulanan kuvvetin doğrultusunda yer değiştirirse bu kuvvet **iş** yapar:
+$$W = F\times\Delta x$$
+İş, enerji aktarmanın bir yoludur. Sen taşa iş yaptıkça taşa enerji aktarırsın ve taş hızlanır. İşin ve enerjinin birimi **joule**dür (J).
+
+Şekilde taşı 10 N'luk kuvvetle 3 m boyunca itiyorsun. Yaptığın iş $W = 10\times 3 = 30$ J olur. Taşa 30 J enerji aktarılır.`,
+        kontrol: {
+          soru: 'Aşağıdaki durumların hangisinde uygulanan kuvvet iş yapar ve cisme enerji aktarır?',
+          secenekler: ['Ağır bir çantayı omzunda tutarak beklemek.', 'Yerdeki topa vurup onu ileri fırlatmak.', 'Kımıldamayan bir duvarı bütün kuvvetinle itmek.'],
+          dogru: 1,
+          aciklama: 'Ayağın topa ileri doğru kuvvet uygular ve top bu sırada ileri yer değiştirir. Kuvvet iş yapar, topa enerji aktarılır. Çanta ve duvar yer değiştirmediği için orada iş yapılmaz.',
+          yanlisIpucu: 'Yorulmak iş yapıldığını göstermez. Kuvvetin uygulandığı cisim yer değiştiriyor mu? Yer değiştirme yoksa iş de yoktur.'
+        }
+      },
+      {
+        baslik: 'Yukarı kaldırmanın işi',
+        sekil: 'sf1022_sepet',
+        metin: r`İkinci kattaki Nuran Teyze, ipe bağlı sepetini bakkala sarkıtıyor. Bakkal sepete ekmek ve süt koyuyor, teyze de sepeti ip ile yukarı çekiyor. Dolu sepetin kütlesi 4 kg, balkon yerden 6 m yüksekte.
+
+Sepet **sabit hızla** çıkıyorsa ipin kuvveti sepetin ağırlığına eşittir: $F = m\,g$. Kuvvet de hareket de yukarı doğrudur. Bu yüzden ipin yaptığı iş şöyle bulunur:
+$$W = m\,g\,h$$
+$W = 4\times 10\times 6 = 240$ J olur. Yapılan iş kadar enerji sepete aktarılır; sepetin enerjisi 240 J artar.`,
+        kontrol: {
+          soru: '10 kg kütleli bir kum torbası ip ile sabit hızla 3 m yukarı çekiliyor. İpin kuvvetinin yaptığı iş kaç J\'dür?',
+          secenekler: ['30 J', '13 J', '300 J'],
+          dogru: 2,
+          aciklama: r`Torbanın ağırlığı $10\times 10 = 100$ N'dur. İp bu kuvvetle torbayı 3 m yukarı çeker: $W = 100\times 3 = 300$ J.`,
+          yanlisIpucu: 'Önce ağırlığı bul: kütleyi g ile çarp. Sonra ağırlığı yükseklikle çarp. Sayıları toplamak işi vermez.'
+        }
+      },
+      {
+        baslik: 'Kuvvet harekete zıtsa: negatif iş',
+        sekil: 'sf1022_sepet_in',
+        metin: r`Nuran Teyze ertesi sabah boş sepeti yeniden aşağı sarkıtıyor. Sepet hızlanıp yere çarpmasın diye ipi tutuyor ve sepeti sabit hızla indiriyor. Bu sırada ip sepeti **yukarı** çeker, sepet ise **aşağı** iner.
+- Kuvvet hareketle **aynı yöndeyse** iş pozitiftir; cisme enerji aktarılır.
+- Kuvvet harekete **zıt yöndeyse** iş negatiftir; cisimden enerji alınır.
+
+Sepeti yukarı çekerken ipin yaptığı iş pozitifti. Sepeti indirirken ipin yaptığı iş negatiftir.`,
+        kontrol: {
+          soru: 'Bir yük asansörünün kabini halatla sabit hızla aşağı indiriliyor. Halatın kabine yaptığı iş için ne söylenebilir?',
+          secenekler: ['Pozitiftir; kabine enerji aktarır.', 'Negatiftir; kabinden enerji alır.', 'Sıfırdır; çünkü kabin sabit hızla iner.'],
+          dogru: 1,
+          aciklama: 'Halat kabini yukarı doğru çeker, kabin ise aşağı iner. Kuvvet harekete zıt yönde olduğu için iş negatiftir ve kabinden enerji alınır.',
+          yanlisIpucu: 'Halatın kuvveti hangi yöne, kabinin hareketi hangi yöne? İkisini karşılaştır. Hızın sabit olması, halatın iş yapmadığı anlamına gelmez.'
+        }
+      },
+      {
+        baslik: 'Güç: işin ne kadar hızlı yapıldığı',
+        sekil: 'sf1022_guc',
+        metin: r`Nuran Teyze dolu sepeti balkona 12 s'de çekiyor. Bir gün torunu Efe aynı sepeti aynı balkona 6 s'de çekiyor. İkisi de sepete 240 J iş yapar; ama Efe bu işi daha kısa sürede bitirir.
+
+Birim zamanda yapılan işe **güç** denir:
+$$P = \dfrac{W}{t}$$
+Gücün birimi **watt**tır (W): 1 W = 1 J/s.
+- Nuran Teyze: $P = \dfrac{240}{12} = 20$ W.
+- Efe: $P = \dfrac{240}{6} = 40$ W.
+
+Aynı iş yarı sürede yapıldığı için Efe'nin gücü iki kat büyüktür.`,
+        kontrol: {
+          soru: 'Bir motor bir kez 1000 J, bir kez de 2000 J işi aynı sürede yapıyor. İkinci seferde motorun gücü nasıl değişir?',
+          secenekler: ['Yarıya iner.', 'Değişmez.', 'İki katına çıkar.'],
+          dogru: 2,
+          aciklama: r`Süre aynı, iş iki kat. $P = \dfrac{W}{t}$ olduğundan güç de iki katına çıkar.`,
+          yanlisIpucu: r`Gücü bulmak için iş süreye bölünür. Süre değişmeden iş iki katına çıkarsa bölüm ne olur?`
+        }
+      },
+      {
+        baslik: 'Güçten enerjiye: kilovatsaat',
+        metin: r`Evdeki cihazların etiketinde gücü yazar. Güç, cihazın her saniye ne kadar enerji harcadığını söyler. Harcanan enerjiyi bulmak için gücü süreyle çarparız:
+$$W = P\times t$$
+200 W'lık bir televizyon 5 saat açık kalırsa $W = 200\times 5 = 1000$ Wh (vatsaat) enerji harcar. 1000 Wh, 1 kWh (kilovatsaat) eder.
+
+Elektrik faturası harcanan enerjiyi kWh ile gösterir. kW bir **güç** birimi, kWh ise bir **enerji** birimidir; ikisini karıştırma.`,
+        kontrol: {
+          soru: 'Gücü 3 kW olan bir elektrikli fırın 2 saat çalışıyor. Fırının harcadığı enerji kaç kWh\'tir?',
+          secenekler: ['6 kWh', '5 kWh', '6000 kWh'],
+          dogru: 0,
+          aciklama: r`$W = P\times t = 3\ \text{kW}\times 2\ \text{h} = 6$ kWh. kW ile saati çarpınca sonuç doğrudan kWh çıkar.`,
+          yanlisIpucu: 'Güç ile süre toplanmaz, çarpılır. Güç zaten kW olarak verildiği için 1000 ile çarpmana gerek yok.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Bağ bozumunda iki işçi',
+        metin: 'Bağ bozumunda iki işçi dolu üzüm kasalarını kaldırıyor. Ece, 30 kg\'lık kasayı yerden 1 m yükseklikteki sıkma teknesinin kenarına 2 s\'de kaldırıyor. Mert ise 20 kg\'lık kasayı yerden 2 m yükseklikteki kurutma rafının en üst katına 5 s\'de kaldırıyor. İkisi de kasaları sabit hızla kaldırıyor.',
+        adimlar: [
+          {
+            soru: 'Ece\'nin ve Mert\'in birer kasaya yaptığı işler sırasıyla kaç J\'dür?',
+            secenekler: ['30 J ve 40 J', '300 J ve 400 J', '600 J ve 2000 J'],
+            dogru: 1,
+            ipucu: r`Her biri için $W = m\,g\,h$ kullan. g'yi unutma: $g = 10$ m/s².`,
+            aciklama: r`Ece: $30\times 10\times 1 = 300$ J. Mert: $20\times 10\times 2 = 400$ J. Mert'in kasası daha hafif ama daha yükseğe çıkıyor.`
+          },
+          {
+            soru: 'Ece\'nin ve Mert\'in güçleri sırasıyla kaç W\'tır?',
+            secenekler: ['300 W ve 400 W', '150 W ve 80 W', '80 W ve 150 W'],
+            dogru: 1,
+            ipucu: r`Gücü bulmak için her birinin işini kendi süresine böl: $P = \dfrac{W}{t}$.`,
+            aciklama: r`Ece: $\dfrac{300}{2} = 150$ W. Mert: $\dfrac{400}{5} = 80$ W.`
+          },
+          {
+            soru: 'Bu sonuçlara göre hangisi doğrudur?',
+            secenekler: ['Daha çok iş yapan daha güçlüdür.', 'İkisinin gücü eşittir; çünkü ikisi de birer kasa kaldırır.', 'Mert daha çok iş yaptı, Ece ise işini daha hızlı yaptı.'],
+            dogru: 2,
+            ipucu: 'Bulduğun işleri ve güçleri yan yana koy. Çok iş yapan ile güçlü olan aynı kişi mi?',
+            aciklama: 'Mert\'in işi daha büyük (400 J), Ece\'nin gücü daha büyük (150 W). Güç, işin ne kadar hızlı yapıldığını gösterir.'
+          }
+        ],
+        sonuc: 'İş ve güç farklı büyüklüklerdir. İş, ne kadar enerji aktarıldığını; güç, bu aktarımın ne kadar hızlı olduğunu gösterir.'
+      },
+      {
+        baslik: 'Çatıya çıkan güneş paneli',
+        sekil: 'sf1022_panel',
+        metin: 'Bir apartmanın çatısına güneş paneli takılacak. Çatıdaki küçük elektrikli vinç, 20 kg\'lık paneli yerden 15 m yukarı sabit hızla 30 s\'de çekiyor.',
+        adimlar: [
+          {
+            soru: 'Vincin ipi panele kaç N\'luk kuvvet uygular?',
+            secenekler: ['20 N', '200 N', '30 N'],
+            dogru: 1,
+            ipucu: 'Panel sabit hızla çıkıyor. Bu durumda ipin kuvveti panelin ağırlığına eşittir. Ağırlık, kütle ile g\'nin çarpımıdır.',
+            aciklama: r`$F = m\,g = 20\times 10 = 200$ N.`
+          },
+          {
+            soru: 'İpin kuvveti panele kaç J iş yapar?',
+            secenekler: ['3000 J', '300 J', '215 J'],
+            dogru: 0,
+            ipucu: 'Kuvveti, panelin yukarı doğru yer değiştirmesiyle çarp. Kuvvet ve hareket aynı yönde olduğu için iş pozitiftir.',
+            aciklama: r`$W = F\times h = 200\times 15 = 3000$ J. Panele 3000 J enerji aktarılır.`
+          },
+          {
+            soru: 'Vincin panele aktardığı güç kaç W\'tır?',
+            secenekler: ['3000 W', '200 W', '100 W'],
+            dogru: 2,
+            ipucu: r`Güç, işin süreye bölümüdür: $P = \dfrac{W}{t}$. Süre 30 s.`,
+            aciklama: r`$P = \dfrac{3000}{30} = 100$ W.`
+          },
+          {
+            soru: 'Vinç aynı güçle 40 kg\'lık bir paneli aynı yüksekliğe kaç saniyede çeker?',
+            secenekler: ['15 s', '60 s', '30 s'],
+            dogru: 1,
+            ipucu: r`Önce yeni işi bul: kütle iki katına çıktı. Sonra $t = \dfrac{W}{P}$ ile süreyi hesapla.`,
+            aciklama: r`Yeni iş $40\times 10\times 15 = 6000$ J olur. Güç yine 100 W olduğundan $t = \dfrac{6000}{100} = 60$ s.`
+          }
+        ],
+        sonuc: 'Kütle iki katına çıkınca iş de iki katına çıktı. Vincin gücü değişmediği için bu işi yapmak iki kat uzun sürdü.'
+      },
+      {
+        baslik: 'Kurutma makinesinin faturası',
+        metin: 'Bir ailenin çamaşır kurutma makinesinin gücü 2000 W\'tır. Makine bir yıkamalık çamaşırı 1 saatte kurutuyor. Aile ayda 12 kez kurutma yapıyor. 1 kWh elektriğin bedeli 4 TL\'dir.',
+        adimlar: [
+          {
+            soru: 'Bir kurutmada harcanan enerji kaç kWh\'tir?',
+            secenekler: ['2000 kWh', '2 kWh', '3 kWh'],
+            dogru: 1,
+            ipucu: 'Önce gücü kW\'a çevir: 1000 W = 1 kW. Sonra gücü süreyle (saat) çarp.',
+            aciklama: r`$2000$ W $= 2$ kW. $W = P\times t = 2\ \text{kW}\times 1\ \text{h} = 2$ kWh.`
+          },
+          {
+            soru: 'Kurutma makinesinin aylık elektrik bedeli kaç TL\'dir?',
+            secenekler: ['96 TL', '24 TL', '8 TL'],
+            dogru: 0,
+            ipucu: 'Önce bir ayda harcanan enerjiyi bul: 12 kurutma var. Sonra kWh sayısını 1 kWh\'in bedeliyle çarp.',
+            aciklama: r`Aylık enerji $2\times 12 = 24$ kWh. Bedel $24\times 4 = 96$ TL.`
+          },
+          {
+            soru: 'Havalar ısınınca aile çamaşırları ipe asıyor ve makineyi ayda yalnız 4 kez kullanıyor. Aile ayda kaç TL tasarruf eder?',
+            secenekler: ['32 TL', '16 TL', '64 TL'],
+            dogru: 2,
+            ipucu: 'Makine ayda kaç kez daha az çalışıyor? O kurutmaların enerjisini ve bedelini hesapla.',
+            aciklama: r`Ayda $12 - 4 = 8$ kurutma azalır. Bu, $8\times 2 = 16$ kWh enerji eder. Tasarruf $16\times 4 = 64$ TL.`
+          }
+        ],
+        sonuc: 'Makinenin gücü değişmedi; çalışma süresi azalınca harcanan enerji ve bedel azaldı. Tasarruf için bir cihazın hem gücüne hem de ne kadar süre çalıştığına bakılır.'
+      }
+    ],
+    hazir: 'İşin enerji aktardığını, kaldırma işini, gücü ve kilovatsaati gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -80452,6 +80791,166 @@ BFY_FIG_EKLE('i1113_kart_denge', u => KS(u, I => {
 }, { oy: 84 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): serbest cisim diyagramı adımları (sf1113_ öneki)
+   Kuvvet renkleri notla aynı: G yeşil, N mavi, T bakır, F mercan, a mor.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const MOR = '#6b4fa0';
+const C = { G: P.green, N: P.blue, T: P.copper, F: P.coral };
+const ok = (x1, y1, x2, y2, c, w) => arrow(x1, y1, x2, y2, { color: c, w: w || 2.6 });
+const nokta = (x, y) => `<circle cx="${x}" cy="${y}" r="4.2" fill="${P.ink}"/>`;
+const scdKutu = (cx, cy, w, h) => `<rect x="${cx - w / 2}" y="${cy - h / 2}" width="${w}" height="${h}" rx="3" fill="#ece7f5" stroke="#8b7cab" stroke-width="1.2"/>`;
+const bas = (x, y, t) => T(x, y, t, { size: 14, anchor: 'middle', weight: 800, fill: MOR });
+const lbl = (x, y, t, c, o = {}) => T(x, y, t, { size: 12.5, weight: 800, fill: c, ...o });
+const ack = (x, y, t, o = {}) => T(x, y, t, { size: 10.5, weight: 600, fill: P.ink2, ...o });
+const zincir = (x, y1, y2) => {
+  let s = '';
+  for (let y = y1, i = 0; y < y2 - 4; y += 8, i++) {
+    s += i % 2 ? `<rect x="${x - 1.4}" y="${y}" width="2.8" height="10" rx="1.4" fill="#7d858b"/>`
+      : `<ellipse cx="${x}" cy="${y + 5}" rx="3.4" ry="5.6" fill="none" stroke="#6d7378" stroke-width="2"/>`;
+  }
+  return s;
+};
+
+/* damacana: (cx, alt kenar) */
+function damacana(u, cx, by) {
+  const w = 66, h = 112, x = cx - w / 2, y = by - h;
+  let s = `<ellipse cx="${cx + 5}" cy="${by + 2}" rx="${w * 0.6}" ry="5.5" fill="#000" opacity=".13"/>`;
+  s += `<path d="M${x} ${y + 24} Q${x} ${y + 8} ${x + 16} ${y + 4} L${cx - 10} ${y - 4} L${cx + 10} ${y - 4} L${x + w - 16} ${y + 4} Q${x + w} ${y + 8} ${x + w} ${y + 24} L${x + w} ${by - 7} Q${x + w} ${by} ${x + w - 7} ${by} L${x + 7} ${by} Q${x} ${by} ${x} ${by - 7} Z" fill="url(#${u}sfsu)" stroke="#3d7fa8" stroke-width="1.2"/>`;
+  [38, 76].forEach(d => s += `<path d="M${x + 1} ${y + d} Q${cx} ${y + d + 5} ${x + w - 1} ${y + d}" fill="none" stroke="#e6f4fb" stroke-width="2.4" opacity=".8"/><path d="M${x + 1} ${y + d + 3} Q${cx} ${y + d + 8} ${x + w - 1} ${y + d + 3}" fill="none" stroke="#3d7fa8" stroke-width=".8" opacity=".6"/>`);
+  s += `<rect x="${x + 9}" y="${y + 12}" width="7" height="${h - 22}" rx="3.5" fill="#fff" opacity=".38"/>`;
+  s += `<rect x="${cx - 9}" y="${y - 16}" width="18" height="13" fill="#d8eef9" stroke="#3d7fa8" stroke-width="1"/>`;
+  s += `<rect x="${cx - 12}" y="${y - 25}" width="24" height="11" rx="2.5" fill="#2f6fb0" stroke="#1d4f82" stroke-width="1"/>`;
+  s += `<rect x="${cx - 9}" y="${y - 23}" width="6" height="7" rx="2" fill="#fff" opacity=".35"/>`;
+  return s;
+}
+const sfDefs = u => `<defs>
+  <linearGradient id="${u}sfsu" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9fd2ee"/><stop offset=".35" stop-color="#c9e8f8"/><stop offset=".7" stop-color="#7dbde3"/><stop offset="1" stop-color="#4f97c6"/></linearGradient>
+  <linearGradient id="${u}sfderi" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b3302a"/><stop offset=".3" stop-color="#e2584b"/><stop offset=".75" stop-color="#b22d22"/><stop offset="1" stop-color="#781a14"/></linearGradient>
+  <linearGradient id="${u}sfkova" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3a4247"/><stop offset=".3" stop-color="#5d666c"/><stop offset=".7" stop-color="#2c3236"/><stop offset="1" stop-color="#1a1e21"/></linearGradient>
+  </defs>`;
+
+/* Adım 1: damacana ve onun SCD'si */
+BFY_FIG_EKLE('sf1113_damacana', function (u) {
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="340" height="262" rx="14" fill="#f5f3fa"/>`;
+  s += `<rect class="bg" x="0" y="210" width="168" height="52" fill="url(#${u}wood)"/>`;
+  [40, 84, 128].forEach(x => s += `<line class="bg" x1="${x}" y1="210" x2="${x - 14}" y2="262" stroke="#d6b98a" stroke-width="1"/>`);
+  s += `<line x1="0" y1="210" x2="168" y2="210" stroke="#b58f55" stroke-width="1.6"/>`;
+  s += damacana(u, 80, 210);
+  s += `<rect x="34" y="62" width="92" height="160" rx="12" fill="none" stroke="${MOR}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  s += ack(80, 248, 'damacana, 20 kg', { size: 12, anchor: 'middle', weight: 700 });
+  s += arrow(134, 142, 208, 142, { color: MOR, w: 1.6, dash: '5 4', head: 8, headW: 4.5 });
+  s += ack(171, 132, 'cismi ayır', { anchor: 'middle', fill: MOR, weight: 700 });
+  const cx = 250, cy = 142;
+  s += scdKutu(cx, cy, 40, 30);
+  s += ok(cx, cy, cx, cy - 80, C.N) + ok(cx, cy, cx, cy + 80, C.G) + nokta(cx, cy);
+  s += lbl(cx - 10, cy - 64, 'N = 200 N', C.N, { anchor: 'end' }) + ack(cx - 10, cy - 50, 'yer iter', { anchor: 'end' });
+  s += lbl(cx + 10, cy + 62, 'G = 200 N', C.G) + ack(cx + 10, cy + 76, 'Dünya çeker');
+  s += bas(cx, 30, 'SCD');
+  return svg(340, 262, s, u, 80);
+});
+
+/* Adım 3: zincirle asılı boks torbası */
+BFY_FIG_EKLE('sf1113_torba', function (u) {
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="300" height="300" rx="14" fill="#f5f3fa"/>`;
+  s += `<rect class="bg" x="0" y="0" width="300" height="22" fill="url(#${u}concrete)"/>`;
+  s += `<line x1="0" y1="22" x2="300" y2="22" stroke="#8c8f93" stroke-width="1.6"/>`;
+  s += `<rect class="bg" x="0" y="272" width="170" height="28" fill="url(#${u}wood)"/><line class="bg" x1="0" y1="272" x2="170" y2="272" stroke="#b58f55" stroke-width="1.4"/>`;
+  s += `<rect x="76" y="22" width="28" height="6" rx="1.5" fill="#4d5459"/>`;
+  s += zincir(90, 28, 96);
+  s += `<circle cx="90" cy="98" r="4.4" fill="none" stroke="#4d5459" stroke-width="2.2"/>`;
+  s += `<path d="M90 102 L70 120 M90 102 L110 120 M90 102 L90 120" stroke="#2b2f33" stroke-width="2" fill="none"/>`;
+  s += `<rect x="64" y="116" width="52" height="14" rx="5" fill="#2b2f33"/>`;
+  s += `<rect x="62" y="124" width="56" height="124" rx="22" fill="url(#${u}sfderi)" stroke="#6a1610" stroke-width="1.2"/>`;
+  s += `<rect x="62" y="178" width="56" height="10" fill="#26292c" opacity=".9"/>`;
+  s += `<rect x="70" y="134" width="7" height="104" rx="3.5" fill="#fff" opacity=".22"/>`;
+  s += `<ellipse cx="92" cy="278" rx="28" ry="4.5" fill="#000" opacity=".12"/>`;
+  s += ack(90, 292, 'boks torbası', { size: 12, anchor: 'middle', weight: 700 });
+  const cx = 222, cy = 172;
+  s += scdKutu(cx, cy, 40, 30);
+  s += ok(cx, cy, cx, cy - 76, C.T) + ok(cx, cy, cx, cy + 76, C.G) + nokta(cx, cy);
+  s += lbl(cx + 10, cy - 60, 'T', C.T, { size: 15, italic: true }) + ack(cx + 10, cy - 45, 'zincir çeker');
+  s += lbl(cx + 10, cy + 60, 'G', C.G, { size: 15, italic: true }) + ack(cx + 10, cy + 75, 'Dünya çeker');
+  s += bas(cx, 70, 'SCD');
+  return svg(300, 300, s, u, 72);
+});
+
+/* Adım 4: iki zincirle asılı tabela (16 kg) */
+BFY_FIG_EKLE('sf1113_tabela', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="380" height="300" rx="14" fill="#f5f3fa"/>`;
+  s += `<rect class="bg" x="0" y="0" width="16" height="300" fill="url(#${u}stone)"/><line x1="16" y1="0" x2="16" y2="300" stroke="#9a8f7c" stroke-width="1.4"/>`;
+  s += `<rect x="16" y="38" width="226" height="9" rx="2" fill="url(#${u}metal)" stroke="#6d7378" stroke-width="1"/>`;
+  s += `<line x1="16" y1="104" x2="88" y2="47" stroke="#6d7378" stroke-width="4" stroke-linecap="round"/>`;
+  s += `<rect x="16" y="30" width="8" height="82" fill="#5d666c"/>`;
+  s += zincir(122, 47, 132) + zincir(218, 47, 132);
+  s += `<rect x="90" y="128" width="160" height="66" rx="6" fill="url(#${u}wood)" stroke="#9a7442" stroke-width="2"/>`;
+  s += `<rect x="97" y="135" width="146" height="52" rx="4" fill="none" stroke="#c49a5c" stroke-width="1.2"/>`;
+  s += `<circle cx="122" cy="133" r="2.6" fill="#5d666c"/><circle cx="218" cy="133" r="2.6" fill="#5d666c"/>`;
+  s += T(170, 170, 'FIRIN', { size: 24, anchor: 'middle', weight: 800, fill: '#7a4a1f', halo: false });
+  s += ack(170, 216, 'tabela, 16 kg', { size: 12, anchor: 'middle', weight: 700 });
+  const cx = 320, cy = 172;
+  s += scdKutu(cx, cy, 38, 28);
+  s += ok(cx - 12, cy, cx - 12, cy - 50, C.T) + ok(cx + 12, cy, cx + 12, cy - 50, C.T) + ok(cx, cy, cx, cy + 100, C.G) + nokta(cx, cy);
+  s += lbl(cx - 20, cy - 38, 'T', C.T, { size: 15, italic: true, anchor: 'end' }) + lbl(cx + 20, cy - 38, 'T', C.T, { size: 15, italic: true });
+  s += lbl(cx, cy - 64, 'T = 80 N', C.T, { anchor: 'middle', size: 12 });
+  s += lbl(cx - 10, cy + 92, 'G = 160 N', C.G, { anchor: 'end' });
+  s += bas(cx, 80, 'SCD');
+  return svg(380, 300, s, u, 84);
+});
+
+/* Adım 5: makaradan geçen iple yukarı çekilen harç kovası (10 kg, T = 120 N) */
+BFY_FIG_EKLE('sf1113_kova', function (u) {
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="340" height="300" rx="14" fill="#f5f3fa"/>`;
+  s += `<rect class="bg" x="0" y="276" width="200" height="24" fill="url(#${u}soil)"/><line class="bg" x1="0" y1="276" x2="200" y2="276" stroke="#9c8462" stroke-width="1.4"/>`;
+  s += `<rect x="30" y="16" width="150" height="12" rx="2" fill="url(#${u}metal)" stroke="#6d7378" stroke-width="1"/>`;
+  s += `<path d="M99 28 L99 40 M111 28 L111 40" stroke="#5d666c" stroke-width="3"/>`;
+  s += `<circle cx="105" cy="56" r="18" fill="url(#${u}metalV)" stroke="#4d5459" stroke-width="1.4"/><circle cx="105" cy="56" r="12" fill="none" stroke="#7d858b" stroke-width="1"/><circle cx="105" cy="56" r="3.4" fill="#4d5459"/>`;
+  s += `<path d="M87 166 V56 A18 18 0 0 1 123 56 V222" fill="none" stroke="#8a6231" stroke-width="2.4"/>`;
+  s += `<defs><linearGradient id="${u}kol" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f6fb0"/><stop offset=".6" stop-color="#2f6fb0"/><stop offset="1" stop-color="#2f6fb0" stop-opacity="0"/></linearGradient><linearGradient id="${u}kolK" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1d4f82"/><stop offset=".6" stop-color="#1d4f82"/><stop offset="1" stop-color="#1d4f82" stop-opacity="0"/></linearGradient></defs>`;
+  s += `<path d="M130 194 L204 190 L204 209 L130 211 Z" fill="url(#${u}kol)"/><path d="M130 194 L204 190 M130 211 L204 209" stroke="url(#${u}kolK)" stroke-width="1" fill="none"/><path d="M134 207 L204 205" stroke="#1d4f82" stroke-width="2.4" opacity=".25"/>`;
+  s += `<ellipse cx="124" cy="203" rx="9" ry="11" fill="#e7a93b" stroke="#9a6c1d" stroke-width="1"/>`;
+  s += ack(176, 230, 'işçi ipi çeker', { anchor: 'middle' });
+  s += `<path d="M64 184 Q87 150 110 184" fill="none" stroke="#2b2f33" stroke-width="2.6"/>`;
+  s += `<path d="M62 184 L112 184 L105 238 Q87 243 69 238 Z" fill="url(#${u}sfkova)" stroke="#15181a" stroke-width="1"/>`;
+  s += `<ellipse cx="87" cy="184" rx="25" ry="5" fill="#3c4348" stroke="#15181a" stroke-width="1"/><ellipse cx="87" cy="185" rx="21" ry="3.4" fill="#aeb0aa"/>`;
+  s += `<ellipse cx="88" cy="281" rx="22" ry="3.8" fill="#000" opacity=".10"/>`;
+  s += ack(87, 264, 'harç kovası, 10 kg', { size: 12, anchor: 'middle', weight: 700 });
+  s += ok(40, 232, 40, 184, MOR, 2.4) + T(32, 214, 'a', { size: 15, anchor: 'end', weight: 800, fill: MOR, italic: true });
+  const cx = 268, cy = 160;
+  s += scdKutu(cx, cy, 40, 30);
+  s += ok(cx, cy, cx, cy - 72, C.T) + ok(cx, cy, cx, cy + 60, C.G) + nokta(cx, cy);
+  s += lbl(cx - 10, cy - 56, 'T = 120 N', C.T, { anchor: 'end' }) + ack(cx - 10, cy - 42, 'ip çeker', { anchor: 'end' });
+  s += lbl(cx + 10, cy + 46, 'G = 100 N', C.G) + ack(cx + 10, cy + 60, 'Dünya çeker');
+  s += bas(cx, 60, 'SCD');
+  return svg(340, 300, s, u, 80);
+});
+
+/* Isınma 1: üst üste iki kargo kolisi (6 kg ve 15 kg) */
+BFY_FIG_EKLE('sf1113_koli', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="262" rx="14" fill="#f5f3fa"/>`;
+  s += `<rect class="bg" x="0" y="230" width="320" height="32" fill="url(#${u}concrete)"/><line x1="0" y1="230" x2="320" y2="230" stroke="#8c8f93" stroke-width="1.6"/>`;
+  const koli = (x, y, w, h, d, yazi) => {
+    const dy = d * 0.7;
+    let k = `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="url(#${u}box)" stroke="#8a6231" stroke-width="1"/>`;
+    k += `<polygon points="${x},${y} ${x + w},${y} ${x + w + d},${y - dy} ${x + d},${y - dy}" fill="#ecc994" stroke="#8a6231" stroke-width="1"/>`;
+    k += `<polygon points="${x + w},${y} ${x + w + d},${y - dy} ${x + w + d},${y + h - dy} ${x + w},${y + h}" fill="#a8783e" stroke="#8a6231" stroke-width="1"/>`;
+    k += `<polygon points="${x + w / 2 - 6},${y} ${x + w / 2 + 6},${y} ${x + w / 2 + 6 + d},${y - dy} ${x + w / 2 - 6 + d},${y - dy}" fill="#d9c49a" opacity=".9"/>`;
+    k += `<rect x="${x + w / 2 - 6}" y="${y}" width="12" height="${h * 0.3}" fill="#d9c49a" opacity=".9"/>`;
+    k += `<rect x="${x + w / 2 - 22}" y="${y + h * 0.45}" width="44" height="22" rx="2" fill="#fff" stroke="#b9a37c" stroke-width=".8"/>`;
+    k += T(x + w / 2, y + h * 0.45 + 16, yazi, { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink, halo: false });
+    return k;
+  };
+  s += `<ellipse cx="${108}" cy="232" rx="72" ry="5" fill="#000" opacity=".13"/>`;
+  s += koli(46, 150, 120, 80, 18, '15 kg');
+  s += koli(70, 94, 70, 54, 12, '6 kg');
+  s += ack(196, 128, 'üstteki koli', { size: 12, weight: 700 }) + `<line x1="192" y1="124" x2="156" y2="118" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += ack(204, 196, 'alttaki koli', { size: 12, weight: 700 }) + `<line x1="200" y1="192" x2="186" y2="190" stroke="${P.ink2}" stroke-width="1"/>`;
+  return svg(320, 262, s, u, 72);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -80483,6 +80982,205 @@ const KONU = {
     'buz pistinde birbirini iten iki patenci (eşleştir)', 'kardeşinin oturduğu kızağı iten çocuk, SCD (sınıfla)', 'tır, karpuz, ok, koşucu, otomobil bileşke kuvvet sıralaması (sırala)', 'yedi SCD ile beş durumu eşleştirme (eşleştir)',
     'makaralı rayda araba: kütleyi arabadan askıya aktarma, a–W grafiği ve sabit direnç (0,5 kg, 0,1 N)', 'buzda 2 kg disk: basamaklı F–t grafiği (+8 N, −4 N), yön değiştirmeden yavaşlama', 'bileşke kuvvetin hareket yönüyle karşılaştırılması (sınıfla)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: serbest cisim diyagramı (SCD) merkezde. Kısa adımlar (her birinde tek kontrol sorusu),
+     ardından adım adım çözülen ısınma soruları. Sayılar küçük ve tam; sayısal sonuçlar qa/11.1.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu bölümde bir cisme etki eden kuvvetleri tek tek bulup çizmeyi öğreneceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Önce tek bir cisim seç',
+        sekil: 'sf1113_damacana',
+        metin: r`Mutfağın köşesinde dolu bir su damacanası duruyor. Damacana yere bastırıyor, yer de damacanayı yukarı itiyor. Dünya da damacanayı aşağı çekiyor. Ortada birçok kuvvet var. Hangisini çizeceğiz?
+
+Kuvvetleri çizerken önce **tek bir cisim** seçeriz. Sonra o cismi çevresinden ayırıp bir kutu ya da nokta olarak düşünürüz. Yalnızca **o cisme** etki eden kuvvetleri ok olarak çizeriz. Bu çizime **serbest cisim diyagramı (SCD)** denir.
+
+Şekilde damacana seçildi. Onun SCD'sinde iki ok var: Dünya'nın çekimi ($G$) ve yerin itmesi ($N$).`,
+        kontrol: {
+          soru: 'Aşağıdaki kuvvetlerden hangisi damacananın SCD\'sinde çizilmez?',
+          secenekler: ['Dünya\'nın damacanayı çekmesi', 'Yerin damacanayı itmesi', 'Damacananın yere bastırması'],
+          dogru: 2,
+          aciklama: 'Damacananın yere bastırması yere etki eden bir kuvvettir. Damacananın SCD\'sine yalnızca damacanaya etki eden kuvvetler girer: Dünya\'nın çekimi ve yerin itmesi.',
+          yanlisIpucu: 'Her kuvvet için şunu sor: Bu kuvvet kime etki ediyor? Okun damacanaya etki etmesi gerekiyor.'
+        }
+      },
+      {
+        baslik: 'Ağırlık: Dünya her cismi çeker',
+        metin: r`Dünya, yakınındaki her cismi kendine doğru, yani **düşey aşağı** çeker. Bu kuvvete **ağırlık** denir ve $G$ ile gösterilir. Ağırlığın büyüklüğü kütleye bağlıdır:
+
+$$G = m \times g$$
+
+Burada $m$ kütle, $g$ ise yaklaşık $10\ \text{m/s}^2$'dir. Dolu damacananın kütlesi 20 kg ise ağırlığı $G = 20 \times 10 = 200$ N olur.
+
+Ağırlık için Dünya'nın cisme dokunması gerekmez. Cisim yerde de dursa, havada da olsa ağırlık oku hep vardır ve hep aşağı çizilir.`,
+        kontrol: {
+          soru: 'Kütlesi 5 kg olan bir kedinin ağırlığı kaç N\'dur?',
+          secenekler: ['5 N', '15 N', '50 N'],
+          dogru: 2,
+          aciklama: r`$G = m \times g = 5 \times 10 = 50$ N. Kütle kilogramla, ağırlık newtonla ölçülür; ikisi aynı şey değildir.`,
+          yanlisIpucu: 'Kütleyi g ile toplama, çarp. Kütle 5 kg, g ise 10.'
+        }
+      },
+      {
+        baslik: 'Dokunan her şey bir kuvvet ekler',
+        sekil: 'sf1113_torba',
+        metin: r`Ağırlık dışındaki kuvvetler **dokunarak** etki eder. Cisme dokunan her şey için SCD'ye bir ok eklenir:
+- Cisim bir yüzeye dayanıyorsa yüzey onu iter. Bu **tepki kuvvetidir** ($N$) ve yüzeye diktir. Yerdeki damacanada yukarı doğrudur.
+- Cisim bir ipe, zincire ya da halata bağlıysa ip onu çeker. Bu **ip gerilmesidir** ($T$) ve ip boyunca, cisimden dışarı doğrudur.
+
+Şekilde spor salonunda tavana zincirle asılmış bir boks torbası var. Torbaya iki şey etki ediyor: Dünya ve zincir. Torbanın SCD'sinde de iki ok var.`,
+        kontrol: {
+          soru: 'Zincirin boks torbasına uyguladığı kuvvet hangi yöndedir?',
+          secenekler: ['Zincir boyunca yukarı', 'Zincir boyunca aşağı', 'Yatay, duvara doğru'],
+          dogru: 0,
+          aciklama: 'Zincir torbayı kendine doğru çeker. Zincir torbanın üstünde olduğu için bu kuvvet zincir boyunca yukarıdır. İp ve zincir hiçbir zaman itmez, yalnızca çeker.',
+          yanlisIpucu: 'Zincir torbayı itemez, yalnızca kendine doğru çekebilir. Zincir torbanın neresinde?'
+        }
+      },
+      {
+        baslik: 'Okların boyu: duran cisimde denge',
+        sekil: 'sf1113_tabela',
+        metin: r`SCD'de okların boyu kuvvetlerin büyüklüğünü gösterir. Büyük kuvvet uzun okla, küçük kuvvet kısa okla çizilir.
+
+Cisim duruyorsa ona etki eden kuvvetler birbirini dengeler. O zaman yukarı yöndeki kuvvetlerin toplamı, aşağı yöndeki kuvvetlerin toplamına eşittir.
+
+Şekilde 16 kg'lık bir dükkân tabelası iki eşit zincirle asılı duruyor. Ağırlığı $G = 160$ N'dur. İki zincir bu yükü eşit paylaşır: Her biri tabelayı 80 N ile yukarı çeker. SCD'de iki kısa yukarı ok, bir uzun aşağı ok var: $80 + 80 = 160$ N.`,
+        kontrol: {
+          soru: 'Kütlesi 9 kg olan bir avize, üç eşit ve düşey zincirle tavana asılı duruyor. Zincirlerin her biri avizeyi kaç N ile çeker?',
+          secenekler: ['90 N', '30 N', '270 N'],
+          dogru: 1,
+          aciklama: r`Avizenin ağırlığı $G = 9 \times 10 = 90$ N'dur. Üç zincir bu yükü eşit paylaşır: $90 \div 3 = 30$ N. Yukarı yöndeki toplam $30 + 30 + 30 = 90$ N, aşağı yöndeki ağırlığa eşittir.`,
+          yanlisIpucu: 'Önce avizenin ağırlığını bul. Sonra bu ağırlığı taşıyan zincir sayısına böl.'
+        }
+      },
+      {
+        baslik: 'SCD\'den bileşke kuvvete',
+        sekil: 'sf1113_kova',
+        metin: r`Kuvvetler dengelenmiyorsa cismin hızı değişir. Bunu SCD'den görürüz. Okları işaretleriyle toplarız; çıkan sonuç **bileşke kuvvettir** ($F_\text{net}$). Newton'ın II. yasasına göre:
+
+$$a = \dfrac{F_\text{net}}{m}$$
+
+Şekilde bir inşaatta 10 kg'lık harç kovası iple yukarı çekiliyor. İp kovayı 120 N ile yukarı çekiyor, kovanın ağırlığı 100 N. Yukarı yönü (+) seçersek $F_\text{net} = 120 - 100 = 20$ N olur. Bileşke kuvvet yukarı doğrudur.`,
+        kontrol: {
+          soru: r`Kovanın ivmesi kaç $\text{m/s}^2$'dir?`,
+          secenekler: [r`$2$`, r`$12$`, r`$20$`],
+          dogru: 0,
+          aciklama: r`$a = \dfrac{F_\text{net}}{m} = \dfrac{20}{10} = 2\ \text{m/s}^2$. İvme, bileşke kuvvetle aynı yönde, yani yukarı doğrudur.`,
+          yanlisIpucu: 'İvmeyi ipin kuvveti değil, bileşke kuvvet belirler. Bileşke kuvveti kütleye böl.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Üst üste iki koli',
+        sekil: 'sf1113_koli',
+        metin: 'Bir kargo deposunda iki koli üst üste duruyor. Üstteki koli 6 kg, alttaki koli 15 kg. İki koli de hareketsiz. Yerin alttaki koliye uyguladığı tepki kuvvetini SCD\'lerle adım adım bulalım.',
+        adimlar: [
+          {
+            soru: 'Üstteki kolinin SCD\'sinde hangi kuvvetler vardır?',
+            secenekler: ['Yalnızca ağırlığı', 'Ağırlığı ve alttaki kolinin onu itmesi', 'Ağırlığı, alttaki kolinin itmesi ve yerin itmesi'],
+            dogru: 1,
+            ipucu: 'Üstteki koliye neler etki ediyor? Dünya onu çekiyor. Peki ona hangi cisim dokunuyor? Yer ona dokunuyor mu?',
+            aciklama: 'Üstteki koliyi Dünya çeker ve ona yalnızca alttaki koli dokunur. Yer üstteki koliye dokunmaz.'
+          },
+          {
+            soru: 'Alttaki koli, üstteki koliyi kaç N ile yukarı iter?',
+            secenekler: ['60 N', '150 N', '210 N'],
+            dogru: 0,
+            ipucu: 'Üstteki koli duruyor. Ona etki eden yukarı kuvvet, aşağı kuvvete eşit olmalı.',
+            aciklama: r`Üstteki kolinin ağırlığı $6 \times 10 = 60$ N'dur. Koli durduğu için alttaki koli onu 60 N ile yukarı iter.`
+          },
+          {
+            soru: 'Üstteki koli, alttaki koliye nasıl bir kuvvet uygular?',
+            secenekler: ['60 N, yukarı doğru', '60 N, aşağı doğru', 'Hiç kuvvet uygulamaz.'],
+            dogru: 1,
+            ipucu: 'Newton\'ın III. yasasını düşün: A, B\'yi itiyorsa B de A\'yı aynı büyüklükte ve zıt yönde iter.',
+            aciklama: 'Alttaki koli üstteki koliyi 60 N ile yukarı itiyor. III. yasaya göre üstteki koli de alttakini 60 N ile aşağı iter. Bu kuvvet alttaki kolinin SCD\'sine girer.'
+          },
+          {
+            soru: 'Yer, alttaki koliyi kaç N ile yukarı iter?',
+            secenekler: ['150 N', '90 N', '210 N'],
+            dogru: 2,
+            ipucu: 'Alttaki kolinin SCD\'sinde aşağı yönlü iki ok var: kendi ağırlığı ve üstteki kolinin bastırması. Yukarı yönlü tek ok yerin itmesi.',
+            aciklama: r`Alttaki kolinin ağırlığı 150 N'dur. Aşağı yöndeki toplam $150 + 60 = 210$ N olur. Koli durduğu için yer onu 210 N ile yukarı iter.`
+          }
+        ],
+        sonuc: 'Yer, alttaki koliyi iki kolinin toplam ağırlığı kadar iter: 210 N. Ama bu kuvvet yalnızca alttaki koliye etki eder. Üstteki koliye yer değil, alttaki koli dokunur. SCD çizerken her cisme ayrı ayrı bakmak bu yüzden önemlidir.'
+      },
+      {
+        baslik: 'Bırakılan market arabası',
+        metin: r`Bir müşteri, dolu market arabasını itip 2 m/s hıza ulaştırıyor ve sonra elini çekiyor. Araba yatay zeminde yoluna devam ediyor. Arabanın içindekilerle birlikte kütlesi 25 kg'dır. Arabaya, harekete zıt yönde toplam 25 N'luk sabit bir direnç kuvveti etki ediyor.`,
+        adimlar: [
+          {
+            soru: 'Müşteri elini çektikten sonra arabanın SCD\'sinde kaç kuvvet vardır?',
+            secenekler: ['2', '3', '4'],
+            dogru: 1,
+            ipucu: 'Arabaya artık el dokunmuyor. Dünya\'yı, zemini ve direnci say. Arabanın "hareket kuvveti" diye bir kuvveti yoktur.',
+            aciklama: 'Üç kuvvet vardır: ağırlık (aşağı), zeminin tepki kuvveti (yukarı) ve direnç kuvveti (harekete zıt). Elin itmesi, el ayrılınca biter.'
+          },
+          {
+            soru: 'Arabaya etki eden bileşke kuvvet hangisidir?',
+            secenekler: ['25 N, hareket yönünde', '25 N, harekete zıt yönde', 'Sıfır'],
+            dogru: 1,
+            ipucu: 'Düşeyde ağırlık ile tepki kuvveti birbirini dengeler. Yatayda kaç kuvvet kaldı?',
+            aciklama: 'Ağırlık ile tepki kuvveti birbirini götürür. Yatayda yalnızca direnç kuvveti kalır. Bileşke kuvvet 25 N\'dur ve harekete zıt yöndedir.'
+          },
+          {
+            soru: 'Arabanın ivmesi kaç m/s² olur?',
+            secenekler: [r`$1$`, r`$2$`, r`$25$`],
+            dogru: 0,
+            ipucu: 'İvme, bileşke kuvvetin kütleye bölümüdür.',
+            aciklama: r`$a = \dfrac{25}{25} = 1\ \text{m/s}^2$. İvme harekete zıt yönde olduğu için araba her saniye 1 m/s yavaşlar.`
+          },
+          {
+            soru: 'Araba elden çıktıktan kaç saniye sonra durur?',
+            secenekler: [r`$1$`, r`$2$`, r`$25$`],
+            dogru: 1,
+            ipucu: 'Araba 2 m/s hızla bırakılıyor ve hızı her saniye 1 m/s azalıyor.',
+            aciklama: r`Hız her saniye 1 m/s azalır: $2 \div 1 = 2$ s sonra hız sıfır olur.`
+          }
+        ],
+        sonuc: 'Araba elden çıktıktan sonra da bir süre gitti, çünkü hareketini sürdürmek için kuvvet gerekmez. Onu yavaşlatan ve durduran, harekete zıt yöndeki direnç kuvvetiydi. SCD\'de "hareket kuvveti" diye bir ok yoktur.'
+      },
+      {
+        baslik: 'Havadaki kargo dronu',
+        metin: r`Kütlesi 2 kg olan bir kargo dronu düşey doğrultuda hareket ediyor. Drona iki kuvvet etki ediyor: ağırlığı ve pervanelerin onu yukarı iten kuvveti ($F$). Hava direnci önemsenmiyor. Farklı durumlarda $F$'nin kaç N olması gerektiğini bulalım. Yukarı yönü (+) seçelim.`,
+        adimlar: [
+          {
+            soru: 'Dron havada kıpırdamadan duruyorsa F kaç N\'dur?',
+            secenekler: ['0', '2 N', '20 N'],
+            dogru: 2,
+            ipucu: 'Önce dronun ağırlığını bul. Dron duruyorsa yukarı kuvvet aşağı kuvvete eşittir.',
+            aciklama: r`Ağırlık $G = 2 \times 10 = 20$ N'dur. Dron durduğu için $F = G = 20$ N olur.`
+          },
+          {
+            soru: 'Dron sabit hızla yükseliyorsa F kaç N\'dur?',
+            secenekler: ['20 N', '20 N\'dan büyük', '0'],
+            dogru: 0,
+            ipucu: 'Hız sabitse ivme sıfırdır. İvme sıfırsa bileşke kuvvet kaçtır?',
+            aciklama: 'Sabit hızda ivme sıfırdır, bu yüzden bileşke kuvvet de sıfırdır. F yine ağırlığa eşittir: 20 N. Yükselmek için fazladan kuvvet gerekmez; hızı korumak için kuvvetlerin dengede olması yeter.'
+          },
+          {
+            soru: r`Dron yukarı doğru $4\ \text{m/s}^2$ ivmeyle hızlanıyorsa F kaç N'dur?`,
+            secenekler: ['8 N', '20 N', '28 N'],
+            dogru: 2,
+            ipucu: r`Bileşke kuvvet $m \times a$ kadardır ve yukarı doğrudur. F, ağırlığı dengelemeli ve bu bileşkeyi de sağlamalı.`,
+            aciklama: r`$F - G = m \times a \Rightarrow F - 20 = 2 \times 4 = 8$. Buradan $F = 28$ N bulunur.`
+          },
+          {
+            soru: r`Dron yükselirken yavaşlıyor ve ivmesi aşağı doğru $3\ \text{m/s}^2$ ise F kaç N'dur?`,
+            secenekler: ['14 N', '20 N', '26 N'],
+            dogru: 0,
+            ipucu: 'Yavaşlayan dronun ivmesi hareketine zıttır, yani aşağıdır. Aşağı yönlü ivme için bileşke kuvvet de aşağı olmalı.',
+            aciklama: r`Yukarı yön (+) olduğu için $a = -3\ \text{m/s}^2$ alınır: $F - 20 = 2 \times (-3) = -6$. Buradan $F = 14$ N bulunur. F ağırlıktan küçük olduğu için bileşke kuvvet aşağı doğrudur.`
+          }
+        ],
+        sonuc: 'Dron yükseliyorken F, 14 N da olabildi, 20 N da, 28 N da. F\'yi belirleyen hareketin yönü değil, ivmenin yönüydü. SCD\'yi çiz, yönü seç, sonra bileşke kuvvete bak.'
+      }
+    ],
+    hazir: 'Bir cismi seçip ona etki eden kuvvetleri bulmayı, okları doğru yönde ve doğru boyda çizmeyi, SCD\'den bileşke kuvvete geçmeyi gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
