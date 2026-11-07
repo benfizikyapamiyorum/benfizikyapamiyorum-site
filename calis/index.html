@@ -40977,6 +40977,148 @@ BFY_FIG_EKLE('i1011_kart_birim', u => S(u, I0_ => {
 }, { oy: 66 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1011_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MOR = '#6b4fa0';
+/* grafik: eksenler birimli; "t (s)" yatay eksenin sağ ucunda, yanında */
+function grafik(o) {
+  const { x0, y0, W, H, tMax, yMin, yMax } = o;
+  const sx = t => x0 + t / tMax * W, sy = v => y0 + (yMax - v) / (yMax - yMin) * H, zy = sy(0);
+  let s = `<rect class="bg" x="0" y="0" width="${o.w}" height="${o.h}" rx="14" fill="#f6f9f7"/>`;
+  (o.gridT || []).forEach(t => { s += `<line x1="${f1(sx(t))}" y1="${f1(sy(yMax))}" x2="${f1(sx(t))}" y2="${f1(sy(yMin))}" stroke="#dde5df" stroke-width="1"/>`; });
+  (o.gridY || []).forEach(v => { s += `<line x1="${x0}" y1="${f1(sy(v))}" x2="${f1(sx(tMax))}" y2="${f1(sy(v))}" stroke="#dde5df" stroke-width="1"/>`; });
+  if (o.alt) s += o.alt(sx, sy);
+  const top = y0 - 12, right = sx(tMax) + 10;
+  s += `<line x1="${x0}" y1="${f1(sy(yMin) + (yMin < 0 ? 6 : 0))}" x2="${x0}" y2="${top + 6}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${x0},${top - 4} ${x0 - 4},${top + 6} ${x0 + 4},${top + 6}" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${f1(zy)}" x2="${f1(right)}" y2="${f1(zy)}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${f1(right + 10)},${f1(zy)} ${f1(right)},${f1(zy - 4)} ${f1(right)},${f1(zy + 4)}" fill="${P.ink}"/>`;
+  s += T(x0 + 9, top + 4, o.yLabel, { size: 12.5, weight: 800 });
+  s += T(right + 14, zy + 4.5, 't (s)', { size: 12.5, weight: 800 });
+  (o.tTicks || []).forEach(([t, l, ust]) => {
+    s += `<line x1="${f1(sx(t))}" y1="${f1(zy - 3)}" x2="${f1(sx(t))}" y2="${f1(zy + 3)}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    s += T(sx(t), ust ? zy - 7 : zy + 17, l, { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
+  });
+  (o.yTicks || []).forEach(([v, l]) => {
+    s += `<line x1="${x0 - 3}" y1="${f1(sy(v))}" x2="${x0 + 3}" y2="${f1(sy(v))}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    s += T(x0 - 7, sy(v) + 4.5, l, { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  });
+  s += T(x0 - 7, zy + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  return { s, sx, sy, zy };
+}
+const cizgi = (pts, sx, sy, c = P.blue, w = 2.8) => `<polyline points="${pts.map(([t, v]) => f1(sx(t)) + ',' + f1(sy(v))).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const nokta = (x, y, c = P.blue, r = 3.6) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${c}" stroke="#fff" stroke-width="1.2"/>`;
+const kesik = (x1, y1, x2, y2) => dashLine(f1(x1), f1(y1), f1(x2), f1(y2), '#8aa0ad', '3 3', 1.1);
+/* yaya: (x, ayak hizası y); kos: koşma duruşu */
+function insan(x, y, o = {}) {
+  const c = o.renk || P.blue, op = o.op == null ? 1 : o.op, k = o.kos;
+  let g = `<g opacity="${op}"><ellipse cx="${x + 1}" cy="${y + 1}" rx="10" ry="2.4" fill="#000" opacity=".12"/>`;
+  if (k) g += `<path d="M${x - 1} ${y - 17} L${x + 7} ${y - 9} L${x + 5} ${y}" fill="none" stroke="#3d4a5c" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M${x - 1} ${y - 17} L${x - 6} ${y - 8} L${x - 12} ${y - 5}" fill="none" stroke="#2f3a48" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else g += `<path d="M${x - 2} ${y - 17} L${x - 3} ${y}" stroke="#2f3a48" stroke-width="4.2" stroke-linecap="round"/><path d="M${x + 2} ${y - 17} L${x + 3} ${y}" stroke="#3d4a5c" stroke-width="4.2" stroke-linecap="round"/>`;
+  g += `<path d="M${x} ${y - 31} L${x + (k ? 2 : 0)} ${y - 17}" stroke="${c}" stroke-width="8" stroke-linecap="round"/>`;
+  if (k) g += `<path d="M${x + 1} ${y - 29} L${x + 7} ${y - 23} L${x + 11} ${y - 27}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M${x} ${y - 29} L${x - 6} ${y - 22} L${x - 9} ${y - 17}" fill="none" stroke="${c}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  else g += `<path d="M${x - 3} ${y - 29} L${x - 6} ${y - 18}" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/><path d="M${x + 3} ${y - 29} L${x + 6} ${y - 18}" stroke="${c}" stroke-width="3.2" stroke-linecap="round"/>`;
+  g += `<circle cx="${x + (k ? 2 : 0)}" cy="${y - 38}" r="5.4" fill="#eebf98" stroke="#b9845e" stroke-width=".8"/>`;
+  g += `<path d="M${x + (k ? 2 : 0) - 5.4} ${y - 39} a5.4 5.4 0 0 1 10.8 0 q-5 -2.6 -10.8 0 Z" fill="${o.sac || '#4a3426'}"/>`;
+  return g + '</g>';
+}
+/* dükkân cephesi (cx: orta, yb: kaldırım hizası) */
+function dukkan(u, cx, yb, ad, renk) {
+  const x = cx - 30, y = yb - 80;
+  let g = `<rect x="${x}" y="${y}" width="60" height="80" fill="url(#${u}facade)" stroke="#b9a888" stroke-width="1"/>`;
+  g += `<rect x="${x - 3}" y="${y - 5}" width="66" height="7" rx="1.5" fill="#cbbb9c" stroke="#a8977a" stroke-width=".8"/>`;
+  g += `<rect x="${x + 2}" y="${y + 8}" width="56" height="15" rx="2" fill="#fff" stroke="${renk}" stroke-width="1.4"/>`;
+  g += T(cx, y + 19.5, ad, { size: 8.6, anchor: 'middle', weight: 800, fill: renk, halo: false });
+  for (let i = 0; i < 6; i++) g += `<path d="M${x + i * 10} ${y + 30} h10 l1 9 h-12 Z" fill="${i % 2 ? '#fff' : renk}" opacity=".9"/>`;
+  g += `<rect x="${x + 6}" y="${y + 42}" width="24" height="26" fill="url(#${u}glass)" stroke="#8a7a5c" stroke-width="1"/>`;
+  g += `<rect x="${x + 36}" y="${y + 42}" width="18" height="38" fill="#8a6440" stroke="#5f4329" stroke-width="1"/><circle cx="${x + 50}" cy="${y + 62}" r="1.3" fill="#e7c36a"/>`;
+  return g;
+}
+const XC = m => 150 + 4 * m;   // cadde ölçeği: 1 m = 4 birim
+function cadde(u, mod) {
+  const W = 360, H = 216, yb = 118, ny = 186;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  // ağaç
+  s += `<rect x="207" y="${yb - 28}" width="5" height="28" fill="#7a5a3a"/><circle cx="210" cy="${yb - 40}" r="15" fill="#5f9448"/><circle cx="203" cy="${yb - 34}" r="9" fill="#6fa856"/><circle cx="217" cy="${yb - 46}" r="8" fill="#7cb562"/>`;
+  s += dukkan(u, XC(-20), yb, 'KIRTASİYE', '#2f7fb8') + dukkan(u, XC(0), yb, 'FIRIN', '#c0462f') + dukkan(u, XC(30), yb, 'ECZANE', '#2f8a4f');
+  s += `<rect x="0" y="${yb}" width="${W}" height="14" fill="url(#${u}concrete)"/><line x1="0" y1="${yb}" x2="${W}" y2="${yb}" stroke="#8e979f" stroke-width="1"/><line x1="0" y1="${yb + 14}" x2="${W}" y2="${yb + 14}" stroke="#8e979f" stroke-width="1.4"/>`;
+  // sayı doğrusu
+  s += arrow(18, ny, 324, ny, { color: P.ink, w: 1.5, head: 9, headW: 4 });
+  s += T(328, ny + 4.5, 'x (m)', { size: 12.5, weight: 800 });
+  for (let m = -30; m <= 40; m += 10) {
+    s += `<line x1="${XC(m)}" y1="${ny - 4}" x2="${XC(m)}" y2="${ny + 4}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    s += T(XC(m), ny + 19, m < 0 ? '−' + (-m) : String(m), { size: 11.5, anchor: 'middle', weight: m === 0 ? 800 : 600, fill: m === 0 ? P.ink : P.ink2 });
+  }
+  s += T(16, ny - 9, 'batı', { size: 11.5, weight: 700, fill: P.ink2 }) + T(318, ny - 9, 'doğu', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 });
+  if (mod === 'cadde') {
+    [[-20, 'x = −20 m'], [0, 'x = 0'], [30, 'x = +30 m']].forEach(([m, l]) => {
+      s += dashLine(XC(m), yb + 15, XC(m), yb + 26, '#8aa0ad', '3 3', 1.1) + dashLine(XC(m), yb + 44, XC(m), ny - 5, '#8aa0ad', '3 3', 1.1);
+      s += T(XC(m), yb + 40, l, { size: 12, anchor: 'middle', weight: 800, fill: m === 0 ? '#c0462f' : P.ink });
+    });
+  } else if (mod === 'rota') {
+    [-20, 0, 30].forEach(m => { s += dashLine(XC(m), yb + 15, XC(m), ny - 5, '#b4c2cb', '3 3', 1); });
+    s += insan(XC(30) + 14, yb + 2, { renk: '#b0457a', sac: '#2d1f17' });
+    s += arrow(XC(30) - 3, 146, XC(-20) + 3, 146, { color: P.coral, w: 2.6 });
+    s += T(XC(30) + 6, 150, '1) 50 m', { size: 12, weight: 800, fill: P.coral });
+    s += arrow(XC(-20) + 3, 165, XC(0) - 3, 165, { color: P.blue, w: 2.6 });
+    s += T(XC(0) + 6, 169, '2) 20 m', { size: 12, weight: 800, fill: P.blue });
+  } else if (mod === 'kosu') {
+    [0, 10, 20, 30].forEach((m, i) => {
+      s += insan(XC(m), yb + 2, { renk: '#e07b2a', kos: true, op: [0.35, 0.5, 0.7, 1][i] });
+      s += dashLine(XC(m), yb + 15, XC(m), yb + 26, '#8aa0ad', '3 3', 1.1) + dashLine(XC(m), yb + 44, XC(m), ny - 5, '#8aa0ad', '3 3', 1.1);
+      s += T(XC(m), yb + 40, ['t = 0', '5 s', '10 s', '15 s'][i], { size: 12, anchor: 'middle', weight: 800, fill: '#a8551a' });
+    });
+    s += arrow(XC(30) + 13, 100, XC(30) + 41, 100, { color: P.coral, w: 2.6, head: 8 });
+    s += T(XC(30) + 46, 104.5, 'ϑ', { size: 13, anchor: 'start', weight: 800, fill: P.coral });
+  }
+  return svg(W, H, s, u, 112);
+}
+BFY_FIG_EKLE('sf1011_cadde', u => cadde(u, 'cadde'));
+BFY_FIG_EKLE('sf1011_rota', u => cadde(u, 'rota'));
+BFY_FIG_EKLE('sf1011_kosu', u => cadde(u, 'kosu'));
+
+/* Adım 4: Mert'in konum-zaman grafiği */
+BFY_FIG_EKLE('sf1011_xt', function (u) {
+  const G = grafik({ w: 330, h: 236, x0: 46, y0: 32, W: 220, H: 170, tMax: 18, yMin: 0, yMax: 36, yLabel: 'x (m)',
+    gridT: [5, 10, 15], gridY: [10, 20, 30], tTicks: [[5, '5'], [10, '10'], [15, '15']], yTicks: [[10, '10'], [20, '20'], [30, '30']] });
+  let s = G.s + cizgi([[0, 0], [16.8, 33.6]], G.sx, G.sy, '#e07b2a');
+  [[5, 10], [10, 20], [15, 30]].forEach(([t, x]) => { s += nokta(G.sx(t), G.sy(x), '#e07b2a'); });
+  s += T(G.sx(16.8) + 6, G.sy(33.6) + 4, 'Mert', { size: 12.5, weight: 800, fill: '#a8551a' });
+  return svg(330, 236, s, u, 76);
+});
+
+/* Adım 5: Mert'in hız-zaman grafiği ve alan */
+BFY_FIG_EKLE('sf1011_vt', function (u) {
+  const G = grafik({ w: 330, h: 196, x0: 46, y0: 32, W: 220, H: 130, tMax: 18, yMin: 0, yMax: 3, yLabel: 'ϑ (m/s)',
+    tTicks: [[15, '15']], yTicks: [[2, '2']],
+    alt: (sx, sy) => `<rect x="${f1(sx(0))}" y="${f1(sy(2))}" width="${f1(sx(15) - sx(0))}" height="${f1(sy(0) - sy(2))}" fill="#3f8a67" opacity=".2"/>` });
+  let s = G.s + kesik(G.sx(15), G.sy(2), G.sx(15), G.zy) + cizgi([[0, 2], [16.8, 2]], G.sx, G.sy, '#e07b2a');
+  s += T(G.sx(7.5), G.sy(1) + 4.5, 'Δx = 2 × 15 = 30 m', { size: 12.5, anchor: 'middle', weight: 800, fill: P.green, haloColor: '#e6f0ea' });
+  return svg(330, 196, s, u, 76);
+});
+
+/* Isınma 2: köprüde iki yaya (ilk 10 s) */
+BFY_FIG_EKLE('sf1011_kopru', function (u) {
+  const G = grafik({ w: 350, h: 250, x0: 46, y0: 32, W: 240, H: 186, tMax: 21, yMin: 0, yMax: 64, yLabel: 'x (m)',
+    gridT: [5, 10, 15, 20], gridY: [10, 20, 30, 40, 50, 60], tTicks: [[5, '5'], [10, '10'], [15, '15'], [20, '20']],
+    yTicks: [[10, '10'], [20, '20'], [30, '30'], [40, '40'], [50, '50'], [60, '60']] });
+  let s = G.s + cizgi([[0, 0], [10, 30]], G.sx, G.sy, P.blue) + cizgi([[0, 60], [10, 50]], G.sx, G.sy, P.copper);
+  s += nokta(G.sx(10), G.sy(30), P.blue) + nokta(G.sx(10), G.sy(50), P.copper);
+  s += T(G.sx(10) + 8, G.sy(30) + 14, 'Ayşe', { size: 12.5, weight: 800, fill: P.blue });
+  s += T(G.sx(10) + 8, G.sy(50) - 7, 'Bora', { size: 12.5, weight: 800, fill: P.copper });
+  return svg(350, 250, s, u, 80);
+});
+
+/* Isınma 3: konveyör banttaki kolinin hız-zaman grafiği */
+BFY_FIG_EKLE('sf1011_bant', function (u) {
+  const G = grafik({ w: 340, h: 220, x0: 46, y0: 32, W: 230, H: 150, tMax: 22, yMin: -2, yMax: 3, yLabel: 'ϑ (m/s)',
+    gridT: [5, 10, 15, 20], gridY: [-1, 1, 2], tTicks: [[5, '5'], [20, '20', true]], yTicks: [[2, '2'], [-1, '−1']] });
+  let s = G.s + kesik(G.sx(5), G.sy(2), G.sx(5), G.zy) + kesik(G.sx(20), G.sy(-1), G.sx(20), G.zy);
+  s += cizgi([[0, 2], [5, 2]], G.sx, G.sy, P.blue) + cizgi([[5, -1], [20, -1]], G.sx, G.sy, P.blue);
+  return svg(340, 220, s, u, 78);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -41015,6 +41157,207 @@ const KONU = {
     'film setinde kamera arabası (dolly) ϑ tablosu +0,5 / 0 / −1 m/s, değişiklik → yer değiştirme',
     'derede yüzdürme yöntemiyle akıntı hızı ölçümü, A-B ipleri 20 m, 4 deneme, köprü 100 m (k1011_23)', 'depoda paralel raylarda iki taşıma robotu ϑ-t, L 30 m önde (k1011_24)', 'sürate göre sıralama: otomobil x-t, bisikletçi 720 m/dk, tramvay 50 m/4 s, otobüs 54 km/h, tır −18 m/s (k1011_25)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Konum: neye göre, ne kadar uzakta?',
+        sekil: 'sf1011_cadde',
+        metin: r`Düz bir caddede bir kırtasiye, bir fırın ve bir eczane var. Bir arkadaşın "Eczane nerede?" diye sorsa ona "Fırının 30 m doğusunda." dersin. Bir yerin nerede olduğunu söylemek için önce bir **başlangıç noktası** seçeriz.
+
+Fırını başlangıç noktası ($x = 0$) seçelim. Doğu yönünü (+), batı yönünü (−) alalım.
+- Eczane fırının 30 m doğusunda; konumu $x = +30$ m.
+- Kırtasiye fırının 20 m batısında; konumu $x = -20$ m.
+
+Bir cismin seçilen başlangıç noktasına göre yerine **konum** denir ve $x$ ile gösterilir. İşaret yönü, sayı ise uzaklığı söyler.`,
+        kontrol: {
+          soru: 'Aynı caddede fırının 50 m batısında bir otobüs durağı var. Doğu (+) yön olduğuna göre durağın konumu nedir?',
+          secenekler: ['$x = +50$ m', '$x = -50$ m', '$x = 0$'],
+          dogru: 1,
+          aciklama: r`Durak, başlangıç noktası olan fırının batısında, yani (−) tarafta. Uzaklığı 50 m olduğu için konumu $x = -50$ m olur.`,
+          yanlisIpucu: r`Konumu fırına göre yazıyoruz. Durak fırının hangi tarafında? Batı tarafı (−) işaret alır.`
+        }
+      },
+      {
+        baslik: 'Alınan yol ve yer değiştirme',
+        sekil: 'sf1011_rota',
+        metin: r`Ece eczanede ($x = +30$ m). Önce kırtasiyeye gidip defter alıyor, sonra fırına gelip ekmek alıyor.
+- 1. bölümde 50 m, 2. bölümde 20 m yürür. **Alınan yol**, yürüdüğü bütün parçaların toplamıdır: $50 + 20 = 70$ m.
+- **Yer değiştirme** ise yalnız ilk ve son konuma bakar: $\Delta x = x_\text{son} - x_\text{ilk} = 0 - 30 = -30$ m.
+
+Yer değiştirmenin işareti yönü gösterir: Ece, başladığı yerin 30 m batısında kaldı. Alınan yolun yönü yoktur ve hiçbir zaman negatif olmaz.`,
+        kontrol: {
+          soru: 'Bir kedi düz bir duvarın üstünde 8 m ileri yürüyor, sonra 3 m geri dönüyor. Kedinin aldığı yol ve yer değiştirmesinin büyüklüğü sırasıyla nedir?',
+          secenekler: ['11 m ve 5 m', '5 m ve 11 m', '11 m ve 11 m'],
+          dogru: 0,
+          aciklama: r`Yol, yürünen bütün parçaların toplamıdır: $8 + 3 = 11$ m. Kedi başladığı yerin 5 m ilerisinde kaldığı için yer değiştirmenin büyüklüğü $8 - 3 = 5$ m olur.`,
+          yanlisIpucu: r`Yol için yürünen her parçayı topla. Yer değiştirme için yalnız başlangıç ve bitiş noktalarına bak: Kedi sonunda başladığı yerden ne kadar uzakta?`
+        }
+      },
+      {
+        baslik: 'Sabit hız: eşit sürelerde eşit yer değiştirme',
+        sekil: 'sf1011_kosu',
+        metin: r`Mert fırının önünden ($x = 0$) doğuya doğru hafif tempoda koşmaya başlıyor. Arkadaşı her 5 saniyede bir Mert'in konumunu not ediyor: 0, 10 m, 20 m, 30 m.
+
+Mert her 5 s'de hep 10 m ilerliyor. Eşit sürelerde eşit yer değiştirme yapan cisim **sabit hızla** hareket eder.
+
+**Hız**, birim zamandaki yer değiştirmedir:
+$$\vartheta = \dfrac{\Delta x}{\Delta t}$$
+Mert için $\vartheta = \dfrac{30}{15} = 2$ m/s olur. Yani Mert her saniye 2 m yer değiştiriyor. Mert (+) yönde gittiği için hızı pozitif çıktı; (−) yönde giden cismin hızı negatif yazılır.`,
+        kontrol: {
+          soru: 'Bir kamyonet düz bir yolda (−) yönde sabit hızla gidiyor ve 3 s\'de 21 m yer değiştiriyor. Kamyonetin hızı nedir?',
+          secenekler: ['+7 m/s', '−7 m/s', '−63 m/s'],
+          dogru: 1,
+          aciklama: r`Yer değiştirme $\Delta x = -21$ m, süre 3 s: $\vartheta = \dfrac{-21}{3} = -7$ m/s. Eksi işareti kamyonetin (−) yönde gittiğini gösterir.`,
+          yanlisIpucu: r`Yer değiştirmeyi süreye böl; çarpma. Kamyonet (−) yönde gidiyorsa hızının işareti ne olmalı?`
+        }
+      },
+      {
+        baslik: 'Konum-zaman grafiği: eğim hızı verir',
+        sekil: 'sf1011_xt',
+        metin: r`Mert'in konumlarını bir grafiğe dökelim. Yatay eksene zamanı ($t$), düşey eksene konumu ($x$) yazarız. Noktalar düz bir çizgi üstünde dizilir: Sabit hızlı hareketin **konum-zaman grafiği** eğik bir doğrudur.
+
+Doğrunun **eğimi** hızı verir:
+$$\vartheta = \dfrac{\Delta x}{\Delta t} = \dfrac{30 - 0}{15 - 0} = 2\ \text{m/s}$$
+Doğru ne kadar dikse cisim o kadar hızlıdır. Doğru aşağı iniyorsa konum azalıyordur; cisim (−) yönde gidiyordur.`,
+        kontrol: {
+          soru: r`Bir cismin konum-zaman grafiği, $t = 0$ anında $x = 40$ m'den başlayıp $t = 10$ s anında $x = 10$ m'ye inen bir doğrudur. Cismin hızı nedir?`,
+          secenekler: ['+3 m/s', '−3 m/s', '+4 m/s'],
+          dogru: 1,
+          aciklama: r`$\vartheta = \dfrac{10 - 40}{10 - 0} = \dfrac{-30}{10} = -3$ m/s. Konum azaldığı için cisim (−) yönde gidiyor.`,
+          yanlisIpucu: r`Son konumdan ilk konumu çıkar, sonra süreye böl. Konum azalıyorsa hız negatif çıkar. Yalnız 40'ı 10'a bölmek hızı vermez.`
+        }
+      },
+      {
+        baslik: 'Hız-zaman grafiği: alan yer değiştirmeyi verir',
+        sekil: 'sf1011_vt',
+        metin: r`Şimdi Mert'in hızını zamana göre çizelim. Hızı hep 2 m/s olduğu için **hız-zaman grafiği** zaman eksenine paralel bir doğrudur.
+
+Grafik ile zaman ekseni arasında bir dikdörtgen oluşur. Bu dikdörtgenin **alanı** yer değiştirmeyi verir:
+$$\Delta x = \vartheta \times \Delta t = 2 \times 15 = 30\ \text{m}$$
+Bu 30 m, Mert'in fırından eczaneye yer değiştirmesidir. Hız negatifse çizgi zaman ekseninin altında kalır; o alan negatif yer değiştirme olarak sayılır.`,
+        kontrol: {
+          soru: 'Bir cismin hız-zaman grafiği 6 s boyunca −4 m/s değerinde, zaman eksenine paralel bir doğrudur. Bu sürede cismin yer değiştirmesi nedir?',
+          secenekler: ['−24 m', '+24 m', '−10 m'],
+          dogru: 0,
+          aciklama: r`Alan $\vartheta \times \Delta t = (-4) \times 6 = -24$ m. Çizgi eksenin altında olduğu için yer değiştirme negatiftir; cisim (−) yönde 24 m gitmiştir.`,
+          yanlisIpucu: r`Hızı süreyle çarp; toplama. Çizgi zaman ekseninin altındaysa alan negatif sayılır.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Pistte ısınan atlet',
+        metin: r`Bir atlet, pistin düz bölümünde başlangıç çizgisinden ($x = 0$) ileri doğru sabit hızla koşuyor ve 12 s'de 60 m ilerliyor. Sonra 4 s durup nefesleniyor. Ardından geri dönüp 4 s'de sabit hızla 20 m geri koşuyor. İleri yön (+) yöndür.`,
+        adimlar: [
+          {
+            soru: 'Atletin ileri koşarkenki hızı nedir?',
+            secenekler: ['+5 m/s', '+72 m/s', '−5 m/s'],
+            dogru: 0,
+            ipucu: r`Hız, yer değiştirmenin süreye bölümüdür: $\vartheta = \dfrac{\Delta x}{\Delta t}$. İleri yön (+) yöndür.`,
+            aciklama: r`$\vartheta = \dfrac{+60}{12} = +5$ m/s.`
+          },
+          {
+            soru: 'Atletin geri koşarkenki hızı nedir?',
+            secenekler: ['+5 m/s', '−5 m/s', '−80 m/s'],
+            dogru: 1,
+            ipucu: r`Geri dönerken yer değiştirme (−) yöndedir: $\Delta x = -20$ m. Bunu süreye böl.`,
+            aciklama: r`$\vartheta = \dfrac{-20}{4} = -5$ m/s. Sürati ileri koşarkenkiyle aynı, yönü ise ters.`
+          },
+          {
+            soru: 'Bütün hareket boyunca atletin aldığı yol ve yer değiştirmesi nedir?',
+            secenekler: ['80 m ve +40 m', '40 m ve +80 m', '80 m ve +80 m'],
+            dogru: 0,
+            ipucu: r`Yol için ileri ve geri koşulan uzunlukları topla. Yer değiştirme için son konumu bul: Atlet 60 m'ye gidip 20 m geri döndü.`,
+            aciklama: r`Yol $60 + 20 = 80$ m. Son konum $60 - 20 = 40$ m olduğundan $\Delta x = 40 - 0 = +40$ m.`
+          },
+          {
+            soru: 'Atletin bütün hareket boyunca ortalama sürati nedir?',
+            secenekler: ['4 m/s', '2 m/s', '5 m/s'],
+            dogru: 0,
+            ipucu: r`Ortalama sürat, toplam yolun toplam süreye bölümüdür. Durduğu 4 s de toplam süreye girer.`,
+            aciklama: r`Toplam süre $12 + 4 + 4 = 20$ s. Ortalama sürat $\dfrac{80}{20} = 4$ m/s.`
+          }
+        ],
+        sonuc: 'Atlet geri döndüğü için alınan yol ile yer değiştirme farklı çıktı. Ortalama sürat bulunurken durulan süre de toplam süreye eklenir.'
+      },
+      {
+        baslik: 'Köprüde karşılaşan iki arkadaş',
+        sekil: 'sf1011_kopru',
+        metin: r`Ayşe ile Bora, düz bir yaya köprüsünün iki ucundan aynı anda birbirine doğru yola çıkıyor. Ayşe'nin başladığı uç $x = 0$, Bora'nın başladığı uç $x = 60$ m'dir. Grafik, ikisinin ilk 10 s'deki konumlarını gösteriyor. İkisi de hızını hiç değiştirmiyor.`,
+        adimlar: [
+          {
+            soru: 'Ayşe\'nin hızı nedir?',
+            secenekler: ['+3 m/s', '−3 m/s', '+30 m/s'],
+            dogru: 0,
+            ipucu: r`Ayşe'nin doğrusundan iki değer oku: $t = 0$ anında $x = 0$, $t = 10$ s anında $x = 30$ m. Yer değiştirmeyi süreye böl.`,
+            aciklama: r`$\vartheta_\text{Ayşe} = \dfrac{30 - 0}{10} = +3$ m/s.`
+          },
+          {
+            soru: 'Bora\'nın hızı nedir?',
+            secenekler: ['+5 m/s', '−1 m/s', '+1 m/s'],
+            dogru: 1,
+            ipucu: r`Bora'nın konumu 60 m'den 50 m'ye iniyor. Konum azalıyorsa hız negatiftir.`,
+            aciklama: r`$\vartheta_\text{Bora} = \dfrac{50 - 60}{10} = -1$ m/s.`
+          },
+          {
+            soru: 'İki arkadaş yola çıktıktan kaç saniye sonra karşılaşır?',
+            secenekler: ['15 s', '20 s', '10 s'],
+            dogru: 0,
+            ipucu: r`Her saniye Ayşe 3 m, Bora 1 m yol alıyor. Aralarındaki 60 m her saniye kaç metre kısalır?`,
+            aciklama: r`Aradaki uzaklık her saniye $3 + 1 = 4$ m kısalır. $\dfrac{60}{4} = 15$ s sonra karşılaşırlar. Grafikteki doğrular uzatılırsa $t = 15$ s anında kesişir.`
+          },
+          {
+            soru: 'Karşılaştıkları yerin konumu nedir?',
+            secenekler: ['$x = 45$ m', '$x = 30$ m', '$x = 15$ m'],
+            dogru: 0,
+            ipucu: r`Ayşe 15 s boyunca 3 m/s hızla yürüdü ve $x = 0$ noktasından başladı.`,
+            aciklama: r`$x = 3 \times 15 = 45$ m. Bora için de $60 - 1 \times 15 = 45$ m çıkar.`
+          }
+        ],
+        sonuc: 'Konum-zaman doğrularının kesiştiği an, iki kişinin aynı konumda olduğu andır. Grafik bitse de sabit hızlı hareketin doğrusu uzatılarak sonraki konumlar bulunur.'
+      },
+      {
+        baslik: 'Yönü değişen konveyör bant',
+        sekil: 'sf1011_bant',
+        metin: r`Bir fabrikada koliler düz bir konveyör bantla taşınıyor. Bir koli, bandın ortasındaki tarayıcının önünden ($x = 0$) geçtiği anda $t = 0$ alınıyor. Görevli 5. saniyede bandı ters yöne çeviriyor. Grafik, kolinin hız-zaman grafiğidir.`,
+        adimlar: [
+          {
+            soru: 'İlk 5 s\'de kolinin yer değiştirmesi nedir?',
+            secenekler: ['+10 m', '+7 m', '−10 m'],
+            dogru: 0,
+            ipucu: r`İlk 5 s'de hız +2 m/s. Hız-zaman grafiğinde alan, hız ile sürenin çarpımıdır.`,
+            aciklama: r`$\Delta x_1 = 2 \times 5 = +10$ m.`
+          },
+          {
+            soru: '5. ve 20. saniyeler arasında kolinin yer değiştirmesi nedir?',
+            secenekler: ['−20 m', '−15 m', '+15 m'],
+            dogru: 1,
+            ipucu: r`Bu aralık $20 - 5 = 15$ s sürer. Hız −1 m/s; çizgi eksenin altında.`,
+            aciklama: r`$\Delta x_2 = (-1) \times 15 = -15$ m.`
+          },
+          {
+            soru: '20. saniyede kolinin konumu nedir?',
+            secenekler: ['$x = +25$ m', '$x = -5$ m', '$x = +5$ m'],
+            dogru: 1,
+            ipucu: r`Başlangıç konumu 0. İki yer değiştirmeyi işaretleriyle topla.`,
+            aciklama: r`$x = 0 + 10 + (-15) = -5$ m. Koli, tarayıcının 5 m gerisinde kalır.`
+          },
+          {
+            soru: 'Koli 20 s boyunca toplam kaç metre yol alır?',
+            secenekler: ['5 m', '25 m', '15 m'],
+            dogru: 1,
+            ipucu: r`Yol hesaplanırken yön önemli değildir. Alanların büyüklüklerini topla.`,
+            aciklama: r`Yol $10 + 15 = 25$ m.`
+          }
+        ],
+        sonuc: 'Hız-zaman grafiğinde eksenin üstündeki alan (+), altındaki alan (−) yer değiştirmedir. Alınan yol için alanların büyüklükleri toplanır.'
+      }
+    ],
+    hazir: 'Konumu, yer değiştirmeyi, hızı ve iki grafiği gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -42767,6 +43110,126 @@ BFY_FIG_EKLE('i1012_kart_aralik', u => S(u, I0_ => {
 }, { oy: 56 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1012_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MOR = '#6b4fa0';
+/* grafik: eksenler birimli; "t (s)" yatay eksenin sağ ucunda, yanında */
+function grafik(o) {
+  const { x0, y0, W, H, tMax, yMin, yMax } = o;
+  const sx = t => x0 + t / tMax * W, sy = v => y0 + (yMax - v) / (yMax - yMin) * H, zy = sy(0);
+  let s = `<rect class="bg" x="0" y="0" width="${o.w}" height="${o.h}" rx="14" fill="#f6f9f7"/>`;
+  (o.gridT || []).forEach(t => { s += `<line x1="${f1(sx(t))}" y1="${f1(sy(yMax))}" x2="${f1(sx(t))}" y2="${f1(sy(yMin))}" stroke="#dde5df" stroke-width="1"/>`; });
+  (o.gridY || []).forEach(v => { s += `<line x1="${x0}" y1="${f1(sy(v))}" x2="${f1(sx(tMax))}" y2="${f1(sy(v))}" stroke="#dde5df" stroke-width="1"/>`; });
+  if (o.alt) s += o.alt(sx, sy);
+  const top = y0 - 12, right = sx(tMax) + 10;
+  s += `<line x1="${x0}" y1="${f1(sy(yMin) + (yMin < 0 ? 6 : 0))}" x2="${x0}" y2="${top + 6}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${x0},${top - 4} ${x0 - 4},${top + 6} ${x0 + 4},${top + 6}" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${f1(zy)}" x2="${f1(right)}" y2="${f1(zy)}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${f1(right + 10)},${f1(zy)} ${f1(right)},${f1(zy - 4)} ${f1(right)},${f1(zy + 4)}" fill="${P.ink}"/>`;
+  s += T(x0 + 9, top + 4, o.yLabel, { size: 12.5, weight: 800 });
+  s += T(right + 14, zy + 4.5, 't (s)', { size: 12.5, weight: 800 });
+  (o.tTicks || []).forEach(([t, l, ust]) => {
+    s += `<line x1="${f1(sx(t))}" y1="${f1(zy - 3)}" x2="${f1(sx(t))}" y2="${f1(zy + 3)}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    s += T(sx(t), ust ? zy - 7 : zy + 17, l, { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
+  });
+  (o.yTicks || []).forEach(([v, l]) => {
+    s += `<line x1="${x0 - 3}" y1="${f1(sy(v))}" x2="${x0 + 3}" y2="${f1(sy(v))}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    s += T(x0 - 7, sy(v) + 4.5, l, { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  });
+  s += T(x0 - 7, zy + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  return { s, sx, sy, zy };
+}
+const cizgi = (pts, sx, sy, c = P.blue, w = 2.8) => `<polyline points="${pts.map(([t, v]) => f1(sx(t)) + ',' + f1(sy(v))).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const nokta = (x, y, c = P.blue, r = 3.6) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${c}" stroke="#fff" stroke-width="1.2"/>`;
+const kesik = (x1, y1, x2, y2) => dashLine(f1(x1), f1(y1), f1(x2), f1(y2), '#8aa0ad', '3 3', 1.1);
+/* elektrikli skuter ve ayakta sürücü (x: iki teker ortası, y: yol hizası, sağa gidiyor) */
+function skuter(x, y, op) {
+  const r = 6.5, ra = [x - 17, y - r], fa = [x + 17, y - r];
+  const L = (a, b, c, w) => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  let g = `<g opacity="${op}"><ellipse cx="${x}" cy="${y + 1.5}" rx="25" ry="2.6" fill="#000" opacity=".16"/>`;
+  [ra, fa].forEach(c => { g += `<circle cx="${c[0]}" cy="${c[1]}" r="${r}" fill="#262d31"/><circle cx="${c[0]}" cy="${c[1]}" r="2.8" fill="#c3cbd1" stroke="#7d878c" stroke-width=".6"/>`; });
+  // gövde (ayak tablası), çamurluk, direksiyon borusu
+  g += `<path d="M${x - 19} ${y - 12} h31 q3 0 4 3 l1 2 h-37 Z" fill="#3b4750" stroke="#1f272c" stroke-width=".8"/>`;
+  g += `<path d="M${x - 24} ${y - 9} a8 8 0 0 1 12 -6" fill="none" stroke="#3b4750" stroke-width="2.2" stroke-linecap="round"/>`;
+  g += L([x + 13, y - 11], fa, '#3b4750', 2.6) + L([x + 13, y - 11], [x + 9, y - 52], '#55636c', 3);
+  g += L([x + 5, y - 52], [x + 14, y - 53], '#262d31', 3);
+  g += `<rect x="${x + 7.5}" y="${y - 46}" width="3" height="5" rx="1" fill="#2f8a4f"/>`;
+  // sürücü: ayakta, bir ayak önde
+  const hip = [x - 3, y - 36], sh = [x + 1, y - 55], hd = [x + 3, y - 63];
+  g += `<path d="M${hip[0]} ${hip[1]} L${x - 6} ${y - 24} L${x - 9} ${y - 14}" fill="none" stroke="#2f3a48" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g += `<path d="M${hip[0]} ${hip[1]} L${x + 2} ${y - 24} L${x + 4} ${y - 14}" fill="none" stroke="#3d4a5a" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g += L([x - 11, y - 13], [x - 5, y - 13], '#262d31', 3) + L([x + 2, y - 13], [x + 8, y - 13], '#262d31', 3);
+  g += L(hip, sh, '#e07b2a', 8) + `<path d="M${sh[0]} ${sh[1]} L${x + 6} ${y - 47} L${x + 9} ${y - 52}" fill="none" stroke="#e07b2a" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g += `<circle cx="${hd[0]}" cy="${hd[1]}" r="5" fill="#eebf98" stroke="#b9845e" stroke-width=".8"/><path d="M${hd[0] - 6} ${hd[1] - 1} a6 5.5 0 0 1 12 0 Z" fill="#2f8a4f" stroke="#1c5a32" stroke-width=".7"/>`;
+  return g + '</g>';
+}
+/* Adım 1-2: her saniye 1 m/s hızlanan elektrikli skuter (2, 3, 4, 5 m/s; konumlar 0; 2,5; 6; 10,5 m) */
+BFY_FIG_EKLE('sf1012_skuter', function (u) {
+  const W = 404, H = 206, yol = 136, X = m => 40 + 30 * m;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${yol - 14}" width="${W}" height="14" fill="url(#${u}concrete)"/>`;
+  s += `<rect x="0" y="${yol}" width="${W}" height="26" fill="#6b7479"/><line x1="0" y1="${yol}" x2="${W}" y2="${yol}" stroke="#4d555a" stroke-width="1.2"/>`;
+  for (let x = 6; x < W; x += 26) s += `<rect x="${x}" y="${yol + 12}" width="13" height="2.4" fill="#f4f1e6"/>`;
+  [[0, 2], [2.5, 3], [6, 4], [10.5, 5]].forEach(([m, v], i) => {
+    s += skuter(X(m), yol, [0.35, 0.5, 0.7, 1][i]);
+    s += arrow(X(m) - 6, 50, X(m) - 6 + 8 * v, 50, { color: P.coral, w: 2.4, head: 7, headW: 4.2 });
+    s += T(X(m) - 6 + 4 * v, 42, `${v} m/s`, { size: 11.5, anchor: 'middle', weight: 800, fill: P.coral });
+    s += T(X(m), yol + 44, ['t = 0', 't = 1 s', 't = 2 s', 't = 3 s'][i], { size: 11.5, anchor: 'middle', weight: 800, fill: P.ink });
+  });
+  s += arrow(16, 20, 52, 20, { color: P.ink, w: 1.6, head: 7, headW: 3.6 }) + T(58, 24.5, '(+) yön', { size: 11.5, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 120);
+});
+
+/* Adım 3: durağa yaklaşırken fren yapan otobüs */
+BFY_FIG_EKLE('sf1012_fren', function (u) {
+  const W = 340, H = 204, yol = 146;
+  let s = `<defs><linearGradient id="${u}otb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5aa2d6"/><stop offset=".7" stop-color="#2f7fb8"/><stop offset="1" stop-color="#1d5a86"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${yol - 12}" width="${W}" height="12" fill="url(#${u}concrete)"/>`;
+  s += `<rect x="0" y="${yol}" width="${W}" height="24" fill="#6b7479"/><line x1="0" y1="${yol}" x2="${W}" y2="${yol}" stroke="#4d555a" stroke-width="1.2"/>`;
+  // durak
+  s += `<rect x="296" y="62" width="4" height="${yol - 62}" fill="#7d878c"/><rect x="278" y="48" width="40" height="22" rx="3" fill="#2f7fb8" stroke="#1d5a86" stroke-width="1"/>`;
+  s += T(298, 63, 'DURAK', { size: 9.5, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  // otobüs
+  const x0 = 48, x1 = 230, ust = 78, alt = yol - 8;
+  s += `<ellipse cx="${(x0 + x1) / 2}" cy="${yol + 2}" rx="98" ry="4" fill="#000" opacity=".18"/>`;
+  s += `<path d="M${x0} ${ust + 6} q0 -6 6 -6 h${x1 - x0 - 18} q10 0 12 10 l2 ${alt - ust - 18} q0 8 -8 8 h${-(x1 - x0 - 10)} q-6 0 -6 -6 Z" fill="url(#${u}otb)" stroke="#174a6e" stroke-width="1.2"/>`;
+  for (let i = 0; i < 5; i++) s += `<rect x="${x0 + 8 + i * 30}" y="${ust + 8}" width="25" height="22" rx="2" fill="url(#${u}glass)" stroke="#174a6e" stroke-width=".8"/>`;
+  s += `<path d="M${x1 - 14} ${ust + 8} h6 q6 0 7 8 l1 14 h-14 Z" fill="url(#${u}glass)" stroke="#174a6e" stroke-width=".8"/>`;
+  s += `<rect x="${x1 - 46}" y="${ust + 34}" width="22" height="${alt - ust - 36}" rx="1.5" fill="#bcd7e8" stroke="#174a6e" stroke-width=".8"/><line x1="${x1 - 35}" y1="${ust + 34}" x2="${x1 - 35}" y2="${alt - 2}" stroke="#174a6e" stroke-width=".8"/>`;
+  s += `<rect x="${x0}" y="${alt - 16}" width="${x1 - x0 - 50}" height="5" fill="#f4f1e6" opacity=".85"/>`;
+  s += `<circle cx="${x1 - 4}" cy="${alt - 10}" r="3" fill="#ffe7a3" stroke="#a8741f" stroke-width=".7"/><rect x="${x0 - 1}" y="${alt - 14}" width="4" height="8" rx="1" fill="#e03b2a"/>`;
+  [86, 196].forEach(cx => { s += `<circle cx="${cx}" cy="${yol - 2}" r="13" fill="#262d31"/><circle cx="${cx}" cy="${yol - 2}" r="6" fill="#c3cbd1" stroke="#7d878c" stroke-width=".8"/>`; });
+  // hız ve ivme
+  s += arrow(118, 60, 194, 60, { color: P.coral, w: 3 }) + T(200, 64.5, 'ϑ', { size: 14, weight: 800, fill: P.coral });
+  s += arrow(194, 188, 134, 188, { color: MOR, w: 3 }) + T(126, 192.5, 'a', { size: 14, anchor: 'end', weight: 800, fill: MOR, italic: true });
+  s += arrow(16, 24, 52, 24, { color: P.ink, w: 1.6, head: 7, headW: 3.6 }) + T(58, 28.5, '(+) yön', { size: 11.5, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 104);
+});
+
+/* Adım 4: yeşil ışıkta kalkan otomobilin hız-zaman grafiği */
+BFY_FIG_EKLE('sf1012_vt', function (u) {
+  const G = grafik({ w: 334, h: 232, x0: 46, y0: 32, W: 230, H: 166, tMax: 9, yMin: 0, yMax: 18, yLabel: 'ϑ (m/s)',
+    gridT: [1, 2, 3, 4, 5, 6, 7, 8], gridY: [3, 6, 9, 12, 15], tTicks: [[5, '5'], [8, '8']], yTicks: [[15, '15']] });
+  let s = G.s + kesik(G.sx(5), G.sy(15), G.sx(5), G.zy) + kesik(G.sx(0), G.sy(15), G.sx(5), G.sy(15));
+  s += cizgi([[0, 0], [5, 15], [8.4, 15]], G.sx, G.sy, MOR);
+  s += T(G.sx(5) + 7, G.sy(7.5) + 4.5, 'Δϑ = 15 m/s', { size: 12, weight: 800, fill: P.ink });
+  s += T(G.sx(2.6), G.zy - 9, 'Δt = 5 s', { size: 12, anchor: 'middle', weight: 800, fill: P.ink });
+  return svg(334, 232, s, u, 78);
+});
+
+/* Isınma 3: iki koşucunun çıkışı */
+BFY_FIG_EKLE('sf1012_sprint', function (u) {
+  const G = grafik({ w: 330, h: 240, x0: 46, y0: 32, W: 220, H: 176, tMax: 4.6, yMin: 0, yMax: 10.5, yLabel: 'ϑ (m/s)',
+    gridT: [1, 2, 3, 4], gridY: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], tTicks: [[1, '1'], [2, '2'], [3, '3'], [4, '4']],
+    yTicks: [[2, '2'], [4, '4'], [6, '6'], [8, '8'], [9, '9']] });
+  let s = G.s + cizgi([[0, 0], [2, 8], [4.3, 8]], G.sx, G.sy, P.coral) + cizgi([[0, 0], [3, 9], [4.3, 9]], G.sx, G.sy, P.blue);
+  s += T(G.sx(4.3) + 7, G.sy(8) + 9, 'A', { size: 13, weight: 800, fill: P.coral });
+  s += T(G.sx(4.3) + 7, G.sy(9) - 2, 'B', { size: 13, weight: 800, fill: P.blue });
+  return svg(330, 240, s, u, 76);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -42804,6 +43267,195 @@ const KONU = {
     'ışık kapılı ray, asılı ağırlıkla çekilen deney arabası, 5 cm kart, 0,050 s / 0,020 s / 0,50 s (üstten görünüş)',
     'metro treni iki istasyon arası ϑ (km/h)-t grafiği 54/72 km/h, 15-25-55-71 s, konfor ölçütü 1,2 m/s² (k1012_25)', 'kareli zeminde ölçeği silinmiş K ve L ϑ-t grafikleri, K +6 m/s ve 2 m/s² (k1012_26)', 'spor salonunda oyuncak dron hız tablosu 0 / +1,6 / 0 / −1,2 / −0,4 m/s (eşleştirme, k1012_27)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Hız değişimi',
+        sekil: 'sf1012_skuter',
+        metin: r`Elif elektrikli skuteriyle düz bir yolda yavaşça giderken gazı biraz açıyor. Şekilde, Elif'in her saniyedeki konumu ve hızı gösterilmiş: Hızı sırasıyla 2, 3, 4 ve 5 m/s oluyor. Yani hızı 3 s içinde 2 m/s'den 5 m/s'ye çıkıyor.
+
+**Hız değişimi**, son hız ile ilk hızın farkıdır:
+$$\Delta\vartheta = \vartheta_\text{son} - \vartheta_\text{ilk}$$
+Elif için $\Delta\vartheta = 5 - 2 = +3$ m/s olur. Hızlar, seçilen (+) yöne göre işaretleriyle yazılır.`,
+        kontrol: {
+          soru: 'Bir yük treni (+) yönde 20 m/s hızla giderken yavaşlıyor ve hızı aynı yönde 12 m/s oluyor. Trenin hız değişimi nedir?',
+          secenekler: ['+8 m/s', '−8 m/s', '+32 m/s'],
+          dogru: 1,
+          aciklama: r`$\Delta\vartheta = \vartheta_\text{son} - \vartheta_\text{ilk} = 12 - 20 = -8$ m/s. Eksi işareti, hız değişiminin hareket yönünün tersine olduğunu gösterir.`,
+          yanlisIpucu: r`Her zaman son hızdan ilk hızı çıkar. Son hız ilk hızdan küçükse sonucun işareti ne olur?`
+        }
+      },
+      {
+        baslik: 'İvme: hız ne kadar çabuk değişiyor?',
+        metin: r`Elif'in hızı her saniye 1 m/s artıyor. Hızdaki bu değişimi tek bir sayıyla anlatırız: **ivme**.
+
+İvme, hızda birim zamanda meydana gelen değişimdir:
+$$a = \dfrac{\Delta\vartheta}{\Delta t}$$
+Elif için $a = \dfrac{3}{3} = 1$ m/s² olur. İvmenin birimi m/s²'dir. "1 m/s²", "hız her saniye 1 m/s değişiyor" diye okunur.
+
+Hız eşit sürelerde eşit miktarda değişiyorsa ivme **sabittir**.`,
+        kontrol: {
+          soru: 'Bir yarış motosikleti durgun hâlden kalkıyor ve 4 s\'de hızını 24 m/s\'ye çıkarıyor. Motosikletin ivmesi nedir?',
+          secenekler: ['6 m/s²', '96 m/s²', '20 m/s²'],
+          dogru: 0,
+          aciklama: r`$a = \dfrac{24 - 0}{4} = 6$ m/s². Motosikletin hızı her saniye 6 m/s artar.`,
+          yanlisIpucu: r`Hız değişimini süreye böl. Çarpmak ya da çıkarmak ivmeyi vermez.`
+        }
+      },
+      {
+        baslik: 'İvmenin yönü: hızlanıyor mu, yavaşlıyor mu?',
+        sekil: 'sf1012_fren',
+        metin: r`Bir otobüs (+) yönde 10 m/s hızla giderken durağı görüyor ve fren yapıyor. 3 s sonra hızı 4 m/s oluyor.
+$$a = \dfrac{4 - 10}{3} = \dfrac{-6}{3} = -2\ \text{m/s}^2$$
+İvme negatif çıktı; yani ivme, hızın tersine yöneliyor. Kural basit:
+- İvme ile hız **aynı yönlüyse** cisim hızlanır.
+- İvme ile hız **zıt yönlüyse** cisim yavaşlar.
+
+Dikkat et: Eksi işareti tek başına "yavaşlıyor" demek değildir. Cismin hangi yöne gittiğine de bakmalısın.`,
+        kontrol: {
+          soru: '(−) yönde giden bir aracın ivmesi de (−) yönde. Araç ne yapıyor?',
+          secenekler: ['Hızlanıyor.', 'Yavaşlıyor.', 'Hızı değişmiyor.'],
+          dogru: 0,
+          aciklama: 'Hız da ivme de (−) yönde, yani aynı yönlü. İvme hızla aynı yönlü olduğunda cisim hızlanır.',
+          yanlisIpucu: 'Yalnız ivmenin işaretine bakma. Hızın yönü ile ivmenin yönünü karşılaştır: aynı mı, zıt mı?'
+        }
+      },
+      {
+        baslik: 'Hız-zaman grafiğinin eğimi ivmeyi verir',
+        sekil: 'sf1012_vt',
+        metin: r`Yeşil ışık yanınca bir otomobil kalkıyor. Grafikte otomobilin hızı 5 s'de 0'dan 15 m/s'ye çıkıyor, sonra sabit kalıyor.
+
+Hız-zaman grafiğinde doğrunun **eğimi** ivmeyi verir:
+$$a = \dfrac{\Delta\vartheta}{\Delta t} = \dfrac{15}{5} = 3\ \text{m/s}^2$$
+5. saniyeden sonra doğru yataydır; hız değişmez, ivme sıfırdır. Doğru ne kadar dikse ivme o kadar büyüktür. Doğru aşağı iniyorsa eğim de ivme de negatiftir.`,
+        kontrol: {
+          soru: 'Bir cismin hız-zaman grafiği, 3 s içinde +15 m/s\'den +3 m/s\'ye inen bir doğrudur. Cismin ivmesi nedir?',
+          secenekler: ['−4 m/s²', '+4 m/s²', '−12 m/s²'],
+          dogru: 0,
+          aciklama: r`$a = \dfrac{3 - 15}{3} = \dfrac{-12}{3} = -4$ m/s². Doğru aşağı indiği için eğim negatiftir; cisim (+) yönde giderken yavaşlıyor.`,
+          yanlisIpucu: r`Önce hız değişimini bul (son hız eksi ilk hız), sonra süreye böl. Doğru aşağı iniyorsa eğim negatiftir.`
+        }
+      },
+      {
+        baslik: 'Büyük hız, büyük ivme demek değildir',
+        metin: r`Bir yarış arabası düz pistte 80 m/s sabit hızla gidiyor. Hızı çok büyük ama değişmiyor; bu yüzden ivmesi **sıfırdır**. Öte yandan yerde duran bir kedi bir anda fırlayıp 1 s'de 4 m/s hıza ulaşabilir. Kedinin hızı küçüktür ama ivmesi 4 m/s²'dir.
+
+İvme, hızın ne kadar büyük olduğunu değil, **ne kadar çabuk değiştiğini** gösterir. İvmeyi bulmak için hız değişimini ve bu değişimin ne kadar sürdüğünü bilmek gerekir.`,
+        kontrol: {
+          soru: 'Aşağıdakilerden hangisinin ivmesi en büyüktür?',
+          secenekler: ['40 m/s sabit hızla giden bir otomobil.', '2 s\'de durgun hâlden 6 m/s hıza ulaşan bir kaykaycı.', '10 s\'de 20 m/s\'den 30 m/s\'ye hızlanan bir kamyon.'],
+          dogru: 1,
+          aciklama: r`Otomobilin hızı değişmiyor: $a = 0$. Kaykaycı: $a = \dfrac{6}{2} = 3$ m/s². Kamyon: $a = \dfrac{30 - 20}{10} = 1$ m/s². İvmesi en büyük olan kaykaycıdır; hızı en büyük olan ise otomobildir.`,
+          yanlisIpucu: 'En hızlı olanı değil, hızı en çabuk değişeni arıyoruz. Her birinin hız değişimini kendi süresine böl.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Su kayağı teknesi',
+        metin: 'Su kayağı yapacak birini çeken bir tekne, iskelenin önünde durgun hâldeyken harekete başlıyor. Tekne düz bir çizgi boyunca sabit ivmeyle hızlanıyor ve 5 s sonra hızı 10 m/s oluyor.',
+        adimlar: [
+          {
+            soru: 'Teknenin 5 s\'deki hız değişimi nedir?',
+            secenekler: ['10 m/s', '15 m/s', '2 m/s'],
+            dogru: 0,
+            ipucu: 'İlk hız 0, son hız 10 m/s. Son hızdan ilk hızı çıkar.',
+            aciklama: r`$\Delta\vartheta = 10 - 0 = 10$ m/s.`
+          },
+          {
+            soru: 'Teknenin ivmesi nedir?',
+            secenekler: ['50 m/s²', '2 m/s²', '5 m/s²'],
+            dogru: 1,
+            ipucu: r`İvme, hız değişiminin süreye bölümüdür: $a = \dfrac{\Delta\vartheta}{\Delta t}$.`,
+            aciklama: r`$a = \dfrac{10}{5} = 2$ m/s². Teknenin hızı her saniye 2 m/s artar.`
+          },
+          {
+            soru: 'Tekne harekete başladıktan 3 s sonra hızı kaç m/s olur?',
+            secenekler: ['6 m/s', '2 m/s', '30 m/s'],
+            dogru: 0,
+            ipucu: 'Hız her saniye 2 m/s artıyor ve tekne durgun hâlden başladı. 3 saniyede hız kaç m/s artar?',
+            aciklama: r`$\vartheta = 0 + 2 \times 3 = 6$ m/s.`
+          }
+        ],
+        sonuc: 'Sabit ivmede hız her saniye aynı miktarda artar. İvmeyi süreyle çarparak hızdaki artışı bulabilirsin.'
+      },
+      {
+        baslik: 'Rampada yukarı yuvarlanan top',
+        metin: 'Bir çocuk, parktaki uzun ve hafif eğimli bir rampanın alt ucundan bir topu yukarı doğru yuvarlıyor. Rampa yukarı yön (+) yöndür. Top rampaya 3 m/s hızla çıkmaya başlıyor ve giderek yavaşlıyor. 3 s sonra bir an duruyor, sonra rampadan aşağı geri yuvarlanmaya başlıyor. Topun ivmesi bütün hareket boyunca sabittir.',
+        adimlar: [
+          {
+            soru: 'Top duruncaya kadar hızındaki değişim nedir?',
+            secenekler: ['+3 m/s', '−3 m/s', '0'],
+            dogru: 1,
+            ipucu: 'Son hız 0, ilk hız +3 m/s. Son hızdan ilk hızı çıkar.',
+            aciklama: r`$\Delta\vartheta = 0 - 3 = -3$ m/s.`
+          },
+          {
+            soru: 'Topun ivmesi nedir?',
+            secenekler: ['+1 m/s²', '−1 m/s²', '−9 m/s²'],
+            dogru: 1,
+            ipucu: 'Hız değişimini, bu değişimin sürdüğü 3 s\'ye böl. İşareti koru.',
+            aciklama: r`$a = \dfrac{-3}{3} = -1$ m/s². İvme (−) yönde, yani rampadan aşağı doğru; hız ise (+) yönde. Zıt yönlü oldukları için top yavaşlar.`
+          },
+          {
+            soru: 'Topun durduğu anda ivmesi nedir?',
+            secenekler: ['0', '−1 m/s²', '+1 m/s²'],
+            dogru: 1,
+            ipucu: 'Top o anda bir an duruyor, ama hızı değişmeye devam ediyor mu? İvmenin sabit olduğu söylenmişti.',
+            aciklama: 'İvme bütün hareket boyunca sabittir: −1 m/s². Hızın sıfır olması ivmenin sıfır olduğunu göstermez; hız değişmeye devam eder ve top rampadan aşağı yuvarlanmaya başlar.'
+          },
+          {
+            soru: 'Top yuvarlanmaya başladıktan 5 s sonra hızı nedir?',
+            secenekler: ['−2 m/s', '+2 m/s', '−5 m/s'],
+            dogru: 0,
+            ipucu: 'Hız her saniye 1 m/s azalıyor: +3, +2, +1, 0 diye say. 5. saniyeye kadar devam et.',
+            aciklama: r`$\vartheta = 3 + (-1) \times 5 = -2$ m/s. Top rampadan aşağı doğru 2 m/s hızla yuvarlanıyor. Artık hız ile ivme aynı yönlü olduğu için top hızlanıyor.`
+          }
+        ],
+        sonuc: 'Aynı ivme önce topu yavaşlattı, sonra ters yönde hızlandırdı. Hızın sıfır olduğu anda bile ivme sıfır değildir.'
+      },
+      {
+        baslik: 'İki koşucunun çıkışı',
+        sekil: 'sf1012_sprint',
+        metin: 'Bir antrenmanda iki koşucu aynı çizgiden, aynı anda ve durgun hâlden çıkış yapıyor. Grafik, ikisinin ilk 4 saniyedeki hızlarını gösteriyor.',
+        adimlar: [
+          {
+            soru: 'A koşucusunun ilk 2 s\'deki ivmesi nedir?',
+            secenekler: ['4 m/s²', '8 m/s²', '16 m/s²'],
+            dogru: 0,
+            ipucu: 'A\'nın hızı 2 s\'de 0\'dan 8 m/s\'ye çıkıyor. Hız değişimini süreye böl.',
+            aciklama: r`$a_A = \dfrac{8 - 0}{2} = 4$ m/s².`
+          },
+          {
+            soru: 'B koşucusunun ilk 3 s\'deki ivmesi nedir?',
+            secenekler: ['9 m/s²', '3 m/s²', '27 m/s²'],
+            dogru: 1,
+            ipucu: 'B\'nin hızı 3 s\'de 0\'dan 9 m/s\'ye çıkıyor.',
+            aciklama: r`$a_B = \dfrac{9 - 0}{3} = 3$ m/s².`
+          },
+          {
+            soru: '4. saniyede iki koşucunun ivmeleri için ne söylenebilir?',
+            secenekler: ['İkisinin de ivmesi sıfırdır.', 'A\'nın ivmesi 4 m/s², B\'ninki 3 m/s²\'dir.', 'İkisinin de ivmesi 1 m/s²\'dir.'],
+            dogru: 0,
+            ipucu: '4. saniyede grafiğe bak. Doğrular yatay mı, eğik mi?',
+            aciklama: 'A 2. saniyeden, B 3. saniyeden sonra sabit hızla koşuyor. Grafik yatay olduğu için ikisinin de ivmesi sıfırdır.'
+          },
+          {
+            soru: 'Hangisi doğrudur?',
+            secenekler: ['Çıkışta ivmesi büyük olan A\'dır; ama 3. saniyeden sonra hızı büyük olan B\'dir.', 'Hızı büyük olanın ivmesi de büyüktür.', 'B\'nin ivmesi daha büyüktür; çünkü son hızı daha büyüktür.'],
+            dogru: 0,
+            ipucu: 'Bulduğun ivmeleri ve grafikteki son hızları yan yana koy. İvmesi büyük olan ile son hızı büyük olan aynı kişi mi?',
+            aciklama: 'A\'nın ivmesi 4 m/s², B\'ninki 3 m/s²; A daha çabuk hızlanır. Ama B daha uzun süre hızlanır ve 9 m/s ile A\'nın 8 m/s\'lik hızını geçer.'
+          }
+        ],
+        sonuc: 'Büyük ivme, hızın çabuk değiştiğini gösterir; büyük son hız ise başka bir şeydir. İkisini birbirine karıştırma.'
+      }
+    ],
+    hazir: 'Hız değişimini, ivmeyi, ivmenin yönünü ve hız-zaman grafiğinin eğimini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -44659,6 +45311,126 @@ BFY_FIG_EKLE('i1013_kart_atyatay', u => S(u, I0_ => {
 }, { oy: 70 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1013_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MOR = '#6b4fa0';
+/* grafik: eksenler birimli; "t (s)" yatay eksenin sağ ucunda, yanında */
+function grafik(o) {
+  const { x0, y0, W, H, tMax, yMin, yMax } = o;
+  const sx = t => x0 + t / tMax * W, sy = v => y0 + (yMax - v) / (yMax - yMin) * H, zy = sy(0);
+  let s = `<rect class="bg" x="0" y="0" width="${o.w}" height="${o.h}" rx="14" fill="#f6f9f7"/>`;
+  (o.gridT || []).forEach(t => { s += `<line x1="${f1(sx(t))}" y1="${f1(sy(yMax))}" x2="${f1(sx(t))}" y2="${f1(sy(yMin))}" stroke="#dde5df" stroke-width="1"/>`; });
+  (o.gridY || []).forEach(v => { s += `<line x1="${x0}" y1="${f1(sy(v))}" x2="${f1(sx(tMax))}" y2="${f1(sy(v))}" stroke="#dde5df" stroke-width="1"/>`; });
+  if (o.alt) s += o.alt(sx, sy);
+  const top = y0 - 12, right = sx(tMax) + 10;
+  s += `<line x1="${x0}" y1="${f1(sy(yMin) + (yMin < 0 ? 6 : 0))}" x2="${x0}" y2="${top + 6}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${x0},${top - 4} ${x0 - 4},${top + 6} ${x0 + 4},${top + 6}" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${f1(zy)}" x2="${f1(right)}" y2="${f1(zy)}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${f1(right + 10)},${f1(zy)} ${f1(right)},${f1(zy - 4)} ${f1(right)},${f1(zy + 4)}" fill="${P.ink}"/>`;
+  s += T(x0 + 9, top + 4, o.yLabel, { size: 12.5, weight: 800 });
+  s += T(right + 14, zy + 4.5, 't (s)', { size: 12.5, weight: 800 });
+  (o.tTicks || []).forEach(([t, l, ust]) => {
+    s += `<line x1="${f1(sx(t))}" y1="${f1(zy - 3)}" x2="${f1(sx(t))}" y2="${f1(zy + 3)}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    s += T(sx(t), ust ? zy - 7 : zy + 17, l, { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
+  });
+  (o.yTicks || []).forEach(([v, l]) => {
+    s += `<line x1="${x0 - 3}" y1="${f1(sy(v))}" x2="${x0 + 3}" y2="${f1(sy(v))}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    s += T(x0 - 7, sy(v) + 4.5, l, { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  });
+  s += T(x0 - 7, zy + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+  return { s, sx, sy, zy };
+}
+const cizgi = (pts, sx, sy, c = P.blue, w = 2.8) => `<polyline points="${pts.map(([t, v]) => f1(sx(t)) + ',' + f1(sy(v))).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const nokta = (x, y, c = P.blue, r = 3.6) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${c}" stroke="#fff" stroke-width="1.2"/>`;
+const kesik = (x1, y1, x2, y2) => dashLine(f1(x1), f1(y1), f1(x2), f1(y2), '#8aa0ad', '3 3', 1.1);
+const poli = (pts, sx, sy, fill, op) => `<polygon points="${pts.map(([t, v]) => f1(sx(t)) + ',' + f1(sy(v))).join(' ')}" fill="${fill}" opacity="${op}"/>`;
+
+/* Adım 2: durgun hâlden hızlanan otobüs, üçgenin alanı */
+BFY_FIG_EKLE('sf1013_ucgen', function (u) {
+  const G = grafik({ w: 316, h: 220, x0: 46, y0: 32, W: 200, H: 150, tMax: 5, yMin: 0, yMax: 10, yLabel: 'ϑ (m/s)',
+    gridT: [1, 2, 3, 4], gridY: [2, 4, 6, 8], tTicks: [[4, '4']], yTicks: [[8, '8']],
+    alt: (sx, sy) => poli([[0, 0], [4, 8], [4, 0]], sx, sy, P.green, 0.22) });
+  let s = G.s + kesik(G.sx(0), G.sy(8), G.sx(4), G.sy(8)) + kesik(G.sx(4), G.sy(8), G.sx(4), G.zy);
+  s += cizgi([[0, 0], [4, 8]], G.sx, G.sy, P.blue);
+  s += T(G.sx(2.9), G.sy(2) + 4, 'alan = Δx', { size: 12, anchor: 'middle', weight: 800, fill: P.green, haloColor: '#e6f0ea' });
+  return svg(316, 220, s, u, 74);
+});
+
+/* Adım 3: ilk hızı olan koşucu, yamuk = dikdörtgen + üçgen */
+BFY_FIG_EKLE('sf1013_yamuk', function (u) {
+  const G = grafik({ w: 316, h: 230, x0: 46, y0: 32, W: 200, H: 160, tMax: 2.6, yMin: 0, yMax: 11, yLabel: 'ϑ (m/s)',
+    gridT: [1, 2], gridY: [3, 6, 9], tTicks: [[1, '1'], [2, '2']], yTicks: [[3, '3'], [6, '6'], [9, '9']],
+    alt: (sx, sy) => poli([[0, 0], [0, 3], [2, 3], [2, 0]], sx, sy, P.blue, 0.2) + poli([[0, 3], [2, 9], [2, 3]], sx, sy, P.green, 0.25) });
+  let s = G.s + kesik(G.sx(2), G.sy(9), G.sx(2), G.zy) + kesik(G.sx(0), G.sy(9), G.sx(2), G.sy(9));
+  s += dashLine(f1(G.sx(0)), f1(G.sy(6)), f1(G.sx(2)), f1(G.sy(6)), P.copper, '6 4', 1.6);
+  s += cizgi([[0, 3], [2, 9]], G.sx, G.sy, P.coral);
+  s += T(G.sx(2) + 7, G.sy(6) + 4.5, 'ϑ_{ort} = 6', { size: 12.5, weight: 800, fill: P.copper });
+  return svg(316, 230, s, u, 74);
+});
+
+/* Adım 4: durgun hâlden hızlanan otobüsün konum-zaman grafiği */
+BFY_FIG_EKLE('sf1013_xt', function (u) {
+  const G = grafik({ w: 330, h: 250, x0: 46, y0: 32, W: 214, H: 186, tMax: 5, yMin: 0, yMax: 18, yLabel: 'x (m)',
+    gridT: [1, 2, 3, 4], tTicks: [[1, '1'], [2, '2'], [3, '3'], [4, '4']], yTicks: [[4, '4'], [9, '9'], [16, '16']] });
+  let s = G.s;
+  [1, 4, 9, 16].forEach(x => { s += kesik(G.sx(0), G.sy(x), G.sx(Math.sqrt(x)), G.sy(x)); });
+  let d = ''; for (let i = 0; i <= 40; i++) { const t = 4.2 * i / 40; d += (i ? 'L' : 'M') + f1(G.sx(t)) + ' ' + f1(G.sy(t * t)); }
+  s += `<path d="${d}" fill="none" stroke="${P.blue}" stroke-width="2.8" stroke-linecap="round"/>`;
+  [1, 2, 3, 4].forEach(t => { s += nokta(G.sx(t), G.sy(t * t)); });
+  // ardışık 1 s'lerde alınan yollar
+  const bx = G.sx(4) + 30, renk = [P.coral, P.copper, P.green, MOR];
+  [[0, 1], [1, 4], [4, 9], [9, 16]].forEach(([a, b], i) => {
+    s += `<line x1="${f1(bx)}" y1="${f1(G.sy(a) - 1)}" x2="${f1(bx)}" y2="${f1(G.sy(b) + 1)}" stroke="${renk[i]}" stroke-width="4" stroke-linecap="butt"/>`;
+    if (i) s += T(bx + 7, (G.sy(a) + G.sy(b)) / 2 + 4.5, `${b - a} m`, { size: 12, weight: 800, fill: renk[i] });
+  });
+  s += T(bx - 6, G.sy(1) - 3, '1 m', { size: 12, anchor: 'end', weight: 800, fill: renk[0] });
+  return svg(330, 250, s, u, 78);
+});
+
+/* Isınma 2: koridorda elektrikli tekerlekli sandalye */
+BFY_FIG_EKLE('sf1013_sandalye', function (u) {
+  const G = grafik({ w: 340, h: 196, x0: 46, y0: 32, W: 230, H: 120, tMax: 10.5, yMin: 0, yMax: 3, yLabel: 'ϑ (m/s)',
+    gridT: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], gridY: [1, 2], tTicks: [[2, '2'], [7, '7'], [9, '9']], yTicks: [[1, '1'], [2, '2']] });
+  let s = G.s + kesik(G.sx(2), G.sy(2), G.sx(2), G.zy) + kesik(G.sx(7), G.sy(2), G.sx(7), G.zy);
+  s += cizgi([[0, 0], [2, 2], [7, 2], [9, 0]], G.sx, G.sy, MOR);
+  return svg(340, 196, s, u, 78);
+});
+
+/* Isınma 3: donmuş gölde karşı rüzgârla yavaşlayan buz yatı */
+BFY_FIG_EKLE('sf1013_kizak', function (u) {
+  const W = 340, H = 214, buz = 150;
+  let s = `<defs><linearGradient id="${u}buz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3f0f8"/><stop offset="1" stop-color="#b9d7ea"/></linearGradient>` +
+    `<linearGradient id="${u}yelken" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe6ec"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  // karşı kıyı ve karlı ağaçlar
+  s += `<path class="bg" d="M0 96 Q60 84 120 92 T240 88 T340 94 V108 H0 Z" fill="#eef3f6"/>`;
+  for (let x = 12; x < 340; x += 26) s += `<path class="bg" d="M${x} 96 l7 -18 l7 18 Z" fill="#6f8f7f" opacity=".7"/><path class="bg" d="M${x + 3} 86 l4 -8 l4 8 Z" fill="#fff" opacity=".8"/>`;
+  s += `<rect x="0" y="104" width="${W}" height="${H - 104}" fill="url(#${u}buz)"/>`;
+  s += `<path class="bg" d="M30 170 l40 6 l30 -4 M210 196 l38 -8 l34 6 M150 128 l26 4" fill="none" stroke="#9cc2db" stroke-width="1"/>`;
+  // buz yatı: gövde, kızaklar, direk, yelken
+  const x = 150;
+  s += `<ellipse cx="${x + 30}" cy="${buz + 3}" rx="66" ry="4" fill="#28506b" opacity=".16"/>`;
+  s += `<path d="M${x - 30} ${buz} h28 M${x + 52} ${buz} h28" stroke="#4a5459" stroke-width="2.6" stroke-linecap="round"/>`;
+  s += `<path d="M${x - 26} ${buz - 2} l8 -10 h86 l14 10 Z" fill="#c0462f" stroke="#7a2a18" stroke-width="1"/>`;
+  s += `<rect x="${x + 6}" y="${buz - 18}" width="34" height="7" rx="3.5" fill="#8a3a22"/>`;
+  s += `<rect x="${x + 56}" y="${buz - 104}" width="3.4" height="94" fill="#5f6a70"/>`;
+  // yelken rüzgâra dik duruyor: yandan bakınca kenarı görünür, rüzgârın ittiği yöne (batıya) şişkin
+  s += `<path d="M${x + 56} ${buz - 102} Q${x + 30} ${buz - 62} ${x + 54} ${buz - 22} Q${x + 46} ${buz - 62} ${x + 56} ${buz - 102} Z" fill="url(#${u}yelken)" stroke="#8e979f" stroke-width="1.2"/>`;
+  s += `<line x1="${x + 50}" y1="${buz - 21}" x2="${x + 62}" y2="${buz - 21}" stroke="#5f6a70" stroke-width="2.4" stroke-linecap="round"/>`;
+  // sürücü (oturuyor)
+  s += `<path d="M${x + 22} ${buz - 18} q4 -14 10 -16" fill="none" stroke="#2f7fb8" stroke-width="8" stroke-linecap="round"/>`;
+  s += `<circle cx="${x + 34}" cy="${buz - 40}" r="5.4" fill="#eebf98" stroke="#b9845e" stroke-width=".8"/><path d="M${x + 28.6} ${buz - 41} a5.4 5.4 0 0 1 10.8 0 Z" fill="#c0462f"/>`;
+  // rüzgâr
+  [[300, 58], [318, 80], [300, 102]].forEach(([wx, wy]) => { s += arrow(wx, wy, wx - 46, wy, { color: '#5aa9dc', w: 2, head: 7, headW: 3.6, dash: '6 4' }); });
+  s += T(326, 44, 'rüzgâr', { size: 12, anchor: 'end', weight: 800, fill: '#2a79ad' });
+  // hız ve ivme
+  s += arrow(x + 30, 170, x + 96, 170, { color: P.coral, w: 3 }) + T(x + 102, 174.5, 'ϑ_0 = 6 m/s', { size: 12.5, weight: 800, fill: P.coral });
+  s += arrow(x + 30, 194, x - 14, 194, { color: MOR, w: 3 }) + T(x - 20, 198.5, 'a', { size: 14, anchor: 'end', weight: 800, fill: MOR, italic: true });
+  s += arrow(16, 24, 52, 24, { color: P.ink, w: 1.6, head: 7, headW: 3.6 }) + T(58, 28.5, 'doğu (+)', { size: 11.5, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 104);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -44694,6 +45466,194 @@ const KONU = {
     'market arabasının video analizi ile ivme ölçümü (sıralama)',
     'lunapark hız treninin yatay fırlatma rayı, kum torbalı denemeler 90/108/126 km/h, 3,6/3,0/2,6 s, ray uzunluğu (k1013_23)', 'paralel pistlerde K (9 → −3 m/s) ve L (0 → 6 m/s) ϑ-t, en büyük uzaklık ve yol (k1013_24)', 'hareket betimlemesi ↔ x-t grafiği biçimi: otobüs, kırmızı ışık, tır, iticisiyle geri dönen uzay aracı, geri vites (eşleştirme, k1013_25)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Düzgün hızlanma: hız her saniye aynı miktarda artar',
+        metin: r`Bir taksi yolcusunu aldıktan sonra düz bir yolda kalkıyor. Hızı 1 s sonra 2 m/s, 2 s sonra 4 m/s, 3 s sonra 6 m/s, 4 s sonra 8 m/s oluyor. Hız her saniye aynı miktarda, 2 m/s artıyor.
+
+Bu, ivmesi $a = 2$ m/s² olan **düzgün hızlanan** bir harekettir. Herhangi bir andaki hızı bulmak için ilk hıza, ivme ile sürenin çarpımını ekleriz:
+$$\vartheta = \vartheta_0 + a\times t$$
+Taksi durgun hâlden başladığı için $\vartheta_0 = 0$ olur. Örneğin 4 s sonra $\vartheta = 0 + 2\times 4 = 8$ m/s.`,
+        kontrol: {
+          soru: 'Bir cisim (+) yönde 3 m/s hızla giderken sabit 2 m/s² ivmeyle hızlanmaya başlıyor. 5 s sonra cismin hızı kaç m/s olur?',
+          secenekler: ['13 m/s', '10 m/s', '5 m/s'],
+          dogru: 0,
+          aciklama: r`$\vartheta = \vartheta_0 + a\times t = 3 + 2\times 5 = 13$ m/s.`,
+          yanlisIpucu: 'Hız 5 s boyunca her saniye 2 m/s artıyor. Bu artışı ilk hıza eklemeyi unutma.'
+        }
+      },
+      {
+        baslik: 'Hız-zaman grafiğinin alanı: üçgen',
+        sekil: 'sf1013_ucgen',
+        metin: r`Taksinin hız-zaman grafiği eğik bir doğrudur. Sabit hızlı harekette olduğu gibi, grafiğin altındaki **alan** yer değiştirmeyi verir. Bu kez alan bir **üçgendir**: tabanı 4 s, yüksekliği 8 m/s.
+$$\Delta x = \dfrac{1}{2}\times 4\times 8 = 16\ \text{m}$$
+Taksi ilk 4 s'de 16 m yol alır. Üçgenin alanında taban ile yüksekliği çarpıp ikiye bölmeyi unutma.`,
+        kontrol: {
+          soru: 'Durgun hâlden düzgün hızlanan bir cismin hızı 6 s\'de 10 m/s\'ye çıkıyor. Cismin bu sürede yer değiştirmesi nedir?',
+          secenekler: ['30 m', '60 m', '16 m'],
+          dogru: 0,
+          aciklama: r`Grafiğin altındaki üçgenin alanı: $\Delta x = \dfrac{1}{2}\times 6\times 10 = 30$ m.`,
+          yanlisIpucu: 'Hız-zaman grafiğini düşün: Altındaki şekil dikdörtgen değil, üçgen. Üçgenin alanı, taban ile yüksekliğin çarpımının yarısıdır.'
+        }
+      },
+      {
+        baslik: 'İlk hız varsa: ortalama hız',
+        sekil: 'sf1013_yamuk',
+        metin: r`Bir koşucu yarışın başında 3 m/s hızla giderken hızlanmaya devam ediyor; 2 s sonra hızı 9 m/s oluyor. Hız-zaman grafiğinin altındaki şekil artık bir **yamuktur**: altta bir dikdörtgen, üstte bir üçgen.
+
+Hız düzgün değiştiği için ortalama hız, ilk ve son hızın ortalamasıdır. Ortalama hızı süreyle çarparak yer değiştirmeyi buluruz:
+$$\vartheta_\text{ort} = \dfrac{3 + 9}{2} = 6\ \text{m/s} \qquad \Delta x = 6\times 2 = 12\ \text{m}$$
+Parçalarla da aynı sonuç çıkar: Dikdörtgen $3\times 2 = 6$ m, üçgen $\dfrac{1}{2}\times 2\times 6 = 6$ m; toplam 12 m.`,
+        kontrol: {
+          soru: 'Bir tramvay 8 m/s hızla giderken düzgün yavaşlıyor ve 4 s sonra hızı aynı yönde 2 m/s oluyor. Tramvayın bu 4 s\'deki yer değiştirmesi nedir?',
+          secenekler: ['20 m', '12 m', '40 m'],
+          dogru: 0,
+          aciklama: r`$\vartheta_\text{ort} = \dfrac{8 + 2}{2} = 5$ m/s. $\Delta x = 5\times 4 = 20$ m.`,
+          yanlisIpucu: 'İlk ve son hızı topla, ikiye böl; sonra süreyle çarp. Hızların farkını kullanmak alanı vermez.'
+        }
+      },
+      {
+        baslik: 'Konum-zaman grafiği eğridir',
+        sekil: 'sf1013_xt',
+        metin: r`Taksiye dönelim ($\vartheta_0 = 0$, $a = 2$ m/s²). Başlangıçtan uzaklığı 1 s sonra 1 m, 2 s sonra 4 m, 3 s sonra 9 m, 4 s sonra 16 m olur. Bu değerler $x = \dfrac{1}{2}\,a\,t^2$ modelinden gelir.
+
+Ardışık her 1 saniyede alınan yollar 1 m, 3 m, 5 m ve 7 m'dir. Taksi her saniye bir öncekinden daha fazla yol alır. Bu yüzden konum-zaman grafiği doğru değil, giderek dikleşen bir **eğridir**.
+
+Durgun hâlden düzgün hızlanan cisimde ardışık eşit sürelerde alınan yollar 1 : 3 : 5 : 7 oranındadır.`,
+        kontrol: {
+          soru: 'Durgun hâlden düzgün hızlanan bir cisim 1. saniyede 2 m yol alıyor. 2. saniyede kaç m yol alır?',
+          secenekler: ['2 m', '4 m', '6 m'],
+          dogru: 2,
+          aciklama: r`Ardışık saniyelerdeki yollar 1 : 3 oranındadır. 1. saniyede 2 m alan cisim 2. saniyede $3\times 2 = 6$ m alır. 2 s sonunda başlangıçtan uzaklığı $2 + 6 = 8$ m olur.`,
+          yanlisIpucu: 'Cisim hızlanıyor; 2. saniyede 1. saniyeden daha fazla yol alır. Ardışık yolların oranını hatırla: 1 : 3 : 5.'
+        }
+      },
+      {
+        baslik: 'Düzgün yavaşlayıp duran cisim',
+        metin: r`Bir bisikletli 10 m/s hızla giderken fren yapıyor. Hızı her saniye 2 m/s azalıyor: 10, 8, 6, 4, 2, 0. Bisiklet 5 s sonra durur.
+
+Düzgün yavaşlayan cisimde hız ile ivme zıt yönlüdür. Durma süresini bulmak için ilk hızı ivmenin büyüklüğüne böleriz: $t = \dfrac{10}{2} = 5$ s.
+
+Durana kadar alınan yol, hız-zaman grafiğindeki üçgenin alanıdır:
+$$\Delta x = \dfrac{1}{2}\times 5\times 10 = 25\ \text{m}$$
+Bisiklet, fren yaptığı yerden 25 m ötede durur.`,
+        kontrol: {
+          soru: 'Bir otomobil 12 m/s hızla giderken fren yapıyor. Otomobilin ivmesi sabit ve büyüklüğü 3 m/s². Otomobil kaç saniyede durur?',
+          secenekler: ['4 s', '36 s', '9 s'],
+          dogru: 0,
+          aciklama: r`Hız her saniye 3 m/s azalır: $t = \dfrac{12}{3} = 4$ s.`,
+          yanlisIpucu: 'Hız her saniye 3 m/s azalıyor. 12 m/s\'lik hız kaç saniyede sıfıra iner? Çarpma ya da çıkarma değil, bölme yap.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Havalimanında bagaj arabası',
+        metin: 'Havalimanında sürücüsüz bir bagaj arabası, uçağın yanında durgun hâldeyken düz bir yolda harekete başlıyor. 6 s boyunca 1 m/s² sabit ivmeyle hızlanıyor, sonra ulaştığı hızla 10 s boyunca sabit hızla gidiyor.',
+        adimlar: [
+          {
+            soru: '6 s sonunda arabanın hızı nedir?',
+            secenekler: ['6 m/s', '7 m/s', '1 m/s'],
+            dogru: 0,
+            ipucu: r`$\vartheta = \vartheta_0 + a\times t$ kullan; araba durgun hâlden başladı.`,
+            aciklama: r`$\vartheta = 0 + 1\times 6 = 6$ m/s.`
+          },
+          {
+            soru: 'İlk 6 s\'de arabanın aldığı yol nedir?',
+            secenekler: ['36 m', '18 m', '6 m'],
+            dogru: 1,
+            ipucu: 'Hız-zaman grafiği ilk 6 s\'de bir üçgendir: tabanı 6 s, yüksekliği 6 m/s.',
+            aciklama: r`$\Delta x_1 = \dfrac{1}{2}\times 6\times 6 = 18$ m.`
+          },
+          {
+            soru: 'Sabit hızla gittiği 10 s\'de arabanın aldığı yol nedir?',
+            secenekler: ['60 m', '16 m', '100 m'],
+            dogru: 0,
+            ipucu: 'Bu bölümde hız sabit ve 6 m/s. Hızı süreyle çarp.',
+            aciklama: r`$\Delta x_2 = 6\times 10 = 60$ m.`
+          },
+          {
+            soru: 'Araba toplam kaç metre yol almıştır?',
+            secenekler: ['96 m', '78 m', '60 m'],
+            dogru: 1,
+            ipucu: 'İki bölümde alınan yolları topla.',
+            aciklama: r`$18 + 60 = 78$ m.`
+          }
+        ],
+        sonuc: 'Hareket iki bölümden oluşuyorsa her bölümü ayrı hesaplarsın: hızlanan bölümde üçgenin, sabit hızlı bölümde dikdörtgenin alanını bulur, sonra yolları toplarsın.'
+      },
+      {
+        baslik: 'Koridorda tekerlekli sandalye',
+        sekil: 'sf1013_sandalye',
+        metin: 'Uzun bir okul koridorunda elektrikli bir tekerlekli sandalye düz bir çizgide ilerliyor. Grafik, sandalyenin hız-zaman grafiğidir.',
+        adimlar: [
+          {
+            soru: 'İlk 2 s\'de sandalyenin ivmesi nedir?',
+            secenekler: ['2 m/s²', '1 m/s²', '4 m/s²'],
+            dogru: 1,
+            ipucu: 'Hız 2 s\'de 0\'dan 2 m/s\'ye çıkıyor. Hız değişimini süreye böl.',
+            aciklama: r`$a = \dfrac{2 - 0}{2} = 1$ m/s².`
+          },
+          {
+            soru: '7. ve 9. saniyeler arasında sandalye ne yapıyor?',
+            secenekler: ['Hızlanıyor; ivmesi +1 m/s².', 'Yavaşlıyor; ivmesi −1 m/s².', 'Sabit hızla gidiyor; ivmesi sıfır.'],
+            dogru: 1,
+            ipucu: 'Bu aralıkta çizgi zaman eksenine yaklaşıyor mu, uzaklaşıyor mu? Eğimin işaretine bak.',
+            aciklama: r`Hız 2 s'de 2 m/s'den 0'a iniyor: $a = \dfrac{0 - 2}{2} = -1$ m/s². Hız (+), ivme (−); zıt yönlü oldukları için sandalye yavaşlıyor.`
+          },
+          {
+            soru: 'Sandalye 9 s boyunca kaç metre yol alır?',
+            secenekler: ['18 m', '14 m', '10 m'],
+            dogru: 1,
+            ipucu: 'Grafiğin altını üç parçaya ayır: bir üçgen, bir dikdörtgen, bir üçgen. Alanları topla.',
+            aciklama: r`Üçgenlerin her biri $\dfrac{1}{2}\times 2\times 2 = 2$ m, dikdörtgen $2\times 5 = 10$ m. Toplam $2 + 10 + 2 = 14$ m.`
+          }
+        ],
+        sonuc: 'Bir hız-zaman grafiğini parçalara ayırarak her bölümün ivmesini eğimden, yer değiştirmesini alandan bulabilirsin.'
+      },
+      {
+        baslik: 'Rüzgâra karşı buz yatı',
+        sekil: 'sf1013_kizak',
+        metin: r`Donmuş bir gölde bir buz yatı doğuya doğru 6 m/s hızla giderken rüzgâr yön değiştiriyor ve doğudan sert esmeye başlıyor. Rüzgârın etkisiyle yatın ivmesi batıya doğru 2 m/s² oluyor ve bir süre sabit kalıyor. Doğu (+) yöndür. Rüzgârın değiştiği an $t = 0$, yatın o andaki konumu $x = 0$ alınıyor.`,
+        adimlar: [
+          {
+            soru: 'Yat kaç saniye sonra bir an durur?',
+            secenekler: ['3 s', '12 s', '4 s'],
+            dogru: 0,
+            ipucu: 'Hız her saniye 2 m/s azalıyor. 6 m/s\'lik hız kaç saniyede sıfıra iner?',
+            aciklama: r`$t = \dfrac{6}{2} = 3$ s.`
+          },
+          {
+            soru: 'Yat duruncaya kadar yer değiştirmesi nedir?',
+            secenekler: ['+18 m', '+9 m', '+3 m'],
+            dogru: 1,
+            ipucu: 'Hız-zaman grafiğinde ilk 3 s\'de bir üçgen oluşur: tabanı 3 s, yüksekliği 6 m/s.',
+            aciklama: r`$\Delta x = \dfrac{1}{2}\times 3\times 6 = +9$ m.`
+          },
+          {
+            soru: r`$t = 5$ s anında yatın hızı nedir?`,
+            secenekler: ['−4 m/s', '+4 m/s', '−10 m/s'],
+            dogru: 0,
+            ipucu: r`$\vartheta = \vartheta_0 + a\times t$ kullan. İvme batıya, yani (−) yönde: $a = -2$ m/s².`,
+            aciklama: r`$\vartheta = 6 + (-2)\times 5 = -4$ m/s. Yat artık batıya doğru gidiyor.`
+          },
+          {
+            soru: r`$t = 5$ s anında yatın konumu nedir?`,
+            secenekler: ['$x = +9$ m', '$x = +5$ m', '$x = -4$ m'],
+            dogru: 1,
+            ipucu: '3. saniyeden sonra yat batıya döner. 3 s ile 5 s arasındaki yer değiştirme de bir üçgenin alanıdır ve (−) işaretlidir.',
+            aciklama: r`3 s ile 5 s arasında $\Delta x = \dfrac{1}{2}\times 2\times (-4) = -4$ m. Konum $x = 9 + (-4) = +5$ m olur.`
+          }
+        ],
+        sonuc: 'Yat önce yavaşladı, bir an durdu, sonra batıya doğru hızlandı. Durduğu anda konumu en büyük değerine ulaştı; ivmesi ise hiç değişmedi.'
+      }
+    ],
+    hazir: 'Düzgün hızlanan ve yavaşlayan hareketi, hız-zaman grafiğinin alanını ve eğri konum-zaman grafiğini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
