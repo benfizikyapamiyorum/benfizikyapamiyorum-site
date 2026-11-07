@@ -33607,6 +33607,145 @@ BFY_FIG_EKLE('i941_kart_kalorik', u => KART(u, I => {
 }, { oy: 66 }));
 })();
 
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ (sf941_) =============== */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const MOR = '#7b3fa0', ISI = '#c0392b';
+const ekDefs = u => `<defs><radialGradient id="${u}mor" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#e6c8f5"/><stop offset=".55" stop-color="#9a55c4"/><stop offset="1" stop-color="#5b2580"/></radialGradient>` +
+  `<radialGradient id="${u}bulut" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#8e44ad" stop-opacity=".75"/><stop offset=".6" stop-color="#a569bd" stop-opacity=".35"/><stop offset="1" stop-color="#a569bd" stop-opacity="0"/></radialGradient>` +
+  `<radialGradient id="${u}kor" cx="50%" cy="20%" r="70%"><stop offset="0" stop-color="#f5a35a" stop-opacity=".85"/><stop offset="1" stop-color="#f5a35a" stop-opacity="0"/></radialGradient>` +
+  `<linearGradient id="${u}dokum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d6469"/><stop offset=".5" stop-color="#2f3438"/><stop offset="1" stop-color="#1c1f22"/></linearGradient></defs>`;
+// tanecik: top + hareket oku; ic(ex, ey) ok ucunun bölgede kalıp kalmadığını söyler
+function tan(u, x, y, aci, uz, ton, ic) {
+  const r = 6.5;
+  for (const d of [0, 180, 90, -90, 45, -135, 135, -45, 30, -150, 150, -30, 60, -120, 120, -60]) {
+    const a = (aci + d) * Math.PI / 180, ex = x + Math.cos(a) * (r + 2 + uz), ey = y - Math.sin(a) * (r + 2 + uz);
+    if (!ic || ic(ex, ey, (x + ex) / 2, (y + ey) / 2, x, y)) { aci += d; break; }
+  }
+  const a = aci * Math.PI / 180, dx = Math.cos(a), dy = -Math.sin(a);
+  let s = uz > 0 ? arrow(x + dx * (r + 1), y + dy * (r + 1), x + dx * (r + 2 + uz), y + dy * (r + 2 + uz), { color: P.ink, w: 1.6, head: 6, headW: 3.4 }) : '';
+  s += `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u}${ton === 'mor' ? 'mor' : 'b_blue'})" stroke="${ton === 'mor' ? '#5b2580' : '#1d5a86'}" stroke-width=".8"/>` +
+    `<ellipse cx="${x - r * 0.35}" cy="${y - r * 0.4}" rx="${r * 0.28}" ry="${r * 0.18}" fill="#fff" opacity=".55"/>`;
+  return s;
+}
+const bosmu = (pts, icMi) => (ex, ey, mx, my, x, y) => icMi(ex, ey) && pts.every(q => (q[0] === x && q[1] === y) || (Math.hypot(ex - q[0], ey - q[1]) > 11 && Math.hypot(mx - q[0], my - q[1]) > 9));
+const ACI = [25, 150, 260, 320, 100, 205, 55, 290, 170, 5, 125, 235];
+// Su bardağı (yan görünüş): üstten açık, hafif konik
+function bardak(u, cx, yT, yB, wT, wB, su) {
+  const xl = cx - wT / 2, xr = cx + wT / 2, bl = cx - wB / 2, br = cx + wB / 2, ys = yT + su;
+  const kl = xl + (bl - xl) * su / (yB - yT), kr = xr + (br - xr) * su / (yB - yT);
+  return `<ellipse cx="${cx}" cy="${yB + 3}" rx="${wB / 2 + 8}" ry="4" fill="#000" opacity=".10"/>` +
+    `<path d="M${kl + 2} ${ys} L${bl + 3} ${yB - 3} Q${cx} ${yB + 3} ${br - 3} ${yB - 3} L${kr - 2} ${ys} Z" fill="url(#${u}water)" opacity=".55"/>` +
+    `<line x1="${kl + 2}" y1="${ys}" x2="${kr - 2}" y2="${ys}" stroke="#d7eefb" stroke-width="2"/>` +
+    `<path d="M${xl} ${yT} L${bl} ${yB - 2} Q${cx} ${yB + 4} ${br} ${yB - 2} L${xr} ${yT}" fill="url(#${u}glass)" fill-opacity=".25" stroke="#8fa6b4" stroke-width="2"/>` +
+    `<line x1="${xl + 7}" y1="${yT + 8}" x2="${bl + 7}" y2="${yB - 10}" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/>`;
+}
+
+/* Adım 1: suya damlatılan boya ve büyütülmüş tanecik görünümü */
+BFY_FIG_EKLE('sf941_boya', function (u) {
+  const W = 330, H = 240;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>` + ekDefs(u);
+  s += bardak(u, 96, 76, 218, 112, 86, 14);
+  s += `<path d="M96 90 Q90 100 95 110 Q99 118 94 126" fill="none" stroke="#8e44ad" stroke-width="3" opacity=".5" stroke-linecap="round"/>`;
+  s += `<ellipse cx="96" cy="146" rx="34" ry="40" fill="url(#${u}bulut)"/>`;
+  // damlalık
+  s += `<rect x="87" y="10" width="18" height="22" rx="8" fill="#d9573b" stroke="#9c3a22" stroke-width="1"/>`;
+  s += `<path d="M91 32 L101 32 L98 58 L94 58 Z" fill="#eef6fb" stroke="#8fa6b4" stroke-width="1.2"/>`;
+  s += `<path d="M96 64 Q92 70 92 73 A4 4 0 0 0 100 73 Q100 70 96 64 Z" fill="url(#${u}mor)"/>`;
+  s += T(112, 26, 'bir damla boya', { size: 12, weight: 800, fill: MOR });
+  // büyütülmüş görünüm
+  const cx = 246, cy = 128, R = 60;
+  s += dashLine(128, 128, cx - R + 4, cy - 22, P.ink2, '4 3', 1.2) + dashLine(126, 162, cx - R + 4, cy + 22, P.ink2, '4 3', 1.2);
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#dcecf6" stroke="#7a95a7" stroke-width="2"/>`;
+  const mavi = [[-34, -30], [0, -40], [30, -26], [-40, 6], [-8, -6], [26, 10], [-24, 34], [10, 36]];
+  const mor = [[-16, 16], [12, -12], [36, 30]];
+  const ic = bosmu(mavi.concat(mor).map(p => [cx + p[0], cy + p[1]]), (ex, ey) => Math.hypot(ex - cx, ey - cy) < R - 6);
+  mavi.forEach((p, i) => { s += tan(u, cx + p[0], cy + p[1], ACI[i], 11, 'mavi', ic); });
+  mor.forEach((p, i) => { s += tan(u, cx + p[0], cy + p[1], ACI[i + 8], 11, 'mor', ic); });
+  s += T(cx, cy + R + 18, 'büyütülmüş görünüm', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += `<circle cx="206" cy="226" r="6" fill="url(#${u}b_blue)" stroke="#1d5a86" stroke-width=".8"/>` + T(216, 230, 'su', { size: 11.5, weight: 700 });
+  s += `<circle cx="250" cy="226" r="6" fill="url(#${u}mor)" stroke="#5b2580" stroke-width=".8"/>` + T(260, 230, 'boya', { size: 11.5, weight: 700 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 2: soğuk ve ılık suda boya; tanecik okları sürati gösterir */
+BFY_FIG_EKLE('sf941_bardak', function (u) {
+  const W = 400, H = 262;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>` + ekDefs(u);
+  const panel = (cx, ad, renk, yay, uz) => {
+    let t = T(cx, 24, ad, { size: 13, anchor: 'middle', weight: 800, fill: renk });
+    t += bardak(u, cx, 36, 136, 92, 72, 10);
+    t += `<ellipse cx="${cx}" cy="${62 + yay * 0.4}" rx="${10 + yay * 0.9}" ry="${10 + yay * 0.8}" fill="url(#${u}bulut)"/>`;
+    const bx = cx - 76, by = 158, bw = 152, bh = 88;
+    t += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="10" fill="#e3eff7" stroke="#8fa6b4" stroke-width="1.5"/>`;
+    const yer = [[24, 22], [70, 18], [124, 24], [46, 60], [98, 58], [136, 70], [16, 72]];
+    const ic = bosmu(yer.map(p => [bx + p[0], by + p[1]]), (ex, ey) => ex > bx + 5 && ex < bx + bw - 5 && ey > by + 5 && ey < by + bh - 5);
+    yer.forEach((p, i) => { t += tan(u, bx + p[0], by + p[1], ACI[i], uz * (0.8 + 0.4 * (i % 3) / 2), 'mavi', ic); });
+    t += dashLine(cx, 140, cx, by - 2, P.ink2, '3 3', 1.1);
+    return t;
+  };
+  s += panel(100, 'soğuk su, 5 °C', P.blue, 4, 6);
+  s += panel(300, 'ılık su, 45 °C', P.coral, 28, 18);
+  return svg(W, H, s, u, 84);
+});
+
+/* Adım 3: aynı sıcaklıkta bardak ve kova; tanecik sayısı farklı */
+BFY_FIG_EKLE('sf941_kova', function (u) {
+  const W = 400, H = 276;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>` + ekDefs(u);
+  // bardak
+  s += bardak(u, 82, 70, 140, 52, 42, 8);
+  s += T(82, 58, 'bardak, 20 °C', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+  // kova (metal, kulplu)
+  const kx = 278, yT = 52, yB = 140, wT = 130, wB = 100;
+  s += `<ellipse cx="${kx}" cy="${yB + 4}" rx="${wB / 2 + 10}" ry="5" fill="#000" opacity=".12"/>`;
+  s += `<path d="M${kx - wT / 2} ${yT} L${kx - wB / 2} ${yB} Q${kx} ${yB + 8} ${kx + wB / 2} ${yB} L${kx + wT / 2} ${yT} Z" fill="url(#${u}metalV)" stroke="#6f7a83" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${kx}" cy="${yT}" rx="${wT / 2}" ry="9" fill="url(#${u}water)" stroke="#6f7a83" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${kx}" cy="${yT}" rx="${wT / 2 - 6}" ry="5.5" fill="#9fd4f1" opacity=".55"/>`;
+  [0.35, 0.68].forEach(f => { const y = yT + (yB - yT) * f, w = wT + (wB - wT) * f; s += `<path d="M${kx - w / 2} ${y} Q${kx} ${y + 7} ${kx + w / 2} ${y}" fill="none" stroke="#7d8a93" stroke-width="1.4"/>`; });
+  s += `<path d="M${kx - wT / 2 + 2} ${yT + 4} Q${kx} ${yT - 62} ${kx + wT / 2 - 2} ${yT + 4}" fill="none" stroke="#59636b" stroke-width="2.6"/>`;
+  s += T(kx - wT / 2 - 8, yT + 18, 'kova, 20 °C', { size: 12.5, anchor: 'end', weight: 800, fill: P.ink });
+  // tanecik kutuları: boyları madde miktarıyla orantılı, ok boyları aynı
+  const kutu = (bx, by, bw, bh, yer) => {
+    let t = `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="10" fill="#e3eff7" stroke="#8fa6b4" stroke-width="1.5"/>`;
+    const ic = bosmu(yer.map(p => [bx + p[0], by + p[1]]), (ex, ey) => ex > bx + 5 && ex < bx + bw - 5 && ey > by + 5 && ey < by + bh - 5);
+    yer.forEach((p, i) => { t += tan(u, bx + p[0], by + p[1], ACI[i % ACI.length], 11, 'mavi', ic); });
+    return t;
+  };
+  s += kutu(32, 172, 100, 64, [[24, 20], [72, 18], [30, 46], [78, 46]]);
+  s += kutu(176, 172, 204, 64, [[20, 18], [64, 16], [108, 20], [150, 16], [186, 22], [40, 46], [86, 48], [128, 44], [170, 48]]);
+  s += dashLine(82, 146, 82, 170, P.ink2, '3 3', 1.1) + dashLine(278, 152, 278, 170, P.ink2, '3 3', 1.1);
+  s += T(200, 262, 'Ortalama hareket aynı; kovada tanecik sayısı çok daha fazla.', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 84);
+});
+
+/* Adım 4: sıcak döküm tava taş tezgâhta; ısı tavadan tezgâha */
+BFY_FIG_EKLE('sf941_tava', function (u) {
+  const W = 340, H = 232;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f1e7"/>` + ekDefs(u);
+  // taş tezgâh (perspektifli üst yüz + ön kenar)
+  s += `<path d="M30 128 L310 128 L332 176 L8 176 Z" fill="url(#${u}marble)" stroke="#a69e90" stroke-width="1.2"/>`;
+  s += `<path d="M8 176 L332 176 L332 196 L8 196 Z" fill="#cfc9bf" stroke="#a69e90" stroke-width="1.2"/>`;
+  // tavanın altında ısınan bölge
+  s += `<ellipse cx="150" cy="154" rx="92" ry="20" fill="url(#${u}kor)"/>`;
+  // tava gövdesi
+  s += `<ellipse cx="150" cy="148" rx="74" ry="11" fill="#000" opacity=".18"/>`;
+  s += `<path d="M78 112 L86 140 Q150 156 214 140 L222 112 Z" fill="url(#${u}dokum)" stroke="#15181a" stroke-width="1.2"/>`;
+  s += `<ellipse cx="150" cy="112" rx="72" ry="13" fill="#3a4044" stroke="#15181a" stroke-width="1.2"/>`;
+  s += `<ellipse cx="150" cy="113" rx="64" ry="9" fill="#24292c"/>`;
+  s += `<path d="M220 116 L300 102 Q306 101 306 107 L304 112 Q303 115 298 116 L222 126 Z" fill="url(#${u}dokum)" stroke="#15181a" stroke-width="1"/>`;
+  // buhar / sıcak hava
+  [120, 150, 180].forEach((x, i) => { s += `<path d="M${x} 94 q-8 -12 0 -24 q8 -12 0 -24" fill="none" stroke="#b9c2c8" stroke-width="2" opacity=".8" stroke-linecap="round" transform="translate(0 ${i % 2 ? -4 : 0})"/>`; });
+  // ısı okları tavadan tezgâha
+  [108, 150, 192].forEach(x => { s += arrow(x, 146, x, 172, { color: ISI, w: 2.6, head: 8, headW: 4.6 }); });
+  s += T(204, 168, 'ısı', { size: 13, weight: 800, fill: ISI });
+  s += T(20, 36, 'sıcak tava', { size: 12.5, weight: 800, fill: P.ink });
+  s += arrow(66, 42, 92, 104, { color: P.ink2, w: 1.2, head: 6, headW: 3.2, dash: '3 3' });
+  s += T(170, 216, 'soğuk taş tezgâh', { size: 12.5, anchor: 'middle', weight: 800, fill: '#6b5f4e' });
+  return svg(W, H, s, u, 74);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -33654,6 +33793,191 @@ const KONU = {
     'yanlış genellemeleri karşı örnekle çürütme: at nalı ve tekne, plastik cetvel ve ahşap dolap, dövülen kurşun bilye, ılık tencere ve kaynar fincan (eşleştir, soru 21)',
     'simülasyon: metal levhayla ayrılmış iki kapta neon gazı, 200–600 K, 1–8 g'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Kavramsal konu: hesap yok; sıcaklıklar tam sayı. Doğru şıklar qa/9.4.1/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hesap yok denecek kadar az. Asıl iş üç kavramı birbirinden ayırmak: sıcaklık, iç enerji ve ısı. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Tanecikler hiç durmaz',
+        sekil: 'sf941_boya',
+        metin: r`Bir bardak suya bir damla gıda boyası damlat ve bardağa hiç dokunma. Karıştırmasan da renk birkaç dakika içinde yavaş yavaş bütün suya yayılır.
+
+Bunu yapan, suyun **tanecikleridir**. Her madde gözle göremediğimiz kadar küçük taneciklerden oluşur. Bu tanecikler hiç durmadan hareket eder. Su tanecikleri boya taneciklerine çarpa çarpa onları her yöne dağıtır.
+
+- Sıvı ve gazlarda tanecikler yer değiştirir, döner ve titreşir.
+- Katılarda tanecikler yerlerinden ayrılmaz ama bulundukları yerin çevresinde **titreşir**.`,
+        kontrol: {
+          soru: 'Bir demir çubuğun tanecikleri için hangisi doğrudur?',
+          secenekler: ['Hiç hareket etmez.', 'Bulunduğu yerin çevresinde titreşir.', 'Çubuğun bir ucundan öbür ucuna akar.'],
+          dogru: 1,
+          aciklama: 'Demir bir katıdır. Katının tanecikleri yerinden ayrılmaz ama sürekli titreşir.',
+          yanlisIpucu: 'Tanecikler hiç durmaz. Katıda tanecikler yer değiştirebilir mi, yoksa yerinde mi kalır?'
+        }
+      },
+      {
+        baslik: 'Sıcaklık: taneciklerin ortalama hareketi',
+        sekil: 'sf941_bardak',
+        metin: r`Şimdi iki bardak düşün. Birinde buzdolabından çıkmış 5 °C su, öbüründe 45 °C ılık su var. İkisine aynı anda birer damla boya damlat. Ilık sudaki boya çok daha çabuk yayılır.
+
+Çünkü ılık suyun tanecikleri ortalama olarak **daha hızlı** hareket eder. Hızlı hareket eden taneciğin kinetik enerjisi büyüktür.
+
+Her an bazı tanecikler hızlı, bazıları yavaştır. Bu yüzden ortalamaya bakarız. **Sıcaklık**, taneciklerin **ortalama kinetik enerjisinin göstergesidir**. Sıcaklık arttıkça tanecikler ortalama olarak hızlanır. Sıcaklığı termometreyle ölçeriz.`,
+        kontrol: {
+          soru: 'Bahçedeki havanın sıcaklığı sabah 12 °C, öğlen 28 °C oluyor. Havanın taneciklerinin ortalama kinetik enerjisi ne olur?',
+          secenekler: ['Azalır.', 'Değişmez.', 'Artar.'],
+          dogru: 2,
+          aciklama: 'Sıcaklık arttı. Sıcaklık, ortalama kinetik enerjinin göstergesi olduğu için ortalama kinetik enerji de artar.',
+          yanlisIpucu: 'Sıcaklık neyin göstergesiydi? Sıcaklık yükselince o nicelik ne yapar?'
+        }
+      },
+      {
+        baslik: 'İç enerji: bütün taneciklerin toplamı',
+        sekil: 'sf941_kova',
+        metin: r`Aynı musluktan bir bardak ve bir kova su doldur. İkisinin sıcaklığı aynıdır; termometre ikisinde de 20 °C gösterir. Tanecikler ortalama olarak aynı hızda hareket eder.
+
+Ama kovada çok daha fazla tanecik vardır. Maddeyi oluşturan **bütün taneciklerin** kinetik ve etkileşim enerjilerinin toplamına **iç enerji** denir. Kovadaki suyun tanecik sayısı fazla olduğu için iç enerjisi daha büyüktür.
+
+Aynı maddede **madde miktarı** ya da **sıcaklık** artarsa iç enerji artar. İç enerji maddenin **cinsine** de bağlıdır.`,
+        kontrol: {
+          soru: '1 kg ve 3 kg kütleli iki örnek su var. İkisinin de sıcaklığı 30 °C. Hangisi doğrudur?',
+          secenekler: ['İç enerjileri eşittir.', '3 kg suyun iç enerjisi daha büyüktür.', '3 kg suyun sıcaklığı daha büyüktür.'],
+          dogru: 1,
+          aciklama: 'Sıcaklıklar eşit, ama 3 kg suda tanecik sayısı daha fazla. Bu yüzden iç enerjisi daha büyüktür; sıcaklığı ise aynıdır.',
+          yanlisIpucu: 'Sıcaklık ortalamaya, iç enerji toplama bakar. Hangi örnekte daha çok tanecik var?'
+        }
+      },
+      {
+        baslik: 'Isı: aktarılan enerji',
+        sekil: 'sf941_tava',
+        metin: r`Ocaktan aldığın sıcak bir demir tavayı soğuk taş tezgâhın üstüne koyuyorsun. Bir süre sonra tava soğur, tavanın altındaki taş ise ısınır.
+
+Burada tavadan taşa enerji geçti. Aralarındaki sıcaklık farkı nedeniyle bir maddeden diğerine **aktarılan enerjiye ısı** denir.
+- Isı veren tavanın iç enerjisi **azalır**.
+- Isı alan taşın iç enerjisi **artar**.
+
+Isı yalnızca aktarılırken söz konusudur. Cisimler ısıya değil, iç enerjiye sahiptir. Bu yüzden "tavanın ısısı" demek yanlıştır; "tavanın sıcaklığı" deriz.`,
+        kontrol: {
+          soru: 'Hangi cümle bilimsel olarak doğrudur?',
+          secenekler: ['Tavanın ısısı çok yüksek.', 'Tezgâh tavaya soğukluk verdi.', 'Sıcak tavadan soğuk tezgâha ısı aktarıldı.'],
+          dogru: 2,
+          aciklama: 'Isı, sıcaklık farkı nedeniyle aktarılan enerjidir; sıcak tavadan soğuk tezgâha gider. Bir cismin ısısı olmaz. Soğukluk diye aktarılan bir şey de yoktur.',
+          yanlisIpucu: 'Isı, bir cismin sahip olduğu şey değil, aktarılan enerjidir. Hangi cümle bir aktarımı anlatıyor?'
+        }
+      },
+      {
+        baslik: 'Isının yönünü sıcaklık belirler',
+        metin: r`Kamp ateşinden küçük bir köz sıçrayıp karın üstüne düşüyor. Közün altındaki kar erir.
+
+Yerdeki karın tanecik sayısı közünkinden kat kat fazladır. Bu yüzden karın iç enerjisi közünkinden çok büyüktür. Yine de ısı **közden kara** gider.
+
+Isı her zaman **sıcaklığı yüksek olandan sıcaklığı düşük olana** aktarılır. Yönü iç enerji değil, **sıcaklık farkı** belirler. Sıcaklıklar eşitlenince ısı aktarımı durur.`,
+        kontrol: {
+          soru: 'Odada saatlerdir duran büyük bir koltuk ile küçük bir yastık birbirine değiyor. İkisinin sıcaklığı eşit. Isı aktarımı için hangisi doğrudur?',
+          secenekler: ['Isı aktarılmaz.', 'Büyük koltuktan yastığa ısı aktarılır.', 'Yastıktan koltuğa ısı aktarılır.'],
+          dogru: 0,
+          aciklama: 'Isının yönünü sıcaklık farkı belirler. Sıcaklıklar eşitse, iç enerjileri farklı olsa da ısı aktarılmaz.',
+          yanlisIpucu: 'Isının aktarılması için neyin farklı olması gerekir: iç enerjinin mi, sıcaklığın mı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Ocakta ısınan çorba',
+        metin: 'Bir tencerede çorba ısıtılıyor. Çorbanın sıcaklığı 20 °C iken ocak yakılıyor ve çorba 70 °C olana kadar ısınıyor. Sonra tencereden bir kepçe çorba bir kâseye alınıyor.',
+        adimlar: [
+          {
+            soru: 'Çorba ısınırken taneciklerinin ortalama hareketi nasıl değişir?',
+            secenekler: ['Yavaşlar.', 'Hızlanır.', 'Değişmez.'],
+            dogru: 1,
+            ipucu: 'Çorbanın sıcaklığı yükseliyor. Sıcaklık, taneciklerin ortalama hareketi hakkında ne söyler?',
+            aciklama: 'Sıcaklık 20 °C değerinden 70 °C değerine çıktı. Tanecikler ortalama olarak hızlanır, ortalama kinetik enerjileri artar.'
+          },
+          {
+            soru: 'Isınırken tenceredeki çorbanın iç enerjisi ne olur?',
+            secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+            dogru: 0,
+            ipucu: 'Çorbanın miktarı aynı, sıcaklığı yükseliyor. Aynı maddede iç enerji neye bağlıydı?',
+            aciklama: 'Ocaktan çorbaya ısı aktarılır. Isı alan çorbanın iç enerjisi artar; miktar aynıyken sıcaklık yükselmesi de bunu gösterir.'
+          },
+          {
+            soru: 'Kâseye alınan çorbanın sıcaklığı, tenceredeki çorbanın sıcaklığıyla karşılaştırılırsa hangisi doğrudur?',
+            secenekler: ['Kâsedeki daha düşüktür.', 'Kâsedeki daha yüksektir.', 'İkisi eşittir.'],
+            dogru: 2,
+            ipucu: 'Sıcaklık madde miktarına bağlı mı? Kepçe, tenceredeki çorbanın aynısından alındı.',
+            aciklama: 'İkisi de 70 °C. Sıcaklık ortalamaya bakar ve madde miktarına bağlı değildir.'
+          },
+          {
+            soru: 'Kâsedeki çorbanın iç enerjisi, tenceredeki çorbanınkiyle karşılaştırılırsa hangisi doğrudur?',
+            secenekler: ['Daha küçüktür.', 'Eşittir.', 'Daha büyüktür.'],
+            dogru: 0,
+            ipucu: 'Sıcaklıklar eşit. Peki hangisinde daha çok tanecik var?',
+            aciklama: 'Sıcaklıklar eşit, ama kâsede tenceredekinden çok daha az tanecik var. Bu yüzden kâsedeki çorbanın iç enerjisi daha küçüktür.'
+          }
+        ],
+        sonuc: 'Isınma sıcaklığı da iç enerjiyi de artırdı. Kepçe ise sıcaklığı değiştirmedi; yalnızca iç enerjiyi böldü. Sıcaklık ortalamaya, iç enerji toplama bakar.'
+      },
+      {
+        baslik: 'Çeşmede soğutulan karpuz',
+        metin: 'Sıcak bir yaz günü köyde bir karpuz, soğusun diye çeşmenin yalağındaki suya bırakılıyor. Karpuzun sıcaklığı 30 °C. Yalaktaki su sürekli yenileniyor ve sıcaklığı hep 12 °C kalıyor.',
+        adimlar: [
+          {
+            soru: 'Isı hangi yönde aktarılır?',
+            secenekler: ['Sudan karpuza', 'Karpuzdan suya', 'Hiçbir yöne aktarılmaz.'],
+            dogru: 1,
+            ipucu: 'Isı, sıcaklığı yüksek olandan düşük olana gider. Hangisinin sıcaklığı daha yüksek?',
+            aciklama: 'Karpuz 30 °C, su 12 °C. Isı, sıcaklığı yüksek olan karpuzdan suya aktarılır.'
+          },
+          {
+            soru: 'Karpuz soğurken karpuzun taneciklerinin ortalama kinetik enerjisi ne olur?',
+            secenekler: ['Artar.', 'Değişmez.', 'Azalır.'],
+            dogru: 2,
+            ipucu: 'Karpuz soğuyor; yani sıcaklığı düşüyor. Sıcaklık neyin göstergesiydi?',
+            aciklama: 'Karpuzun sıcaklığı düşer. Sıcaklık, ortalama kinetik enerjinin göstergesi olduğu için ortalama kinetik enerji de azalır.'
+          },
+          {
+            soru: 'Karpuz yalakta saatlerce kalırsa ne olur?',
+            secenekler: ['Sıcaklığı 12 °C olur ve ısı aktarımı durur.', 'Sıcaklığı 0 °C olana kadar düşmeyi sürdürür.', 'Isı aktarımı hiç durmaz.'],
+            dogru: 0,
+            ipucu: 'Isı aktarımı ne zaman durur? Sıcaklıklar arasındaki fark ortadan kalkınca ne olur?',
+            aciklama: 'Karpuzun sıcaklığı suyunkine iner. Sıcaklıklar eşitlenince ısı aktarımı durur. Su hep 12 °C kaldığı için karpuz da 12 °C olur.'
+          }
+        ],
+        sonuc: 'Isı karpuzdan suya gitti ve sıcaklıklar eşitlenince durdu. Isının yönünü ve ne zaman duracağını sıcaklık farkı belirledi.'
+      },
+      {
+        baslik: 'Bisikletin ısınan jantları',
+        metin: 'Elif bisikletiyle uzun bir yokuştan iniyor ve yol boyunca fren yapıyor. Fren balataları jantlara sürtünüyor. Yokuşun başında jantların sıcaklığı havanınkiyle aynıydı: 20 °C. Aşağıda durduğunda jantların sıcaklığı 50 °C olmuş.',
+        adimlar: [
+          {
+            soru: 'Jantları ısıtan nedir?',
+            secenekler: ['Havadan jantlara ısı aktarıldı.', 'Balataların sürtünmesi jant taneciklerinin hareketini artırdı.', 'Jantlardan havaya soğukluk geçti.'],
+            dogru: 1,
+            ipucu: 'Hava jantlardan soğuk; ısı soğuk havadan sıcak janta gitmez. Fren yaparken balatalar jantlara ne yapıyor?',
+            aciklama: 'Balatalar jantlara sürtünür. Sürtünme, jant taneciklerinin hareketini artırır. Böylece jantların iç enerjisi ve sıcaklığı artar. Soğuk havadan janta ısı aktarılamaz.'
+          },
+          {
+            soru: 'Elif durduğu anda jantlar ile hava arasında ısı hangi yönde aktarılır?',
+            secenekler: ['Havadan jantlara', 'Hiçbir yöne aktarılmaz.', 'Jantlardan havaya'],
+            dogru: 2,
+            ipucu: 'Jantlar 50 °C, hava 20 °C. Isı hangi yöne gider?',
+            aciklama: 'Isı, sıcaklığı yüksek olan jantlardan sıcaklığı düşük olan havaya aktarılır.'
+          },
+          {
+            soru: 'Bisiklet beklerken jantların iç enerjisi ne olur?',
+            secenekler: ['Azalır.', 'Artar.', 'Değişmez.'],
+            dogru: 0,
+            ipucu: 'Jantlar ısı veriyor mu, alıyor mu? Isı veren cismin iç enerjisi ne olur?',
+            aciklama: 'Jantlar havaya ısı verir. Isı veren cismin iç enerjisi azalır; jantlar soğur.'
+          }
+        ],
+        sonuc: 'Jantlar sıcak bir cisimle değil, sürtünmeyle ısındı. Sonra sıcaklığı yüksek olan jantlardan havaya ısı aktarıldı ve iç enerjileri azaldı.'
+      }
+    ],
+    hazir: 'Sıcaklık, iç enerji ve ısıyı birbirinden ayırdın. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -72159,6 +72483,119 @@ BFY_FIG_EKLE('i1036_kart_yol', u => KS(u, I => {
 }, { oy: 70 }));
 })();
 
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ (sf1036_) =============== */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const C = { faz: '#8a4b22', notr: '#2f6fb0', ty: '#5f9a2e', tyS: '#e2c22a', kir: '#c8412b', gri: '#7b868c' };
+
+/* açık el (avuç bize dönük, parmaklar yukarı); (cx, cy) avuç ortası */
+function el(u, cx, cy) {
+  let s = `<rect x="${cx - 20}" y="${cy + 28}" width="40" height="34" rx="8" fill="url(#${u}skin)" stroke="#b98463" stroke-width="1"/>`;
+  [[-27, 46], [-13, 54], [1, 52], [15, 42]].forEach(([dx, h]) => {
+    s += `<rect x="${cx + dx}" y="${cy - 26 - h + 26}" width="12.5" height="${h + 10}" rx="6.2" fill="url(#${u}skin)" stroke="#b98463" stroke-width="1"/>`;
+  });
+  s += `<rect x="${cx - 28.5}" y="${cy - 8}" width="13" height="42" rx="6.5" fill="url(#${u}skin)" stroke="#b98463" stroke-width="1" transform="rotate(-40 ${cx - 22} ${cy + 34})"/>`;
+  s += `<rect x="${cx - 29}" y="${cy - 16}" width="58" height="56" rx="18" fill="url(#${u}skin)" stroke="#b98463" stroke-width="1"/>`;
+  s += `<path d="M${cx - 18} ${cy + 4} Q${cx} ${cy + 14} ${cx + 20} ${cy - 2} M${cx - 12} ${cy + 22} Q${cx + 4} ${cy + 18} ${cx + 18} ${cy + 26}" fill="none" stroke="#c99674" stroke-width="1.1"/>`;
+  return s;
+}
+const damla = (x, y, k = 1) => `<path d="M${x} ${y - 7 * k} Q${x - 5 * k} ${y} ${x - 4.5 * k} ${y + 2 * k} A${4.6 * k} ${4.6 * k} 0 0 0 ${x + 4.5 * k} ${y + 2 * k} Q${x + 5 * k} ${y} ${x} ${y - 7 * k} Z" fill="#7cc3e8" stroke="#2a79ad" stroke-width=".8" opacity=".95"/>`;
+
+/* Adım 2: kuru ve ıslak deri; aynı gerilimde akım farkı */
+BFY_FIG_EKLE('sf1036_deri', function (u) {
+  const W = 400, H = 250;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f6f4"/>`;
+  const panel = (x0, baslik, renk, islak) => {
+    let t = `<rect x="${x0}" y="12" width="180" height="226" rx="12" fill="#fff" stroke="#d3dcd6" stroke-width="1.2"/>`;
+    t += T(x0 + 90, 34, baslik, { size: 13.5, anchor: 'middle', weight: 800, fill: renk });
+    t += el(u, x0 + 92, 92);
+    if (islak) [[-14, 70], [8, 84], [20, 60], [-4, 104], [-26, 96], [16, 112]].forEach(([dx, y]) => { t += damla(x0 + 92 + dx, y, 0.9); });
+    t += T(x0 + 90, 176, islak ? 'direnç çok küçük' : 'direnç büyük', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink });
+    const w = islak ? 9 : 2;
+    t += arrow(x0 + 40, 206, x0 + 140, 206, { color: C.kir, w, head: islak ? 16 : 8, headW: islak ? 11 : 4.5 });
+    t += T(x0 + 90, islak ? 230 : 228, islak ? 'akım büyük' : 'akım küçük', { size: 12, anchor: 'middle', weight: 800, fill: C.kir });
+    return t;
+  };
+  s += panel(12, 'kuru deri', '#8a5a2b', false);
+  s += panel(208, 'ıslak deri', P.sky, true);
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 3: ev elektrik panosu; kaçak akım rölesi ve otomatik sigortalar */
+BFY_FIG_EKLE('sf1036_pano', function (u) {
+  const W = 420, H = 262;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#efeee9"/>`;
+  // pano kutusu
+  s += `<rect x="18" y="18" width="384" height="214" rx="10" fill="#d9dde0" stroke="#8d969c" stroke-width="2"/>`;
+  s += `<rect x="30" y="30" width="360" height="190" rx="6" fill="#f4f5f6" stroke="#aab2b8" stroke-width="1.2"/>`;
+  s += `<rect x="30" y="98" width="360" height="12" fill="url(#${u}metal)" stroke="#8e979f" stroke-width=".8"/>`;
+  // modül çizici
+  const modul = (x, w, o) => {
+    let t = `<rect x="${x + 2}" y="62" width="${w}" height="90" rx="4" fill="#000" opacity=".12"/>`;
+    t += `<rect x="${x}" y="58" width="${w}" height="90" rx="4" fill="#fbfbfa" stroke="#9aa3a9" stroke-width="1.2"/>`;
+    t += `<rect x="${x + 4}" y="62" width="${w - 8}" height="20" rx="3" fill="#eceeef" stroke="#c3c9cd" stroke-width=".8"/>`;
+    t += T(x + w / 2, 77, o.ust, { size: 11.5, anchor: 'middle', weight: 800, fill: P.ink, halo: false });
+    // kol (yukarıda = açık devre değil, çalışıyor)
+    const kx = x + w / 2;
+    t += `<rect x="${kx - 9}" y="92" width="18" height="34" rx="3" fill="#cfd4d7" stroke="#8e979f" stroke-width="1"/>`;
+    t += `<rect x="${kx - 7}" y="94" width="14" height="15" rx="2" fill="${o.kol}" stroke="#333" stroke-width=".6"/>`;
+    if (o.test) t += `<circle cx="${x + w - 14}" cy="136" r="7" fill="#f2c94c" stroke="#9c7a12" stroke-width="1"/>` + T(x + w - 14, 140, 'T', { size: 10, anchor: 'middle', weight: 800, halo: false });
+    return t;
+  };
+  s += modul(44, 108, { ust: '30 mA', kol: '#2f6fb0', test: true });
+  s += modul(170, 62, { ust: '16 A', kol: '#333a3f' });
+  s += modul(242, 62, { ust: '16 A', kol: '#333a3f' });
+  s += modul(314, 62, { ust: '10 A', kol: '#333a3f' });
+  // etiket şeridi
+  s += `<rect x="40" y="162" width="340" height="48" rx="4" fill="#fff" stroke="#c3c9cd" stroke-width="1"/>`;
+  s += T(98, 182, 'kaçak akım', { size: 11.5, anchor: 'middle', weight: 800, fill: C.notr, halo: false });
+  s += T(98, 198, 'rölesi', { size: 11.5, anchor: 'middle', weight: 800, fill: C.notr, halo: false });
+  [[201, 'mutfak'], [273, 'prizler'], [345, 'lambalar']].forEach(([x, ad]) => {
+    s += T(x, 182, 'sigorta', { size: 11, anchor: 'middle', weight: 700, fill: P.ink2, halo: false }) + T(x, 198, ad, { size: 11.5, anchor: 'middle', weight: 800, fill: P.ink, halo: false });
+  });
+  s += T(210, 252, 'T: test düğmesi', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 84);
+});
+
+/* Adım 4: prizden cihaza üç tel; toprak teli gövdeyi toprağa bağlar */
+BFY_FIG_EKLE('sf1036_kablo', function (u) {
+  const W = 420, H = 260;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f1ea"/>`;
+  // duvar ve toprak
+  s += `<rect x="0" y="0" width="92" height="206" fill="url(#${u}facade)"/>`;
+  s += `<rect x="0" y="206" width="${W}" height="54" fill="url(#${u}soil)"/>`;
+  s += `<line x1="0" y1="206" x2="${W}" y2="206" stroke="#9c8462" stroke-width="1.5"/>`;
+  // topraklı priz
+  s += `<rect x="22" y="58" width="56" height="56" rx="9" fill="#fbfbf8" stroke="#a7a9a3" stroke-width="1.4"/>`;
+  s += `<circle cx="50" cy="86" r="19" fill="#e9eae5" stroke="#b3b5ae" stroke-width="1.2"/>`;
+  s += `<circle cx="42" cy="86" r="3.2" fill="#3b3f42"/><circle cx="58" cy="86" r="3.2" fill="#3b3f42"/>`;
+  s += `<rect x="46" y="66" width="8" height="5" rx="1" fill="url(#${u}metal)" stroke="#8e979f" stroke-width=".6"/><rect x="46" y="101" width="8" height="5" rx="1" fill="url(#${u}metal)" stroke="#8e979f" stroke-width=".6"/>`;
+  s += T(50, 50, 'topraklı priz', { size: 11.5, anchor: 'middle', weight: 800 });
+  // cihaz (metal gövdeli bulaşık makinesi)
+  s += `<rect x="300" y="44" width="104" height="156" rx="6" fill="url(#${u}metalV)" stroke="#6f7a83" stroke-width="1.6"/>`;
+  s += `<rect x="300" y="44" width="104" height="22" rx="6" fill="#d6dbdf" stroke="#6f7a83" stroke-width="1.2"/>`;
+  s += `<rect x="372" y="50" width="24" height="9" rx="2" fill="#2f3438"/>`;
+  s += `<rect x="314" y="74" width="76" height="6" rx="3" fill="#9aa3a9"/>`;
+  s += `<rect x="304" y="196" width="10" height="8" fill="#555"/><rect x="390" y="196" width="10" height="8" fill="#555"/>`;
+  s += T(352, 116, 'metal', { size: 11.5, anchor: 'middle', weight: 800, fill: P.ink }) + T(352, 131, 'gövde', { size: 11.5, anchor: 'middle', weight: 800, fill: P.ink });
+  // kablo kılıfı (prizden), sonra açılan üç tel
+  s += `<path d="M78 86 L124 86" stroke="#e8e6df" stroke-width="16" stroke-linecap="round"/><path d="M78 86 L124 86" stroke="#bdbab0" stroke-width="16" stroke-opacity=".35"/>`;
+  const tel = (y2, renk, x2, y3, serit) => `<path d="M124 ${86 + (y2 - 86) * 0.2} C160 ${86 + (y2 - 86) * 0.3} 160 ${y2} 196 ${y2} L${x2} ${y2} L${x2} ${y3}" fill="none" stroke="${renk}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"${serit ? ' stroke-dasharray="7 7"' : ''}/>`;
+  s += tel(64, C.faz, 300, 64);
+  s += tel(100, C.notr, 300, 100);
+  s += tel(152, C.ty, 300, 152) + tel(152, C.tyS, 300, 152, true);
+  s += `<circle cx="300" cy="152" r="5" fill="#c9cdd0" stroke="#555" stroke-width="1"/>`;
+  s += T(192, 55, 'faz: akım gider', { size: 11.5, weight: 800, fill: C.faz });
+  s += T(192, 91, 'nötr: akım döner', { size: 11.5, weight: 800, fill: C.notr });
+  s += T(196, 144, 'toprak teli', { size: 11.5, weight: 800, fill: '#3f7a1f' });
+  // binanın toprak hattı ve çubuk
+  s += `<path d="M50 114 L50 230" stroke="${C.ty}" stroke-width="4"/><path d="M50 114 L50 230" stroke="${C.tyS}" stroke-width="4" stroke-dasharray="6 6"/>`;
+  s += `<rect x="45" y="226" width="10" height="28" rx="2" fill="#b0743a" stroke="#7a4d22" stroke-width="1"/>`;
+  s += T(64, 244, 'topraklama çubuğu', { size: 11.5, weight: 800, fill: '#4a3a22' });
+  return svg(W, H, s, u, 84);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -72209,6 +72646,201 @@ const KONU = {
     'mutfakta topraksız mutfak robotu, topraklı metal musluk, ıslak eller 1000 Ω, kauçuk terlik ve zemin 500 000 Ω, bakır bağlantı teli',
     'kaçak yapan cihaza dokunan üç kişi: topraklı (kaçak 45 Ω, toprak 5 Ω), terlikli (43 000 Ω), kuru elli (200 000 Ω); vücut akımı sıralaması'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Şebeke gerilimi notla aynı, 220 V alınır; akımlar tam sayı mA ya da A. Sayısal sonuçlar qa/10.3.6/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konu seni ve aileni korumakla ilgili. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Zarar veren akımdır',
+        metin: r`Televizyon kumandasının pilini değiştirirken pilin uçlarına dokunursun ve hiçbir şey hissetmezsin. Oysa prizin içindeki tellere dokunmak öldürücü olabilir. Fark nereden geliyor?
+
+Vücuda zarar veren, vücuttan geçen **elektrik akımıdır**. Sinirlerimiz ve kaslarımız çok küçük elektrik sinyalleriyle çalışır. Dışarıdan gelen akım bu sinyallere karışır: Kaslar istemsiz kasılır, kalbin ritmi bozulabilir, akımın geçtiği dokular yanar.
+
+Hasarı üç şey belirler:
+- Akımın **büyüklüğü**.
+- Akımın **süresi**.
+- Akımın vücutta izlediği **yol**. Akım bir elden öbür ele ya da elden ayağa geçerken göğüsten, yani kalbin bulunduğu bölgeden geçer. En tehlikeli yollar bunlardır.`,
+        kontrol: {
+          soru: 'Aşağıdaki akım yollarından hangisi en tehlikelidir?',
+          secenekler: ['Aynı elin iki parmağı arası', 'Sol elden sağ ele', 'Bir ayağın parmak ucundan topuğuna'],
+          dogru: 1,
+          aciklama: 'Sol elden sağ ele giden akım göğüsten, kalbin bulunduğu bölgeden geçer. Bu yüzden en tehlikeli yol budur.',
+          yanlisIpucu: 'Akım kalbe yakın geçerse tehlike büyür. Hangi yol göğüsten geçer?'
+        }
+      },
+      {
+        baslik: 'Islak deri, büyük akım',
+        sekil: 'sf1036_deri',
+        metin: r`Akımın büyüklüğünü gerilim ve akım yolunun direnci birlikte belirler:
+$$I = \frac{V}{R}$$
+Aynı gerilimde direnç ne kadar küçükse akım o kadar büyük olur.
+
+Vücut direncinin büyük kısmını **deri** oluşturur. Kuru deri akıma karşı büyük direnç gösterir. Islak ya da terli deride direnç çok düşer. Evlerdeki prizlerin gerilimi 220 V'tur. Islak elle dokunan birinde akım yolunun direnci 500 Ω olsun:
+$$I = \frac{220}{500} \text{ A} = 440 \text{ mA}$$
+Vücut için güvenli kabul edilen sınır yaklaşık 30 mA'dir. Bu sınırın altındaki akım da zararsız değildir: Yaklaşık 10 mA'in üstünde el kasları kasılır ve kişi tuttuğu şeyi bırakamayabilir.
+
+Kuru deri de bir güvence değildir. Ter, nem ve geniş temas yüzeyi direnci hızla düşürür. Şebeke gerilimine hiçbir koşulda dokunulmaz.`,
+        kontrol: {
+          soru: 'Islak zeminde yalın ayak duran birinde akım yolunun direnci 2200 Ω olsun. Bu kişi 220 V\'a dokunursa vücudundan kaç mA geçer?',
+          secenekler: ['10 mA', '100 mA', '1000 mA'],
+          dogru: 1,
+          aciklama: r`$I = \dfrac{220}{2200} = \dfrac{1}{10}$ A, yani 100 mA. Bu akım, güvenli sınır olan 30 mA'in çok üstündedir.`,
+          yanlisIpucu: 'I = V ÷ R ile akımı amper olarak bul. Sonra 1 A = 1000 mA olduğunu kullanarak mA\'e çevir.'
+        }
+      },
+      {
+        baslik: 'Sigorta kabloyu korur',
+        sekil: 'sf1036_pano',
+        metin: r`Evdeki prizler birbirine **paralel** bağlıdır. Aynı hatta çalışan cihazların akımları toplanır ve hattın kablosundan bu toplam akım geçer.
+
+Akım büyüdükçe kablo ısınır. Çok ısınan kablonun yalıtımı erir; kısa devre ya da yangın çıkabilir. **Sigorta**, hattan geçen akım kendi değerini aşınca devreyi keser. Akım ne kadar büyükse sigorta o kadar çabuk atar.
+
+Dikkat: Sigortaların değeri 10 A, 16 A gibi büyük akımlardır. İnsan için tehlikeli akımlar ise birkaç on miliamperdir. Bu yüzden sigorta **kabloyu ve binayı** korur; insanı elektrik çarpmasına karşı korumaz.`,
+        kontrol: {
+          soru: 'Aynı priz hattında 6 A çeken bir saç kurutma makinesi ile 1 A çeken bir televizyon birlikte çalışıyor. Hattın kablosundan kaç A geçer?',
+          secenekler: ['5 A', '6 A', '7 A'],
+          dogru: 2,
+          aciklama: 'Paralel bağlı cihazların akımları toplanır: 6 + 1 = 7 A.',
+          yanlisIpucu: 'Paralel bağlı cihazların akımları kablonun içinde birleşir. Akımları çıkarmak mı, toplamak mı gerekir?'
+        }
+      },
+      {
+        baslik: 'Topraklama: kaçak akıma kolay yol',
+        sekil: 'sf1036_kablo',
+        metin: r`Prizden cihaza giden kabloda üç tel vardır: kahverengi **faz**, mavi **nötr** ve sarı-yeşil **toprak** teli. Akım cihaza faz telinden gider, nötr telinden döner. Toprak teli ise cihazın metal gövdesini, toprağa gömülü bir çubuğa bağlar. Buna **topraklama** denir.
+
+Cihazın içinde bir telin yalıtımı bozulursa akım metal gövdeye kaçabilir. Buna **elektrik kaçağı** denir. Gövde topraklıysa kaçak akım, direnci çok küçük olan toprak hattından akar. Gövdeye dokunan kişiden geçen akım çok küçülür. Yine de topraklama tek başına yetmez; arızalı cihaz kullanılmaz, onarılır.
+
+Gövde topraklı değilse gövdeye dokunan kişinin vücudu, akımın toprağa ulaştığı yol olur. Bu yüzden metal gövdeli cihazlar topraklı prize takılır.`,
+        kontrol: {
+          soru: 'Metal gövdeli bir bulaşık makinesinde elektrik kaçağı var ve makine topraklı. Kaçak akımın neredeyse tamamı hangi yoldan akar?',
+          secenekler: ['Sarı-yeşil toprak hattından', 'Gövdeye dokunan kişinin vücudundan', 'Mavi nötr telinden'],
+          dogru: 0,
+          aciklama: 'Toprak hattının direnci vücudun direncinden çok küçüktür. Akım, direnci küçük olan bu yolu izler; kaçak akımın neredeyse tamamı toprak hattından toprağa ulaşır.',
+          yanlisIpucu: 'Akım hangi yolu tercih eder: direnci büyük olanı mı, küçük olanı mı? Toprak hattı bunun için kurulur.'
+        }
+      },
+      {
+        baslik: 'Kaçak akım rölesi: giden ve dönen akım',
+        metin: r`Elektrik panosunda sigortaların yanında bir de **kaçak akım rölesi** bulunur. Röle, faz telinden giden akımla nötr telinden dönen akımı sürekli karşılaştırır.
+
+Her şey yolundayken giden akımın hepsi geri döner; iki akım eşittir. Akımın bir kısmı toprağa kaçarsa, örneğin bir insanın vücudu üzerinden, dönen akım azalır. Aradaki fark rölenin değerini (evlerde 30 mA) aşınca röle devreyi saniyenin küçük bir kesrinde keser.
+
+Röle, sigortanın yapamadığını yapar ve insanı korumaya yardım eder. Ama her durumu yakalayamaz: Akım faz telinden vücuda girip nötr teline dönerse giden ve dönen akım eşit kalır; röle bunu fark etmez. Bu yüzden röle yalnızca ek bir önlemdir; tellere dokunmak için bir izin değildir. Rölenin test düğmesine düzenli olarak (örneğin ayda bir) basılır. Röle atıyorsa çalışıyor demektir; atmıyorsa bir elektrik ustasına kontrol ettirilir.`,
+        kontrol: {
+          soru: 'Kaçak akım rölesinin devreyi kesmesi için hangisi gerekir?',
+          secenekler: ['Hattan geçen akımın 16 A\'i aşması', 'Cihazın gövdesinin plastik olması', 'Giden ve dönen akım arasındaki farkın 30 mA\'i aşması'],
+          dogru: 2,
+          aciklama: 'Röle, giden ve dönen akımı karşılaştırır. Aradaki fark 30 mA\'i aşınca akımın bir kısmının başka bir yoldan kaçtığını anlar ve devreyi keser.',
+          yanlisIpucu: 'Büyük akımda atan düzenek sigortadır. Röle hangi iki akımı karşılaştırıyordu?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Soyulmuş uzatma kablosu',
+        metin: 'Bir uzatma kablosunun dış kılıfı bir yerde soyulmuş; içindeki bir telin yalıtımı da zarar görmüş. Kablo prize takılı. Prizin gerilimi 220 V.',
+        adimlar: [
+          {
+            soru: 'Kuru eliyle hasarlı yere dokunan birinde akım yolunun direnci 110 000 Ω olsaydı vücudundan kaç mA geçerdi?',
+            secenekler: ['2 mA', '22 mA', '110 mA'],
+            dogru: 0,
+            ipucu: r`$I = V \div R$. $220 \div 110\,000 = \dfrac{1}{500}$ A. Bunu mA'e çevir: 1 A = 1000 mA.`,
+            aciklama: r`$I = \dfrac{220}{110\,000} = \dfrac{1}{500}$ A, yani 2 mA. Küçük görünür ama güvence değildir: Deri terleyince ya da ıslanınca direnç hızla düşer.`
+          },
+          {
+            soru: 'Eller ıslakken akım yolunun direnci 1000 Ω olursa vücuttan kaç mA geçer?',
+            secenekler: ['22 mA', '220 mA', '2200 mA'],
+            dogru: 1,
+            ipucu: 'Gerilim aynı, direnç çok daha küçük. 220 V\'u 1000 Ω\'a böl ve sonucu mA\'e çevir.',
+            aciklama: r`$I = \dfrac{220}{1000}$ A, yani 220 mA. Islak deri akımı 100 kattan fazla büyüttü.`
+          },
+          {
+            soru: 'Bu 220 mA için hangisi doğrudur?',
+            secenekler: ['Güvenli sınır olan 30 mA\'in altındadır.', 'Hattın 16 A\'lik sigortası bu akımda hemen atar.', 'Güvenli sınırın çok üstündedir ve kalbin ritmini bozabilir.'],
+            dogru: 2,
+            ipucu: '220 mA ile 30 mA\'i karşılaştır. Sonra 220 mA ile 16 A\'i (16 000 mA) karşılaştır.',
+            aciklama: '220 mA, güvenli sınır olan 30 mA\'in çok üstündedir. Sigorta ise bu akımı fark etmez: 220 mA, 16 A\'in yanında çok küçüktür.'
+          },
+          {
+            soru: 'Hasarlı kablo için doğru davranış hangisidir?',
+            secenekler: ['Soyulan yeri bantla sarıp kullanmayı sürdürmek', 'Hasarlı yere dokunmadan fişi prizden çekmek ve kabloyu yenisiyle değiştirmek', 'Kabloya yalnızca kuru elle dokunmak'],
+            dogru: 1,
+            ipucu: 'Hasarlı kablo onarılarak değil, değiştirilerek güvenli olur. Önce akımı kesmek gerekir.',
+            aciklama: 'Önce akım kesilir: Fiş, hasarlı yere dokunmadan prizden çekilir; bu yapılamıyorsa panodaki sigorta kapatılır. Hasarlı kablo bir daha kullanılmaz, yenisiyle değiştirilir.'
+          }
+        ],
+        sonuc: 'Aynı kabloya kuru elle dokunmak 2 mA, ıslak elle dokunmak 220 mA demekti. Sigorta bu akımı fark etmez. Hasarlı kablo kullanılmaz, değiştirilir.'
+      },
+      {
+        baslik: 'Kış sabahı mutfakta',
+        metin: 'Bir mutfağın priz hattı 16 A\'lik bir sigortayla korunuyor. Bu hatta 9 A çeken bir su ısıtıcısı ve 5 A çeken bir mikrodalga fırın çalışıyor. Mutfak soğuk olduğu için aynı hatta 10 A çeken bir elektrikli ısıtıcı da çalıştırılıyor.',
+        adimlar: [
+          {
+            soru: 'Yalnız su ısıtıcısı ve mikrodalga fırın çalışırken hattan kaç A geçer?',
+            secenekler: ['14 A', '4 A', '45 A'],
+            dogru: 0,
+            ipucu: 'Prizler paralel bağlıdır. Paralel bağlı cihazların akımları toplanır.',
+            aciklama: '9 + 5 = 14 A geçer.'
+          },
+          {
+            soru: 'Bu durumda 16 A\'lik sigorta ne yapar?',
+            secenekler: ['Devreyi keser.', 'Devreyi kesmez.', 'Yalnız mikrodalga fırını kapatır.'],
+            dogru: 1,
+            ipucu: '14 A, sigortanın değeri olan 16 A\'i aşıyor mu?',
+            aciklama: '14 A, 16 A\'den küçüktür. Sigorta devreyi kesmez.'
+          },
+          {
+            soru: 'Isıtıcı da çalışınca hattan kaç A geçer ve sigorta ne yapar?',
+            secenekler: ['10 A geçer; sigorta devreyi kesmez.', '24 A geçer; sigorta devreyi kesmez.', '24 A geçer; sigorta devreyi keser.'],
+            dogru: 2,
+            ipucu: 'Üç cihazın akımını topla ve 16 A ile karşılaştır.',
+            aciklama: '9 + 5 + 10 = 24 A geçer. Bu akım 16 A\'i aştığı için sigorta devreyi keser.'
+          },
+          {
+            soru: 'Sigortanın devreyi kesmesi neyi önler?',
+            secenekler: ['Kablonun aşırı ısınmasını ve yangını', 'Elektrik çarpmasını', 'Cihazların daha az enerji harcamasını'],
+            dogru: 0,
+            ipucu: 'Sigorta büyük akıma tepki verir. Büyük akım en çok neye zarar verir?',
+            aciklama: 'Büyük akım kabloyu aşırı ısıtır, yalıtımı eritir ve yangın çıkarabilir. Sigorta bunu önler. İnsanı elektrik çarpmasına karşı korumak ise kaçak akım rölesinin işidir.'
+          }
+        ],
+        sonuc: 'Akımlar toplandı: 14 A hattın kaldırabileceği bir akımdı, 24 A değildi. Sigorta kabloyu ve evi korudu. Çok akım çeken cihazları aynı hatta birlikte çalıştırmamak gerekir.'
+      },
+      {
+        baslik: 'Balkondaki derin dondurucu',
+        metin: 'Balkondaki metal gövdeli derin dondurucu topraklı bir prize takılı. Hat 30 mA\'lik bir kaçak akım rölesiyle korunuyor. Bir gün dondurucunun içinde bir telin yalıtımı bozuluyor ve akımın bir kısmı metal gövdeye kaçıyor.',
+        adimlar: [
+          {
+            soru: 'Faz telinden giden akım 600 mA, nötr telinden dönen akım 560 mA. Toprağa kaçan akım kaç mA\'dir?',
+            secenekler: ['560 mA', '40 mA', '1160 mA'],
+            dogru: 1,
+            ipucu: 'Giden akımın dönmeyen kısmı başka bir yoldan toprağa kaçmıştır. Giden ile dönen akım arasındaki farkı bul.',
+            aciklama: '600 − 560 = 40 mA toprağa kaçmıştır.'
+          },
+          {
+            soru: 'Kaçak akım rölesi ne yapar?',
+            secenekler: ['Devreyi saniyenin küçük bir kesrinde keser.', 'Hiçbir şey yapmaz; çünkü fark çok küçüktür.', 'Yalnız 16 A\'i aşınca devreyi keser.'],
+            dogru: 0,
+            ipucu: 'Rölenin değeri 30 mA. Fark bu değeri aşıyor mu?',
+            aciklama: '40 mA, rölenin değeri olan 30 mA\'i aşar. Röle devreyi saniyenin küçük bir kesrinde keser.'
+          },
+          {
+            soru: 'Röle devreyi kestikten sonra doğru davranış hangisidir?',
+            secenekler: ['Röleyi hemen yeniden kaldırıp dondurucuyu kullanmayı sürdürmek', 'Toprak telini sökerek rölenin bir daha atmamasını sağlamak', 'Dondurucunun fişini çekip arızayı bir elektrik ustasına onarttırmak'],
+            dogru: 2,
+            ipucu: 'Röle bir arıza olduğu için attı. Arıza giderilmeden ne değişir?',
+            aciklama: 'Röle, kaçak olduğu için attı. Arızalı cihaz kullanılmaz; fişi çekilir ve bir uzmana onarttırılır. Toprak telini sökmek ise kaçak akımın güvenli yolunu ortadan kaldırır.'
+          }
+        ],
+        sonuc: 'Topraklama kaçak akıma güvenli bir yol verdi; röle de giden ile dönen akım arasındaki 40 mA farkı algılayıp devreyi kesti. İki düzenek birlikte çalışır.'
+      }
+    ],
+    hazir: 'Akımın vücuda etkisini, sigortayı, topraklamayı ve kaçak akım rölesini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -112605,6 +113237,109 @@ BFY_FIG_EKLE('k133_s24_genis', function (u) {
   s += T(X(-13), 207, '1 kare = 1 birim', { size: 11, weight: 700, fill: P.ink2 });
   return svg(540, 214, s, u, 150);
 });
+
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ (sf1133_) =============== */
+/* Çelik kâse: iç yüz çukur ayna, dış yüz tümsek ayna */
+BFY_FIG_EKLE('sf1133_kase', function (u) {
+  const W = 420, H = 230;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f8f6"/>`;
+  // sol: kâsenin görünüşü
+  const cx = 104, ry = 70;
+  s += `<ellipse cx="${cx}" cy="186" rx="70" ry="9" fill="#000" opacity=".13"/>`;
+  s += `<path d="M${cx - 84} 92 A84 84 0 0 0 ${cx + 84} 92 Z" fill="url(#${u}metalV)" stroke="#6f7a83" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${cx}" cy="92" rx="84" ry="20" fill="#cfd6db" stroke="#6f7a83" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${cx}" cy="94" rx="76" ry="15" fill="url(#${u}metal)" opacity=".9"/>`;
+  s += `<path d="M${cx - 50} 120 Q${cx - 40} 150 ${cx - 14} 162" fill="none" stroke="#fff" stroke-width="5" opacity=".55" stroke-linecap="round"/>`;
+  s += T(cx, 30, 'paslanmaz çelik kâse', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+  // sağ: kesit
+  const kx = 312, ky = 72, R = 76;
+  const yay = (r) => `M${kx - r} ${ky} A${r} ${r} 0 0 0 ${kx + r} ${ky}`;
+  s += `<path d="${yay(R + 4)} L${kx + R - 4} ${ky} A${R - 4} ${R - 4} 0 0 1 ${kx - R + 4} ${ky} Z" fill="#9aa5ad" stroke="#5c6a72" stroke-width="1.2"/>`;
+  s += `<path d="${yay(R - 4)}" fill="none" stroke="#e8f1f6" stroke-width="2"/>`;
+  s += T(kx, 30, 'kesit', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+  s += T(kx, 92, 'iç yüz:', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(kx, 108, 'çukur ayna', { size: 13, anchor: 'middle', weight: 800, fill: '#0b7a58' });
+  s += arrow(kx, 114, kx, ky + R - 8, { color: '#0b7a58', w: 1.8, head: 7, headW: 3.6 });
+  s += arrow(kx + 70, 196, kx + 46, ky + R * 0.8 + 4, { color: RAY2, w: 1.8, head: 7, headW: 3.6 });
+  s += T(kx + 18, 212, 'dış yüz: tümsek ayna', { size: 13, anchor: 'middle', weight: 800, fill: RAY2 });
+  return svg(W, H, s, u, 84);
+});
+
+/* Çukur ayna: M, F, T; r = 2f */
+BFY_FIG_EKLE('sf1133_mft', function (u) {
+  const W = 340, H = 236, R = 128, M = 116, yc = 108, Tx = M + R, F = M + R / 2, A = 42;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f8f6"/>`;
+  // kürenin geri kalanı (kesikli)
+  s += `<defs><clipPath id="${u}sfk"><rect x="0" y="0" width="${W}" height="${H}" rx="14"/></clipPath></defs>`;
+  s += `<circle cx="${M}" cy="${yc}" r="${R}" fill="none" stroke="#b8c6c0" stroke-width="1.2" stroke-dasharray="5 5" clip-path="url(#${u}sfk)"/>`;
+  // ayna yayı ve arka tarama
+  let d = '', h = '';
+  for (let i = 0; i <= 40; i++) { const t = (-A + 2 * A * i / 40) * D; d += (i ? 'L' : 'M') + f1(M + R * Math.cos(t)) + ' ' + f1(yc + R * Math.sin(t)); }
+  for (let k = -A + 4; k <= A - 3; k += 6) { const t = k * D, x = M + R * Math.cos(t), y = yc + R * Math.sin(t); h += `<line x1="${f1(x + 1.5 * Math.cos(t))}" y1="${f1(y + 1.5 * Math.sin(t))}" x2="${f1(x + 9 * Math.cos(t) + 4)}" y2="${f1(y + 9 * Math.sin(t) - 5)}" stroke="#8a969c" stroke-width="1.1"/>`; }
+  s += h + `<path d="${d}" fill="none" stroke="${AYNA}" stroke-width="3.6"/>`;
+  s += `<line x1="16" y1="${yc}" x2="${Tx + 30}" y2="${yc}" stroke="${P.ink}" stroke-width="1.4"/>`;
+  s += nokta(M, yc) + nokta(F, yc) + nokta(Tx, yc);
+  s += T(M, yc - 10, 'M', { size: 13.5, anchor: 'middle', weight: 800 }) + T(F, yc - 10, 'F', { size: 13.5, anchor: 'middle', weight: 800 }) + T(Tx - 8, yc - 10, 'T', { size: 13.5, anchor: 'end', weight: 800 });
+  s += T(22, yc - 10, 'asal eksen', { size: 11.5, weight: 700, fill: P.ink2 });
+  const olcu = (x1, x2, y, lab, c) => `<g stroke="${c}" stroke-width="1.3"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line x1="${x1}" y1="${y - 5}" x2="${x1}" y2="${y + 5}"/><line x1="${x2}" y1="${y - 5}" x2="${x2}" y2="${y + 5}"/></g>` + T((x1 + x2) / 2, y - 6, lab, { size: 13, anchor: 'middle', weight: 800, italic: true, fill: c });
+  s += olcu(F, Tx, yc + 36, 'f', '#c2410c') + olcu(M, Tx, yc + 74, 'r = 2f', '#0b7a58');
+  s += dashLine(M, yc + 4, M, yc + 80, '#9aa8a2', '3 3', 1) + dashLine(F, yc + 4, F, yc + 42, '#9aa8a2', '3 3', 1) + dashLine(Tx, yc + 4, Tx, yc + 80, '#9aa8a2', '3 3', 1);
+  return svg(W, H, s, u, 74);
+});
+
+/* Paralel ışınlar: çukur toplar, tümsek dağıtır */
+BFY_FIG_EKLE('sf1133_paralel', function (u) {
+  const W = 440, H = 232, yc = 118;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f8f6"/>`;
+  // çukur
+  let xT = 186, xF = xT - 76;
+  s += T(16, 26, 'Çukur ayna: toplar', { size: 13, weight: 800, fill: '#0b7a58' });
+  s += `<line x1="14" y1="${yc}" x2="${xT + 14}" y2="${yc}" stroke="${P.ink}" stroke-width="1.3"/>`;
+  s += ayna(xT, yc, yc - 70, yc + 70, 'c', 8);
+  [-48, -24, 24, 48].forEach(h => {
+    const y = yc + h, xs = xT - 8 * (h / 70) ** 2 * 1;
+    s += isin(18, y, xs, y, { at: .5 });
+    const ex = 34, ey = y + (yc - y) * (xs - ex) / (xs - xF);
+    s += isin(xs, y, ex, ey, { at: .3 });
+  });
+  s += nokta(xF, yc) + T(xF + 2, yc + 20, 'F', { size: 13.5, anchor: 'middle', weight: 800 });
+  // tümsek
+  xT = 318; xF = xT + 76;
+  s += `<line x1="226" y1="18" x2="226" y2="${H - 18}" stroke="#d3dfda" stroke-width="1.2"/>`;
+  s += T(238, 26, 'Tümsek ayna: dağıtır', { size: 13, weight: 800, fill: RAY2 });
+  s += `<line x1="236" y1="${yc}" x2="${W - 14}" y2="${yc}" stroke="${P.ink}" stroke-width="1.3"/>`;
+  s += ayna(xT, yc, yc - 70, yc + 70, 't', 8);
+  [-48, -24, 24, 48].forEach(h => {
+    const y = yc + h, xs = xT + 8 * (h / 70) ** 2;
+    s += isin(242, y, xs, y, { at: .5 });
+    const k = Math.min(1, 26 / (Math.abs(h) * (xs - 244) / (xF - xs))), ex = xs - (xs - 244) * k, ey = y + (y - yc) * (xs - ex) / (xF - xs);
+    s += isin(xs, y, ex, ey, { at: .55 }) + uzanti(xs, y, xF, yc);
+  });
+  s += nokta(xF, yc) + T(xF, yc + 20, 'F', { size: 13.5, anchor: 'middle', weight: 800 });
+  s += T(330, H - 10, 'uzantılar F noktasından geçer', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 90);
+});
+
+/* Kareli zemin: çukur ayna f = 3 birim, cisim M noktasında, boy 2 birim */
+BFY_FIG_EKLE('sf1133_kareli', function (u) {
+  const S = 28;
+  let s = `<rect class="bg" x="0" y="0" width="330" height="246" rx="14" fill="#f3f8f6"/>`;
+  const g = kare({ gx0: -8, gx1: 1, gy0: -3, gy1: 3, S, x0: 24, y0: 36 });
+  const { X, Y } = g; s += g.s;
+  s += T(24, 24, 'Çukur ayna (f = 3 birim)', { size: 12.5, weight: 800, fill: '#0b7a58' });
+  s += ayna(X(0), Y(0), Y(2.8), Y(-2.8), 'c', 6);
+  s += isaret(X(-6), Y(0), 'M', { dx: 9 }) + isaret(X(-3), Y(0), 'F');
+  s += T(X(0) + 12, Y(0) + 17, 'T', { size: 13, weight: 800 });
+  // 1. ışın: paralel gelir, F'den geçer
+  s += isin(X(-6), Y(2), X(0), Y(2), { at: .5 }) + isin(X(0), Y(2), X(-6.6), Y(-2.4), { at: .3 });
+  // 2. ışın: F'den geçer, paralel yansır
+  s += isin(X(-6), Y(2), X(0), Y(-2), { at: .3, color: RAY2 }) + isin(X(0), Y(-2), X(-6.8), Y(-2), { at: .3, color: RAY2 });
+  s += okV(X(-6), Y(0), Y(2), CIS) + okV(X(-6), Y(0), Y(-2), GOR);
+  s += T(X(-6) - 8, Y(2) + 4, 'cisim', { size: 12, anchor: 'end', weight: 800, fill: CIS });
+  s += T(X(-6) - 8, Y(-1) + 4, 'görüntü', { size: 12, anchor: 'end', weight: 800, fill: GOR });
+  s += T(165, 236, 'Yansıyan ışınların kendileri kesişiyor.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(330, 246, s, u, 78);
+});
+
 })();
 
 /* ---------- i1133: HİKÂYE, TANIM ve EFSANE için 3B görünümlü çizimler ---------- */
@@ -113112,6 +113847,195 @@ const KONU = {
     'ZENGİN: büyük açıklıklı çukur ayna, paralel ışınların asal ekseni kestiği uzaklık tablosu (küresel sapma, r = 30 cm)', 'ZENGİN: kareli çukur ayna f = 4; K (12 birim, boy 2), L (2 birim, boy 1), görüntüler arası uzaklık',
     'ZENGİN ETK: küresel/silindirik çukur ve tümsek ile düzlem aynada paralel ışınların yansıması (eşleştir)', 'SİM: çukur/tümsek ayna f = 7,5 cm, cisim 3–30 cm, iki özel ışın, boy oranı'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Ayna denklemi kullanılmaz; görüntü özel ışınlarla, boy oranı h_c/h_g = d_c/d_g ile bulunur. Sayılar qa/11.3.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Küresel aynaları her gün görüyorsun; şimdi onlara bir fizikçi gözüyle bakacağız. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Çukur ayna, tümsek ayna',
+        sekil: 'sf1133_kase',
+        metin: r`Mutfaktaki parlak, paslanmaz çelik bir kâseye bak. Kâsenin içine bakınca yüzünü bir türlü, dışına bakınca başka bir türlü görürsün.
+
+Kâsenin yüzeyi bir küre parçasıdır. Yansıtıcı yüzeyi küre parçası olan aynalara **küresel ayna** denir.
+- İç yüzü yansıtıcı olan küresel ayna **çukur ayna**dır.
+- Dış yüzü yansıtıcı olan küresel ayna **tümsek ayna**dır.
+
+Aynı kâse, hangi yüzüne baktığına göre iki farklı ayna gibi davranır.`,
+        kontrol: {
+          soru: 'Bahçe süsü olarak kullanılan cilalı çelik bir kürenin dış yüzünde evin görüntüsü görülüyor. Bu küre hangi ayna gibi davranır?',
+          secenekler: ['Çukur ayna', 'Tümsek ayna', 'Düzlem ayna'],
+          dogru: 1,
+          aciklama: 'Görüntü kürenin dış yüzünde oluşuyor. Dış yüzü yansıtıcı olan küresel ayna tümsek aynadır.',
+          yanlisIpucu: 'Yansıtan yüz kürenin içi mi, dışı mı? Dış yüzü yansıtan küresel aynanın adı neydi?'
+        }
+      },
+      {
+        baslik: 'Merkez, odak ve tepe noktası',
+        sekil: 'sf1133_mft',
+        metin: r`Aynanın parçası olduğu kürenin bir merkezi vardır. Aynanın haritasını bu merkezle çizeriz:
+- **Merkez (M):** Aynanın parçası olduğu kürenin merkezi.
+- **Tepe noktası (T):** Aynanın tam ortası.
+- **Asal eksen:** M ile T'den geçen doğru.
+- **Odak noktası (F):** M ile T'nin tam ortası.
+
+T ile F arasındaki uzaklık **odak uzaklığıdır** ($f$). T ile M arasındaki uzaklık **eğrilik yarıçapıdır** ($r$). F tam ortada olduğu için:
+$$r = 2f$$`,
+        kontrol: {
+          soru: 'Eğrilik yarıçapı 40 cm olan çukur bir aynanın odak uzaklığı kaç cm\'dir?',
+          secenekler: ['20 cm', '40 cm', '80 cm'],
+          dogru: 0,
+          aciklama: r`$r = 2f$ olduğundan $f = 40 \div 2 = 20$ cm olur. F, T ile M'nin tam ortasındadır.`,
+          yanlisIpucu: 'Odak noktası, M ile T arasının tam ortasındadır. Eğrilik yarıçapının yarısı kaçtır?'
+        }
+      },
+      {
+        baslik: 'Paralel ışınlar: çukur toplar, tümsek dağıtır',
+        sekil: 'sf1133_paralel',
+        metin: r`Güneş çok uzakta olduğu için ışınları bize birbirine paralel gelir. Küçük bir çukur aynayı Güneş'e doğru tutup önüne bir kâğıt koyarsan, aynadan belli bir uzaklıkta kâğıtta küçük ve çok parlak bir leke oluşur. Güneş'e ve aynadaki parlak yansımaya hiçbir zaman doğrudan bakma.
+
+Çukur aynada asal eksene paralel gelen ışınlar yansıdıktan sonra **odak noktasında (F) toplanır**. Parlak leke F'dedir.
+
+Tümsek aynada ise F aynanın arkasındadır. Paralel gelen ışınlar yansıdıktan sonra **dağılır**; yansıyan ışınların **uzantıları** F'den geçer.`,
+        kontrol: {
+          soru: 'Tümsek bir aynaya asal eksene paralel gelen ışınlar yansıdıktan sonra ne olur?',
+          secenekler: ['Aynanın önündeki F noktasında toplanır.', 'Geldikleri yoldan geri döner.', 'Dağılır; uzantıları aynanın arkasındaki F noktasından geçer.'],
+          dogru: 2,
+          aciklama: 'Tümsek aynanın odağı aynanın arkasındadır. Paralel ışınlar yansıyınca dağılır; yansıyan ışınların uzantıları F\'de kesişir.',
+          yanlisIpucu: 'Işınları toplayan çukur aynadır. Tümsek aynanın F noktası aynanın önünde mi, arkasında mı?'
+        }
+      },
+      {
+        baslik: 'Görüntüyü iki ışınla bul',
+        sekil: 'sf1133_kareli',
+        metin: r`Bir cismin görüntüsünü bulmak için cismin tepesinden aynaya iki özel ışın gönderilir:
+- Asal eksene **paralel** gelen ışın, yansıyınca **F'den** geçer.
+- **F'den** geçerek gelen ışın, yansıyınca asal eksene **paralel** gider.
+
+Yansıyan iki ışının kesiştiği yer, cismin tepesinin görüntüsüdür. Şekildeki çukur aynada $f = 3$ birim. Cisim M noktasında, yani aynadan 6 birim uzakta; boyu 2 birim. Işınlar yine M'nin hizasında, asal eksenin 2 birim altında kesişir. Görüntü cisimle aynı yerde, aynı boyda ve **ters**tir.
+
+Yansıyan ışınların **kendileri** kesişiyorsa görüntü **gerçektir**; bir perdeye düşürülebilir. Kendileri kesişmiyorsa uzantıları aynanın arkasında kesişir ve görüntü **sanaldır**.`,
+        kontrol: {
+          soru: 'Bir çizimde yansıyan ışınların kendileri değil, aynanın arkasındaki uzantıları kesişiyor. Görüntü için hangisi doğrudur?',
+          secenekler: ['Gerçektir ve perdeye düşürülebilir.', 'Sanaldır ve perdeye düşürülemez.', 'Hiç görüntü oluşmaz.'],
+          dogru: 1,
+          aciklama: 'Uzantıların kesiştiği yerde oluşan görüntü sanaldır. Işığın kendisi oraya gitmediği için perdeye düşürülemez.',
+          yanlisIpucu: 'Gerçek görüntü için yansıyan ışınların kendileri kesişmelidir. Burada kesişen ne?'
+        }
+      },
+      {
+        baslik: 'Boylar, uzaklıklarla orantılı',
+        metin: r`Görüntünün boyunu bulmak için kısa bir kural var: Cismin boyunun görüntünün boyuna oranı, cismin aynaya uzaklığının görüntünün aynaya uzaklığına oranına eşittir.
+$$\frac{h_c}{h_g} = \frac{d_c}{d_g}$$
+Burada $h$ boyu, $d$ aynaya uzaklığı gösterir; c cisim, g görüntü demektir.
+
+Parlak, yuvarlak bir kapı topuzuna bak. Topuz bir tümsek aynadır. Odadaki her şey topuzun içinde minicik ve düz görünür. Tümsek aynada görüntü her zaman aynanın arkasında, F ile T arasında oluşur. Yani görüntü aynaya cisimden **daha yakındır**. Boylar uzaklıklarla orantılı olduğu için görüntü cisimden **küçüktür**. Tümsek aynanın görüntüsü her zaman **düz, sanal ve cisimden küçüktür**.`,
+        kontrol: {
+          soru: 'Odak uzaklığı 4 birim olan tümsek bir aynanın 12 birim önünde, boyu 4 birim olan bir cisim var. Görüntü aynanın 3 birim arkasında oluşuyor. Görüntünün boyu kaç birimdir?',
+          secenekler: ['1 birim', '3 birim', '4 birim'],
+          dogru: 0,
+          aciklama: r`$\dfrac{4}{h_g} = \dfrac{12}{3} = 4$ olduğundan $h_g = 1$ birim olur. Görüntü aynaya 4 kat daha yakın, boyu da 4 kat küçük.`,
+          yanlisIpucu: r`Kuralı yaz: $\dfrac{h_c}{h_g} = \dfrac{d_c}{d_g}$. Cisim aynaya görüntüden kaç kat uzak?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kartona düşen yıldız',
+        metin: 'Bir sanat atölyesinde, içinde küçük bir lamba olan 2 cm boyunda ışıklı bir yıldız süsü var. Süs, odak uzaklığı 6 cm olan çukur bir aynanın asal ekseni üzerine, aynadan 10 cm uzağa konuyor. Aynanın önünde bir karton ileri geri kaydırılarak yıldızın net görüntüsü aranıyor.',
+        adimlar: [
+          {
+            soru: 'Aynanın merkezi (M), aynadan kaç cm uzaktadır?',
+            secenekler: ['3 cm', '6 cm', '12 cm'],
+            dogru: 2,
+            ipucu: r`$r = 2f$. Merkez, aynadan eğrilik yarıçapı kadar uzaktadır.`,
+            aciklama: r`$r = 2 \times 6 = 12$ cm. M, aynadan 12 cm uzaktadır.`
+          },
+          {
+            soru: 'Yıldız süsü hangi iki nokta arasındadır?',
+            secenekler: ['F ile T arasında', 'F ile M arasında', 'M noktasının dışında'],
+            dogru: 1,
+            ipucu: 'F aynadan 6 cm, M aynadan 12 cm uzakta. Süs aynadan 10 cm uzakta.',
+            aciklama: 'Süs, F noktasından (6 cm) uzak, M noktasından (12 cm) yakındır. Yani F ile M arasındadır.'
+          },
+          {
+            soru: 'Kartonda net bir görüntü elde edilebilir mi? Görüntü nasıldır?',
+            secenekler: ['Evet; görüntü ters ve gerçektir.', 'Hayır; görüntü sanaldır.', 'Evet; görüntü düz ve gerçektir.'],
+            dogru: 0,
+            ipucu: 'Cisim F noktasının dışındayken iki özel ışını düşün: Yansıyan ışınların kendileri aynanın önünde kesişir mi?',
+            aciklama: 'Cisim F noktasının dışında olduğu için yansıyan ışınların kendileri aynanın önünde kesişir. Görüntü gerçektir, kartona düşürülebilir ve terstir.'
+          },
+          {
+            soru: 'Net görüntü, karton aynadan 15 cm uzaktayken oluşuyor. Görüntünün boyu kaç cm\'dir?',
+            secenekler: ['2 cm', '3 cm', '15 cm'],
+            dogru: 1,
+            ipucu: r`$\dfrac{h_c}{h_g} = \dfrac{d_c}{d_g}$ kuralında $h_c = 2$ cm, $d_c = 10$ cm, $d_g = 15$ cm.`,
+            aciklama: r`$\dfrac{2}{h_g} = \dfrac{10}{15}$ olduğundan $h_g = 3$ cm olur. Görüntü yıldızdan büyüktür.`
+          }
+        ],
+        sonuc: 'F ile M arasındaki yıldızın görüntüsü kartona düştü: ters, gerçek ve 3 cm boyunda, yani yıldızdan büyük.'
+      },
+      {
+        baslik: 'Bisikletin dikiz aynası',
+        metin: 'Bir bisikletin gidonuna küçük, tümsek bir dikiz aynası takılı. Bisikletli, arkasından gelen otomobili bu aynada görüyor.',
+        adimlar: [
+          {
+            soru: 'Otomobilin aynadaki görüntüsü düz mü, ters mi?',
+            secenekler: ['Ters', 'Düz', 'Otomobil yaklaştıkça düzden terse döner.'],
+            dogru: 1,
+            ipucu: 'Tümsek aynanın görüntüsü için bir kural öğrendin: Her zaman nasıldır?',
+            aciklama: 'Tümsek aynanın görüntüsü her zaman düz ve sanaldır. Otomobil nerede olursa olsun görüntüsü düzdür.'
+          },
+          {
+            soru: 'Görüntü, otomobilin kendisinden büyük mü, küçük mü?',
+            secenekler: ['Küçük', 'Eşit', 'Büyük'],
+            dogru: 0,
+            ipucu: 'Tümsek aynada görüntü aynaya cisimden daha yakın oluşur. Boy oranı uzaklık oranına eşittir.',
+            aciklama: 'Görüntü aynaya otomobilden çok daha yakın oluşur. Boylar uzaklıklarla orantılı olduğu için görüntü otomobilden küçüktür.'
+          },
+          {
+            soru: 'Bisiklette düzlem ayna yerine tümsek ayna kullanılmasının nedeni nedir?',
+            secenekler: ['Görüntüleri büyüttüğü için uzaktaki araçlar daha iyi görülür.', 'Işığı bir noktada toplayıp görüntüyü daha parlak yapar.', 'Görüntüler küçük olduğu için küçük bir aynaya geniş bir alan sığar.'],
+            dogru: 2,
+            ipucu: 'Görüntüler küçükse aynı küçük aynada kaç şey birden görünebilir?',
+            aciklama: 'Tümsek ayna görüntüleri küçülttüğü için küçük bir aynada geniş bir alan görünür. Bisikletli arkasındaki yolun büyük bölümünü tek bakışta görür.'
+          }
+        ],
+        sonuc: 'Tümsek ayna her zaman düz, sanal ve küçük görüntü verdi. Küçük görüntü, küçük bir aynaya geniş bir görüş alanı sığdırdı.'
+      },
+      {
+        baslik: 'Saat ustasının aynası',
+        metin: 'Bir saat ustası, boyu 2 mm olan küçük bir dişliyi incelemek için odak uzaklığı 8 cm olan çukur bir ayna kullanıyor. Dişliyi asal eksen üzerinde, aynadan 6 cm uzakta tutuyor.',
+        adimlar: [
+          {
+            soru: 'Dişli hangi iki nokta arasındadır?',
+            secenekler: ['F ile T arasında', 'F ile M arasında', 'M noktasının dışında'],
+            dogru: 0,
+            ipucu: 'F aynadan 8 cm uzakta. Dişli aynadan 6 cm uzakta: F\'den önce mi, sonra mı?',
+            aciklama: 'Dişli aynaya F\'den daha yakındır. Yani F ile T arasındadır.'
+          },
+          {
+            soru: 'Ustanın aynada gördüğü görüntü nasıldır?',
+            secenekler: ['Ters, gerçek ve büyük', 'Düz, sanal ve büyük', 'Düz, sanal ve küçük'],
+            dogru: 1,
+            ipucu: 'Cisim F ile T arasındayken yansıyan ışınlar kesişmez, dağılır. Uzantıları nerede kesişir?',
+            aciklama: 'Cisim F ile T arasındayken yansıyan ışınların uzantıları aynanın arkasında kesişir. Görüntü düz ve sanaldır; cisimden büyüktür. Çukur aynanın büyüteç gibi kullanılması buna dayanır.'
+          },
+          {
+            soru: 'Görüntü aynanın 24 cm arkasında oluşuyor. Görüntünün boyu kaç mm\'dir?',
+            secenekler: ['24 mm', '48 mm', '8 mm'],
+            dogru: 2,
+            ipucu: r`$\dfrac{h_c}{h_g} = \dfrac{d_c}{d_g}$: Görüntü, aynaya dişliden kaç kat uzak?`,
+            aciklama: r`$\dfrac{2}{h_g} = \dfrac{6}{24}$ olduğundan $h_g = 8$ mm olur. Görüntü dişlinin 4 katı boyundadır.`
+          }
+        ],
+        sonuc: 'Dişli F ile T arasında olduğu için çukur ayna büyüteç gibi çalıştı: Görüntü düz, sanal ve 4 kat büyük oldu.'
+      }
+    ],
+    hazir: 'Çukur ve tümsek aynayı, M, F ve T noktalarını, özel ışınları ve boy kuralını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   setler: [
     {
