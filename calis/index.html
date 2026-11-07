@@ -18950,6 +18950,152 @@ BFY_FIG_EKLE('i931_kart_birlikte', u => SK(u, I => {
 }, { oy: 58 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf931_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const dimH = (x1, x2, y, c = P.ink2) => `<g stroke="${c}" stroke-width="1.2"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line x1="${x1}" y1="${y - 5}" x2="${x1}" y2="${y + 5}"/><line x1="${x2}" y1="${y - 5}" x2="${x2}" y2="${y + 5}"/></g>` +
+  `<polygon points="${x1},${y} ${x1 + 7},${y - 3.2} ${x1 + 7},${y + 3.2}" fill="${c}"/><polygon points="${x2},${y} ${x2 - 7},${y - 3.2} ${x2 - 7},${y + 3.2}" fill="${c}"/>`;
+
+/* Adım 1: aynı poşet; solda ince sap, sağda bezle sarılmış sap (el arkadan, parmaklar sapı kavrar) */
+BFY_FIG_EKLE('sf931_poset', function (u) {
+  const W = 340, H = 256, sy = 88;
+  let s = `<defs><linearGradient id="${u}fing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4cfb2"/><stop offset=".62" stop-color="#e8b694"/><stop offset="1" stop-color="#c88d69"/></linearGradient>` +
+    `<linearGradient id="${u}bag" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9edef"/><stop offset=".35" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe4e7"/></linearGradient>` +
+    `<linearGradient id="${u}cloth" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9cde0"/><stop offset=".5" stop-color="#7fb0ca"/><stop offset="1" stop-color="#4f86a3"/></linearGradient>` +
+    `<linearGradient id="${u}slv" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f5279"/><stop offset=".45" stop-color="#4a74a3"/><stop offset="1" stop-color="#2c4c70"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  s += `<line class="bg" x1="170" y1="14" x2="170" y2="${H - 40}" stroke="#d8d2c4" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  const panel = (x0, genis) => {
+    let g = '';
+    const cx = x0 + 80, uc = genis ? 62 : 46, fb = genis ? sy + 15 : sy + 10;
+    // gölge
+    g += `<ellipse class="bg" cx="${cx}" cy="223" rx="50" ry="4.5" fill="#000" opacity=".09"/>`;
+    // poşetten görünen ürünler (ekmek, pırasa, süt kutusu)
+    g += `<path d="M${cx - 30} 150 L${cx - 18} 112 Q${cx - 14} 106 ${cx - 9} 110 L${cx - 18} 150 Z" fill="#e3b471" stroke="#a5743a" stroke-width=".9"/>`;
+    g += `<path d="M${cx - 21} 126 l5 2 M${cx - 18} 118 l5 2" stroke="#b9853f" stroke-width="1"/>`;
+    g += `<path d="M${cx - 6} 150 L${cx - 6} 128 L${cx + 2} 121 L${cx + 10} 128 L${cx + 10} 150 Z" fill="#eef4f8" stroke="#7d93a3" stroke-width=".9"/><rect x="${cx - 6}" y="134" width="16" height="7" fill="#5aa9dc" opacity=".8"/>`;
+    g += `<path d="M${cx + 16} 150 Q${cx + 17} 128 ${cx + 30} 112 Q${cx + 24} 130 ${cx + 25} 150 Z" fill="#6aa84f" stroke="#3f7a2c" stroke-width=".9"/>`;
+    g += `<path d="M${cx + 20} 150 Q${cx + 16} 132 ${cx + 12} 118 Q${cx + 22} 130 ${cx + 26} 150 Z" fill="#83bf63" stroke="#3f7a2c" stroke-width=".8"/>`;
+    // sapın inen kolları (iki kat çizgi: kenar ve parlak iç)
+    const kol = sgn => `M${cx + sgn * 36} ${sy} L${cx + sgn * (uc - 6)} ${sy} Q${cx + sgn * uc} ${sy} ${cx + sgn * (uc - 1)} ${sy + 8} L${cx + sgn * 44} 150`;
+    [-1, 1].forEach(sg => {
+      g += `<path d="${kol(sg)}" stroke="#8d989e" stroke-width="5.2" fill="none" stroke-linejoin="round"/>`;
+      g += `<path d="${kol(sg)}" stroke="#f3f5f6" stroke-width="3" fill="none" stroke-linejoin="round"/>`;
+    });
+    // poşet gövdesi
+    g += `<path d="M${cx - 46} 148 C${cx - 51} 170 ${cx - 57} 196 ${cx - 52} 214 Q${cx} 225 ${cx + 52} 214 C${cx + 57} 196 ${cx + 51} 170 ${cx + 46} 148 Q${cx} 153 ${cx - 46} 148 Z" fill="url(#${u}bag)" stroke="#97a1a7" stroke-width="1.1"/>`;
+    g += `<path d="M${cx - 30} 158 Q${cx - 26} 186 ${cx - 36} 210 M${cx + 24} 156 Q${cx + 31} 184 ${cx + 22} 212 M${cx - 4} 170 Q${cx - 1} 190 ${cx - 6} 214" stroke="#d3d9dc" stroke-width="1.2" fill="none"/>`;
+    // bez sargı (sapın etrafında, uçları elin iki yanından görünür)
+    if (genis) {
+      g += `<rect x="${cx - uc + 2}" y="${sy - 12}" width="${2 * uc - 4}" height="24" rx="11" fill="url(#${u}cloth)" stroke="#3f6f88" stroke-width="1"/>`;
+      [-1, 1].forEach(sg => {
+        for (let i = 0; i < 3; i++) { const x = cx + sg * (44 + i * 6); g += `<path d="M${x} ${sy - 11} Q${x + sg * 3} ${sy} ${x} ${sy + 11}" stroke="#4f86a3" stroke-width="1" fill="none"/>`; }
+      });
+    }
+    // kol ve bilek
+    g += `<path d="M${cx - 31} 0 L${cx + 31} 0 L${cx + 28} 22 Q${cx} 26 ${cx - 28} 22 Z" fill="url(#${u}slv)" stroke="#22405f" stroke-width=".9"/>`;
+    g += `<path d="M${cx - 28} 22 Q${cx} 26 ${cx + 28} 22" stroke="#22405f" stroke-width="1.4" fill="none"/>`;
+    // el sırtı
+    g += `<path d="M${cx - 24} 23 L${cx + 24} 23 C${cx + 29} 36 ${cx + 38} 44 ${cx + 39} 60 L${cx - 39} 60 C${cx - 38} 44 ${cx - 29} 36 ${cx - 24} 23 Z" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".9"/>`;
+    g += `<path d="M${cx - 12} 30 Q${cx - 16} 44 ${cx - 20} 54 M${cx + 2} 30 Q${cx + 1} 44 ${cx} 54 M${cx + 14} 30 Q${cx + 18} 44 ${cx + 20} 54" stroke="#d9a37f" stroke-width=".9" fill="none" opacity=".8"/>`;
+    // başparmak (sol yanda, aşağı sarkar)
+    g += `<path d="M${cx - 30} 36 C${cx - 45} 46 ${cx - 50} 62 ${cx - 46} 76 C${cx - 44} 84 ${cx - 35} 84 ${cx - 35} 76 C${cx - 36} 66 ${cx - 34} 57 ${cx - 28} 50 Z" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".9"/>`;
+    g += `<path d="M${cx - 44} 70 Q${cx - 40} 66 ${cx - 36} 70" stroke="#c9906d" stroke-width=".8" fill="none"/>`;
+    // dört parmak: sapın etrafında kıvrılır; alt uçta orta boğum görünür
+    const fw = 19.5, boy = [1, 4, 3, -1];
+    for (let i = 0; i < 4; i++) {
+      const fx = cx - 39 + i * fw, b = fb + boy[i];
+      g += `<path d="M${fx} 56 L${fx} ${b - 9} Q${fx} ${b} ${fx + fw / 2} ${b} Q${fx + fw} ${b} ${fx + fw} ${b - 9} L${fx + fw} 56 Z" fill="url(#${u}fing)" stroke="#b07a58" stroke-width=".9"/>`;
+      g += `<path d="M${fx + 4} 61 Q${fx + fw / 2} 56 ${fx + fw - 4} 61" stroke="#fbe3d1" stroke-width="1.4" fill="none"/>`;
+      g += `<path d="M${fx + 5} ${b - 13} Q${fx + fw / 2} ${b - 16} ${fx + fw - 5} ${b - 13}" stroke="#b07a58" stroke-width=".8" fill="none"/>`;
+    }
+    // ince sapın parmağa gömüldüğü yerler (elin iki yanında kızarıklık)
+    if (!genis) {
+      g += `<ellipse cx="${cx - 38}" cy="${sy}" rx="3.2" ry="6" fill="${P.coral}" opacity=".55"/><ellipse cx="${cx + 38}" cy="${sy}" rx="3.2" ry="6" fill="${P.coral}" opacity=".55"/>`;
+    }
+    // ağırlık
+    g += arrow(cx + 68, 160, cx + 68, 210, { color: P.coral, w: 2.6 });
+    g += T(cx + 74, 194, 'G', { size: 14, weight: 800, fill: P.coral });
+    g += T(cx, 244, genis ? 'bezli sap: geniş alan' : 'ince sap: küçük alan', { size: 12, anchor: 'middle', weight: 800, fill: genis ? P.green : P.coral });
+    return g;
+  };
+  s += panel(0, false) + panel(170, true);
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 2: her biri 1 m² olan karolar üstünde 800 N'luk sandık (2 karo) */
+BFY_FIG_EKLE('sf931_karo', function (u) {
+  const W = 340, H = 250, X0 = 26, Y0 = 200, k = 56, DX = 0.62, DY = 0.42;
+  const p = (x, z) => [X0 + x * k + z * k * DX, Y0 - z * k * DY];
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f8"/>`;
+  // karolar: 4 sütun, 2 sıra
+  for (let z = 1; z >= 0; z--) for (let x = 0; x < 4; x++) {
+    const a = p(x, z), b = p(x + 1, z), c = p(x + 1, z + 1), d = p(x, z + 1);
+    s += `<polygon points="${a} ${b} ${c} ${d}" fill="${(x + z) % 2 ? '#e3dccf' : '#efe9de'}" stroke="#a99e88" stroke-width="1.1"/>`;
+  }
+  // zeminin ön kalınlığı
+  s += `<polygon points="${p(0, 0)} ${p(4, 0)} ${p(4, 0)[0]},${Y0 + 7} ${X0},${Y0 + 7}" fill="#cfc6b4" stroke="#a99e88" stroke-width="1"/>`;
+  // ahşap sandık: 1. ve 2. sütun, ön sıra (2 m²)
+  const bx = X0 + k, bw = 2 * k, bh = 76, dx = k * DX, dy = k * DY;
+  s += `<ellipse class="bg" cx="${bx + bw / 2 + dx / 2}" cy="${Y0 - dy / 2 + 2}" rx="${bw / 2 + 18}" ry="${dy / 2 + 6}" fill="#000" opacity=".07"/>`;
+  s += `<polygon points="${bx + bw},${Y0} ${bx + bw + dx},${Y0 - dy} ${bx + bw + dx},${Y0 - dy - bh} ${bx + bw},${Y0 - bh}" fill="#a8763f" stroke="#6b4a2c" stroke-width="1"/>`;
+  s += `<polygon points="${bx},${Y0 - bh} ${bx + dx},${Y0 - bh - dy} ${bx + bw + dx},${Y0 - bh - dy} ${bx + bw},${Y0 - bh}" fill="#dfb27a" stroke="#6b4a2c" stroke-width="1"/>`;
+  s += `<rect x="${bx}" y="${Y0 - bh}" width="${bw}" height="${bh}" fill="url(#${u}box)" stroke="#6b4a2c" stroke-width="1"/>`;
+  for (let i = 1; i < 4; i++) s += `<line x1="${bx}" y1="${Y0 - bh + i * bh / 4}" x2="${bx + bw}" y2="${Y0 - bh + i * bh / 4}" stroke="#9c6c38" stroke-width="1"/>`;
+  s += `<rect x="${bx + 4}" y="${Y0 - bh}" width="9" height="${bh}" fill="#b98647" stroke="#6b4a2c" stroke-width=".8"/><rect x="${bx + bw - 13}" y="${Y0 - bh}" width="9" height="${bh}" fill="#b98647" stroke="#6b4a2c" stroke-width=".8"/>`;
+  for (let i = 1; i < 3; i++) s += `<line x1="${bx + bw + i * dx / 3}" y1="${Y0 - i * dy / 3}" x2="${bx + bw + i * dx / 3}" y2="${Y0 - bh - i * dy / 3}" stroke="#8a5f30" stroke-width=".8"/>`;
+  // ağırlık oku (sandığın ön yüzünün ortasından)
+  const ax = bx + bw / 2;
+  s += arrow(ax, Y0 - bh + 14, ax, Y0 - 6, { color: P.coral, w: 2.8 });
+  s += T(bx + bw + dx + 8, Y0 - bh - 4, 'G = 800 N', { size: 13, weight: 800, fill: P.coral });
+  // ölçüler
+  for (let x = 1; x < 4; x++) s += `<line x1="${X0 + x * k}" y1="${Y0}" x2="${X0 + x * k}" y2="${Y0 + 7}" stroke="#a99e88" stroke-width="1.1"/>`;
+  s += dimH(bx, bx + bw, Y0 + 20) + T(bx + bw / 2, Y0 + 38, '2 m', { size: 12, anchor: 'middle', weight: 700 });
+  const [q1x, q1y] = p(4, 0), [q2x, q2y] = p(4, 1);
+  s += T((q1x + q2x) / 2 + 8, (q1y + q2y) / 2 + 4, '1 m', { size: 12, weight: 700 });
+  s += T(W / 2, 26, 'Her karo 1 m²; sandık 2 karoya oturuyor.', { size: 12.5, anchor: 'middle', weight: 800, fill: P.green });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 4: bel; ayak geniş basamağa basar, ince ağız toprağa girer */
+BFY_FIG_EKLE('sf931_bel', function (u) {
+  const W = 300, H = 300, zy = 206;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${zy}" width="${W}" height="${H - zy}" fill="url(#${u}soil)"/>`;
+  s += `<rect class="bg" x="0" y="${zy - 6}" width="${W}" height="8" fill="url(#${u}grass)"/>`;
+  for (let i = 0; i < 9; i++) s += `<circle class="bg" cx="${18 + i * 33}" cy="${232 + (i % 3) * 20}" r="${2 + (i % 2)}" fill="#a88c63"/>`;
+  // sap ve tutamak
+  s += `<path d="M132 44 Q132 16 150 16 Q168 16 168 44 L162 44 Q162 24 150 24 Q138 24 138 44 Z" fill="#2c3e50" stroke="#1b2733" stroke-width=".8"/>`;
+  s += `<rect x="130" y="42" width="40" height="7" rx="3" fill="#2c3e50"/>`;
+  s += `<rect x="145" y="46" width="10" height="122" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+  // ağız (metal), basamak
+  s += `<path d="M122 172 L178 172 L176 252 Q150 266 124 252 Z" fill="url(#${u}metalV)" stroke="#5b646b" stroke-width="1.1"/>`;
+  s += `<path d="M126 254 Q150 268 174 254" stroke="#3b4248" stroke-width="1.6" fill="none"/>`;
+  s += `<rect x="112" y="165" width="76" height="8" rx="2" fill="#7f8a92" stroke="#4d565d" stroke-width="1"/>`;
+  s += `<rect x="143" y="160" width="14" height="14" rx="2" fill="#6d777f"/>`;
+  // bot ve bacak (sağda, basamağa basıyor)
+  s += `<path d="M196 0 L230 0 L228 130 L198 130 Z" fill="#3a5f8a" stroke="#27466a" stroke-width="1"/><path d="M213 8 L213 124" stroke="#2c4d73" stroke-width="1"/>`;
+  s += `<path d="M160 165 L160 150 Q160 138 176 136 L198 128 L228 128 L232 165 Z" fill="#6b4a2c" stroke="#3b2a1a" stroke-width="1"/>`;
+  s += `<rect x="158" y="161" width="76" height="5" rx="2" fill="#2e2117"/>`;
+  // kuvvetler
+  s += arrow(252, 112, 252, 160, { color: P.coral, w: 2.8 });
+  s += T(260, 142, 'F', { size: 15, weight: 800, fill: P.coral });
+  s += arrow(150, 262, 150, 292, { color: P.coral, w: 2.8 });
+  s += T(160, 286, 'F', { size: 15, weight: 800, fill: P.coral });
+  // etiketler
+  s += T(106, 172, 'basamak: geniş', { size: 12, anchor: 'end', weight: 800, fill: P.ink });
+  s += T(116, 262, 'ağız: keskin', { size: 12, anchor: 'end', weight: 800, fill: P.ink });
+  // yandan görünüş: geniş basamak, ince ağız
+  const ix = 248, iy = 250;
+  s += dashLine(176, 236, ix - 40, iy - 8, P.ink2, '3 3', 1);
+  s += `<circle cx="${ix}" cy="${iy}" r="40" fill="#fff" stroke="${P.ink2}" stroke-width="1.2"/>`;
+  s += `<rect x="${ix - 22}" y="${iy - 30}" width="44" height="7" rx="2" fill="#7f8a92" stroke="#4d565d" stroke-width=".9"/>`;
+  s += `<path d="M${ix - 2.5} ${iy - 23} L${ix + 2.5} ${iy - 23} L${ix + 2.5} ${iy + 22} L${ix} ${iy + 32} L${ix - 2.5} ${iy + 22} Z" fill="url(#${u}metalV)" stroke="#4d565d" stroke-width=".9"/>`;
+  s += T(ix, iy - 46, 'yandan', { size: 11.5, anchor: 'middle', weight: 800, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -19001,6 +19147,200 @@ const KONU = {
     'bisiklet arka lastiği: şişirme basıncı 200–500 kPa ile iz alanı 24–10 cm², 480 N (grafik)', 'iple yukarı çekilen K ve L kutuları: P–T grafiği, 240 N/0,04 m² ve 480 N/0,12 m², üst üste 6 kPa',
     '12 kg sehpa, 4 cm² ayaklar, 50 × 50 cm tabla, 8 kg saksı 300 cm², 20 cm² ayak tapası (sırala)', 'simülasyon: ağırlık diskleri, sünger, 10/20/40/80 cm² ayak, P–A eğrisi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.3.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde basıncın ne olduğunu ve neye bağlı olduğunu kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Aynı yük, farklı acı`,
+        sekil: 'sf931_poset',
+        metin: r`Marketten dönüyorsun ve elinde ağır bir poşet var. Poşetin ince sapı parmaklarına gömülür ve canını acıtır. Sapın altına katlanmış bir bez sarınca acı azalır.
+
+Poşet hafiflemedi; parmaklarına etki eden kuvvet aynı kaldı. Değişen, kuvvetin dağıldığı yüzeydir. İnce sap kuvveti küçük bir yüzeye, bez ise daha geniş bir yüzeye dağıtır.
+
+Kuvvetin bir yüzeye ne kadar yoğun bastığını anlatan büyüklüğe **basınç** denir. Aynı kuvvet küçük bir yüzeye uygulanırsa basınç büyük olur.`,
+        kontrol: {
+          soru: r`Yumuşak bir yastığa önce avucunla, sonra aynı kuvvetle tek parmağınla bastırıyorsun. Hangisinde yastık daha derin çöker?`,
+          secenekler: [r`Avucunla bastırınca.`, r`Tek parmağınla bastırınca.`, r`İkisinde de aynı derinlikte.`],
+          dogru: 1,
+          aciklama: r`Kuvvet aynı ama parmak ucu avucundan çok daha küçük bir yüzeydir. Küçük yüzeyde basınç büyük olur ve yastık daha derin çöker.`,
+          yanlisIpucu: r`Kuvvet iki durumda da aynı. Hangisinde kuvvet daha küçük bir yüzeye toplanıyor?`
+        }
+      },
+      {
+        baslik: r`Basınç: 1 m²'ye düşen kuvvet`,
+        sekil: 'sf931_karo',
+        metin: r`Yerdeki karoların her biri 1 m² olsun. Ağırlığı 800 N olan bir sandık tam 2 karonun üstüne oturuyor. Sandığın ağırlığı iki karoya eşit paylaşılır ve her karoya 400 N düşer.
+
+Birim yüzeye, yani 1 m²'ye etki eden dik kuvvete **basınç** denir. Basınç $P$ ile gösterilir:
+$$P = \dfrac{F}{A}$$
+Burada $F$ yüzeye dik etki eden kuvvet, $A$ temas yüzeyinin alanıdır. Kuvvet N, alan m² ise basıncın birimi **pascal (Pa)** olur: $1\ \text{Pa} = 1\ \text{N/m}^2$.
+
+Yatay zeminde duran bir cismin zemine uyguladığı dik kuvvet, cismin ağırlığına ($G$) eşittir. Sandığın zemine basıncı $P = \dfrac{800}{2} = 400$ Pa olur.`,
+        kontrol: {
+          soru: r`Ağırlığı 900 N olan bir dolap, her biri 1 m² olan karolardan tam 3 tanesinin üstünde duruyor. Dolabın zemine uyguladığı basınç kaç Pa olur?`,
+          secenekler: [r`300 Pa`, r`2700 Pa`, r`900 Pa`],
+          dogru: 0,
+          aciklama: r`$P = \dfrac{F}{A} = \dfrac{900}{3} = 300$ Pa olur. Her karoya 300 N düşer.`,
+          yanlisIpucu: r`Ağırlığı üç karoya eşit paylaştır. Bir karoya, yani 1 m²'ye düşen kuvvet basıncı verir.`
+        }
+      },
+      {
+        baslik: r`Kuvvet artarsa, alan artarsa`,
+        metin: r`Sandığın üstüne özdeş bir sandık daha koyalım. Zemine etki eden kuvvet 1600 N olur, temas alanı yine 2 m²'dir. Basınç $\dfrac{1600}{2} = 800$ Pa olur. Kuvvet 2 katına çıktı, basınç da 2 katına çıktı.
+
+Şimdi tek sandığı, zemine 4 m² ile değen geniş bir tahtanın üstüne koyalım. Tahtanın ağırlığını önemsemiyoruz. Kuvvet yine 800 N ama alan 2 katına çıktı. Zemine basınç $\dfrac{800}{4} = 200$ Pa olur, yani yarıya iner.
+
+- Alan aynı kalırsa basınç kuvvetle **doğru orantılıdır**.
+- Kuvvet aynı kalırsa basınç alanla **ters orantılıdır**.`,
+        kontrol: {
+          soru: r`Bir kutu zemine 1500 Pa basınç uyguluyor. Kutunun ağırlığı değişmeden temas alanı 3 katına çıkarılırsa basınç kaç Pa olur?`,
+          secenekler: [r`4500 Pa`, r`500 Pa`, r`1500 Pa`],
+          dogru: 1,
+          aciklama: r`Kuvvet aynı kalırken alan 3 katına çıkarsa basınç 3'te 1'ine iner: $\dfrac{1500}{3} = 500$ Pa olur.`,
+          yanlisIpucu: r`Aynı kuvvet daha geniş bir yüzeye yayılıyor. Her 1 m²'ye düşen kuvvet artar mı, azalır mı?`
+        }
+      },
+      {
+        baslik: r`Katı cisim kuvveti aynen iletir`,
+        sekil: 'sf931_bel',
+        metin: r`Bahçede toprağı bel ile kazıyorsun. Ayağınla belin üstündeki geniş basamağa basıyorsun. Belin alt ucundaki ağız ise ince ve keskindir.
+
+Bel katı bir cisimdir. Ayağınla uyguladığın kuvveti **yönünü ve büyüklüğünü değiştirmeden** ağza iletir. Kuvvet iki uçta aynıdır ama alanlar çok farklıdır:
+- Basamak geniştir; ayağının altındaki basınç küçüktür.
+- Ağız çok incedir; toprağa uygulanan basınç çok büyüktür.
+
+Bu yüzden ağız toprağı kolayca yarar, ayağın ise acımaz. Bel kuvveti büyütmez; aynı kuvveti çok küçük bir alana uygular.`,
+        kontrol: {
+          soru: r`Belin basamağına ayağınla 300 N büyüklüğünde düşey kuvvet uyguluyorsun. Belin ağırlığı önemsenmiyor. Belin ağzı toprağa ne kadar kuvvet uygular?`,
+          secenekler: [r`300 N`, r`Çok daha büyük bir kuvvet.`, r`Çok daha küçük bir kuvvet.`],
+          dogru: 0,
+          aciklama: r`Katı cisim kuvveti büyüklüğünü değiştirmeden iletir; ağız toprağa da 300 N uygular. Büyük olan kuvvet değil basınçtır, çünkü ağzın alanı çok küçüktür.`,
+          yanlisIpucu: r`Bel kuvveti büyütmez ya da küçültmez. Değişen yalnızca kuvvetin uygulandığı alandır.`
+        }
+      },
+      {
+        baslik: r`Basıncı amaca göre seç`,
+        metin: r`Günlük hayatta basıncı bazen artırmak, bazen azaltmak isteriz.
+
+- **Kesmek, delmek, saplanmak** için kuvvet küçük bir alana uygulanır ve basınç artar. Çatalın ince dişleri, kürdanın sivri ucu, cam kesicinin ucu böyledir.
+- **Batmamak, acıtmamak, rahat etmek** için kuvvet geniş bir alana dağıtılır ve basınç azalır. Koltuk minderi ve yumuşak toprakta kullanılan geniş tabanlı botlar böyledir.
+
+Tasarımcılar çoğu zaman kuvveti değil alanı değiştirir, çünkü alanı değiştirmek daha kolaydır.`,
+        kontrol: {
+          soru: r`Aşağıdakilerin hangisinde amaç basıncı artırmaktır?`,
+          secenekler: [r`Su bidonunun geniş tutamağı.`, r`Zımba telinin sivri uçları.`, r`Yatak şiltesinin geniş yüzeyi.`],
+          dogru: 1,
+          aciklama: r`Zımba teli kâğıdı delmek zorundadır. Sivri uçlar kuvveti çok küçük bir alana uygular ve basıncı artırır. Öbür ikisi kuvveti geniş bir alana dağıtarak basıncı azaltır.`,
+          yanlisIpucu: r`Hangisinin işi bir şeyi delmek ya da içine girmektir?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Bahçedeki oyun evi`,
+        metin: r`Ahşap bir oyun evinin ağırlığı 3000 N'dur. Ev, köşelerindeki dört beton blok üstünde duruyor. Blokların toprağa değen yüzlerinin toplam alanı 1 m²'dir ve blokların ağırlığı önemsenmiyor. Yağmurlu bir haftadan sonra bloklar yumuşak toprağa gömülmeye başlıyor.`,
+        adimlar: [
+          {
+            soru: r`Blokların toprağa uyguladığı basınç kaç Pa olur?`,
+            secenekler: [r`3000 Pa`, r`750 Pa`, r`12 000 Pa`],
+            dogru: 0,
+            ipucu: r`Dört bloğun toplam alanı zaten 1 m² olarak verildi. Kuvveti toplam alana böl.`,
+            aciklama: r`$P = \dfrac{3000}{1} = 3000$ Pa olur.`
+          },
+          {
+            soru: r`Ev, tabanı 3 m × 2 m olan düz bir ahşap platforma alınıyor. Platform toprağa bütün tabanıyla değiyor ve ağırlığı önemsenmiyor. Yeni temas alanı kaç m² olur?`,
+            secenekler: [r`5 m²`, r`6 m²`, r`10 m²`],
+            dogru: 1,
+            ipucu: r`Dikdörtgenin alanı, iki kenar uzunluğunun çarpımıdır.`,
+            aciklama: r`$A = 3 \times 2 = 6$ m² olur.`
+          },
+          {
+            soru: r`Platform toprağa kaç Pa basınç uygular?`,
+            secenekler: [r`500 Pa`, r`18 000 Pa`, r`3000 Pa`],
+            dogru: 0,
+            ipucu: r`Kuvvet yine evin ağırlığıdır. Ağırlığı yeni alana böl.`,
+            aciklama: r`$P = \dfrac{3000}{6} = 500$ Pa olur.`
+          },
+          {
+            soru: r`Bloklardan platforma geçince toprağa uygulanan basınç nasıl değişti?`,
+            secenekler: [r`6'da 1'ine indi.`, r`6 katına çıktı.`, r`Değişmedi.`],
+            dogru: 0,
+            ipucu: r`Kuvvet aynı kaldı, alan 1 m²'den 6 m²'ye çıktı.`,
+            aciklama: r`Kuvvet aynıyken alan 6 katına çıktı. Basınç 3000 Pa'dan 500 Pa'ya, yani 6'da 1'ine indi.`
+          }
+        ],
+        sonuc: r`Evin ağırlığı değişmedi; geniş platform aynı kuvveti 6 kat büyük bir alana dağıttı. Yumuşak zeminde batmayı önlemek için temas alanı büyütülür.`
+      },
+      {
+        baslik: r`Ahırda dinlenen at`,
+        metin: r`Bir atın ağırlığı 4800 N'dur. At dört ayağı üstünde duruyor ve her toynağının yere değen yüzü 100 cm²'dir. Alan cm² ile verildiği için basıncı N/cm² biriminde bulacağız. 1 N/cm², her 1 cm²'ye 1 N düştüğünü anlatır.`,
+        adimlar: [
+          {
+            soru: r`Dört toynağın toplam temas alanı kaç cm² olur?`,
+            secenekler: [r`100 cm²`, r`400 cm²`, r`25 cm²`],
+            dogru: 1,
+            ipucu: r`Atın ağırlığını dört toynak birlikte taşır. Dört toynağın alanlarını topla.`,
+            aciklama: r`$A = 4 \times 100 = 400$ cm² olur.`
+          },
+          {
+            soru: r`Atın yere uyguladığı basınç kaç N/cm² olur?`,
+            secenekler: [r`48 N/cm²`, r`12 N/cm²`, r`1200 N/cm²`],
+            dogru: 1,
+            ipucu: r`Ağırlığı dört toynağın toplam alanına böl; tek toynağın alanına değil.`,
+            aciklama: r`$P = \dfrac{4800}{400} = 12$ N/cm² olur. Her 1 cm²'ye 12 N düşer.`
+          },
+          {
+            soru: r`Dinlenen at bir arka ayağını yerden kaldırıyor ve ağırlığını üç ayağıyla taşıyor. Bu durumda yere uygulanan basınç kaç N/cm² olur?`,
+            secenekler: [r`16 N/cm²`, r`12 N/cm²`, r`9 N/cm²`],
+            dogru: 0,
+            ipucu: r`Ağırlık değişmedi. Yere değen toynak sayısı üçe indi; yeni alanı bul ve ağırlığı bu alana böl.`,
+            aciklama: r`Alan $3 \times 100 = 300$ cm² olur. $P = \dfrac{4800}{300} = 16$ N/cm² bulunur. Alan küçüldüğü için basınç arttı.`
+          }
+        ],
+        sonuc: r`Ağırlık aynı kalsa da yere değen yüzey azalınca basınç artar. Alan cm² ile verilince basıncı N/cm² ile bulmak kolaydır; bu, her 1 cm²'ye düşen kuvvettir.`
+      },
+      {
+        baslik: r`Çamurlu patikada iki iz`,
+        metin: r`Yağmurdan sonra yumuşamış bir patikada bir baba ile kızı yan yana duruyor. Babanın ağırlığı 900 N, iki ayak tabanının toplam alanı 300 cm²'dir. Kızın ağırlığı 300 N, iki ayak tabanının toplam alanı 100 cm²'dir. Zemin her yerde aynı yumuşaklıktadır.`,
+        adimlar: [
+          {
+            soru: r`Babanın zemine uyguladığı basınç kaç N/cm² olur?`,
+            secenekler: [r`3 N/cm²`, r`6 N/cm²`, r`600 N/cm²`],
+            dogru: 0,
+            ipucu: r`Baba iki ayağıyla duruyor. Ağırlığını iki ayağın toplam alanına böl.`,
+            aciklama: r`$P = \dfrac{900}{300} = 3$ N/cm² olur.`
+          },
+          {
+            soru: r`Kızın zemine uyguladığı basınç kaç N/cm² olur?`,
+            secenekler: [r`1 N/cm²`, r`3 N/cm²`, r`200 N/cm²`],
+            dogru: 1,
+            ipucu: r`Kızın kendi ağırlığını kendi ayaklarının alanına böl.`,
+            aciklama: r`$P = \dfrac{300}{100} = 3$ N/cm² olur.`
+          },
+          {
+            soru: r`Kimin ayak izi daha derin olur?`,
+            secenekler: [r`Babanın.`, r`Kızın.`, r`İkisininki eşit derinlikte olur.`],
+            dogru: 2,
+            ipucu: r`İzin derinliğini ağırlık değil, basınç belirler. İki basıncı karşılaştır.`,
+            aciklama: r`Baba 3 kat ağır ama ayaklarının alanı da 3 kat büyük. Basınçlar eşit olduğu için izler aynı derinlikte olur.`
+          },
+          {
+            soru: r`Kız babasının sırtına çıkıyor. Babanın zemine uyguladığı basınç kaç N/cm² olur?`,
+            secenekler: [r`3 N/cm²`, r`4 N/cm²`, r`6 N/cm²`],
+            dogru: 1,
+            ipucu: r`Zemine artık ikisinin ağırlığı birlikte etki ediyor ama temas alanı yalnızca babanın ayaklarıdır.`,
+            aciklama: r`Kuvvet $900 + 300 = 1200$ N, alan yine 300 cm²'dir. $P = \dfrac{1200}{300} = 4$ N/cm² olur. Basınçları toplamak doğru olmaz.`
+          }
+        ],
+        sonuc: r`Daha ağır olan her zaman daha çok batmaz. İzin derinliğini ağırlığın alana oranı, yani basınç belirler.`
+      }
+    ],
+    hazir: r`Basıncın dik kuvvetin alana oranı olduğunu, kuvvet ve alan değişince nasıl değiştiğini, katıların kuvveti aynen ilettiğini ve basıncın amaca göre artırılıp azaltıldığını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -54631,6 +54971,125 @@ BFY_FIG_EKLE('i1024_kart_yonsuz', u => S(u, I0_ => {
 }, { oy: 58 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1024_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const C = { EP: '#2f7fb8', EK: '#d9573b', EPd: '#1d5a86', EKd: '#a8402a' };
+const f = n => +n.toFixed(1);
+const dimVy = (x, y1, y2, c = P.ink2) => `<g stroke="${c}" stroke-width="1.2"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/><line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}"/><line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}"/></g>` +
+  `<polygon points="${x},${y1} ${x - 3.2},${y1 + 7} ${x + 3.2},${y1 + 7}" fill="${c}"/><polygon points="${x},${y2} ${x - 3.2},${y2 - 7} ${x + 3.2},${y2 - 7}" fill="${c}"/>`;
+const lejant = (x, y) => `<rect x="${x}" y="${y - 10}" width="12" height="12" fill="${C.EP}" stroke="${C.EPd}" stroke-width=".8"/>` + T(x + 17, y, 'E_P', { size: 12.5, weight: 800 }) +
+  `<rect x="${x + 52}" y="${y - 10}" width="12" height="12" fill="${C.EK}" stroke="${C.EKd}" stroke-width=".8"/>` + T(x + 69, y, 'E_K', { size: 12.5, weight: 800 });
+/* yatay enerji çubuğu */
+const cubuk = (x, y, E, k, renk, kenar) => E > 0
+  ? `<rect x="${x}" y="${y}" width="${f(E * k)}" height="11" rx="2" fill="${renk}" stroke="${kenar}" stroke-width=".8"/>` + T(x + E * k + 5, y + 10, `${E} J`, { size: 11.5, weight: 800, fill: kenar })
+  : `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + 11}" stroke="${kenar}" stroke-width="2.4"/>` + T(x + 6, y + 10, '0', { size: 11.5, weight: 800, fill: kenar });
+
+/* Adım 2: scooterlı genç, 2 m/s ve 4 m/s; kinetik enerji çubukları */
+BFY_FIG_EKLE('sf1024_scooter', function (u) {
+  const W = 340, H = 256;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f8"/>`;
+  s += T(W - 14, 22, 'genç + scooter: m = 50 kg', { size: 12, anchor: 'end', weight: 800, fill: P.green });
+  const satir = (yb, v, E) => {
+    let g = `<rect class="bg" x="10" y="${yb}" width="${W - 20}" height="8" rx="3" fill="#9aa0a6"/>`;
+    for (let i = 0; i < 7; i++) g += `<rect class="bg" x="${22 + i * 46}" y="${yb + 3}" width="22" height="2" fill="#f1f1ec"/>`;
+    // scooter
+    g += `<rect x="38" y="${yb - 19}" width="70" height="6" rx="3" fill="#2c3e50"/>`;
+    g += `<line x1="102" y1="${yb - 16}" x2="94" y2="${yb - 84}" stroke="url(#${u}metalV)" stroke-width="5" stroke-linecap="round"/><line x1="102" y1="${yb - 16}" x2="94" y2="${yb - 84}" stroke="#5b646b" stroke-width="5" opacity=".35" stroke-linecap="round"/>`;
+    g += `<line x1="86" y1="${yb - 85}" x2="101" y2="${yb - 83}" stroke="#2c3e50" stroke-width="4" stroke-linecap="round"/>`;
+    [44, 104].forEach(cx => { g += `<circle cx="${cx}" cy="${yb - 9}" r="9" fill="#2c3e50"/><circle cx="${cx}" cy="${yb - 9}" r="3.4" fill="url(#${u}metal)"/>`; });
+    // sürücü (sağa bakıyor)
+    g += `<path d="M62 ${yb - 19} L60 ${yb - 50} L70 ${yb - 50} L74 ${yb - 19} Z" fill="#34495e"/>`;
+    g += `<rect x="57" y="${yb - 82}" width="18" height="34" rx="6" fill="#e67e22" stroke="#b35f12" stroke-width=".8"/>`;
+    g += `<path d="M70 ${yb - 76} L82 ${yb - 70} L88 ${yb - 82}" stroke="#e2b391" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    g += `<circle cx="67" cy="${yb - 91}" r="8" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".7"/>`;
+    g += `<path d="M58 ${yb - 92} Q58 ${yb - 103} 67 ${yb - 103} Q77 ${yb - 103} 77 ${yb - 92} Z" fill="#3a7bd5" stroke="#245a9e" stroke-width=".8"/>`;
+    // hız oku
+    g += arrow(116, yb - 52, 116 + v * 20, yb - 52, { color: P.blue, w: 2.8 });
+    g += T(116, yb - 62, `ϑ = ${v} m/s`, { size: 12.5, weight: 800, fill: P.blue });
+    // kinetik enerji çubuğu
+    g += `<rect x="206" y="${yb - 58}" width="${E * 0.28}" height="18" rx="3" fill="${C.EK}" stroke="${C.EKd}" stroke-width=".8"/><rect x="206" y="${yb - 58}" width="${E * 0.28}" height="6" rx="3" fill="#fff" opacity=".25"/>`;
+    g += T(206, yb - 66, `E_K = ${E} J`, { size: 12.5, weight: 800, fill: C.EKd });
+    return g;
+  };
+  s += satir(122, 2, 100) + satir(234, 4, 400);
+  return svg(W, H, s, u, 74);
+});
+
+/* düşey duran ya da kollarını yukarı uzatmış insan; (x, y) ayak hizası */
+function sporcu(u, x, y, kollar, op = 1) {
+  let g = `<g opacity="${op}">`;
+  g += `<path d="M${x - 4} ${y} L${x - 3} ${y - 20} M${x + 4} ${y} L${x + 3} ${y - 20}" stroke="url(#${u}skin)" stroke-width="4.5" stroke-linecap="round"/>`;
+  g += `<rect x="${x - 6}" y="${y - 24}" width="12" height="8" rx="2" fill="#1f4e79"/>`;
+  g += `<rect x="${x - 6}" y="${y - 40}" width="12" height="18" rx="4" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".6"/>`;
+  g += kollar ? `<path d="M${x - 5} ${y - 38} L${x - 7} ${y - 56} M${x + 5} ${y - 38} L${x + 7} ${y - 56}" stroke="url(#${u}skin)" stroke-width="3.4" stroke-linecap="round"/>`
+    : `<path d="M${x - 6} ${y - 37} L${x - 8} ${y - 22} M${x + 6} ${y - 37} L${x + 8} ${y - 22}" stroke="url(#${u}skin)" stroke-width="3.4" stroke-linecap="round"/>`;
+  g += `<circle cx="${x}" cy="${y - 46}" r="5.6" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".7"/>`;
+  return g + '</g>';
+}
+
+/* Adım 4: 5 m'lik platformdan bırakan sporcu; tepe ve su yüzeyinde enerji çubukları */
+BFY_FIG_EKLE('sf1024_dalis', function (u) {
+  const W = 340, H = 300, yP = 70, yS = 250, xd = 118;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef5f8"/>`;
+  s += `<rect class="bg" x="0" y="${yS}" width="${W}" height="${H - yS}" fill="url(#${u}water)"/>`;
+  for (let i = 0; i < 6; i++) s += `<path class="bg" d="M${10 + i * 56} ${yS + 12} q10 -5 20 0 t20 0" stroke="#d7eefb" stroke-width="1.2" fill="none" opacity=".7"/>`;
+  // kule
+  s += `<rect x="22" y="${yP + 8}" width="24" height="${yS - yP - 8}" fill="url(#${u}concrete)" stroke="#8e979f" stroke-width="1"/>`;
+  s += `<rect x="14" y="${yP}" width="92" height="8" rx="2" fill="#5b8fa9" stroke="#2f5f78" stroke-width="1"/>`;
+  s += `<path d="M18 ${yP} L18 ${yP - 30} M18 ${yP - 30} L46 ${yP - 30} M18 ${yP - 15} L46 ${yP - 15} M46 ${yP} L46 ${yP - 30}" stroke="#8e979f" stroke-width="2.2" fill="none"/>`;
+  // sporcu: tepede duruyor, yolun ortasında ve suya girerken (soluk)
+  s += sporcu(u, 96, yP, false);
+  s += dashLine(xd, yP + 8, xd, yS - 2, '#9fb3bd', '2 5', 1.1);
+  s += sporcu(u, xd, (yP + yS) / 2 + 26, true, 0.55);
+  s += sporcu(u, xd, yS + 8, true, 0.55);
+  s += T(xd - 12, (yP + yS) / 2 + 4, 'yolun ortası', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 });
+  // yükseklik
+  s += dashLine(106, yP, 160, yP, P.ink2, '3 3', 1);
+  s += dimVy(152, yP, yS) + T(159, (yP + yS) / 2 + 4, '5 m', { size: 13, weight: 800 });
+  s += T(W - 10, yS + 30, 'su yüzeyi: referans düzeyi', { size: 11.5, anchor: 'end', weight: 800, fill: '#0f3b57', haloColor: '#d7eefb' });
+  // enerji çubukları
+  const k = 0.03, bx = 196;
+  s += lejant(bx, 24);
+  s += cubuk(bx, yP - 14, 3000, k, C.EP, C.EPd) + cubuk(bx, yP + 1, 0, k, C.EK, C.EKd);
+  s += T(bx, (yP + yS) / 2 - 4, 'E_P = ?', { size: 12, weight: 800, fill: C.EPd }) + T(bx, (yP + yS) / 2 + 14, 'E_K = ?', { size: 12, weight: 800, fill: C.EKd });
+  s += cubuk(bx, yS - 38, 0, k, C.EP, C.EPd) + cubuk(bx, yS - 23, 3000, k, C.EK, C.EKd);
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 5: kayakçı 10 m yükseklikten durgun başlıyor, dipte 8 m/s */
+BFY_FIG_EKLE('sf1024_kayak', function (u) {
+  const W = 340, H = 236, yT = 66, yB = 196;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  // arka planda çam ağaçları
+  [[96, 70], [126, 84]].forEach(([x, y]) => { s += `<g class="bg"><rect x="${x - 2}" y="${y}" width="4" height="10" fill="#7a5a3a"/><polygon points="${x},${y - 30} ${x - 12},${y + 2} ${x + 12},${y + 2}" fill="#3f7a5a"/><polygon points="${x},${y - 30} ${x - 7},${y - 12} ${x + 7},${y - 12}" fill="#eaf2f7"/></g>`; });
+  // pist
+  const yol = `M0 ${yT} L42 ${yT} C110 ${yT} 132 ${yB} 200 ${yB} L${W} ${yB}`;
+  s += `<path d="${yol} L${W} ${H} L0 ${H} Z" fill="#f7fbfd" stroke="#a9c3d3" stroke-width="1.4"/>`;
+  s += `<path d="M0 ${yT + 6} L40 ${yT + 6} C106 ${yT + 6} 130 ${yB + 6} 198 ${yB + 6} L${W} ${yB + 6}" stroke="#dbe8f0" stroke-width="3" fill="none"/>`;
+  // kayakçı çizimi; (x, y) kayak hizası, a eğim açısı (°)
+  const kayakci = (x, y, a) => `<g transform="translate(${x} ${y}) rotate(${a})">` +
+    `<line x1="-18" y1="0" x2="20" y2="0" stroke="#c0392b" stroke-width="3" stroke-linecap="round"/>` +
+    `<path d="M-2 -2 L-5 -16 L3 -24 M2 -2 L4 -14" stroke="#2c3e50" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<rect x="-4" y="-38" width="12" height="17" rx="4" fill="#2e86c1" transform="rotate(12 2 -30)"/>` +
+    `<circle cx="7" cy="-43" r="5.4" fill="url(#${u}skin)" stroke="#b98463" stroke-width=".7"/><path d="M1.6 -44 Q2 -50 7 -50 Q12 -50 12.4 -44 Z" fill="#c0392b"/>` +
+    `<line x1="8" y1="-30" x2="16" y2="-2" stroke="#7f8a92" stroke-width="1.6"/></g>`;
+  s += kayakci(24, yT, 0);
+  s += T(56, yT - 44, 'ϑ = 0', { size: 12.5, weight: 800, fill: P.blue });
+  s += T(56, yT - 24, 'E_P = 5000 J', { size: 12.5, weight: 800, fill: C.EPd });
+  s += kayakci(236, yB, 0);
+  s += arrow(262, yB - 22, 300, yB - 22, { color: P.blue, w: 2.8 });
+  s += T(258, yB - 32, 'ϑ = 8 m/s', { size: 12.5, weight: 800, fill: P.blue });
+  s += T(236, yB - 66, 'E_K = 1600 J', { size: 12.5, anchor: 'middle', weight: 800, fill: C.EKd });
+  for (let i = 0; i < 3; i++) s += `<path d="M${222 + i * 12} ${yB + 18} q3 -4 0 -8 t0 -8" stroke="${P.sun}" stroke-width="1.6" fill="none"/>`;
+  s += T(214, yB + 26, 'sürtünme: ısı', { size: 11.5, anchor: 'end', weight: 700, fill: '#a86a12' });
+  // yükseklik
+  s += dashLine(46, yT, 330, yT, P.ink2, '3 3', 1);
+  s += dimVy(324, yT, yB) + T(317, (yT + yB) / 2 + 4, '10 m', { size: 13, anchor: 'end', weight: 800 });
+  return svg(W, H, s, u, 74);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -54665,6 +55124,200 @@ const KONU = {
     'EK: su parkı kaydırakları 1,8 / 3,2 / 7,2 m, 1,8 m başlangıç rampası eşleştirme', 'EK: mekanik enerji korunur/azalır/artar sınıflaması', 'EK: trambolin sıçrayışı sıralama', 'EK: kömür madeni asansörü 1500 kg, 300 m → 100 m, iki referans',
     'FIBA top sekme kuralı (1,80 m alt nokta, 1,20–1,40 m üst nokta), 0,6 kg ve 24 cm top, dört top tablosu (k1024_23)', 'macera parkında sarkık kablolu kayma hattı (70 kg, A 25 m, P 7 m 16 m/s, B 9 m 4 m/s, fren) (k1024_24)', 'EK: deniz seviyesi referanslı E_P sıralama (Lut Gölü kıyısı, dalgıç, yalıyar, Everest kamerası) (k1024_25)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/10.2.4/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde hareketin ve yüksekliğin enerjisini, bu iki enerjinin birbirine nasıl dönüştüğünü kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Hareketin enerjisi: kinetik enerji`,
+        metin: r`Elektrikli scooterla giden bir genç düşün. Genç ile scooterın toplam kütlesi 50 kg, sürati 2 m/s olsun.
+
+Hareket eden her cismin **kinetik enerjisi** ($E_K$) vardır:
+$$E_K = \tfrac{1}{2}\,m\,\vartheta^2$$
+Burada $m$ kütle (kg), $\vartheta$ sürattir (m/s). Enerjinin birimi **joule (J)**'dür.
+
+Gencin kinetik enerjisi $E_K = \tfrac{1}{2} \times 50 \times 2^2 = 100$ J olur. Duran bir cismin kinetik enerjisi sıfırdır.`,
+        kontrol: {
+          soru: r`Kütlesi 4 kg olan uzaktan kumandalı bir oyuncak araba 3 m/s süratle gidiyor. Arabanın kinetik enerjisi kaç J olur?`,
+          secenekler: [r`18 J`, r`6 J`, r`36 J`],
+          dogru: 0,
+          aciklama: r`$E_K = \tfrac{1}{2} \times 4 \times 3^2 = 2 \times 9 = 18$ J olur.`,
+          yanlisIpucu: r`Önce süratin karesini al: $3^2 = 9$. Sonra kütleyle çarp ve ikiye böl.`
+        }
+      },
+      {
+        baslik: r`Sürat iki katına çıkarsa`,
+        sekil: 'sf1024_scooter',
+        metin: r`Genç hızlanıyor ve sürati 4 m/s oluyor. Sürat 2 katına çıktı. Kinetik enerji ise $E_K = \tfrac{1}{2} \times 50 \times 4^2 = 400$ J olur, yani 4 katına çıkar.
+
+- Kinetik enerji süratin **karesiyle** orantılıdır. Sürat 2 katına çıkarsa kinetik enerji $2^2 = 4$ katına çıkar.
+- Kinetik enerji kütleyle **doğru orantılıdır**. Kütle 2 katına çıkarsa kinetik enerji de 2 katına çıkar.`,
+        kontrol: {
+          soru: r`Bir yetişkin scooterıyla birlikte 100 kg geliyor ve 4 m/s süratle gidiyor. Kinetik enerjisi kaç J olur?`,
+          secenekler: [r`800 J`, r`1600 J`, r`400 J`],
+          dogru: 0,
+          aciklama: r`Sürat aynı, kütle 50 kg'dan 100 kg'a, yani 2 katına çıktı. Kinetik enerji de 2 katına çıkar: $\tfrac{1}{2} \times 100 \times 4^2 = 800$ J olur.`,
+          yanlisIpucu: r`Kütle 2 katına çıktı, sürat aynı kaldı. Kare yalnız sürat için alınır.`
+        }
+      },
+      {
+        baslik: r`Yüksekliğin enerjisi: potansiyel enerji`,
+        metin: r`Yüzme havuzunda kütlesi 60 kg olan bir sporcu, su yüzeyinden 5 m yükseklikteki atlama platformunda duruyor.
+
+Yerden yüksekte duran bir cisim enerji saklar. Bu enerjiye **yer çekimi potansiyel enerjisi** ($E_P$) denir:
+$$E_P = m\,g\,h$$
+Burada $h$ yüksekliktir ve seçtiğimiz bir düzeyden ölçülür. Bu düzeye **referans düzeyi** denir; orada $E_P$ sıfır alınır. Burada referans düzeyi su yüzeyidir. Yer çekimi ivmesini $g = 10\ \text{m/s}^2$ alıyoruz.
+
+Sporcunun potansiyel enerjisi $E_P = 60 \times 10 \times 5 = 3000$ J olur.`,
+        kontrol: {
+          soru: r`Aynı sporcu 10 m yükseklikteki platforma çıkıyor. Su yüzeyine göre potansiyel enerjisi kaç J olur?`,
+          secenekler: [r`6000 J`, r`12 000 J`, r`3000 J`],
+          dogru: 0,
+          aciklama: r`$E_P = 60 \times 10 \times 10 = 6000$ J olur. Yükseklik 2 katına çıkınca potansiyel enerji de 2 katına çıkar.`,
+          yanlisIpucu: r`Potansiyel enerji yükseklikle doğru orantılıdır; burada kare yoktur.`
+        }
+      },
+      {
+        baslik: r`Düşerken enerji biçim değiştirir`,
+        sekil: 'sf1024_dalis',
+        metin: r`Sporcu 5 m'lik platformdan kendini suya bırakıyor. Hava direncini önemsemiyoruz.
+- En üstte sürati sıfırdır: $E_K = 0$ ve $E_P = 3000$ J.
+- İnerken yüksekliği azalır, sürati artar. Potansiyel enerji kinetik enerjiye dönüşür.
+- Suya girerken $E_P = 0$ olur, kinetik enerji 3000 J'e ulaşır.
+
+Kinetik ve potansiyel enerjinin toplamına **mekanik enerji** ($E_M$) denir. Sürtünme ve hava direnci yoksa mekanik enerji **korunur**; her noktada 3000 J'dür.
+
+Suya girerkenki sürati de bulabiliriz: $\tfrac{1}{2} \times 60 \times \vartheta^2 = 3000$ ise $\vartheta^2 = 100$, yani $\vartheta = 10$ m/s olur.`,
+        kontrol: {
+          soru: r`Sporcu düşerken yolun tam ortasından geçiyor. Bu anda kinetik enerjisi kaç J olur?`,
+          secenekler: [r`1500 J`, r`3000 J`, r`0 J`],
+          dogru: 0,
+          aciklama: r`Yolun ortasında yükseklik yarıya iner, potansiyel enerji de yarıya iner: 1500 J. Mekanik enerji 3000 J olarak korunduğu için $E_K = 3000 - 1500 = 1500$ J olur.`,
+          yanlisIpucu: r`Mekanik enerji her noktada 3000 J. Yükseklik yarıya inince potansiyel enerji ne olur?`
+        }
+      },
+      {
+        baslik: r`Sürtünme varsa mekanik enerji azalır`,
+        sekil: 'sf1024_kayak',
+        metin: r`Kütlesi 50 kg olan bir kayakçı, pistin 10 m yükseklikteki bir noktasından durgun hâlde kaymaya başlıyor. Pistin dibini referans düzeyi alalım. Başlangıçta mekanik enerjisinin tamamı potansiyel enerjidir: $E_P = 50 \times 10 \times 10 = 5000$ J.
+
+Pistin dibinde sürati ölçülüyor: 8 m/s. Bu noktada kinetik enerjisi $E_K = \tfrac{1}{2} \times 50 \times 8^2 = 1600$ J'dür.
+
+Potansiyel enerjinin hepsi kinetik enerjiye dönüşmedi. Kar ile kayaklar arasındaki sürtünme ve hava direnci, mekanik enerjinin bir kısmını **ısıya** dönüştürdü. Sürtünme varsa mekanik enerji azalır. Toplam enerji ise yine korunur; yalnızca biçim değiştirir.`,
+        kontrol: {
+          soru: r`Kayakçının yolculuğu boyunca kaç J mekanik enerji ısıya dönüştü?`,
+          secenekler: [r`3400 J`, r`6600 J`, r`1600 J`],
+          dogru: 0,
+          aciklama: r`Kaybolan mekanik enerji $5000 - 1600 = 3400$ J olur. Bu enerji yok olmaz; kar, kayaklar ve hava biraz ısınır.`,
+          yanlisIpucu: r`Baştaki mekanik enerjiden dipteki mekanik enerjiyi çıkar.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Sudan fırlayan yunus`,
+        metin: r`Kütlesi 200 kg olan bir yunus, suyun içinden düşey doğrultuda 10 m/s süratle fırlıyor. Hava direncini önemsemiyoruz ve yunusun su yüzeyinden ayrıldığı yeri referans düzeyi alıyoruz.`,
+        adimlar: [
+          {
+            soru: r`Yunus sudan çıkarken kinetik enerjisi kaç J olur?`,
+            secenekler: [r`10 000 J`, r`1000 J`, r`20 000 J`],
+            dogru: 0,
+            ipucu: r`$E_K = \tfrac{1}{2}\,m\,\vartheta^2$ kullan; 10'un karesini almayı ve ikiye bölmeyi unutma.`,
+            aciklama: r`$E_K = \tfrac{1}{2} \times 200 \times 10^2 = 10\,000$ J olur.`
+          },
+          {
+            soru: r`Yunus en yüksek noktaya ulaştığında enerjileri ne olur?`,
+            secenekler: [r`$E_K = 10\,000$ J ve $E_P = 0$ olur.`, r`$E_K = 0$ ve $E_P = 10\,000$ J olur.`, r`$E_K = 0$ ve $E_P = 0$ olur.`],
+            dogru: 1,
+            ipucu: r`En yüksek noktada yunus bir an durur. Duran cismin kinetik enerjisi kaçtır?`,
+            aciklama: r`En yüksek noktada yunus bir an durur ve $E_K = 0$ olur. Mekanik enerji korunduğu için 10 000 J'ün tamamı potansiyel enerjiye dönüşmüştür.`
+          },
+          {
+            soru: r`Yunus su yüzeyinden en çok kaç m yükselir?`,
+            secenekler: [r`5 m`, r`50 m`, r`10 m`],
+            dogru: 0,
+            ipucu: r`$E_P = m\,g\,h = 10\,000$ J eşitliğinde $h$'yi bul.`,
+            aciklama: r`$200 \times 10 \times h = 10\,000$ ise $h = 5$ m olur.`
+          },
+          {
+            soru: r`Yanındaki 100 kg'lık yavru yunus da aynı süratle, 10 m/s ile fırlasaydı kaç m yükselirdi?`,
+            secenekler: [r`5 m`, r`10 m`, r`50 m`],
+            dogru: 0,
+            ipucu: r`Kütle yarıya inince hem kinetik enerji hem de $m\,g\,h$ yarıya iner.`,
+            aciklama: r`Kinetik enerji 5000 J olur, ama ağırlık da yarıya iner: $100 \times 10 \times h = 5000$ ise $h = 5$ m olur. Kütle sadeleşir; yükseklik yalnız ilk sürate bağlıdır.`
+          }
+        ],
+        sonuc: r`Yukarı çıkan cisimde kinetik enerji potansiyel enerjiye dönüşür. Hava direnci yoksa çıkılan yükseklik kütleye değil, ilk sürate bağlıdır.`
+      },
+      {
+        baslik: r`Tırmanma duvarında referans`,
+        metin: r`Kütlesi 60 kg olan bir sporcu, 12 m yüksekliğindeki bir tırmanma duvarında yerden 8 m yüksekteki bir tutamakta duruyor. Referans düzeyinin altındaki bir noktanın yüksekliği negatif alınır; orada $E_P$ de negatif olur.`,
+        adimlar: [
+          {
+            soru: r`Yeri referans düzeyi alırsak sporcunun potansiyel enerjisi kaç J olur?`,
+            secenekler: [r`4800 J`, r`480 J`, r`7200 J`],
+            dogru: 0,
+            ipucu: r`Sporcunun yüksekliği yerden ölçülür: 8 m. Duvarın boyu burada kullanılmaz.`,
+            aciklama: r`$E_P = 60 \times 10 \times 8 = 4800$ J olur.`
+          },
+          {
+            soru: r`Duvarın tepesini referans düzeyi alırsak sporcunun potansiyel enerjisi kaç J olur?`,
+            secenekler: [r`−2400 J`, r`2400 J`, r`7200 J`],
+            dogru: 0,
+            ipucu: r`Sporcu tepenin 4 m altında duruyor. Referans düzeyinin altındaki yükseklik negatif alınır.`,
+            aciklama: r`Tepeye göre $h = -4$ m olur. $E_P = 60 \times 10 \times (-4) = -2400$ J bulunur.`
+          },
+          {
+            soru: r`Sporcu tutamaktan yere iniyor. Potansiyel enerjisindeki azalma için ne söylenir?`,
+            secenekler: [r`Yere göre ölçülünce daha büyüktür.`, r`Tepeye göre ölçülünce daha büyüktür.`, r`İki referansta da 4800 J azalır.`],
+            dogru: 2,
+            ipucu: r`İki referans için ayrı ayrı son değerden ilk değeri çıkar. İniş her iki durumda da 8 m'dir.`,
+            aciklama: r`Yere göre 4800 J'den 0'a, tepeye göre −2400 J'den −7200 J'e iner. İki durumda da azalma 4800 J'dür.`
+          }
+        ],
+        sonuc: r`Potansiyel enerjinin değeri seçilen referans düzeyine göre değişir. İki nokta arasındaki potansiyel enerji değişimi ise referansa bağlı değildir.`
+      },
+      {
+        baslik: r`Şehir içinde ve otoyolda fren`,
+        metin: r`Kütlesi 1000 kg olan bir otomobil önce şehir içinde 10 m/s, sonra otoyolda 30 m/s süratle gidiyor. Sürücü iki durumda da frene basıp aracı durduruyor. Aracı durduran sürtünme kuvveti ($F_s$) iki durumda da aynı büyüklüktedir.`,
+        adimlar: [
+          {
+            soru: r`Otomobilin 10 m/s süratteki kinetik enerjisi kaç J olur?`,
+            secenekler: [r`50 000 J`, r`5000 J`, r`100 000 J`],
+            dogru: 0,
+            ipucu: r`$E_K = \tfrac{1}{2}\,m\,\vartheta^2$ kullan; 10'un karesi 100'dür.`,
+            aciklama: r`$E_K = \tfrac{1}{2} \times 1000 \times 10^2 = 50\,000$ J olur.`
+          },
+          {
+            soru: r`Otomobilin 30 m/s süratteki kinetik enerjisi, 10 m/s süratteki kinetik enerjisinin kaç katıdır?`,
+            secenekler: [r`3 katıdır.`, r`9 katıdır.`, r`6 katıdır.`],
+            dogru: 1,
+            ipucu: r`Sürat 3 katına çıktı. Kinetik enerji süratin karesiyle orantılıdır.`,
+            aciklama: r`Sürat 3 katına çıkınca kinetik enerji $3^2 = 9$ katına çıkar: $\tfrac{1}{2} \times 1000 \times 30^2 = 450\,000$ J olur.`
+          },
+          {
+            soru: r`Otomobil dururken kinetik enerjisi nereye gider?`,
+            secenekler: [r`Yok olur.`, r`Frenlerde ve lastiklerde ısıya dönüşür.`, r`Potansiyel enerjiye dönüşür.`],
+            dogru: 1,
+            ipucu: r`Enerji yok olmaz. Fren yaptıktan sonra fren diskine dokunsan ne hissederdin?`,
+            aciklama: r`Sürtünme kuvveti negatif iş yapar ve kinetik enerjiyi ısıya dönüştürür. Yol yatay olduğu için potansiyel enerji değişmez.`
+          },
+          {
+            soru: r`Otoyolda aracın fren yolu, şehir içindeki fren yolunun kaç katıdır?`,
+            secenekler: [r`3 katıdır.`, r`9 katıdır.`, r`Eşittir.`],
+            dogru: 1,
+            ipucu: r`Sürtünmede kaybolan enerji $F_s \times \Delta x$'tir ve aracın bütün kinetik enerjisine eşit olmalıdır.`,
+            aciklama: r`$F_s \times \Delta x = E_K$ olur. $F_s$ aynı, $E_K$ 9 katı olduğundan fren yolu $\Delta x$ de 9 katına çıkar.`
+          }
+        ],
+        sonuc: r`Sürat 3 katına çıkınca kinetik enerji 9 katına, aynı fren kuvvetiyle fren yolu da 9 katına çıkar. Hızlı yolda araçlar arasında daha uzun mesafe bırakılmasının bir nedeni budur.`
+      }
+    ],
+    hazir: r`Kinetik ve potansiyel enerjiyi hesaplamayı, ikisinin birbirine dönüştüğünü, sürtünme yoksa mekanik enerjinin korunduğunu, sürtünme varsa azaldığını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -91758,6 +92411,194 @@ BFY_FIG_EKLE('i1116_kart_merkezkac', u => S(u, I => {
 }, { oy: 60 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1116_ öneki) ---------- */
+(function () {
+const { P, T, arrow, ball, svg, dashLine } = window.BFY_FIGLIB;
+const f = n => +n.toFixed(1), rad = d => d * Math.PI / 180;
+/* matematik açısı (saat yönünün tersi, derece) ile nokta: SVG'de y aşağı */
+const nok = (cx, cy, r, a) => [f(cx + r * Math.cos(rad(a))), f(cy - r * Math.sin(rad(a)))];
+/* saat yönünün tersine dönerken teğet birim vektör (SVG) */
+const teg = a => [-Math.sin(rad(a)), -Math.cos(rad(a))];
+/* yay biçimli dönme oku: a1'den a2'ye (derece), uçta ok başı */
+function donOk(cx, cy, r, a1, a2, c = P.ink2) {
+  const [x1, y1] = nok(cx, cy, r, a1), [x2, y2] = nok(cx, cy, r, a2), buyuk = Math.abs(a2 - a1) > 180 ? 1 : 0, sw = a2 > a1 ? 0 : 1;
+  const yon = a2 > a1 ? 1 : -1, [tx, ty] = teg(a2).map(v => v * yon);
+  const bx = x2 - tx * 9, by = y2 - ty * 9;
+  return `<path d="M${x1} ${y1} A${r} ${r} 0 ${buyuk} ${sw} ${f(bx)} ${f(by)}" stroke="${c}" stroke-width="2" fill="none"/>` +
+    `<polygon points="${x2},${y2} ${f(bx - ty * 5)},${f(by + tx * 5)} ${f(bx + ty * 5)},${f(by - tx * 5)}" fill="${c}"/>`;
+}
+/* üstten insan: omuzlar yarıçap doğrultusunda, yüz hareket yönüne */
+function ustInsan(x, y, a, op = 1, renk = '#2e86c1') {
+  return `<g opacity="${op}" transform="translate(${x} ${y}) rotate(${f(-a)})">` +
+    `<ellipse cx="0" cy="0" rx="14" ry="8" fill="${renk}" stroke="#1d5a86" stroke-width=".9"/>` +
+    `<circle cx="0" cy="0" r="6.4" fill="#5a3b26" stroke="#3b2717" stroke-width=".7"/></g>`;
+}
+
+/* Adım 1: döner kapı (üstten), L'deki hız çizili, K'de değil */
+BFY_FIG_EKLE('sf1116_kapi', function (u) {
+  const W = 300, H = 300, cx = 150, cy = 150, R = 98, rp = 60, aK = 200, aL = 110;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${cy - 7}" fill="#e7eef3" rx="14"/>`;
+  // cephe duvarı
+  s += `<rect x="0" y="${cy - 7}" width="${cx - R + 2}" height="14" fill="url(#${u}concrete)" stroke="#8e979f" stroke-width="1"/>`;
+  s += `<rect x="${cx + R - 2}" y="${cy - 7}" width="${W - cx - R + 2}" height="14" fill="url(#${u}concrete)" stroke="#8e979f" stroke-width="1"/>`;
+  // zemin ve cam gövde (sol ve sağ yaylar)
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="#f1ece2" stroke="#d6cdbb" stroke-width="1"/>`;
+  [[135, 225], [-45, 45]].forEach(([a1, a2]) => {
+    const [x1, y1] = nok(cx, cy, R, a1), [x2, y2] = nok(cx, cy, R, a2);
+    s += `<path d="M${x1} ${y1} A${R} ${R} 0 0 ${a1 > 90 ? 0 : 0} ${x2} ${y2}" stroke="#7fa7bf" stroke-width="6" fill="none" stroke-linecap="round" transform=""/>`;
+  });
+  // yol çemberi
+  s += `<circle cx="${cx}" cy="${cy}" r="${rp}" fill="none" stroke="${P.ink2}" stroke-width="1.1" stroke-dasharray="4 4"/>`;
+  // kanatlar (K bölmenin ortasında)
+  for (let k = 0; k < 4; k++) {
+    const [x2, y2] = nok(cx, cy, R - 5, aK + 45 + k * 90);
+    s += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#9cc3d8" stroke-width="5" stroke-linecap="round"/><line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#4f7f99" stroke-width="1.2"/>`;
+  }
+  s += `<circle cx="${cx}" cy="${cy}" r="8" fill="url(#${u}metal)" stroke="#5b646b" stroke-width="1"/>`;
+  // yarıçap O-K
+  const [kx, ky] = nok(cx, cy, rp, aK), [lx, ly] = nok(cx, cy, rp, aL);
+  s += dashLine(cx, cy, kx, ky, P.ink, '3 3', 1.2);
+  // L (önceki an, soluk) ve hızı
+  s += ustInsan(lx, ly, aL, 0.5);
+  const [tx, ty] = teg(aL);
+  s += arrow(lx, ly, f(lx + tx * 50), f(ly + ty * 50), { color: P.blue, w: 2.8 });
+  s += T(f(lx + tx * 50 - 4), f(ly + ty * 50 - 8), 'ϑ', { size: 15, anchor: 'end', weight: 800, fill: P.blue });
+  // K (şimdi)
+  s += ustInsan(kx, ky, aK, 1);
+  const [kLx, kLy] = nok(cx, cy, rp + 24, aK), [lLx, lLy] = nok(cx, cy, rp - 22, aL);
+  s += T(kLx, kLy + 5, 'K', { size: 14, anchor: 'middle', weight: 800 });
+  s += T(lLx + 6, lLy + 8, 'L', { size: 14, anchor: 'middle', weight: 800 });
+  s += T(cx + 10, cy + 22, 'O', { size: 14, weight: 800 });
+  const [rx, ry] = nok(cx, cy, rp / 2, aK);
+  s += T(rx + 2, ry + 18, 'r', { size: 14, anchor: 'middle', weight: 800, italic: true });
+  s += donOk(cx, cy, R + 14, 22, 62);
+  s += T(cx, 26, 'dışarı', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(cx, H - 14, 'bina içi', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 3: rüzgâr türbini (önden, saat yönünde döner; kanadın düz ön kenarı dönme yönüne bakar); kanat ucu U (40 m) ve kanadın ortası M (20 m) */
+BFY_FIG_EKLE('sf1116_turbin', function (u) {
+  const W = 310, H = 330, cx = 150, cy = 122, R = 100, yG = 306;
+  let s = `<defs><linearGradient id="${u}bld" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#eef1f3"/><stop offset="1" stop-color="#c3cbd1"/></linearGradient>` +
+    `<radialGradient id="${u}hub" cx="38%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#e3e7ea"/><stop offset="1" stop-color="#a9b2b9"/></radialGradient>` +
+    `<linearGradient id="${u}twr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d4d9dd"/><stop offset=".35" stop-color="#ffffff"/><stop offset="1" stop-color="#aeb6bc"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  // uzakta küçük türbinler
+  const uzak = (x, y, k) => {
+    let g = `<g class="bg" opacity=".45"><polygon points="${x - 1.2 * k},${y} ${x + 1.2 * k},${y} ${x + 2 * k},${y + 46 * k} ${x - 2 * k},${y + 46 * k}" fill="#b7c3cc"/>`;
+    [80, 200, 320].forEach(a => { g += `<path d="M0 -1.4 L${18 * k} -1.8 L${20 * k} 0 L0 1.4 Z" transform="translate(${x} ${y}) rotate(${-a})" fill="#b7c3cc"/>`; });
+    return g + `<circle cx="${x}" cy="${y}" r="${1.8 * k}" fill="#b7c3cc"/></g>`;
+  };
+  s += uzak(42, 214, 1.5) + uzak(268, 226, 1.2);
+  s += `<path class="bg" d="M0 ${yG - 14} Q80 ${yG - 40} 160 ${yG - 18} T${W} ${yG - 22} L${W} ${H} L0 ${H} Z" fill="#a9cf8e"/>`;
+  s += `<rect class="bg" x="0" y="${yG}" width="${W}" height="${H - yG}" fill="url(#${u}grass)"/>`;
+  // kule: tabana doğru genişleyen boru, kapı ve beton temel
+  s += `<polygon points="${cx - 4.5},${cy + 10} ${cx + 4.5},${cy + 10} ${cx + 9},${yG + 2} ${cx - 9},${yG + 2}" fill="url(#${u}twr)" stroke="#8e979f" stroke-width="1"/>`;
+  s += `<rect x="${cx - 3.5}" y="${yG - 14}" width="7" height="13" rx="1.5" fill="#7f8a92" stroke="#5b646b" stroke-width=".7"/>`;
+  s += `<rect x="${cx - 16}" y="${yG + 1}" width="32" height="5" rx="1.5" fill="#c9cdd0" stroke="#8e979f" stroke-width=".8"/>`;
+  // makine gövdesi (göbeğin arkasında, üstten biraz görünür)
+  s += `<rect x="${cx - 9}" y="${cy - 13}" width="18" height="22" rx="6" fill="#dde2e6" stroke="#8e979f" stroke-width="1"/>`;
+  // dönme çemberleri
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${P.ink2}" stroke-width="1" stroke-dasharray="4 4"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R / 2}" fill="none" stroke="${P.ink2}" stroke-width="1" stroke-dasharray="2 4"/>`;
+  // kanatlar: kökte geniş, uca doğru incelen kanat profili; ön kenar düz, arka kenar kavisli
+  [90, 210, 330].forEach(a => {
+    s += `<g transform="translate(${cx} ${cy}) rotate(${-a})">` +
+      `<path d="M7 4.5 L${R - 1} 1.6 Q${R + 1.2} 0 ${R - 1} -1.4 C${R * 0.6} -3.6 ${R * 0.34} -6.5 ${R * 0.2} -9.6 C${R * 0.14} -10.8 ${R * 0.1} -8.4 7 -5.2 Z" fill="url(#${u}bld)" stroke="#7d8a93" stroke-width="1" stroke-linejoin="round"/>` +
+      `<path d="M9 3.2 L${R - 4} 1" stroke="#c3cbd1" stroke-width="1.3" opacity=".9"/>` +
+      `<path d="M${R - 12} 1.2 L${R - 1} 1.6 Q${R + 1.2} 0 ${R - 1} -1.4 L${R - 12} -2" fill="#d9534f" opacity=".85"/></g>`;
+  });
+  s += `<circle cx="${cx}" cy="${cy}" r="10" fill="url(#${u}hub)" stroke="#7d8a93" stroke-width="1.1"/>`;
+  s += `<circle cx="${cx - 3}" cy="${cy - 3}" r="3" fill="#fff" opacity=".85"/>`;
+  // U ve M noktaları (330° kanadı üstünde)
+  const [ux, uy] = nok(cx, cy, R, 330), [mx, my] = nok(cx, cy, R / 2, 330);
+  s += `<circle cx="${ux}" cy="${uy}" r="4.2" fill="${P.coral}" stroke="#fff" stroke-width="1.2"/><circle cx="${mx}" cy="${my}" r="4.2" fill="${P.coral}" stroke="#fff" stroke-width="1.2"/>`;
+  s += T(ux + 9, uy + 4, 'U (40 m)', { size: 13, weight: 800 });
+  s += T(mx + 4, my - 12, 'M (20 m)', { size: 13, weight: 800 });
+  // saat yönünde dönme: U'daki hız
+  const [tx, ty] = teg(330).map(v => -v);
+  s += arrow(ux, uy, f(ux + tx * 58), f(uy + ty * 58), { color: P.blue, w: 2.8 });
+  s += T(f(ux + tx * 58) + 14, f(uy + ty * 58) + 2, 'ϑ = 80 m/s', { size: 12.5, weight: 800, fill: P.blue });
+  s += donOk(cx, cy, R + 14, 70, 28);
+  s += T(14, 26, 'T = 3 s', { size: 13, weight: 800, fill: P.green });
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 4: dönen fincanlar (üstten); ϑ teğet, a_m merkeze */
+BFY_FIG_EKLE('sf1116_fincan', function (u) {
+  const W = 320, H = 270, cx = 150, cy = 136, R = 112, rp = 88, a0 = -35;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  // platform
+  s += `<circle cx="${cx + 3}" cy="${cy + 5}" r="${R}" fill="#000" opacity=".08"/>`;
+  for (let k = 0; k < 12; k++) {
+    const [x1, y1] = nok(cx, cy, R, k * 30), [x2, y2] = nok(cx, cy, R, k * 30 + 30);
+    s += `<path d="M${cx} ${cy} L${x1} ${y1} A${R} ${R} 0 0 0 ${x2} ${y2} Z" fill="${k % 2 ? '#f6e3b4' : '#f3cfd6'}"/>`;
+  }
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#b08a4a" stroke-width="2"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="12" fill="url(#${u}metal)" stroke="#5b646b" stroke-width="1"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${rp}" fill="none" stroke="${P.ink2}" stroke-width="1.1" stroke-dasharray="4 4"/>`;
+  // fincanlar
+  const fincan = (a, renk, op) => {
+    const [x, y] = nok(cx, cy, rp, a), [hx, hy] = nok(x, y, 24, a);
+    return `<g opacity="${op}"><circle cx="${x}" cy="${y}" r="27" fill="#fff" stroke="#b9b2a4" stroke-width="1"/>` +
+      `<circle cx="${hx}" cy="${hy}" r="6" fill="none" stroke="${renk}" stroke-width="4"/>` +
+      `<circle cx="${x}" cy="${y}" r="20" fill="${renk}" stroke="#7a3b4b" stroke-width="1"/><circle cx="${x}" cy="${y}" r="15" fill="#fbeff2" stroke="#d8a6b2" stroke-width="1"/></g>`;
+  };
+  [55, 145, 235].forEach(a => { s += fincan(a, '#7fb0c9', 0.55); });
+  s += fincan(a0, '#d9738b', 1);
+  const [x0, y0] = nok(cx, cy, rp, a0);
+  s += `<circle cx="${x0 - 3}" cy="${y0 - 2}" r="7" fill="#5a3b26" stroke="#3b2717" stroke-width=".7"/>`;
+  // yarıçap
+  s += dashLine(cx, cy, x0, y0, P.ink, '3 3', 1.2);
+  const [rx, ry] = nok(cx, cy, rp * 0.45, a0), [px, py] = nok(0, 0, 20, a0 - 90);
+  s += T(rx + px, ry + py + 5, 'r = 4 m', { size: 12.5, anchor: 'middle', weight: 800 });
+  // vektörler
+  const [tx, ty] = teg(a0);
+  s += arrow(x0, y0, f(x0 + tx * 52), f(y0 + ty * 52), { color: P.blue, w: 2.8 });
+  s += T(f(x0 + tx * 52) + 8, f(y0 + ty * 52) + 2, 'ϑ = 2 m/s', { size: 12.5, weight: 800, fill: P.blue });
+  const [ix, iy] = nok(x0, y0, 42, a0 + 180);
+  s += arrow(x0, y0, ix, iy, { color: P.coral, w: 2.8 });
+  const [amx, amy] = nok(x0, y0, 30, a0 + 180), [aox, aoy] = nok(0, 0, 17, a0 + 90);
+  s += T(f(amx + aox), f(amy + aoy + 5), 'a_m', { size: 14, anchor: 'middle', weight: 800, fill: P.coral });
+  s += T(cx - 4, cy - 18, 'O', { size: 14, anchor: 'end', weight: 800 });
+  s += donOk(cx, cy, R + 12, 100, 140);
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 2: çekiç atma (üstten); tel gerilmesi merkeze, hız teğet */
+BFY_FIG_EKLE('sf1116_cekic', function (u) {
+  const W = 300, H = 270, cx = 130, cy = 150, rp = 100, a = 25;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef3ea"/>`;
+  s += `<circle class="bg" cx="${cx}" cy="${cy}" r="${rp + 30}" fill="none" stroke="#7a9a6a" stroke-width="1.4" stroke-dasharray="2 5"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="27" fill="#d7d2c7" stroke="#fff" stroke-width="3"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${rp}" fill="none" stroke="${P.ink2}" stroke-width="1.1" stroke-dasharray="4 4"/>`;
+  const [bx, by] = nok(cx, cy, rp, a);
+  // tel ve tutamak
+  s += `<line x1="${cx}" y1="${cy}" x2="${bx}" y2="${by}" stroke="#5b646b" stroke-width="1.6"/>`;
+  // atlet (üstten): omuzlar tele dik
+  s += `<g transform="translate(${cx} ${cy}) rotate(${-a})"><ellipse cx="0" cy="0" rx="9" ry="17" fill="#c0392b" stroke="#7d241b" stroke-width=".9"/><circle cx="-1" cy="0" r="7" fill="#3b2717"/>` +
+    `<path d="M2 -12 L12 -2 M2 12 L12 2" stroke="url(#${u}skin)" stroke-width="3.6" stroke-linecap="round"/></g>`;
+  s += ball(u, bx, by, 9, 'blue');
+  // teğet uzantı (tel bırakılırsa)
+  const [tx, ty] = teg(a);
+  s += dashLine(bx, by, f(bx + tx * 112), f(by + ty * 112), P.blue, '5 4', 1.3);
+  s += arrow(bx, by, f(bx + tx * 54), f(by + ty * 54), { color: P.blue, w: 2.8 });
+  s += T(f(bx + tx * 54) + 10, f(by + ty * 54) + 6, 'ϑ = 20 m/s', { size: 12.5, weight: 800, fill: P.blue });
+  s += T(f(bx + tx * 100) - 8, f(by + ty * 100) + 6, 'tel bırakılırsa', { size: 11.5, anchor: 'end', weight: 700, fill: P.blue });
+  // merkezcil kuvvet (tel gerilmesi)
+  const [ix, iy] = nok(bx, by, 40, a + 180);
+  s += arrow(bx, by, ix, iy, { color: P.coral, w: 2.8 });
+  s += T(ix + 4, iy + 22, 'F_m', { size: 14, anchor: 'middle', weight: 800, fill: P.coral });
+  const [rx, ry] = nok(cx, cy, rp * 0.45, a);
+  s += T(rx - 4, ry - 10, 'r = 2 m', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += T(cx, cy + 46, 'atlet', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += donOk(cx, cy, rp + 14, 200, 240);
+  return svg(W, H, s, u, 66);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -91779,6 +92620,201 @@ const KONU = {
   unvanlar: ['Topaç', 'Çark', 'Pervane', 'Rotor'],
   renk: '#c0462f',
   baglamlar: ['çamaşır makinesi sıkma programı (açılış)', 'kalem gövdesi-silgi parçası-ataş deneyi', 'açılı taşlama diski kıvılcımı', 'çömlekçi çarkındaki kil parçaları', 'havalimanı radar anteni', 'askılı çay tepsisi', 'delikli masada disk ve asılı cisim', 'atlıkarınca ϑ–r grafiği', 'torna aynası ω–t grafiği', 'sürüş eğitim pistindeki yatay viraj (kuru/ıslak)', 'bobsley pistinin eğimli virajı', 'bisiklet dişlisi-zincir-tekerlek', 'Dünya üzerinde ekvator ve 37° enlemi', 'kuvvet sensörlü düşey çember grafiği', 'viraj alan otomobilin panelindeki güneş gözlüğü', 'çift patende yerinde dönen patenci ve eşi', 'otoyol bağlantı rampası', 'lunapark rotoru (duvara yapışan ziyaretçiler)', 'otobüste merkezkaç tartışması', 'hava yastıklı laboratuvar masası veri seti', 'dört uydunun yörünge verileri (ISS, Göktürk-2, GPS, Türksat 5A)', 'döner tablada telefon jiroskobu ve ivmeölçerin yeri', 'merkezcil kuvvet aparatı: dönen kolda kızaklı ağırlık ve kuvvet sensörü (eşleştir)', 'tekerlek, kasnak, kayış, değen silindirler, çark: ω ve ϑ eşitliği (sınıfla)', 'Güneş ekvatoru, gözlem çarkı, otomobil tekerleği, matkap, sabit disk açısal hız sırası (sırala)', 'viraj, eğimli viraj ve düşey çemberde kütleye bağlı/bağımsız nicelikler (sınıfla)', 'dönen uzay istasyonu halkasında yapay ağırlık (r = 90 m, T = 18 s, baş-ayak ivme farkı)', 'iki iple bağlı topların ip gerilmeleri', 'atlıkarınca, pilot santrifüjü, salata kurutucusu merkezcil ivme sırası (sırala)'],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; π = 3. Sayısal sonuçlar qa/11.1.6/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde çember üzerinde dönen cisimlerin süratini, bir turun süresini ve merkeze doğru ivmeyi kısa adımlarla göreceksin. Hesaplarda $\pi = 3$ alıyoruz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Sürat sabit, yön sürekli değişir`,
+        sekil: 'sf1116_kapi',
+        metin: r`Bir binanın döner kapısından geçiyorsun. Kapı sabit hızla dönüyor; sen de bölmenin içinde, merkezden hep aynı uzaklıkta yürüyorsun. Şekilde sen üstten görünüyorsun; L önceki konumun, K ise şimdiki konumundur.
+
+Sabit bir merkez çevresinde, çember biçimli bir yolda eşit sürelerde eşit yollar alan cisim **düzgün çembersel hareket** yapar.
+
+Bu harekette **sürat** değişmez. Ama hızın **yönü** her an değişir. Hız vektörü her noktada çembere **teğettir**, yani merkezden cisme çizilen yarıçapa diktir. Hızın yönü değiştiği için bu hareket **ivmeli** bir harekettir.`,
+        kontrol: {
+          soru: r`Şekilde L noktasındaki hız vektörü çizilmiştir. Sen K noktasına geldiğinde hız vektörün hangi yöndedir?`,
+          secenekler: [r`L noktasındaki hızla aynı yöndedir.`, r`Merkeze doğrudur.`, r`K noktasında çembere teğettir ve dönme yönündedir.`],
+          dogru: 2,
+          aciklama: r`Çembersel harekette hız her noktada çembere teğettir ve yarıçapa diktir. Sürat aynı kalsa da hızın yönü noktadan noktaya değişir.`,
+          yanlisIpucu: r`Bir an için kapı ve duvarlar kaybolsa K noktasından hangi yöne düz yürümeye devam ederdin?`
+        }
+      },
+      {
+        baslik: r`Bir tur ne kadar sürer?`,
+        metin: r`Mikrodalga fırının cam tabağı ısıtma sırasında döner. Tabak 1 dakikada 6 tur atıyor olsun.
+
+- Bir tam turun süresine **periyot** ($T$) denir. Tabağın periyodu $T = \dfrac{60}{6} = 10$ s olur.
+- Bir saniyedeki tur sayısına **frekans** ($f$) denir. Tabak 1 saniyede turun onda birini atar: $f = \tfrac{1}{10}$ 1/s.
+- Periyot ile frekans birbirinin tersidir: $T \times f = 1$.
+
+Süre dakika ile verilirse önce saniyeye çevir.`,
+        kontrol: {
+          soru: r`Bir rüzgâr türbininin kanatları 1 dakikada 20 tur atıyor. Kanatların periyodu kaç saniye olur?`,
+          secenekler: [r`3 s`, r`20 s`, r`1200 s`],
+          dogru: 0,
+          aciklama: r`1 dakika 60 s'dir. Bir tur $\dfrac{60}{20} = 3$ s sürer.`,
+          yanlisIpucu: r`Periyot bir turun süresidir. 60 saniyeyi tur sayısına böl.`
+        }
+      },
+      {
+        baslik: r`Çizgisel sürat ve açısal hız`,
+        sekil: 'sf1116_turbin',
+        metin: r`Türbinin kanat boyu 40 m ve periyodu 3 s olsun. Kanadın ucu her turda yarıçapı 40 m olan bir çember çizer. Bir turda aldığı yol çemberin çevresidir: $2\pi r = 2 \times 3 \times 40 = 240$ m.
+
+Birim zamanda alınan yay uzunluğuna **çizgisel sürat** denir:
+$$\vartheta = \dfrac{2\pi r}{T}$$
+Kanat ucunun sürati $\vartheta = \dfrac{240}{3} = 80$ m/s olur.
+
+Kanadın bütün noktaları aynı sürede aynı açıyı tarar. Birim zamanda taranan açıya **açısal hız** ($\omega$) denir: $\omega = \dfrac{2\pi}{T} = \dfrac{6}{3} = 2$ rad/s. Çizgisel sürat ile açısal hız arasında $\vartheta = \omega\, r$ ilişkisi vardır.`,
+        kontrol: {
+          soru: r`Aynı kanadın merkezden 20 m uzaktaki M noktasının çizgisel sürati kaç m/s olur?`,
+          secenekler: [r`40 m/s`, r`80 m/s`, r`160 m/s`],
+          dogru: 0,
+          aciklama: r`Açısal hız kanadın her noktasında 2 rad/s'dir. $\vartheta = \omega\, r = 2 \times 20 = 40$ m/s olur. Merkeze yakın nokta daha küçük bir çember çizdiği için daha yavaş gider.`,
+          yanlisIpucu: r`Açısal hız kanadın her noktasında aynıdır. $\vartheta = \omega\, r$ ilişkisini kullan.`
+        }
+      },
+      {
+        baslik: r`Merkeze doğru ivme`,
+        sekil: 'sf1116_fincan',
+        metin: r`Lunaparktaki dönen fincanlar oyununda fincanlar büyük bir platformun kenarında döner. Fincanların kendi çevrelerinde dönmesini şimdilik düşünmüyoruz. Bir fincan, merkezden 4 m uzakta 2 m/s süratle dönüyor.
+
+Süratin sabit ama hızının yönü sürekli değişiyor. Hızın yönünü değiştiren bir ivme vardır ve bu ivme her an **merkeze doğrudur**. Buna **merkezcil ivme** ($a_m$) denir:
+$$a_m = \dfrac{\vartheta^2}{r}$$
+Fincan için $a_m = \dfrac{2^2}{4} = 1$ m/s² olur.`,
+        kontrol: {
+          soru: r`Platform daha hızlı dönmeye başlıyor ve fincanın sürati 4 m/s oluyor. Yarıçap değişmiyor. Merkezcil ivme kaç m/s² olur?`,
+          secenekler: [r`2 m/s²`, r`4 m/s²`, r`16 m/s²`],
+          dogru: 1,
+          aciklama: r`$a_m = \dfrac{4^2}{4} = 4$ m/s² olur. Sürat 2 katına çıkınca merkezcil ivme $2^2 = 4$ katına çıkar.`,
+          yanlisIpucu: r`Formülde sürat kare olarak geçer. Önce $4^2$'yi hesapla, sonra yarıçapa böl.`
+        }
+      },
+      {
+        baslik: r`Merkezcil kuvveti ne sağlar?`,
+        metin: r`Fincanda kütlesi 30 kg olan bir çocuk oturuyor ve merkezcil ivmesi 1 m/s². Çocuğa merkeze doğru etki eden net kuvvet
+$$F_m = m\,a_m = m\,\dfrac{\vartheta^2}{r}$$
+ile bulunur: $F_m = 30 \times 1 = 30$ N. Bu net kuvvete **merkezcil kuvvet** denir.
+
+Merkezcil kuvvet yeni bir kuvvet türü değildir. Onu çocuğa dokunan cisimler sağlar. Burada fincanın kenarı ve oturağı çocuğu merkeze doğru iter.
+
+Çocuk kendini dışarı doğru itiliyor gibi hisseder. Oysa yerde duran birine göre dışarı iten bir kuvvet yoktur. Çocuk eylemsizliği nedeniyle düz gitmek ister; fincan onu her an merkeze doğru çevirir.`,
+        kontrol: {
+          soru: r`Fincan dönerken çocuğu çembersel yolda tutan merkezcil kuvveti ne sağlar?`,
+          secenekler: [r`Fincanın kenarının ve oturağının çocuğu merkeze doğru itmesi.`, r`Çocuğu dışarı doğru iten merkezkaç kuvveti.`, r`Çocuğun ağırlığı.`],
+          dogru: 0,
+          aciklama: r`Merkezcil kuvveti çocuğa dokunan fincan sağlar ve bu kuvvet merkeze doğrudur. Ağırlık aşağı doğrudur, yatay çemberde çocuğu merkeze çevirmez. Yerdeki gözlemciye göre dışarı iten bir kuvvet yoktur.`,
+          yanlisIpucu: r`Merkezcil kuvvet merkeze doğrudur ve onu çocuğa dokunan bir cisim uygular.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Gölet çevresinde koşu`,
+        metin: r`Bir parktaki dairesel göletin çevresinde koşu yolu var. Yolun yarıçapı 50 m'dir. Bir koşucu sabit süratle koşuyor ve bir tam turu 60 s'de tamamlıyor.`,
+        adimlar: [
+          {
+            soru: r`Koşucu bir turda kaç m yol alır?`,
+            secenekler: [r`300 m`, r`150 m`, r`100 m`],
+            dogru: 0,
+            ipucu: r`Bir turda alınan yol çemberin çevresidir: $2\pi r$. $\pi = 3$ al.`,
+            aciklama: r`$2\pi r = 2 \times 3 \times 50 = 300$ m olur.`
+          },
+          {
+            soru: r`Koşucunun sürati kaç m/s olur?`,
+            secenekler: [r`5 m/s`, r`50 m/s`, r`60 m/s`],
+            dogru: 0,
+            ipucu: r`Sürat, bir turda alınan yolun bir turun süresine bölümüdür.`,
+            aciklama: r`$\vartheta = \dfrac{2\pi r}{T} = \dfrac{300}{60} = 5$ m/s olur.`
+          },
+          {
+            soru: r`Koşucu yarım tur atıp göletin tam karşı tarafına geçiyor. Yer değiştirmesinin büyüklüğü kaç m olur?`,
+            secenekler: [r`150 m`, r`100 m`, r`0 m`],
+            dogru: 1,
+            ipucu: r`Yer değiştirme, başlangıçtan bitişe çizilen düz oktur. Göletin bir ucundan karşı ucuna çizilen düz çizgi nedir?`,
+            aciklama: r`Başlangıç ile bitiş arasındaki düz uzaklık çemberin çapıdır: $2r = 100$ m. Alınan yol ise 150 m'dir.`
+          },
+          {
+            soru: r`Koşucunun sürati hiç değişmiyor. Koşarken ivmesi için ne söylenir?`,
+            secenekler: [r`Sürati sabit olduğu için ivmesi yoktur.`, r`İvmesi vardır ve göletin merkezine doğrudur.`, r`İvmesi vardır ve koşu yönündedir.`],
+            dogru: 1,
+            ipucu: r`Sürat sabit ama koşucu sürekli dönüyor, yani hızının yönü değişiyor. Yönü değiştiren ivme hangi yöne bakar?`,
+            aciklama: r`Hızın yönü sürekli değiştiği için koşucunun ivmesi vardır. Bu merkezcil ivmedir ve her an göletin merkezine doğrudur. Koşu yönünde ivme olsaydı sürati artardı.`
+          }
+        ],
+        sonuc: r`Düzgün çembersel harekette sürat sabittir ama hızın yönü değişir; bu yüzden merkeze doğru bir ivme vardır. Alınan yol ile yer değiştirme de birbirinden farklıdır.`
+      },
+      {
+        baslik: r`Çekiç atan atlet`,
+        sekil: 'sf1116_cekic',
+        metin: r`Çekiç atmada atlet, çelik telin ucundaki ağır topu kendi çevresinde döndürür ve sonra bırakır. Genç bir atletin 4 kg'lık çekici, yarıçapı 2 m olan bir çember üzerinde 20 m/s süratle dönüyor. Basit bir model kuralım: Çekicin yatay bir çemberde döndüğünü düşün ve ağırlığını önemseme.`,
+        adimlar: [
+          {
+            soru: r`Çekicin merkezcil ivmesi kaç m/s² olur?`,
+            secenekler: [r`200 m/s²`, r`10 m/s²`, r`400 m/s²`],
+            dogru: 0,
+            ipucu: r`$a_m = \dfrac{\vartheta^2}{r}$ kullan. Önce süratin karesini al, sonra yarıçapa böl.`,
+            aciklama: r`$a_m = \dfrac{20^2}{2} = \dfrac{400}{2} = 200$ m/s² olur. Bu, yer çekimi ivmesinin 20 katıdır.`
+          },
+          {
+            soru: r`Çekice etki eden merkezcil kuvvet kaç N olur?`,
+            secenekler: [r`800 N`, r`50 N`, r`1600 N`],
+            dogru: 0,
+            ipucu: r`$F_m = m\,a_m$ kullan.`,
+            aciklama: r`$F_m = 4 \times 200 = 800$ N olur.`
+          },
+          {
+            soru: r`Bu merkezcil kuvveti hangi kuvvet sağlar?`,
+            secenekler: [r`Çelik teldeki gerilme kuvveti.`, r`Çekicin ağırlığı.`, r`Havanın çekici dışarı itmesi.`],
+            dogru: 0,
+            ipucu: r`Çekice dokunan ve onu merkeze doğru çeken tek cisim hangisidir?`,
+            aciklama: r`Atlet teli çeker; tel de çekici merkeze doğru çeker. Merkezcil kuvveti teldeki gerilme kuvveti sağlar.`
+          },
+          {
+            soru: r`Atlet teli bıraktığı anda çekiç hangi doğrultuda gitmeye başlar?`,
+            secenekler: [r`Merkezden dışarı, yarıçap doğrultusunda.`, r`O anki hızı doğrultusunda, çembere teğet.`, r`Merkeze doğru.`],
+            dogru: 1,
+            ipucu: r`Tel bırakılınca çekici merkeze çeken kuvvet ortadan kalkar. Kuvvet yoksa cisim hızını nasıl sürdürür?`,
+            aciklama: r`Tel bırakılınca merkezcil kuvvet ortadan kalkar. Çekiç o anki hızıyla çembere teğet doğrultuda gider; dışarı doğru savrulmaz.`
+          }
+        ],
+        sonuc: r`Hızlı dönen ağır bir cismi çembersel yolda tutmak için büyük bir merkezcil kuvvet gerekir. Bu kuvvet ortadan kalkınca cisim teğet doğrultuda gider.`
+      },
+      {
+        baslik: r`Duvar saatinin ibreleri`,
+        metin: r`Bir duvar saatinde yelkovan (dakika ibresi) 1 saatte, akrep (saat ibresi) 12 saatte bir tam tur atar. Yelkovanın boyu akrebin boyunun 2 katıdır. İbrelerin düzgün döndüğünü kabul ediyoruz.`,
+        adimlar: [
+          {
+            soru: r`Yelkovanın periyodu kaç saniyedir?`,
+            secenekler: [r`60 s`, r`3600 s`, r`43 200 s`],
+            dogru: 1,
+            ipucu: r`Yelkovan bir tam turu 1 saatte atar. 1 saat kaç saniyedir?`,
+            aciklama: r`1 saat $60 \times 60 = 3600$ s olduğundan yelkovanın periyodu 3600 s'dir.`
+          },
+          {
+            soru: r`Yelkovanın açısal hızı, akrebin açısal hızının kaç katıdır?`,
+            secenekler: [r`12 katıdır.`, r`12'de 1'idir.`, r`60 katıdır.`],
+            dogru: 0,
+            ipucu: r`$\omega = \dfrac{2\pi}{T}$ olduğundan periyodu küçük olanın açısal hızı büyüktür.`,
+            aciklama: r`Açısal hız periyotla ters orantılıdır. Yelkovanın periyodu akrebinkinin 12'de 1'i olduğundan açısal hızı 12 katıdır.`
+          },
+          {
+            soru: r`Yelkovanın ucunun çizgisel sürati, akrebin ucunun çizgisel süratinin kaç katıdır?`,
+            secenekler: [r`6 katıdır.`, r`12 katıdır.`, r`24 katıdır.`],
+            dogru: 2,
+            ipucu: r`$\vartheta = \omega\, r$ ilişkisinde iki çarpanı ayrı ayrı karşılaştır.`,
+            aciklama: r`Açısal hız 12 kat, yarıçap 2 kat büyüktür. Çizgisel sürat $12 \times 2 = 24$ kat büyük olur.`
+          }
+        ],
+        sonuc: r`Açısal hız periyotla ters orantılıdır. Çizgisel sürat ise hem açısal hıza hem de yarıçapa bağlıdır.`
+      }
+    ],
+    hazir: r`Düzgün çembersel harekette süratin sabit, hızın yönünün değişken olduğunu; periyot, frekans, çizgisel sürat ve açısal hızı; merkeze doğru ivmeyi ve bu ivmeyi oluşturan kuvveti gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
