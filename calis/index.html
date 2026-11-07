@@ -27667,6 +27667,157 @@ BFY_FIG_EKLE('k935_dort_genis', function (u) {
   return svg(W, H, s, u, 166);
 });
 
+/* =============== SIFIRDAN BAŞLA ŞEKİLLERİ (sf935_) =============== */
+// Dinamometre 0–15 N ölçekli (ana çizgiler 5 N'da): dinamo() 0–3 birimlik çizer, etiketler 5 ile çarpılır.
+function dinamo15(x, kancaY, okN, o = {}) {
+  const L = o.L || 75, maks = 3, k = L / maks, ok = okN / 5;
+  const d = dinamo(x, kancaY, ok, { L, sayilar: false, etiket: false });
+  const y0 = kancaY - k * ok - L - 16, yp = y0 + k * ok;
+  let s = d.s;
+  for (let i = 0; i <= maks; i++) s += T(x - 12, y0 + i * k + 4, String(i * 5), { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2, haloW: 2.4 });
+  s += okumaEtiket(x + 14, yp, okN + ' N');
+  return { s, yTop: d.yTop };
+}
+// Gri taş: merkez (cx, cy), yarı genişlik a, yarı yükseklik b
+function tas(u, cx, cy, a, b) {
+  return `<path d="M${cx - a} ${cy + b * 0.2} Q${cx - a * 0.95} ${cy - b * 0.8} ${cx - a * 0.2} ${cy - b} Q${cx + a * 0.6} ${cy - b * 1.05} ${cx + a} ${cy - b * 0.25} Q${cx + a * 1.05} ${cy + b * 0.7} ${cx + a * 0.3} ${cy + b} Q${cx - a * 0.6} ${cy + b * 1.05} ${cx - a} ${cy + b * 0.2} Z" fill="url(#${u}tasG)" stroke="#4f585e" stroke-width="1.1"/>` +
+    `<ellipse cx="${cx - a * 0.35}" cy="${cy - b * 0.45}" rx="${a * 0.28}" ry="${b * 0.16}" fill="#fff" opacity=".35"/>`;
+}
+const sfDef = u => `<defs><radialGradient id="${u}tasG" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#b9bfc3"/><stop offset=".6" stop-color="#848c92"/><stop offset="1" stop-color="#5a6268"/></radialGradient>` +
+  `<radialGradient id="${u}derG" cx="35%" cy="35%" r="80%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe5ea"/></radialGradient>` +
+  `<linearGradient id="${u}kovaG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f6fa8"/><stop offset=".45" stop-color="#5d9bd0"/><stop offset="1" stop-color="#244f7a"/></linearGradient>` +
+  `<linearGradient id="${u}denizG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8cc8e6"/><stop offset="1" stop-color="#2f6f97"/></linearGradient>` +
+  `<linearGradient id="${u}kumG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2cf9e"/><stop offset="1" stop-color="#c4a96c"/></linearGradient>` +
+  `<linearGradient id="${u}tekneG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9573b"/><stop offset="1" stop-color="#9c3424"/></linearGradient>` +
+  `<linearGradient id="${u}capaG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4a5258"/><stop offset=".5" stop-color="#8d969c"/><stop offset="1" stop-color="#3d4449"/></linearGradient>` +
+  `<linearGradient id="${u}petG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3f1f8" stop-opacity=".9"/><stop offset=".4" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#c3dbe8" stop-opacity=".9"/></linearGradient></defs>`;
+// Plastik kova (yandan): üst kenar y, genişlik üstte wu, altta wa, yükseklik h, su yüzeyi ys
+function kova(u, cx, y, wu, wa, h, ys) {
+  const xl = t => cx - (wu / 2 + (wa - wu) / 2 * t), xr = t => cx + (wu / 2 + (wa - wu) / 2 * t);
+  const ts = (ys - y) / h;
+  const govde = `M${xl(0)} ${y} L${xl(1)} ${y + h} Q${cx} ${y + h + 7} ${xr(1)} ${y + h} L${xr(0)} ${y} Z`;
+  return {
+    arka: `<ellipse class="shadowish" cx="${cx}" cy="${y + h + 6}" rx="${wa / 2 + 10}" ry="6" fill="#000" opacity=".12"/>` +
+      `<path d="${govde}" fill="url(#${u}kovaG)" opacity=".28"/>`,
+    su: `<path d="M${xl(ts)} ${ys} L${xl(1)} ${y + h} Q${cx} ${y + h + 7} ${xr(1)} ${y + h} L${xr(ts)} ${ys} Z" fill="url(#${u}water)" opacity=".55"/>` +
+      `<line x1="${xl(ts)}" y1="${ys}" x2="${xr(ts)}" y2="${ys}" stroke="#2a79ad" stroke-width="1.6"/>`,
+    on: `<path d="${govde}" fill="none" stroke="#244f7a" stroke-width="2.2" stroke-linejoin="round"/>` +
+      `<rect x="${xl(0) - 4}" y="${y - 3}" width="${wu + 8}" height="6" rx="3" fill="#2f6fa8" stroke="#1d4568" stroke-width="1"/>`
+  };
+}
+
+/* Adım 1: suyun altına bastırılan şişme top; el aşağı iter, su (kaldırma kuvveti) yukarı iter */
+BFY_FIG_EKLE('sf935_top', function (u) {
+  const W = 300, H = 272, cx = 128, ys = 80, r = 32, cy = 160;
+  let s = sfDef(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  const K = kova(u, cx, 46, 196, 166, 174, ys);
+  s += K.arka;
+  // top: renkli dilimler, hacim için koyu kenar gölgesi
+  s += `<clipPath id="${u}topC"><circle cx="${cx}" cy="${cy}" r="${r}"/></clipPath>`;
+  s += `<g clip-path="url(#${u}topC)"><rect x="${cx - r}" y="${cy - r}" width="${2 * r}" height="${2 * r}" fill="#f6f2e8"/>` +
+    `<path d="M${cx} ${cy - r} C${cx - 28} ${cy - 10} ${cx - 28} ${cy + 10} ${cx} ${cy + r} L${cx - r} ${cy + r} L${cx - r} ${cy - r} Z" fill="#e0443a"/>` +
+    `<path d="M${cx} ${cy - r} C${cx + 13} ${cy - 10} ${cx + 13} ${cy + 10} ${cx} ${cy + r} C${cx + 28} ${cy + 10} ${cx + 28} ${cy - 10} ${cx} ${cy - r} Z" fill="#f2b632"/>` +
+    `<path d="M${cx + 21} ${cy - r} C${cx + 36} ${cy - 10} ${cx + 36} ${cy + 10} ${cx + 21} ${cy + r} L${cx + r} ${cy + r} L${cx + r} ${cy - r} Z" fill="#2f7fb8"/>` +
+    `<circle cx="${cx + 8}" cy="${cy + 9}" r="${r + 4}" fill="none" stroke="#000" stroke-width="14" opacity=".13"/></g>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#7a3a2a" stroke-width="1.1"/><ellipse cx="${cx - 12}" cy="${cy - 14}" rx="10" ry="5.5" fill="#fff" opacity=".55"/>`;
+  // kol: sağ üstten kovanın ağzından girer; avuç topun üstüne basar
+  const px = cx + 8, py = cy - r - 7;
+  const kol = `M${px + 16} ${py + 2} L${px + 60} ${py - 102}`;
+  s += `<path d="${kol}" stroke="#a8754f" stroke-width="22" stroke-linecap="round" fill="none"/>`;
+  s += `<path d="${kol}" stroke="#f0c39b" stroke-width="19.5" stroke-linecap="round" fill="none"/>`;
+  s += `<path d="M${px + 11} ${py - 4} L${px + 53} ${py - 103}" stroke="#fbe0c6" stroke-width="5" stroke-linecap="round" fill="none" opacity=".9"/>`;
+  // avuç ve parmaklar (topun eğriliğine oturan)
+  s += `<path d="M${px - 17} ${py + 4} Q${px - 16} ${py - 9} ${px + 2} ${py - 10} Q${px + 22} ${py - 11} ${px + 26} ${py + 2} Q${px + 14} ${py + 9} ${px + 4} ${py + 8} Q${px - 8} ${py + 9} ${px - 17} ${py + 4} Z" fill="#f0c39b" stroke="#a8754f" stroke-width="1.1"/>`;
+  s += `<path d="M${px - 9} ${py + 7} L${px - 8} ${py + 1} M${px - 1} ${py + 8} L${px} ${py + 1} M${px + 7} ${py + 8} L${px + 8} ${py + 1}" stroke="#a8754f" stroke-width="1" fill="none"/>`;
+  s += `<ellipse cx="${px + 21}" cy="${py - 9}" rx="6" ry="4" transform="rotate(-60 ${px + 21} ${py - 9})" fill="#f0c39b" stroke="#a8754f" stroke-width="1"/>`;
+  s += K.su + K.on;
+  // kuvvetler: elin itmesi (aşağı), kaldırma kuvveti (yukarı, daha uzun; topun ağırlığı küçük)
+  s += arrow(px - 6, 60, px - 6, py - 12, { color: C.G, w: 2.8, head: 9, headW: 5 });
+  s += arrow(cx - 20, cy, cx - 20, cy - 64, { color: C.Fk, w: 3, head: 10, headW: 5.5 });
+  s += `<circle cx="${cx - 20}" cy="${cy}" r="2.6" fill="${C.Fk}"/>`;
+  s += T(cx - 28, cy - 34, 'F_k', { size: 15, anchor: 'end', weight: 800, fill: C.Fk });
+  s += T(14, H - 28, 'F_k: suyun uyguladığı kaldırma kuvveti', { size: 12.5, weight: 700, fill: C.Fk });
+  s += T(14, H - 12, 'Kırmızı ok: elin topu aşağı itmesi', { size: 12.5, weight: 700, fill: C.G });
+  return svg(W, H, s, u, 70);
+});
+
+/* Adım 2: taş havada 12 N, suda 8 N */
+BFY_FIG_EKLE('sf935_tas', function (u) {
+  const W = 300, H = 312, yb = 296;
+  let s = sfDef(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  s += masa(8, W - 8, yb);
+  const xa = 82, ka = 210;
+  const da = dinamo15(xa, ka, 12);
+  s += stand(28, yb, da.yTop, xa + 4) + da.s;
+  s += ip(xa + 3, ka, ka + 14) + tas(u, xa + 3, ka + 34, 24, 19);
+  s += notT(xa + 3, yb - 14, 'havada');
+  const xb = 214, ys = 182, kb = 196;
+  const db = dinamo15(xb, kb, 8);
+  s += stand(272, yb, db.yTop, xb - 4) + db.s;
+  s += ip(xb + 3, kb, kb + 14) + tas(u, xb + 3, kb + 34, 24, 19);
+  s += beher(u, xb + 3 - 44, 146, 88, yb - 146, ys);
+  s += notT(xb + 3, yb - 8, 'suda');
+  return standG(u)(svg(W, H, s, u, 66));
+});
+
+/* Adım 3: pet şişe az ve çok batık; batan hacim büyüyünce F_k büyür */
+BFY_FIG_EKLE('sf935_batan', function (u) {
+  const W = 330, H = 296, ys = 132;
+  let s = sfDef(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  const pan = [{ cx: 84, ad: 'Az batık', ust: ys - 54, Fk: 30, it: 16 }, { cx: 246, ad: 'Çok batık', ust: ys - 14, Fk: 62, it: 50 }];
+  pan.forEach(p => {
+    const K = kova(u, p.cx, 94, 140, 116, 150, ys);
+    s += K.arka;
+    const bw = 34, bh = 92, x = p.cx - bw / 2, y = p.ust;
+    // pet şişe: gövde, omuz, boyun, kapak
+    s += `<path d="M${x} ${y + 26} Q${x} ${y + 12} ${p.cx - 7} ${y + 6} L${p.cx - 7} ${y - 4} L${p.cx + 7} ${y - 4} L${p.cx + 7} ${y + 6} Q${x + bw} ${y + 12} ${x + bw} ${y + 26} L${x + bw} ${y + bh - 6} Q${x + bw} ${y + bh} ${x + bw - 6} ${y + bh} L${x + 6} ${y + bh} Q${x} ${y + bh} ${x} ${y + bh - 6} Z" fill="url(#${u}petG)" stroke="#7fa6bd" stroke-width="1.4"/>`;
+    s += `<rect x="${p.cx - 9}" y="${y - 13}" width="18" height="10" rx="2" fill="#2f9a5f" stroke="#1e6b41" stroke-width="1"/>`;
+    s += `<line x1="${x + 6}" y1="${y + 30}" x2="${x + 6}" y2="${y + bh - 10}" stroke="#fff" stroke-width="2.4" opacity=".9"/>`;
+    s += K.su + K.on;
+    // batan hacim ölçüsü
+    s += dimV(x - 12, ys, y + bh, 'V_b', { side: 'left', size: 13 });
+    // kuvvetler
+    const my = y + bh - 8;
+    s += arrow(p.cx + 5, my, p.cx + 5, my - p.Fk, { color: C.Fk, w: 2.8, head: 9, headW: 5 });
+    s += `<circle cx="${p.cx + 5}" cy="${my}" r="2.4" fill="${C.Fk}"/>`;
+    s += arrow(p.cx, y - 14 - p.it - 6, p.cx, y - 15, { color: C.G, w: 2.6, head: 8, headW: 4.6 });
+    s += baslikT(p.cx, 24, p.ad, { size: 14 });
+  });
+  s += T(14, H - 28, 'F_k: kaldırma kuvveti', { size: 12.5, weight: 700, fill: C.Fk });
+  s += T(14, H - 12, 'Kırmızı ok: elin itmesi', { size: 12.5, weight: 700, fill: C.G });
+  s += T(190, H - 28, 'V_b: batan hacim', { size: 12.5, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 72);
+});
+
+/* Isınma 1: tekneden iple suya indirilen çapa (dibe değmiyor) */
+BFY_FIG_EKLE('sf935_capa', function (u) {
+  const W = 320, H = 270, ys = 84, yd = 240;
+  let s = sfDef(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<path d="M0 ${ys} H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="url(#${u}denizG)" opacity=".85"/>`;
+  s += `<path d="M0 ${yd} Q60 ${yd - 8} 120 ${yd - 2} T240 ${yd - 4} T${W} ${yd - 2} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="url(#${u}kumG)"/>`;
+  s += `<ellipse cx="62" cy="${yd + 4}" rx="14" ry="6" fill="#9a9184"/><ellipse cx="272" cy="${yd + 6}" rx="10" ry="5" fill="#a49b8d"/>`;
+  // tekne
+  const tx = 64;
+  s += `<path d="M${tx} ${ys - 14} H${tx + 150} Q${tx + 146} ${ys + 8} ${tx + 128} ${ys + 14} H${tx + 26} Q${tx + 8} ${ys + 8} ${tx} ${ys - 14} Z" fill="url(#${u}tekneG)" stroke="#6e2318" stroke-width="1.2"/>`;
+  s += `<rect x="${tx}" y="${ys - 17}" width="150" height="5" rx="2" fill="#f4efe4" stroke="#8a7d68" stroke-width=".8"/>`;
+  s += `<rect x="${tx + 30}" y="${ys - 44}" width="46" height="27" rx="3" fill="url(#${u}wood)" stroke="#b58f55" stroke-width="1"/>`;
+  s += `<rect x="${tx + 37}" y="${ys - 38}" width="13" height="10" rx="1.5" fill="#cfe5f4" stroke="#7d8a94" stroke-width=".8"/><rect x="${tx + 56}" y="${ys - 38}" width="13" height="10" rx="1.5" fill="#cfe5f4" stroke="#7d8a94" stroke-width=".8"/>`;
+  s += `<line x1="${tx + 100}" y1="${ys - 17}" x2="${tx + 100}" y2="${ys - 70}" stroke="#6b5a45" stroke-width="2.4"/>`;
+  s += `<path d="M0 ${ys} Q20 ${ys - 3} 40 ${ys} T80 ${ys} T120 ${ys} T160 ${ys} T200 ${ys} T240 ${ys} T280 ${ys} T320 ${ys}" fill="none" stroke="#2a79ad" stroke-width="1.6"/>`;
+  // ip ve çapa
+  const ax = tx + 136, ay = 182;
+  s += `<line x1="${tx + 140}" y1="${ys - 15}" x2="${ax}" y2="${ay - 30}" stroke="${C.ip}" stroke-width="1.8"/>`;
+  s += `<circle cx="${ax}" cy="${ay - 26}" r="5" fill="none" stroke="url(#${u}capaG)" stroke-width="3"/>`;
+  s += `<rect x="${ax - 3}" y="${ay - 21}" width="6" height="44" rx="2" fill="url(#${u}capaG)" stroke="#2f363b" stroke-width=".8"/>`;
+  s += `<rect x="${ax - 16}" y="${ay - 15}" width="32" height="5" rx="2.5" fill="url(#${u}capaG)" stroke="#2f363b" stroke-width=".8"/>`;
+  s += `<path d="M${ax - 26} ${ay + 6} Q${ax - 22} ${ay + 26} ${ax} ${ay + 28} Q${ax + 22} ${ay + 26} ${ax + 26} ${ay + 6}" fill="none" stroke="#4a5258" stroke-width="6" stroke-linecap="round"/>`;
+  s += `<path d="M${ax - 30} ${ay + 2} L${ax - 22} ${ay + 1} L${ax - 25} ${ay + 12} Z M${ax + 30} ${ay + 2} L${ax + 22} ${ay + 1} L${ax + 25} ${ay + 12} Z" fill="#4a5258" stroke="#2f363b" stroke-width=".8"/>`;
+  s += T(ax + 12, ay - 58, 'ip', { size: 13, weight: 700, fill: P.ink });
+  s += T(ax + 36, ay + 18, 'çapa', { size: 13, weight: 700, fill: P.ink });
+  s += T(16, ys + 22, 'su', { size: 13, weight: 700, fill: '#ffffff', halo: false });
+  s += T(16, yd + 20, 'deniz tabanı', { size: 12, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 72);
+});
 })();
 
 /* ---------- 3B KARTLAR, HİKÂYE, TANIM VE EFSANE ÇİZİMLERİ (izometrik) ---------- */
@@ -28136,6 +28287,207 @@ const KONU = {
     'tatlı atölyesinde şeker şerbeti: 100 cm³ çelik silindir havada 7,90 N, 20 °C sakaroz çözeltisi yoğunluk tablosu, kütlece %30 → 6,77 N (tablo)', 'aynı cisim 200 cm³, 3,0 N: X\'te 1,4 N, Y\'de 0,6 N, Z\'de yüzer; X ve Y eşit hacimli karışımda 1,0 N',
     'balıkçı ağı: suyun içindeki ve yüzen mantar şamandıra, nötr yüzerlikteki dalgıç, tabandaki ve ipe bağlı kurşun; F_k ile G (eşleştir)', 'simülasyon: dinamometreye asılı 150 cm³ silindir, kriko, etil alkol / su / gliserin, alüminyum / demir'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.3.5/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde suyun içindeki cisimleri neden hafif hissettiğimizi, bu etkinin neye bağlı olduğunu ve bir cismin neden yüzüp neden battığını kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Su, içindeki cismi yukarı iter',
+        sekil: 'sf935_top',
+        metin: r`Havuzda ya da su dolu bir kovada şişme bir topu suyun altına bastırmayı hiç denedin mi? Top kolay kolay batmaz. Elini çektiğin anda da sudan fırlar.
+
+Topu yukarı iten şey sudur. Bir sıvı, içindeki cisme **yukarı yönlü** bir kuvvet uygular. Bu kuvvete **kaldırma kuvveti** denir ve $F_k$ ile gösterilir.
+
+Kaldırma kuvveti yalnız yüzen cisimlere etki etmez. Dibe batan bir taşa da sıvının içinde kalan kısmı için kaldırma kuvveti etki eder.`,
+        kontrol: {
+          soru: 'Suyun altına bastırılan topa etki eden kaldırma kuvvetinin yönü hangisidir?',
+          secenekler: ['Aşağı doğru', 'Yukarı doğru', 'Yana doğru'],
+          dogru: 1,
+          aciklama: 'Kaldırma kuvveti her zaman yukarı doğrudur. Topu aşağı iten senin elindir; su ise topu yukarı iter.',
+          yanlisIpucu: 'Elini çektiğinde top hangi yöne fırlıyor? Onu o yöne iten kuvvet kaldırma kuvvetidir.'
+        }
+      },
+      {
+        baslik: 'Suda hafifleyen taş',
+        sekil: 'sf935_tas',
+        metin: r`Kaldırma kuvvetini ölçmek için bir **dinamometre** (yaylı kuvvet ölçer) kullanırız.
+- Taş havada asılıyken dinamometre taşın ağırlığını gösterir: $G = 12$ N.
+- Taş suya tamamen batırılınca su, taşı yukarı iter. Yay daha az gerilir ve dinamometre daha küçük bir değer gösterir: $G' = 8$ N.
+
+İki okuma arasındaki fark, suyun taşa uyguladığı kaldırma kuvvetidir:
+$$F_k = G - G' = 12 - 8 = 4\ \text{N}$$
+
+Taşın ağırlığı değişmedi. Yalnız, yükün bir kısmını artık su taşıyor.`,
+        kontrol: {
+          soru: 'Bir metal parça havada 10 N, suya tamamen batırılınca 7 N gösteriyor. Parçaya etki eden kaldırma kuvveti kaç N\'dur?',
+          secenekler: [r`$17$ N`, r`$7$ N`, r`$3$ N`],
+          dogru: 2,
+          aciklama: r`Kaldırma kuvveti iki okumanın farkıdır: $F_k = 10 - 7 = 3$ N. Sudaki 7 N, yayın hâlâ taşıdığı yüktür.`,
+          yanlisIpucu: 'Su, parçayı ne kadar yukarı itiyor? Bunu bulmak için havadaki okumadan sudaki okumayı çıkar.'
+        }
+      },
+      {
+        baslik: 'Ne kadar batarsa o kadar iter',
+        sekil: 'sf935_batan',
+        metin: r`Boş bir pet şişenin kapağını kapat ve şişeyi bir kovadaki suya yavaş yavaş bastır. Şişe battıkça elini daha çok iter.
+
+Cismin sıvının içinde kalan kısmının hacmine **batan hacim** denir ve $V_b$ ile gösterilir. Batan hacim büyüdükçe kaldırma kuvveti de büyür.
+- Suya batan her $1$ L hacim için kaldırma kuvveti $10$ N'dur. Bu değer, 1 L suyun ağırlığına eşittir.
+- Batan hacim 2 katına çıkarsa kaldırma kuvveti de 2 katına çıkar.
+
+Cisim tamamen battıktan sonra onu daha derine indirmek kaldırma kuvvetini değiştirmez. Çünkü batan hacim artık büyümez.`,
+        kontrol: {
+          soru: 'Bir cismin 4 L\'lik kısmı suyun içinde. Bu cisme etki eden kaldırma kuvveti kaç N\'dur?',
+          secenekler: [r`$40$ N`, r`$4$ N`, r`$400$ N`],
+          dogru: 0,
+          aciklama: r`Suda batan her 1 L için 10 N vardır. 4 L için $4 \times 10 = 40$ N olur.`,
+          yanlisIpucu: '1 L batınca kaldırma kuvveti 10 N oluyordu. 4 L batınca bunun kaç katı olur?'
+        }
+      },
+      {
+        baslik: 'Sıvının yoğunluğu da önemli',
+        metin: r`Tuz Gölü'nün çok tuzlu suyunda insan, tatlı sudakinden daha kolay yüzer. Çünkü tuzlu suyun yoğunluğu daha büyüktür. Yoğunluğu büyük olan sıvı, aynı batan hacim için daha büyük kaldırma kuvveti uygular.
+
+Kaldırma kuvvetini üç nicelik belirler:
+$$F_k = V_b \times d_s \times g$$
+- $V_b$: batan hacim ($\text{m}^3$).
+- $d_s$: sıvının yoğunluğu ($\text{kg/m}^3$).
+- $g$: yer çekimi ivmesi ($10\ \text{m/s}^2$).
+
+Bir göldeki yüzer iskelenin $3\ \text{m}^3$'ü suyun ($1000\ \text{kg/m}^3$) içinde olsun: $F_k = 3 \times 1000 \times 10 = 30\ 000$ N.
+
+Önceki adımdaki kural da bu formülden gelir: $1$ L, $\dfrac{1}{1000}\ \text{m}^3$'tür ve $F_k = \dfrac{1}{1000} \times 1000 \times 10 = 10$ N olur. Cismin kütlesi, biçimi ve tamamen batmışken bulunduğu derinlik bu modelde yer almaz.`,
+        kontrol: {
+          soru: r`Bir cismin $1\ \text{m}^3$'ü, yoğunluğu $800\ \text{kg/m}^3$ olan bir sıvının içinde. Kaldırma kuvveti kaç N'dur?`,
+          secenekler: [r`$10\ 000$ N`, r`$8000$ N`, r`$800$ N`],
+          dogru: 1,
+          aciklama: r`$F_k = V_b \times d_s \times g = 1 \times 800 \times 10 = 8000$ N. Sıvının yoğunluğu sudan küçük olduğu için kaldırma kuvveti sudakinden (10 000 N) küçüktür.`,
+          yanlisIpucu: r`Formülde sıvının yoğunluğu yer alır, suyunki değil. $g = 10\ \text{m/s}^2$ ile çarpmayı da unutma.`
+        }
+      },
+      {
+        baslik: 'Yüzer mi, batar mı?',
+        metin: r`Tahta bir kaşık suda yüzer, metal bir kaşık batar. Bunu belirleyen ağırlık değil, **yoğunluktur**. Cismin yoğunluğu $d_c$, sıvınınki $d_s$ olsun:
+- $d_c < d_s$ ise cisim **yüzer**. Bir kısmı sıvının dışında kalır ve $F_k = G$ olur.
+- $d_c = d_s$ ise cisim sıvının içinde bırakıldığı yerde **askıda kalır**: $F_k = G$.
+- $d_c > d_s$ ise cisim **batar**. Kaldırma kuvveti ağırlığı dengelemeye yetmez: $F_k < G$.
+
+Yüzen bir cisim, kaldırma kuvveti ağırlığına eşit olana kadar batar.`,
+        kontrol: {
+          soru: r`Yoğunluğu $900\ \text{kg/m}^3$ olan bir cisim, yoğunluğu $800\ \text{kg/m}^3$ olan bir sıvıya bırakılıyor. Cisim ne yapar?`,
+          secenekler: ['Yüzer.', 'Askıda kalır.', 'Batar.'],
+          dogru: 2,
+          aciklama: r`Cismin yoğunluğu ($900$) sıvınınkinden ($800$) büyüktür, bu yüzden cisim batar. Aynı cisim suda ($1000\ \text{kg/m}^3$) yüzerdi. Karşılaştırmayı her zaman o sıvıyla yapmak gerekir.`,
+          yanlisIpucu: r`Cismin yoğunluğu sudan küçük, ama burada sıvı su değil. $900$ ile $800$'ü karşılaştır.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Teknenin çapası',
+        sekil: 'sf935_capa',
+        metin: r`Bir balıkçı, demir çapayı teknesinden bir iple yavaşça suya indiriyor. Çapa havada asılı dururken ip, çapayı 390 N'luk bir kuvvetle yukarı çekiyor. Çapa tamamen suya batınca, dibe değmeden asılı dururken ipin çektiği kuvvet 340 N oluyor. Suyun yoğunluğu $1000\ \text{kg/m}^3$, $g = 10\ \text{m/s}^2$ alınıyor.`,
+        adimlar: [
+          {
+            soru: 'Çapaya etki eden kaldırma kuvveti kaç N\'dur?',
+            secenekler: [r`$730$ N`, r`$50$ N`, r`$340$ N`],
+            dogru: 1,
+            ipucu: 'Havada ipin çektiği kuvvet çapanın ağırlığına eşittir. Suda ip daha az yük taşıyor. Aradaki farkı su taşıyor.',
+            aciklama: r`$F_k = 390 - 340 = 50$ N. Suda ipin çektiği 340 N, ipin hâlâ taşıdığı yüktür.`
+          },
+          {
+            soru: 'Çapanın hacmi kaç litredir?',
+            secenekler: [r`$39$ L`, r`$50$ L`, r`$5$ L`],
+            dogru: 2,
+            ipucu: 'Çapa tamamen battığı için batan hacim çapanın hacmidir. Suda batan her 1 L için kaldırma kuvveti 10 N\'dur.',
+            aciklama: r`$50 \div 10 = 5$ L. Çapanın hacmi 5 L, kütlesi 39 kg'dır. Bu küçük hacimde bu kadar kütle, demirin yoğunluğunun büyük olmasından gelir.`
+          },
+          {
+            soru: 'Çapa, dibe değmeden 3 m daha derine indirilirse ipin çektiği kuvvet ne olur?',
+            secenekler: ['340 N\'dan küçük olur.', '340 N olarak kalır.', '340 N\'dan büyük olur.'],
+            dogru: 1,
+            ipucu: 'Çapa zaten tamamen suyun içinde. Derine inince batan hacmi değişir mi?',
+            aciklama: 'Batan hacim, sıvının yoğunluğu ve g değişmediği için kaldırma kuvveti yine 50 N\'dur. İpin çektiği kuvvet de 340 N olarak kalır.'
+          }
+        ],
+        sonuc: 'Dinamometre ya da ip, cismin sudaki kaybını gösterir. Bu kayıp kaldırma kuvvetidir ve cismin hacmini de ele verir. Tamamen batmış bir cisimde derinlik kaldırma kuvvetini değiştirmez.'
+      },
+      {
+        baslik: 'Şişme yataktaki çocuk',
+        metin: r`Bir havuzda, ağırlığı 20 N olan şişme bir yatak yüzüyor. Ağırlığı 300 N olan bir çocuk yatağın üstüne uzanıyor. Yatak biraz daha batıyor ama yüzmeye devam ediyor. Suyun yoğunluğu $1000\ \text{kg/m}^3$, $g = 10\ \text{m/s}^2$ alınıyor.`,
+        adimlar: [
+          {
+            soru: 'Yüzen bir cisme etki eden kaldırma kuvveti ile ağırlığı arasındaki ilişki hangisidir?',
+            secenekler: [r`$F_k = G$`, r`$F_k > G$`, r`$F_k < G$`],
+            dogru: 0,
+            ipucu: 'Yatak ne yükseliyor ne batıyor; dengede duruyor. Yukarı ve aşağı yönlü kuvvetler nasıl olmalı?',
+            aciklama: r`Yüzen cisim dengededir. Kaldırma kuvveti ağırlığa eşittir: $F_k = G$.`
+          },
+          {
+            soru: 'Çocuk üstündeyken yatağa etki eden kaldırma kuvveti kaç N\'dur?',
+            secenekler: [r`$300$ N`, r`$20$ N`, r`$320$ N`],
+            dogru: 2,
+            ipucu: 'Su, yatağı ve üstündeki çocuğu birlikte taşıyor. İkisinin ağırlığını topla.',
+            aciklama: r`Yatak ile çocuk birlikte yüzüyor: $F_k = 20 + 300 = 320$ N.`
+          },
+          {
+            soru: 'Yatağın batan hacmi kaç litredir?',
+            secenekler: [r`$32$ L`, r`$320$ L`, r`$30$ L`],
+            dogru: 0,
+            ipucu: 'Suda batan her 1 L için kaldırma kuvveti 10 N\'dur. 320 N için kaç litre batmalı?',
+            aciklama: r`$320 \div 10 = 32$ L. Yatağın 32 L'lik kısmı suyun içindedir.`
+          },
+          {
+            soru: 'Çocuk yataktan inip suya girerse yatağın batan hacmi kaç litre olur?',
+            secenekler: [r`$32$ L`, r`$2$ L`, r`$30$ L`],
+            dogru: 1,
+            ipucu: 'Artık yatak yalnız kendi ağırlığını taşıyor. Yüzen cisimde kaldırma kuvveti ağırlığa eşittir.',
+            aciklama: r`Yatak yalnız kalınca $F_k = 20$ N olur. $20 \div 10 = 2$ L. Yatak yükselir, büyük kısmı suyun dışında kalır.`
+          }
+        ],
+        sonuc: 'Yüzen bir cisme yük eklenince kaldırma kuvveti yükle birlikte büyür. Bunun için cisim biraz daha batar. Yük kalkınca cisim yükselir.'
+      },
+      {
+        baslik: 'Kum dolu bidon',
+        metin: r`İçine biraz kum konmuş, kapağı sıkıca kapalı plastik bir bidonun hacmi 3 L, ağırlığı 33 N'dur. Bidon önce suya ($1000\ \text{kg/m}^3$), sonra çok tuzlu bir suya ($1200\ \text{kg/m}^3$) tamamen batırılıp bırakılıyor. $g = 10\ \text{m/s}^2$ alınıyor.`,
+        adimlar: [
+          {
+            soru: 'Bidon suya tamamen batırılınca ona etki eden kaldırma kuvveti kaç N\'dur?',
+            secenekler: [r`$30$ N`, r`$33$ N`, r`$3$ N`],
+            dogru: 0,
+            ipucu: 'Bidonun tamamı battı; batan hacim 3 L. Suda her 1 L için 10 N.',
+            aciklama: r`$F_k = 3 \times 10 = 30$ N. Bu, bidonun ağırlığından (33 N) küçüktür.`
+          },
+          {
+            soru: 'Suda bırakılan bidon ne yapar?',
+            secenekler: ['Yüzer.', 'Askıda kalır.', 'Batar.'],
+            dogru: 2,
+            ipucu: 'Yukarı yönlü kaldırma kuvvetini (30 N) aşağı yönlü ağırlıkla (33 N) karşılaştır.',
+            aciklama: r`$F_k < G$ olduğu için bidon batar ve dibe oturur. Bidonun ortalama yoğunluğu $1100\ \text{kg/m}^3$'tür; sudan büyüktür.`
+          },
+          {
+            soru: 'Bidon tuzlu suya tamamen batırılınca ona etki eden kaldırma kuvveti kaç N\'dur?',
+            secenekler: [r`$30$ N`, r`$36$ N`, r`$33$ N`],
+            dogru: 1,
+            ipucu: r`Bu sıvıda her 1 L için kaldırma kuvveti 10 N değil. Tuzlu suyun yoğunluğu suyunkinden büyük: $F_k = V_b \times d_s \times g$.`,
+            aciklama: r`Tuzlu suda batan her 1 L için 12 N vardır: $F_k = 3 \times 12 = 36$ N. Bu, ağırlıktan (33 N) büyüktür; bidon yükselir.`
+          },
+          {
+            soru: 'Bidon tuzlu suyun yüzeyine çıkıp yüzmeye başlayınca ona etki eden kaldırma kuvveti kaç N olur?',
+            secenekler: [r`$36$ N`, r`$30$ N`, r`$33$ N`],
+            dogru: 2,
+            ipucu: 'Yüzen cisimde kaldırma kuvveti ile ağırlık arasındaki ilişkiyi hatırla.',
+            aciklama: r`Yüzen cisim dengededir: $F_k = G = 33$ N. Bidon, kaldırma kuvveti 33 N olana kadar batar; bir kısmı sıvının dışında kalır.`
+          }
+        ],
+        sonuc: 'Aynı bidon suda battı, tuzlu suda yüzdü. Bidon değişmedi; değişen sıvının yoğunluğuydu. Yüzme ve batmayı cismin yoğunluğu ile sıvının yoğunluğu birlikte belirler.'
+      }
+    ],
+    hazir: r`Kaldırma kuvvetinin yukarı yönlü olduğunu, dinamometreyle nasıl ölçüldüğünü, batan hacme ve sıvının yoğunluğuna bağlı olduğunu ve yüzme ile batmayı yoğunluğun belirlediğini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -65306,6 +65658,80 @@ BFY_FIG_EKLE('k1033_nokta', function (u) {
   });
   return svg(W, H, s, u, 72);
 });
+/* =================== SIFIRDAN BAŞLA ŞEKİLLERİ (sf1033_) =================== */
+
+/* Adım 3: K (4 Ω) ve L (2 Ω) elemanlarının V-I grafiği */
+BFY_FIG_EKLE('sf1033_grafik', function (u) {
+  const W = 300, H = 250, ox = 50, oy = 208, sx = i => ox + i * 52, sy = v => oy - v * 12.5;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  for (let i = 1; i <= 4; i++) s += `<line x1="${sx(i)}" y1="${oy}" x2="${sx(i)}" y2="${sy(13.2)}" stroke="${GRID}"/>` + T(sx(i), oy + 17, String(i), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
+  for (let v = 2; v <= 12; v += 2) s += `<line x1="${ox}" y1="${sy(v)}" x2="${sx(4.2)}" y2="${sy(v)}" stroke="${GRID}"/>` + T(ox - 7, sy(v) + 4, String(v), { size: 12, anchor: 'end', weight: 600, fill: P.ink2, halo: false });
+  s += eksen(ox, oy, sx(4.75), sy(14.6), 'I (A)', 'V (V)');
+  s += T(ox - 7, oy + 4, '0', { size: 12, anchor: 'end', fill: P.ink2, halo: false });
+  s += dashLine(ox, sy(12), sx(3), sy(12), P.ink2, '4 3', 1.2) + dashLine(ox, sy(6), sx(3), sy(6), P.ink2, '4 3', 1.2) + dashLine(sx(3), sy(12), sx(3), oy, P.ink2, '4 3', 1.2);
+  const D = (v, c, lab) => `<line x1="${ox}" y1="${oy}" x2="${sx(3.3)}" y2="${f1(sy(v * 1.1))}" stroke="${c}" stroke-width="2.8" stroke-linecap="round"/>` +
+    `<circle cx="${sx(3)}" cy="${sy(v)}" r="4.2" fill="#fff" stroke="${c}" stroke-width="2"/>` + T(sx(3.3) + 10, sy(v * 1.1) + 5, lab, { size: 15, weight: 800, fill: c });
+  s += D(12, P.blue, 'K') + D(6, P.copper, 'L');
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 3: ölçüm noktaları (1 A, 8 V), (2 A, 16 V), (3 A, 24 V) */
+BFY_FIG_EKLE('sf1033_vi', function (u) {
+  const W = 300, H = 250, ox = 50, oy = 208, sx = i => ox + i * 52, sy = v => oy - v * 5.4;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  for (let i = 1; i <= 4; i++) s += `<line x1="${sx(i)}" y1="${oy}" x2="${sx(i)}" y2="${sy(31)}" stroke="${GRID}"/>` + T(sx(i), oy + 17, String(i), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
+  for (let v = 8; v <= 24; v += 8) s += `<line x1="${ox}" y1="${sy(v)}" x2="${sx(4.2)}" y2="${sy(v)}" stroke="${GRID}"/>` + T(ox - 7, sy(v) + 4, String(v), { size: 12, anchor: 'end', weight: 600, fill: P.ink2, halo: false });
+  s += eksen(ox, oy, sx(4.75), sy(34), 'I (A)', 'V (V)');
+  s += T(ox - 7, oy + 4, '0', { size: 12, anchor: 'end', fill: P.ink2, halo: false });
+  s += `<line x1="${ox}" y1="${oy}" x2="${sx(3)}" y2="${sy(24)}" stroke="${P.blue}" stroke-width="2.8" stroke-linecap="round"/>`;
+  [[1, 8], [2, 16], [3, 24]].forEach(([i, v]) => { s += dashLine(ox, sy(v), sx(i), sy(v), P.ink2, '4 3', 1.1) + dashLine(sx(i), sy(v), sx(i), oy, P.ink2, '4 3', 1.1) + `<circle cx="${sx(i)}" cy="${sy(v)}" r="4.4" fill="#fff" stroke="${P.blue}" stroke-width="2.2"/>`; });
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 1: 15 V üreteç, ampermetre seri, voltmetre ısıtıcı tele paralel */
+BFY_FIG_EKLE('sf1033_devre', function (u) {
+  const W = 300, H = 236, xl = 50, xr = 250, yt = 108, yb = 192;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f8f6"/>`;
+  s += tel(xl, yt, 120, yt) + tel(180, yt, xr, yt) + tel(xr, yt, xr, yb) + tel(xr, yb, 159, yb) + tel(141, yb, xl, yb) + tel(xl, yb, xl, 162) + tel(xl, 138, xl, yt);
+  s += direncH(150, yt, 60);
+  s += olcer(xl, 150, 'A');
+  s += pilH(150, yb);
+  s += T(150, yb + 32, '15 V', { size: 13, anchor: 'middle', weight: 800, fill: P.ink });
+  s += tel(108, yt, 108, 46) + tel(108, 46, 138, 46) + tel(162, 46, 192, 46) + tel(192, 46, 192, yt);
+  s += `<circle cx="108" cy="${yt}" r="3" fill="${WIRE}"/><circle cx="192" cy="${yt}" r="3" fill="${WIRE}"/>`;
+  s += olcer(150, 46, 'V');
+  s += T(150, yt + 28, 'ısıtıcı tel', { size: 12.5, anchor: 'middle', weight: 700, fill: RES });
+  s += akimOk(xl, 122, 0, -1) + T(xl - 10, 128, 'I', { size: 13.5, anchor: 'end', weight: 800, italic: true, fill: P.coral });
+  s += akimOk(224, yt, 1, 0) + akimOk(96, yb, -1, 0);
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 2: cetvel üstünde reosta teli, sürgü 60 cm'de, 18 V üreteç ve ampermetre */
+BFY_FIG_EKLE('sf1033_reosta', function (u) {
+  const W = 320, H = 268, x = c => 40 + c * 3, yw = 100, yb = 226, xr = 300, xs = x(60);
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f8f6"/>`;
+  // cetvel
+  s += `<rect x="${x(0) - 8}" y="${yw + 6}" width="${x(80) - x(0) + 16}" height="24" rx="3" fill="url(#${u}wood)" stroke="#b58f55" stroke-width="1"/>`;
+  for (let c = 0; c <= 80; c += 5) s += `<line x1="${x(c)}" y1="${yw + 6}" x2="${x(c)}" y2="${yw + (c % 10 ? 11 : 15)}" stroke="#6b5434" stroke-width="${c % 10 ? .8 : 1.2}"/>`;
+  for (let c = 0; c <= 80; c += 10) s += T(x(c), yw + 27, String(c), { size: 10.5, anchor: 'middle', weight: 700, fill: '#5a4426', halo: false });
+  s += T(x(80) + 12, yw + 23, 'cm', { size: 10.5, weight: 700, fill: '#5a4426', halo: false });
+  // reosta teli ve uç vidaları
+  s += `<line x1="${x(0)}" y1="${yw}" x2="${x(80)}" y2="${yw}" stroke="#8a6d3b" stroke-width="2.4"/>`;
+  s += `<rect x="${x(0) - 5}" y="${yw - 6}" width="10" height="12" rx="2" fill="#7d868e" stroke="#4f585e"/><rect x="${x(80) - 5}" y="${yw - 6}" width="10" height="12" rx="2" fill="#7d868e" stroke="#4f585e"/>`;
+  // sürgü
+  s += `<rect x="${xs - 9}" y="${yw - 20}" width="18" height="16" rx="3" fill="url(#${u}metal)" stroke="#4f585e" stroke-width="1"/>`;
+  s += `<path d="M${xs - 3} ${yw - 4} L${xs} ${yw} L${xs + 3} ${yw - 4}" fill="#4f585e"/>`;
+  s += T(xs + 14, yw - 10, 'sürgü', { size: 12, weight: 700, fill: P.ink2 });
+  // akımın geçtiği kısım
+  s += `<path d="M${x(0)} ${yw + 36} V${yw + 42} H${xs} V${yw + 36}" fill="none" stroke="${P.coral}" stroke-width="1.4"/>`;
+  s += T((x(0) + xs) / 2, yw + 58, 'akımın geçtiği kısım', { size: 12, anchor: 'middle', weight: 700, fill: P.coral });
+  // devre: sol uç → aşağı → ampermetre → üreteç → sağ → yukarı → sürgü
+  s += tel(x(0), yw, 20, yw) + tel(20, yw, 20, yb) + tel(20, yb, 98, yb) + tel(122, yb, 191, yb) + tel(209, yb, xr, yb) + tel(xr, yb, xr, 44) + tel(xr, 44, xs, 44) + tel(xs, 44, xs, yw - 20);
+  s += olcer(110, yb, 'A');
+  s += pilH(200, yb, { ters: true });
+  s += T(200, yb + 32, '18 V', { size: 13, anchor: 'middle', weight: 800, fill: P.ink });
+  return svg(W, H, s, u, 74);
+});
 })();
 /* ---------- 3B GÖRÜNÜMLÜ ÇİZİMLER (izometrik): hikâye, tanım ve efsane kartları ---------- */
 (function () {
@@ -65808,6 +66234,186 @@ const KONU = {
     'SET 2: 33 Ω karbon film direnç ve 6 V 0,3 A akkor lamba V-I ölçümleri (1–6 V), 4,5 V ara değer, soğuk lambada multimetre 1,8 Ω',
     'ADIM 3: K/L/M/N/P elemanlarının üçer V-I ölçümü (20/40/10 Ω, artan ve azalan V/I) eşleştirme', 'ince demir telde direnç değişir/değişmez sınıflaması (kılıf, sarmal, ters akım, kaynar su)', 'kaynak kablosu 3 mΩ, su ısıtıcısı 23 Ω, kulaklık 32 Ω, ocak 50 Ω, termistör 10 kΩ sıralaması', 'teraryum ısıtıcı pedi 12 V 0,60 A: 9/15/6 V adaptör ve 1,5 kat / yarı uzun tel', 'ADIM 5: P ucu bağlı Q ucu boş reosta, sürgü P\'ye kayınca ampermetre/voltmetre/oran', 'programlanabilir güç kaynağı V-t darbeleri (8/0/20/4 V), 40 Ω, toplam yük 1,2 C', 'ZENGİN: bağ evinde 40 m uzaktaki 12 A su pompası, iki damarlı bakır kablo, IEC 60228 1 km damar dirençleri (1,5–10 mm²), 6,9 V kayıp sınırı', 'ZENGİN: aynı maddeden X ve Y tellerinin R-L grafiği (4 ve 12 Ω/m), 1,5 m ve 0,5 m parça, eşit boyda akım oranı', 'ZENGİN: V-I grafiğinde altı ölçüm noktası ve 20 Ω doğrusu sınıflaması', 'SİM: ayarlı kaynak 0–12 V, 20/40/80 Ω, V-I doğruları'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/10.3.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde potansiyel fark, akım ve direnç arasındaki ilişkiyi, yani Ohm Yasası'nı kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Daha çok itiş, daha çok akım',
+        metin: r`Bahçe hortumunu musluğa bağladığını düşün. Musluğu az açarsan su yavaş akar. Çok açarsan suyu iten basınç artar ve hortumdan daha çok su akar.
+
+Elektrik devresinde suyu iten basıncın yerinde **potansiyel fark** ($V$) vardır. Akan suyun yerinde **elektrik akımı** ($I$) vardır. Hortumun suya gösterdiği zorluğun yerinde de **direnç** ($R$) vardır.
+
+Aynı direncin uçlarına daha büyük bir potansiyel fark uygulanırsa ondan daha büyük bir akım geçer.`,
+        kontrol: {
+          soru: 'Bir direncin uçları arasındaki potansiyel fark azaltılırsa, direnç değişmediğine göre, ondan geçen akım ne olur?',
+          secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+          dogru: 1,
+          aciklama: 'Akımı iten etki potansiyel farktır. Potansiyel fark azalınca aynı dirençten daha küçük akım geçer.',
+          yanlisIpucu: 'Musluğu kısınca hortumdan akan su artar mı, azalır mı?'
+        }
+      },
+      {
+        baslik: 'Oran hep aynı: Ohm Yasası',
+        metin: r`Bir öğrenci aynı dirence farklı potansiyel farklar uyguluyor ve her seferinde akımı ölçüyor:
+- $6$ V uygulayınca $1$ A geçiyor.
+- $12$ V uygulayınca $2$ A geçiyor.
+- $18$ V uygulayınca $3$ A geçiyor.
+
+Potansiyel fark 2 katına çıkınca akım da 2 katına çıkıyor. Her satırda $V$'nin $I$'ya bölümü aynıdır: $6$. Bu sabit sayı, elemanın **direncidir**:
+$$R = \dfrac{V}{I}$$
+Direncin birimi **ohm**dur (Ω). Bu direnç $6$ Ω'dur. Sabit sıcaklıkta bu oranın değişmemesine **Ohm Yasası** denir.`,
+        kontrol: {
+          soru: 'Uçları arasında 21 V olan bir elemandan 3 A akım geçiyor. Elemanın direnci kaç Ω\'dur?',
+          secenekler: [r`$63$ Ω`, r`$7$ Ω`, r`$18$ Ω`],
+          dogru: 1,
+          aciklama: r`$R = \dfrac{V}{I} = \dfrac{21}{3} = 7$ Ω.`,
+          yanlisIpucu: 'Direnç, potansiyel farkın akıma bölümüdür. Çarpma ya da çıkarma yapma; 21\'i 3\'e böl.'
+        }
+      },
+      {
+        baslik: 'Grafikte eğim direnci gösterir',
+        sekil: 'sf1033_grafik',
+        metin: r`Ölçümleri bir grafiğe dökelim. Düşey eksende potansiyel fark ($V$), yatay eksende akım ($I$) olsun. Direnci sabit bir elemanın noktaları başlangıç noktasından geçen bir **doğru** üzerine dizilir.
+
+Şekilde iki eleman var. Akım 3 A iken K'nin uçlarında 12 V, L'nin uçlarında 6 V vardır:
+- K'nin direnci: $\dfrac{12}{3} = 4$ Ω.
+- L'nin direnci: $\dfrac{6}{3} = 2$ Ω.
+
+Doğrunun **eğimi**, yani $\dfrac{V}{I}$ oranı, direnci verir. Daha dik çıkan doğrunun direnci daha büyüktür.`,
+        kontrol: {
+          soru: 'Şekildeki K ve L elemanlarına aynı potansiyel fark uygulanırsa hangisinden daha büyük akım geçer?',
+          secenekler: ['K\'den.', 'L\'den.', 'İkisinden eşit akım geçer.'],
+          dogru: 1,
+          aciklama: r`L'nin direnci daha küçüktür. Aynı potansiyel farkta direnci küçük olan elemandan daha büyük akım geçer. Örneğin 12 V'ta K'den 3 A, L'den 6 A geçer.`,
+          yanlisIpucu: 'Dik doğru büyük direnç demektir. Direnci büyük olan eleman akımı kolay mı geçirir, zor mu?'
+        }
+      },
+      {
+        baslik: 'Akımı ya da potansiyel farkı bul',
+        metin: r`Ohm Yasası'nı üç biçimde yazabiliriz. Hangisini bulmak istiyorsan onu yalnız bırak:
+$$R = \dfrac{V}{I} \qquad I = \dfrac{V}{R} \qquad V = I \times R$$
+
+Bir kamyonun $24$ V'luk aküsüne, direnci $12$ Ω olan bir koltuk ısıtıcısının teli bağlı olsun. Telden geçen akım:
+$$I = \dfrac{V}{R} = \dfrac{24}{12} = 2\ \text{A}$$`,
+        kontrol: {
+          soru: '11 Ω\'luk bir dirençten 2 A akım geçiyor. Direncin uçları arasındaki potansiyel fark kaç V\'tur?',
+          secenekler: [r`$13$ V`, r`$22$ V`, r`$9$ V`],
+          dogru: 1,
+          aciklama: r`$V = I \times R = 2 \times 11 = 22$ V.`,
+          yanlisIpucu: 'Akım ve direnç verildi. Potansiyel farkı bulmak için bu ikisini çarp.'
+        }
+      },
+      {
+        baslik: 'Tel değişirse akım da değişir',
+        metin: r`Aynı sıcaklıkta bir telin direnci boyutlarına bağlıdır. Aynı maddeden yapılmış tellerde:
+- Uzunluk 2 katına çıkarsa direnç de 2 katına çıkar.
+- Kesit alanı 2 katına çıkarsa direnç yarıya iner.
+
+Direnç değişince aynı potansiyel farkta geçen akım da değişir. $20$ V'luk bir üretece $10$ Ω'luk bir tel bağlanınca $2$ A geçer. Aynı maddeden, aynı kalınlıkta ama 2 kat uzun bir tel bağlanırsa direnç $20$ Ω olur ve akım $\dfrac{20}{20} = 1$ A'e iner.`,
+        kontrol: {
+          soru: 'Aynı üretece bağlı bir telin yerine aynı maddeden, aynı uzunlukta ama kesit alanı 2 katı olan bir tel bağlanıyor. Akım ne olur?',
+          secenekler: ['Yarıya iner.', 'Değişmez.', '2 katına çıkar.'],
+          dogru: 2,
+          aciklama: r`Kesit alanı 2 katına çıkınca direnç yarıya iner. Potansiyel fark aynı olduğu için $I = \dfrac{V}{R}$'ye göre akım 2 katına çıkar.`,
+          yanlisIpucu: 'Önce direncin ne olduğunu bul: Kalın tel akıma daha mı az, daha mı çok zorluk gösterir? Sonra akımı düşün.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Laboratuvardaki ölçüm',
+        sekil: 'sf1033_devre',
+        metin: r`Şekildeki devrede 15 V'luk bir üretece bir ısıtıcı tel, bir ampermetre ve tele paralel bir voltmetre bağlı. Ampermetre 3 A gösteriyor. Bağlantı kablolarının, ampermetrenin ve üretecin direnci önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Voltmetre kaç V gösterir?',
+            secenekler: [r`$15$ V`, r`$3$ V`, r`$0$`],
+            dogru: 0,
+            ipucu: 'Voltmetrenin iki ucu ısıtıcı telin iki ucuna bağlı. Devrede direnci önemsenen tek eleman ısıtıcı tel.',
+            aciklama: 'Kabloların direnci önemsenmediği için üretecin potansiyel farkının tamamı ısıtıcı telin uçlarına düşer. Voltmetre 15 V gösterir.'
+          },
+          {
+            soru: 'Isıtıcı telin direnci kaç Ω\'dur?',
+            secenekler: [r`$45$ Ω`, r`$5$ Ω`, r`$12$ Ω`],
+            dogru: 1,
+            ipucu: r`$R = \dfrac{V}{I}$. Voltmetrenin değerini ampermetrenin değerine böl.`,
+            aciklama: r`$R = \dfrac{15}{3} = 5$ Ω.`
+          },
+          {
+            soru: 'Üreteç 10 V\'luk bir üreteçle değiştirilirse ampermetre kaç A gösterir?',
+            secenekler: [r`$3$ A`, r`$50$ A`, r`$2$ A`],
+            dogru: 2,
+            ipucu: 'Telin direnci değişmedi, yine 5 Ω. Yeni potansiyel farkı dirence böl.',
+            aciklama: r`$I = \dfrac{V}{R} = \dfrac{10}{5} = 2$ A. Potansiyel fark azaldığı için akım da azaldı.`
+          }
+        ],
+        sonuc: 'Voltmetre ve ampermetre okumalarından direnç bulunur. Direnç telin kendi özelliğidir; üreteç değişse de değişmez. Değişen, geçen akımdır.'
+      },
+      {
+        baslik: 'Sürgülü direnç',
+        sekil: 'sf1033_reosta',
+        metin: r`Bir reostanın teli bir cetvelin üstüne gerilmiş. Telin her 10 cm'sinin direnci 3 Ω'dur. Reosta, 18 V'luk bir üretece ve bir ampermetreye bağlı. Akım, telin yalnız sol ucu ile sürgü arasındaki kısmından geçer. Başta sürgü 60 cm çizgisinde duruyor.`,
+        adimlar: [
+          {
+            soru: 'Başta akımın geçtiği tel kısmının direnci kaç Ω\'dur?',
+            secenekler: [r`$18$ Ω`, r`$6$ Ω`, r`$180$ Ω`],
+            dogru: 0,
+            ipucu: '60 cm\'de kaç tane 10 cm var? Her 10 cm 3 Ω.',
+            aciklama: r`60 cm, 6 tane 10 cm'dir: $R = 6 \times 3 = 18$ Ω.`
+          },
+          {
+            soru: 'Ampermetre kaç A gösterir?',
+            secenekler: [r`$3$ A`, r`$1$ A`, r`$324$ A`],
+            dogru: 1,
+            ipucu: r`$I = \dfrac{V}{R}$. Üretecin potansiyel farkını bu kısmın direncine böl.`,
+            aciklama: r`$I = \dfrac{18}{18} = 1$ A.`
+          },
+          {
+            soru: 'Sürgü 30 cm çizgisine kaydırılırsa ampermetre kaç A gösterir?',
+            secenekler: [r`$2$ A`, r`$1$ A`, r`$3$ A`],
+            dogru: 0,
+            ipucu: 'Akımın geçtiği tel yarıya indi. Direnç ne olur? Sonra akımı hesapla.',
+            aciklama: r`30 cm'lik telin direnci $3 \times 3 = 9$ Ω'dur. $I = \dfrac{18}{9} = 2$ A. Tel yarıya inince direnç yarıya indi, akım 2 katına çıktı.`
+          }
+        ],
+        sonuc: 'Reosta, akımın geçtiği telin uzunluğunu değiştirerek direnci ayarlar. Potansiyel fark sabitken direnç küçülünce akım büyür.'
+      },
+      {
+        baslik: 'Ölçümlerden çizilen grafik',
+        sekil: 'sf1033_vi',
+        metin: r`Bir öğrenci, bir telin uçlarına farklı potansiyel farklar uygulayıp akımı ölçüyor ve sonuçları şekildeki V-I grafiğine işliyor. Telin sıcaklığı ölçüm boyunca değişmiyor.`,
+        adimlar: [
+          {
+            soru: 'Telin direnci kaç Ω\'dur?',
+            secenekler: [r`$24$ Ω`, r`$3$ Ω`, r`$8$ Ω`],
+            dogru: 2,
+            ipucu: r`Grafikten bir nokta seç. O noktadaki $V$ değerini $I$ değerine böl.`,
+            aciklama: r`Örneğin 3 A'de 24 V vardır: $R = \dfrac{24}{3} = 8$ Ω. Öteki noktalar da aynı sonucu verir: $\dfrac{8}{1} = \dfrac{16}{2} = 8$.`
+          },
+          {
+            soru: 'Tele 40 V uygulanırsa ondan kaç A akım geçer?',
+            secenekler: [r`$5$ A`, r`$320$ A`, r`$3$ A`],
+            dogru: 0,
+            ipucu: 'Grafik doğru olduğu için direnç 40 V\'ta da 8 Ω\'dur.',
+            aciklama: r`$I = \dfrac{V}{R} = \dfrac{40}{8} = 5$ A. Doğru, aynı eğimle uzatılsa 5 A'de 40 V'a ulaşır.`
+          },
+          {
+            soru: 'Bu telin yerine aynı maddeden, aynı kalınlıkta ama uzunluğu yarısı kadar olan bir tel konursa, 24 V uygulandığında kaç A geçer?',
+            secenekler: [r`$3$ A`, r`$6$ A`, r`$12$ A`],
+            dogru: 1,
+            ipucu: 'Uzunluk yarıya inince direnç de yarıya iner. Yeni direnç kaç Ω olur?',
+            aciklama: r`Yeni direnç $8 \div 2 = 4$ Ω'dur. $I = \dfrac{24}{4} = 6$ A. Yeni telin doğrusu daha yatık olur.`
+          }
+        ],
+        sonuc: 'V-I grafiği başlangıç noktasından geçen bir doğruysa eleman Ohm Yasası\'na uyar. Doğrunun eğimi direnci verir. Bir noktayı okuyup V\'yi I\'ya bölmek yeterlidir.'
+      }
+    ],
+    hazir: r`Potansiyel fark arttıkça akımın arttığını, $\dfrac{V}{I}$ oranının direnç olduğunu, V-I grafiğinde eğimin direnci verdiğini ve telin boyutları değişince akımın nasıl değiştiğini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -104568,6 +105174,104 @@ BFY_FIG_EKLE('k124_iki_ikincil', function (u) {
   s += T(171, 246, 'kapalı demir çekirdek', { size: 13, anchor: 'middle', weight: 700, fill: P.ink2 });
   return svg(W, H, s, u, 72);
 });
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1124_) ---------- */
+/* Gerçekçi ampul: dip merkezi (x, y) */
+function ampulSf(u, x, y, parlak = true) {
+  let s = '';
+  if (parlak) s += `<circle cx="${x}" cy="${y - 30}" r="26" fill="#ffe680" opacity=".35"/>`;
+  s += `<path d="M${x - 7} ${y - 14} Q${x - 18} ${y - 22} ${x - 18} ${y - 32} A18 18 0 1 1 ${x + 18} ${y - 32} Q${x + 18} ${y - 22} ${x + 7} ${y - 14} Z" fill="${parlak ? '#fff3b0' : '#eef2f4'}" stroke="#8e979f" stroke-width="1.2"/>`;
+  s += `<path d="M${x - 4} ${y - 15} L${x - 4} ${y - 30} L${x - 1} ${y - 34} L${x + 1} ${y - 30} L${x + 4} ${y - 34} L${x + 4} ${y - 15}" fill="none" stroke="#9c6b2f" stroke-width="1"/>`;
+  s += `<rect x="${x - 8}" y="${y - 15}" width="16" height="13" rx="2" fill="url(#${u}metal)" stroke="#6e7780" stroke-width="1"/>`;
+  s += `<path d="M${x - 8} ${y - 11} H${x + 8} M${x - 8} ${y - 7} H${x + 8}" stroke="#6e7780" stroke-width=".8"/>`;
+  return s;
+}
+/* Bobin makarası (plastik gövde + bakır sarım): kol üzerinde, x1..x2, y1..y2 */
+function makara(x1, x2, y1, y2, n) {
+  return `<rect x="${x1 - 3}" y="${y1 - 5}" width="${x2 - x1 + 6}" height="5" rx="1.5" fill="#3d4449"/><rect x="${x1 - 3}" y="${y2}" width="${x2 - x1 + 6}" height="5" rx="1.5" fill="#3d4449"/>` + bobin(x1, x2, y1, y2, n, 4);
+}
+
+/* Adım 1: yapı (fiş → birincil, ikincil → ampul), bobinler arasında tel yok */
+BFY_FIG_EKLE('sf1124_trafo', function (u) {
+  const W = 340, H = 256;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f3fb"/>`;
+  s += `<ellipse class="shadowish" cx="180" cy="212" rx="84" ry="7" fill="#000" opacity=".12"/>`;
+  s += cekirdek(u, 112, 62, 248, 204, 26);
+  s += makara(102, 148, 86, 180, 10);
+  s += makara(212, 258, 104, 162, 5);
+  // birincil: fiş ve kablo
+  s += `<path d="M102 92 H64 V70 M102 174 H50 V70" fill="none" stroke="${C.wire}" stroke-width="2.2"/>`;
+  s += `<rect x="40" y="44" width="34" height="28" rx="6" fill="#f2f2f0" stroke="#9aa3ab" stroke-width="1.2"/>`;
+  s += `<rect x="47" y="28" width="5" height="17" rx="2.5" fill="url(#${u}metalV)" stroke="#7d868e" stroke-width=".6"/><rect x="62" y="28" width="5" height="17" rx="2.5" fill="url(#${u}metalV)" stroke="#7d868e" stroke-width=".6"/>`;
+  s += T(30, 128, 'prize', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(30, 143, 'giden', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(30, 158, 'fiş', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // ikincil: ampul
+  s += `<path d="M258 110 H300 V96 M258 156 H316 V96 H306" fill="none" stroke="${C.wire}" stroke-width="2.2"/>`;
+  s += ampulSf(u, 304, 96);
+  // etiketler
+  s += T(125, 236, 'birincil bobin', { size: 12.5, anchor: 'middle', weight: 800, fill: '#7d4a27' });
+  s += `<line x1="125" y1="224" x2="125" y2="186" stroke="#9b8a7a" stroke-width="1" stroke-dasharray="2 2"/>`;
+  s += T(240, 236, 'ikincil bobin', { size: 12.5, anchor: 'middle', weight: 800, fill: '#7d4a27' });
+  s += `<line x1="236" y1="224" x2="236" y2="168" stroke="#9b8a7a" stroke-width="1" stroke-dasharray="2 2"/>`;
+  s += T(180, 30, 'demir çekirdek', { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink2 });
+  s += `<line x1="180" y1="36" x2="180" y2="60" stroke="#9b8a7a" stroke-width="1" stroke-dasharray="2 2"/>`;
+  s += T(180, 128, 'tel', { size: 11.5, anchor: 'middle', weight: 700, fill: C.vio });
+  s += T(180, 142, 'bağlantısı', { size: 11.5, anchor: 'middle', weight: 700, fill: C.vio });
+  s += T(180, 156, 'yok', { size: 11.5, anchor: 'middle', weight: 700, fill: C.vio });
+  return svg(W, H, s, u, 76);
+});
+
+/* Adım 3: yükseltici ve alçaltıcı (sarım sayıları) */
+BFY_FIG_EKLE('sf1124_sarim', function (u) {
+  const W = 340, H = 232;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f3fb"/>`;
+  const pan = [{ x: 0, ad: 'Yükseltici', np: 4, ns: 9, alt: 'N_s > N_p,  V_s > V_p' }, { x: 170, ad: 'Alçaltıcı', np: 9, ns: 4, alt: 'N_s < N_p,  V_s < V_p' }];
+  pan.forEach(p => {
+    const x0 = p.x + 30, x1 = p.x + 140, y0 = 52, y1 = 172;
+    s += cekirdek(u, x0 + 8, y0, x1 - 8, y1, 18);
+    const yo = (y0 + y1) / 2, h = n => n * 9;
+    s += bobin(x0, x0 + 34, yo - h(p.np) / 2, yo + h(p.np) / 2, p.np, 3.6);
+    s += bobin(x1 - 34, x1, yo - h(p.ns) / 2, yo + h(p.ns) / 2, p.ns, 3.6);
+    s += T(p.x + 85, 30, p.ad, { size: 14, anchor: 'middle', weight: 800, fill: C.vio });
+    s += T(x0 + 17, y1 + 20, 'N_p', { size: 13, anchor: 'middle', weight: 800, fill: '#7d4a27' });
+    s += T(x1 - 17, y1 + 20, 'N_s', { size: 13, anchor: 'middle', weight: 800, fill: '#7d4a27' });
+    s += T(p.x + 85, y1 + 46, p.alt, { size: 12.5, anchor: 'middle', weight: 800, fill: P.ink });
+  });
+  s += `<line x1="170" y1="40" x2="170" y2="${H - 14}" stroke="#d6d0ea" stroke-width="1.2"/>`;
+  return svg(W, H, s, u, 76);
+});
+
+/* Isınma 2: rüzgâr çiftliği → T1 → yüksek gerilim hattı → T2 → şehir (geniş) */
+function turbin(x, gy, top) {
+  return `<path d="M${x - 4} ${gy} L${x - 2} ${top} H${x + 2} L${x + 4} ${gy} Z" fill="#eef1f3" stroke="#9aa3ab" stroke-width="1"/>` +
+    `<rect x="${x - 6}" y="${top - 5}" width="14" height="8" rx="3" fill="#e4e7e9" stroke="#9aa3ab" stroke-width="1"/>` +
+    [90, 210, 330].map(a => { const r = a * Math.PI / 180, ex = x + 30 * Math.cos(r), ey = top - 1 + 30 * Math.sin(r); return `<path d="M${x} ${top - 1} L${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="#f7f8f9" stroke-width="4.4" stroke-linecap="round"/><path d="M${x} ${top - 1} L${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="#b9c1c7" stroke-width="1" stroke-linecap="round" opacity=".8"/>`; }).join('') +
+    `<circle cx="${x}" cy="${top - 1}" r="3" fill="#cfd5da" stroke="#8e979f" stroke-width=".8"/>`;
+}
+BFY_FIG_EKLE('sf1124_hat_genis', function (u) {
+  const W = 560, H = 226, gy = 188;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${gy}" width="${W}" height="${H - gy}" fill="url(#${u}grass)"/>`;
+  s += turbin(34, gy, 96) + turbin(84, gy, 110);
+  const wire = d => `<path d="${d}" fill="none" stroke="${C.wire}" stroke-width="1.6"/>`;
+  s += wire('M34 174 H122') + wire('M146 150 L176 94 H224 Q246 106 268 94 H316 L346 150') + wire('M370 170 H420');
+  s += pilon(200, 84, gy) + pilon(292, 84, gy);
+  [[134, 'T1'], [358, 'T2']].forEach(([x, ad]) => {
+    s += `<rect x="${x - 17}" y="${gy - 34}" width="34" height="34" rx="3" fill="#dcd6ef" stroke="${C.vio}" stroke-width="1.2"/>`;
+    s += `<rect x="${x - 13}" y="${gy - 40}" width="5" height="7" fill="#8fb3c9"/><rect x="${x + 8}" y="${gy - 40}" width="5" height="7" fill="#8fb3c9"/>`;
+    s += trSembol(x, gy - 17, 8);
+    s += T(x, gy + 17, ad, { size: 13, anchor: 'middle', weight: 800, fill: C.vio });
+  });
+  // şehir
+  s += `<rect x="420" y="120" width="30" height="${gy - 120}" fill="url(#${u}facade)" stroke="#b3a386"/>` + `<rect x="456" y="96" width="34" height="${gy - 96}" fill="url(#${u}concrete)" stroke="#8e979f"/>` + `<rect x="496" y="132" width="26" height="${gy - 132}" fill="url(#${u}facade)" stroke="#b3a386"/>`;
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) s += `<rect x="${462 + c * 14}" y="${104 + r * 18}" width="8" height="9" fill="url(#${u}glass)"/>`;
+  s += ev(u, 526, gy, 24, 20);
+  s += T(60, 24, 'Rüzgâr çiftliği', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += T(246, 24, 'Yüksek gerilim hattı', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += T(480, 24, 'Şehir', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += T(246, H - 6, '(Şekil ölçekli değildir.)', { size: 10, anchor: 'middle', weight: 600, fill: P.ink2 });
+  return svg(W, H, s, u, 170);
+});
 })();
 
 /* ---------- HİKÂYE, TANIM ve EFSANE: 3B görünümlü (izometrik) çizimler — 11.2.4 Transformatörler ---------- */
@@ -105129,6 +105833,208 @@ const KONU = {
     'SET: boyunduruk ile kollar arasına kâğıt konarak 0–2 mm hava aralığı (400/800 sarım), V_p, i_p, V_s; birleşim yerleri açılmış eski trafo', 'ideal/gerçek transformatör ifadeleri (sınıfla)', 'iletim kaybı oranları P=Vi, i²R (eşleştir)', 'ikincile paralel lamba eklenince neden-sonuç zinciri (sırala)', 'yük bilinmeden belirlenebilen nicelikler (sınıfla)', 'kablosuz şarj pedi ve telefon bobini', 'X ve Y transformatörlerinin i_p–i_s grafiği', 'sınıfta iletim modeli: uzun ince teller, T1 yükseltici, T2 alçaltıcı, lamba', 'bir birincil, iki ikincil (K, L) bobinli transformatör, A ve B lambaları, S anahtarı',
     'mahalle dağıtım transformatörünün bir gündeki birincil ve ikincil akım grafikleri (temsilî)', 'pano kablosundaki akımı ölçen halka çekirdekli akım transformatörü ve ampermetre', 'transformatör parçaları ve görevleri (eşleştir)', 'SİM: ideal transformatör, N_s kaydırıcısı, N_p ve AC/DC seçimi, V_s/V_p–N_s grafiği'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Program kısıtı gereği sayısal hesap yok; sorular artar/azalır, büyük/küçük yorumudur. Doğrulama qa/11.2.4/dogrula.py içinde. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde transformatörün nasıl yapıldığını, gerilimi nasıl değiştirdiğini ve elektriğin şehirlere neden yüksek gerilimle taşındığını kısa adımlarla göreceksin. Bu konuda hesap yok; hangi niceliğin büyük, hangisinin küçük olduğunu yorumlayacağız. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'İki bobin, bir demir çekirdek',
+        sekil: 'sf1124_trafo',
+        metin: r`Prizdeki gerilim 230 V'tur. Oysa bir kapı zili, bir oyuncak tren ya da bir masa lambasının küçük ampulü çok daha düşük bir gerilimle çalışır. Gerilimi değiştiren alete **transformatör** denir.
+
+Transformatörün yapısı basittir:
+- Kapalı bir **demir çekirdek** vardır.
+- Çekirdeğin bir koluna **birincil bobin**, öbür koluna **ikincil bobin** sarılır.
+- Birincil bobin kaynağa, ikincil bobin cihaza (yüke) bağlanır.
+
+İki bobin arasında hiçbir tel bağlantısı yoktur. Birincil bobin çekirdekte bir **manyetik akı** oluşturur. Demir çekirdek bu akıyı ikincil bobine taşır. Enerji, bobinden bobine bu yolla aktarılır.`,
+        kontrol: {
+          soru: 'Transformatörde birincil bobinden ikincil bobine enerjiyi ne taşır?',
+          secenekler: ['İki bobini birbirine bağlayan bakır tel', 'Demir çekirdekteki manyetik akı', 'Bobinlerin arasındaki hava'],
+          dogru: 1,
+          aciklama: 'Bobinler arasında tel yoktur. Birincil bobinin oluşturduğu manyetik akıyı demir çekirdek ikincil bobine taşır.',
+          yanlisIpucu: 'Şekle bak: İki bobini birleştiren bir tel var mı? İki bobinin ortak olarak sarıldığı parça hangisi?'
+        }
+      },
+      {
+        baslik: 'Değişen akım, değişen akı',
+        metin: r`İndüksiyon akımı konusunu hatırla: Bir bobinden geçen manyetik akı **değişirse** bobinde gerilim oluşur. Akı sabit kalırsa gerilim oluşmaz.
+
+Prizdeki akım **alternatif akımdır** (AC). Yönü ve büyüklüğü saniyede pek çok kez değişir. Birincil bobinden alternatif akım geçince çekirdekteki akı da sürekli değişir. Bu değişen akı ikincil bobinden de geçer ve ikincil bobinde gerilim oluşturur.
+
+Bu yüzden transformatör alternatif akımla çalışır.`,
+        kontrol: {
+          soru: 'Birincil bobin, akımı hiç değişmeyen bir pile bağlanırsa ikincil bobinde sürekli bir gerilim oluşur mu?',
+          secenekler: ['Oluşur, çünkü birincilden akım geçiyor.', 'Oluşmaz, çünkü çekirdekteki akı değişmiyor.', 'Oluşur ve pilin geriliminden büyük olur.'],
+          dogru: 1,
+          aciklama: 'Pilin akımı sabittir. Sabit akım sabit bir akı oluşturur. Akı değişmediği için ikincil bobinde gerilim oluşmaz.',
+          yanlisIpucu: 'İkincilde gerilimi akımın kendisi değil, akının değişmesi oluşturur. Pilin akımı değişiyor mu?'
+        }
+      },
+      {
+        baslik: 'Sarım sayısı gerilimi belirler',
+        sekil: 'sf1124_sarim',
+        metin: r`Birincil bobinin sarım sayısına $N_p$, ikincil bobininkine $N_s$ denir. Aynı değişen akı iki bobinden de geçer. Bu yüzden sarımı çok olan bobinin gerilimi büyük olur.
+- $N_s > N_p$ ise ikincil gerilim birincilden büyüktür: $V_s > V_p$. Bu transformatöre **yükseltici** denir.
+- $N_s < N_p$ ise ikincil gerilim birincilden küçüktür: $V_s < V_p$. Bu transformatöre **alçaltıcı** denir.
+
+İdeal bir transformatörde gerilimlerin oranı sarım sayılarının oranına eşittir: $\dfrac{V_p}{V_s} = \dfrac{N_p}{N_s}$.`,
+        kontrol: {
+          soru: 'Bir transformatörün birincil bobininde 1000, ikincil bobininde 50 sarım var. Bu transformatör hangisidir?',
+          secenekler: ['Yükseltici', 'Alçaltıcı', 'Ne yükseltici ne alçaltıcı'],
+          dogru: 1,
+          aciklama: r`İkincil bobinin sarımı az ($N_s < N_p$). Sarımı az olan bobinin gerilimi küçüktür: $V_s < V_p$. Transformatör alçaltıcıdır.`,
+          yanlisIpucu: 'Hangi bobinin sarımı daha çok? Gerilim, sarımı çok olan tarafta büyüktür.'
+        }
+      },
+      {
+        baslik: 'Gerilimden kazanılan, akımdan verilir',
+        metin: r`Transformatör enerji üretmez. İdeal bir transformatörde birincil bobine verilen güç, ikincil bobinden aynen alınır:
+$$V_p \times i_p = V_s \times i_s$$
+
+Bu eşitlikte bir taraf büyürken öbürü küçülmelidir:
+- Yükselticide gerilim büyür, akım küçülür: $i_s < i_p$.
+- Alçaltıcıda gerilim küçülür, akım büyür: $i_s > i_p$.
+
+Kısacası, sarımı çok olan bobinin gerilimi büyük, akımı küçüktür.`,
+        kontrol: {
+          soru: 'İdeal bir alçaltıcı transformatörde ikincil akım ($i_s$) ile birincil akım ($i_p$) arasındaki ilişki hangisidir?',
+          secenekler: [r`$i_s > i_p$`, r`$i_s < i_p$`, r`$i_s = i_p$`],
+          dogru: 0,
+          aciklama: r`Alçaltıcıda $V_s < V_p$'dir. Güç değişmediği için gerilimi küçük olan ikincil tarafta akım büyüktür: $i_s > i_p$.`,
+          yanlisIpucu: r`$V_p \times i_p = V_s \times i_s$ eşitliğini düşün. $V_s$ küçükse eşitliğin sağlanması için $i_s$ nasıl olmalı?`
+        }
+      },
+      {
+        baslik: 'Gerçek transformatör biraz ısınır',
+        metin: r`Bir dizüstü bilgisayarın adaptörü uzun süre çalışınca elle tutulduğunda ılık gelir. Gerçek bir transformatörde enerjinin bir kısmı ikincil bobine ulaşmaz:
+- Bobin telleri akım geçince ısınır.
+- Demir çekirdek de ısınır.
+- Akının bir kısmı ikincil bobine ulaşmaz.
+
+Bu yüzden gerçek transformatörde ikincilden alınan güç, birincile verilen güçten biraz küçüktür: $P_s < P_p$. İkincil gücün birincil güce oranına **verim** denir. Gerçek transformatörlerin verimi %100'den küçüktür. İdeal transformatörün verimi ise %100'dür.`,
+        kontrol: {
+          soru: 'Gerçek bir transformatörde ikincilden alınan güç ($P_s$), birincile verilen güce ($P_p$) göre nasıldır?',
+          secenekler: [r`$P_s > P_p$`, r`$P_s = P_p$`, r`$P_s < P_p$`],
+          dogru: 2,
+          aciklama: r`Enerjinin bir kısmı teller ve çekirdekte ısıya dönüşür. Bu yüzden $P_s < P_p$'dir ve verim %100'den küçüktür.`,
+          yanlisIpucu: 'Adaptörün ısınması neyi gösterir? Isıya dönüşen enerji ikincile ulaşabilir mi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Oyuncak yarış pisti',
+        metin: r`Bir oyuncak yarış pistinin fişinde küçük bir transformatör var. Transformatör prizdeki 230 V'u, arabaların motorlarına uygun 12 V'a dönüştürüyor. Transformatörü ideal kabul edelim.`,
+        adimlar: [
+          {
+            soru: 'Bu transformatör hangi türdendir?',
+            secenekler: ['Yükseltici', 'Alçaltıcı', 'Ne yükseltici ne alçaltıcı'],
+            dogru: 1,
+            ipucu: 'İkincil gerilim (12 V) birincil gerilimden (230 V) büyük mü, küçük mü?',
+            aciklama: r`$V_s < V_p$ olduğu için transformatör alçaltıcıdır.`
+          },
+          {
+            soru: 'Hangi bobinin sarım sayısı daha çoktur?',
+            secenekler: ['Birincil bobinin', 'İkincil bobinin', 'İkisininki eşittir.'],
+            dogru: 0,
+            ipucu: 'Gerilimi büyük olan bobin hangisi? Gerilim, sarımı çok olan tarafta büyüktür.',
+            aciklama: r`Gerilimi büyük olan birincil bobindir. Bu yüzden sarımı da çoktur: $N_p > N_s$.`
+          },
+          {
+            soru: 'İkincil akım ile birincil akım arasındaki ilişki hangisidir?',
+            secenekler: [r`$i_s < i_p$`, r`$i_s = i_p$`, r`$i_s > i_p$`],
+            dogru: 2,
+            ipucu: 'Güç iki tarafta aynıdır. Gerilimi küçük olan tarafta akım nasıl olmalı?',
+            aciklama: r`Alçaltıcıda gerilimi küçük olan ikincil tarafta akım büyüktür: $i_s > i_p$.`
+          },
+          {
+            soru: 'Piste ikinci bir araba konup ikisi birlikte çalışınca prizden çekilen birincil akım ne olur?',
+            secenekler: ['Azalır.', 'Değişmez.', 'Artar.'],
+            dogru: 2,
+            ipucu: 'İki araba bir arabadan daha çok güç çeker. Bu güç nereden gelir?',
+            aciklama: 'İkincil gerilim değişmez, yine 12 V\'tur. Ama iki motor daha çok güç çeker ve ikincil akım artar. Bu güç prizden geldiği için birincil akım da artar.'
+          }
+        ],
+        sonuc: 'İkincil gerilimi sarım sayıları belirler; arabalar eklense de 12 V kalır. İkincil akımı ise bağlanan yük belirler. Yük çok güç çekerse prizden de çok güç çekilir.'
+      },
+      {
+        baslik: 'Rüzgâr çiftliğinden şehre',
+        sekil: 'sf1124_hat_genis',
+        metin: r`Bir rüzgâr çiftliğinde üretilen elektrik, şehre uzun iletim hatlarıyla taşınıyor. Şekilde çiftliğin çıkışında T1, şehrin girişinde T2 transformatörü var. İletim hattı yüksek gerilim hattıdır. Hat tellerinin bir direnci vardır ve teller akım geçince ısınır. T1 ve T2 transformatörlerini ideal kabul edelim.`,
+        adimlar: [
+          {
+            soru: 'Çiftliğin çıkışındaki T1 transformatörü hangi türdendir?',
+            secenekler: ['Yükseltici', 'Alçaltıcı', 'İkisi de olabilir.'],
+            dogru: 0,
+            ipucu: 'Hat yüksek gerilim hattı. T1, çiftliğin gerilimini hatta uygun hâle getiriyor.',
+            aciklama: 'Gerilim hatta çiftliktekinden çok daha büyüktür. Gerilimi büyüten transformatör yükselticidir.'
+          },
+          {
+            soru: 'Aynı güç taşınırken gerilim yükseltilince hattaki akım ne olur?',
+            secenekler: ['Büyür.', 'Küçülür.', 'Değişmez.'],
+            dogru: 1,
+            ipucu: r`Taşınan güç $V \times i$'dir. Güç aynı kalırken $V$ büyürse $i$ nasıl olmalı?`,
+            aciklama: 'Güç aynı kalır. Gerilim büyüdüğü için akım küçülür.'
+          },
+          {
+            soru: 'Hattaki akım küçülünce tellerde ısıya dönüşen enerji ne olur?',
+            secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+            dogru: 1,
+            ipucu: 'Tellerin ısınmasının nedeni içinden geçen akımdır. Akım küçülünce teller daha mı çok, daha mı az ısınır?',
+            aciklama: 'Tellerde ısıya dönüşen güç akımla birlikte hızla azalır. Küçük akımla taşınan enerjinin yolda kaybolan kısmı küçük olur.'
+          },
+          {
+            soru: 'Şehrin girişindeki T2 transformatörü hangi türdendir?',
+            secenekler: ['Yükseltici', 'Alçaltıcı', 'İkisi de olabilir.'],
+            dogru: 1,
+            ipucu: 'Evlere bu kadar yüksek gerilim verilebilir mi? T2 gerilimi ne yapmalı?',
+            aciklama: 'Yüksek gerilim evlerde kullanılamaz. T2 gerilimi düşürür; alçaltıcıdır. Mahalle trafoları gerilimi son kez düşürür ve evlere 230 V ulaşır.'
+          }
+        ],
+        sonuc: 'Elektrik santral çıkışında yükseltilir, şehre yakın yerde alçaltılır. Yüksek gerilimle taşımak akımı küçültür ve tellerdeki ısı kaybını azaltır.'
+      },
+      {
+        baslik: 'Ayarlı kaynak ve küçük lamba',
+        metin: r`Bir öğretmen sınıfta sökülebilir bir transformatörle gösteri yapıyor. Birincil bobin, gerilimi ayarlanabilen bir alternatif akım kaynağına bağlı. İkincil bobine küçük bir lamba bağlı ve lamba yanıyor. Transformatörü ideal kabul edelim.`,
+        adimlar: [
+          {
+            soru: 'Öğretmen kaynağın gerilimini ($V_p$) azaltırsa lamba ne olur?',
+            secenekler: ['Daha parlak yanar.', 'Daha sönük yanar.', 'Parlaklığı değişmez.'],
+            dogru: 1,
+            ipucu: r`Sarım sayıları değişmedi. $V_p$ küçülürse $V_s$ nasıl değişir?`,
+            aciklama: r`Sarım sayıları aynıyken $V_p$ küçülünce $V_s$ de küçülür. Lambanın gerilimi azalır ve lamba daha sönük yanar.`
+          },
+          {
+            soru: r`Öğretmen gerilimi eski değerine getirip ikincil bobinin sarım sayısını ($N_s$) artırırsa lamba ne olur?`,
+            secenekler: ['Daha parlak yanar.', 'Daha sönük yanar.', 'Söner.'],
+            dogru: 0,
+            ipucu: 'İkincil bobinin sarımı çoğalırsa onun gerilimi büyür mü, küçülür mü?',
+            aciklama: r`$N_s$ artınca $V_s$ de artar. Lambanın gerilimi büyür ve lamba daha parlak yanar.`
+          },
+          {
+            soru: 'Lamba daha parlak yanarken kaynaktan çekilen birincil akım, öncekine göre nasıldır?',
+            secenekler: ['Daha küçüktür.', 'Aynıdır.', 'Daha büyüktür.'],
+            dogru: 2,
+            ipucu: 'Parlak yanan lamba daha çok güç harcar. Bu güç kaynaktan gelir ve $V_p$ değişmedi.',
+            aciklama: r`Lamba daha çok güç çekiyor. $V_p$ değişmediği için bu güç kaynaktan daha büyük bir birincil akımla gelir.`
+          },
+          {
+            soru: 'Öğretmen son olarak kaynağı çıkarıp birincil bobini bir pile bağlıyor. Bir süre sonra lamba ne yapar?',
+            secenekler: ['Daha parlak yanar.', 'Aynı parlaklıkta yanar.', 'Yanmaz.'],
+            dogru: 2,
+            ipucu: 'Pilin akımı değişir mi? İkincilde gerilim oluşması için akının değişmesi gerekir.',
+            aciklama: 'Pilin akımı sabittir. Çekirdekteki akı değişmez, ikincil bobinde gerilim oluşmaz ve lamba yanmaz.'
+          }
+        ],
+        sonuc: 'İkincil gerilim, birincil gerilime ve sarım sayılarına bağlıdır. Yük daha çok güç çekerse birincil akım artar. Transformatör yalnız değişen akımla çalışır.'
+      }
+    ],
+    hazir: r`Transformatörün yapısını, alternatif akımla çalıştığını, gerilimi sarım sayılarının belirlediğini, gerilim büyürken akımın küçüldüğünü ve elektriğin neden yüksek gerilimle taşındığını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
