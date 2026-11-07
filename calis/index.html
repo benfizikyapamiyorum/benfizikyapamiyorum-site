@@ -31241,7 +31241,8 @@ const VERI = {
   "S1_cap_cm": { "K": 2.0, "L": 1.4, "M": 1.0, "N": 2.0 },
   "gecit": { "genislik_m": { "K": 24, "L": 16, "M": 11 }, "surat": { "K": 4.2, "L": 6.1, "M": 8.9 } },
   "kanal_cm": { "K": [60, 80], "L": [50, 60], "M": [30, 40], "N": [40, 50], "P": [50, 80] },
-  "flap_knot": { "kapali": 48, "acik": 40 }
+  "flap_knot": { "kapali": 48, "acik": 40 },
+  "sf_boru_cm": { "K": 30, "L": 18, "M": 24 }
 };
 /*VERI_SON*/
 
@@ -31779,6 +31780,107 @@ BFY_FIG_EKLE('k937_S2_flap', function (u) {
   s += `<line x1="14" y1="122" x2="306" y2="122" stroke="#c7d6df" stroke-width="1.2"/>`;
   s += kesit(166, true, 'Flaplar açık', `En düşük uçuş sürati: ${F.acik} knot (≈ 74 km/h)`);
   return svg(W, H, s, u, 66);
+});
+
+/* ===================== SIFIRDAN BAŞLA ŞEKİLLERİ ===================== */
+
+/* Adım 1: hortumun ucu açık ve parmakla kısılmış; musluk aynı */
+BFY_FIG_EKLE('sf937_hortum', function (u) {
+  const W = 330, H = 248;
+  let s = defs2(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += `<defs><linearGradient id="${u}hrt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fbf6a"/><stop offset=".45" stop-color="#3f8f4a"/><stop offset="1" stop-color="#2a6634"/></linearGradient></defs>`;
+  function panel(y0, menzil, kalin, parmak, baslik) {
+    const yh = y0 + 40, yz = y0 + 86, x0 = 122, x1 = x0 + menzil;
+    let g = `<rect x="0" y="${yz}" width="${W}" height="12" fill="url(#${u}cim)"/>`;
+    g += `<rect x="-4" y="${yh - 8}" width="118" height="16" rx="3" fill="url(#${u}hrt)"/>`;
+    g += `<rect x="104" y="${yh - 10}" width="16" height="20" rx="3" fill="#c9d1d8" stroke="${C.gri}" stroke-width="1.2"/>`;
+    const ys = parmak ? yh + 4 : yh;
+    g += `<path d="M${x0} ${ys} Q${(x0 + x1) / 2} ${ys} ${x1} ${yz}" fill="none" stroke="#9fd0ee" stroke-width="${kalin}" stroke-linecap="round"/>`;
+    g += `<path d="M${x0} ${ys} Q${(x0 + x1) / 2} ${ys} ${x1} ${yz}" fill="none" stroke="#e9f6fd" stroke-width="${Math.max(1.2, kalin / 4)}" stroke-linecap="round"/>`;
+    [[-8, -4], [6, -6], [12, -2]].forEach(([dx, dy]) => { g += `<circle cx="${x1 + dx}" cy="${yz + dy}" r="2.2" fill="#9fd0ee"/>`; });
+    if (parmak) {
+      g += `<path d="M96 ${yh - 30} Q100 ${yh - 12} 112 ${yh - 9} Q124 ${yh - 8} 123 ${yh - 1} Q121 ${yh + 3} 110 ${yh + 1} Q94 ${yh - 2} 86 ${yh - 22} Z" fill="#efc3a0" stroke="#b5835f" stroke-width="1.2"/>`;
+      g += `<path d="M117 ${yh - 6} q4 1 4 4" fill="none" stroke="#b5835f" stroke-width=".9"/>`;
+    }
+    g += lab(parmak ? 142 : 14, y0 + 18, baslik, P.ink, { size: 13 });
+    return g;
+  }
+  s += panel(4, 84, 9, false, 'Hortumun ucu açık');
+  s += `<line x1="10" y1="114" x2="${W - 10}" y2="114" stroke="#c7d6df" stroke-width="1.2"/>`;
+  s += panel(118, 190, 4, true, 'Ucu parmakla kısılmış');
+  s += not(W / 2, H - 11, 'Musluk iki durumda da aynı açık.', { anchor: 'middle', size: 11.5 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Adım 2: iki asılı balon, aralarına pipetle üfleniyor */
+BFY_FIG_EKLE('sf937_balon', function (u) {
+  const W = 300, H = 244;
+  let s = defs2(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#fbf4e8"/>`;
+  s += `<defs><radialGradient id="${u}bk" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ff9a8a"/><stop offset=".6" stop-color="#e0503c"/><stop offset="1" stop-color="#a8301f"/></radialGradient>` +
+    `<radialGradient id="${u}bm" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#9fd0f2"/><stop offset=".6" stop-color="#3f8fd0"/><stop offset="1" stop-color="#245f96"/></radialGradient></defs>`;
+  s += `<rect x="54" y="14" width="192" height="9" rx="4" fill="#b98a55" stroke="#7d5a32"/>`;
+  [[103, 'bk'], [197, 'bm']].forEach(([x, g]) => {
+    s += `<line x1="${x}" y1="23" x2="${x}" y2="66" stroke="#6b5b4b" stroke-width="1.3"/>`;
+    s += `<path d="M${x - 4} 72 L${x} 64 L${x + 4} 72 Z" fill="${g === 'bk' ? '#a8301f' : '#245f96'}"/>`;
+    s += `<ellipse cx="${x}" cy="110" rx="30" ry="39" fill="url(#${u}${g})"/>`;
+    s += `<ellipse cx="${x - 11}" cy="92" rx="7" ry="11" fill="#fff" opacity=".45"/>`;
+  });
+  // pipet ve aradaki hızlı hava
+  s += `<rect x="146" y="176" width="8" height="58" rx="3" fill="#f3b8c4" stroke="#c46a7d"/>`;
+  [143, 150, 157].forEach((x, i) => { s += arrow(x, 170 - (i % 2) * 6, x, 78 + (i % 2) * 6, { color: C.akis, w: 2, head: 7, headW: 3.6 }); });
+  s += not(140, 222, 'pipet', { anchor: 'end', size: 12 });
+  s += lab(162, 206, 'hızlı hava', C.alcak, { size: 12 });
+  // dış yanlardaki durgun hava
+  s += arrow(22, 112, 64, 112, { color: C.yuksek, w: 2.6, head: 8 }) + arrow(278, 112, 236, 112, { color: C.yuksek, w: 2.6, head: 8 });
+  s += not(42, 178, 'durgun', { anchor: 'middle', size: 11.5, fill: C.yuksek }) + not(42, 192, 'hava', { anchor: 'middle', size: 11.5, fill: C.yuksek });
+  s += not(258, 178, 'durgun', { anchor: 'middle', size: 11.5, fill: C.yuksek }) + not(258, 192, 'hava', { anchor: 'middle', size: 11.5, fill: C.yuksek });
+  return svg(W, H, s, u, 62);
+});
+
+/* Isınma 1: tırı sollayan otomobil (kuşbakışı); hava akışı otomobile göre */
+BFY_FIG_EKLE('sf937_sollama', function (u) {
+  const W = 330, H = 214;
+  let s = defs2(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fa"/>`;
+  s += `<rect x="0" y="14" width="${W}" height="168" fill="#6c7378"/>`;
+  s += `<line x1="0" y1="18" x2="${W}" y2="18" stroke="#f4f4f0" stroke-width="2"/><line x1="0" y1="178" x2="${W}" y2="178" stroke="#f4f4f0" stroke-width="2"/>`;
+  for (let x = 6; x < W; x += 44) s += `<rect x="${x}" y="99" width="24" height="3" fill="#f4f4f0" opacity=".85"/>`;
+  // Sağdan gidilir: tır sağ (alt) şeritte, sollayan otomobil sol (üst) şeritte.
+  // tır (sağa gidiyor): dorse ve çekici
+  s += `<rect x="8" y="108" width="196" height="54" rx="3" fill="#e9edf0" stroke="#55606a" stroke-width="1.6"/>`;
+  for (let x = 30; x < 200; x += 28) s += `<line x1="${x}" y1="110" x2="${x}" y2="160" stroke="#c9d1d8" stroke-width="1.2"/>`;
+  s += `<rect x="210" y="112" width="46" height="46" rx="7" fill="#c0392b" stroke="#7a2318" stroke-width="1.4"/><rect x="244" y="116" width="9" height="38" rx="2" fill="#9cc7e4" stroke="#4d6b80"/>`;
+  s += T(104, 140, 'tır', { size: 13, anchor: 'middle', weight: 800, fill: P.ink });
+  // otomobil (sağa gidiyor)
+  s += `<rect x="150" y="38" width="84" height="40" rx="12" fill="#2f6fa8" stroke="#1d4a73" stroke-width="1.4"/>`;
+  s += `<rect x="198" y="43" width="18" height="30" rx="4" fill="#bfe0f5" stroke="#1d4a73" stroke-width=".9"/><rect x="160" y="44" width="14" height="28" rx="4" fill="#bfe0f5" stroke="#1d4a73" stroke-width=".9"/>`;
+  s += T(140, 63, 'otomobil', { size: 12, anchor: 'end', weight: 800, fill: '#fff', haloColor: '#6c7378' });
+  // gidiş yönü
+  s += arrow(266, 135, 300, 135, { color: '#fff', w: 2.4, head: 8 }) + arrow(242, 58, 276, 58, { color: '#fff', w: 2.4, head: 8 });
+  // otomobile göre hava: geriye (sola) akar
+  [[140, 106, 92], [300, 260, 27], [130, 82, 171]].forEach(([a, b, y]) => { s += arrow(a, y, b, y, { color: '#8fd3ff', w: 2.6, head: 8, headW: 4.2 }); });
+  s += T(14, 202, 'Kuşbakışı görünüş', { size: 11.5, weight: 700, fill: P.ink2 });
+  s += T(W - 12, 202, 'Açık mavi ok: otomobile göre hava', { size: 11.5, weight: 700, fill: C.akis, anchor: 'end' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 2: toprağın altındaki yatay boru, üç cam boru (K, L, M), su yükseklikleri 30, 18, 24 cm */
+BFY_FIG_EKLE('sf937_boru', function (u) {
+  const W = 330, H = 236, ya = 196, k = 5, Hc = VERI.sf_boru_cm;
+  let s = defs2(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef5fa"/>`;
+  s += `<rect x="0" y="150" width="${W}" height="${H - 150}" fill="url(#${u}toprak)"/><rect x="0" y="146" width="${W}" height="8" fill="url(#${u}cim)"/>`;
+  [[30, 176], [120, 214], [214, 170], [300, 220]].forEach(([x, y]) => { s += `<ellipse cx="${x}" cy="${y}" rx="6" ry="3.5" fill="#8a6a44" opacity=".5"/>`; });
+  s += dashLine(14, ya, 316, ya, '#f4eee2', '7 5', 1.6);
+  s += T(16, ya + 26, 'Boru toprağın altında, görünmüyor.', { size: 11.5, weight: 700, fill: '#fff', haloColor: '#8f6c45' });
+  s += arrow(262, ya + 21, 312, ya + 21, { color: '#fff', w: 2.2, head: 8 }) + T(256, ya + 26, 'su', { size: 11.5, weight: 700, fill: '#fff', haloColor: '#8f6c45', anchor: 'end' });
+  [['K', 70], ['L', 160], ['M', 250]].forEach(([ad, x]) => {
+    const ys = ya - Hc[ad] * k;
+    s += `<rect x="${x - 4.5}" y="${ys}" width="9" height="${ya - ys}" fill="url(#${u}su)"/>`;
+    s += `<line x1="${x - 4.5}" y1="${ys}" x2="${x + 4.5}" y2="${ys}" stroke="${C.yuzey}" stroke-width="1.5"/>`;
+    s += `<path d="M${x - 4.5} ${ya} V22 M${x + 4.5} ${ya} V22" stroke="${C.cam}" stroke-width="2" fill="none"/>`;
+    s += lab(x - 12, 30, ad, P.copper, { size: 14, anchor: 'end' });
+    s += dimV(x + 20, ys, ya, '', { side: 'right' }) + T(x + 28, ys + 18, `${Hc[ad]} cm`, { size: 12.5, weight: 700, fill: P.ink });
+  });
+  return svg(W, H, s, u, 70);
 });
 })();
 
@@ -32390,6 +32492,171 @@ const KONU = {
     'hastane Venturi oksijen maskesi: mavi, beyaz, turuncu, sarı, kırmızı başlık; 2–10 L/dk, %24–40 oksijen, 1 L oksijene karışan oda havası (tablo)', 'yatay borunun geniş ve dar kesitine bağlı cıvalı U borusu: akış, vana açılınca ve akış durunca cıva düzeyleri',
     'gözlem ve açıklama: rüzgârda ters dönen şemsiye, saç kurutma makinesi akımındaki top, akan suya çekilen kaşık, daralan kanalda hızlanan kâğıt kayık (eşleştir)', 'simülasyon: sabit seviyeli depo, Venturi borusu, dar kesit 1,2 / 1,7 / 2,4 cm, üç manometre'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Matematiksel model yok; sayılar yalnız karşılaştırılır. Veriler qa/9.3.7/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu bölümde hiç hesap yok; yalnız akan su ve havayı gözleyeceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Dar yerde akış hızlanır',
+        sekil: 'sf937_hortum',
+        metin: r`Bahçeyi hortumla suluyorsun. Hortumun ucunu parmağınla biraz kapatınca su daha hızlı çıkar ve daha uzağa gider. Musluğu hiç ellemedin, peki su neden hızlandı?
+
+Hortumun içinden her saniye belli bir miktar su geçer. Ucu daralınca bu su daha küçük bir açıklıktan çıkmak zorunda kalır. Aynı miktar suyun dar yerden aynı sürede geçebilmesi için daha hızlı akması gerekir.
+
+Borunun akışa dik kesitinin alanına **kesit alanı** denir. Kısacası:
+- Kesit alanı küçülürse akışkanın sürati artar.
+- Kesit alanı büyürse akışkanın sürati azalır.`,
+        kontrol: {
+          soru: 'Şırınganın pistonuna bastığında ilaç, geniş gövdeden ince iğneye geçer. İlaç iğnenin içinde nasıl akar?',
+          secenekler: ['Daha hızlı akar.', 'Daha yavaş akar.', 'Aynı süratle akar.'],
+          dogru: 0,
+          aciklama: 'Gövdeden çıkan ilacın hepsi ince iğneden de geçmek zorundadır. Kesit alanı küçüldüğü için ilaç iğnede hızlanır.',
+          yanlisIpucu: 'Hortumun ucunu kapattığında ne olduğunu hatırla. Aynı miktar akışkan daha dar bir yerden geçiyor.'
+        }
+      },
+      {
+        baslik: 'Hızlı akışta basınç küçülür',
+        sekil: 'sf937_balon',
+        metin: r`İki şişirilmiş balonu iplerle, aralarında bir karış kalacak biçimde as. Pipetle tam ortalarına üfle. Balonların birbirinden uzaklaşmasını bekleyebilirsin. Oysa balonlar **birbirine yaklaşır**.
+
+Bunun nedeni şudur: Akan bir akışkanın, yani sıvı ya da gazın, çevresine yaptığı basınç sürate bağlıdır.
+- Hızlı akan havanın basıncı küçüktür.
+- Durgun ya da yavaş akan havanın basıncı büyüktür.
+
+Bu kurala **Bernoulli ilkesi** denir. Balonların arasında hava hızlı akıyor, dış yanlarında ise hava durgun. Bu yüzden her balon, dış yanından daha büyük bir basınçla itilir.`,
+        kontrol: {
+          soru: 'Balonların arasındaki hızlı akan havanın basıncı, dış yanlardaki durgun havanın basıncına göre nasıldır?',
+          secenekler: ['Daha büyüktür.', 'Daha küçüktür.', 'Eşittir.'],
+          dogru: 1,
+          aciklama: 'Bernoulli ilkesine göre akışkanın sürati arttıkça basıncı azalır. Aradaki hızlı havanın basıncı, dıştaki durgun havanınkinden küçüktür.',
+          yanlisIpucu: 'Üflemek havayı itmek gibi gelebilir. Ama kural şöyle: Akış hızlandıkça basınç küçülür.'
+        }
+      },
+      {
+        baslik: 'Basınç farkı cismi iter',
+        metin: r`Bir cismin iki yanında basınç farklıysa cisim, **basıncın büyük olduğu taraftan küçük olduğu tarafa** doğru itilir. Balonlar da bu yüzden ortaya doğru itildi.
+
+Bir örnek daha: Otomobil hızlı giderken açık bir camın yanında duran peçete camdan dışarı uçabilir. Otomobilin içindeki hava, otomobile göre hemen hemen durgundur. Dışarıdaki hava ise otomobilin yanından hızla geriye doğru akar. Hızlı akan dış havanın basıncı küçük, içerideki havanın basıncı büyüktür.
+
+Unutma: Akan hava cismi kendine "çekmez". Cismi iten, öbür taraftaki daha büyük basınçtır.`,
+        kontrol: {
+          soru: 'Hızlı giden otomobilde açık camın yanındaki peçete hangi yöne gider?',
+          secenekler: ['Otomobilin içine doğru', 'Camdan dışarı doğru', 'Hiçbir yöne gitmez.'],
+          dogru: 1,
+          aciklama: 'Camın dışında hava hızlı akar ve basıncı küçüktür. İçerideki büyük basınç peçeteyi dışarı doğru iter.',
+          yanlisIpucu: 'Önce basıncın nerede büyük olduğunu bul. Cisim, basıncın büyük olduğu taraftan öbür tarafa itilir.'
+        }
+      },
+      {
+        baslik: 'Bernoulli ilkesi ne işe yarar?',
+        metin: r`İnsanlar bu ilkeyi üç amaçla kullanır:
+- **Havaya kaldırmak:** Uçak kanadının üstünden geçen hava hızlanır ve üstteki basınç azalır. Alttaki büyük basınç kanadı yukarı iter.
+- **Havalanmayı engellemek:** Yarış otomobillerindeki ters kanatlar havayı öyle yönlendirir ki basınç farkı otomobili yere bastırır.
+- **Yön değiştirmek:** Dönen bir topun bir yanında hava daha hızlı akar. Top, basıncın küçük olduğu yana doğru kıvrılır.
+
+Uçağın uçmasında yalnız Bernoulli ilkesi etkili değildir. Kanadın havayı aşağı yönlendirmesi de kaldırma kuvvetine katkı yapar.`,
+        kontrol: {
+          soru: 'Bir tenis oyuncusu topa falso veriyor. Dönen top havada kavis çizerek rakibin sahasına iniyor. Bu olay hangi amaca örnektir?',
+          secenekler: ['Havaya kaldırma', 'Havalanmayı engelleme', 'Yön değiştirme'],
+          dogru: 2,
+          aciklama: 'Dönen topun iki yanında hava farklı süratle akar. Oluşan basınç farkı topun yolunu kıvırır. Bu, yön değiştirmeye örnektir.',
+          yanlisIpucu: 'Topun yükselmesine ya da yere bastırılmasına değil, yolunun eğrilmesine odaklan.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Tırı sollayan otomobil',
+        sekil: 'sf937_sollama',
+        metin: 'Otoyolda bir otomobil, uzun bir tırın yanından geçiyor. İkisinin arasında dar bir boşluk var. Otomobile göre bakarsan hava, iki aracın yanından geriye doğru akar. Sürücü, tırın tam yanındayken direksiyonun tıra doğru çekildiğini hissediyor. Nedenini adım adım bulalım.',
+        adimlar: [
+          {
+            soru: 'Otomobilin dış yanındaki havaya göre, iki aracın arasındaki dar boşlukta hava nasıl akar?',
+            secenekler: ['Daha yavaş akar.', 'Daha hızlı akar.', 'Hiç akmaz.'],
+            dogru: 1,
+            ipucu: 'Boşluk, havanın geçtiği dar bir geçit gibidir. Dar yerde akış ne olur?',
+            aciklama: 'Hava, iki aracın arasındaki dar boşluktan sıkışarak geçer. Kesit küçük olduğu için orada daha hızlı akar.'
+          },
+          {
+            soru: 'Otomobil hangi yöne doğru itilir?',
+            secenekler: ['Tıra doğru', 'Tırdan uzağa doğru', 'Hiçbir yöne itilmez.'],
+            dogru: 0,
+            ipucu: 'Aradaki hızlı havanın basıncı küçüktür. Otomobilin dış yanındaki basınç daha büyüktür. Cisim, büyük basınçtan küçük basınca doğru itilir.',
+            aciklama: 'Otomobilin dış yanındaki basınç, aradaki basınçtan büyüktür. Bu fark otomobili tıra doğru iter.'
+          },
+          {
+            soru: 'Sürücü tırla arasında daha geniş bir boşluk bırakırsa bu itme nasıl değişir?',
+            secenekler: ['Güçlenir.', 'Değişmez.', 'Zayıflar.'],
+            dogru: 2,
+            ipucu: 'Boşluk genişleyince hava o kadar sıkışmaz. Hava daha az hızlanırsa basınç farkı ne olur?',
+            aciklama: 'Geniş boşlukta hava daha az hızlanır. İki yan arasındaki basınç farkı küçülür, itme de zayıflar.'
+          }
+        ],
+        sonuc: 'Büyük bir aracın yanından geçerken yanda geniş bir aralık bırakmak bu yüzden önemlidir. Aradaki hava hızlandıkça basınç küçülür ve araçlar birbirine doğru itilir.'
+      },
+      {
+        baslik: 'Toprağın altındaki boru',
+        sekil: 'sf937_boru',
+        metin: 'Bir çiftlikte suyu ahıra taşıyan yatay bir boru toprağın altından geçiyor. Borunun bazı yerleri geniş, bazı yerleri dar; ama boru görünmüyor. Boruya üç noktada ucu açık ince cam borular takılmış. Su akarken bu borulardaki su yükseklikleri K\'de 30 cm, L\'de 18 cm, M\'de 24 cm oluyor. Su boruda düzenli akıyor. Bir cam borudaki su yüksekliği, o noktada suyun boruya yaptığı basıncı gösterir.',
+        adimlar: [
+          {
+            soru: 'Akan suyun boruya yaptığı basınç hangi noktada en küçüktür?',
+            secenekler: ['K', 'L', 'M'],
+            dogru: 1,
+            ipucu: 'Su yüksekliği basıncı gösteriyor. En kısa su sütunu hangi noktada?',
+            aciklama: 'En kısa su sütunu L\'dedir (18 cm). Basınç en küçük L noktasındadır. Sıralama: K\'de en büyük, sonra M, en küçük L.'
+          },
+          {
+            soru: 'K, L ve M noktalarında suyun süratleri için hangisi doğrudur?',
+            secenekler: [r`$\vartheta_L > \vartheta_M > \vartheta_K$`, r`$\vartheta_K > \vartheta_M > \vartheta_L$`, r`$\vartheta_K = \vartheta_L = \vartheta_M$`],
+            dogru: 0,
+            ipucu: 'Bernoulli ilkesini hatırla: Basıncın küçük olduğu yerde su hızlı akar. Basınç sıralamasını tersine çevir.',
+            aciklama: r`Basınç sıralaması K > M > L idi. Sürat bunun tersidir: $\vartheta_L > \vartheta_M > \vartheta_K$.`
+          },
+          {
+            soru: 'Borunun kesit alanı hangi noktada en büyüktür?',
+            secenekler: ['K', 'L', 'M'],
+            dogru: 0,
+            ipucu: 'Geniş yerde su yavaş akar. Su en yavaş hangi noktada akıyor?',
+            aciklama: 'Su en yavaş K noktasında akıyor. Yavaş akış geniş kesit demektir; boru en geniş K\'dedir.'
+          }
+        ],
+        sonuc: 'Toprağı hiç kazmadan borunun en geniş yerini K, en dar yerini L olarak bulduk. Akışkanlarda kesit, sürat ve basınç birbirine bağlıdır: Kesit küçülünce sürat artar, basınç azalır.'
+      },
+      {
+        baslik: 'Otobüsün tavan kapağı',
+        metin: 'Bir otobüs yolda hızla ilerliyor. Tavandaki havalandırma kapağı arkaya doğru biraz aralanmış. Otobüse göre bakarsan dışarıdaki hava, tavanın üstünden hızla geriye doğru akar. Otobüsün içindeki hava ise otobüse göre hemen hemen durgundur.',
+        adimlar: [
+          {
+            soru: 'Otobüse göre bakınca hava nerede daha hızlı akar?',
+            secenekler: ['Otobüsün içinde', 'Tavanın dışında', 'İki yerde aynı süratle'],
+            dogru: 1,
+            ipucu: 'Metni yeniden oku. İçerideki hava otobüsle birlikte gidiyor. Dışarıdaki hava tavanın üstünden geriye doğru akıyor.',
+            aciklama: 'Tavanın dışındaki hava, otobüse göre hızla geriye akar. İçerideki hava ise otobüse göre hemen hemen durgundur.'
+          },
+          {
+            soru: 'Hava basıncı nerede daha büyüktür?',
+            secenekler: ['Tavanın dışında', 'İki yerde eşit', 'Otobüsün içinde'],
+            dogru: 2,
+            ipucu: 'Hızlı akan havanın basıncı küçüktür. Hava nerede durgun?',
+            aciklama: 'Dışarıda hava hızlı akar ve basıncı küçüktür. İçerideki durgun havanın basıncı daha büyüktür.'
+          },
+          {
+            soru: 'Kapağın aralığından hava hangi yöne akar?',
+            secenekler: ['Otobüsün içinden dışarı doğru', 'Dışarıdan otobüsün içine doğru', 'Hiç akmaz.'],
+            dogru: 0,
+            ipucu: 'Hava da basıncın büyük olduğu yerden küçük olduğu yere doğru itilir. Büyük basınç nerede?',
+            aciklama: 'İçerideki büyük basınç, havayı aralıktan dışarı iter. Otobüsün içindeki bayat hava böylece dışarı çıkar.'
+          }
+        ],
+        sonuc: 'Dışarıdaki hızlı havanın basıncı küçüktü. İçerideki büyük basınç, havayı kapağın aralığından dışarı itti. Dış hava içerideki havayı çekmedi; havayı iten, içerideki büyük basınçtı.'
+      }
+    ],
+    hazir: 'Kesit, sürat ve basınç arasındaki bağı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -70096,6 +70363,93 @@ BFY_FIG_EKLE('k1035_salter', function (u) {
   s += T(88, 30, 'her pil 1,5 V', { size: 12.5, anchor: 'middle', weight: 800, fill: VC });
   return svg(Wd, H, s, u, 70);
 });
+
+/* =================== SIFIRDAN BAŞLA ŞEKİLLERİ =================== */
+
+/* Adım 1: düğme pil ve otomobil aküsü; altta şemadaki sembolleri, değer sembolün yanında */
+BFY_FIG_EKLE('sf1035_uretec', function (u) {
+  const Wd = 320, H = 226;
+  let s = `<rect class="bg" x="0" y="0" width="${Wd}" height="${H}" rx="14" fill="#f5f7f4"/>`;
+  s += `<defs><linearGradient id="${u}dp" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f969d"/><stop offset=".4" stop-color="#eef1f3"/><stop offset="1" stop-color="#7d848b"/></linearGradient>` +
+    `<radialGradient id="${u}dpu" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#b9c0c6"/></radialGradient>` +
+    `<linearGradient id="${u}ak" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a4048"/><stop offset="1" stop-color="#1c2026"/></linearGradient></defs>`;
+  // düğme pil (yandan eğik görünüş)
+  const cx = 80, cy = 72;
+  s += `<ellipse cx="${cx + 3}" cy="${cy + 26}" rx="46" ry="11" fill="#000" opacity=".12"/>`;
+  s += `<path d="M${cx - 44} ${cy} V${cy + 12} A44 13 0 0 0 ${cx + 44} ${cy + 12} V${cy} Z" fill="url(#${u}dp)" stroke="#6c757c" stroke-width="1"/>`;
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="44" ry="13" fill="url(#${u}dpu)" stroke="#6c757c" stroke-width="1"/>`;
+  s += T(cx - 16, cy + 5, '+', { size: 13, anchor: 'middle', weight: 800, halo: false }) + T(cx + 12, cy + 4.5, '3 V', { size: 12, anchor: 'middle', weight: 800, halo: false, fill: '#4b5258' });
+  s += T(cx, 122, 'düğme pil', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // otomobil aküsü
+  const ax = 186, ay = 40, aw = 100, ah = 62;
+  s += `<ellipse cx="${ax + aw / 2 + 4}" cy="${ay + ah + 4}" rx="56" ry="6" fill="#000" opacity=".12"/>`;
+  s += `<rect x="${ax}" y="${ay}" width="${aw}" height="${ah}" rx="5" fill="url(#${u}ak)" stroke="#111" stroke-width="1"/>`;
+  s += `<rect x="${ax}" y="${ay}" width="${aw}" height="10" rx="4" fill="#4c535b"/>`;
+  s += `<rect x="${ax + 14}" y="${ay - 9}" width="14" height="10" rx="2" fill="#c0392b" stroke="#7a2318"/><rect x="${ax + aw - 28}" y="${ay - 9}" width="14" height="10" rx="2" fill="#2b2f36" stroke="#111"/>`;
+  s += T(ax + 21, ay - 13, '+', { size: 13, anchor: 'middle', weight: 800 }) + T(ax + aw - 21, ay - 13, '−', { size: 14, anchor: 'middle', weight: 800 });
+  s += T(ax + aw / 2, ay + 42, '12 V', { size: 14, anchor: 'middle', weight: 800, fill: '#f2c230', halo: false });
+  s += T(ax + aw / 2, 122, 'otomobil aküsü', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // şema sembolleri
+  s += `<line x1="16" y1="138" x2="${Wd - 16}" y2="138" stroke="#d3dcd6" stroke-width="1.2"/>`;
+  s += W([[40, 178], [75, 178]]) + W([[85, 178], [120, 178]]) + cellH(80, 178, 1, '3 V');
+  s += W([[196, 178], [231, 178]]) + W([[241, 178], [276, 178]]) + cellH(236, 178, 1, '12 V');
+  s += T(Wd / 2, 216, 'Devre şemasındaki gösterimleri', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(Wd, H, s, u, 70);
+});
+
+/* Adım 2: üst üste iki düğme pil (düz seri) ve şeması */
+BFY_FIG_EKLE('sf1035_duzseri', function (u) {
+  const Wd = 330, H = 220;
+  let s = `<rect class="bg" x="0" y="0" width="${Wd}" height="${H}" rx="14" fill="#f5f7f4"/>`;
+  s += `<defs><linearGradient id="${u}dp" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8f969d"/><stop offset=".4" stop-color="#eef1f3"/><stop offset="1" stop-color="#7d848b"/></linearGradient>` +
+    `<radialGradient id="${u}dpu" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#b9c0c6"/></radialGradient></defs>`;
+  const cx = 74;
+  function disk(cy) {
+    let g = `<path d="M${cx - 40} ${cy} V${cy + 14} A40 12 0 0 0 ${cx + 40} ${cy + 14} V${cy} Z" fill="url(#${u}dp)" stroke="#6c757c" stroke-width="1"/>`;
+    g += `<ellipse cx="${cx}" cy="${cy}" rx="40" ry="12" fill="url(#${u}dpu)" stroke="#6c757c" stroke-width="1"/>`;
+    return g + T(cx, cy + 4.5, '+', { size: 13, anchor: 'middle', weight: 800, halo: false });
+  }
+  s += `<ellipse cx="${cx + 3}" cy="148" rx="44" ry="10" fill="#000" opacity=".12"/>`;
+  s += disk(120) + disk(90);
+  s += T(cx + 50, 96, '3 V', { size: 12.5, weight: 800, fill: VC }) + T(cx + 50, 128, '3 V', { size: 12.5, weight: 800, fill: VC });
+  s += T(cx, 46, 'Üstteki pilin (−) yüzü', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(cx, 62, 'alttakinin (+) yüzüne değer.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(cx, 180, 'üst üste iki pil', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // şema
+  s += `<line x1="160" y1="30" x2="160" y2="196" stroke="#d3dcd6" stroke-width="1.2"/>`;
+  const xl = 182, xr = 312, yt = 76, yb = 150;
+  s += W([[xl, yt], [220, yt]]) + W([[230, yt], [262, yt]]) + W([[272, yt], [xr, yt]]);
+  s += cellH(225, yt, 1, '3 V') + cellH(267, yt, 1, '3 V');
+  s += W([[xl, yt], [xl, yb], [235, yb]]) + W([[259, yb], [xr, yb], [xr, yt]]) + lamp(247, yb);
+  s += iok(xr + 0, 124, xr + 0, 96) + T(xr - 8, 116, 'I', { size: 12.5, anchor: 'end', weight: 800, italic: true, fill: AC });
+  s += T(247, 190, 'V_{toplam} = 3 + 3 = 6 V', { size: 12.5, anchor: 'middle', weight: 800 });
+  return svg(Wd, H, s, u, 72);
+});
+
+/* Adım 3: ters seri bağlı 6 V ve 2 V'luk üreteçler, lamba */
+BFY_FIG_EKLE('sf1035_ters', function (u) {
+  const Wd = 300, H = 196, xl = 50, xr = 250, yt = 64, yb = 150;
+  let s = `<rect class="bg" x="0" y="0" width="${Wd}" height="${H}" rx="14" fill="#f5f7f4"/>`;
+  s += W([[xl, yt], [110, yt]]) + W([[120, yt], [180, yt]]) + W([[190, yt], [xr, yt]]);
+  s += cellH(115, yt, -1, '6 V') + cellH(185, yt, 1, '2 V');
+  s += W([[xl, yt], [xl, yb], [138, yb]]) + W([[162, yb], [xr, yb], [xr, yt]]) + lamp(150, yb);
+  s += iok(xr + 0, 92, xr + 0, 122) + T(xr + 8, 112, 'I', { size: 12.5, anchor: 'start', weight: 800, italic: true, fill: AC });
+  s += T(Wd / 2, 106, 'Aynı (+) kutuplar birbirine bakıyor.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(Wd / 2, 184, 'Ters seri bağlama', { size: 12, anchor: 'middle', weight: 800, fill: P.green });
+  return svg(Wd, H, s, u, 66);
+});
+
+/* Adım 4: paralel bağlı üç özdeş üreteç ve lamba */
+BFY_FIG_EKLE('sf1035_paralel', function (u) {
+  const Wd = 300, H = 210, yt = 46, yb = 166, ym = 106;
+  let s = `<rect class="bg" x="0" y="0" width="${Wd}" height="${H}" rx="14" fill="#f5f7f4"/>`;
+  s += W([[60, yt], [256, yt]]) + W([[60, yb], [256, yb]]);
+  [60, 126, 192].forEach(x => { s += W([[x, yt], [x, ym - 5]]) + W([[x, ym + 5], [x, yb]]) + cellV(x, ym, 1, 'V') + dot(x, yt) + dot(x, yb); });
+  s += W([[256, yt], [256, ym - 11]]) + W([[256, ym + 11], [256, yb]]) + lamp(256, ym);
+  s += T(256, yt - 10, 'K', { size: 13, anchor: 'middle', weight: 800 }) + T(256, yb + 20, 'L', { size: 13, anchor: 'middle', weight: 800 });
+  s += T(126, yb + 32, 'Üç özdeş üreteç', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(Wd, H, s, u, 66);
+});
 })();
 /* ---------- 3B GÖRÜNÜMLÜ ÇİZİMLER (izometrik): hikâye, tanım ve efsane kartları ---------- */
 (function () {
@@ -70527,6 +70881,190 @@ const KONU = {
     'SET 2: fizik kulübü 22 Ω direnç, A-B-C-D yeni AA piller, voltmetre-ampermetre tablosu, dört yuvalı seri yatakta ters takılı pil, 11 Ω ile paralel düzen',
     'ADIM 3: 3,7 V 2500 mAh Li-ion hücrelerle 2S1P/3S2P/1S3P/4S2P paketleri (telsiz, dron, şarj cihazı, süpürge)', 'dört özdeş 1,5 V pilin düzenleri: 0/1,5/3/6 V sınıflaması', '6 V, 3 V, 1,5 V pillerle tek dirençli altı devrenin akım sıralaması', 'limon pilleriyle kırmızı LED yakma deney basamakları', 'ZENGİN: dijital fotoğraf makinesi 4 pil seri, 500 mA, 4,4 V kapanma; alkalin (1,1 V’a 800 mAh) ve NiMH (1900 mAh) boşalma eğrileri (temsilî)', 'ZENGİN: üç özdeş paralel pil (1,5 V, 1200 mAh), 5 Ω ve S anahtarlı 10 Ω kolu, tükenme 8 → 12 saat', 'ZENGİN: R/2, R, 2R dirençli seri/paralel/2S2P düzenleri ↔ pil başına akım ve tükenme süresi eşleştirme', 'SİM: 1–5 pil düz seri/paralel, 10 Ω lamba, 2000 mAh, tükenme süresi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     İç direnç ihmal edilir; sayılar tam. Sayısal sonuçlar qa/10.3.5/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Üreteç: devrenin enerji kaynağı',
+        sekil: 'sf1035_uretec',
+        metin: r`Kol saatindeki küçük düğme pil, otomobildeki akü, rüzgâr türbinindeki jeneratör aynı işi yapar: Başka biçimdeki bir enerjiyi elektrik enerjisine dönüştürür. Bu cihazlara **üreteç** denir.
+
+Her üretecin iki ucu arasında bir **potansiyel fark** vardır. Düğme pilin üstünde 3 V, otomobil aküsünün üstünde 12 V yazar. Devre şemasında bu değer, üreteç sembolünün hemen yanına yazılır.
+
+Bazen bir cihaz, elimizdeki tek üretecin veremeyeceği bir potansiyel fark ister. Bazen de üretecin daha uzun dayanmasını isteriz. O zaman birden fazla üreteç birlikte bağlanır.`,
+        kontrol: {
+          soru: 'Aşağıdakilerden hangisi bir üreteç değildir?',
+          secenekler: ['Akü', 'Jeneratör', 'Lamba'],
+          dogru: 2,
+          aciklama: 'Akü ve jeneratör elektrik enerjisi üretir. Lamba ise elektrik enerjisini kullanır; onu ışığa ve ısıya dönüştürür.',
+          yanlisIpucu: 'Üreteç, elektrik enerjisini veren cihazdır. Hangisi elektrik enerjisini veriyor değil de harcıyor?'
+        }
+      },
+      {
+        baslik: 'Düz seri: potansiyel farklar toplanır',
+        sekil: 'sf1035_duzseri',
+        metin: r`Bazı küçük bisiklet lambalarında iki düğme pil üst üste konur. Birinci pilin (+) kutbu ikincinin (−) kutbuna değer. Zıt kutupların birbirine bağlandığı bu düzene **düz seri bağlama** denir.
+
+Düz seri bağlamada potansiyel farklar toplanır:
+$$V_\text{toplam} = V_1 + V_2 + \dots$$
+İki tane 3 V'luk pil düz seri bağlanırsa toplam potansiyel fark $3 + 3 = 6$ V olur.
+
+Seri bağlı üreteçlerden akımın gidebileceği tek bir yol vardır. Bu yüzden her üreteçten aynı akım geçer.`,
+        kontrol: {
+          soru: 'Üç tane 3 V\'luk pil düz seri bağlanırsa toplam potansiyel fark kaç V olur?',
+          secenekler: [r`$3$ V`, r`$6$ V`, r`$9$ V`],
+          dogru: 2,
+          aciklama: r`Düz seride potansiyel farklar toplanır: $3 + 3 + 3 = 9$ V.`,
+          yanlisIpucu: 'Kaç pil var? Düz seride her pilin potansiyel farkı toplama eklenir.'
+        }
+      },
+      {
+        baslik: 'Ters seri: biri öbürünü azaltır',
+        sekil: 'sf1035_ters',
+        metin: r`Seri bağlı iki üreteçten biri ters çevrilirse **aynı kutuplar** birbirine bağlanmış olur. Buna **ters seri bağlama** denir.
+
+Ters bağlanan üreteç, öbürüne karşı koyar. Bu yüzden potansiyel farklar toplanmaz, büyükten küçük çıkarılır:
+$$V_\text{toplam} = V_1 - V_2 \quad (V_1 > V_2)$$
+Akımın yönünü potansiyel farkı büyük olan üreteç belirler. Akım dış devrede onun (+) kutbundan çıkar. İki üreteç eşitse toplam potansiyel fark sıfır olur ve akım geçmez.`,
+        kontrol: {
+          soru: '6 V\'luk ve 2 V\'luk iki üreteç ters seri bağlanıyor. Toplam potansiyel fark kaç V olur?',
+          secenekler: [r`$8$ V`, r`$4$ V`, r`$0$`],
+          dogru: 1,
+          aciklama: r`Ters seride büyükten küçük çıkarılır: $6 - 2 = 4$ V. Akımın yönünü 6 V'luk üreteç belirler.`,
+          yanlisIpucu: 'Üreteçlerden biri ters dönük. Ters dönük üreteç toplama eklenmez, karşı koyar.'
+        }
+      },
+      {
+        baslik: 'Paralel: potansiyel fark değişmez',
+        sekil: 'sf1035_paralel',
+        metin: r`Taşınabilir şarj cihazlarının içinde çoğu zaman birkaç **özdeş** hücre yan yana bağlıdır. Bütün (+) kutuplar bir noktada, bütün (−) kutuplar başka bir noktada birleşir. Buna **paralel bağlama** denir.
+
+Paralel bağlı özdeş üreteçlerin uçları arasındaki potansiyel fark, **tek bir üretecinkine eşittir**. Üreteç sayısı artsa da bu değer büyümez.
+
+Paralel bağlamada yalnız özdeş üreteçler kullanılır. Potansiyel farkları farklı üreteçler paralel bağlanırsa üreteçlerin arasında akım geçer.`,
+        kontrol: {
+          soru: 'Üç özdeş üreteç paralel bağlanıyor. Toplam potansiyel fark, tek bir üretecinkine göre nasıldır?',
+          secenekler: ['Üç katıdır.', 'Eşittir.', 'Üçte biridir.'],
+          dogru: 1,
+          aciklama: 'Paralel bağlı özdeş üreteçlerin hepsinin uçları aynı iki noktaya bağlıdır. Bu iki nokta arasındaki potansiyel fark, tek bir üretecinkine eşittir.',
+          yanlisIpucu: 'Paralelde potansiyel farklar toplanmaz. Şekilde her üretecin uçlarının hangi iki noktaya bağlandığına bak.'
+        }
+      },
+      {
+        baslik: 'Paralelde akım paylaşılır',
+        metin: r`Paralel bağlı özdeş üreteçler, devrenin çektiği akımı **eşit olarak paylaşır**. Devrenin ana kol akımı $I$ ve üreteç sayısı $n$ ise her üreteçten
+$$I_\text{üreteç} = \frac{I}{n}$$
+kadar akım çekilir.
+
+Her üreteçten daha az akım çekildiği için üreteçler **daha geç tükenir**. Paralel bağlamanın asıl kazancı budur: Potansiyel fark aynı kalır, kullanım süresi uzar. Üreteçlerden biri yuvasından çıkarılsa bile öbürleri devreyi beslemeyi sürdürür.`,
+        kontrol: {
+          soru: 'Paralel bağlı üç özdeş üreteç, bir devreye 6 A akım veriyor. Üreteçlerin her birinden kaç A akım çekilir?',
+          secenekler: [r`$2$ A`, r`$6$ A`, r`$18$ A`],
+          dogru: 0,
+          aciklama: r`Ana kol akımı üç üreteç arasında eşit paylaşılır: $6 \div 3 = 2$ A.`,
+          yanlisIpucu: 'Devrenin çektiği 6 A, üç üretecin toplam katkısıdır. Özdeş üreteçler bu akımı nasıl paylaşır?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Golf arabasının aküleri',
+        metin: 'Bir golf arabasının motoru, arka koltuğun altındaki 6 aküyle çalışıyor. Akülerin her biri 8 V\'luktur ve hepsi düz seri bağlıdır. Akülerin iç direnci önemsenmiyor.',
+        adimlar: [
+          {
+            soru: 'Motora uygulanan toplam potansiyel fark kaç V\'tur?',
+            secenekler: [r`$8$ V`, r`$14$ V`, r`$48$ V`],
+            dogru: 2,
+            ipucu: 'Düz seride her akünün potansiyel farkı toplanır. 6 tane 8 V\'luk akü var.',
+            aciklama: r`$V_\text{toplam} = 6 \times 8 = 48$ V olur.`
+          },
+          {
+            soru: 'Motor çalışırken 60 A akım çekiyor. Akülerin her birinden kaç A akım geçer?',
+            secenekler: [r`$10$ A`, r`$60$ A`, r`$360$ A`],
+            dogru: 1,
+            ipucu: 'Seri bağlı akülerde akımın gidebileceği kaç yol var? Akım yol boyunca paylaşılır mı?',
+            aciklama: r`Seri bağlı akülerin hepsinden aynı akım geçer. Her aküden ana kol akımı, yani $60$ A geçer. Akım yalnız paralel bağlamada paylaşılır.`
+          },
+          {
+            soru: 'Akülerden birinin kablosu yerinden çıkarsa ne olur?',
+            secenekler: ['Motor 40 V ile çalışmayı sürdürür.', 'Motor çalışmaz.', 'Motor 48 V ile çalışmayı sürdürür.'],
+            dogru: 1,
+            ipucu: 'Seri bağlamada akımın tek bir yolu vardır. Bu yolun bir yeri koparsa akım nereden geçer?',
+            aciklama: 'Seri bağlamada akım bütün akülerden sırayla geçmek zorundadır. Bir kablo çıkınca devre açılır ve hiçbir yerden akım geçmez.'
+          }
+        ],
+        sonuc: 'Düz seri bağlı aküler potansiyel farkı büyüttü: 6 küçük akü birlikte 48 V verdi. Ama hepsinden aynı akım geçer ve biri koparsa devre çalışmaz.'
+      },
+      {
+        baslik: 'Balıkçı teknesinin motoru',
+        metin: 'Bir balıkçı, sandalında 12 V ile çalışan küçük bir elektrikli motor kullanıyor. Motor çalışırken 20 A akım çekiyor. Balıkçının elinde iki özdeş 12 V\'luk akü var. Her akünün kapasitesi 60 Ah\'tir: Akü tükenene kadar 60 Ah yük verebilir. 60 Ah, 60 A\'lik akımın 1 saat boyunca taşıdığı yüktür. Motorun çektiği akımın hep aynı kaldığını kabul ediyoruz.',
+        adimlar: [
+          {
+            soru: 'Motor tek bir aküyle kaç saat çalışır?',
+            secenekler: ['3 saat', '6 saat', '80 saat'],
+            dogru: 0,
+            ipucu: r`Tükenme süresi = akünün verebileceği yük ÷ aküden çekilen akım. Burada $60 \div 20$.`,
+            aciklama: r`Aküden 20 A çekilir: $t = 60 \div 20 = 3$ saat.`
+          },
+          {
+            soru: 'İki akü paralel bağlanırsa motora uygulanan potansiyel fark kaç V olur?',
+            secenekler: [r`$24$ V`, r`$12$ V`, r`$6$ V`],
+            dogru: 1,
+            ipucu: 'Paralel bağlı özdeş üreteçlerde potansiyel fark toplanır mı?',
+            aciklama: r`Paralel bağlı özdeş akülerin potansiyel farkı tek bir aküninkine eşittir: $12$ V. Motor yine 12 V ile çalışır.`
+          },
+          {
+            soru: 'Paralel bağlamada akülerin her birinden kaç A akım çekilir?',
+            secenekler: [r`$40$ A`, r`$20$ A`, r`$10$ A`],
+            dogru: 2,
+            ipucu: 'Motorun potansiyel farkı değişmediği için yine 20 A çeker. Bu akım iki özdeş akü arasında nasıl paylaşılır?',
+            aciklama: r`Motorun çektiği 20 A iki aküye eşit paylaşılır: $20 \div 2 = 10$ A.`
+          },
+          {
+            soru: 'İki paralel aküyle motor kaç saat çalışır?',
+            secenekler: ['3 saat', '6 saat', '12 saat'],
+            dogru: 1,
+            ipucu: r`Her aküden artık 10 A çekiliyor. Her akü 60 Ah verebilir: $60 \div 10$.`,
+            aciklama: r`Her aküden 10 A çekilir: $t = 60 \div 10 = 6$ saat. İki akü aynı anda tükenir.`
+          }
+        ],
+        sonuc: 'Paralel bağlama motorun potansiyel farkını değiştirmedi. Ama her aküden yarı akım çekildiği için çalışma süresi 3 saatten 6 saate çıktı.'
+      },
+      {
+        baslik: 'Kampta iki fener pili',
+        metin: 'Kampa giden bir aile, iki özdeş 6 V\'luk fener pili almış. Yanlarında 12 V ile çalışan bir kamp lambası ve 6 V ile çalışan bir el feneri var.',
+        adimlar: [
+          {
+            soru: 'Kamp lambasını çalıştırmak için iki pil nasıl bağlanmalıdır?',
+            secenekler: ['Düz seri', 'Paralel', 'Ters seri'],
+            dogru: 0,
+            ipucu: 'Lamba 12 V istiyor. Hangi bağlamada 6 V ile 6 V toplanır?',
+            aciklama: r`Düz seri bağlamada potansiyel farklar toplanır: $6 + 6 = 12$ V. Lamba için gereken potansiyel fark budur.`
+          },
+          {
+            soru: 'El fenerini olabildiğince uzun süre yakmak için iki pil nasıl bağlanmalıdır?',
+            secenekler: ['Düz seri', 'Ters seri', 'Paralel'],
+            dogru: 2,
+            ipucu: 'Fener yalnız 6 V istiyor. Hangi bağlamada potansiyel fark 6 V kalır ve akım iki pile paylaşılır?',
+            aciklama: r`Paralel bağlamada potansiyel fark $6$ V kalır. Fenerin çektiği akım iki pile paylaşılır; piller daha geç tükenir.`
+          },
+          {
+            soru: 'Pillerden biri yanlışlıkla ters çevrilip iki pil ters seri bağlanırsa kamp lambası ne olur?',
+            secenekler: ['12 V ile parlak yanar.', '6 V ile sönük yanar.', 'Hiç yanmaz.'],
+            dogru: 2,
+            ipucu: 'Ters seride büyükten küçük çıkarılır. Peki iki pil özdeşse sonuç ne olur?',
+            aciklama: r`Ters seride $6 - 6 = 0$ olur. Toplam potansiyel fark sıfır olduğu için devreden akım geçmez ve lamba yanmaz.`
+          }
+        ],
+        sonuc: 'Aynı iki pil üç farklı sonuç verdi: Düz seri 12 V, paralel 6 V ve uzun süre, ters seri ise sıfır. Bağlama biçimini cihazın ihtiyacına göre seçeriz.'
+      }
+    ],
+    hazir: 'Düz seri, ters seri ve paralel bağlamayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -110520,6 +111058,110 @@ BFY_FIG_EKLE('k132_q25', function (u) {
   s += T(X(-6.8), Y(5) + 16, 'aynanın arkası', { size: 11.5, weight: 700, fill: P.ink2 });
   return svg(302, 296, s, u, 66);
 });
+
+/* ================= SIFIRDAN BAŞLA ŞEKİLLERİ ================= */
+
+/* Adım 1: bahçede yerdeki aynadan yansıyan güneş ışığı duvarda leke yapar (i = r = 40°) */
+BFY_FIG_EKLE('sf1132_yansima', function (u) {
+  const W = 320, H = 250, ox = 128, oy = 196, a = 40, xd = 250;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef6fb"/>`;
+  s += `<defs><linearGradient id="${u}tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8cc06a"/><stop offset="1" stop-color="#5f9448"/></linearGradient>` +
+    `<linearGradient id="${u}tu" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9826a"/><stop offset="1" stop-color="#b8644e"/></linearGradient>` +
+    `<radialGradient id="${u}gn" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff3bf"/><stop offset=".6" stop-color="#ffd43b"/><stop offset="1" stop-color="#f59f00"/></radialGradient>` +
+    `<radialGradient id="${u}lk" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fffbe6"/><stop offset=".55" stop-color="#ffec99" stop-opacity=".9"/><stop offset="1" stop-color="#ffec99" stop-opacity="0"/></radialGradient></defs>`;
+  // zemin ve duvar
+  s += `<rect x="0" y="${oy}" width="${W}" height="${H - oy}" fill="url(#${u}tg)"/>`;
+  s += `<rect x="${xd}" y="20" width="${W - xd}" height="${oy - 20}" fill="url(#${u}tu)"/>`;
+  for (let y = 32; y < oy; y += 16) { s += `<line x1="${xd}" y1="${y}" x2="${W}" y2="${y}" stroke="#a65a46" stroke-width="1"/>`; for (let x = xd + ((y / 16) % 2 ? 0 : 18); x < W; x += 36) s += `<line x1="${x}" y1="${y - 16}" x2="${x}" y2="${y}" stroke="#a65a46" stroke-width="1"/>`; }
+  // ışın geometrisi
+  const L = 150, gx = ox - L * Math.sin(a * D), gy = oy - L * Math.cos(a * D);
+  const dy = (xd - ox) / Math.tan(a * D), ly = oy - dy;
+  s += `<ellipse cx="${xd + 3}" cy="${f1(ly)}" rx="9" ry="16" fill="url(#${u}lk)"/>`;
+  s += `<circle cx="${f1(gx - 14)}" cy="${f1(gy - 17)}" r="17" fill="url(#${u}gn)"/>`;
+  s += T(f1(gx - 14), f1(gy + 18), 'Güneş', { size: 12, anchor: 'middle', weight: 700, fill: '#c77700' });
+  // ayna (yerde, yandan)
+  s += `<rect x="${ox - 36}" y="${oy - 4}" width="72" height="6" rx="1.5" fill="#868e96"/>`;
+  s += ayna(ox - 34, oy - 4, ox + 34, oy - 4, -1, { w: 3 });
+  s += dashLine(ox, oy - 4, ox, oy - 132, P.ink2, '5 4', 1.4) + T(ox, oy - 138, 'normal', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += isin(gx, gy, ox, oy - 4, { w: 2.4 }) + isin(ox, oy - 4, xd, ly, { w: 2.4, color: '#2b8a3e' });
+  s += yay(ox, oy - 4, 42, -90 - a, -90, P.coral, 1.6) + yay(ox, oy - 4, 42, -90, -90 + a, '#2b8a3e', 1.6);
+  s += T(ox - 15, oy - 54, 'i', { size: 15, anchor: 'middle', weight: 800, italic: true, fill: P.coral });
+  s += T(ox + 15, oy - 54, 'r', { size: 15, anchor: 'middle', weight: 800, italic: true, fill: '#2b8a3e' });
+  s += T(ox - 48, oy - 46, 'gelen ışın', { size: 12, anchor: 'end', weight: 700 });
+  s += T(ox + 42, oy - 112, 'yansıyan ışın', { size: 12, anchor: 'middle', weight: 700, fill: '#2b8a3e' });
+  s += T(ox, oy + 24, 'ayna', { size: 12, anchor: 'middle', weight: 700, fill: '#fff', haloColor: '#5f9448' });
+  s += T(xd + 35, oy + 24, 'duvar', { size: 12, anchor: 'middle', weight: 700, fill: '#fff', haloColor: '#5f9448' });
+  return svg(W, H, s, u, 70);
+});
+
+/* Adım 3: cilalı masa (düzgün) ve kâğıt havlu (dağınık), büyüteçle yakından */
+BFY_FIG_EKLE('sf1132_yuzey', function (u) {
+  const W = 330, H = 236, cy = 112, R = 70;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fb"/>`;
+  s += `<defs><linearGradient id="${u}ah" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b07a4a"/><stop offset="1" stop-color="#7d5230"/></linearGradient>` +
+    `<linearGradient id="${u}kh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdfcf7"/><stop offset="1" stop-color="#e3dfd2"/></linearGradient>` +
+    `<clipPath id="${u}c1"><circle cx="82" cy="${cy}" r="${R}"/></clipPath><clipPath id="${u}c2"><circle cx="248" cy="${cy}" r="${R}"/></clipPath></defs>`;
+  const ry = cy + 30; // yüzey çizgisi
+  // sol: cilalı masa, düzgün yansıma
+  let g = `<rect x="0" y="0" width="${W}" height="${H}" fill="#fff"/>`;
+  g += `<rect x="0" y="${ry}" width="170" height="60" fill="url(#${u}ah)"/><line x1="0" y1="${ry}" x2="170" y2="${ry}" stroke="#f3e2cf" stroke-width="2"/>`;
+  [40, 66, 92, 118].forEach(x => { g += isin(x - 32, ry - 74, x, ry, { w: 1.8, head: 7, headW: 3.4 }) + isin(x, ry, x + 32, ry - 74, { w: 1.8, head: 7, headW: 3.4, color: '#2b8a3e' }); });
+  s += `<g clip-path="url(#${u}c1)">${g}</g>`;
+  // sağ: kâğıt havlu, dağınık yansıma
+  const xs = [194, 205, 214, 226, 236, 246, 258, 268, 279, 290, 302, 312], hs = [0, -7, 3, -5, 6, -2, -8, 4, -6, 5, -3, 2];
+  let zz = `M178 ${ry + 4}`; xs.forEach((x, i) => { zz += ` L${x} ${ry + hs[i]}`; }); zz += ` L322 ${ry + 3} V${ry + 70} H178 Z`;
+  g = `<rect x="160" y="0" width="${W}" height="${H}" fill="#fff"/><path d="${zz}" fill="url(#${u}kh)" stroke="#9e9a8c" stroke-width="1.4" stroke-linejoin="round"/>`;
+  [[214, 3, -42], [236, 6, 22], [258, -8, -12], [279, -6, 38]].forEach(([x, h, dd]) => {
+    g += isin(x - 32, ry + h - 74, x, ry + h, { w: 1.8, head: 7, headW: 3.4 });
+    const an = (-90 + dd) * D; g += isin(x, ry + h, x + 62 * Math.cos(an), ry + h + 62 * Math.sin(an), { w: 1.8, head: 7, headW: 3.4, color: '#2b8a3e' });
+  });
+  s += `<g clip-path="url(#${u}c2)">${g}</g>`;
+  [82, 248].forEach(x => { s += `<circle cx="${x}" cy="${cy}" r="${R}" fill="none" stroke="#495057" stroke-width="5"/><circle cx="${x}" cy="${cy}" r="${R - 3}" fill="none" stroke="#dee2e6" stroke-width="1.2"/>`; });
+  s += `<line x1="${82 + R * 0.72}" y1="${cy + R * 0.72}" x2="${82 + R * 0.72 + 14}" y2="${cy + R * 0.72 + 14}" stroke="#495057" stroke-width="8" stroke-linecap="round"/>`;
+  s += `<line x1="${248 + R * 0.72}" y1="${cy + R * 0.72}" x2="${248 + R * 0.72 + 14}" y2="${cy + R * 0.72 + 14}" stroke="#495057" stroke-width="8" stroke-linecap="round"/>`;
+  s += T(82, 22, 'cilalı masa', { size: 12.5, anchor: 'middle', weight: 800 }) + T(248, 22, 'kâğıt havlu', { size: 12.5, anchor: 'middle', weight: 800 });
+  s += T(82, H - 12, 'düzgün yansıma', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(248, H - 12, 'dağınık yansıma', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 72);
+});
+
+/* Adım 4: duvar aynası önünde duran kişi ve sanal görüntüsü (yandan) */
+BFY_FIG_EKLE('sf1132_goruntu', function (u) {
+  const W = 320, H = 260, mx = 160, zy = 214, d = 92;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f7fb"/>`;
+  s += `<rect x="${mx + 6}" y="16" width="${W - mx - 20}" height="${zy - 16}" fill="#e9edf1"/>`;
+  s += T(W - 20, 34, 'aynanın arkası', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 });
+  s += `<rect x="14" y="${zy}" width="${W - 28}" height="8" fill="#c9b79c"/>`;
+  s += ayna(mx, 44, mx, zy - 14, 1);
+  s += T(mx - 8, 40, 'düzlem ayna', { size: 12, anchor: 'end', weight: 700, fill: AYNA });
+  s += insan(u, mx - d, zy, 150, '#1c7ed6', 1);
+  s += `<g opacity=".42">${insan(u, mx + d, zy, 150, '#1c7ed6', -1)}</g>`;
+  s += T(mx - d, zy - 160, 'kişi', { size: 12, anchor: 'middle', weight: 700 }) + T(mx + d, zy - 160, 'görüntü', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += dimH(mx - d, mx, zy + 26, 'd', { below: false }) + dimH(mx, mx + d, zy + 26, 'd', { below: false });
+  return svg(W, H, s, u, 70);
+});
+
+/* Isınma 3: odanın üstten görünüşü, duvarda ayna, kedi ve göz (kareli) */
+BFY_FIG_EKLE('sf1132_kedi', function (u) {
+  const k = 26, g = izgara(46, 206, k, 0, -5, 8, 5), { X, Y } = g;
+  let s = `<rect class="bg" x="0" y="0" width="300" height="236" rx="14" fill="#f3f7fb"/>` + g.s;
+  s += `<rect x="${X(0) - 6}" y="${Y(0) - 26}" width="${8 * k + 12}" height="26" fill="#dde3ea"/>`;
+  s += ayna(X(0), Y(0), X(8), Y(0), 1);
+  [['X', 1], ['Y', 3], ['Z', 4]].forEach(([n, x]) => { s += `<circle cx="${X(x)}" cy="${Y(0)}" r="3.4" fill="#fff" stroke="${P.ink}" stroke-width="1.4"/>` + T(X(x), Y(0) - 12, n, { size: 13, anchor: 'middle', weight: 800 }); });
+  // kedi (üstten): gövde, baş, kulaklar, kuyruk
+  const cx = X(1), cy = Y(-2);
+  s += `<ellipse cx="${cx + 1}" cy="${cy + 13}" rx="9" ry="11" fill="#e8590c" stroke="#a5400a" stroke-width="1"/>`;
+  s += `<path d="M${cx + 8} ${cy + 20} q12 4 10 -10" fill="none" stroke="#e8590c" stroke-width="3.2" stroke-linecap="round"/>`;
+  s += `<path d="M${cx - 7} ${cy - 4} l2 -9 l5 6 Z M${cx + 7} ${cy - 4} l-2 -9 l-5 6 Z" fill="#c2410c"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="7.5" fill="#f08c3a" stroke="#a5400a" stroke-width="1"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="2.2" fill="${P.ink}"/>`;
+  s += T(cx + 16, cy + 4, 'kedi', { size: 12, weight: 800 });
+  // göz
+  s += `<circle cx="${X(7)}" cy="${Y(-4)}" r="2.6" fill="${P.ink}"/>` + goz(X(7) + 10, Y(-4) + 10, -135, 1.05);
+  s += T(X(7) - 12, Y(-4) + 4, 'göz', { size: 12, anchor: 'end', weight: 800 });
+  s += T(X(8), Y(0) - 12, 'ayna', { size: 12, anchor: 'end', weight: 700, fill: AYNA });
+  s += T(150, 228, 'Odanın yukarıdan görünüşü', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(300, 236, s, u, 66);
+});
 })();
 
 /* ---------- i1132: HİKÂYE, TANIM ve EFSANE için 3B görünümlü çizimler ---------- */
@@ -111015,6 +111657,178 @@ const KONU = {
     'ZENGİN: açıölçerli yansıma deneyi, i–r–θ veri tablosu, dönmüş ayna (veri anomalisi)', 'ZENGİN: müzede lazer alarmı, iki aynalı ışın yolu, M1 üzerinde hedef nokta (kareli)',
     'ZENGİN ETK: uzun ayna önünde göz ve beş cisim, görüntülerin göze uzaklık sırası (sırala)', 'SİM: duvar aynası 70–160 cm, 128/164/186 cm kişiler, 50–300 cm uzaklık, boydan görme'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar tam; açılar ve uzaklıklar qa/11.3.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Işık aynadan geri döner',
+        sekil: 'sf1132_yansima',
+        metin: r`Güneşli bir günde bahçede yere bir ayna koy. Bahçe duvarında parlak bir ışık lekesi belirir. Güneş ışığı aynaya çarpıp geldiği ortama, yani havaya geri dönmüştür. Buna **ışığın yansıması** denir.
+
+Yansımayı çizerken ışığı düz bir çizgi olarak gösteririz. Bu çizgiye **ışın** denir. Işının aynaya çarptığı noktada aynaya dik bir çizgi çizilir. Bu dik çizgiye **normal** denir.
+- Gelen ışının normalle yaptığı açı **gelme açısıdır** ($i$).
+- Yansıyan ışının normalle yaptığı açı **yansıma açısıdır** ($r$).`,
+        kontrol: {
+          soru: 'Gelme açısı hangi iki çizgi arasındaki açıdır?',
+          secenekler: ['Gelen ışın ile ayna yüzeyi', 'Gelen ışın ile normal', 'Gelen ışın ile yansıyan ışın'],
+          dogru: 1,
+          aciklama: 'Gelme açısı, gelen ışın ile normal arasındaki açıdır. Normal, ışının çarptığı noktada aynaya dik çizilen çizgidir.',
+          yanlisIpucu: 'Açılar ayna yüzeyinden değil, aynaya dik çizilen kesikli çizgiden ölçülür.'
+        }
+      },
+      {
+        baslik: 'Gelme açısı, yansıma açısına eşit',
+        metin: r`Işık aynadan rastgele dönmez. Her zaman aynı kurala uyar:
+$$i = r$$
+Yani **gelme açısı yansıma açısına eşittir**. Ayrıca gelen ışın, yansıyan ışın ve normal aynı düzlemdedir.
+
+Aynaya dik gelen ışının gelme açısı $0°$'dir. Bu ışın geldiği yoldan geri döner.
+
+Dikkat: Soruda ışının ayna yüzeyiyle yaptığı açı verilebilir. Normal yüzeye dik olduğu için gelme açısı $90°$'den bu açı çıkarılarak bulunur.`,
+        kontrol: {
+          soru: 'Bir ışın, ayna yüzeyiyle 50° açı yapacak biçimde aynaya geliyor. Yansıma açısı kaç derecedir?',
+          secenekler: [r`$50°$`, r`$40°$`, r`$100°$`],
+          dogru: 1,
+          aciklama: r`Gelme açısı normalle ölçülür: $i = 90° - 50° = 40°$. Yansıma açısı gelme açısına eşittir: $r = 40°$.`,
+          yanlisIpucu: 'Verilen 50°, ışın ile ayna yüzeyi arasında. Önce ışının normalle yaptığı açıyı bul.'
+        }
+      },
+      {
+        baslik: 'Düzgün yüzey, pürüzlü yüzey',
+        sekil: 'sf1132_yuzey',
+        metin: r`Cilalı bir masada lambanın görüntüsünü görebilirsin. Kâğıt havluda ise hiçbir görüntü göremezsin. Oysa ikisi de ışığı yansıtır.
+
+Fark yüzeydedir:
+- Düz ve parlak bir yüzeye gelen paralel ışınlar, yansıdıktan sonra da paralel kalır. Buna **düzgün yansıma** denir. Ayna ve cilalı masa böyle yansıtır.
+- Pürüzlü bir yüzeyin her küçük parçası farklı yöne eğiktir. Paralel ışınlar farklı yönlere saçılır. Buna **dağınık yansıma** denir.
+
+Dağınık yansımada da her ışın $i = r$ kuralına uyar. Işınlar yalnızca farklı normallere çarptığı için dağılır.`,
+        kontrol: {
+          soru: 'Aşağıdakilerin hangisinde dağınık yansıma olur?',
+          secenekler: ['Yeni silinmiş cam', 'Pamuklu bir tişört', 'Parlatılmış metal kaşık'],
+          dogru: 1,
+          aciklama: 'Pamuklu kumaşın yüzeyi pürüzlüdür. Işınlar farklı yönlere saçılır ve tişörtte görüntü oluşmaz. Cam ve parlak kaşık düzgün yansıma yapar.',
+          yanlisIpucu: 'Hangi yüzeyde kendi görüntünü göremezsin? Pürüzlü yüzey ışığı dağıtır.'
+        }
+      },
+      {
+        baslik: 'Aynadaki görüntü nerede?',
+        sekil: 'sf1132_goruntu',
+        metin: r`Duvar aynasının önünde durduğunda görüntün sanki aynanın arkasındadır. Aynadan yansıyan ışınlar gözüne gelir. Gözün, bu ışınları aynanın arkasındaki bir noktadan geliyormuş gibi algılar. Işınların kendisi değil, **uzantıları** orada kesişir. Bu yüzden düzlem aynadaki görüntü **sanaldır**; perdeye düşürülemez.
+
+Düzlem aynada görüntü:
+- Aynanın arkasında, cismin aynaya uzaklığı kadar uzaktadır.
+- Cisimle aynı boydadır ve düzdür.
+- Cisim ile görüntü, aynaya göre simetriktir.`,
+        kontrol: {
+          soru: 'Bir duvar aynasının 3 m önünde duruyorsun. Görüntün senden kaç m uzaktadır?',
+          secenekler: [r`$3$ m`, r`$6$ m`, r`$9$ m`],
+          dogru: 1,
+          aciklama: r`Görüntü aynanın 3 m arkasındadır. Sen aynanın 3 m önündesin. Aradaki uzaklık $3 + 3 = 6$ m olur.`,
+          yanlisIpucu: '3 m, senin aynaya uzaklığın. Görüntü de aynanın arkasında aynı uzaklıkta. Sen ile görüntün arasında ayna var.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Feneri aynaya tutmak',
+        metin: 'Karanlık bir odada Arda, el fenerini duvardaki aynaya tutuyor. Fenerden çıkan ışın, ayna yüzeyiyle 35° açı yapıyor. Yansıyan ışın odadaki bir tabloyu aydınlatıyor.',
+        adimlar: [
+          {
+            soru: 'Işının gelme açısı kaç derecedir?',
+            secenekler: [r`$35°$`, r`$55°$`, r`$90°$`],
+            dogru: 1,
+            ipucu: 'Gelme açısı ayna yüzeyiyle değil, normalle ölçülür. Normal ile ayna yüzeyi arasında 90° vardır.',
+            aciklama: r`Normal yüzeye diktir: $i = 90° - 35° = 55°$.`
+          },
+          {
+            soru: 'Yansıma açısı kaç derecedir?',
+            secenekler: [r`$55°$`, r`$35°$`, r`$110°$`],
+            dogru: 0,
+            ipucu: 'Yansıma yasasını hatırla: Gelme açısı ile yansıma açısı arasındaki ilişki nedir?',
+            aciklama: r`Yansıma açısı gelme açısına eşittir: $r = i = 55°$.`
+          },
+          {
+            soru: 'Gelen ışın ile yansıyan ışın arasındaki açı kaç derecedir?',
+            secenekler: [r`$55°$`, r`$70°$`, r`$110°$`],
+            dogru: 2,
+            ipucu: 'İki ışın normalin iki yanında duruyor. Normalin solundaki açı ile sağındaki açıyı topla.',
+            aciklama: r`Gelen ışın normalin bir yanında $55°$, yansıyan ışın öbür yanında $55°$ açı yapar. Aralarındaki açı $55° + 55° = 110°$ olur.`
+          }
+        ],
+        sonuc: 'Işının yüzeyle yaptığı açı 35° idi ama gelme açısı 55° çıktı. Açıları her zaman normalden ölç; ışın yüzeye ne kadar yatık gelirse gelme açısı o kadar büyük olur.'
+      },
+      {
+        baslik: 'Asansördeki ayna',
+        metin: 'Boyu 160 cm olan Ece, bir asansöre biniyor. Asansörün arka duvarında boydan bir düzlem ayna var. Ece aynaya dönük olarak, aynadan 1 m uzakta duruyor.',
+        adimlar: [
+          {
+            soru: 'Ece\'nin görüntüsü nerededir?',
+            secenekler: ['Aynanın yüzeyinde', 'Aynanın 1 m arkasında', 'Aynanın 2 m arkasında'],
+            dogru: 1,
+            ipucu: 'Cisim ile görüntü aynaya göre simetriktir. Ece aynanın kaç metre önünde?',
+            aciklama: 'Ece aynanın 1 m önünde olduğu için görüntüsü aynanın 1 m arkasındadır.'
+          },
+          {
+            soru: 'Ece ile görüntüsü arasındaki uzaklık kaç metredir?',
+            secenekler: [r`$1$ m`, r`$4$ m`, r`$2$ m`],
+            dogru: 2,
+            ipucu: 'Ece aynanın önünde 1 m, görüntüsü aynanın arkasında 1 m. İkisinin arasında ayna var.',
+            aciklama: r`Uzaklık $1 + 1 = 2$ m olur.`
+          },
+          {
+            soru: 'Ece\'nin görüntüsünün boyu kaç cm\'dir?',
+            secenekler: [r`$80$ cm`, r`$160$ cm`, r`$320$ cm`],
+            dogru: 1,
+            ipucu: 'Düzlem ayna görüntüyü büyütür ya da küçültür mü?',
+            aciklama: r`Düzlem aynada görüntü cisimle aynı boydadır: $160$ cm. Görüntü uzakta olduğu için küçük görünebilir ama boyu değişmez.`
+          },
+          {
+            soru: 'Ece sağ elini kaldırıyor. Görüntüyü, Ece\'ye dönük duran gerçek bir insan gibi düşün. Bu insan hangi elini kaldırmış olur?',
+            secenekler: ['Sağ elini', 'Sol elini', 'İki elini birden'],
+            dogru: 1,
+            ipucu: 'Görüntü Ece\'ye dönük duruyor. Karşına geçen bir arkadaşının sağ eli, senin hangi tarafındadır?',
+            aciklama: 'Ayna yalnız kendisine dik doğrultuyu ters çevirir. Ece\'nin kaldırdığı el ile görüntüde kalkan el aynı taraftadır. Ama görüntü Ece\'ye dönük durduğu için bu el, görüntünün sol eli olur.'
+          }
+        ],
+        sonuc: 'Düzlem aynada görüntü aynanın arkasında, cisimle aynı uzaklıkta ve aynı boydadır. Sağ ile sol yer değiştirmiş gibi görünür, çünkü ayna aynaya dik doğrultuyu ters çevirir.'
+      },
+      {
+        baslik: 'Aynadaki kedi',
+        sekil: 'sf1132_kedi',
+        metin: 'Şekil bir odayı yukarıdan gösteriyor. Duvarda uzun bir düzlem ayna var. Bir kedi aynanın önünde oturuyor. Kediye arkası dönük oturan Deniz, kediyi aynada görüyor. Kareler eşit büyüklüktedir.',
+        adimlar: [
+          {
+            soru: 'Kedinin aynadaki görüntüsü nerededir?',
+            secenekler: ['Aynanın 2 kare arkasında, kedinin tam karşısında', 'Aynanın 4 kare arkasında', 'Aynanın yüzeyinde, kedinin tam karşısında'],
+            dogru: 0,
+            ipucu: 'Kedi aynanın kaç kare önünde? Görüntü aynanın arkasında aynı uzaklıktadır.',
+            aciklama: 'Kedi aynadan 2 kare uzakta. Görüntüsü aynanın 2 kare arkasında, kediden aynaya çizilen dik doğrunun uzantısındadır.'
+          },
+          {
+            soru: 'Deniz, kediyi aynanın hangi noktasında görür?',
+            secenekler: ['X', 'Z', 'Y'],
+            dogru: 2,
+            ipucu: 'Gözden kedinin görüntüsüne düz bir çizgi çiz. Bu çizgi aynayı hangi noktada kesiyor?',
+            aciklama: 'Görüntüden göze çizilen doğru, her karede 1 sağa ve 1 aşağı ilerleyen çapraz bir çizgidir. Bu çizgi aynayı Y noktasında keser. Işın kediden Y\'ye gelir, oradan Deniz\'in gözüne yansır.'
+          },
+          {
+            soru: 'Y noktasında gelme açısı kaç derecedir?',
+            secenekler: [r`$30°$`, r`$90°$`, r`$45°$`],
+            dogru: 2,
+            ipucu: 'Kediden Y\'ye giden ışın, karelerin köşegeni boyunca gider. Köşegen, karenin kenarıyla kaç derece yapar?',
+            aciklama: r`Kediden Y'ye ışın 2 kare sağa, 2 kare yukarı gider; karelerin köşegeni boyuncadır. Normalle $45°$ açı yapar. Gözüne giden ışın da öbür yanda $45°$ yapar: $i = r = 45°$.`
+          }
+        ],
+        sonuc: 'Aynada bir cismi nerede gördüğünü bulmak için önce görüntüsünü bul, sonra gözden görüntüye düz bir çizgi çiz. Çizginin aynayı kestiği yerde gelme açısı yansıma açısına eşit çıkar.'
+      }
+    ],
+    hazir: 'Yansıma yasasını ve düzlem aynada görüntünün yerini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
