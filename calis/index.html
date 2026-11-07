@@ -24114,6 +24114,168 @@ BFY_FIG_EKLE('i933_kart_sikisma', u => KART(u, I => {
 }, { oy: 70 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf933_ öneki) ---------- */
+(function () {
+const { P, T, arrow, dimV, svg, dashLine } = window.BFY_FIGLIB;
+const ekDefs = u => `<defs>
+  <radialGradient id="${u}sftop" cx="38%" cy="32%" r="72%"><stop offset="0" stop-color="#d6eefb"/><stop offset=".55" stop-color="#6fb4e0"/><stop offset="1" stop-color="#2a79ad"/></radialGradient>
+  <linearGradient id="${u}sfyag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3c867"/><stop offset="1" stop-color="#c98a1c"/></linearGradient>
+  <linearGradient id="${u}sfderi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4f57"/><stop offset="1" stop-color="#23262b"/></linearGradient>
+  <linearGradient id="${u}sfkrom" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8e979f"/><stop offset=".35" stop-color="#f4f6f8"/><stop offset=".6" stop-color="#b8c0c7"/><stop offset="1" stop-color="#6f7880"/></linearGradient>
+  <linearGradient id="${u}sfsu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd0ee"/><stop offset="1" stop-color="#3f8fc4"/></linearGradient>
+  <linearGradient id="${u}sfvaril" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f5f99"/><stop offset=".3" stop-color="#4f93cf"/><stop offset=".7" stop-color="#2f74b4"/><stop offset="1" stop-color="#18497a"/></linearGradient>
+  <linearGradient id="${u}sfisi" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d8dde1"/><stop offset=".35" stop-color="#ffffff"/><stop offset="1" stop-color="#b3bcc3"/></linearGradient>
+</defs>`;
+
+/* Adım 1: su dolu delikli top; pistona bastırılınca su bütün deliklerden eşit fışkırır */
+BFY_FIG_EKLE('sf933_top', function (u) {
+  const W = 320, H = 316, cx = 168, cy = 172, R = 60;
+  let s = ekDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  // ayaklı tutucu
+  s += `<rect class="bg" x="22" y="278" width="92" height="9" rx="3" fill="url(#${u}metal)" stroke="#5b646b" stroke-width=".9"/>`;
+  s += `<rect x="40" y="56" width="7" height="223" fill="url(#${u}metalV)" stroke="#5b646b" stroke-width=".7"/>`;
+  s += `<rect x="40" y="92" width="${cx - 14 - 40}" height="7" rx="2" fill="url(#${u}metal)" stroke="#5b646b" stroke-width=".7"/>`;
+  s += `<rect x="${cx - 18}" y="88" width="36" height="15" rx="3" fill="#5b646b"/>`;
+  // boru (saydam), içinde su, piston ve kolu
+  const bx = cx - 12, bw = 24, pt = 70;
+  s += `<rect x="${bx + 1}" y="${pt + 8}" width="${bw - 2}" height="${cy - R - pt - 4}" fill="url(#${u}sfsu)" opacity=".85"/>`;
+  s += `<rect x="${bx}" y="40" width="${bw}" height="${cy - R - 34}" rx="2" fill="#ffffff" fill-opacity=".25" stroke="#5d7d8f" stroke-width="1.4"/>`;
+  s += `<rect x="${bx + 1}" y="${pt}" width="${bw - 2}" height="9" rx="1.5" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width=".9"/>`;
+  s += `<rect x="${cx - 2.5}" y="26" width="5" height="${pt - 26}" fill="url(#${u}metalV)" stroke="#4f5a60" stroke-width=".6"/>`;
+  s += `<rect x="${cx - 16}" y="20" width="32" height="8" rx="4" fill="#3d4449"/>`;
+  s += arrow(cx + 34, 8, cx + 34, 40, { color: P.coral, w: 2.8 }) + T(cx + 42, 26, 'F', { size: 15, weight: 800, fill: P.coral });
+  s += T(bx + bw + 8, pt + 9, 'piston', { size: 11.5, weight: 700, fill: P.ink2 });
+  // jetler (eşit uzunlukta, hafif aşağı kıvrılır)
+  const acilar = [-25, 18, 58, 122, 162, 205];
+  acilar.forEach(a => {
+    const t = a * Math.PI / 180, ux = Math.cos(t), uy = Math.sin(t);
+    const x0 = cx + R * ux, y0 = cy + R * uy, x2 = cx + (R + 40) * ux, y2 = cy + (R + 40) * uy + 14;
+    const xm = cx + (R + 24) * ux, ym = cy + (R + 24) * uy;
+    s += `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} Q${xm.toFixed(1)} ${ym.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="#3f8fc4" stroke-width="3.4" stroke-linecap="round" opacity=".85"/>`;
+    s += `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} Q${xm.toFixed(1)} ${ym.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="#e3f3fc" stroke-width="1" opacity=".9"/>`;
+    s += `<circle cx="${(x2 + ux * 3).toFixed(1)}" cy="${(y2 + 5).toFixed(1)}" r="2" fill="#5aa9dc"/>`;
+  });
+  // top
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${u}sftop)" stroke="#1d5a86" stroke-width="1.4"/>`;
+  s += `<ellipse cx="${cx - 22}" cy="${cy - 26}" rx="16" ry="9" fill="#fff" opacity=".45" transform="rotate(-30 ${cx - 22} ${cy - 26})"/>`;
+  acilar.forEach(a => {
+    const t = a * Math.PI / 180;
+    s += `<circle cx="${(cx + (R - 1) * Math.cos(t)).toFixed(1)}" cy="${(cy + (R - 1) * Math.sin(t)).toFixed(1)}" r="2.6" fill="#173430"/>`;
+  });
+  // her yöne iletim okları (top içinde)
+  [[0, 1], [1, 0], [-1, 0], [0.7, -0.7], [-0.7, -0.7], [0.7, 0.7], [-0.7, 0.7]].forEach(([dx, dy]) => {
+    s += arrow(cx + dx * 9, cy + dy * 9, cx + dx * 30, cy + dy * 30, { color: '#fff', w: 1.8, head: 6, headW: 3.4 });
+  });
+  s += T(W - 14, H - 12, 'Su bütün deliklerden fışkırır.', { size: 12, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 2: berber koltuğu; pedal dar pistonu iter, yağ geniş pistonu koltukla birlikte yükseltir */
+BFY_FIG_EKLE('sf933_koltuk', function (u) {
+  const W = 360, H = 320, yer = 296;
+  let s = ekDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f3ee"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="#d9d2c4"/>`;
+  for (let x = 0; x < W; x += 40) s += `<line class="bg" x1="${x}" y1="${yer}" x2="${x - 14}" y2="${H}" stroke="#c4bba9" stroke-width="1"/>`;
+  // gövde (kesit): metal taban kutusu
+  const gx = 70, gw = 220, gy = 214, gh = 76;
+  s += `<rect x="${gx}" y="${gy}" width="${gw}" height="${gh}" rx="8" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width="1.3"/>`;
+  s += `<rect x="${gx + 8}" y="${yer - 8}" width="${gw - 16}" height="8" rx="3" fill="#3d4449"/>`;
+  // silindirler ve bağlantı kanalı (yağ dolu)
+  const d1 = 86, d1w = 18, d2 = 152, d2w = 84, kanalY = 268, p1 = 226, p2 = 222;
+  s += `<path d="M${d1} ${p1 + 7} H${d1 + d1w} V${kanalY} H${d2} V${p2 + 9} H${d2 + d2w} V${kanalY + 14} H${d1} Z" fill="url(#${u}sfyag)" stroke="#7a5212" stroke-width="1.1"/>`;
+  s += `<rect x="${d1}" y="${p1}" width="${d1w}" height="7" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width=".8"/>`;
+  s += `<rect x="${d2}" y="${p2}" width="${d2w}" height="9" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width=".9"/>`;
+  // dar pistonun kolu ve pedal
+  s += `<rect x="${d1 + d1w / 2 - 2}" y="196" width="4" height="${p1 - 196}" fill="url(#${u}metalV)"/>`;
+  s += `<rect x="${d1 + d1w / 2 - 22}" y="188" width="44" height="9" rx="3" fill="#23262b"/>`;
+  for (let i = 0; i < 4; i++) s += `<line x1="${d1 + d1w / 2 - 18 + i * 12}" y1="190" x2="${d1 + d1w / 2 - 14 + i * 12}" y2="195" stroke="#5b646b" stroke-width="1.4"/>`;
+  s += T(d1 + d1w / 2 - 28, 197, 'pedal', { size: 11.5, anchor: 'end', weight: 700, fill: P.ink2 });
+  // geniş pistonun kolu (krom sütun) ve koltuk
+  const sx = d2 + d2w / 2;
+  s += `<rect x="${sx - 13}" y="150" width="26" height="${p2 - 150}" fill="url(#${u}sfkrom)" stroke="#5b646b" stroke-width=".8"/>`;
+  s += `<ellipse cx="${sx}" cy="152" rx="40" ry="7" fill="#3d4449"/>`;
+  s += `<path d="M${sx - 62} 146 Q${sx - 66} 118 ${sx - 44} 116 H${sx + 52} Q${sx + 70} 118 ${sx + 66} 146 Z" fill="url(#${u}sfderi)" stroke="#15171a" stroke-width="1"/>`;
+  s += `<path d="M${sx + 40} 118 Q${sx + 44} 50 ${sx + 60} 36 Q${sx + 82} 30 ${sx + 84} 52 L${sx + 74} 120 Z" fill="url(#${u}sfderi)" stroke="#15171a" stroke-width="1"/>`;
+  s += `<path d="M${sx - 60} 108 H${sx + 30}" stroke="#8e979f" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<path d="M${sx - 56} 108 V118 M${sx + 24} 108 V116" stroke="#8e979f" stroke-width="3"/>`;
+  // kuvvetler ve alanlar
+  s += arrow(d1 + d1w / 2, 146, d1 + d1w / 2, 184, { color: P.coral, w: 2.8 });
+  s += T(d1 + d1w / 2 - 8, 164, 'F', { size: 15, anchor: 'end', weight: 800, fill: P.coral });
+  s += arrow(sx + 30, 206, sx + 30, 166, { color: P.coral, w: 2.8 });
+  s += T(sx + 38, 190, 'F₂', { size: 15, weight: 800, fill: P.coral });
+  s += T(d1 + d1w + 6, p1 + 30, 'A₁', { size: 13, weight: 800 });
+  s += T(d2 + d2w + 6, p2 + 26, 'A₂', { size: 13, weight: 800 });
+  s += T(W - 12, yer + 17, 'Silindirlerde yağ var.', { size: 11.5, anchor: 'end', weight: 700, fill: '#7a5212' });
+  return svg(W, H, s, u, 72);
+});
+
+/* Adım 4: su ısıtıcısı ve yandaki seviye penceresi; su iki kolda aynı düzeyde */
+BFY_FIG_EKLE('sf933_isitici', function (u) {
+  const W = 320, H = 280, alt = 232, ust = 70, gx = 96, gw = 128, sv = 128;
+  let s = ekDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f8"/>`;
+  s += `<rect class="bg" x="16" y="${alt + 18}" width="${W - 32}" height="10" rx="3" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+  // taban (güç tabanı) ve kablo
+  s += `<rect x="${gx - 8}" y="${alt + 4}" width="${gw + 16}" height="14" rx="6" fill="#3d4449"/>`;
+  s += `<path d="M${gx - 8} ${alt + 12} Q${gx - 40} ${alt + 14} ${gx - 52} ${alt + 26}" fill="none" stroke="#23262b" stroke-width="3"/>`;
+  // gövde: hafif konik
+  const sol = y => gx + 6 * (y - ust) / (alt - ust), sag = y => gx + gw - 6 * (y - ust) / (alt - ust);
+  s += `<path d="M${gx} ${ust} L${gx + 6} ${alt} Q${gx + 6} ${alt + 4} ${gx + 12} ${alt + 4} H${gx + gw - 12} Q${gx + gw - 6} ${alt + 4} ${gx + gw - 6} ${alt} L${gx + gw} ${ust} Z" fill="url(#${u}sfisi)" stroke="#5f6b73" stroke-width="1.5"/>`;
+  // kesit penceresi (gövdenin içi görünür): su
+  s += `<path d="M${sol(sv) + 6} ${sv} L${sol(alt) + 6} ${alt - 4} H${sag(alt) - 34} L${sag(sv) - 34} ${sv} Z" fill="url(#${u}sfsu)" opacity=".85"/>`;
+  s += `<path d="M${sol(ust + 8) + 6} ${ust + 8} L${sol(alt) + 6} ${alt - 4} H${sag(alt) - 34} L${sag(ust + 8) - 34} ${ust + 8} Z" fill="none" stroke="#8a98a2" stroke-width="1" stroke-dasharray="3 3"/>`;
+  // kapak ve emzik
+  s += `<path d="M${gx - 2} ${ust} Q${gx + gw / 2} ${ust - 20} ${gx + gw + 2} ${ust} Z" fill="#c9cfd4" stroke="#5f6b73" stroke-width="1.3"/>`;
+  s += `<path d="M${gx} ${ust + 4} L${gx - 22} ${ust - 6} L${gx - 18} ${ust + 10} L${gx + 2} ${ust + 22} Z" fill="url(#${u}sfisi)" stroke="#5f6b73" stroke-width="1.2"/>`;
+  // sap
+  s += `<path d="M${gx + gw} ${ust + 14} Q${gx + gw + 46} ${ust + 18} ${gx + gw + 40} ${ust + 80} Q${gx + gw + 34} ${alt - 30} ${gx + gw - 4} ${alt - 40}" fill="none" stroke="#3d4449" stroke-width="10" stroke-linecap="round"/>`;
+  // seviye penceresi: alttan gövdeye bağlı ince saydam boru (sağ kenarda)
+  const px = sag(sv) - 26, pw = 12;
+  s += `<rect x="${px}" y="${ust + 16}" width="${pw}" height="${alt - ust - 22}" rx="5" fill="#ffffff" stroke="#2f4f63" stroke-width="1.3"/>`;
+  s += `<rect x="${px + 2}" y="${sv}" width="${pw - 4}" height="${alt - 8 - sv}" rx="3" fill="url(#${u}sfsu)"/>`;
+  s += `<path d="M${px + pw / 2} ${alt - 6} V${alt - 2} H${sag(alt) - 40}" stroke="#3f8fc4" stroke-width="4" fill="none"/>`;
+  for (let i = 1; i <= 4; i++) { const y = ust + 16 + i * 30; s += `<line x1="${px - 4}" y1="${y}" x2="${px}" y2="${y}" stroke="#2f4f63" stroke-width="1"/>`; }
+  // aynı düzey çizgisi
+  s += dashLine(18, sv, px + pw + 8, sv, P.coral, '5 4', 1.4);
+  s += T(18, sv - 7, 'aynı düzey', { size: 12, weight: 800, fill: P.coral });
+  s += T(px + pw / 2 + 10, 34, 'seviye penceresi', { size: 12, anchor: 'start', weight: 700, fill: P.ink2 });
+  s += `<line x1="${px + pw / 2 + 12}" y1="38" x2="${px + pw / 2 + 2}" y2="${ust + 20}" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += T(gx - 10, alt - 40, 'gövde', { size: 12, anchor: 'end', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 66);
+});
+
+/* Isınma 2: bahçede yan yana iki özdeş varil; tabana yakın hortum ve kapalı vana */
+BFY_FIG_EKLE('sf933_varil', function (u) {
+  const W = 400, H = 270, yer = 236, k = 1.7, vh = 95 * k, vw = 92;
+  const Ax = 70, Bx = 236, ust = yer - vh;
+  let s = ekDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${yer}" width="${W}" height="${H - yer}" fill="url(#${u}grass)"/>`;
+  const varil = (x, cm, ad) => {
+    let g = `<ellipse class="bg" cx="${x + vw / 2}" cy="${yer + 2}" rx="${vw / 2 + 8}" ry="5" fill="#000" opacity=".15"/>`;
+    g += `<rect x="${x}" y="${ust}" width="${vw}" height="${vh}" rx="8" fill="url(#${u}sfvaril)" stroke="#123a61" stroke-width="1.3"/>`;
+    const sy = yer - cm * k;
+    // kesit: içteki su
+    g += `<rect x="${x + 12}" y="${sy}" width="${vw - 24}" height="${yer - 6 - sy}" fill="url(#${u}sfsu)" stroke="#2a6f9e" stroke-width=".8"/>`;
+    g += `<rect x="${x + 12}" y="${ust + 10}" width="${vw - 24}" height="${yer - 16 - ust}" fill="none" stroke="#cfe3f3" stroke-width="1" stroke-dasharray="3 3"/>`;
+    [0.33, 0.66].forEach(f => { g += `<path d="M${x} ${ust + vh * f} H${x + 12} M${x + vw - 12} ${ust + vh * f} H${x + vw}" stroke="#123a61" stroke-width="3"/>`; });
+    g += `<rect x="${x + vw / 2 - 10}" y="${ust - 5}" width="20" height="6" rx="2" fill="#123a61"/>`;
+    g += T(x + vw / 2, ust - 12, ad, { size: 15, anchor: 'middle', weight: 800 });
+    return g;
+  };
+  s += varil(Ax, 80, 'A') + varil(Bx, 20, 'B');
+  // hortum ve vana
+  const hy = yer - 12;
+  s += `<path d="M${Ax + vw} ${hy} Q${(Ax + vw + Bx) / 2} ${hy + 8} ${Bx} ${hy}" fill="none" stroke="#2e7d4f" stroke-width="7" stroke-linecap="round"/>`;
+  const vx = (Ax + vw + Bx) / 2;
+  s += `<rect x="${vx - 9}" y="${hy - 4}" width="18" height="16" rx="3" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width="1"/>`;
+  s += `<rect x="${vx - 3}" y="${hy - 22}" width="6" height="18" fill="#5b646b"/><rect x="${vx - 14}" y="${hy - 27}" width="28" height="6" rx="3" fill="#c0392b"/>`;
+  s += T(vx, yer + 24, 'vana (kapalı)', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // ölçüler (ölçekli değil)
+  s += dimV(Ax - 14, yer - 80 * k, yer - 6, '80 cm', { size: 12.5 });
+  s += dimV(Bx + vw + 14, yer - 20 * k, yer - 6, '20 cm', { size: 12.5, side: 'right' });
+  return svg(W, H, s, u, 76);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -24160,6 +24322,182 @@ const KONU = {
   ],
 
   /* ---------------- KONU NOTU ---------------- */
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/9.3.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde sıvıların basıncı nasıl taşıdığını ve bunun berber koltuğundan su deposuna kadar nerelerde işe yaradığını kısa adımlarla göreceksin. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Sıvı, eklenen basıncı her yere taşır`,
+        sekil: 'sf933_top',
+        metin: r`Su dolu bir plastik topun yüzeyine her yönden birkaç küçük delik açalım. Topun üstündeki dar boruda bir piston olsun. Pistonu aşağı ittiğimizde su yalnız alttaki deliklerden çıkmaz. Yandaki ve üst taraftaki deliklerden de fışkırır.
+
+Sıvılar **sıkıştırılamaz** kabul edilir. Pistonla sıvıya eklediğin basınç, sıvının her noktasına ve kabın iç yüzeyine **eşit büyüklükte ve her yönde** iletilir. Buna **Pascal Yasası** denir.
+
+Dikkat: Her yerde eşit olan, senin eklediğin **basınç artışıdır**. Derindeki bir noktada sıvının kendi ağırlığından gelen basınç yine daha büyüktür.`,
+        kontrol: {
+          soru: r`Su dolu kapalı bir kabın pistonuna bastırılıyor. Kabın tabanındaki K noktasında ve yan duvarındaki L noktasında basınç artışı için ne söylenir?`,
+          secenekler: [r`Yalnız K noktasında artar.`, r`K noktasında daha çok artar.`, r`İkisinde eşit miktarda artar.`],
+          dogru: 2,
+          aciklama: r`Pascal Yasası'na göre pistonla eklenen basınç sıvının her noktasına eşit iletilir. K'de de L'de de basınç aynı miktar artar.`,
+          yanlisIpucu: r`Eklenen basınç yalnız aşağı mı gider? Topun bütün deliklerinden su fışkırdığını hatırla.`
+        }
+      },
+      {
+        baslik: r`Küçük kuvvetle büyük yük`,
+        sekil: 'sf933_koltuk',
+        metin: r`Berber, koltuğun altındaki pedala basarak üstünde müşteri oturan koltuğu kolayca yükseltir. Koltuğun altında bir **su cenderesi** (hidrolik kaldıraç) vardır. İçi yağ dolu bir kanalla birbirine bağlı iki piston bulunur: biri dar, biri geniş.
+
+Pedal dar pistonu $F$ kuvvetiyle iter. Dar pistonun altındaki yağda $P = \dfrac{F}{A_1}$ kadar basınç oluşur. Bu basınç yağ aracılığıyla geniş pistona **aynen** iletilir. Geniş pistonda kuvvet $F_2 = P \times A_2$ olur.
+
+Bu koltukta $A_1 = 4$ cm², $A_2 = 100$ cm² olsun. Pistonlar aynı düzeyde dursun. Dar pistona 40 N'luk kuvvet etki ederse basınç $\dfrac{40}{4} = 10$ N/cm² olur. 1 N/cm², her 1 cm²'lik yüzeye 1 N kuvvet düştüğünü anlatır. Basıncın SI birimi pascaldır (1 Pa = 1 N/m²). Alanlar cm² ile verilince basıncı N/cm² ile yazmak hesabı kolaylaştırır.
+
+Geniş piston $10 \times 100 = 1000$ N'luk kuvvetle itilir. Geniş piston 25 kat geniş olduğu için kuvvet de 25 kat büyüdü.`,
+        kontrol: {
+          soru: r`Bir su cenderesinde dar pistonun alanı 2 cm², geniş pistonun alanı 80 cm²'dir. Dar pistona 12 N'luk kuvvet uygulanıyor. Pistonlar aynı düzeydeyse geniş piston kaç N'luk kuvvetle itilir?`,
+          secenekler: [r`12 N`, r`480 N`, r`6 N`],
+          dogru: 1,
+          aciklama: r`Basınç $\dfrac{12}{2} = 6$ N/cm² olur. Geniş pistonda $F_2 = 6 \times 80 = 480$ N olur.`,
+          yanlisIpucu: r`Önce basıncı bul: kuvveti dar pistonun alanına böl. Sonra bu basıncı geniş pistonun alanıyla çarp.`
+        }
+      },
+      {
+        baslik: r`Kuvvetten kazan, yoldan kaybet`,
+        metin: r`Su cenderesi kuvveti büyütür ama bunun bir bedeli vardır. Dar piston aşağı inerken önündeki yağı geniş silindire iter. Geniş silindirin tabanı çok geniş olduğu için bu yağ orada ince bir tabaka oluşturur. Geniş piston bu yüzden çok az yükselir.
+
+Berber koltuğunda geniş piston, dar pistondan 25 kat geniştir. Koltuğun 1 cm yükselmesi için dar pistonun toplam 25 cm inmesi gerekir. Berber bu yüzden pedala birkaç kez basar.
+
+Su cenderesinde kuvvetten kazanılır, **yoldan kaybedilir**.`,
+        kontrol: {
+          soru: r`Aynı berber koltuğunu 2 cm yükseltmek için dar piston toplam kaç cm iner?`,
+          secenekler: [r`2 cm`, r`25 cm`, r`50 cm`],
+          dogru: 2,
+          aciklama: r`Koltuğun her 1 cm yükselmesi için dar piston 25 cm iner. 2 cm için $2 \times 25 = 50$ cm iner.`,
+          yanlisIpucu: r`İki piston aynı yolu gitmez. Geniş piston 1 cm yükselirken dar piston ne kadar iniyordu?`
+        }
+      },
+      {
+        baslik: r`Bileşik kaplarda su aynı düzeye gelir`,
+        sekil: 'sf933_isitici',
+        metin: r`Birçok su ısıtıcısının yanında suyun düzeyini gösteren saydam bir pencere vardır. Bu pencere aslında ince bir borudur ve alttan ısıtıcının gövdesine bağlıdır.
+
+Birbirine alttan bağlı kaplara **bileşik kaplar** denir. İçlerinde aynı sıvı varsa sıvı, bütün kollardaki yüzeyler **aynı yatay düzeye** gelene kadar akar. Kolun dar ya da geniş olması bunu değiştirmez.
+
+Bu yüzden penceredeki su düzeyi, gövdenin içindeki su düzeyiyle aynıdır. Pencereye bakan, içeride ne kadar su olduğunu görür.`,
+        kontrol: {
+          soru: r`Bir su ısıtıcısının gövdesine su dolduruluyor. Dar seviye penceresindeki su nerede durur?`,
+          secenekler: [r`Gövdedekiyle aynı düzeyde.`, r`Gövdedekinden daha yüksekte.`, r`Gövdedekinden daha alçakta.`],
+          dogru: 0,
+          aciklama: r`Pencere ile gövde alttan bağlı bir bileşik kaptır. Su iki kolda da aynı yatay düzeyde durur. Pencerenin dar olması bunu değiştirmez.`,
+          yanlisIpucu: r`Bileşik kaplarda sıvı, kolların genişliğine bakmaz. Yüzeyler hangi durumda dengede kalır?`
+        }
+      },
+      {
+        baslik: r`Depodan gelen suyun basıncı`,
+        metin: r`Birçok evin çatısında bir su deposu vardır. Depodan inen borular evdeki musluklara ve duşa gider. Depo ve borular birlikte bir bileşik kap gibidir.
+
+Su akmazken bir musluktaki basınç, musluğun **depodaki su yüzeyinden düşey derinliğine** bağlıdır: $P = h \times d \times g$. Suyun yoğunluğu $1000\ \text{kg/m}^3$, $g = 10\ \text{m/s}^2$'dir.
+
+Duş başlığı depodaki su yüzeyinin 3 m altındaysa oradaki basınç $3 \times 1000 \times 10 = 30\,000$ Pa olur. Bahçedeki musluk su yüzeyinin 9 m altındaysa basınç $90\,000$ Pa olur. Alçaktaki musluktan su daha güçlü akar.`,
+        kontrol: {
+          soru: r`Depo, içindeki su miktarı değişmeden 2 m daha yükseğe taşınıyor. Duş başlığı yerinde kalıyor. Duş başlığındaki basınç kaç Pa olur?`,
+          secenekler: [r`30 000 Pa`, r`50 000 Pa`, r`20 000 Pa`],
+          dogru: 1,
+          aciklama: r`Depodaki su yüzeyi 2 m yükseldi. Duş başlığının derinliği $3 + 2 = 5$ m olur. $P = 5 \times 1000 \times 10 = 50\,000$ Pa olur.`,
+          yanlisIpucu: r`Derinlik depodaki su yüzeyinden ölçülür. Depo yükselince duş başlığı su yüzeyinin kaç m altında kalır?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Hasta sedyesinin pedalı`,
+        metin: r`Bazı hasta sedyelerinin altında küçük bir su cenderesi vardır. Görevli pedala bastıkça sedye yükselir. Dar pistonun yüzey alanı 3 cm², geniş pistonunki 60 cm²'dir. Pedal, dar pistona 36 N'luk kuvvet uygular. Pistonlar aynı düzeydedir.`,
+        adimlar: [
+          {
+            soru: r`Dar pistonun yağda oluşturduğu basınç kaç N/cm² olur?`,
+            secenekler: [r`108 N/cm²`, r`36 N/cm²`, r`12 N/cm²`],
+            dogru: 2,
+            ipucu: r`Basınç, kuvvetin yüzey alanına bölümüdür: $P = \dfrac{F}{A_1}$.`,
+            aciklama: r`$P = \dfrac{36}{3} = 12$ N/cm² olur.`
+          },
+          {
+            soru: r`Geniş piston sedyeyi kaç N'luk kuvvetle yukarı iter?`,
+            secenekler: [r`720 N`, r`36 N`, r`12 N`],
+            dogru: 0,
+            ipucu: r`Aynı basınç geniş pistona iletilir. $F_2 = P \times A_2$ ile hesapla.`,
+            aciklama: r`$F_2 = 12 \times 60 = 720$ N olur. Geniş piston dar pistondan 20 kat geniş olduğu için kuvvet de 20 kat büyüdü.`
+          },
+          {
+            soru: r`Sedyeye daha ağır bir hasta yatırılıyor. Geniş pistonun 900 N'luk kuvvet uygulaması gerekiyor. Pedal, dar pistona en az kaç N'luk kuvvet uygulamalıdır?`,
+            secenekler: [r`300 N`, r`45 N`, r`15 N`],
+            dogru: 1,
+            ipucu: r`Önce geniş pistonda gereken basıncı bul: $\dfrac{900}{60}$. Dar pistonda da aynı basınç olmalı.`,
+            aciklama: r`Gereken basınç $\dfrac{900}{60} = 15$ N/cm² olur. Dar pistonda $F = 15 \times 3 = 45$ N gerekir.`
+          }
+        ],
+        sonuc: r`Su cenderesinde iki pistonun altındaki basınç aynıdır. Kuvvet alanla aynı oranda büyür: geniş piston 20 kat genişse kuvvet de 20 kat büyük olur.`
+      },
+      {
+        baslik: r`Bahçedeki iki varil`,
+        sekil: 'sf933_varil',
+        metin: r`Bahçede düz zemine yan yana iki özdeş varil konmuş. Variller, tabanlarına yakın yerden bir hortumla birbirine bağlı. Hortumun ortasındaki vana kapalı. A varilinde 80 cm, B varilinde 20 cm yüksekliğinde su var. Hortumdaki suyu önemseme.`,
+        adimlar: [
+          {
+            soru: r`Vana açılınca su hangi yöne akar?`,
+            secenekler: [r`B'den A'ya akar.`, r`A'dan B'ye akar.`, r`Hiç akmaz.`],
+            dogru: 1,
+            ipucu: r`Vananın iki yanındaki basınçları karşılaştır. Su hangi tarafta daha derin?`,
+            aciklama: r`A'da su daha yüksek olduğu için vananın A tarafındaki basınç daha büyüktür. Su A'dan B'ye akar.`
+          },
+          {
+            soru: r`Akış ne zaman durur?`,
+            secenekler: [r`İki varilde su yüzeyleri aynı düzeye gelince.`, r`A'daki su bitince.`, r`B'deki su A'dakinden yükseğe çıkınca.`],
+            dogru: 0,
+            ipucu: r`Hortumla bağlı iki varil bir bileşik kaptır. Bileşik kaplarda sıvı hangi durumda dengede kalır?`,
+            aciklama: r`Su yüzeyleri aynı düzeye gelince vananın iki yanındaki basınç eşitlenir ve akış durur.`
+          },
+          {
+            soru: r`Akış durduğunda her varilde su kaç cm yükseklikte olur?`,
+            secenekler: [r`60 cm`, r`100 cm`, r`50 cm`],
+            dogru: 2,
+            ipucu: r`Toplam su değişmez. Variller özdeş olduğu için su ikisine eşit paylaşılır.`,
+            aciklama: r`Su eşit paylaşılır: $\dfrac{80 + 20}{2} = 50$ cm olur. A'daki su 30 cm alçalır, B'deki su 30 cm yükselir.`
+          }
+        ],
+        sonuc: r`Bileşik kaplarda su, yüzeyler aynı düzeye gelene kadar akar. Kaplar özdeşse su ikisine eşit paylaşılır.`
+      },
+      {
+        baslik: r`Yayla evlerinin suyu`,
+        metin: r`Bir yaylada, yamacın yukarısındaki kaynak suyu bir depoda toplanıyor. Depodan inen borular aşağıdaki çeşmeye ve evlere gidiyor. Çeşme, depodaki su yüzeyinin 20 m altındadır. Suyun yoğunluğu $1000\ \text{kg/m}^3$, $g = 10\ \text{m/s}^2$ alınıyor. Su akmazken düşün.`,
+        adimlar: [
+          {
+            soru: r`Çeşmedeki su basıncı kaç Pa'dır?`,
+            secenekler: [r`200 000 Pa`, r`20 000 Pa`, r`2000 Pa`],
+            dogru: 0,
+            ipucu: r`Çeşmenin derinliği depodaki su yüzeyinden ölçülür: $h = 20$ m. $P = h \times d \times g$ modelini kullan.`,
+            aciklama: r`$P = 20 \times 1000 \times 10 = 200\,000$ Pa olur.`
+          },
+          {
+            soru: r`Eski depo yıkılıp yerine aynı yükseklikte, iki kat geniş bir depo yapılıyor. Su yüzeyi yine aynı düzeyde kalıyor. Çeşmedeki basınç nasıl değişir?`,
+            secenekler: [r`2 katına çıkar.`, r`Yarıya iner.`, r`Değişmez.`],
+            dogru: 2,
+            ipucu: r`Basınç modelinde deponun genişliği var mı?`,
+            aciklama: r`Çeşme yine su yüzeyinin 20 m altındadır. Basınç değişmez; geniş depo yalnız daha çok su saklar.`
+          },
+          {
+            soru: r`Yamacın üst tarafına, depodaki su yüzeyinden 5 m yüksekte yeni bir ev yapılıyor. Bu evin musluğuna depodan su kendiliğinden gelir mi?`,
+            secenekler: [r`Gelir ama yavaş akar.`, r`Gelmez; suyu yukarı basan bir pompa gerekir.`, r`Gelir, çünkü depo ile ev borularla bağlıdır.`],
+            dogru: 1,
+            ipucu: r`Depo ve borular bir bileşik kaptır. Su, depodaki yüzeyin üstüne kendiliğinden çıkabilir mi?`,
+            aciklama: r`Bileşik kaplarda su en fazla depodaki su yüzeyinin düzeyine kadar çıkar. Musluk bu düzeyin üstünde olduğu için su kendiliğinden gelmez; pompa gerekir.`
+          }
+        ],
+        sonuc: r`Bir musluktaki basıncı, musluğun depodaki su yüzeyinin ne kadar altında olduğu belirler. Deponun genişliği basıncı değiştirmez. Su, depodaki yüzeyin üstüne ancak pompayla çıkar.`
+      }
+    ],
+    hazir: r`Pascal Yasası'nı, su cenderesinde küçük kuvvetle büyük kuvvet elde etmeyi ve bunun yoldan ödendiğini, bileşik kaplarda suyun aynı düzeye geldiğini ve depoya bağlı musluklardaki basıncı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
   not: [
     {
       tur: 'acilis',
@@ -60628,6 +60966,180 @@ BFY_FIG_EKLE('i1031_kart_telr', u => KS(u, I => {
 /* ---------- KAVRAM KARTLARI: 3B çizimler (son) ---------- */
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1031_ öneki) ---------- */
+(function () {
+const { P, T, arrow, dimV, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const INK = P.ink, WIRE = '#2b3a36', CUR = P.coral, ELC = '#1f64a8', WAT = '#2a79ad';
+
+/* --- temel çizgi ve semboller --- */
+const tel = (pts, o = {}) => `<polyline points="${pts.map(p => p.map(f1).join(',')).join(' ')}" fill="none" stroke="${o.c || WIRE}" stroke-width="${o.w || 2.2}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const nokta = (x, y, r = 3.4, c = INK) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="${c}"/>`;
+/* ok başı (akım yönü) — (x,y) uç, (dx,dy) yön */
+function ucOk(x, y, dx, dy, c = CUR, hl = 10, hw = 5.2) {
+  const L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, bx = x - ux * hl, by = y - uy * hl;
+  return `<polygon points="${f1(x)},${f1(y)} ${f1(bx - uy * hw)},${f1(by + ux * hw)} ${f1(bx + uy * hw)},${f1(by - ux * hw)}" fill="${c}"/>`;
+}
+/* Üreteç: yatay tel üzerinde, merkez (x,y). artiSol=true ise uzun (+) çizgi solda. */
+function pilH(x, y, artiSol = true, etiket = '', o = {}) {
+  const g = 7, xl = x - g / 2, xr = x + g / 2;
+  const xu = artiSol ? xl : xr, xk = artiSol ? xr : xl;
+  let s = `<rect x="${f1(x - 9)}" y="${f1(y - 18)}" width="18" height="36" fill="${o.bg || '#fff'}"/>`;
+  s += `<line x1="${f1(xu)}" y1="${f1(y - 16)}" x2="${f1(xu)}" y2="${f1(y + 16)}" stroke="${INK}" stroke-width="2"/>`;
+  s += `<line x1="${f1(xk)}" y1="${f1(y - 8)}" x2="${f1(xk)}" y2="${f1(y + 8)}" stroke="${INK}" stroke-width="5"/>`;
+  if (o.isaret !== false) {
+    s += T(xu + (artiSol ? -9 : 9), y - 12, '+', { size: 13, anchor: 'middle', weight: 800 });
+    s += T(xk + (artiSol ? 9 : -9), y - 12, '−', { size: 14, anchor: 'middle', weight: 800 });
+  }
+  if (etiket) s += T(x, y + (o.ust ? -24 : 34), etiket, { size: 12.5, anchor: 'middle', weight: 800 });
+  return s;
+}
+/* Üreteç: düşey tel üzerinde, artiUst=true ise uzun (+) çizgi üstte */
+function pilV(x, y, artiUst = true, etiket = '', o = {}) {
+  const g = 7, yu = artiUst ? y - g / 2 : y + g / 2, yk = artiUst ? y + g / 2 : y - g / 2;
+  let s = `<rect x="${f1(x - 18)}" y="${f1(y - 9)}" width="36" height="18" fill="${o.bg || '#fff'}"/>`;
+  s += `<line x1="${f1(x - 16)}" y1="${f1(yu)}" x2="${f1(x + 16)}" y2="${f1(yu)}" stroke="${INK}" stroke-width="2"/>`;
+  s += `<line x1="${f1(x - 8)}" y1="${f1(yk)}" x2="${f1(x + 8)}" y2="${f1(yk)}" stroke="${INK}" stroke-width="5"/>`;
+  if (o.isaret !== false) {
+    s += T(x - 22, yu + (artiUst ? -1 : 9), '+', { size: 13, anchor: 'middle', weight: 800 });
+    s += T(x - 22, yk + (artiUst ? 10 : 0), '−', { size: 14, anchor: 'middle', weight: 800 });
+  }
+  if (etiket) s += T(x + (o.sol ? -26 : 26), y + 4.5, etiket, { size: 12.5, anchor: o.sol ? 'end' : 'start', weight: 800 });
+  return s;
+}
+/* Direnç (zikzak) — yatay, merkez (x,y), toplam uzunluk 44 */
+function direncH(x, y, bg = '#fff') {
+  let d = `M${x - 22} ${y}`; const n = 6, w = 44 / n;
+  for (let i = 0; i < n; i++) d += ` L${f1(x - 22 + w * (i + 0.5))} ${f1(y + (i % 2 ? 6 : -6))}`;
+  d += ` L${x + 22} ${y}`;
+  return `<rect x="${x - 23}" y="${y - 8}" width="46" height="16" fill="${bg}"/><path d="${d}" fill="none" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`;
+}
+/* Anahtar — yatay, (x1..x2) arası; acik=true ise bıçak kalkık */
+function anahtarH(x1, x2, y, acik = true, bg = '#fff') {
+  let s = `<rect x="${x1 - 2}" y="${y - 20}" width="${x2 - x1 + 4}" height="26" fill="${bg}"/>`;
+  s += `<circle cx="${x1}" cy="${y}" r="3" fill="${INK}"/><circle cx="${x2}" cy="${y}" r="3" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`;
+  const L = x2 - x1, ang = acik ? -28 * Math.PI / 180 : 0;
+  s += `<line x1="${x1}" y1="${y}" x2="${f1(x1 + L * Math.cos(ang))}" y2="${f1(y + L * Math.sin(ang))}" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>`;
+  return s;
+}
+/* Anahtar — düşey, (y1..y2) arası */
+function anahtarV(x, y1, y2, acik = true, bg = '#fff') {
+  let s = `<rect x="${x - 6}" y="${y1 - 2}" width="26" height="${y2 - y1 + 4}" fill="${bg}"/>`;
+  s += `<circle cx="${x}" cy="${y1}" r="3" fill="#fff" stroke="${INK}" stroke-width="1.6"/><circle cx="${x}" cy="${y2}" r="3" fill="${INK}"/>`;
+  const L = y2 - y1, ang = acik ? 28 * Math.PI / 180 : 0;
+  s += `<line x1="${x}" y1="${y2}" x2="${f1(x + L * Math.sin(ang))}" y2="${f1(y2 - L * Math.cos(ang))}" stroke="${INK}" stroke-width="2.2" stroke-linecap="round"/>`;
+  return s;
+}
+/* Ölçü aleti dairesi */
+function olcer(x, y, harf, r = 12) {
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="${INK}" stroke-width="2"/>` + T(x, y + 4.8, harf, { size: 13.5, anchor: 'middle', weight: 800, halo: false });
+}
+/* Lamba (şematik resimli ampul): (x,y) cam merkezi, alt bağlantı tabanı aşağıda; yon = 'h' (yatay tele oturur) */
+function lamba(u, x, y, yanik = true, r = 11) {
+  let s = '';
+  if (yanik) s += `<circle cx="${x}" cy="${y}" r="${r + 7}" fill="#ffe79a" opacity=".55"/>`;
+  s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${yanik ? '#fff6c8' : '#eef3f6'}" stroke="#7d868e" stroke-width="1.4"/>`;
+  s += `<path d="M${x - 4} ${y + 6} L${x - 4} ${y} Q${x - 2} ${y - 6} ${x} ${y - 1} Q${x + 2} ${y - 6} ${x + 4} ${y} L${x + 4} ${y + 6}" fill="none" stroke="${yanik ? '#d98a1a' : '#6b7780'}" stroke-width="1.4"/>`;
+  s += `<rect x="${x - 6}" y="${y + r - 2}" width="12" height="8" rx="1.5" fill="url(#${u}metal)" stroke="#6c757c" stroke-width=".9"/>`;
+  return s;
+}
+const etk = (x, y, s, o = {}) => T(x, y, s, { size: o.size || 11.5, anchor: o.anchor || 'middle', weight: o.weight || 700, fill: o.fill || P.ink2 });
+const harf = (x, y, s, o = {}) => T(x, y, s, { size: o.size || 13.5, anchor: o.anchor || 'middle', weight: 800, fill: o.fill || INK });
+const suDefs = u => `<defs>
+  <linearGradient id="${u}sfboru" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd0ee"/><stop offset="1" stop-color="#3f8fc4"/></linearGradient>
+  <radialGradient id="${u}sfpompa" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#f4f6f8"/><stop offset=".6" stop-color="#9aa6ad"/><stop offset="1" stop-color="#5b646b"/></radialGradient>
+  <linearGradient id="${u}sfbakir" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3b27a"/><stop offset=".5" stop-color="#c8743a"/><stop offset="1" stop-color="#8a4a22"/></linearGradient>
+  <linearGradient id="${u}sfzil" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b88a1c"/><stop offset=".4" stop-color="#f6d77a"/><stop offset="1" stop-color="#9c7414"/></linearGradient>
+</defs>`;
+
+/* Adım 3: kapalı su devresi; pompa, dar boru, su çarkı, açık vana */
+BFY_FIG_EKLE('sf1031_cark', function (u) {
+  const W = 360, H = 272, xl = 54, xr = 306, yt = 62, yb = 196;
+  let s = suDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f8fa"/>`;
+  const boru = (d, dis = 15, ic = 10) => `<path d="${d}" fill="none" stroke="#4f5a60" stroke-width="${dis}" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="url(#${u}sfboru)" stroke-width="${ic}" stroke-linejoin="round"/>`;
+  s += boru(`M${xl} ${yt + 40} V${yt} H150`) + boru(`M210 ${yt} H${xr} V${yb} H${xl} V${yt + 40}`);
+  s += `<path d="M146 ${yt} H214" stroke="#4f5a60" stroke-width="8"/><path d="M146 ${yt} H214" stroke="#5aa9dc" stroke-width="4"/>`;
+  s += `<path d="M146 ${yt - 7.5} L154 ${yt - 4} M146 ${yt + 7.5} L154 ${yt + 4} M214 ${yt - 7.5} L206 ${yt - 4} M214 ${yt + 7.5} L206 ${yt + 4}" stroke="#4f5a60" stroke-width="2"/>`;
+  // pompa (sol kenar)
+  const py = 132;
+  s += `<rect x="${xl - 20}" y="${py + 20}" width="40" height="10" rx="3" fill="#5b646b"/>`;
+  s += `<circle cx="${xl}" cy="${py}" r="25" fill="url(#${u}sfpompa)" stroke="#3d4449" stroke-width="1.4"/>`;
+  for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3; s += `<path d="M${xl} ${py} Q${f1(xl + 14 * Math.cos(a + .5))} ${f1(py + 14 * Math.sin(a + .5))} ${f1(xl + 18 * Math.cos(a))} ${f1(py + 18 * Math.sin(a))}" fill="none" stroke="#3d4449" stroke-width="2"/>`; }
+  s += `<circle cx="${xl}" cy="${py}" r="4" fill="#3d4449"/>`;
+  s += etk(xl + 32, py + 4, 'pompa', { anchor: 'start', size: 12.5 });
+  // su çarkı (sağ kenar), saydam kutu içinde
+  const cy = 128;
+  s += `<rect x="${xr - 26}" y="${cy - 26}" width="52" height="52" rx="8" fill="#e8f4fb" stroke="#4f5a60" stroke-width="1.6"/>`;
+  s += `<rect x="${xr - 26}" y="${cy - 26}" width="52" height="52" rx="8" fill="url(#${u}sfboru)" opacity=".35"/>`;
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; s += `<line x1="${xr}" y1="${cy}" x2="${f1(xr + 19 * Math.cos(a))}" y2="${f1(cy + 19 * Math.sin(a))}" stroke="#aa693e" stroke-width="3"/><rect x="${f1(xr + 19 * Math.cos(a) - 3)}" y="${f1(cy + 19 * Math.sin(a) - 3)}" width="6" height="6" fill="#d58a50" transform="rotate(${i * 45} ${f1(xr + 19 * Math.cos(a))} ${f1(cy + 19 * Math.sin(a))})"/>`; }
+  s += `<circle cx="${xr}" cy="${cy}" r="5" fill="#7d4a27"/>`;
+  s += etk(xr - 42, cy + 4, 'çark', { anchor: 'end', size: 12.5 });
+  // vana (alt kenar), açık
+  const vx = 180;
+  s += `<rect x="${vx - 13}" y="${yb - 11}" width="26" height="22" rx="4" fill="url(#${u}metal)" stroke="#4f5a60" stroke-width="1.2"/>`;
+  s += `<rect x="${vx - 2.5}" y="${yb - 28}" width="5" height="17" fill="#5b646b"/><ellipse cx="${vx}" cy="${yb - 30}" rx="15" ry="4.5" fill="#c0392b" stroke="#8e2a1f" stroke-width="1"/>`;
+  s += etk(vx, yb + 34, 'vana (açık)', { size: 12.5 });
+  s += etk(180, yt - 18, 'dar boru', { size: 12.5 });
+  // akış yönü okları (beyaz)
+  [[xl, yt + 24, 0, -1], [110, yt, 1, 0], [258, yt, 1, 0], [xr, 178, 0, 1], [250, yb, -1, 0], [110, yb, -1, 0]].forEach(([x, y, dx, dy]) => { s += ucOk(x, y, dx, dy, '#ffffff', 8, 3.8); });
+  s += etk(W / 2, H - 12, 'Beyaz oklar suyun akış yönünü gösterir.', { fill: P.sky, size: 11.5 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 4: devre şeması; düşey üreteç (+ üstte, 6 V), K-lamba-L, kapalı anahtar */
+BFY_FIG_EKLE('sf1031_sema', function (u) {
+  const W = 320, H = 230, xl = 80, xr = 260, yt = 70, yb = 186, bg = '#f6f8f7';
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${bg}"/>`;
+  s += tel([[xl, yb], [xl, yt], [xr, yt], [xr, yb], [xl, yb]]);
+  s += pilV(xl, 128, true, '6 V', { bg });
+  const lx = 170;
+  s += `<rect x="${lx - 16}" y="${yt - 2}" width="32" height="6" fill="${bg}"/>` + tel([[lx - 16, yt], [lx - 9, yt + 2]]) + tel([[lx + 7, yt + 2], [lx + 16, yt]]) + lamba(u, lx, yt - 10, true);
+  s += nokta(124, yt) + nokta(216, yt);
+  s += harf(124, yt + 22, 'K') + harf(216, yt + 22, 'L');
+  s += anahtarV(xr, 112, 150, false, bg);
+  s += etk(xr - 12, 135, 'anahtar', { anchor: 'end' }) + etk(lx, yt - 32, 'lamba');
+  return svg(W, H, s, u, 66);
+});
+
+/* Adım 5: tahtaya gerilmiş iki bakır tel; K kısa ve kalın, L uzun ve ince */
+BFY_FIG_EKLE('sf1031_teller', function (u) {
+  const W = 360, H = 200;
+  let s = suDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  s += `<rect x="24" y="34" width="${W - 48}" height="146" rx="8" fill="url(#${u}wood)" stroke="#a07b45" stroke-width="1.2"/>`;
+  s += `<rect x="24" y="172" width="${W - 48}" height="8" rx="3" fill="#c9a46a" opacity=".7"/>`;
+  const vida = (x, y) => `<circle cx="${x}" cy="${y}" r="8" fill="url(#${u}metal)" stroke="#6c757c" stroke-width="1"/><line x1="${x - 5}" y1="${y}" x2="${x + 5}" y2="${y}" stroke="#6c757c" stroke-width="1.6"/>`;
+  const ip = (x1, x2, y, k) => `<line x1="${x1}" y1="${y + 2}" x2="${x2}" y2="${y + 2}" stroke="#000" stroke-width="${k}" opacity=".12" stroke-linecap="round"/><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="#8a4a22" stroke-width="${k}" stroke-linecap="round"/><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="url(#${u}sfbakir)" stroke-width="${k - 1}" stroke-linecap="round"/><line x1="${x1}" y1="${y - k / 4}" x2="${x2}" y2="${y - k / 4}" stroke="#ffd9b3" stroke-width="${Math.max(1, k / 5)}" opacity=".8"/>`;
+  s += ip(78, 178, 82, 10) + vida(70, 82) + vida(186, 82);
+  s += ip(78, 300, 138, 3.4) + vida(70, 138) + vida(308, 138);
+  s += harf(46, 87, 'K') + harf(46, 143, 'L');
+  s += etk(206, 87, 'kısa ve kalın bakır tel', { anchor: 'start' });
+  s += etk(189, 160, 'uzun ve ince bakır tel');
+  return svg(W, H, s, u, 74);
+});
+
+/* Isınma 1: kapı zili devresi; yatay üreteç (+ sağda, 9 V), düğme açık, K-zil-L */
+BFY_FIG_EKLE('sf1031_zil', function (u) {
+  const W = 330, H = 236, xl = 60, xr = 270, yt = 70, yb = 176, bg = '#f6f8f7';
+  let s = suDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${bg}"/>`;
+  s += tel([[165, yb], [xr, yb], [xr, yt], [xl, yt], [xl, yb], [165, yb]]);
+  s += pilH(165, yb, false, '9 V', { bg });
+  // zil: telin üstüne oturan çan
+  const zx = 140;
+  s += `<rect x="${zx - 18}" y="${yt - 2}" width="36" height="6" fill="${bg}"/>` + tel([[zx - 18, yt], [zx - 10, yt - 6]]) + tel([[zx + 10, yt - 6], [zx + 18, yt]]);
+  s += `<rect x="${zx - 14}" y="${yt - 10}" width="28" height="6" rx="2" fill="#5b646b"/>`;
+  s += `<path d="M${zx - 16} ${yt - 10} Q${zx - 16} ${yt - 38} ${zx} ${yt - 40} Q${zx + 16} ${yt - 38} ${zx + 16} ${yt - 10} Z" fill="url(#${u}sfzil)" stroke="#7a5a10" stroke-width="1.1"/>`;
+  s += `<circle cx="${zx}" cy="${yt - 42}" r="3" fill="#7a5a10"/>`;
+  s += etk(zx, yt - 52, 'zil');
+  s += nokta(zx + 40, yt) + nokta(zx - 40, yt);
+  s += harf(zx + 40, yt + 22, 'K') + harf(zx - 40, yt + 22, 'L');
+  // düğme (açık anahtar): sabit uç sağda
+  s += anahtarH(208, 240, yt, true, bg).replace(/<circle cx="208"[^>]*\/><circle cx="240"[^>]*\/>/, '');
+  s += `<circle cx="240" cy="${yt}" r="3" fill="${INK}"/><circle cx="208" cy="${yt}" r="3" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`;
+  s += etk(224, yt + 22, 'düğme');
+  return svg(W, H, s, u, 66);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -60667,6 +61179,194 @@ const KONU = {
 
 
   /* ---------------- KONU NOTU ---------------- */
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Konunun kapsamı gereği hesap yoktur (Ohm Yasası sonraki konuda); doğru şıklar qa/10.3.1/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde bir lambanın neden yandığını, elektrik devresini bir su devresine benzeterek kısa adımlarla göreceksin. Bu konuda hesap yok; kavramları tanıyacaksın. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Bir devrenin parçaları`,
+        metin: r`Oyuncak bir arabanın farlarını düşün. Arabanın içinde bir pil yuvası, bir düğme, küçük bir lamba ve bunları birbirine bağlayan teller vardır. Bu parçalar birlikte bir **elektrik devresi** oluşturur.
+
+- **Üreteç** (pil): Devreye enerji sağlar.
+- **İletken tel:** Parçaları birbirine bağlar.
+- **Direnç** (lamba): Elektrik enerjisini ışığa ve ısıya dönüştürür.
+- **Anahtar** (düğme): Devreyi açıp kapatır.
+
+Her parçanın bir görevi vardır. Biri eksik olursa far yanmaz.`,
+        kontrol: {
+          soru: r`Oyuncak arabanın devresinde elektrik enerjisini ışığa dönüştüren parça hangisidir?`,
+          secenekler: [r`Pil.`, r`Düğme.`, r`Lamba.`],
+          dogru: 2,
+          aciklama: r`Lamba bir dirençtir; elektrik enerjisini ışığa ve ısıya dönüştürür. Pil enerjiyi sağlar, düğme ise devreyi açıp kapatır.`,
+          yanlisIpucu: r`Enerjiyi sağlayan parça ile enerjiyi ışığa çeviren parça aynı değildir.`
+        }
+      },
+      {
+        baslik: r`Akım için kapalı yol gerekir`,
+        metin: r`Arabanın düğmesine basınca far yanar. Bunun için akımın pilin bir kutbundan çıkıp tellerden ve lambadan geçerek pilin öbür kutbuna dönmesi gerekir. Bu kesintisiz yola **kapalı devre** denir.
+
+Düğme bırakılınca yol bir yerden kesilir. Buna **açık devre** denir. Açık devreden akım geçmez ve far söner. Bir tel kopsa ya da pil yuvasından çıksa da aynı şey olur.
+
+Dikkat: Anahtar **kapalıyken** yol tamamlanır ve akım geçer. Anahtar **açıkken** akım geçmez.`,
+        kontrol: {
+          soru: r`Düğmeye basılı ama lambaya giden tellerden biri lehim yerinden kopmuş. Far yanar mı?`,
+          secenekler: [r`Yanmaz, çünkü yol kesilmiştir.`, r`Yanar, çünkü düğme kapalıdır.`, r`Yanar ama sönük yanar.`],
+          dogru: 0,
+          aciklama: r`Akımın pile geri dönebileceği kesintisiz bir yol kalmadı. Devre açık olduğu için akım geçmez ve far yanmaz.`,
+          yanlisIpucu: r`Düğme kapalı olsa da akımın pile dönebilmesi için bütün yolun sağlam olması gerekir.`
+        }
+      },
+      {
+        baslik: r`Elektriği suya benzetmek`,
+        sekil: 'sf1031_cark',
+        metin: r`Elektriği gözle göremeyiz. Bu yüzden onu, borularda dolaşan suya benzetiriz.
+
+Kapalı bir boru hattı düşün. Pompa suyu dolaştırır. Su dar bir borudan geçer, bir su çarkını döndürür ve pompaya geri döner. Hatta bir de vana vardır.
+
+Su devresinin her parçasının elektrik devresinde bir karşılığı vardır:
+- Pompa ↔ **üreteç**.
+- Su akışı ↔ **elektrik akımı** ($I$).
+- Dar boru ↔ **direnç** ($R$).
+- Vana ↔ **anahtar**.
+
+Pompa iki uç arasında basınç farkı oluşturur. Üreteç de **potansiyel fark** ($V$) oluşturur.
+
+Birimleri bil: potansiyel fark volt (V), akım amper (A), direnç ohm (Ω) ile ölçülür.`,
+        kontrol: {
+          soru: r`Su devresinde vana açıkken çark döner. Elektrik devresinde bunun karşılığı hangisidir?`,
+          secenekler: [r`Anahtar açıkken lamba yanar.`, r`Anahtar kapalıyken lamba yanar.`, r`Anahtar hangi konumda olursa olsun lamba yanar.`],
+          dogru: 1,
+          aciklama: r`Vana açıkken su akar; anahtar ise kapalıyken akım geçer. Açık vana, kapalı anahtara karşılık gelir.`,
+          yanlisIpucu: r`Kelimeler aynı ama anlamları ters. Anahtar hangi konumdayken akımın yolu tamamlanır?`
+        }
+      },
+      {
+        baslik: r`Devre şeması ve akımın yönü`,
+        sekil: 'sf1031_sema',
+        metin: r`Devreler, parçaların resmi yerine **sembollerle** çizilir. Buna **devre şeması** denir. Üreteç sembolünde **uzun ince çizgi artı (+)**, kısa kalın çizgi eksi (−) kutbu gösterir. Üretecin potansiyel farkı sembolün hemen yanına yazılır.
+
+Anahtar kapalıyken **dış devrede** akım, üretecin artı kutbundan çıkar, devre elemanlarından geçer ve eksi kutbuna döner.
+
+Metal tellerde hareket eden parçacıklar elektronlardır. Elektronlar akıma **zıt yönde** sürüklenir.`,
+        kontrol: {
+          soru: r`Şemadaki devrede anahtar kapalı. Akım lambadan hangi yönde geçer?`,
+          secenekler: [r`K'den L'ye.`, r`L'den K'ye.`, r`Akım lambadan geçmez.`],
+          dogru: 0,
+          aciklama: r`Üretecin uzun ince çizgisi artı kutuptur ve üst tarafa bakar. Akım artı kutuptan çıkıp üst telden K'ye gelir, lambadan L'ye geçer ve anahtardan geçerek eksi kutba döner.`,
+          yanlisIpucu: r`Önce üretecin artı kutbunu bul: uzun ince çizgi. Akım dış devrede oradan çıkar.`
+        }
+      },
+      {
+        baslik: r`Telin direnci neye bağlı?`,
+        sekil: 'sf1031_teller',
+        metin: r`Bir boruyu düşün. Uzun ve ince bir borudan su zor, kısa ve kalın bir borudan kolay geçer. Teller de akıma böyle davranır.
+
+Aynı sıcaklıkta bir telin direnci:
+- Tel **uzadıkça artar**.
+- Tel **kalınlaştıkça** (kesit alanı büyüdükçe) **azalır**.
+- Telin yapıldığı maddeye bağlıdır. Nikel-krom tel, aynı boyuttaki bakır telden çok daha dirençlidir.
+
+Direnç telin kendi özelliğidir. Telden akım geçmese de direnci aynıdır.`,
+        kontrol: {
+          soru: r`Şekildeki iki tel de bakırdan yapılmıştır. K kısa ve kalın, L uzun ve incedir. Hangi telin direnci daha büyüktür?`,
+          secenekler: [r`L telinin.`, r`K telinin.`, r`İkisinin direnci eşittir.`],
+          dogru: 0,
+          aciklama: r`Uzunluk direnci artırır, incelik de direnci artırır. L hem uzun hem ince olduğu için direnci daha büyüktür.`,
+          yanlisIpucu: r`Uzun ve ince bir borudan su kolay mı geçer, zor mu?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Kapı zili`,
+        sekil: 'sf1031_zil',
+        metin: r`Bir kapı zili devresinde 9 V'luk bir pil, basmalı bir düğme ve bir zil var. Devrenin şeması yanda. Düğmeye basılmadığında düğme açıktır; basılınca kapanır.`,
+        adimlar: [
+          {
+            soru: r`Düğmeye basılmıyorken zil neden çalmaz?`,
+            secenekler: [r`Pil boşalmıştır.`, r`Devre açıktır; akımın pile dönebileceği bir yol yoktur.`, r`Zilin direnci yoktur.`],
+            dogru: 1,
+            ipucu: r`Şemada düğmenin bıçağı kalkık. Akım pilin bir kutbundan çıkıp öbürüne dönebiliyor mu?`,
+            aciklama: r`Düğme açıkken yol kesiktir. Devre açık olduğu için akım geçmez ve zil çalmaz.`
+          },
+          {
+            soru: r`Düğmeye basılınca akım zilden hangi yönde geçer?`,
+            secenekler: [r`L'den K'ye.`, r`Zilden akım geçmez.`, r`K'den L'ye.`],
+            dogru: 2,
+            ipucu: r`Üreteç sembolünde uzun ince çizgi artı kutuptur. Bu şemada artı kutup sağ tarafta.`,
+            aciklama: r`Akım artı kutuptan çıkar, sağ telden yukarı çıkar, düğmeden ve K'den geçerek zile girer. Zilden L'ye geçer ve eksi kutba döner.`
+          },
+          {
+            soru: r`Teldeki elektronlar zilden hangi yönde geçer?`,
+            secenekler: [r`K'den L'ye.`, r`L'den K'ye.`, r`Elektronlar hareket etmez.`],
+            dogru: 1,
+            ipucu: r`Metal tellerde elektronlar akıma göre hangi yönde sürüklenir?`,
+            aciklama: r`Elektronlar akıma zıt yönde sürüklenir. Akım K'den L'ye olduğu için elektronlar L'den K'ye gider.`
+          }
+        ],
+        sonuc: r`Zil yalnız düğme yolu tamamlayınca çalar. Dış devrede akım artı kutuptan eksi kutba doğrudur; elektronlar ise ters yönde sürüklenir.`
+      },
+      {
+        baslik: r`Ekmek kızartma makinesi`,
+        metin: r`Ekmek kızartma makinesinin içinde, akım geçince kızaran ince bir ısıtıcı tel var. Bu tel nikel-krom alaşımından yapılmış. Makineyi prize bağlayan kablonun içinde ise kalın bakır teller var.`,
+        adimlar: [
+          {
+            soru: r`Aynı ısıtıcı tel ikiye bölünüp yalnız bir yarısı kullanılırsa bu parçanın direnci, bütün telinkine göre nasıl olur?`,
+            secenekler: [r`Daha büyük olur.`, r`Eşit olur.`, r`Daha küçük olur.`],
+            dogru: 2,
+            ipucu: r`Telin cinsi ve kalınlığı aynı kaldı. Değişen yalnız uzunluk; uzunluk kısalınca direnç ne olur?`,
+            aciklama: r`Tel kısaldı. Kısa tel akıma daha az zorluk gösterir; direnci daha küçük olur.`
+          },
+          {
+            soru: r`Aynı uzunlukta ama daha kalın bir nikel-krom tel takılırsa direnci, eski telinkine göre nasıl olur?`,
+            secenekler: [r`Daha küçük olur.`, r`Daha büyük olur.`, r`Eşit olur.`],
+            dogru: 0,
+            ipucu: r`Kalın bir borudan su kolay mı geçer, zor mu?`,
+            aciklama: r`Kesit alanı büyüyünce direnç azalır. Kalın telin direnci daha küçüktür.`
+          },
+          {
+            soru: r`Kablodaki teller neden kalın bakırdan yapılır?`,
+            secenekler: [r`Dirençleri büyük olsun, kablo da ısınsın diye.`, r`Dirençleri küçük olsun, kablo çok az ısınsın diye.`, r`Kablonun hiç direnci olmasın diye.`],
+            dogru: 1,
+            ipucu: r`Isınması istenen yer ısıtıcı teldir, kablo değil. Bakır mı, nikel-krom mu daha az dirençlidir?`,
+            aciklama: r`Kalın bakır telin direnci çok küçüktür; kablo çok az ısınır. Yine de her iletkenin bir direnci vardır, kablonunki yalnız çok küçüktür.`
+          }
+        ],
+        sonuc: r`Telin direnci uzunluğuna, kalınlığına ve yapıldığı maddeye bağlıdır. Isıtıcıda dirençli nikel-krom tel, kabloda direnci küçük kalın bakır tel kullanılır.`
+      },
+      {
+        baslik: r`Pilli el fanı`,
+        metin: r`Yazın kullanılan küçük bir el fanının içinde iki kalem pil, sürgülü bir anahtar ve pervaneyi döndüren küçük bir motor var. Pillerin toplam potansiyel farkı 3 V'tur. Bu parçalar tellerle tek bir yol üzerinde birbirine bağlı.`,
+        adimlar: [
+          {
+            soru: r`Su devresi benzetmesinde pillerin karşılığı nedir?`,
+            secenekler: [r`Vana.`, r`Pompa.`, r`Dar boru.`],
+            dogru: 1,
+            ipucu: r`Su devresinde basınç farkı oluşturup suyu dolaştıran parça hangisidir?`,
+            aciklama: r`Piller üreteçtir. Pompanın basınç farkı oluşturması gibi piller de potansiyel fark oluşturur.`
+          },
+          {
+            soru: r`Fanın etiketinde yazan 3 V neyi gösterir?`,
+            secenekler: [r`Pillerin oluşturduğu potansiyel farkı.`, r`Devreden geçen akımı.`, r`Motorun direncini.`],
+            dogru: 0,
+            ipucu: r`Volt, amper ve ohm hangi büyüklüklerin birimidir?`,
+            aciklama: r`Volt (V) potansiyel farkın birimidir. 3 V, pillerin oluşturduğu potansiyel farktır.`
+          },
+          {
+            soru: r`Anahtar sürülünce pervane duruyor. Bu durumda devre için ne söylenir?`,
+            secenekler: [r`Devre açılır ama akım geçmeye devam eder.`, r`Devre kapalıdır ve akım artar.`, r`Devre açılır ve akım geçmez.`],
+            dogru: 2,
+            ipucu: r`Pervane durduysa motordan akım geçiyor mu? Akımın yolu ne zaman kesilir?`,
+            aciklama: r`Anahtar yolu kesti ve devre açıldı. Akım geçmediği için motor ve pervane durdu.`
+          }
+        ],
+        sonuc: r`Piller pompa gibi potansiyel fark oluşturur. Motor elektrik enerjisini harekete dönüştürür. Anahtar da vana gibi yolu açıp kapatır.`
+      }
+    ],
+    hazir: r`Devrenin parçalarını, kapalı ve açık devreyi, su devresi benzetmesini, devre şemasında akımın yönünü ve telin direncinin neye bağlı olduğunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
   not: [
     {
       tur: 'acilis',
@@ -98834,6 +99534,186 @@ BFY_FIG_EKLE('k122_makara_tel', function (u) {
 });
 })();
 
+/* ---------- SIFIRDAN BAŞLA ŞEKİLLERİ (sf1122_ öneki) ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const RED = '#c8413a', RED2 = '#e98a80', BLU = '#2f6fb0', BLU2 = '#8fb8e0';
+const CI = P.coral;          // akım
+const CB = P.blue;           // manyetik alan
+const CF = '#2f8a57';        // kuvvet
+const GR = '#8c979c';
+
+/* ⊙ ve ⊗ sembolleri (yazı yerine çizim: her ölçekte net) */
+function odot(x, y, r = 8, c = P.ink, w = 1.6) {
+  return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="#fff" stroke="${c}" stroke-width="${w}"/><circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(r * 0.3)}" fill="${c}"/>`;
+}
+function otimes(x, y, r = 8, c = P.ink, w = 1.6) {
+  const k = r * 0.62;
+  return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="#fff" stroke="${c}" stroke-width="${w}"/>` +
+    `<path d="M${f1(x - k)} ${f1(y - k)} L${f1(x + k)} ${f1(y + k)} M${f1(x - k)} ${f1(y + k)} L${f1(x + k)} ${f1(y - k)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+}
+/* ok başı (x,y ucunda, (dx,dy) yönünde) */
+function head(x, y, dx, dy, c, hl = 8, hw = 4.4) {
+  const L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, bx = x - ux * hl, by = y - uy * hl;
+  return `<polygon points="${f1(x)},${f1(y)} ${f1(bx - uy * hw)},${f1(by + ux * hw)} ${f1(bx + uy * hw)},${f1(by - ux * hw)}" fill="${c}"/>`;
+}
+/* kübik Bezier noktası ve türevi */
+function bz(p, t) {
+  const m = 1 - t;
+  return [m * m * m * p[0][0] + 3 * m * m * t * p[1][0] + 3 * m * t * t * p[2][0] + t * t * t * p[3][0],
+          m * m * m * p[0][1] + 3 * m * m * t * p[1][1] + 3 * m * t * t * p[2][1] + t * t * t * p[3][1]];
+}
+function bzd(p, t) {
+  const m = 1 - t;
+  return [3 * m * m * (p[1][0] - p[0][0]) + 6 * m * t * (p[2][0] - p[1][0]) + 3 * t * t * (p[3][0] - p[2][0]),
+          3 * m * m * (p[1][1] - p[0][1]) + 6 * m * t * (p[2][1] - p[1][1]) + 3 * t * t * (p[3][1] - p[2][1])];
+}
+const bzPath = p => `M${f1(p[0][0])} ${f1(p[0][1])} C${f1(p[1][0])} ${f1(p[1][1])} ${f1(p[2][0])} ${f1(p[2][1])} ${f1(p[3][0])} ${f1(p[3][1])}`;
+/* Bezier üzerinde t'de yön oku */
+function bzHead(p, t, c, hl = 7.5, hw = 4) { const [x, y] = bz(p, t), [dx, dy] = bzd(p, t); return head(x + dx * 0.02, y + dy * 0.02, dx, dy, c, hl, hw); }
+/* çubuk mıknatıs: sol ve sağ yarı renkleri */
+function barMag(x, y, w, h, left, right) {
+  const col = k => k === 'N' ? RED : k === 'S' ? BLU : '#9aa4aa';
+  const col2 = k => k === 'N' ? RED2 : k === 'S' ? BLU2 : '#cfd5d8';
+  let s = `<rect x="${x}" y="${y}" width="${w / 2}" height="${h}" fill="${col2(left)}" stroke="${col(left)}" stroke-width="1.4"/>` +
+          `<rect x="${x + w / 2}" y="${y}" width="${w / 2}" height="${h}" fill="${col2(right)}" stroke="${col(right)}" stroke-width="1.4"/>`;
+  if (left && left !== '-') s += T(x + w / 4, y + h / 2 + 5, left, { size: 14, anchor: 'middle', weight: 800, fill: '#fff', haloColor: col(left) });
+  if (right && right !== '-') s += T(x + 3 * w / 4, y + h / 2 + 5, right, { size: 14, anchor: 'middle', weight: 800, fill: '#fff', haloColor: col(right) });
+  return s;
+}
+/* pusula: (x,y) merkez, ang = N ucunun yönü (SVG açısı, radyan) */
+function pusula(x, y, ang, r = 10) {
+  const c = Math.cos(ang), sn = Math.sin(ang), L = r * 0.82, W = r * 0.3;
+  const tip = [x + c * L, y + sn * L], tail = [x - c * L, y - sn * L], a = [x - sn * W, y + c * W], b = [x + sn * W, y - c * W];
+  return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="#fff" stroke="#6d7a80" stroke-width="1.1"/>` +
+    `<polygon points="${f1(tip[0])},${f1(tip[1])} ${f1(a[0])},${f1(a[1])} ${f1(b[0])},${f1(b[1])}" fill="${RED}"/>` +
+    `<polygon points="${f1(tail[0])},${f1(tail[1])} ${f1(a[0])},${f1(a[1])} ${f1(b[0])},${f1(b[1])}" fill="${BLU}"/>` +
+    `<circle cx="${f1(x)}" cy="${f1(y)}" r="1.4" fill="#333"/>`;
+}
+const sfDefs = u => `<defs>
+  <linearGradient id="${u}sfcivi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9edf0"/><stop offset=".45" stop-color="#9aa4ab"/><stop offset="1" stop-color="#5d666d"/></linearGradient>
+  <linearGradient id="${u}sfpil" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2b2f33"/><stop offset=".4" stop-color="#4a5057"/><stop offset="1" stop-color="#1e2124"/></linearGradient>
+  <linearGradient id="${u}sfboru" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f6f8"/><stop offset=".5" stop-color="#dfe6ea"/><stop offset="1" stop-color="#b7c2c9"/></linearGradient>
+  <linearGradient id="${u}sfbakir" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3b27a"/><stop offset=".5" stop-color="#c8743a"/><stop offset="1" stop-color="#8a4a22"/></linearGradient>
+</defs>`;
+/* sarım: (x1..x2) arası n tur, eksen yc, yarıçap R; onAsagi=true ise ön yüzde akım aşağı (sarım soldan sağa ilerler) */
+function sarim(x1, x2, yc, R, n, onAsagi, oklar) {
+  const p = (x2 - x1) / n; let arka = '', on = '';
+  for (let i = 0; i < n; i++) {
+    const x0 = x1 + i * p, yA = onAsagi ? yc - R : yc + R, yB = onAsagi ? yc + R : yc - R;
+    arka += `<line x1="${f1(x0 + p / 2)}" y1="${f1(yB)}" x2="${f1(x0 + p)}" y2="${f1(yA)}" stroke="#a8693c" stroke-width="2.4" opacity=".55" stroke-linecap="round"/>`;
+    on += `<line x1="${f1(x0)}" y1="${f1(yA)}" x2="${f1(x0 + p / 2)}" y2="${f1(yB)}" stroke="#7d3f16" stroke-width="3.6" stroke-linecap="round"/><line x1="${f1(x0)}" y1="${f1(yA)}" x2="${f1(x0 + p / 2)}" y2="${f1(yB)}" stroke="#d98a4e" stroke-width="2" stroke-linecap="round"/>`;
+    if (oklar.includes(i)) on += head(x0 + p / 4 + (yB - yA) * 0, yc + (yB - yA) * 0.18, p / 2, yB - yA, CI, 9, 4.6);
+  }
+  return { arka, on };
+}
+
+/* Adım 2 (hakem yeniden çizdi): masada dik duran çubuk mıknatıs, N üstte; oksuz alan çizgileri;
+   örnek pusula N kutbunun üstünde (N ucu yukarı); P ortanın sağında, içinde P yazan boş pusula yeri */
+BFY_FIG_EKLE('sf1122_pusula', function (u) {
+  const W = 340, H = 270, xc = 162, yN = 64, yS = 196, mw = 36;
+  const ym = (yN + yS) / 2;
+  let s = `<defs>
+  <linearGradient id="${u}pmN" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f19a90"/><stop offset=".35" stop-color="#e2574b"/><stop offset="1" stop-color="#a82e25"/></linearGradient>
+  <linearGradient id="${u}pmS" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9cc4ea"/><stop offset=".35" stop-color="#3f86c8"/><stop offset="1" stop-color="#245a90"/></linearGradient>
+  <linearGradient id="${u}pmMasa" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6ecd9"/><stop offset="1" stop-color="#e8d6b4"/></linearGradient>
+  <radialGradient id="${u}pmKadran" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3e8ec"/></radialGradient>
+</defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}pmMasa)"/>`;
+  for (let k = 0; k < 6; k++) s += `<path class="bg" d="M0 ${30 + k * 44} C90 ${22 + k * 44} 220 ${40 + k * 44} ${W} ${28 + k * 44}" fill="none" stroke="#d9c39b" stroke-width="1" opacity=".55"/>`;
+  // alan çizgileri (oksuz): N ucundan çıkıp S ucuna dönen kapalı eğriler, iki yanda
+  [0.8, 1.35, 1.9].forEach(k => {
+    [1, -1].forEach(sg => {
+      const x0 = xc + sg * (mw / 2 - 6);
+      s += `<path d="M${x0} ${yN} C${x0 + sg * 62 * k} ${yN - 26 * k} ${x0 + sg * 62 * k} ${yS + 26 * k} ${x0} ${yS}" fill="none" stroke="${CB}" stroke-width="1.5" opacity=".6"/>`;
+    });
+  });
+  s += `<line x1="${xc}" y1="${yN}" x2="${xc}" y2="14" stroke="${CB}" stroke-width="1.5" opacity=".6"/><line x1="${xc}" y1="${yS}" x2="${xc}" y2="${H - 34}" stroke="${CB}" stroke-width="1.5" opacity=".6"/>`;
+  // mıknatıs: gölge, hacimli iki yarı, üst yüz parlaması
+  s += `<rect x="${xc - mw / 2 + 5}" y="${yN + 6}" width="${mw}" height="${yS - yN}" rx="5" fill="#5a4320" opacity=".22"/>`;
+  s += `<path d="M${xc - mw / 2} ${ym} V${yN + 5} Q${xc - mw / 2} ${yN} ${xc - mw / 2 + 5} ${yN} H${xc + mw / 2 - 5} Q${xc + mw / 2} ${yN} ${xc + mw / 2} ${yN + 5} V${ym} Z" fill="url(#${u}pmN)" stroke="#8e241c" stroke-width="1.2"/>`;
+  s += `<path d="M${xc - mw / 2} ${ym} V${yS - 5} Q${xc - mw / 2} ${yS} ${xc - mw / 2 + 5} ${yS} H${xc + mw / 2 - 5} Q${xc + mw / 2} ${yS} ${xc + mw / 2} ${yS - 5} V${ym} Z" fill="url(#${u}pmS)" stroke="#1d4a78" stroke-width="1.2"/>`;
+  s += `<rect x="${xc - mw / 2 + 4}" y="${yN + 4}" width="5" height="${yS - yN - 8}" rx="2.5" fill="#fff" opacity=".28"/>`;
+  s += T(xc, yN + 38, 'N', { size: 17, anchor: 'middle', weight: 800, fill: '#fff', haloColor: '#8e241c' });
+  s += T(xc, yS - 24, 'S', { size: 17, anchor: 'middle', weight: 800, fill: '#fff', haloColor: '#1d4a78' });
+  // gerçekçi pusula: gövde, kadran, iğne
+  const kadran = (x, y, r) => `<circle cx="${x + 2}" cy="${y + 3}" r="${r + 3}" fill="#5a4320" opacity=".2"/><circle cx="${x}" cy="${y}" r="${r + 3}" fill="#9aa4aa" stroke="#5f6b73" stroke-width="1"/><circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u}pmKadran)" stroke="#7d878d" stroke-width=".8"/>`;
+  // örnek: N kutbunun üstünde, eksen üzerinde; N ucu (kırmızı) yukarı
+  s += kadran(xc, 28, 13) + pusula(xc, 28, -Math.PI / 2, 12).replace(/<circle[^>]*r="12"[^>]*\/>/, '');
+  // P: ortanın sağında, orta alan çizgisi üzerinde; boş pusula yeri ve soru işareti
+  const px = xc + (mw / 2 - 6) + 0.75 * 62 * 1.35;
+  s += `<circle cx="${f1(px)}" cy="${ym}" r="14" fill="#fffdf8" stroke="#6d7a80" stroke-width="1.3" stroke-dasharray="3 2.5"/>`;
+  s += T(px, ym + 5.5, 'P', { size: 15, anchor: 'middle', weight: 800, halo: false });
+  s += T(W / 2, H - 12, 'Kırmızı uç, pusulanın N ucudur.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+
+/* Adım 4: çiviye sarılmış tel ve 9 V pil; sarımların ön yüzünde akım aşağı; X baş, Y uç */
+BFY_FIG_EKLE('sf1122_civi', function (u) {
+  const W = 360, H = 262, yc = 92, x1 = 102, x2 = 262;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f4ee"/>`;
+  s += `<rect class="bg" x="12" y="236" width="${W - 24}" height="10" rx="3" fill="url(#${u}wood)" stroke="#a07b45" stroke-width=".9"/>`;
+  const sr = sarim(x1, x2, yc, 17, 9, true, [1, 4, 7]);
+  s += sr.arka;
+  // çivi: baş solda (X), sivri uç sağda (Y)
+  s += `<rect x="62" y="${yc - 20}" width="10" height="40" rx="2" fill="url(#${u}sfcivi)" stroke="#4f5a60" stroke-width="1"/>`;
+  s += `<path d="M72 ${yc - 7} H286 L312 ${yc} L286 ${yc + 7} H72 Z" fill="url(#${u}sfcivi)" stroke="#4f5a60" stroke-width="1"/>`;
+  s += sr.on;
+  // pil (9 V, kutupları üstte: + solda, − sağda)
+  const bx = 150, by = 168, bw = 70, bh = 62;
+  s += `<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="5" fill="url(#${u}sfpil)" stroke="#111" stroke-width="1"/>`;
+  s += `<rect x="${bx}" y="${by + 22}" width="${bw}" height="18" fill="#e7a93b"/>`;
+  s += `<rect x="${bx + 12}" y="${by - 8}" width="12" height="8" rx="2" fill="url(#${u}metal)" stroke="#555" stroke-width=".8"/><path d="M${bx + 44} ${by - 9} l7 0 l3 4 l-3 4 l-7 0 l-3 -4 z" fill="url(#${u}metal)" stroke="#555" stroke-width=".8"/>`;
+  s += T(bx + 18, by + 16, '+', { size: 13, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) + T(bx + 48, by + 16, '−', { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  s += T(bx + bw + 10, by + 36, '9 V', { size: 14, weight: 800 });
+  // bağlantı telleri: + → soldaki ilk sarım (üstten girer), son sarım (arkadan, üstten çıkar) → −
+  s += `<path d="M${bx + 18} ${by - 8} C${bx + 10} 150 ${x1 - 30} 150 ${x1 - 16} ${yc + 40} S${x1 - 10} ${yc - 22} ${x1} ${yc - 17}" fill="none" stroke="#c0392b" stroke-width="2.4"/>`;
+  s += `<path d="M${x2} ${yc - 17} C${x2 + 30} ${yc - 44} ${x2 + 30} 150 ${bx + 48} ${by - 9}" fill="none" stroke="#2b3a36" stroke-width="2.4"/>`;
+  s += T(56, yc + 42, 'X', { size: 15, anchor: 'middle', weight: 800 }) + T(326, yc - 10, 'Y', { size: 15, anchor: 'middle', weight: 800 });
+  s += T(W / 2, 26, 'Kırmızı oklar ön yüzdeki akımın yönünü gösterir.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 74);
+});
+
+/* Adım 5: ⊗ yönlü düzgün alanda yatay tel, akım sağa (kuvvet çizilmez) */
+BFY_FIG_EKLE('sf1122_kuvvet', function (u) {
+  const W = 320, H = 220, yw = 118;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7fa"/>`;
+  s += `<rect x="44" y="42" width="232" height="152" rx="10" fill="#e6effa" stroke="${CB}" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+  [70, 166].forEach(y => [72, 116, 160, 204, 248].forEach(x => { s += otimes(x, y, 8, CB, 1.5); }));
+  s += `<line x1="16" y1="${yw + 2}" x2="${W - 16}" y2="${yw + 2}" stroke="#000" stroke-width="7" opacity=".1"/>`;
+  s += `<line x1="16" y1="${yw}" x2="${W - 16}" y2="${yw}" stroke="#8a4a22" stroke-width="7" stroke-linecap="round"/><line x1="16" y1="${yw}" x2="${W - 16}" y2="${yw}" stroke="url(#${u}sfbakir)" stroke-width="5" stroke-linecap="round"/>`;
+  s += arrow(110, yw + 22, 210, yw + 22, { color: CI, w: 2.6 }) + T(220, yw + 27, 'i', { size: 15, weight: 800, italic: true, fill: CI });
+  s += T(W - 16, 30, 'B: sayfa düzleminden içeri', { size: 12, anchor: 'end', weight: 800, fill: CB });
+  return svg(W, H, s, u, 66);
+});
+
+/* Isınma 2: plastik boruya sarılmış makara; ön yüzde akım yukarı; Y ucunun sağında eksende boş pusula */
+BFY_FIG_EKLE('sf1122_makara', function (u) {
+  const W = 380, H = 236, yc = 92, x1 = 90, x2 = 250;
+  let s = sfDefs(u) + `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7fa"/>`;
+  const sr = sarim(x1, x2, yc, 22, 8, false, [1, 4, 6]);
+  s += sr.arka;
+  s += `<rect x="70" y="${yc - 18}" width="200" height="36" rx="4" fill="url(#${u}sfboru)" fill-opacity=".85" stroke="#7f8c94" stroke-width="1.1"/>`;
+  s += `<ellipse cx="270" cy="${yc}" rx="6" ry="18" fill="#cfd8de" stroke="#7f8c94" stroke-width="1.1"/>`;
+  s += sr.on;
+  // üreteç: + uç (solda) soldaki ilk sarıma alttan girer; son sarım arkadan alttan çıkar → −
+  const bx = 160, by = 180;
+  s += `<rect x="${bx - 6}" y="${by + 8}" width="6" height="10" rx="2" fill="url(#${u}metal)"/><rect x="${bx}" y="${by}" width="80" height="26" rx="13" fill="url(#${u}sfpil)" stroke="#111" stroke-width="1"/>`;
+  s += `<path d="M${bx + 13} ${by} H${bx + 30} V${by + 26} H${bx + 13} A13 13 0 0 1 ${bx + 13} ${by}" fill="#e7a93b" opacity=".95"/>`;
+  s += T(bx + 16, by + 18, '+', { size: 13, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) + T(bx + 66, by + 18, '−', { size: 14, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  s += T(bx + 92, by + 18, '6 V', { size: 14, weight: 800 });
+  s += `<path d="M${bx - 6} ${by + 13} C${bx - 50} ${by + 13} ${x1 - 30} ${yc + 70} ${x1 - 14} ${yc + 36} S${x1 - 6} ${yc + 22} ${x1} ${yc + 22}" fill="none" stroke="#c0392b" stroke-width="2.2"/>`;
+  s += `<path d="M${x2} ${yc + 22} C${x2 + 6} ${yc + 60} ${bx + 120} ${by - 30} ${bx + 80} ${by + 13}" fill="none" stroke="#2b3a36" stroke-width="2.2"/>`;
+  // pusula (iğnesiz) ve etiketler
+  s += `<circle cx="330" cy="${yc}" r="13" fill="#fff" stroke="#6d7a80" stroke-width="1.2" stroke-dasharray="3 2"/>` + T(330, yc + 5, '?', { size: 13, anchor: 'middle', weight: 800, fill: '#6d7a80', halo: false });
+  s += T(330, yc - 22, 'pusula', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(54, yc + 5, 'X', { size: 15, anchor: 'middle', weight: 800 }) + T(290, yc - 26, 'Y', { size: 15, anchor: 'middle', weight: 800 });
+  s += T(W / 2, 26, 'Kırmızı oklar ön yüzdeki akımın yönünü gösterir.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 76);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -98883,6 +99763,182 @@ const KONU = {
   ],
 
   /* ---------------- KONU NOTU ---------------- */
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Yönler notla aynı: x sağa, y yukarı, ⊙ = +z, ⊗ = −z; sonuçlar qa/11.2.2/dogrula.py içinde vektörel çarpımla doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu bölümde mıknatısları, akımın oluşturduğu manyetik alanı ve manyetik alandaki tele etki eden kuvveti kısa adımlarla göreceksin. Yönleri sağ elinle bulacaksın; soruları çözerken elini kullanmaktan çekinme. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Mıknatısın iki kutbu`,
+        metin: r`Bazı çantaların kapağında iki küçük mıknatıstan oluşan bir çıtçıt vardır. Kapağı yaklaştırınca iki mıknatıs birbirine yapışır. Mıknatıslardan biri ters takılsaydı birbirlerini iterlerdi.
+
+Her mıknatısın **N (kuzey)** ve **S (güney)** olmak üzere iki kutbu vardır. **Aynı kutuplar birbirini iter, zıt kutuplar çeker.**
+
+Bir mıknatısı ikiye kırarsan tek kutuplu iki parça elde etmezsin. Her parça yine N ve S kutbu olan küçük bir mıknatıs olur. Tek kutuplu mıknatıs yoktur.`,
+        kontrol: {
+          soru: r`Bir çubuk mıknatıs tam ortasından ikiye kırılıyor. Parçalar için ne söylenir?`,
+          secenekler: [r`Her parçada hem N hem S kutbu olur.`, r`Birinde yalnız N, öbüründe yalnız S kutbu olur.`, r`Parçalar artık mıknatıs değildir.`],
+          dogru: 0,
+          aciklama: r`Mıknatıs kaç parçaya bölünürse bölünsün her parça iki kutuplu bir mıknatıstır. Tek kutuplu mıknatıs yoktur.`,
+          yanlisIpucu: r`Tek kutuplu bir mıknatıs olabilir mi? Kırılan yerde yeni kutuplar oluşur.`
+        }
+      },
+      {
+        baslik: r`Manyetik alan ve pusula`,
+        sekil: 'sf1122_pusula',
+        metin: r`Mıknatısın çevresinde, başka mıknatısları ve demiri etkilediği bir bölge vardır. Buna **manyetik alan** ($\vec{B}$) denir. Manyetik alan vektöreldir; birimi **tesla (T)**'dır.
+
+Alanı **alan çizgileriyle** gösteririz. Çizgiler mıknatısın dışında **N'den çıkar, S'ye girer**. Çizgilerin sık olduğu yerde alan büyüktür.
+
+Pusula iğnesi de küçük bir mıknatıstır. Bir noktaya konan pusulanın **N ucu**, o noktadaki alanın yönünü gösterir. Şekilde masada duran bir çubuk mıknatısı yukarıdan görüyorsun. Örnek pusula N kutbunun hemen üstünde durduğu için N ucuyla yukarı bakıyor.`,
+        kontrol: {
+          soru: r`Şekildeki çubuk mıknatısın tam ortasının sağındaki P noktasına bir pusula konuyor. Pusulanın N ucu hangi yönü gösterir?`,
+          secenekler: [r`Mıknatısa paralel, N kutbuna doğru.`, r`Mıknatısa paralel, S kutbuna doğru.`, r`Mıknatısa dik, sağa doğru.`],
+          dogru: 1,
+          aciklama: r`Alan çizgileri mıknatısın dışında N'den çıkıp S'ye girer. Ortanın yanında çizgi mıknatısa paraleldir ve S tarafına, yani aşağı doğrudur. Pusulanın N ucu da aşağıyı gösterir.`,
+          yanlisIpucu: r`Pusulanın N ucu alan çizgisinin yönünü gösterir. Mıknatısın dışında çizgiler hangi kutuptan çıkıp hangisine girer?`
+        }
+      },
+      {
+        baslik: r`Akım da manyetik alan oluşturur`,
+        metin: r`Bir otomobilin aküsüne takılan kalın takviye kablosunun yanına pusula koyarsan, kablodan akım geçerken iğnenin saptığını görürsün. **Elektrik akımı manyetik alan oluşturur.**
+
+Düz bir telin alan çizgileri teli saran **çemberlerdir**. Alan, akım büyüdükçe büyür, telden uzaklaştıkça küçülür: $B \propto \dfrac{i}{d}$.
+
+Yönü **sağ el kuralıyla** bulursun: Sağ elinle teli kavra. Başparmak akımın yönünü gösterirken dört parmağın kıvrılma yönü alanın dolanım yönüdür.
+
+Sayfa düzlemine dik yönleri iki işaretle gösteririz: $\odot$ sayfa düzleminden **dışarı** (sana doğru), $\otimes$ sayfa düzleminden **içeri**.`,
+        kontrol: {
+          soru: r`Sayfa düzleminde düşey duran bir telden yukarı doğru akım geçiyor. Telin sağındaki K noktasında manyetik alanın yönü nedir?`,
+          secenekler: [r`Sayfa düzleminden içeri ($\otimes$).`, r`Sayfa düzleminden dışarı ($\odot$).`, r`Yukarı, akımla aynı yönde.`],
+          dogru: 0,
+          aciklama: r`Başparmak yukarıyı gösterirken dört parmak telin sağ tarafında sayfanın içine doğru kıvrılır. K'de alan $\otimes$ yönündedir. Telin solunda ise alan $\odot$ yönünde olur.`,
+          yanlisIpucu: r`Sağ elinle teli kavradığını düşün, başparmağın yukarıyı göstersin. Parmakların telin sağ tarafında sana doğru mu geliyor, sayfaya mı giriyor?`
+        }
+      },
+      {
+        baslik: r`Sarılmış tel: elektromıknatıs`,
+        sekil: 'sf1122_civi',
+        metin: r`Büyük bir demir çiviye yalıtkan kaplı ince bir teli sık sık sar. Telin uçlarını bir pile bağlayınca çivi ataçları çekmeye başlar. Pili ayırınca ataçlar düşer.
+
+Sık sarılmış tele **akım makarası** denir. Makara çubuk mıknatıs gibi davranır: bir ucu N, öbür ucu S olur. İçine demir çekirdek konan makaraya **elektromıknatıs** denir. Çekirdek alanı büyütür.
+
+Hangi ucun N olduğunu yine **sağ elinle** bulursun: Dört parmağını sarımlardaki akımın yönünde kıvır. Başparmağın makaranın **N ucunu** gösterir.`,
+        kontrol: {
+          soru: r`Şekildeki elektromıknatısta sarımların ön yüzünde akım aşağı doğrudur. Hangi uç N kutbudur?`,
+          secenekler: [r`X ucu.`, r`Çivinin ortası.`, r`Y ucu.`],
+          dogru: 2,
+          aciklama: r`Dört parmağını ön yüzde aşağı doğru kıvırınca başparmağın sağı, yani Y ucunu gösterir. Y ucu N, X ucu S kutbudur.`,
+          yanlisIpucu: r`Sağ elinin dört parmağını, sarımların ön yüzünde aşağı inecek biçimde kıvır. Başparmağın hangi ucu gösteriyor?`
+        }
+      },
+      {
+        baslik: r`Manyetik alandaki tele kuvvet`,
+        sekil: 'sf1122_kuvvet',
+        metin: r`Bir mıknatısın alanına akım geçen bir tel koyarsan tel itilir. Elektrik motorları ve hoparlörler bu kuvvetle çalışır.
+
+Bu **manyetik kuvvet** $F = B \times i \times L \times \sin\theta$ ile bulunur. $L$ telin alandaki uzunluğu, $\theta$ tel ile alan arasındaki açıdır. Tel alana dikse kuvvet en büyüktür. Tel alana paralelse kuvvet **sıfırdır**.
+
+Kuvvetin yönü için yine **sağ elini** kullan: Dört parmak akımın yönünü, avuç içi $\vec{B}$'yi gösterir. Başparmak kuvvetin yönünü verir. Kuvvet hem tele hem alana diktir.`,
+        kontrol: {
+          soru: r`Şekilde alan sayfa düzleminden içeri ($\otimes$), teldeki akım sağa doğrudur. Tele etki eden manyetik kuvvet hangi yöndedir?`,
+          secenekler: [r`Yukarı doğru.`, r`Aşağı doğru.`, r`Sayfa düzleminden dışarı.`],
+          dogru: 0,
+          aciklama: r`Dört parmak sağı gösterir, avuç içi sayfanın içine bakar. Başparmak yukarıyı gösterir; kuvvet yukarı doğrudur.`,
+          yanlisIpucu: r`Sağ elinin dört parmağını sağa uzat, avuç içini sayfaya doğru çevir. Başparmağın nereyi gösteriyor?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Tramvay hattının alanı`,
+        metin: r`Bir tramvayın havai hattı uzun, düz bir teldir ve doğru akım taşır. Hatta ucundan bakıyormuş gibi düşünelim: tel sayfa düzlemine dik, akım sayfa düzleminden dışarı ($\odot$) doğru. L noktası telin $d$ kadar sağında, K noktası ise telin $2d$ kadar sağındadır.`,
+        adimlar: [
+          {
+            soru: r`L noktasında manyetik alanın yönü nedir?`,
+            secenekler: [r`Aşağı doğru.`, r`Yukarı doğru.`, r`Sayfa düzleminden dışarı.`],
+            dogru: 1,
+            ipucu: r`Başparmağın sayfadan sana doğru baksın. Dört parmağın, sayfaya bakan göze göre saatin dönme yönünde mi, tersinde mi kıvrılır?`,
+            aciklama: r`Akım dışarı doğruyken alan çizgileri, sayfaya bakan göze göre saatin dönme yönünün tersine dolanır. Telin sağındaki L'de alan yukarı doğrudur.`
+          },
+          {
+            soru: r`K'deki alanın büyüklüğü, L'dekine göre nasıldır?`,
+            secenekler: [r`2 katıdır.`, r`Eşittir.`, r`Yarısı kadardır.`],
+            dogru: 2,
+            ipucu: r`Alan, telden uzaklıkla ters orantılıdır: $B \propto \dfrac{i}{d}$.`,
+            aciklama: r`K, telden L'nin 2 katı uzaklıktadır. Bu yüzden K'deki alan L'dekinin yarısı kadardır.`
+          },
+          {
+            soru: r`Tramvay kalkarken hattan 3 kat büyük akım çekiyor. L'deki alan nasıl değişir?`,
+            secenekler: [r`3 katına çıkar.`, r`Değişmez.`, r`3'te 1'ine iner.`],
+            dogru: 0,
+            ipucu: r`Alan, akımla doğru orantılıdır.`,
+            aciklama: r`Uzaklık aynı kaldı, akım 3 katına çıktı. L'deki alan da 3 katına çıkar.`
+          }
+        ],
+        sonuc: r`Düz telin alanı teli saran çemberler boyuncadır; yönünü sağ el kuralı verir. Büyüklüğü akımla doğru, uzaklıkla ters orantılıdır.`
+      },
+      {
+        baslik: r`Oyuncak tren yolunun makası`,
+        sekil: 'sf1122_makara',
+        metin: r`Oyuncak tren yollarındaki makaslar küçük bir akım makarasıyla çalışır. Şekilde plastik bir boruya sarılmış makara görülüyor. Sarımların ön yüzünde akım yukarı doğru. Makaranın Y ucunun sağında, eksen üzerinde bir pusula var. Dünya'nın manyetik alanını önemseme.`,
+        adimlar: [
+          {
+            soru: r`Makaranın hangi ucu N kutbudur?`,
+            secenekler: [r`Y ucu.`, r`X ucu.`, r`Makaranın kutbu olmaz.`],
+            dogru: 1,
+            ipucu: r`Dört parmağını ön yüzde yukarı çıkacak biçimde kıvır. Başparmağın hangi ucu gösteriyor?`,
+            aciklama: r`Dört parmak ön yüzde yukarı kıvrılınca başparmak sola, yani X ucunu gösterir. X ucu N, Y ucu S kutbudur.`
+          },
+          {
+            soru: r`Y ucunun sağındaki pusulanın N ucu hangi yönü gösterir?`,
+            secenekler: [r`Sola, makaraya doğru.`, r`Sağa, makaradan uzağa.`, r`Yukarı doğru.`],
+            dogru: 0,
+            ipucu: r`Makaranın dışında alan çizgileri N ucundan çıkar, S ucuna girer. Y ucu hangi kutup?`,
+            aciklama: r`Y ucu S kutbudur. Dışarıdaki alan çizgileri S ucuna doğru girer. Pusulanın N ucu sola, makaraya doğru döner.`
+          },
+          {
+            soru: r`Akımın yönü ters çevrilirse pusula ne yapar?`,
+            secenekler: [r`Döner; N ucu yukarıyı gösterir.`, r`Hiç kıpırdamaz.`, r`Döner; N ucu sağı gösterir.`],
+            dogru: 2,
+            ipucu: r`Akım ters dönünce makaranın kutupları ne olur?`,
+            aciklama: r`Akım ters dönünce kutuplar yer değiştirir: Y ucu N olur. Alan Y ucundan dışarı çıkar ve pusulanın N ucu sağı gösterir.`
+          }
+        ],
+        sonuc: r`Makaranın N ucunu sağ el kuralı verir. Dışarıda alan N ucundan çıkıp S ucuna girer. Akım ters dönünce kutuplar yer değiştirir.`
+      },
+      {
+        baslik: r`Kutupların arasındaki tel`,
+        metin: r`Bir laboratuvar mıknatısının iki düz kutbu karşı karşıya duruyor: N kutbu altta, S kutbu üstte. Kutupların arasından, sayfa düzlemine dik bir bakır tel geçiyor. Telden sayfa düzleminden dışarı ($\odot$) doğru akım geçiyor.`,
+        adimlar: [
+          {
+            soru: r`Kutupların arasında manyetik alan hangi yöndedir?`,
+            secenekler: [r`Aşağı doğru.`, r`Yukarı doğru.`, r`Sağa doğru.`],
+            dogru: 1,
+            ipucu: r`Kutupların arasında alan çizgileri N'den S'ye gider. N altta, S üstte.`,
+            aciklama: r`Alan çizgileri alttaki N kutbundan çıkıp üstteki S kutbuna girer. Alan yukarı doğrudur.`
+          },
+          {
+            soru: r`Tele etki eden manyetik kuvvet hangi yöndedir?`,
+            secenekler: [r`Sola doğru.`, r`Sağa doğru.`, r`Yukarı doğru.`],
+            dogru: 0,
+            ipucu: r`Dört parmağın sayfadan sana doğru uzansın, avuç içi yukarı baksın. Başparmağın hangi yanı gösteriyor?`,
+            aciklama: r`Dört parmak sana doğru, avuç içi yukarı bakarken sağ elin başparmağı sola döner. Kuvvet sola doğrudur; hem tele hem alana diktir.`
+          },
+          {
+            soru: r`Tel döndürülüp kutupların arasında düşey, yani alana paralel duracak biçimde konursa kuvvet ne olur?`,
+            secenekler: [r`2 katına çıkar.`, r`Yönü ters döner.`, r`Sıfır olur.`],
+            dogru: 2,
+            ipucu: r`$F = B \times i \times L \times \sin\theta$ ifadesinde tel alana paralelken $\theta$ kaç derecedir?`,
+            aciklama: r`Tel alana paralelken $\theta = 0$ olur ve $\sin 0 = 0$'dır. Tele manyetik kuvvet etki etmez.`
+          }
+        ],
+        sonuc: r`Kuvvetin yönünü sağ el kuralı verir; kuvvet hem tele hem alana diktir. Tel alana paralelse kuvvet sıfırdır.`
+      }
+    ],
+    hazir: r`Mıknatısın kutuplarını, alan çizgilerini ve pusulayı, akımın oluşturduğu alanı, elektromıknatısın N ucunu ve alandaki tele etki eden kuvveti gördün. Yönlerin hepsini sağ elinle buldun. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
   not: [
     {
       tur: 'acilis',
