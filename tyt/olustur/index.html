@@ -24136,6 +24136,106 @@ BFY_FIG_EKLE('iT53_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 150, oy: 92 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sf153_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const zemin = (W, H, r = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${r}"/>`;
+const CAM = '#5f7f8f', CIVA = '#aab4bc', CIVA2 = '#5f6a70', SU2 = '#1f5d8a';
+const civaGr = u => `<linearGradient id="${u}cv" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8e989f"/><stop offset=".35" stop-color="#e3e8ec"/><stop offset=".6" stop-color="#b3bcc3"/><stop offset="1" stop-color="#78828a"/></linearGradient>`;
+
+/* Torricelli: ince ve kalın boru aynı çanakta, ikisinde de 76 cm (cıva yüzeyinden düşey) */
+BFY_FIG_EKLE('sf153_torricelli', function (u) {
+  const W = 340, H = 300, yuz = 244, top = 48, h = 160, yc = yuz - h;
+  let s = zemin(W, H) + `<defs>${civaGr(u)}</defs>`;
+  // çanak (gölge, cam, cıva)
+  s += `<ellipse cx="185" cy="282" rx="128" ry="7" fill="#000" opacity=".13"/>`;
+  s += `<path d="M64 228 L64 272 Q64 280 72 280 L298 280 Q306 280 306 272 L306 228" fill="#eef4f7" stroke="${CAM}" stroke-width="2.6"/>`;
+  s += `<rect x="66" y="${yuz}" width="238" height="34" rx="4" fill="url(#${u}cv)"/><line x1="66" y1="${yuz}" x2="304" y2="${yuz}" stroke="${CIVA2}" stroke-width="1.6"/>`;
+  // borular: [merkez x, iç genişlik]
+  [[132, 12], [222, 34]].forEach(([x, w]) => {
+    s += `<rect x="${x - w / 2}" y="${yc}" width="${w}" height="${yuz - yc + 22}" fill="url(#${u}cv)"/>`;
+    s += `<path d="M${x - w / 2} ${yc} Q${x} ${yc - 6} ${x + w / 2} ${yc}" fill="${CIVA}" stroke="${CIVA2}" stroke-width="1"/>`;
+    s += `<path d="M${x - w / 2} ${yc - 3} V${top + w / 2} Q${x} ${top - 8} ${x + w / 2} ${top + w / 2} V${yc - 3} Z" fill="#fbfdfe"/>`;
+    s += `<path d="M${x - w / 2 - 2} ${yuz + 24} L${x - w / 2 - 2} ${top + w / 2} Q${x} ${top - 8} ${x + w / 2 + 2} ${top + w / 2} L${x + w / 2 + 2} ${yuz + 24}" fill="none" stroke="${CAM}" stroke-width="2.4"/>`;
+    s += `<line x1="${x - w / 2 + 3}" y1="${top + 14}" x2="${x - w / 2 + 3}" y2="${yuz - 8}" stroke="#fff" stroke-width="2" opacity=".7"/>`;
+  });
+  // ölçü: cıva yüzeyinden sütun tepesine
+  s += `<line x1="96" y1="${yc}" x2="126" y2="${yc}" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  s += arrow(84, yuz - 2, 84, yc, { color: P.ink2, w: 1.6, head: 8, headW: 4 }) + arrow(84, yc, 84, yuz - 2, { color: P.ink2, w: 1.6, head: 8, headW: 4 });
+  s += T(76, (yuz + yc) / 2 + 5, '76 cm', { size: 15, weight: 800, anchor: 'end' });
+  // boşluk etiketi
+  s += T(246, top + 26, 'boşluk', { size: 14, weight: 700, fill: P.ink2 }) + T(246, top + 44, '(hava yok)', { size: 14, weight: 600, fill: P.ink2 });
+  // P0 okları
+  [176, 282].forEach(x => { s += arrow(x, yuz - 44, x, yuz - 3, { color: '#2f7fb8', w: 2.6, head: 9, headW: 5 }); });
+  s += T(282, yuz - 52, 'P₀', { size: 17, weight: 800, anchor: 'middle', fill: '#2f7fb8' });
+  s += T(132, 30, 'ince', { size: 14, weight: 800, anchor: 'middle' }) + T(222, 30, 'kalın', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(185, 270, 'cıva', { size: 14, weight: 700, anchor: 'middle', fill: '#2f3a40', haloColor: '#d6dce0' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Yatay boru: K geniş, L orta, M dar; tüplerde su K > L > M; içerde sürat okları */
+BFY_FIG_EKLE('sf153_boru', function (u) {
+  const W = 340, H = 236, yc = 176;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}bw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9d8f2"/><stop offset=".5" stop-color="#5aa9dc"/><stop offset="1" stop-color="#2a79ad"/></linearGradient></defs>`;
+  const hh = [26, 17, 9]; // yarı kalınlıklar
+  const d = `M12 ${yc - hh[0]} H110 L128 ${yc - hh[1]} H212 L230 ${yc - hh[2]} H328 V${yc + hh[2]} H230 L212 ${yc + hh[1]} H128 L110 ${yc + hh[0]} H12 Z`;
+  s += `<ellipse cx="170" cy="${yc + 34}" rx="150" ry="5" fill="#000" opacity=".1"/>`;
+  s += `<path d="${d}" fill="url(#${u}bw)" stroke="#3d6070" stroke-width="2.4" stroke-linejoin="round"/>`;
+  s += `<path d="M14 ${yc - hh[0] + 5} H108 M130 ${yc - hh[1] + 4} H210 M232 ${yc - hh[2] + 3} H326" stroke="#fff" stroke-width="2" opacity=".55"/>`;
+  // tüpler
+  const tx = [62, 170, 280], ust = [62, 98, 132];
+  tx.forEach((x, i) => {
+    const yb = yc - hh[i];
+    s += `<rect x="${x - 6}" y="${ust[i]}" width="12" height="${yb - ust[i] + 1}" fill="url(#${u}bw)"/>`;
+    s += `<path d="M${x - 7} ${yb} V40 M${x + 7} ${yb} V40" stroke="#3d6070" stroke-width="2"/>`;
+    s += `<line x1="${x - 7}" y1="${ust[i]}" x2="${x + 7}" y2="${ust[i]}" stroke="${SU2}" stroke-width="1.6"/>`;
+  });
+  // sürat okları (dar yerde uzun)
+  s += arrow(40, yc, 72, yc, { color: '#fff', w: 3, head: 8, headW: 5 });
+  s += arrow(148, yc, 198, yc, { color: '#fff', w: 3, head: 8, headW: 5 });
+  s += arrow(242, yc, 318, yc, { color: '#fff', w: 3, head: 7, headW: 4.5 });
+  s += T(18, 134, 'akış', { size: 14, weight: 700, fill: P.ink2 }) + arrow(20, 142, 48, 142, { color: P.ink2, w: 2, head: 7, headW: 4 });
+  ['K', 'L', 'M'].forEach((k, i) => { s += T(tx[i], 226, k, { size: 17, weight: 800, anchor: 'middle' }); });
+  s += T(tx[0], 30, 'geniş', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(tx[1], 30, 'orta', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(tx[2], 30, 'dar', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Pompalı püskürtücü: hızlı hava ince uçtan çıkar, düşey borudan su yükselir, hazne kapağında hava deliği */
+BFY_FIG_EKLE('sf153_puskurtucu', function (u) {
+  const W = 340, H = 250;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}sw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd2f0"/><stop offset="1" stop-color="#3b8fc8"/></linearGradient></defs>`;
+  // pompa gövdesi ve piston kolu
+  s += `<rect x="40" y="52" width="160" height="34" rx="7" fill="url(#${u}metal)" stroke="#6f7980" stroke-width="1.6"/>`;
+  s += `<rect x="12" y="66" width="30" height="6" fill="#8e979f" stroke="#5f6a70" stroke-width="1"/><rect x="4" y="54" width="10" height="30" rx="4" fill="#b5713a" stroke="#6b3f1c" stroke-width="1.2"/>`;
+  s += `<line x1="68" y1="54" x2="68" y2="84" stroke="#5f6a70" stroke-width="3"/>`;
+  s += arrow(20, 104, 66, 104, { color: P.coral, w: 2.6, head: 9, headW: 5 }) + T(74, 109, 'piston itilir', { size: 14, weight: 700, fill: P.coral });
+  // pompayı hazneye bağlayan ayak
+  s += `<path d="M176 85 L190 85 L208 121 L196 121 Z" fill="#9aa3aa" stroke="#5f6a70" stroke-width="1.2" stroke-linejoin="round"/>`;
+  // ince uç
+  s += `<path d="M200 63 L246 66 L246 72 L200 75 Z" fill="url(#${u}metal)" stroke="#6f7980" stroke-width="1.4"/>`;
+  // uçtan çıkan hava akımı (düşey borunun ağzının hemen üstünden geçer)
+  s += `<path d="M248 69 H300" stroke="#7fa6bd" stroke-width="2" stroke-dasharray="5 4" opacity=".9"/>`;
+  // hazne
+  s += `<ellipse cx="262" cy="228" rx="66" ry="6" fill="#000" opacity=".13"/>`;
+  s += `<rect x="198" y="126" width="128" height="98" rx="12" fill="#eef6fb" stroke="${CAM}" stroke-width="2.4"/>`;
+  s += `<path d="M200 166 H324 V212 Q324 222 314 222 H210 Q200 222 200 212 Z" fill="url(#${u}sw)"/>`;
+  s += `<line x1="200" y1="166" x2="324" y2="166" stroke="${SU2}" stroke-width="1.6"/>`;
+  s += `<rect x="194" y="120" width="136" height="10" rx="4" fill="#8e979f" stroke="#5f6a70" stroke-width="1.2"/><rect x="212" y="119" width="9" height="12" fill="#fff" stroke="#5f6a70" stroke-width="1"/>`;
+  // düşey boru (su ile)
+  s += `<rect x="253" y="78" width="8" height="134" fill="#fbfdfe" stroke="#5f6a70" stroke-width="1.4"/><rect x="254.5" y="82" width="5" height="130" fill="url(#${u}sw)"/>`;
+  // püskürme damlaları
+  [[272, 64, 3], [284, 60, 2.6], [292, 70, 2.8], [302, 62, 2.4], [310, 72, 2.2], [318, 64, 2], [326, 58, 1.8], [280, 72, 2.2]].forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#5aa9dc" stroke="#2a79ad" stroke-width=".6"/>`; });
+  s += T(286, 40, 'hızlı hava', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // P0 ve etiketler
+  s += arrow(298, 136, 298, 163, { color: '#2f7fb8', w: 2.4, head: 8, headW: 4.5 }) + T(310, 150, 'P₀', { size: 15, weight: 800, fill: '#2f7fb8' });
+  s += T(190, 128, 'hava deliği', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += T(190, 196, 'hazne', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -24171,6 +24271,189 @@ const KONU = {
     'SET 3: Pascal ve Périer, Puy de Dôme deneyi 1648: manastır 490 m 71,15 cm, Font de l\'Arbre 780 m 67,75 cm, zirve 1464 m 62,79 cm, kontrol tüpü; 83,7 kPa, deniz seviyesine dış değer 75,4 cm',
     'simülasyon: Torricelli düzeneği 100 cm tüp, 0–5000 m rakım, ince/kalın/eğik tüp, standart atmosfer P₀-rakım eğrisi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.5.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Havanın neden her şeye bastırdığını, bu basıncın nasıl ölçüldüğünü ve akan bir akışkanda basıncın nasıl değiştiğini kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Hava da bastırır',
+        metin: r`Karton kutudaki meyve suyunu pipetle içiyorsun. Meyve suyu bitince pipetten biraz daha çekiyorsun. Kutu birden içe doğru buruşuyor.
+
+Pipetle kutunun içindeki havanın bir kısmını çektin. Kutunun içindeki basınç düştü. Dışarıdaki hava ise kutuya her yönden bastırmaya devam etti. Dıştaki büyük basınç kutuyu içe doğru ezdi.
+
+Dünya'yı saran hava, ağırlığı yüzünden her yüzeye bastırır. Bu basınca **açık hava basıncı** denir ve $P_0$ ile gösterilir. Hava her yönden bastırdığı için onu çoğu zaman fark etmeyiz. Bir yüzeyin iki yanındaki basınçlar farklı olunca etkisini görürüz.`,
+        kontrol: {
+          soru: 'Meyve suyu kutusunu içe doğru buruşturan nedir?',
+          secenekler: ['Pipetin kutuyu içeri çekmesi', 'Dışarıdaki havanın basıncı', 'Kutudaki meyve suyunun ağırlığı'],
+          dogru: 1,
+          aciklama: 'Kutunun içindeki basınç düştü. Dışarıdaki hava kutuya daha büyük bir basınçla bastırdı ve onu içe doğru ezdi.',
+          yanlisIpucu: 'Pipet kutuyu çekemez; yalnızca içerideki havanın azalmasını sağlar. Kutuya dışarıdan ne bastırıyor?'
+        }
+      },
+      {
+        baslik: 'Açık hava basıncını ölçmek',
+        sekil: 'sf153_torricelli',
+        metin: r`Bir ucu kapalı, yaklaşık 1 m uzunluğunda cam bir boruyu cıvayla dolduralım. Ağzını kapatıp boruyu cıva dolu bir kaba ters çevirelim ve ağzını açalım. Cıvanın bir kısmı kaba boşalır ama hepsi boşalmaz. Bu düzeneği ilk kez Torricelli kurmuştur.
+
+Kaptaki cıvanın yüzeyine açık hava basıncı bastırır. Bu basınç, borudaki cıva sütununu yukarıda tutar. Borunun tepesinde kalan boşlukta hava yoktur.
+
+Deniz kıyısında cıva sütununun yüksekliği yaklaşık 76 cm olur. Bu yüzden deniz kıyısındaki açık hava basıncı **76 cmHg** (santimetre cıva) olarak yazılır. Bu değer yaklaşık 101 kPa'dır.
+
+Şekle bak: İnce boruda da kalın boruda da sütun aynı yüksekliktedir. Sütunun yüksekliği borunun kalınlığına bağlı değildir.`,
+        kontrol: {
+          soru: 'Deniz kıyısında aynı deney, boru biraz eğik tutularak yapılıyor. Kaptaki cıva yüzeyinden düşey olarak ölçülen sütun yüksekliği ne olur?',
+          secenekler: ['76 cm', '76 cm\'den az', '76 cm\'den fazla'],
+          dogru: 0,
+          aciklama: 'Sütunu dengeleyen açık hava basıncı değişmedi. Bu yüzden düşey yükseklik yine 76 cm olur. Eğik boruda yalnızca cıvanın boru boyunca kapladığı uzunluk artar.',
+          yanlisIpucu: 'Sütunun düşey yüksekliğini ne belirliyordu? Boruyu eğik tutmak açık hava basıncını değiştirir mi?'
+        }
+      },
+      {
+        baslik: 'Yükseldikçe basınç azalır',
+        metin: r`Açık hava basıncını, bir yerin üstündeki havanın ağırlığı oluşturur.
+
+Deniz kıyısındaki birinin üstünde kilometrelerce kalınlıkta bir hava tabakası vardır. Bir dağın tepesindeki birinin üstünde ise daha az hava kalır. Üstelik yukarıdaki hava daha seyrektir.
+
+Bu yüzden yükseldikçe açık hava basıncı **azalır**. Yüksek bir yerde Torricelli deneyi yapılırsa cıva sütunu 76 cm'den kısa olur.
+
+Açık hava basıncı hava raporlarında çoğunlukla hektopaskal (hPa) ile verilir: $10\ \text{hPa} = 1\ \text{kPa}$. Deniz kıyısında açık hava basıncı yaklaşık 1010 hPa'dır.`,
+        kontrol: {
+          soru: 'Torricelli deneyi önce deniz kıyısında, sonra 2000 m yükseklikteki bir dağ evinde yapılıyor. Dağ evindeki cıva sütunu için hangisi doğrudur?',
+          secenekler: ['Kıyıdakinden kısadır.', 'Kıyıdakinden uzundur.', 'Kıyıdakiyle aynıdır.'],
+          dogru: 0,
+          aciklama: 'Dağ evinin üstünde daha az hava vardır ve açık hava basıncı daha küçüktür. Küçük basınç daha kısa bir cıva sütununu dengeler.',
+          yanlisIpucu: 'Hangi yerin üstünde daha çok hava var? Sütunu yukarıda tutan basınç hangisinde büyük?'
+        }
+      },
+      {
+        baslik: 'Dar yerde akış hızlanır',
+        metin: r`Rafting yapan bir grup, nehrin geniş ve sakin bir bölümünde botla yavaşça ilerliyor. Nehir iki kayalığın arasında daralınca bot birden hızlanıyor.
+
+Nehrin derinliğinin her yerde aşağı yukarı aynı olduğunu düşünelim. Nehrin her kesitinden bir saniyede aynı miktarda su geçer. Geniş yerde su bu miktarı yavaş akarak taşır. Dar yerden aynı miktarda suyun geçebilmesi için su daha hızlı akmak zorundadır.
+
+Sıvılar ve gazlar akabildiği için **akışkan** olarak adlandırılır. Bir akışkan bir borudan ya da kanaldan geçerken **kesit alanı küçüldükçe akışkanın sürati artar.**`,
+        kontrol: {
+          soru: 'Su, yatay bir boruda geniş K bölümünden dar L bölümüne akıyor. Suyun sürati için hangisi doğrudur?',
+          secenekler: ['L\'de daha büyüktür.', 'K\'de daha büyüktür.', 'İki bölümde eşittir.'],
+          dogru: 0,
+          aciklama: 'Her kesitten bir saniyede aynı miktarda su geçer. L daha dar olduğu için su orada daha hızlı akar.',
+          yanlisIpucu: 'Dar yerden aynı miktarda su geçebilmesi için suyun nasıl akması gerekir?'
+        }
+      },
+      {
+        baslik: 'Hızlı akışta basınç küçük',
+        sekil: 'sf153_boru',
+        metin: r`Su, yatay ve saydam bir borudan soldan sağa akıyor. Boru iki kez daralıyor: K bölümü geniş, L bölümü orta, M bölümü dardır. Her bölümün üstüne ağzı açık, ince bir cam tüp takılmış. Bir tüpteki suyun yüksekliği, borudaki suyun o noktadaki basıncını gösterir.
+
+Şekle bak: Boru daraldıkça su hızlanıyor ve tüplerdeki su alçalıyor.
+
+**Bernoulli ilkesi:** Aynı akış içinde, akışkanın sürati büyük olan yerde basıncı küçüktür.
+
+- Geniş kesit: yavaş akış, büyük basınç.
+- Dar kesit: hızlı akış, küçük basınç.
+
+Bu ilke sıvılarda da gazlarda da geçerlidir.`,
+        kontrol: {
+          soru: 'Şekildeki borunun M bölümünde suyun sürati ve basıncı, K bölümündekine göre nasıldır?',
+          secenekler: ['Sürat büyük, basınç küçük', 'Sürat büyük, basınç büyük', 'Sürat küçük, basınç küçük'],
+          dogru: 0,
+          aciklama: 'M en dar bölümdür; su orada en hızlı akar. Bernoulli ilkesine göre hızlı akan suyun basıncı küçüktür. M tüpündeki su da en alçaktadır.',
+          yanlisIpucu: 'Önce sürati düşün: Su dar yerde hızlanır mı, yavaşlar mı? Sonra tüpteki su yüksekliğine bak.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kömür madenindeki barometre',
+        metin: r`Bir maden mühendisi, deniz kıyısındaki bir kömür madeninin girişinde dijital barometresine bakıyor: 1010 hPa. Sonra asansörle, deniz seviyesinin yaklaşık 500 m altındaki bir galeriye iniyor. Barometre orada 1070 hPa gösteriyor. Hava durumu bu sürede değişmiyor.`,
+        adimlar: [
+          {
+            soru: 'Galerideki açık hava basıncı, giriştekinden kaç kPa büyüktür?',
+            secenekler: ['6', '60', '208'],
+            dogru: 0,
+            ipucu: 'Önce farkı hPa olarak bul: 1070 − 1010. Sonra 10 hPa = 1 kPa olduğunu kullan.',
+            aciklama: '1070 − 1010 = 60 hPa olur. 60 hPa, 6 kPa\'dır.'
+          },
+          {
+            soru: 'Girişte Torricelli deneyi yapılınca cıva sütunu 76 cm oluyor. Aynı deney galeride yapılsaydı sütun için hangisi doğru olurdu?',
+            secenekler: ['76 cm\'den uzun olurdu.', '76 cm\'den kısa olurdu.', 'Yine 76 cm olurdu.'],
+            dogru: 0,
+            ipucu: 'Galerideki açık hava basıncı daha mı büyük, daha mı küçük? Büyük basınç cıvayı daha yükseğe mi iter?',
+            aciklama: 'Galeride açık hava basıncı daha büyüktür. Kaptaki cıvaya daha büyük bir basınç bastırır ve sütun 76 cm\'den uzun olur.'
+          },
+          {
+            soru: 'Galerideki açık hava basıncı neden daha büyüktür?',
+            secenekler: ['Galerinin üstündeki hava sütunu daha uzundur.', 'Galerideki hava daha sıcaktır.', 'Galeride rüzgâr esmez.'],
+            dogru: 0,
+            ipucu: 'Açık hava basıncını, bir yerin üstündeki havanın ağırlığı oluşturur. Galerinin üstünde ne kadar hava var?',
+            aciklama: 'Galeri deniz seviyesinin altındadır. Üstünde, maden kuyusundaki hava da eklenince daha uzun bir hava sütunu vardır. Daha çok havanın ağırlığı daha büyük basınç oluşturur.'
+          }
+        ],
+        sonuc: 'Barometre galeride 6 kPa fazla gösterdi. Yükseldikçe açık hava basıncı azalır; deniz seviyesinin altına inildikçe artar.'
+      },
+      {
+        baslik: 'Pompalı püskürtücü',
+        sekil: 'sf153_puskurtucu',
+        metin: r`Eski tip pompalı bir püskürtücü, bitkilere su serpmek için kullanılıyor. Pistonu itince hava yatay borunun ince ucundan hızla çıkıyor. Bu ucun hemen altında, alt ucu haznedeki suya dalan düşey ve ince bir boru var. Haznenin kapağında küçük bir hava deliği bulunuyor.`,
+        adimlar: [
+          {
+            soru: 'Hava yatay borunun ucundan hızla çıkarken, düşey borunun üst ağzındaki havanın basıncı nasıl olur?',
+            secenekler: ['Açık hava basıncından büyük', 'Açık hava basıncından küçük', 'Açık hava basıncına eşit'],
+            dogru: 1,
+            ipucu: 'Bernoulli ilkesini hatırla: Akışkanın sürati artınca basıncı ne olur?',
+            aciklama: 'Hızla akan havanın basıncı küçüktür. Düşey borunun üst ağzında basınç, açık hava basıncının altına düşer.'
+          },
+          {
+            soru: 'Haznedeki suyu düşey boruda yukarı iten nedir?',
+            secenekler: ['Hızlı akan havanın suyu emmesi', 'Suyun kendi ağırlığı', 'Haznedeki su yüzeyine etki eden açık hava basıncı'],
+            dogru: 2,
+            ipucu: 'Hava deliği sayesinde haznedeki su yüzeyine hangi basınç etki eder? Borunun üstündeki basınçla karşılaştır.',
+            aciklama: 'Hava deliğinden giren hava, su yüzeyine açık hava basıncıyla bastırır. Borunun üstünde basınç daha küçük olduğu için su yukarı itilir, hava akımına karışır ve damlacıklar hâlinde püskürür.'
+          },
+          {
+            soru: 'Piston çok yavaş itilirse ne olur?',
+            secenekler: ['Hava yavaş akar, basınç az düşer; su yukarı çıkamayabilir.', 'Su daha uzağa püskürür.', 'Püskürtme değişmez.'],
+            dogru: 0,
+            ipucu: 'Havanın sürati azalırsa düşey borunun üstündeki basınç ne kadar düşer?',
+            aciklama: 'Yavaş akan havanın basıncı açık hava basıncından çok az küçüktür. Bu küçük fark suyu borunun ucuna kadar çıkarmaya yetmeyebilir.'
+          }
+        ],
+        sonuc: 'Püskürtücüde iki fikir birlikte çalışır: Hızlı akan hava basıncı düşürür, açık hava basıncı da suyu yukarı iter.'
+      },
+      {
+        baslik: 'Hangisi hangi fikirle açıklanır?',
+        metin: r`Üç olayın her birini açıklayan fikri seç: açık hava basıncı, Bernoulli ilkesi ya da sıvı basıncının derinlikle artması.`,
+        adimlar: [
+          {
+            soru: 'Sıvı sabun şişesinin pompasına basıp bırakınca sabun, şişenin dibinden pompanın içine doğru yükselir. Bunu ne açıklar?',
+            secenekler: ['Bernoulli ilkesi', 'Açık hava basıncı', 'Sıvı basıncının derinlikle artması'],
+            dogru: 1,
+            ipucu: 'Pompa bırakılınca içindeki basınç düşer. Şişedeki sabunun yüzeyine dışarıdan ne bastırıyor?',
+            aciklama: 'Pompanın içindeki basınç düşer. Şişedeki sabunun yüzeyine bastıran açık hava basıncı sabunu yukarı iter. Burada hızla akan bir akışkan yoktur.'
+          },
+          {
+            soru: 'Fırtınalı bir günde rüzgâr, yüksek bir binanın yan duvarı boyunca, duvara paralel ve çok hızlı esiyor. Pencereleri kapalı bir odanın içinde hava durgundur. Bu duvardaki pencere camı dışarı doğru zorlanıyor. Bunu ne açıklar?',
+            secenekler: ['Bernoulli ilkesi', 'Açık hava basıncı', 'Sıvı basıncının derinlikle artması'],
+            dogru: 0,
+            ipucu: 'Camın dış yüzünde hava hızla akıyor, iç yüzünde durgun. Hızlı akışın basıncı nasıldır?',
+            aciklama: 'Camın dışında, duvar boyunca hızla akan havanın basıncı küçüktür. Odadaki durgun havanın basıncı daha büyüktür ve camı dışarı doğru iter.'
+          },
+          {
+            soru: 'Şnorkelle yüzen biri, göğsü suyun yaklaşık 1 m altına inince şnorkelden nefes almakta çok zorlanır. Bunu ne açıklar?',
+            secenekler: ['Bernoulli ilkesi', 'Açık hava basıncı', 'Sıvı basıncının derinlikle artması'],
+            dogru: 2,
+            ipucu: 'Derine indikçe suyun göğse uyguladığı basınç nasıl değişir? Şnorkelden gelen havanın basıncı ise yüzeydekiyle aynıdır.',
+            aciklama: 'Derinlik arttıkça suyun basıncı artar ve göğsü sıkıştırır. Şnorkeldeki hava ise yalnızca açık hava basıncındadır. Göğüs kasları bu farkı yenmekte zorlanır.'
+          }
+        ],
+        sonuc: 'Bir olayda basınç farkını hızlanan bir akış oluşturuyorsa Bernoulli ilkesini düşün. Akış olmadan bir yerin basıncı düşürülüyorsa açık hava basıncı iş görür.'
+      }
+    ],
+    hazir: r`Açık hava basıncını, Torricelli deneyini, basıncın yükseklikle azalmasını, dar yerde hızlanan akışı ve Bernoulli ilkesini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -25485,6 +25768,128 @@ BFY_FIG_EKLE('iT54_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 92 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sf154_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const zemin = (W, H, r = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${r}"/>`;
+const SU2 = '#1f5d8a', CAM = '#5f7f8f';
+const suGr = u => `<linearGradient id="${u}sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9d8f2" stop-opacity=".85"/><stop offset="1" stop-color="#3b8fc8" stop-opacity=".85"/></linearGradient>`;
+
+/* Dinamometreye asılı paslanmaz çelik kapı tokmağı: havada 24 N, suda 21 N */
+BFY_FIG_EKLE('sf154_tokmak', function (u) {
+  const W = 340, H = 286;
+  let s = zemin(W, H) + `<defs>${suGr(u)}<radialGradient id="${u}fe" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#8d969c"/><stop offset=".6" stop-color="#4a5257"/><stop offset="1" stop-color="#262b2e"/></radialGradient></defs>`;
+  // askı çubuğu
+  s += `<rect x="14" y="16" width="312" height="10" rx="4" fill="url(#${u}wood)" stroke="#9a7428" stroke-width="1.2"/>`;
+  const dina = (x, okuma, yTok) => {
+    let d = `<line x1="${x}" y1="26" x2="${x}" y2="36" stroke="#5f6a70" stroke-width="2"/>`;
+    d += `<rect x="${x - 15}" y="36" width="30" height="80" rx="7" fill="url(#${u}metalV)" stroke="#6f7980" stroke-width="1.4"/>`;
+    d += `<rect x="${x - 8}" y="44" width="16" height="64" rx="3" fill="#fffef4" stroke="#9aa3ab" stroke-width="1"/>`;
+    for (let i = 0; i <= 6; i++) d += `<line x1="${x - 8}" y1="${48 + i * 10}" x2="${x - 2}" y2="${48 + i * 10}" stroke="#4b6059" stroke-width="1"/>`;
+    d += `<rect x="${x - 7}" y="${okuma === 24 ? 96 : 90}" width="14" height="3" fill="${P.coral}"/>`;
+    d += `<line x1="${x}" y1="116" x2="${x}" y2="${yTok - 22}" stroke="#5f6a70" stroke-width="2"/><path d="M${x} ${yTok - 22} q6 3 0 8" fill="none" stroke="#5f6a70" stroke-width="2"/>`;
+    // tokmak: halka ve üst kulak
+    d += `<rect x="${x - 6}" y="${yTok - 16}" width="12" height="9" rx="2" fill="url(#${u}fe)"/>`;
+    d += `<circle cx="${x}" cy="${yTok + 12}" r="20" fill="none" stroke="url(#${u}fe)" stroke-width="9"/>`;
+    d += `<circle cx="${x}" cy="${yTok + 12}" r="20" fill="none" stroke="#1d2124" stroke-width="1" opacity=".5"/>`;
+    d += T(x + 22, 82, okuma + ' N', { size: 16, weight: 800, fill: P.coral });
+    return d;
+  };
+  s += dina(84, 24, 160);
+  // sağ: su dolu kap
+  s += `<ellipse cx="248" cy="270" rx="66" ry="6" fill="#000" opacity=".12"/>`;
+  s += `<path d="M184 150 V256 Q184 266 194 266 H302 Q312 266 312 256 V150" fill="#eef6fb" stroke="${CAM}" stroke-width="2.4"/>`;
+  s += `<path d="M186 166 H310 V256 Q310 264 302 264 H194 Q186 264 186 256 Z" fill="url(#${u}sg)"/><line x1="186" y1="166" x2="310" y2="166" stroke="${SU2}" stroke-width="1.6"/>`;
+  s += dina(248, 21, 200);
+  s += `<path d="M186 166 H310 V256 Q310 264 302 264 H194 Q186 264 186 256 Z" fill="#5aa9dc" opacity=".22"/>`;
+  s += T(84, 268, 'havada', { size: 15, weight: 800, anchor: 'middle' });
+  s += T(176, 160, 'suda', { size: 15, weight: 800, anchor: 'end', fill: SU2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Ladin yüzer, abanoz batar (yan kesit) */
+BFY_FIG_EKLE('sf154_tahta', function (u) {
+  const W = 340, H = 230, ys = 92;
+  let s = zemin(W, H) + `<defs>${suGr(u)}<linearGradient id="${u}eb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a3a33"/><stop offset="1" stop-color="#1c1512"/></linearGradient><linearGradient id="${u}ld" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e6c2"/><stop offset="1" stop-color="#dcbb83"/></linearGradient></defs>`;
+  s += `<ellipse cx="170" cy="214" rx="150" ry="6" fill="#000" opacity=".12"/>`;
+  s += `<path d="M18 50 V198 Q18 208 28 208 H312 Q322 208 322 198 V50" fill="#eef6fb" stroke="${CAM}" stroke-width="2.6"/>`;
+  s += `<path d="M20 ${ys} H320 V198 Q320 206 312 206 H28 Q20 206 20 198 Z" fill="url(#${u}sg)"/>`;
+  // ladin: yüzer, yaklaşık %45 batık (yükseklik 40, batan 18)
+  s += `<rect x="58" y="${ys - 22}" width="110" height="40" rx="3" fill="url(#${u}ld)" stroke="#9a7428" stroke-width="1.4"/>`;
+  for (let i = 0; i < 4; i++) s += `<path d="M62 ${ys - 16 + i * 9} q26 -4 52 0 t50 0" fill="none" stroke="#c9a46a" stroke-width="1" opacity=".8"/>`;
+  // abanoz: dipte
+  s += `<rect x="196" y="176" width="100" height="28" rx="3" fill="url(#${u}eb)" stroke="#0e0a08" stroke-width="1.2"/>`;
+  s += `<line x1="200" y1="184" x2="292" y2="184" stroke="#6a564c" stroke-width="1" opacity=".7"/>`;
+  s += `<path d="M20 ${ys} H320" stroke="${SU2}" stroke-width="1.8"/><path d="M58 ${ys - 22} H168 V${ys} H58 Z" fill="none"/>`;
+  s += `<rect x="58" y="${ys}" width="110" height="18" fill="#5aa9dc" opacity=".25"/>`;
+  s += T(113, ys - 34, 'ladin', { size: 15, weight: 800, anchor: 'middle', fill: '#7a5a1c' });
+  s += T(246, 162, 'abanoz', { size: 15, weight: 800, anchor: 'middle', fill: '#2a1d17' });
+  s += T(300, ys - 10, 'su', { size: 14, weight: 700, anchor: 'end', fill: SU2 });
+  s += T(170, 30, 'Su: 1000 kg/m³', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Kapağı kapalı plastik kutu tankta yüzüyor: dış hacim 12 L, boş kutu 10 N, içinde 4 L su; batan hacim 5 L */
+BFY_FIG_EKLE('sf154_kutu', function (u) {
+  const W = 340, H = 250, ys = 128;
+  let s = zemin(W, H) + `<defs>${suGr(u)}<linearGradient id="${u}pl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9f1f5" stop-opacity=".75"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".55"/><stop offset="1" stop-color="#cfdde5" stop-opacity=".8"/></linearGradient></defs>`;
+  // tank
+  s += `<ellipse cx="170" cy="240" rx="150" ry="6" fill="#000" opacity=".12"/>`;
+  s += `<path d="M18 70 V224 Q18 234 28 234 H312 Q322 234 322 224 V70" fill="#eef6fb" stroke="${CAM}" stroke-width="2.6"/>`;
+  s += `<path d="M20 ${ys} H320 V224 Q320 232 312 232 H28 Q20 232 20 224 Z" fill="url(#${u}sg)"/>`;
+  // kutu: yükseklik 96, batan kısım 40 (12 L'nin 5 L'si)
+  const x0 = 100, w = 140, yb = ys + 40, yt = yb - 96;
+  s += `<rect x="${x0 + 4}" y="${yt + 6}" width="${w}" height="96" rx="8" fill="#000" opacity=".08"/>`;
+  s += `<rect x="${x0}" y="${yt}" width="${w}" height="96" rx="8" fill="url(#${u}pl)" stroke="#5f7f8f" stroke-width="2"/>`;
+  s += `<rect x="${x0 - 5}" y="${yt - 4}" width="${w + 10}" height="12" rx="4" fill="#4f8fb0" stroke="#2f5f78" stroke-width="1.4"/>`;
+  s += `<line x1="${x0 + 10}" y1="${yt + 16}" x2="${x0 + 10}" y2="${yb - 10}" stroke="#fff" stroke-width="2.4" opacity=".7"/>`;
+  // dıştaki su kutunun önünde (batan kısım)
+  s += `<rect x="${x0}" y="${ys}" width="${w}" height="40" fill="#5aa9dc" opacity=".28"/>`;
+  s += `<path d="M20 ${ys} H${x0} M${x0 + w} ${ys} H320" stroke="${SU2}" stroke-width="1.8"/>`;
+  // içerdeki su (4 L): kutunun dibinde, dıştaki su yüzeyinden alçakta
+  s += `<path d="M${x0 + 3} ${yb - 31} H${x0 + w - 3} V${yb - 8} Q${x0 + w - 3} ${yb - 3} ${x0 + w - 8} ${yb - 3} H${x0 + 8} Q${x0 + 3} ${yb - 3} ${x0 + 3} ${yb - 8} Z" fill="#2a79ad" opacity=".6"/>`;
+  s += `<line x1="${x0 + 3}" y1="${yb - 31}" x2="${x0 + w - 3}" y2="${yb - 31}" stroke="#123f60" stroke-width="1.6"/>`;
+  // etiketler
+  s += T(28, 30, 'dış hacim: 12 L', { size: 15, weight: 800, fill: '#2f5f78' });
+  s += T(28, 52, 'boş kutu: 10 N', { size: 15, weight: 800, fill: '#2f5f78' });
+  s += `<line x1="${x0 + w - 6}" y1="${yb - 18}" x2="${x0 + w + 24}" y2="${yb + 22}" stroke="${P.ink2}" stroke-width="1.2"/>`;
+  s += T(x0 + w + 26, yb + 38, 'içinde 4 L su', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2, haloColor: '#cfe6f4' });
+  s += T(312, ys - 8, 'su', { size: 14, weight: 700, anchor: 'end', fill: SU2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Gölde sualtı fotoğrafçısının tuttuğu kutu biçimli kamera muhafazası: F1 = 800 N aşağı, F2 = 860 N yukarı */
+BFY_FIG_EKLE('sf154_kamera', function (u) {
+  const W = 340, H = 262;
+  let s = zemin(W, H) + `<defs><linearGradient id="${u}gl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fcfe0"/><stop offset=".55" stop-color="#3f8fae"/><stop offset="1" stop-color="#245f78"/></linearGradient><linearGradient id="${u}hs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6f7a82"/><stop offset=".45" stop-color="#3c454b"/><stop offset="1" stop-color="#22282c"/></linearGradient><radialGradient id="${u}ln" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#9fd0ff"/><stop offset=".5" stop-color="#2a4f78"/><stop offset="1" stop-color="#0b1a2a"/></radialGradient></defs>`;
+  // göl suyu ve ışık hüzmeleri
+  s += `<rect x="10" y="10" width="320" height="242" rx="10" fill="url(#${u}gl)"/>`;
+  [[60, 34], [150, 26], [250, 30]].forEach(([x, w]) => { s += `<path d="M${x} 10 L${x + w} 10 L${x + w + 40} 250 L${x + 20} 250 Z" fill="#fff" opacity=".07"/>`; });
+  [[290, 60, 4], [298, 44, 3], [292, 30, 2.4]].forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#e6f6fb" stroke-width="1.2" opacity=".8"/>`; });
+  // kollar (kutunun arkasından gelir)
+  s += `<path d="M20 232 Q52 212 92 188" stroke="#1d2328" stroke-width="15" fill="none"/><path d="M320 232 Q288 212 248 188" stroke="#1d2328" stroke-width="15" fill="none"/>`;
+  // muhafaza kutusu
+  const x0 = 104, y0 = 112, w = 132, h = 66;
+  s += `<rect x="${x0 + 5}" y="${y0 + 6}" width="${w}" height="${h}" rx="9" fill="#000" opacity=".22"/>`;
+  // tutamaklar
+  s += `<rect x="${x0 - 16}" y="${y0 + 26}" width="14" height="${h + 6}" rx="5" fill="#2b3237" stroke="#111" stroke-width="1"/><rect x="${x0 + w + 2}" y="${y0 + 26}" width="14" height="${h + 6}" rx="5" fill="#2b3237" stroke="#111" stroke-width="1"/>`;
+  s += `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="9" fill="url(#${u}hs)" stroke="#15191c" stroke-width="1.6"/>`;
+  s += `<line x1="${x0 + 8}" y1="${y0 + 6}" x2="${x0 + w - 8}" y2="${y0 + 6}" stroke="#fff" stroke-width="1.6" opacity=".35"/>`;
+  // ön mercek camı
+  s += `<circle cx="${x0 + w / 2}" cy="${y0 + h / 2 + 2}" r="22" fill="#14181b" stroke="#8a949b" stroke-width="2.4"/><circle cx="${x0 + w / 2}" cy="${y0 + h / 2 + 2}" r="15" fill="url(#${u}ln)"/><circle cx="${x0 + w / 2 - 5}" cy="${y0 + h / 2 - 3}" r="3.5" fill="#fff" opacity=".6"/>`;
+  // eldivenli eller
+  s += `<ellipse cx="${x0 - 9}" cy="${y0 + 52}" rx="10" ry="14" fill="#1d2328"/><ellipse cx="${x0 + w + 9}" cy="${y0 + 52}" rx="10" ry="14" fill="#1d2328"/>`;
+  // kuvvetler
+  s += arrow(x0 + w / 2, y0 - 50, x0 + w / 2, y0 - 2, { color: '#ff7a59', w: 3.4, head: 11, headW: 6.5 });
+  s += arrow(x0 + w / 2, y0 + h + 52, x0 + w / 2, y0 + h + 2, { color: '#7fe0a4', w: 3.4, head: 11, headW: 6.5 });
+  s += arrow(x0 - 46, y0 + 14, x0 - 2, y0 + 14, { color: '#e8f2f6', w: 2, head: 8, headW: 4.5 }) + arrow(x0 + w + 46, y0 + 14, x0 + w + 2, y0 + 14, { color: '#e8f2f6', w: 2, head: 8, headW: 4.5 });
+  s += T(x0 + w / 2 + 12, y0 - 26, 'F₁ = 800 N', { size: 15, weight: 800, fill: '#c2401f', haloColor: '#ffffff' });
+  s += T(x0 + w / 2 + 12, y0 + h + 36, 'F₂ = 860 N', { size: 15, weight: 800, fill: '#1f7a46', haloColor: '#ffffff' });
+  s += T(26, 34, 'göl', { size: 14, weight: 700, fill: '#0f3d52', haloColor: '#d9f0f7' });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -25524,6 +25929,201 @@ const KONU = {
     'SET 3: tuzlu suyla çeltik tohumu seçimi (NARO Tohoku): 1,13 / 1,10 / 1,08 g/cm³, 18 L suya 4,5 / 3,0 / 2,25 kg tuz; batan tohum kesinlikle, yüzde 80 batan tohum 0,88, eksik tuz',
     'simülasyon: kenarı 10 cm küp, d_c 200–3000 kg/m³, zeytinyağı/su/tuzlu su/gliserin, kap kesiti 500 cm², F_k-d_c grafiği, 1100 kg/m³ görevi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.5.4/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Sıvıların içlerindeki cisimleri neden yukarı ittiğini, bu itişin neye bağlı olduğunu ve bir cismin neden yüzdüğünü ya da battığını kısa adımlarla göreceğiz. Bu bölümde suyun yoğunluğu 1000 kg/m³, g = 10 m/s² alınır. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Su, içindeki cismi yukarı iter',
+        metin: r`Göl kenarındaki bir iskelede kovayı suya daldırıp dolduruyorsun. Kova suyun içindeyken onu kolayca yukarı kaldırırsın. Kova sudan çıktığı anda birden ağırlaşır.
+
+Kovanın ağırlığı değişmedi. Kova suyun içindeyken su, kovayı yukarı doğru itiyordu.
+
+Bir sıvının, içindeki cisme uyguladığı yukarı yönlü kuvvete **kaldırma kuvveti** denir ve $F_k$ ile gösterilir. Kaldırma kuvveti her zaman **yukarı** yönlüdür.`,
+        kontrol: {
+          soru: 'Dolu kova suyun içindeyken neden hafif gelir?',
+          secenekler: ['Kovanın ağırlığı suyun içinde azalır.', 'Suyun içinde yer çekimi yoktur.', 'Su, kovayı yukarı doğru iter.'],
+          dogru: 2,
+          aciklama: 'Kovanın ağırlığı her yerde aynıdır. Suyun içinde su, kovaya yukarı yönlü bir kaldırma kuvveti uygular. Bu yüzden kovayı kaldırmak için daha az kuvvet gerekir.',
+          yanlisIpucu: 'Ağırlık, Dünya\'nın cismi çekmesidir. Suyun içinde bu çekiş değişir mi? Peki suyun içinde kovaya başka hangi kuvvet etki eder?'
+        }
+      },
+      {
+        baslik: 'Kaldırma kuvvetini ölçmek',
+        sekil: 'sf154_tokmak',
+        metin: r`Paslanmaz çelik bir kapı tokmağını bir **dinamometreye** (yaylı kuvvet ölçere) asalım.
+
+- Tokmak havadayken dinamometre 24 N gösteriyor. Bu, tokmağın ağırlığıdır: $G = 24$ N.
+- Tokmak suya tamamen batırılınca dinamometre 21 N gösteriyor.
+
+Su tokmağı yukarı ittiği için yay daha az gerilir. Okumalar arasındaki fark kaldırma kuvvetidir:
+
+$F_k = G_\text{hava} - G_\text{sıvı} = 24 - 21 = 3$ N
+
+Su, tokmağı 3 N'luk bir kuvvetle yukarı iter.`,
+        kontrol: {
+          soru: 'Mermer bir biblo dinamometreye asılıyken havada 11 N, suya tamamen batırılınca 7 N gösteriyor. Bibloya etki eden kaldırma kuvveti kaç N\'dur?',
+          secenekler: ['18', '4', '7'],
+          dogru: 1,
+          aciklama: '11 − 7 = 4 N olur. Su, bibloyu 4 N\'luk bir kuvvetle yukarı iter.',
+          yanlisIpucu: 'Kaldırma kuvveti, havadaki okuma ile sudaki okuma arasındaki farktır.'
+        }
+      },
+      {
+        baslik: 'Batan hacim ve sıvının yoğunluğu',
+        metin: r`Bir bahçe havuzunda, hacmi 3 L olan taştan bir kurbağa heykeli tamamen suyun içinde duruyor.
+
+Kaldırma kuvveti iki şeye bağlıdır:
+
+- **Batan hacim** ($V_b$): Cismin sıvının içinde kalan kısmının hacmidir. Cisim ne kadar çok batarsa o kadar çok itilir.
+- **Sıvının yoğunluğu** ($d_s$): Yoğunluğu büyük sıvı daha çok iter.
+
+Bu ilişki şöyle yazılır: $F_k = V_b \times d_s \times g$
+
+Heykel için $V_b = 3$ L, yani $\dfrac{3}{1000}$ m³'tür:
+
+$F_k = \dfrac{3}{1000} \times 1000 \times 10 = 30$ N
+
+Su, heykeli 30 N'luk bir kuvvetle yukarı iter.`,
+        kontrol: {
+          soru: 'Aynı heykel, yoğunluğu 800 kg/m³ olan bir sıvıya tamamen batırılsaydı heykele etki eden kaldırma kuvveti kaç N olurdu?',
+          secenekler: ['30', '2400', '24'],
+          dogru: 2,
+          aciklama: r`$F_k = \dfrac{3}{1000} \times 800 \times 10 = 24$ N olur. Sıvının yoğunluğu azalınca kaldırma kuvveti de azalır.`,
+          yanlisIpucu: 'Hacmi önce metreküpe çevir: 3 L, 1000\'de 3 m³\'tür. Sonra suyun yoğunluğu yerine 800 yaz.'
+        }
+      },
+      {
+        baslik: 'Yüzer mi, batar mı?',
+        sekil: 'sf154_tahta',
+        metin: r`Bir müzik aletleri atölyesinde iki tahta parçası suya bırakılıyor. Gitar gövdesinin üst yüzü için kullanılan ladin tahtası suda yüzüyor. Gitar sapındaki klavye için kullanılan abanoz tahtası ise dibe batıyor. Her tahta yüzmez.
+
+Cismin yoğunluğu $d_c$, sıvınınki $d_s$ olsun:
+
+- $d_c < d_s$ ise cisim **yüzer**. Ladin (yaklaşık 450 kg/m³) böyledir.
+- $d_c = d_s$ ise cisim sıvının içinde **askıda** kalır.
+- $d_c > d_s$ ise cisim **batar**. Abanoz (yaklaşık 1200 kg/m³) böyledir.
+
+Suyun yoğunluğu 1000 kg/m³'tür. Cismin ağırlığı ya da büyüklüğü değil, yoğunluğu karar verir.`,
+        kontrol: {
+          soru: 'Yoğunluğu 1000 kg/m³ olan bir boncuk suyun içine bırakılıyor. Boncuk ne yapar?',
+          secenekler: ['Yüzer.', 'Askıda kalır.', 'Batar.'],
+          dogru: 1,
+          aciklama: 'Boncuğun yoğunluğu suyunkine eşittir. Kaldırma kuvveti ağırlığına eşit olur; boncuk suyun içinde bırakıldığı yerde kalır.',
+          yanlisIpucu: 'Boncuğun yoğunluğunu suyun yoğunluğuyla karşılaştır. Eşit olunca ne olur?'
+        }
+      },
+      {
+        baslik: 'Yüzen cisimde kaldırma kuvveti ağırlığa eşit',
+        metin: r`Su dolu bir küvete bırakılan karpuz yüzer. Karpuzun ağırlığı 50 N olsun.
+
+Yüzen bir cisim dengededir. Aşağı yönlü ağırlığını, yukarı yönlü kaldırma kuvveti dengeler:
+
+$F_k = G = 50$ N
+
+Karpuz, bu kaldırma kuvvetini sağlayacak kadar batar. Suda her 1 L'lik batan hacim 10 N'luk kaldırma kuvveti demektir. Bu yüzden karpuzun 5 L'lik kısmı suyun içindedir.`,
+        kontrol: {
+          soru: 'Ağırlığı 40 N olan başka bir karpuz suda yüzüyor. Karpuzun suya batan kısmının hacmi kaç L\'dir?',
+          secenekler: ['4', '40', '400'],
+          dogru: 0,
+          aciklama: 'Yüzen karpuz için F_k = G = 40 N olur. Her 1 L için 10 N olduğundan batan hacim 40 ÷ 10 = 4 L\'dir.',
+          yanlisIpucu: 'Önce kaldırma kuvvetini bul: Yüzen cisimde ağırlığa eşittir. Sonra her litrenin kaç N kaldırma kuvveti sağladığını düşün.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Dökme demir gülle',
+        metin: r`Bir atletizm kulübünde, antrenmanda kullanılan dökme demir bir gülle bir dinamometreye asılıyor. Dinamometre gülle havadayken 70 N, gülle suya tamamen batırılınca 60 N gösteriyor.`,
+        adimlar: [
+          {
+            soru: 'Gülleye etki eden kaldırma kuvveti kaç N\'dur?',
+            secenekler: ['130', '10', '60'],
+            dogru: 1,
+            ipucu: 'Havadaki okumadan sudaki okumayı çıkar.',
+            aciklama: '70 − 60 = 10 N olur.'
+          },
+          {
+            soru: 'Güllenin hacmi kaç L\'dir?',
+            secenekler: ['1', '10', '100'],
+            dogru: 0,
+            ipucu: r`Gülle tamamen battığı için batan hacim güllenin hacmidir. $F_k = V_b \times d_s \times g$ eşitliğinde $10 = V_b \times 1000 \times 10$ olur.`,
+            aciklama: r`$V_b = \dfrac{10}{1000 \times 10} = \dfrac{1}{1000}$ m³ olur. Bu 1 L'dir.`
+          },
+          {
+            soru: 'Güllenin kütlesi 7 kg\'dır. Güllenin yoğunluğu kaç kg/m³\'tür?',
+            secenekler: ['6000', '7000', '700'],
+            dogru: 1,
+            ipucu: r`Yoğunluk, kütlenin hacme bölümüdür. Kütle 7 kg, hacim $\dfrac{1}{1000}$ m³'tür. $\dfrac{1}{1000}$'e bölmek, 1000 ile çarpmak demektir.`,
+            aciklama: r`$d_c = 7 \times 1000 = 7000$ kg/m³ olur. Dökme demirin yoğunluğu da yaklaşık bu kadardır. Suyunkinden çok büyük olduğu için gülle batar.`
+          }
+        ],
+        sonuc: 'Havada ve suda iki okuma yaptık. Bu iki sayıdan güllenin kaldırma kuvvetini, hacmini ve yoğunluğunu bulduk.'
+      },
+      {
+        baslik: 'Tankta yüzen plastik kutu',
+        sekil: 'sf154_kutu',
+        metin: r`Kapağı sıkıca kapalı, plastik bir saklama kutusu büyük bir su tankında yüzüyor. Kutunun dış hacmi 12 L, boş kutunun ağırlığı 10 N'dur. 1 L suyun ağırlığı 10 N'dur. Suda her 1 L'lik batan hacim de 10 N'luk kaldırma kuvveti sağlar.`,
+        adimlar: [
+          {
+            soru: 'Kutu boşken suya batan kısmının hacmi kaç L\'dir?',
+            secenekler: ['1', '10', '12'],
+            dogru: 0,
+            ipucu: 'Yüzen kutuda kaldırma kuvveti ağırlığa eşittir. Kaç litrelik batan hacim 10 N sağlar?',
+            aciklama: 'Yüzen kutu için F_k = G = 10 N olur. 10 ÷ 10 = 1 L\'lik kısmı suyun içindedir.'
+          },
+          {
+            soru: 'Kutunun içine 4 L su konup kapak yeniden kapatılıyor. Kutu yine yüzüyor. Kutunun suya batan kısmının hacmi kaç L olur?',
+            secenekler: ['4', '5', '6'],
+            dogru: 1,
+            ipucu: 'Kaldırma kuvveti artık kutuyu ve içindeki suyu birlikte taşıyor. 4 L suyun ağırlığı 40 N\'dur.',
+            aciklama: 'Toplam ağırlık 10 + 40 = 50 N olur. F_k = 50 N olduğundan batan hacim 50 ÷ 10 = 5 L\'dir. Şekildeki durum budur.'
+          },
+          {
+            soru: 'Kutuya su eklenmeye devam ediliyor. Kutunun içinde toplam kaç L su olunca kutu tamamen suyun içine girip askıda kalır?',
+            secenekler: ['12', '11', '10'],
+            dogru: 1,
+            ipucu: 'Kutunun tamamı suya girince batan hacim 12 L olur ve kaldırma kuvveti 120 N\'a ulaşır. Toplam ağırlık da 120 N olmalıdır.',
+            aciklama: 'En büyük kaldırma kuvveti 12 × 10 = 120 N\'dur. Kutu 10 N olduğuna göre suyun ağırlığı 110 N, yani 11 L olmalıdır. Daha fazla su konursa kutu batar.'
+          }
+        ],
+        sonuc: 'Kutu ağırlaştıkça biraz daha battı ve kaldırma kuvveti hep toplam ağırlığa eşit kaldı. Kaldırma kuvveti en büyük değerine, kutunun tamamı suya girince ulaşır.'
+      },
+      {
+        baslik: 'Sualtı fotoğrafçısının kamera kutusu',
+        sekil: 'sf154_kamera',
+        metin: r`Bir sualtı fotoğrafçısı bir gölde, fotoğraf makinesinin içinde durduğu kapalı ve kutu biçimli su geçirmez muhafazayı tutuyor. Kutu tamamen suyun içinde. Su, kutunun üst yüzeyine aşağı doğru $F_1 = 800$ N, alt yüzeyine yukarı doğru $F_2 = 860$ N kuvvet uyguluyor. Yan yüzeylere etki eden kuvvetler birbirini dengeliyor. Yalnızca suyun uyguladığı kuvvetleri düşünüyoruz.`,
+        adimlar: [
+          {
+            soru: 'Kutuya etki eden kaldırma kuvveti kaç N\'dur?',
+            secenekler: ['60', '1660', '860'],
+            dogru: 0,
+            ipucu: r`Kaldırma kuvveti, alttan gelen itiş ile üstten gelen itişin farkıdır: $F_k = F_2 - F_1$.`,
+            aciklama: '860 − 800 = 60 N olur.'
+          },
+          {
+            soru: 'Fotoğrafçı biraz daha derine iniyor. Üst yüzeye etki eden kuvvet 1000 N oluyor. Alt yüzeye etki eden kuvvet kaç N olur?',
+            secenekler: ['1000', '1060', '1200'],
+            dogru: 1,
+            ipucu: 'Derine inince iki yüzeydeki kuvvet de aynı miktarda artar. Aralarındaki fark, yani kaldırma kuvveti, değişmez.',
+            aciklama: '1000 + 60 = 1060 N olur. Tamamen batmış bir cisimde kaldırma kuvveti derinlikle değişmez.'
+          },
+          {
+            soru: 'Kutunun makineyle birlikte ağırlığı 50 N\'dur. Fotoğrafçı kutuyu bırakırsa ne olur?',
+            secenekler: ['Yavaşça yüzeye doğru yükselir.', 'Dibe batar.', 'Olduğu yerde askıda kalır.'],
+            dogru: 0,
+            ipucu: 'Kaldırma kuvvetini (60 N) ağırlıkla (50 N) karşılaştır.',
+            aciklama: 'Kaldırma kuvveti ağırlıktan 10 N büyüktür. Net kuvvet yukarı yönlü olduğu için kutu yükselir. Fotoğrafçılar bu yüzden muhafazaya küçük ağırlıklar takar.'
+          }
+        ],
+        sonuc: 'Kaldırma kuvveti, su basıncının alt yüzeyde üst yüzeydekinden büyük olmasından doğar. Kutu tamamen battıktan sonra derinlik bu farkı değiştirmez.'
+      }
+    ],
+    hazir: r`Kaldırma kuvvetini, dinamometreyle ölçmeyi, batan hacmi ve sıvının yoğunluğunu, yüzme, askıda kalma ve batmayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU (kısa, TYT odaklı) ---------------- */
   not: [
@@ -26753,6 +27353,87 @@ BFY_FIG_EKLE('iT61_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 74 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sf161_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const zemin = (W, H, r = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${r}"/>`;
+
+/* Bakır telin kesiti: elektronlar sola sürüklenir, akım sağa */
+BFY_FIG_EKLE('sf161_kesit', function (u) {
+  const W = 340, H = 210, yc = 112, r = 34;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}cu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3c39a"/><stop offset=".45" stop-color="#d9884f"/><stop offset="1" stop-color="#8a4a22"/></linearGradient>` +
+    `<linearGradient id="${u}iz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb4c4"/><stop offset=".5" stop-color="#d6e1e9"/><stop offset="1" stop-color="#6f8796"/></linearGradient></defs>`;
+  s += `<ellipse cx="170" cy="${yc + r + 16}" rx="150" ry="6" fill="#000" opacity=".1"/>`;
+  // yalıtım (sol uçta) ve bakır gövde
+  s += `<rect x="16" y="${yc - r - 6}" width="56" height="${2 * r + 12}" rx="10" fill="url(#${u}iz)" stroke="#5f7f8f" stroke-width="1.4"/>`;
+  s += `<rect x="60" y="${yc - r}" width="250" height="${2 * r}" fill="url(#${u}cu)" stroke="#7a3f1a" stroke-width="1.4"/>`;
+  s += `<ellipse cx="310" cy="${yc}" rx="12" ry="${r}" fill="#e7a06b" stroke="#7a3f1a" stroke-width="1.4"/>`;
+  // kesit düzlemi
+  s += `<ellipse cx="186" cy="${yc}" rx="13" ry="${r + 10}" fill="#2f7fb8" opacity=".22" stroke="#2f7fb8" stroke-width="2" stroke-dasharray="5 4"/>`;
+  // elektronlar
+  [[90, -16], [118, 12], [146, -6], [214, 14], [236, -18], [262, 4], [288, -10], [104, -2], [170, 20], [200, -20], [278, 20]].forEach(([x, dy]) => {
+    s += `<circle cx="${x}" cy="${yc + dy}" r="6.5" fill="#2f7fb8" stroke="#1d5a86" stroke-width="1"/><line x1="${x - 3}" y1="${yc + dy}" x2="${x + 3}" y2="${yc + dy}" stroke="#fff" stroke-width="1.8"/>`;
+  });
+  // oklar
+  s += arrow(150, 34, 90, 34, { color: '#2f7fb8', w: 3, head: 10, headW: 6 }) + T(158, 39, 'elektronlar', { size: 14, weight: 800, fill: '#2f7fb8' });
+  s += arrow(200, 190, 280, 190, { color: P.coral, w: 3.2, head: 11, headW: 6.5 }) + T(192, 195, 'akım I', { size: 15, weight: 800, anchor: 'end', fill: P.coral });
+  s += T(186, 26 + 0, 'kesit', { size: 14, weight: 800, anchor: 'middle', fill: P.ink }).replace('y="26"', 'y="57"');
+  return svg(W, H, s, u, 80);
+});
+
+/* V-I grafiği: X (6 Ω) ve Y (3 Ω); "I (A)" yatay eksenin sağ ucunda */
+BFY_FIG_EKLE('sf161_grafik', function (u) {
+  const W = 340, H = 250, x0 = 56, yb = 206, sx = 52, sy = 13; // 1 A = 52 px, 1 V = 13 px
+  const X = i => x0 + i * sx, Y = v => yb - v * sy;
+  let s = zemin(W, H, '#f6f9f7');
+  for (let i = 1; i <= 4; i++) s += `<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(13)}" stroke="#dfe6e2" stroke-width="1"/>`;
+  [3, 6, 9, 12].forEach(v => { s += `<line x1="${x0}" y1="${Y(v)}" x2="${X(4.6)}" y2="${Y(v)}" stroke="#dfe6e2" stroke-width="1"/>`; });
+  s += arrow(x0, yb, x0, 22, { color: P.ink, w: 1.6, head: 9, headW: 4.5 }) + arrow(x0, yb, X(4.75), yb, { color: P.ink, w: 1.6, head: 9, headW: 4.5 });
+  s += T(x0 + 8, 26, 'V (V)', { size: 15, weight: 800 });
+  s += T(X(4.75) + 4, yb + 5, 'I (A)', { size: 15, weight: 800 });
+  s += T(x0 - 8, yb + 18, '0', { size: 14, weight: 600, anchor: 'end', fill: P.ink2 });
+  [1, 2, 3, 4].forEach(i => { s += T(X(i), yb + 20, String(i), { size: 14, weight: 600, anchor: 'middle', fill: P.ink2 }); });
+  [6, 12].forEach(v => { s += T(x0 - 8, Y(v) + 5, String(v), { size: 14, weight: 600, anchor: 'end', fill: P.ink2 }); });
+  s += `<line x1="${x0}" y1="${Y(12)}" x2="${X(4)}" y2="${Y(12)}" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+  s += `<line x1="${X(2)}" y1="${Y(12)}" x2="${X(2)}" y2="${yb}" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="5 4"/><line x1="${X(4)}" y1="${Y(12)}" x2="${X(4)}" y2="${yb}" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+  s += `<line x1="${x0}" y1="${yb}" x2="${X(2.25)}" y2="${Y(13.5)}" stroke="#d9573b" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<line x1="${x0}" y1="${yb}" x2="${X(4.4)}" y2="${Y(13.2)}" stroke="#2f7fb8" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<circle cx="${X(2)}" cy="${Y(12)}" r="4.5" fill="#d9573b"/><circle cx="${X(1)}" cy="${Y(6)}" r="4.5" fill="#d9573b"/>`;
+  s += `<circle cx="${X(4)}" cy="${Y(12)}" r="4.5" fill="#2f7fb8"/><circle cx="${X(2)}" cy="${Y(6)}" r="4.5" fill="#2f7fb8"/>`;
+  s += T(X(2.25) + 8, Y(13.5) + 6, 'X', { size: 17, weight: 800, fill: '#d9573b' });
+  s += T(X(4.4) + 6, Y(13.2) + 14, 'Y', { size: 17, weight: 800, fill: '#2f7fb8' });
+  return svg(W, H, s, u, 80);
+});
+
+/* 3B yazıcı tablası, 24 V güç kaynağı; ampermetre ve voltmetre henüz bağlanmamış */
+BFY_FIG_EKLE('sf161_tabla', function (u) {
+  const W = 340, H = 250;
+  let s = zemin(W, H);
+  // güç kaynağı
+  s += `<rect x="18" y="40" width="116" height="78" rx="8" fill="url(#${u}metal)" stroke="#5f6a70" stroke-width="1.6"/>`;
+  s += `<rect x="30" y="50" width="70" height="30" rx="4" fill="#1f2a24"/>` + T(65, 71, '24 V', { size: 16, weight: 800, anchor: 'middle', fill: '#7ee0a0', halo: false });
+  s += `<circle cx="114" cy="62" r="8" fill="#4b5258" stroke="#2a2f33" stroke-width="1"/><line x1="114" y1="62" x2="118" y2="56" stroke="#e5e8ea" stroke-width="2"/>`;
+  s += `<circle cx="44" cy="102" r="7" fill="#d9573b" stroke="#7d2f1c" stroke-width="1.2"/><circle cx="104" cy="102" r="7" fill="#2a2f33" stroke="#111" stroke-width="1.2"/>`;
+  s += T(44, 106, '+', { size: 14, weight: 800, anchor: 'middle', fill: '#fff', halo: false }) + T(104, 106, '−', { size: 14, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  s += T(76, 30, 'güç kaynağı', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // tabla (perspektifli plaka) ve ısıtıcı tel deseni
+  s += `<path d="M178 70 L318 70 L330 118 L190 118 Z" fill="#3a3f44" stroke="#1f2326" stroke-width="1.4"/><path d="M190 118 L330 118 L330 126 L190 126 Z" fill="#23272a"/>`;
+  let z = 'M196 78'; for (let i = 0; i < 9; i++) z += ` L${200 + i * 14} ${i % 2 ? 78 : 110}`;
+  s += `<path d="${z}" fill="none" stroke="#e7a93b" stroke-width="2.4" stroke-linejoin="round"/>`;
+  s += T(254, 56, 'ısıtıcı tabla', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // kablolar
+  s += `<path d="M44 109 C44 150, 200 150, 206 124" fill="none" stroke="#d9573b" stroke-width="3"/>`;
+  s += `<path d="M104 109 C104 136, 300 150, 314 124" fill="none" stroke="#2a2f33" stroke-width="3"/>`;
+  // ölçü aletleri (masada, bağlanmamış)
+  const alet = (x, y, h) => `<ellipse cx="${x + 2}" cy="${y + 34}" rx="30" ry="5" fill="#000" opacity=".12"/><rect x="${x - 30}" y="${y - 28}" width="60" height="60" rx="9" fill="#f2c94c" stroke="#8a6414" stroke-width="1.4"/><circle cx="${x}" cy="${y}" r="20" fill="#fffef4" stroke="#4b5258" stroke-width="1.6"/>` + T(x, y + 7, h, { size: 20, weight: 800, anchor: 'middle', fill: P.ink, halo: false });
+  s += alet(110, 186, 'A') + alet(230, 186, 'V');
+  s += T(152, 238, 'ampermetre', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 }).replace('x="152"', 'x="110"');
+  s += T(230, 238, 'voltmetre', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -26791,6 +27472,201 @@ const KONU = {
     'SET 3: dört bantlı renk kodlu dirençler (IEC 60062): K 1000, L 220, M 470, N 3300 gümüş, O 1500 Ω; 5,0 V, 5,1/22,9/10,3/1,40/3,0 mA; tolerans dışı O, N için en küçük akım 1,38 mA',
     'simülasyon: Ohm yasası, ayarlı üreteç 0–12 V, 10/20/40 Ω, ampermetre ve voltmetre, V-I grafiği; 40 Ω 0,25 A görevi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.6.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Elektrik akımının ne olduğunu, potansiyel farkı, direnci ve Ohm yasasını kısa adımlarla göreceğiz. Buradaki örneklerin hepsi pil, akü ya da düşük gerilimli bir güç kaynağıyla çalışır. Evdeki prizlerin ve elektrik tesisatının elektriği hayati tehlike taşır; onlarla asla deney yapma, kurcalama. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Akım: yükün akışı',
+        sekil: 'sf161_kesit',
+        metin: r`Bakır bir telin içinde, serbestçe dolaşabilen çok sayıda elektron vardır. Telin iki ucu bir pilin kutuplarına bağlanınca bu elektronlar tel boyunca belli bir yönde sürüklenir. Yüklerin bu düzenli akışına **elektrik akımı** denir.
+
+Akımı anlatmak için telin bir kesitine bakarız: Bu kesitten bir saniyede ne kadar yük geçiyor?
+
+$I = \dfrac{q}{t}$
+
+- $q$: Kesitten geçen yük. Birimi coulomb (C).
+- $t$: Geçen süre. Birimi saniye (s).
+- $I$: Akım. Birimi amper (A).
+
+Elektrikli bir tekerlekli sandalyenin motor kablosunun kesitinden 5 s'de 60 C yük geçiyor. Akım $I = \dfrac{60}{5} = 12$ A olur.`,
+        kontrol: {
+          soru: 'Bir oyuncak dronun motor kablosunun kesitinden 3 s\'de 6 C yük geçiyor. Akım kaç A\'dir?',
+          secenekler: ['18', '2', '3'],
+          dogru: 1,
+          aciklama: r`$I = \dfrac{6}{3} = 2$ A olur.`,
+          yanlisIpucu: 'Akım, kesitten geçen yükün süreye bölümüdür. Çarpma değil, bölme yap.'
+        }
+      },
+      {
+        baslik: 'Akımın yönü',
+        metin: r`Bir pil, bir anahtar ve küçük bir lambadan oluşan bir devre düşün. Anahtar kapanınca yol tamamlanır ve lamba yanar. Akımın dolaşabileceği bu kesintisiz yola **kapalı devre** denir.
+
+- Akımın yönü, dış devrede pilin **(+)** kutbundan çıkıp **(−)** kutbuna dönen yön olarak kabul edilir.
+- Metal telde hareket eden yükler elektronlardır. Elektronlar negatif yüklüdür ve akıma **ters** yönde hareket eder: Dış devrede (−) kutuptan (+) kutba doğru giderler.
+- Yol bir yerden açılırsa (anahtar açık ya da tel kopuk) akım devrenin her yerinde durur.`,
+        kontrol: {
+          soru: 'Bir devrede elektronlar lambanın içinden soldan sağa doğru geçiyor. Lambadan geçen akımın yönü hangisidir?',
+          secenekler: ['Soldan sağa', 'Sağdan sola', 'Akımın yönü yoktur.'],
+          dogru: 1,
+          aciklama: 'Akımın yönü, elektronların hareket yönünün tersidir. Elektronlar soldan sağa gidiyorsa akım sağdan sola doğrudur.',
+          yanlisIpucu: 'Elektronlar negatif yüklüdür. Akımın yönü elektronlarla aynı mı, ters mi kabul edilir?'
+        }
+      },
+      {
+        baslik: 'Potansiyel fark, direnç ve Ohm yasası',
+        metin: r`Pilin iki ucu arasında bir **potansiyel fark** ($V$) vardır. Birimi volttur (V). Potansiyel fark, yükleri telde ilerlemeye zorlayan etkidir. Potansiyel fark büyüdükçe akım da büyür.
+
+Telin akıma karşı gösterdiği zorluğa **direnç** ($R$) denir. Birimi ohm'dur ($\Omega$).
+
+**Ohm yasası:** Sıcaklığı değişmeyen bir telde potansiyel farkın akıma oranı sabittir. Bu oran telin direncidir:
+
+$R = \dfrac{V}{I}$ ya da $V = I \times R$
+
+Kışın bir otomobilin yan aynasındaki buzu, aynanın arkasındaki ince bir ısıtıcı tel çözer. Tel 12 V'luk aküye bağlıyken ondan 3 A akım geçiyor. Telin direnci $R = \dfrac{12}{3} = 4\ \Omega$ olur.`,
+        kontrol: {
+          soru: 'Isıtmalı bir eldivenin içindeki telin direnci 3 Ω\'dur. Telden 2 A akım geçiyor. Telin uçları arasındaki potansiyel fark kaç V\'tur?',
+          secenekler: ['5', '1', '6'],
+          dogru: 2,
+          aciklama: r`$V = I \times R = 2 \times 3 = 6$ V olur.`,
+          yanlisIpucu: r`$V = I \times R$ eşitliğini kullan. Akımla direnci topla ya da çıkar değil, çarp.`
+        }
+      },
+      {
+        baslik: 'Grafikte eğim direnci gösterir',
+        sekil: 'sf161_grafik',
+        metin: r`Bir öğrenci iki farklı telin uçlarına farklı potansiyel farklar uyguluyor ve akımları ölçüyor. Sonuçları, düşey ekseni $V$, yatay ekseni $I$ olan bir grafiğe işliyor.
+
+Direnci sabit olan bir telin noktaları, başlangıç noktasından geçen bir **doğru** üzerine dizilir. Bu doğrunun eğimi $\dfrac{V}{I}$, yani telin **direncidir**.
+
+- X teli: 12 V'ta 2 A geçiyor. $R_X = \dfrac{12}{2} = 6\ \Omega$.
+- Y teli: 12 V'ta 4 A geçiyor. $R_Y = \dfrac{12}{4} = 3\ \Omega$.
+
+Daha dik çıkan doğrunun direnci daha büyüktür.`,
+        kontrol: {
+          soru: 'Şekildeki X telinden 3 A akım geçmesi için telin uçlarına kaç V uygulanmalıdır?',
+          secenekler: ['18', '9', '2'],
+          dogru: 0,
+          aciklama: r`X telinin direnci 6 Ω'dur. $V = I \times R = 3 \times 6 = 18$ V olur.`,
+          yanlisIpucu: 'Önce grafikten X telinin direncini bul: 12 V\'ta 2 A. Sonra V = I × R kullan.'
+        }
+      },
+      {
+        baslik: 'Direnç neye bağlı?',
+        metin: r`Bir otomobilin aküsünü marş motoruna bağlayan kablo bir kalem kadar kalındır. Motor çalıştırılırken bu kablodan çok büyük bir akım geçer. Kablonun direnci küçük olmalıdır.
+
+Aynı sıcaklıkta bir telin direnci üç şeye bağlıdır:
+
+- **Uzunluk:** Tel uzadıkça direnç artar.
+- **Kesit alanı:** Tel kalınlaştıkça direnç azalır.
+- **Maddenin cinsi:** Bakırın direnci küçüktür. Nikel-krom gibi alaşımların direnci büyüktür.
+
+Bu yüzden marş kablosu bakırdan, kalın ve olabildiğince kısa yapılır.`,
+        kontrol: {
+          soru: 'Aynı bakırdan yapılmış iki kablodan K\'nin hem uzunluğu hem kesit alanı L\'ninkinin 2 katıdır. Dirençleri için ne söylenebilir?',
+          secenekler: ['K\'ninki büyüktür.', 'L\'ninki büyüktür.', 'Eşittir.'],
+          dogru: 2,
+          aciklama: 'Uzunluğun 2 katına çıkması direnci 2 katına çıkarır. Kesit alanının 2 katına çıkması direnci yarıya indirir. İki etki birbirini götürür; dirençler eşittir.',
+          yanlisIpucu: 'Uzunluk direnci artırır, kalınlık azaltır. İkisi de 2 kat değişince sonuç ne olur?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Göldeki elektrikli kayık motoru',
+        metin: r`Bir gölde küçük bir balıkçı kayığı, aküyle çalışan elektrikli bir motorla ilerliyor. Motorun kablosundan 20 A akım geçiyor. Kayık 3 dakika boyunca bu akımla gidiyor.`,
+        adimlar: [
+          {
+            soru: '3 dakika kaç saniyedir?',
+            secenekler: ['3', '180', '300'],
+            dogru: 1,
+            ipucu: '1 dakika 60 saniyedir.',
+            aciklama: '3 × 60 = 180 s olur.'
+          },
+          {
+            soru: 'Bu sürede kablonun kesitinden kaç C yük geçer?',
+            secenekler: ['3600', '60', '6000'],
+            dogru: 0,
+            ipucu: r`$q = I \times t$ eşitliğini kullan. Süreyi saniye olarak yaz.`,
+            aciklama: r`$q = 20 \times 180 = 3600$ C olur.`
+          },
+          {
+            soru: 'Motor yavaş moda alınınca akım 10 A oluyor. Aynı miktarda yük (3600 C) kaç dakikada geçer?',
+            secenekler: ['3', '360', '6'],
+            dogru: 2,
+            ipucu: r`$t = \dfrac{q}{I}$ ile süreyi saniye olarak bul. Sonra 60'a bölerek dakikaya çevir.`,
+            aciklama: r`$t = \dfrac{3600}{10} = 360$ s olur. Bu 6 dakikadır.`
+          }
+        ],
+        sonuc: 'Akım yarıya inince aynı miktarda yükün geçmesi iki kat uzun sürdü. Akım, birim zamanda geçen yüktür.'
+      },
+      {
+        baslik: '3B yazıcının ısıtıcı tablası',
+        sekil: 'sf161_tabla',
+        metin: r`Bir 3B yazıcının ısıtıcı tablasının içinde ince bir ısıtıcı tel var. Tabla, 24 V'luk bir güç kaynağına bağlı. Telden geçen akımı ve telin uçları arasındaki potansiyel farkı ölçmek için bir ampermetre ve bir voltmetre kullanılıyor. Kabloların ve ölçü aletlerinin etkisi önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Ölçü aletleri tablaya nasıl bağlanmalıdır?',
+            secenekler: ['Ampermetre paralel, voltmetre seri', 'Ampermetre seri, voltmetre paralel', 'İkisi de seri'],
+            dogru: 1,
+            ipucu: 'Akımı ölçen alet, akımın geçtiği yolun üstünde olmalıdır. Potansiyel farkı ölçen alet ise telin iki ucuna bağlanır.',
+            aciklama: 'Ampermetre devreye seri, voltmetre ölçtüğü elemana paralel bağlanır.'
+          },
+          {
+            soru: 'Voltmetre 24 V, ampermetre 6 A gösteriyor. Telin direnci kaç Ω\'dur?',
+            secenekler: ['144', '4', '30'],
+            dogru: 1,
+            ipucu: r`$R = \dfrac{V}{I}$ eşitliğini kullan.`,
+            aciklama: r`$R = \dfrac{24}{6} = 4\ \Omega$ olur.`
+          },
+          {
+            soru: 'Tablanın daha yavaş ısınması için telden 4 A akım geçmesi isteniyor. Telin direncinin değişmediğini kabul edelim. Güç kaynağı kaç V\'a ayarlanmalıdır?',
+            secenekler: ['16', '6', '20'],
+            dogru: 0,
+            ipucu: r`Direnç 4 Ω'da kalıyor. $V = I \times R$ ile hesapla.`,
+            aciklama: r`$V = I \times R = 4 \times 4 = 16$ V olur. Akım 6 A'den 4 A'e indi; potansiyel fark da aynı oranda, 24 V'tan 16 V'a indi.`
+          }
+        ],
+        sonuc: 'Ölçü aletlerini doğru bağladık, direnci bulduk ve istenen akım için gereken potansiyel farkı hesapladık.'
+      },
+      {
+        baslik: 'Üç nikel-krom tel',
+        metin: r`Bir laboratuvarda aynı nikel-krom alaşımından yapılmış üç tel var. Sıcaklıkları aynıdır.
+
+- K teli 2 m uzunluğundadır ve direnci 8 Ω'dur.
+- L teli K ile aynı kalınlıktadır ve 3 m uzunluğundadır.
+- M teli de 3 m uzunluğundadır ama kesit alanı K'ninkinin 2 katıdır.`,
+        adimlar: [
+          {
+            soru: 'L telinin direnci kaç Ω\'dur?',
+            secenekler: ['8', '24', '12'],
+            dogru: 2,
+            ipucu: 'K\'nin her 1 m\'sinin direnci 4 Ω\'dur. L aynı kalınlıkta ve 3 m uzunluğunda.',
+            aciklama: '3 × 4 = 12 Ω olur. Uzunluk arttıkça direnç aynı oranda artar.'
+          },
+          {
+            soru: 'M telinin direnci kaç Ω\'dur?',
+            secenekler: ['6', '24', '12'],
+            dogru: 0,
+            ipucu: 'M, L ile aynı uzunlukta ama kesit alanı 2 katı. Kalınlık 2 katına çıkınca direnç ne olur?',
+            aciklama: 'L\'nin direnci 12 Ω\'dur. Kesit alanı 2 katına çıkınca direnç yarıya iner: 6 Ω.'
+          },
+          {
+            soru: 'Teller ayrı ayrı 24 V\'luk bir güç kaynağına bağlanıyor. Hangisinden en büyük akım geçer?',
+            secenekler: ['K', 'L', 'M'],
+            dogru: 2,
+            ipucu: 'Aynı potansiyel farkta direnci en küçük olan telden en büyük akım geçer.',
+            aciklama: 'K\'den 24 ÷ 8 = 3 A, L\'den 24 ÷ 12 = 2 A, M\'den 24 ÷ 6 = 4 A geçer. En büyük akım M\'dendir.'
+          }
+        ],
+        sonuc: 'Uzunluk direnci artırdı, kalınlık azalttı. Aynı potansiyel farkta direnci en küçük telden en büyük akım geçti.'
+      }
+    ],
+    hazir: r`Akımı, akımın yönünü, potansiyel farkı, direnci, Ohm yasasını ve V-I grafiğini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
