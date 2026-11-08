@@ -32357,6 +32357,131 @@ BFY_FIG_EKLE('kA33_ikiyorunge', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.3.3 başlangıç şekilleri (sfA33_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f6fb8', KIR = '#d24b3e', YES = '#2f8f5b', TEL = '#2a3330', TUR = '#e7a93b';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.5 });
+const bg = (w, h, renk = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${renk}"/>`;
+function kure(u, x, y, r, ad, [a, b, c]) {
+  return `<defs><radialGradient id="${u}${ad}" cx="34%" cy="30%" r="80%"><stop offset="0" stop-color="${a}"/><stop offset=".55" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></radialGradient></defs>` +
+    `<ellipse cx="${f1(x + r * 0.12)}" cy="${f1(y + r * 1.08)}" rx="${f1(r * 0.8)}" ry="${f1(Math.max(2.5, r * 0.12))}" fill="#000" opacity=".12"/>` +
+    `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="url(#${u}${ad})" stroke="${c}" stroke-width="1"/>` +
+    `<ellipse cx="${f1(x - r * 0.35)}" cy="${f1(y - r * 0.4)}" rx="${f1(r * 0.28)}" ry="${f1(r * 0.17)}" fill="#fff" opacity=".5"/>`;
+}
+const GRI = ['#f1f1ee', '#b3b1aa', '#6f6d66'], KAH = ['#f2dcc0', '#b98a5a', '#6e4b2a'];
+// Dünya: mavi küre, yeşil kara lekeleri
+function dunya(u, x, y, r) {
+  let s = kure(u, x, y, r, 'dn', ['#cfe6f7', '#3f8fd0', '#1d4f86']);
+  s += `<path d="M${f1(x - r * 0.55)} ${f1(y - r * 0.2)} q${f1(r * 0.25)} ${f1(-r * 0.35)} ${f1(r * 0.5)} ${f1(-r * 0.15)} q${f1(r * 0.1)} ${f1(r * 0.3)} ${f1(-r * 0.15)} ${f1(r * 0.45)} q${f1(-r * 0.3)} ${f1(r * 0.05)} ${f1(-r * 0.35)} ${f1(-r * 0.3)}Z" fill="#5f9e5a" opacity=".85"/>`;
+  s += `<path d="M${f1(x + r * 0.15)} ${f1(y + r * 0.15)} q${f1(r * 0.3)} ${f1(-r * 0.1)} ${f1(r * 0.4)} ${f1(r * 0.2)} q${f1(-r * 0.05)} ${f1(r * 0.3)} ${f1(-r * 0.3)} ${f1(r * 0.35)} q${f1(-r * 0.2)} ${f1(-r * 0.2)} ${f1(-r * 0.1)} ${f1(-r * 0.55)}Z" fill="#5f9e5a" opacity=".85"/>`;
+  return s;
+}
+// Uydu simgesi: gövde ve iki güneş paneli
+function uydu(x, y, s = 1, aci = 0) {
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${aci}) scale(${s})"><rect x="-22" y="-5" width="14" height="10" fill="#5b7fa8" stroke="#2f4f75" stroke-width="1"/><line x1="-19" y1="-5" x2="-19" y2="5" stroke="#9fc0e0" stroke-width=".8"/><line x1="-12" y1="-5" x2="-12" y2="5" stroke="#9fc0e0" stroke-width=".8"/><rect x="8" y="-5" width="14" height="10" fill="#5b7fa8" stroke="#2f4f75" stroke-width="1"/><line x1="12" y1="-5" x2="12" y2="5" stroke="#9fc0e0" stroke-width=".8"/><line x1="19" y1="-5" x2="19" y2="5" stroke="#9fc0e0" stroke-width=".8"/><line x1="-8" y1="0" x2="8" y2="0" stroke="#6d777f" stroke-width="1.6"/><rect x="-7" y="-7" width="14" height="14" rx="2" fill="#e3b04b" stroke="#a5781f" stroke-width="1"/></g>`;
+}
+function olcu(x1, x2, y, metin, c = P.ink2) {
+  return `<g stroke="${c}" stroke-width="1.3"><line x1="${f1(x1)}" y1="${y}" x2="${f1(x2)}" y2="${y}"/><line x1="${f1(x1)}" y1="${y - 6}" x2="${f1(x1)}" y2="${y + 6}"/><line x1="${f1(x2)}" y1="${y - 6}" x2="${f1(x2)}" y2="${y + 6}"/></g>` +
+    yaz((x1 + x2) / 2, y + 20, metin, { anchor: 'middle', fill: c });
+}
+
+/* Adım 2: aynı iki küre d ve 2d uzaklıkta; kuvvet okları F ve F/4 */
+BFY_FIG_EKLE('sfA33_uzaklik', function (u) {
+  let s = bg(340, 250);
+  // 1. durum
+  const y1 = 62, a1 = 96, b1 = 244;
+  s += kure(u, a1, y1, 16, 'k1', KAH) + kure(u, b1, y1, 16, 'k2', GRI);
+  s += ok(a1 + 18, y1, a1 + 18 + 46, y1, KIR) + ok(b1 - 18, y1, b1 - 18 - 46, y1, KIR);
+  s += yaz(a1 + 41, y1 - 12, 'F', { anchor: 'middle', fill: KIR, size: 16, weight: 800, italic: true });
+  s += yaz(b1 - 41, y1 - 12, 'F', { anchor: 'middle', fill: KIR, size: 16, weight: 800, italic: true });
+  s += olcu(a1, b1, y1 + 38, 'd');
+  s += yaz(18, 26, '1. durum', { fill: P.ink2 });
+  s += `<line x1="16" y1="132" x2="324" y2="132" stroke="#d3dce3" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+  // 2. durum
+  const y2 = 182, a2 = 22, b2 = 318;
+  s += kure(u, a2, y2, 16, 'k3', KAH) + kure(u, b2, y2, 16, 'k4', GRI);
+  s += ok(a2 + 18, y2, a2 + 18 + 12, y2, KIR, 2.6) + ok(b2 - 18, y2, b2 - 18 - 12, y2, KIR, 2.6);
+  s += yaz(a2 + 34, y2 - 14, 'F/4', { anchor: 'middle', fill: KIR, size: 16, weight: 800, italic: true });
+  s += yaz(b2 - 34, y2 - 14, 'F/4', { anchor: 'middle', fill: KIR, size: 16, weight: 800, italic: true });
+  s += olcu(a2, b2, y2 + 38, '2d');
+  s += yaz(18, 152, '2. durum', { fill: P.ink2 });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Adım 4: Dünya çevresinde çembersel yörüngede uydu; ϑ teğet, F merkeze */
+BFY_FIG_EKLE('sfA33_uydu', function (u) {
+  let s = bg(340, 260, '#eef2f8');
+  [[30, 30], [300, 40], [60, 220], [312, 228], [250, 18], [24, 140], [320, 150], [150, 240]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="1.4" fill="#9aa8bd"/>`; });
+  const cx = 150, cy = 140, R = 44, r = 96;
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${P.ink2}" stroke-width="1.6" stroke-dasharray="6 5"/>`;
+  s += dunya(u, cx, cy, R);
+  const a = -30 * Math.PI / 180, ux = cx + r * Math.cos(a), uy = cy + r * Math.sin(a);
+  // F: merkeze doğru
+  s += ok(ux - 20 * Math.cos(a), uy - 20 * Math.sin(a), ux - 78 * Math.cos(a), uy - 78 * Math.sin(a), KIR);
+  // ϑ: teğet (saat yönünün tersine dolanım)
+  const tx = Math.sin(a), ty = -Math.cos(a);
+  s += ok(ux + 22 * tx, uy + 22 * ty, ux + 84 * tx, uy + 84 * ty, MAV);
+  s += uydu(ux, uy, 0.7, -30);
+  s += yaz(ux - 30, uy + 40, 'F', { anchor: 'middle', fill: KIR, size: 16, weight: 800, italic: true });
+  s += yaz(ux + 84 * tx + 18, uy + 84 * ty + 20, 'ϑ', { anchor: 'start', fill: MAV, size: 17, weight: 800, italic: true });
+  s += yaz(cx, cy + R + 22, 'Dünya', { anchor: 'middle', fill: TEL });
+  s += yaz(cx - 66, cy + 94, 'yörünge', { anchor: 'end', fill: P.ink2 });
+  return svg(340, 260, s, u, 90);
+});
+
+/* Adım 5: eliptik yörünge, yıldız odakta; eşit sürelerde taranan eşit alanlar (Kepler denklemiyle) */
+function kepE(M, e) { let E = M; for (let i = 0; i < 50; i++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E)); return E; }
+BFY_FIG_EKLE('sfA33_kepler', function (u) {
+  let s = bg(340, 260, '#eef2f8');
+  const cx = 170, cy = 120, a = 132, e = 0.6, b = a * Math.sqrt(1 - e * e), fx = cx - a * e;
+  // gezegenin konumu: yıldıza en yakın nokta solda (x = cx − a)
+  const kon = M => { const E = kepE(M, e); return [cx - a * Math.cos(E), cy - b * Math.sin(E)]; };
+  const dilim = (M1, M2, renk) => {
+    let d = `M${f1(fx)} ${f1(cy)}`;
+    for (let i = 0; i <= 24; i++) { const p = kon(M1 + (M2 - M1) * i / 24); d += ` L${f1(p[0])} ${f1(p[1])}`; }
+    return `<path d="${d}Z" fill="${renk}" fill-opacity=".38" stroke="${renk}" stroke-width="1.4"/>`;
+  };
+  const dM = 0.55;
+  s += dilim(-dM / 2, dM / 2, YES) + dilim(Math.PI - dM / 2, Math.PI + dM / 2, MAV);
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="${a}" ry="${f1(b)}" fill="none" stroke="${P.ink2}" stroke-width="1.8"/>`;
+  // yıldız
+  s += `<defs><radialGradient id="${u}ys" cx="40%" cy="38%" r="70%"><stop offset="0" stop-color="#fff7d1"/><stop offset=".55" stop-color="#f6c443"/><stop offset="1" stop-color="#e0901e"/></radialGradient></defs>`;
+  s += `<circle cx="${f1(fx)}" cy="${cy}" r="22" fill="#f6c443" opacity=".2"/><circle cx="${f1(fx)}" cy="${cy}" r="13" fill="url(#${u}ys)" stroke="#c9801c" stroke-width=".8"/>`;
+  s += yaz(fx + 10, cy + 36, 'yıldız', { anchor: 'start', fill: '#a5641a' });
+  // K (en yakın) ve L (en uzak)
+  s += `<circle cx="${cx - a}" cy="${cy}" r="6" fill="${YES}" stroke="#fff" stroke-width="1.5"/><circle cx="${cx + a}" cy="${cy}" r="6" fill="${MAV}" stroke="#fff" stroke-width="1.5"/>`;
+  s += yaz(cx - a - 8, cy - 12, 'K', { anchor: 'end', size: 17, weight: 800 });
+  s += yaz(cx + a + 9, cy - 12, 'L', { size: 17, weight: 800 });
+  s += yaz(170, 248, 'Renkli alanlar eşit sürede taranır.', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 260, s, u, 90);
+});
+
+/* Isınma 3: Dünya odakta, basık eliptik yörünge; en yakın 7000 km, en uzak 35 000 km */
+BFY_FIG_EKLE('sfA33_elips', function (u) {
+  let s = bg(340, 290, '#eef2f8');
+  const e = 2 / 3, a = 150, b = a * Math.sqrt(1 - e * e), cx = 170, cy = 128, fx = cx + a * e; // en yakın nokta sağda
+  s += `<ellipse cx="${cx}" cy="${cy}" rx="${a}" ry="${f1(b)}" fill="none" stroke="${P.ink2}" stroke-width="1.8" stroke-dasharray="7 5"/>`;
+  s += `<line x1="${cx - a}" y1="${cy}" x2="${f1(fx)}" y2="${cy}" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="3 4"/>`;
+  s += dunya(u, fx, cy, 30);
+  s += uydu(cx + a, cy, 0.8, 90) + uydu(cx - a, cy, 0.8, 90);
+  // hızlar: en yakın noktada büyük (yukarı), en uzakta küçük (aşağı); saat yönünün tersine dolanım
+  s += ok(cx + a, cy - 22, cx + a, cy - 90, MAV);
+  s += ok(cx - a, cy + 20, cx - a, cy + 40, MAV, 2.6);
+  s += yaz(cx + a + 8, cy - 102, '10 km/s', { anchor: 'end', fill: MAV, weight: 800 });
+  s += yaz(cx - a + 12, cy + 44, '?', { fill: MAV, size: 17, weight: 800 });
+  s += yaz(fx, cy + 50, 'Dünya', { anchor: 'middle', fill: TEL });
+  s += olcu(fx, cx + a, cy + b + 16, '7000 km');
+  s += olcu(cx - a, fx, cy + b + 16, '35 000 km');
+  return svg(340, 290, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -32415,6 +32540,188 @@ const KONU = {
     'eliptik yörüngede K, L, M, N: kuvvetin hız doğrultusundaki bileşeni ve iş (I, II ve III)', 'çembersel yörüngelerde E_k, E_p, E_mek eğrileri X, Y, Z (I-II-III)',
     "aynı yıldız çevresinde X (çember, 2r) ve Y (elips, r ve 3r), kesişme K ve L: eşit periyot, K'de eşit ivme, en uzak noktada Y yavaş (yorumlama eki)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda kütlelerin birbirini nasıl çektiğini, başka bir gezegende ağırlığın neden değiştiğini, uyduların neden düşmediğini ve gezegenlerin yıldız çevresinde nasıl dolandığını göreceğiz. Hesapları küçük oranlarla yapacağız. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Her kütle öteki kütleyi çeker',
+        metin: r`Elinden kayan anahtarlık yere düşer, çünkü Dünya onu çeker. Daha az bilinen bir şey var: Anahtarlık da Dünya'yı aynı büyüklükte bir kuvvetle çeker.
+
+- Kütlesi olan her cisim öteki cisimleri çeker. Buna **kütle çekim kuvveti** denir.
+- Kuvvetler karşılıklıdır. İki cisme etki eden çekim kuvvetleri eşit büyüklükte ve zıt yönlüdür.
+- Kuvvetin büyüklüğü $F = G \times \dfrac{m_1 \times m_2}{d^2}$ bağıntısıyla bulunur. Burada $d$, iki cismin merkezleri arasındaki uzaklıktır.
+
+Dünya'nın kütlesi anahtarlığınkinden çok çok büyüktür. Aynı büyüklükteki kuvvet anahtarlığı kolayca hızlandırır ama Dünya'yı fark edilmeyecek kadar az kıpırdatır. Bu yüzden düşen hep anahtarlıkmış gibi görünür.`,
+        kontrol: {
+          soru: 'Yere düşmekte olan bir futbol topunu Dünya 4 N büyüklüğünde bir kuvvetle çekiyor. Top Dünya\'yı ne büyüklükte bir kuvvetle çeker?',
+          secenekler: ['4 N', 'Sıfır, top Dünya\'yı çekemez.', '4 N\'dan çok çok küçük bir kuvvetle.'],
+          dogru: 0,
+          aciklama: 'Kuvvetler karşılıklıdır ve eşit büyüklüktedir. Top da Dünya\'yı 4 N\'luk kuvvetle çeker. Dünya\'nın kütlesi çok büyük olduğu için bu kuvvet onu fark edilir biçimde hızlandırmaz.',
+          yanlisIpucu: 'İki cisme etki eden çekim kuvvetleri eşit büyüklükte ve zıt yönlüdür. Kütlelerin farklı olması kuvvetleri değil, ivmeleri farklı yapar.'
+        }
+      },
+      {
+        baslik: 'Uzaklık artınca çekim hızla azalır',
+        sekil: 'sfA33_uzaklik',
+        metin: r`Kuvvet bağıntısında uzaklık paydadadır ve **karesiyle** yer alır. Bu yüzden uzaklık arttıkça kuvvet hızla küçülür.
+
+- Uzaklık 2 katına çıkınca kuvvet $2 \times 2 = 4$'e bölünür.
+- Uzaklık 3 katına çıkınca kuvvet $3 \times 3 = 9$'a bölünür.
+- Kütlelerden biri 2 katına çıkarsa kuvvet de 2 katına çıkar.
+
+Şekilde aynı iki küre önce $d$, sonra $2d$ uzaklıkta duruyor. İlk durumda kuvvet $F$ ise ikinci durumda $\dfrac{F}{4}$ olur. Okların boyuna bak: İkinci durumdaki oklar dörtte bir uzunluktadır.`,
+        kontrol: {
+          soru: 'Bir uzay sondasına Dünya\'nın uyguladığı çekim kuvveti 800 N\'dur. Sonda, Dünya\'nın merkezine olan uzaklığı 4 katına çıkacak biçimde uzaklaşıyor. Kuvvet kaç N olur?',
+          secenekler: ['200 N', '50 N', '100 N'],
+          dogru: 1,
+          aciklama: r`Uzaklık 4 katına çıkınca kuvvet $4 \times 4 = 16$'ya bölünür: $\dfrac{800}{16} = 50$ N.`,
+          yanlisIpucu: 'Uzaklık formülde karesiyle yer alır. Uzaklık 4 katına çıkınca kuvvet 4\'e değil, 4 × 4\'e bölünür.'
+        }
+      },
+      {
+        baslik: 'Gezegenin yüzeyinde çekim ivmesi',
+        metin: r`Bir cismi tartınca ölçtüğün şey, gezegenin onu çektiği kuvvettir. Buna ağırlık denir. Ağırlık, kütle ile $g$'nin çarpımıdır: $m \times g$.
+
+- Yüzeydeki çekim ivmesi $g = G \times \dfrac{M}{R^2}$ bağıntısıyla bulunur. $M$ gezegenin kütlesi, $R$ yarıçapıdır.
+- $g$, gezegenin kütlesiyle doğru, yarıçapının karesiyle ters orantılıdır. Düşen cismin kütlesine bağlı değildir.
+- Kütle maddenin miktarıdır. Gezegen değişince kütle değişmez, ağırlık değişir.
+
+Ay'ın yüzeyinde $g$, Dünya'dakinin yaklaşık altıda biridir. Kütlesi 12 kg olan bir çanta Dünya'da 120 N gelir, Ay'da yaklaşık 20 N gelir. Çantanın kütlesi yine 12 kg'dır.`,
+        kontrol: {
+          soru: 'Bir ötegezegenin kütlesi Dünya\'nınkinin 9 katı, yarıçapı Dünya\'nınkinin 3 katıdır. Bu gezegenin yüzeyinde g kaç m/s² olur? (Dünya\'da g = 10 m/s²)',
+          secenekler: ['30 m/s²', '90 m/s²', '10 m/s²'],
+          dogru: 2,
+          aciklama: r`Kütle 9 katı olduğu için $g$ 9 katına çıkar. Yarıçap 3 katı olduğu için $g$, $3 \times 3 = 9$'a bölünür. Sonuç: $10 \times \dfrac{9}{9} = 10$ m/s². Gezegen çok büyük olsa da yüzeyindeki $g$ Dünya'dakiyle aynıdır.`,
+          yanlisIpucu: 'Yarıçap formülde karesiyle yer alır. Yarıçap 3 katına çıkınca g, 3\'e değil 9\'a bölünür.'
+        }
+      },
+      {
+        baslik: 'Uydu neden düşmez?',
+        sekil: 'sfA33_uydu',
+        metin: r`Dünya çevresinde dolanan bir uyduya her an Dünya'nın merkezine doğru bir çekim kuvveti etki eder. Uydu yine de yere inmez.
+
+- Uydunun yörüngeye teğet bir hızı vardır. Çekim kuvveti hızın yönünü her an merkeze doğru büker. Uydu düştüğü kadar yana da ilerler ve çember üzerinde kalır.
+- Çembersel yörüngede çekim kuvveti merkezcil kuvvet görevini görür: $G \times \dfrac{M \times m}{r^2} = m \times \dfrac{\vartheta^2}{r}$.
+- Uydunun kütlesi $m$ iki tarafta sadeleşir: $\vartheta = \sqrt{\dfrac{G \times M}{r}}$. Yörünge sürati yalnız merkezdeki kütleye ve yörünge yarıçapına bağlıdır.
+- Merkeze yakın yörüngede sürat büyük, uzak yörüngede küçüktür.`,
+        kontrol: {
+          soru: 'Aynı çembersel yörüngede biri 500 kg, öbürü 1500 kg olan iki uydu dolanıyor. Hangisinin yörünge sürati büyüktür?',
+          secenekler: ['500 kg\'lık uydunun.', '1500 kg\'lık uydunun.', 'İkisininki eşittir.'],
+          dogru: 2,
+          aciklama: 'Sürat bağıntısında uydunun kütlesi yoktur. Aynı yörüngedeki iki uydu aynı süratle dolanır. Kütle yalnız uyduya etki eden çekim kuvvetini değiştirir: 1500 kg\'lık uyduya 3 kat büyük kuvvet etki eder.',
+          yanlisIpucu: r`$\vartheta = \sqrt{\dfrac{G \times M}{r}}$ bağıntısında hangi kütle var: merkezdeki gezegeninki mi, uydununki mi?`
+        }
+      },
+      {
+        baslik: 'Kepler: elips yörünge ve eşit alanlar',
+        sekil: 'sfA33_kepler',
+        metin: r`Gezegenler yıldız çevresinde tam çember değil, elips biçiminde yörüngelerde dolanır. Kepler bu hareketi üç yasayla özetledi.
+
+- **1. yasa:** Yıldız elipsin merkezinde değil, odaklarından birindedir.
+- **2. yasa:** Yıldızı gezegene birleştiren doğru, eşit sürelerde eşit alanlar tarar. Şekildeki iki renkli bölge eşit sürelerde taranmıştır ve alanları eşittir.
+- **3. yasa:** Aynı yıldız çevresinde dolananlar için $\dfrac{T^2}{r^3}$ oranı aynıdır. $T$ dolanma süresi (periyot), $r$ ortalama uzaklıktır. Uzaktaki gezegenin periyodu uzundur.
+
+Bu yasalar Dünya çevresindeki Ay ve yapay uydular için de geçerlidir.`,
+        kontrol: {
+          soru: 'Şekildeki gezegen yörüngesinin hangi noktasında en hızlıdır?',
+          secenekler: ['L noktasında.', 'K noktasında.', 'Her noktada aynı süratle gider.'],
+          dogru: 1,
+          aciklama: 'İki renkli bölge eşit sürede taranmıştır. Yıldıza yakın K tarafında gezegen aynı sürede daha uzun bir yay alır. Bu yüzden yıldıza en yakın olduğu K noktasında en hızlıdır.',
+          yanlisIpucu: 'Eşit sürede taranan alanlar eşittir. Yıldıza yakınken alanın eşit olması için gezegenin daha uzun mu, daha kısa mı yol alması gerekir?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Mars\'a inen astronot',
+        metin: 'Mars\'ın kütlesi Dünya\'nınkinin yaklaşık onda biri, yarıçapı ise Dünya\'nınkinin yaklaşık yarısıdır. Giysisi ve donanımıyla birlikte kütlesi 150 kg olan bir astronot Mars\'ın yüzeyine iniyor. Dünya\'da g = 10 m/s² alınacak.',
+        adimlar: [
+          {
+            soru: 'Astronotun donanımıyla birlikte Mars\'taki kütlesi kaç kg\'dır?',
+            secenekler: ['60 kg', '150 kg', '15 kg'],
+            dogru: 1,
+            ipucu: 'Kütle maddenin miktarıdır. Astronot başka bir gezegene gidince maddesi azalır mı?',
+            aciklama: 'Kütle her yerde 150 kg\'dır. Gezegen değişince değişen, gezegenin astronotu çektiği kuvvettir.'
+          },
+          {
+            soru: 'Mars\'ın yüzeyinde g kaç m/s²\'dir?',
+            secenekler: ['1 m/s²', '2 m/s²', '4 m/s²'],
+            dogru: 2,
+            ipucu: 'g, kütleyle doğru, yarıçapın karesiyle ters orantılıdır. Kütle onda birine inince g de onda birine iner. Yarıçap yarıya inince g kaç katına çıkar?',
+            aciklama: r`Kütle yüzünden $g$ onda birine iner: 1 m/s². Yarıçap yarıya inince $g$, $2 \times 2 = 4$ katına çıkar. Sonuç: $1 \times 4 = 4$ m/s². Mars'ta ölçülen değer de buna yakındır.`
+          },
+          {
+            soru: 'Astronotun Mars\'taki ağırlığı kaç N\'dur?',
+            secenekler: ['600 N', '1500 N', '375 N'],
+            dogru: 0,
+            ipucu: 'Ağırlık, kütle ile g\'nin çarpımıdır. Kütle değişmedi, g değişti.',
+            aciklama: r`$150 \times 4 = 600$ N. Dünya'da 1500 N olan ağırlık Mars'ta 600 N'a iner. Astronot kendini hafif hisseder ama kütlesi aynıdır.`
+          }
+        ],
+        sonuc: r`Başka bir gezegende kütle aynı kalır, ağırlık $g$ ile birlikte değişir. Yeni $g$'yi bulmak için kütle oranıyla çarp, yarıçap oranının karesine böl.`
+      },
+      {
+        baslik: 'Alçak yörünge ve konum uyduları',
+        metin: 'Dünya\'ya yakın, alçak bir çembersel yörüngedeki bir uydu turunu yaklaşık 90 dakikada tamamlar. Konum belirleme (GPS) uydularının yörünge yarıçapı ise bu alçak yörüngenin yarıçapının yaklaşık 4 katıdır. İki yörünge de Dünya\'nın merkezi çevresindedir.',
+        adimlar: [
+          {
+            soru: 'Hangi uydunun yörünge sürati daha büyüktür?',
+            secenekler: ['Konum uydusunun.', 'Alçak yörüngedeki uydunun.', 'İkisininki eşittir.'],
+            dogru: 1,
+            ipucu: r`$\vartheta = \sqrt{\dfrac{G \times M}{r}}$ bağıntısında yörünge yarıçapı $r$ paydadadır. Yarıçap büyüyünce sürat büyür mü, küçülür mü?`,
+            aciklama: 'Yörünge yarıçapı küçük olan alçak yörüngedeki uydunun sürati büyüktür. Merkeze yakın yörüngede uydu daha hızlı dolanır.'
+          },
+          {
+            soru: 'Hangi uydu turunu daha kısa sürede tamamlar?',
+            secenekler: ['Konum uydusu.', 'İkisi eşit sürede tamamlar.', 'Alçak yörüngedeki uydu.'],
+            dogru: 2,
+            ipucu: 'Alçak yörüngedeki uydu daha hızlıdır. Üstelik küçük çemberin çevresi de kısadır.',
+            aciklama: 'Alçak yörüngedeki uydu hem daha kısa bir çember üzerinde hem daha hızlı gider. Turunu daha kısa sürede tamamlar. Konum uydusunun bir turu ise 90 dakikadan uzun sürer.'
+          },
+          {
+            soru: r`Kepler'in 3. yasasındaki $\dfrac{T^2}{r^3}$ oranı için hangisi doğrudur?`,
+            secenekler: ['Konum uydusu için daha büyüktür.', 'İki uydu için de aynıdır.', 'Alçak yörüngedeki uydu için daha büyüktür.'],
+            dogru: 1,
+            ipucu: 'Bu oran uyduya değil, merkezdeki kütleye bağlıdır. İki uydu da aynı gezegenin çevresinde dolanıyor.',
+            aciklama: r`İki uydu da Dünya'nın çevresinde dolandığı için $\dfrac{T^2}{r^3}$ oranı ikisinde aynıdır. Bu yüzden yarıçapı büyük olan konum uydusunun periyodu da büyüktür.`
+          }
+        ],
+        sonuc: r`Aynı merkez çevresindeki yörüngelerde yarıçap büyüdükçe sürat küçülür, periyot uzar. $\dfrac{T^2}{r^3}$ oranı merkezdeki kütleye bağlıdır; aynı gezegenin çevresindeki bütün uydular için aynıdır.`
+      },
+      {
+        baslik: 'Basık yörüngeli iletişim uydusu',
+        sekil: 'sfA33_elips',
+        metin: 'Kuzeydeki bölgelere yayın yapan bazı iletişim uyduları Dünya çevresinde çok basık, eliptik yörüngelerde dolanır. Böyle bir uydunun Dünya\'nın merkezine en yakın uzaklığı 7000 km, en uzak uzaklığı 35 000 km\'dir. Uydu en yakın noktadan yaklaşık 10 km/s süratle geçiyor. Uyduya yalnız Dünya\'nın çekim kuvveti etki ediyor.',
+        adimlar: [
+          {
+            soru: 'Yörüngenin her noktasında aynı kalan nicelik hangisidir?',
+            secenekler: ['Uydunun çizgisel sürati.', 'Uyduya etki eden çekim kuvveti.', 'Uydunun Dünya\'nın merkezine göre açısal momentumu.'],
+            dogru: 2,
+            ipucu: 'Çekim kuvveti hep Dünya\'nın merkezine doğrudur. Bu kuvvet, merkeze göre tork oluşturur mu?',
+            aciklama: 'Çekim kuvveti merkezden geçtiği için merkeze göre torku sıfırdır. Bu yüzden açısal momentum korunur. Sürat ve kuvvet ise uzaklıkla değişir.'
+          },
+          {
+            soru: 'Uydunun en uzak noktadaki sürati için hangisi doğrudur?',
+            secenekler: ['10 km/s\'den küçüktür.', '10 km/s\'dir.', '10 km/s\'den büyüktür.'],
+            dogru: 0,
+            ipucu: r`En yakın ve en uzak noktada hız, uzaklığa diktir. Bu iki noktada açısal momentum $m \times \vartheta \times r$ olur ve aynı kalır. $r$ büyüyünce $\vartheta$ ne olmalıdır?`,
+            aciklama: r`Açısal momentum korunur. En uzak noktada $r$ büyük olduğu için $\vartheta$ küçük olmalıdır. Uydu en uzak noktadan 10 km/s'den daha yavaş geçer. Kepler'in alanlar yasası da aynı sonucu verir.`
+          },
+          {
+            soru: 'En uzak noktada uyduya etki eden çekim kuvveti, en yakın noktadakinin kaçta biridir?',
+            secenekler: ['5\'te biri', '25\'te biri', '10\'da biri'],
+            dogru: 1,
+            ipucu: 'Çekim kuvveti uzaklığın karesiyle ters orantılıdır.',
+            aciklama: r`Uzaklık 5 katı olduğu için kuvvet $5 \times 5 = 25$'e bölünür.`
+          }
+        ],
+        sonuc: 'Eliptik yörüngede açısal momentum korunur. En yakın ve en uzak noktada sürat ile uzaklığın çarpımı aynıdır: Uydu yakında hızlı, uzakta yavaştır. Çekim kuvveti ise uzaklığın karesiyle ters orantılı değişir.'
+      }
+    ],
+    hazir: 'Karşılıklı çekim kuvvetini, kuvvetin uzaklığın karesiyle azalmasını, gezegende g\'yi, uydunun neden düşmediğini ve Kepler yasalarını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -34093,6 +34400,108 @@ BFY_FIG_EKLE('iA34_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 104 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.3.4 başlangıç şekilleri (sfA34_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f6fb8', KIR = '#d24b3e', TEL = '#2a3330', YAYR = '#4f5d66';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 10, headW: 5 });
+const bg = (w, h) => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="#f4f7f9"/>`;
+// Zikzak yay (yatay ya da düşey), n sarım
+function yay(x1, y1, x2, y2, n = 10, a = 7) {
+  const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, nx = -uy, ny = ux, pad = Math.min(8, L * 0.12), w = (L - 2 * pad) / n;
+  let d = `M${f1(x1)} ${f1(y1)} L${f1(x1 + ux * pad)} ${f1(y1 + uy * pad)}`;
+  for (let i = 0; i < n; i++) {
+    const t1 = pad + w * (i + 0.25), t2 = pad + w * (i + 0.75);
+    d += ` L${f1(x1 + ux * t1 + nx * a)} ${f1(y1 + uy * t1 + ny * a)} L${f1(x1 + ux * t2 - nx * a)} ${f1(y1 + uy * t2 - ny * a)}`;
+  }
+  d += ` L${f1(x2 - ux * pad)} ${f1(y2 - uy * pad)} L${f1(x2)} ${f1(y2)}`;
+  return `<path d="${d}" fill="none" stroke="${YAYR}" stroke-width="2" stroke-linejoin="round"/>`;
+}
+// Duvar (taramalı) ve masa
+function masaDuvar(u, x0, yM, x1) {
+  let s = `<defs><pattern id="${u}tr" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="8" stroke="#8a949b" stroke-width="2"/></pattern></defs>`;
+  s += `<rect x="${x0}" y="${yM}" width="${x1 - x0}" height="12" fill="url(#${u}wood)" stroke="#a88a5a" stroke-width="1"/>`;
+  s += `<rect x="${x0}" y="${yM - 70}" width="12" height="70" fill="#d5dbe0"/><rect x="${x0}" y="${yM - 70}" width="12" height="70" fill="url(#${u}tr)"/><line x1="${x0 + 12}" y1="${yM - 70}" x2="${x0 + 12}" y2="${yM}" stroke="#6d777f" stroke-width="1.6"/>`;
+  return s;
+}
+function blok(u, x, yM, w = 40, h = 32) {
+  return `<rect x="${f1(x - w / 2 + 3)}" y="${yM - 3}" width="${w}" height="4" rx="2" fill="#000" opacity=".12"/>` +
+    `<rect x="${f1(x - w / 2)}" y="${yM - h}" width="${w}" height="${h}" rx="4" fill="url(#${u}box)" stroke="#8e6a3a" stroke-width="1.2"/>` +
+    `<rect x="${f1(x - w / 2 + 4)}" y="${yM - h + 4}" width="${w - 8}" height="5" rx="2" fill="#fff" opacity=".35"/>`;
+}
+
+/* Adım 1: yatay yay sarkacı; −A, O, +A işaretleri ve genlik */
+BFY_FIG_EKLE('sfA34_yay', function (u) {
+  let s = bg(340, 210);
+  const yM = 112, x0 = 14, O = 178, A = 72;
+  s += masaDuvar(u, x0, yM, 330);
+  // soluk konumlar (uçlar)
+  s += `<g opacity=".28">${blok(u, O - A, yM)}${blok(u, O + A, yM)}</g>`;
+  s += yay(x0 + 12, yM - 16, O - 20, yM - 16, 11, 7) + blok(u, O, yM);
+  [[O - A, '−A'], [O, 'O'], [O + A, '+A']].forEach(([x, t]) => {
+    s += `<line x1="${x}" y1="${yM + 16}" x2="${x}" y2="${yM + 30}" stroke="${TEL}" stroke-width="1.6"/>`;
+    s += yaz(x, yM + 50, t, { anchor: 'middle', size: 16, weight: 800 });
+  });
+  s += `<line x1="${O - A}" y1="${yM + 23}" x2="${O + A}" y2="${yM + 23}" stroke="${TEL}" stroke-width="1.2"/>`;
+  // genlik ölçüsü
+  const yo = yM + 70;
+  s += `<g stroke="${MAV}" stroke-width="1.4"><line x1="${O}" y1="${yo}" x2="${O + A}" y2="${yo}"/><line x1="${O}" y1="${yo - 6}" x2="${O}" y2="${yo + 6}"/><line x1="${O + A}" y1="${yo - 6}" x2="${O + A}" y2="${yo + 6}"/></g>`;
+  s += yaz(O + A / 2, yo + 20, 'A = 6 cm', { anchor: 'middle', fill: MAV, weight: 800 });
+  s += yaz(170, 28, 'blok iki uç arasında gidip gelir', { anchor: 'middle', fill: P.ink2 });
+  s += ok(O - 30, 48, O + 30, 48, P.ink2, 2) + ok(O + 30, 48, O - 30, 48, P.ink2, 2);
+  return svg(340, 210, s, u, 90);
+});
+
+/* Adım 4: uçta, O'da ve öbür uçta sürat (mavi) ve kuvvet (kırmızı) */
+BFY_FIG_EKLE('sfA34_hiz', function (u) {
+  let s = bg(340, 246);
+  const y = 112, xs = [60, 170, 280], ad = ['−A', 'O', '+A'];
+  s += `<line x1="24" y1="${y}" x2="316" y2="${y}" stroke="#b9c4cc" stroke-width="2"/>`;
+  xs.forEach((x, i) => {
+    s += `<line x1="${x}" y1="${y - 8}" x2="${x}" y2="${y + 8}" stroke="${TEL}" stroke-width="1.6"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="11" fill="url(#${u}b_copper)" stroke="#7d4a27" stroke-width=".8"/>`;
+    s += yaz(x, y + 34, ad[i], { anchor: 'middle', size: 16, weight: 800 });
+  });
+  // sürat: uçlarda 0, O'da en büyük (sağa giderken)
+  s += yaz(20, 34, 'sürat', { fill: MAV, weight: 800 });
+  s += yaz(xs[0], 64, 'ϑ = 0', { anchor: 'middle', fill: MAV });
+  s += ok(xs[1] - 40, 64, xs[1] + 44, 64, MAV) + yaz(xs[1] + 2, 50, 'en büyük', { anchor: 'middle', fill: MAV });
+  s += yaz(xs[2], 64, 'ϑ = 0', { anchor: 'middle', fill: MAV });
+  // kuvvet: O'ya doğru, uçlarda en büyük
+  s += yaz(20, 174, 'kuvvet', { fill: KIR, weight: 800 });
+  s += ok(xs[0] - 4, 200, xs[0] + 54, 200, KIR) + yaz(xs[0] + 25, 226, 'en büyük', { anchor: 'middle', fill: KIR });
+  s += yaz(xs[1], 206, 'F = 0', { anchor: 'middle', fill: KIR });
+  s += ok(xs[2] + 4, 200, xs[2] - 54, 200, KIR) + yaz(xs[2] - 25, 226, 'en büyük', { anchor: 'middle', fill: KIR });
+  return svg(340, 246, s, u, 90);
+});
+
+/* Adım 5: basit sarkaç (ℓ) ve düşey yay sarkacı (k, m) */
+BFY_FIG_EKLE('sfA34_iki', function (u) {
+  let s = bg(340, 250);
+  s += `<rect x="16" y="20" width="308" height="12" rx="3" fill="url(#${u}wood)" stroke="#a88a5a" stroke-width="1"/>`;
+  // basit sarkaç
+  const px = 92, py = 32, L = 150, th = 16 * Math.PI / 180, bx = px + L * Math.sin(th), by = py + L * Math.cos(th);
+  s += `<line x1="${px}" y1="${py}" x2="${px}" y2="${py + L + 6}" stroke="#9aa6ae" stroke-width="1.3" stroke-dasharray="4 4"/>`;
+  s += `<line x1="${px}" y1="${py}" x2="${f1(bx)}" y2="${f1(by)}" stroke="${TEL}" stroke-width="1.8"/>`;
+  s += `<circle cx="${f1(bx)}" cy="${f1(by)}" r="13" fill="url(#${u}b_copper)" stroke="#7d4a27" stroke-width=".8"/>`;
+  s += yaz(px + 0.5 * L * Math.sin(th) + 12, py + 0.5 * L * Math.cos(th), 'ℓ', { size: 18, weight: 800, italic: true });
+  s += yaz(px + 4, 232, 'basit sarkaç', { anchor: 'middle', fill: P.ink2 });
+  // düşey yay sarkacı
+  const yx = 250, y0 = 32, y1 = 140;
+  s += yay(yx, y0, yx, y1, 10, 9);
+  s += `<rect x="${yx - 24}" y="${y1}" width="48" height="40" rx="4" fill="url(#${u}box)" stroke="#8e6a3a" stroke-width="1.2"/>`;
+  s += yaz(yx, y1 + 26, 'm', { anchor: 'middle', size: 17, weight: 800, italic: true, halo: false, fill: '#4a3416' });
+  s += yaz(yx + 18, 90, 'k', { size: 18, weight: 800, italic: true });
+  s += yaz(yx, 232, 'yay sarkacı', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 250, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -34153,6 +34562,197 @@ const KONU = {
     'tavandaki 100 N/m yay, 1 kg K ve iple 0,5 kg L; ip kesilince A = 5 cm, 0,5 m/s, yay sıkışmaz', 'bilim merkezi gösterisi: 40 cm sarkaç (1,2 s) ve 16 N/m yayda 1 kg araba (1,5 s), birlikte dönüş 6 s',
     "Derya'nın sarkaç tablosu: K (40 cm, 50 g, 6°), L (40 cm, 200 g, 6°), M (90 cm, 50 g, 6°), N (160 cm, 200 g, 10°); 1,27/1,27/1,90/2,54 s; kontrol değişkeni (yorumlama eki)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda bir denge noktasının iki yanında gidip gelen cisimleri inceleyeceğiz: yaya bağlı cisim, ipe asılı sarkaç. Genliği, periyodu, cismi geri çeken kuvveti ve periyodun neye bağlı olduğunu göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Denge noktası, uzanım ve genlik',
+        sekil: 'sfA34_yay',
+        metin: r`Sürtünmesiz bir masada yaya bağlı bir blok düşün. Blok durgunken yay ne gerilmiş ne sıkışmıştır. Bu konuma **denge noktası** denir ve O ile gösterilir. Bloğu biraz çekip bırakırsan O'nun iki yanında gidip gelir.
+
+- Cismin O'dan olan yönlü uzaklığına **uzanım** ($x$) denir.
+- En büyük uzanıma **genlik** ($A$) denir. Cisim $-A$ ile $+A$ arasında gidip gelir.
+- Uçtan uca uzaklık $2A$'dır. Genlik bu uzaklığın yarısıdır.
+
+Şekildeki blok O'dan 6 cm çekilip bırakılmış ve iki uç arasında gidip geliyor. Genlik 6 cm'dir. Uçlar arasındaki uzaklık $2 \times 6 = 12$ cm'dir.`,
+        kontrol: {
+          soru: 'Yaya bağlı bir blok iki uç arasında gidip geliyor. İki uç arasındaki uzaklık 16 cm\'dir. Hareketin genliği kaç cm\'dir?',
+          secenekler: ['16 cm', '8 cm', '4 cm'],
+          dogru: 1,
+          aciklama: 'Genlik, O\'dan bir uca olan uzaklıktır. Uçtan uca uzaklık 2A olduğu için A = 16 ÷ 2 = 8 cm\'dir.',
+          yanlisIpucu: 'Genlik uçtan uca uzaklık değil, denge noktasından bir uca olan uzaklıktır.'
+        }
+      },
+      {
+        baslik: 'Periyot ve frekans',
+        metin: r`Cisim bir uçtan çıkıp öbür uca gider ve yine başladığı uca döner. Buna **bir tam salınım** denir.
+
+- Bir tam salınımın süresi **periyottur** ($T$). Birimi saniyedir.
+- Bir saniyedeki salınım sayısı **frekanstır** ($f$). Birimi hertzdir (Hz).
+- Periyot ile frekans birbirinin tersidir: $f = \dfrac{1}{T}$.
+- Bir tam salınımda cisim $4A$ kadar yol alır: uçtan O'ya, O'dan öbür uca, sonra geri.
+
+Bir cisim 10 saniyede 5 tam salınım yapıyorsa periyodu $10 \div 5 = 2$ s'dir.`,
+        kontrol: {
+          soru: 'Bir duvar saatinin sarkacı 1 dakikada 30 tam salınım yapıyor. Periyodu kaç saniyedir?',
+          secenekler: ['30 s', '1 s', '2 s'],
+          dogru: 2,
+          aciklama: '1 dakika 60 saniyedir. 60 ÷ 30 = 2 s. Sarkaç her 2 saniyede bir tam salınım yapar.',
+          yanlisIpucu: 'Periyot, bir tam salınımın süresidir. Toplam süreyi saniyeye çevir ve salınım sayısına böl.'
+        }
+      },
+      {
+        baslik: 'Cismi geri çeken kuvvet',
+        metin: r`Blok O'dan uzaklaşınca yay onu her zaman O'ya doğru çeker ya da iter. Bu kuvvete **geri çağırıcı kuvvet** denir.
+
+- Kuvvetin büyüklüğü uzanımla doğru orantılıdır: $F = k \times x$. Burada $k$ yay sabitidir, birimi N/m'dir.
+- Kuvvetin yönü her zaman O'ya doğrudur. Bu yüzden bağıntı çoğu zaman eksi işaretiyle yazılır: $F = -k \times x$. Eksi işareti yalnız yönü gösterir.
+- O'da uzanım sıfırdır, kuvvet de sıfırdır. Uçlarda uzanım en büyüktür, kuvvet de en büyüktür.
+
+Yay sabiti 50 N/m olan yay 10 cm uzatılırsa uzanımı metreye çeviririz: 10 cm $= \dfrac{10}{100}$ m. Kuvvet $50 \times \dfrac{10}{100} = 5$ N olur.`,
+        kontrol: {
+          soru: 'Yay sabiti 200 N/m olan bir yaya bağlı blok O\'dan 5 cm uzaktadır. Bloğa etki eden geri çağırıcı kuvvet kaç N\'dur?',
+          secenekler: ['10 N', '1000 N', '40 N'],
+          dogru: 0,
+          aciklama: r`5 cm $= \dfrac{5}{100}$ m. Kuvvet: $200 \times \dfrac{5}{100} = 10$ N. Yönü O'ya doğrudur.`,
+          yanlisIpucu: 'Uzanımı santimetre değil metre olarak yaz. 5 cm, metrenin yüzde 5\'idir.'
+        }
+      },
+      {
+        baslik: 'Sürat ve ivme nerede en büyük?',
+        sekil: 'sfA34_hiz',
+        metin: r`Kuvvet uzanımla orantılı olduğu için ivme de uzanımla orantılıdır ve O'ya doğrudur. Şimdi uçtan bırakılan bloğu izleyelim.
+
+- **Uçta:** Blok bir an durur, sürat sıfırdır. Kuvvet ve ivme en büyüktür.
+- **Uçtan O'ya giderken:** Kuvvet hareket yönündedir, blok hızlanır.
+- **O'da:** Kuvvet ve ivme sıfırdır, sürat en büyüktür. Blok hızından dolayı O'yu geçer.
+- **O'dan öbür uca giderken:** Kuvvet harekete zıttır, blok yavaşlar ve uçta durur.
+
+Bu gidip gelme, kuvvet uzanımla orantılı olduğu sürece hep aynı biçimde tekrarlanır. Böyle harekete **basit harmonik hareket** denir.`,
+        kontrol: {
+          soru: 'Basit harmonik hareket yapan bir cismin ivmesi hangi konumda sıfırdır?',
+          secenekler: ['Denge noktası O\'da.', 'Uç noktalarda.', 'Hiçbir konumda sıfır olmaz.'],
+          dogru: 0,
+          aciklama: 'İvme uzanımla orantılıdır. O\'da uzanım sıfır olduğu için kuvvet ve ivme de sıfırdır. Bu konumda sürat en büyüktür.',
+          yanlisIpucu: 'Uçlarda sürat sıfırdır ama kuvvet en büyüktür. Kuvvetin sıfır olduğu yer, uzanımın sıfır olduğu yerdir.'
+        }
+      },
+      {
+        baslik: 'Periyot neye bağlı?',
+        sekil: 'sfA34_iki',
+        metin: r`İki tanıdık salınıcı var: yaya bağlı cisim (**yay sarkacı**) ve ipe asılı küçük top (**basit sarkaç**). Periyotlarını şu bağıntılar verir:
+
+- Yay sarkacı: $T = 2\pi\sqrt{\dfrac{m}{k}}$. Kütle büyürse periyot uzar, yay sertleşirse kısalır.
+- Basit sarkaç: $T = 2\pi\sqrt{\dfrac{\ell}{g}}$. İp uzarsa periyot uzar. Yer çekimi ivmesi büyürse periyot kısalır.
+- Basit sarkacın periyodu topun kütlesine bağlı değildir. İki salınıcının periyodu da (küçük salınımlarda) genliğe bağlı değildir.
+
+Kök işareti önemlidir: Kütle ya da ip uzunluğu 4 katına çıkarsa periyot 2 katına çıkar, çünkü $\sqrt{4} = 2$'dir.`,
+        kontrol: {
+          soru: 'Bir basit sarkacın ipi aynı bırakılıp ucundaki top, kütlesi 3 kat büyük bir topla değiştiriliyor. Periyot nasıl değişir?',
+          secenekler: ['3 katına çıkar.', 'Değişmez.', '3\'te birine iner.'],
+          dogru: 1,
+          aciklama: r`Basit sarkacın periyodu $T = 2\pi\sqrt{\dfrac{\ell}{g}}$ bağıntısında kütle yoktur. İp ve $g$ aynı kaldığı için periyot değişmez.`,
+          yanlisIpucu: 'Basit sarkacın periyot bağıntısında hangi nicelikler var? Kütle bunlardan biri mi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Hava masasında yaya bağlı disk',
+        metin: r`Sürtünmesi önemsiz bir hava masasında, kütlesi 1 kg olan bir disk yay sabiti 36 N/m olan bir yaya bağlanmıştır. Disk biraz çekilip bırakılıyor ve basit harmonik hareket yapıyor. $\pi = 3$ alınacak.`,
+        adimlar: [
+          {
+            soru: r`Periyot bağıntısında kökün içindeki $\dfrac{m}{k}$ oranı kaçtır?`,
+            secenekler: [r`$\dfrac{1}{36}$`, '36', r`$\dfrac{1}{6}$`],
+            dogru: 0,
+            ipucu: r`Kütleyi kilogram, yay sabitini N/m olarak koy: $\dfrac{1}{36}$ mı, $\dfrac{36}{1}$ mi?`,
+            aciklama: r`$\dfrac{m}{k} = \dfrac{1}{36}$. Kütle kesrin payında, yay sabiti paydasındadır.`
+          },
+          {
+            soru: 'Diskin periyodu kaç saniyedir?',
+            secenekler: ['6 s', '2 s', '1 s'],
+            dogru: 2,
+            ipucu: r`$\sqrt{\dfrac{1}{36}} = \dfrac{1}{6}$. Bunu $2 \times \pi = 6$ ile çarp.`,
+            aciklama: r`$T = 2 \times 3 \times \dfrac{1}{6} = 1$ s. Disk her saniyede bir tam salınım yapar.`
+          },
+          {
+            soru: 'Aynı yaya 1 kg\'lık disk yerine 9 kg\'lık bir disk bağlanırsa periyot kaç saniye olur?',
+            secenekler: ['3 s', '9 s', '1 s'],
+            dogru: 0,
+            ipucu: 'Kütle kökün içindedir. Kütle 9 katına çıkınca periyot kaç katına çıkar?',
+            aciklama: r`Kütle 9 katına çıkınca periyot $\sqrt{9} = 3$ katına çıkar: $T = 3$ s. Bağıntıyla da $2 \times 3 \times \sqrt{\dfrac{9}{36}} = 6 \times \dfrac{1}{2} = 3$ s bulunur.`
+          }
+        ],
+        sonuc: r`Yay sarkacında periyot $\sqrt{m}$ ile doğru orantılıdır. Kütle 9 katına çıkınca periyot 3 katına çıkar. Basit sarkaçta ise top değişince periyot değişmez.`
+      },
+      {
+        baslik: 'Merdiven boşluğundaki uzun sarkaç',
+        metin: r`Bir fizik bölümünün yüksek merdiven boşluğuna, 10 m uzunluğunda bir telin ucuna ağır bir top asılarak bir sarkaç kurulmuştur. Sarkaç küçük açılarla salınıyor. $g = 10$ m/s² ve $\pi = 3$ alınacak.`,
+        adimlar: [
+          {
+            soru: r`Periyot bağıntısında kökün içindeki $\dfrac{\ell}{g}$ oranı kaçtır?`,
+            secenekler: ['100', '1', r`$\dfrac{1}{10}$`],
+            dogru: 1,
+            ipucu: 'İp uzunluğu metre, g de m/s² cinsinden: 10\'u 10\'a böl.',
+            aciklama: r`$\dfrac{\ell}{g} = \dfrac{10}{10} = 1$ ve $\sqrt{1} = 1$.`
+          },
+          {
+            soru: 'Sarkacın periyodu kaç saniyedir?',
+            secenekler: ['6 s', '3 s', '60 s'],
+            dogru: 0,
+            ipucu: r`$T = 2 \times \pi \times \sqrt{\dfrac{\ell}{g}}$ ve kök 1 çıktı.`,
+            aciklama: r`$T = 2 \times 3 \times 1 = 6$ s. Uzun ipli sarkaç yavaş salınır.`
+          },
+          {
+            soru: 'Top bir uçtan bırakılıyor. Öbür uca ilk kez kaç saniye sonra varır?',
+            secenekler: ['6 s', '3 s', '12 s'],
+            dogru: 1,
+            ipucu: 'Bir uçtan öbür uca gitmek tam salınımın yarısıdır. Geri dönüş henüz yapılmadı.',
+            aciklama: r`Uçtan uca gitmek yarım salınımdır: $\dfrac{T}{2} = \dfrac{6}{2} = 3$ s.`
+          }
+        ],
+        sonuc: r`Basit sarkaçta önce $\dfrac{\ell}{g}$ oranını, sonra kökünü bul ve $2\pi$ ile çarp. Sorulan hareketin tam salınımın ne kadarı olduğuna dikkat et: uçtan uca yarım periyot sürer.`
+      },
+      {
+        baslik: 'Dikiş makinesinin iğnesi',
+        metin: r`Bir dikiş makinesinin iğnesi 2 saniyede 30 kez kumaşa batıp çıkıyor. Her batıp çıkma bir tam salınımdır. İğnenin en alt ve en üst noktaları arasındaki uzaklık 2 cm'dir. İğnenin hareketi basit harmonik hareket kabul ediliyor ve $\pi = 3$ alınacak.`,
+        adimlar: [
+          {
+            soru: 'İğnenin salınım frekansı kaç Hz\'dir?',
+            secenekler: ['15 Hz', '30 Hz', '60 Hz'],
+            dogru: 0,
+            ipucu: 'Frekans bir saniyedeki salınım sayısıdır. 30 salınımı 2 saniyeye böl.',
+            aciklama: r`$f = 30 \div 2 = 15$ Hz. İğne saniyede 15 tam salınım yapar.`
+          },
+          {
+            soru: r`İğnenin hareketinde $\omega = 2\pi f$ kaç rad/s'dir?`,
+            secenekler: ['30 rad/s', '90 rad/s', '45 rad/s'],
+            dogru: 1,
+            ipucu: r`$2 \times \pi = 6$. Bunu frekansla çarp.`,
+            aciklama: r`$\omega = 2 \times 3 \times 15 = 90$ rad/s.`
+          },
+          {
+            soru: 'İğne yolunun hangi noktasında en hızlıdır?',
+            secenekler: ['En alt noktada.', 'Yolun tam ortasında.', 'En üst noktada.'],
+            dogru: 1,
+            ipucu: 'En alt ve en üst noktalar uç noktalardır. Uçlarda sürat ne olur?',
+            aciklama: 'Uç noktalarda iğne bir an durur. Denge noktası olan yolun tam ortasında sürati en büyüktür.'
+          },
+          {
+            soru: r`İğnenin en büyük sürati $\vartheta_\text{max} = \omega \times A$ kaç cm/s'dir?`,
+            secenekler: ['180 cm/s', '45 cm/s', '90 cm/s'],
+            dogru: 2,
+            ipucu: 'Genlik, uçtan uca uzaklığın yarısıdır: 2 cm\'nin yarısı.',
+            aciklama: r`$A = 1$ cm. $\vartheta_\text{max} = 90 \times 1 = 90$ cm/s. Uçtan uca uzaklığı genlik sanan biri 180 cm/s bulur.`
+          }
+        ],
+        sonuc: r`Önce bir saniyedeki salınım sayısından frekansı bul, sonra $\omega = 2\pi f$ değerini hesapla. Genlik uçtan uca uzaklığın yarısıdır. En büyük sürat denge noktasındadır ve $\omega \times A$'ya eşittir.`
+      }
+    ],
+    hazir: 'Genliği, periyodu ve frekansı, geri çağırıcı kuvveti, süratin ve ivmenin en büyük olduğu yerleri ve periyodun neye bağlı olduğunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -35704,6 +36304,113 @@ BFY_FIG_EKLE('kA41_dugum_genis', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.4.1 başlangıç şekilleri (sfA41_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f6fb8', KIR = '#d24b3e', TEL = '#2a3330', SU = '#e4f1f8', DAL = '#2a79ad';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 2.6) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 10, headW: 5 });
+const bg = (w, h, c = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${c}"/>`;
+const olcuH = (x1, x2, y, c = TEL) => `<g stroke="${c}" stroke-width="1.4"><line x1="${f1(x1)}" y1="${y}" x2="${f1(x2)}" y2="${y}"/><line x1="${f1(x1)}" y1="${y - 6}" x2="${f1(x1)}" y2="${y + 6}"/><line x1="${f1(x2)}" y1="${y - 6}" x2="${f1(x2)}" y2="${y + 6}"/></g>`;
+
+/* Adım 1: yandan su dalgası; tepe, çukur, dalga boyu */
+BFY_FIG_EKLE('sfA41_dalga', function (u) {
+  let s = bg(340, 210);
+  const y0 = 112, A = 26, lam = 120, x0 = 20, x1 = 320;
+  const yf = x => y0 - A * Math.cos(2 * Math.PI * (x - 80) / lam);
+  let su = `M${x0} 200`;
+  for (let x = x0; x <= x1; x += 2) su += ` L${x} ${f1(yf(x))}`;
+  su += ` L${x1} 200 Z`;
+  s += `<path d="${su}" fill="url(#${u}water)" opacity=".55"/>`;
+  let cz = `M${x0} ${f1(yf(x0))}`;
+  for (let x = x0 + 2; x <= x1; x += 2) cz += ` L${x} ${f1(yf(x))}`;
+  s += `<path d="${cz}" fill="none" stroke="${DAL}" stroke-width="2.6" stroke-linejoin="round"/>`;
+  s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y0}" stroke="#7e8f9a" stroke-width="1.2" stroke-dasharray="5 5"/>`;
+  // tepe (x = 80, 200), çukur (x = 140, 260)
+  s += yaz(70, y0 - A - 2, 'tepe', { anchor: 'end', fill: TEL });
+  s += yaz(140, y0 + A + 24, 'çukur', { anchor: 'middle', fill: '#fff', haloColor: DAL });
+  s += `<line x1="80" y1="${y0 - A}" x2="80" y2="34" stroke="${KIR}" stroke-width="1.2" stroke-dasharray="3 3"/><line x1="200" y1="${y0 - A}" x2="200" y2="34" stroke="${KIR}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  s += olcuH(80, 200, 34, KIR) + yaz(140, 28, 'λ (dalga boyu)', { anchor: 'middle', fill: KIR, weight: 800 });
+  s += ok(250, 60, 310, 60, MAV) + yaz(280, 50, 'ϑ', { anchor: 'middle', fill: MAV, size: 17, weight: 800, italic: true });
+  return svg(340, 210, s, u, 90);
+});
+
+/* Adım 2: üstten; geniş ve dar açıklıktan geçen doğrusal dalgalar */
+BFY_FIG_EKLE('sfA41_kirinim', function (u) {
+  let s = bg(340, 324);
+  const panel = (y0, gen, baslik) => {
+    const h = 130, yE = y0 + h / 2, xE = 110, lam = 20;
+    let t = `<rect x="12" y="${y0}" width="316" height="${h}" rx="8" fill="${SU}"/>`;
+    const kl = `${u}k${y0}`;
+    t += `<defs><clipPath id="${kl}"><rect x="12" y="${y0}" width="316" height="${h}" rx="8"/></clipPath></defs><g clip-path="url(#${kl})">`;
+    for (let x = 30; x < xE; x += lam) t += `<line x1="${x}" y1="${y0 + 6}" x2="${x}" y2="${y0 + h - 6}" stroke="${DAL}" stroke-width="2"/>`;
+    if (gen) {
+      for (let k = 1; k <= 9; k++) { const x = xE + k * lam - 6; const r = x - xE - 6, c = Math.cos(0.5), sn = Math.sin(0.5); t += `<line x1="${x}" y1="${yE - 46}" x2="${x}" y2="${yE + 46}" stroke="${DAL}" stroke-width="2"/><path d="M${x} ${yE - 46} A ${r} ${r} 0 0 0 ${f1(xE + 6 + r * c)} ${f1(yE - 46 - r * sn)}" fill="none" stroke="${DAL}" stroke-width="1.6" opacity=".55"/><path d="M${x} ${yE + 46} A ${r} ${r} 0 0 1 ${f1(xE + 6 + r * c)} ${f1(yE + 46 + r * sn)}" fill="none" stroke="${DAL}" stroke-width="1.6" opacity=".55"/>`; }
+    } else {
+      for (let k = 1; k <= 10; k++) { const r = k * lam - 6; t += `<path d="M${xE + 6} ${f1(yE - r)} A ${r} ${r} 0 0 1 ${xE + 6} ${f1(yE + r)}" fill="none" stroke="${DAL}" stroke-width="2"/>`; }
+    }
+    t += `</g>`;
+    const ac = gen ? 46 : 7;
+    t += `<rect x="${xE - 6}" y="${y0}" width="12" height="${h / 2 - ac}" fill="#8a949b"/><rect x="${xE - 6}" y="${yE + ac}" width="12" height="${h / 2 - ac}" fill="#8a949b"/>`;
+    t += yaz(20, y0 - 8, baslik, { fill: TEL });
+    return t;
+  };
+  s += panel(28, true, 'geniş açıklık: dalgalar düz geçer');
+  s += panel(186, false, 'dar açıklık: dalgalar yayılır');
+  return svg(340, 324, s, u, 90);
+});
+
+/* Adım 4: lazer, çift yarık, perdede saçaklar */
+BFY_FIG_EKLE('sfA41_yarik', function (u) {
+  let s = bg(340, 230);
+  const yM = 112;
+  // lazer
+  s += `<rect x="14" y="${yM - 14}" width="54" height="28" rx="5" fill="url(#${u}metal)" stroke="#6d777f" stroke-width="1.2"/><rect x="68" y="${yM - 5}" width="8" height="10" fill="#55606a"/>`;
+  s += yaz(41, yM + 36, 'lazer', { anchor: 'middle', fill: TEL });
+  s += `<line x1="76" y1="${yM}" x2="128" y2="${yM}" stroke="${KIR}" stroke-width="3" opacity=".85"/>`;
+  // çift yarık levhası
+  const xs = 132, d = 12;
+  s += `<rect x="${xs - 4}" y="38" width="8" height="${yM - d - 3 - 38}" fill="#55606a"/><rect x="${xs - 4}" y="${yM - d + 3}" width="8" height="${2 * d - 6}" fill="#55606a"/><rect x="${xs - 4}" y="${yM + d + 3}" width="8" height="${186 - yM - d - 3}" fill="#55606a"/>`;
+  s += yaz(xs, 206, 'çift yarık', { anchor: 'middle', fill: TEL });
+  // yelpaze
+  s += `<path d="M${xs + 4} ${yM - d} L276 46 L276 178 L${xs + 4} ${yM + d} Z" fill="${KIR}" opacity=".10"/>`;
+  // perde ve saçaklar
+  const xp = 282;
+  s += `<rect x="${xp}" y="34" width="14" height="156" fill="#f7f4ec" stroke="#9aa6ae" stroke-width="1.2"/>`;
+  for (let i = -5; i <= 5; i++) {
+    const y = yM + i * 14, I = Math.pow(Math.cos(Math.PI * i / 2), 2);
+    if (I > 0.5) s += `<rect x="${xp + 1}" y="${y - 4}" width="12" height="8" fill="${KIR}" opacity="${f1(1 - Math.abs(i) * 0.12)}"/>`;
+  }
+  s += yaz(xp + 7, 206, 'perde', { anchor: 'middle', fill: TEL });
+  s += yaz(xp - 8, yM + 5, 'merkez', { anchor: 'end', fill: KIR });
+  // L ölçüsü
+  s += olcuH(xs, xp, 24, P.ink2) + yaz((xs + xp) / 2, 18, 'L', { anchor: 'middle', fill: P.ink2, size: 16, weight: 800, italic: true });
+  return svg(340, 230, s, u, 90);
+});
+
+/* Adım 5: sağa giden kaynak; önde sıkışan, arkada seyrelen tepeler */
+BFY_FIG_EKLE('sfA41_doppler', function (u) {
+  let s = bg(340, 240);
+  const y = 112, xS = 196, v = 18, lam = 30; // kaynak x = xS; k adım önce üretilen tepe: merkez xS − k×v, yarıçap k×lam
+  let hl = '';
+  for (let k = 1; k <= 5; k++) hl += `<circle cx="${xS - k * v}" cy="${y}" r="${k * lam}" fill="none" stroke="${DAL}" stroke-width="1.8" opacity="${f1(1 - k * 0.1)}"/>`;
+  s += `<defs><clipPath id="${u}dk"><rect x="0" y="0" width="340" height="240" rx="14"/></clipPath></defs><g clip-path="url(#${u}dk)">${hl}</g>`;
+  // kaynak: küçük yarış arabası (yandan)
+  s += `<g transform="translate(${xS} ${y})"><path d="M-20 4 L-17 -6 L-6 -8 L2 -14 L12 -14 L18 -6 L22 -4 L22 4 Z" fill="${KIR}" stroke="#8e2a20" stroke-width="1"/><rect x="2" y="-12" width="9" height="5" fill="#cfe5f4"/><circle cx="-11" cy="5" r="5" fill="#2a3330"/><circle cx="14" cy="5" r="5" fill="#2a3330"/></g>`;
+  s += ok(xS - 10, y + 42, xS + 30, y + 42, KIR) + yaz(xS + 10, y + 64, 'kaynak', { anchor: 'middle', fill: KIR });
+  // dinleyiciler
+  const kisi = (x, ad) => `<circle cx="${x}" cy="${y - 10}" r="6" fill="url(#${u}skin)" stroke="#a5755a" stroke-width=".8"/><path d="M${x - 6} ${y + 14} L${x - 5} ${y - 2} Q${x} ${y - 5} ${x + 5} ${y - 2} L${x + 6} ${y + 14} Z" fill="#5b6f84"/>` + yaz(x, y - 22, ad, { anchor: 'middle', size: 16, weight: 800 });
+  s += kisi(318, 'X') + kisi(22, 'Y');
+  s += yaz(318, 200, 'tiz', { anchor: 'middle', fill: TEL }) + yaz(318, 218, '(yüksek f)', { anchor: 'end', fill: P.ink2 });
+  s += yaz(22, 200, 'kalın', { anchor: 'start', fill: TEL }) + yaz(22, 218, '(düşük f)', { anchor: 'start', fill: P.ink2 });
+  return svg(340, 240, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -35764,6 +36471,189 @@ const KONU = {
     'iki ayrı motorlu kaynak, farklı dalga boyları: frekans, üst üste binme, kararlı düğüm çizgisi yok', 'ambulans sireni ve otomobildeki Selin: yüksek frekans duyuluyor; kaynağın hareketi, dalga boyu, uzaklığın azalması (kesinlikle)',
     "dalga leğeninde aynı aralıklı iki kaynak: 1. deney 6 düğüm çizgisi (λ = d/3), 2. deney 4 düğüm çizgisi (λ = d/2); genlik, frekans, derinlik (olabilir, yorumlama eki)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda dalgaların üç önemli davranışını göreceğiz: dar bir açıklıktan geçerken yayılmaları (kırınım), karşılaşınca birbirini güçlendirmeleri ya da söndürmeleri (girişim) ve hareket eden bir kaynağın sesinin neden farklı duyulduğu (Doppler olayı). Bu konuda hesap az, yorum çoktur. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Dalganın dili: tepe, çukur, dalga boyu',
+        sekil: 'sfA41_dalga',
+        metin: r`Durgun bir göle taş atınca yüzeyde halkalar yayılır. Su yüzeyinin yükselen yerlerine **tepe**, alçalan yerlerine **çukur** denir.
+
+- Art arda iki tepe arasındaki uzaklık **dalga boyudur** ($\lambda$).
+- Kaynağın bir saniyede ürettiği dalga sayısı **frekanstır** ($f$). Frekansı kaynak belirler.
+- Dalganın sürati ($\vartheta$) ortama bağlıdır. Su dalgaları derin suda hızlı, sığ suda yavaş gider.
+- Üçü arasındaki ilişki: $\lambda = \dfrac{\vartheta}{f}$.
+
+Sürati 30 cm/s, frekansı 3 Hz olan su dalgalarında dalga boyu $30 \div 3 = 10$ cm'dir.`,
+        kontrol: {
+          soru: 'Sürati 20 cm/s, frekansı 4 Hz olan su dalgalarının dalga boyu kaç cm\'dir?',
+          secenekler: ['80 cm', '5 cm', '16 cm'],
+          dogru: 1,
+          aciklama: r`$\lambda = \dfrac{\vartheta}{f} = \dfrac{20}{4} = 5$ cm. İki tepe arası 5 cm'dir.`,
+          yanlisIpucu: 'Dalga boyu, süratin frekansa bölümüdür. Çarpma ya da çıkarma değil, bölme yap.'
+        }
+      },
+      {
+        baslik: 'Kırınım: dar açıklıktan yayılma',
+        sekil: 'sfA41_kirinim',
+        metin: r`Bir koridorun köşesini dönmeden önce arkadaşının sesini duyarsın ama onu göremezsin. Ses dalgaları köşenin arkasına yayılabilir. Dalgaların bir engelin kenarından ya da bir açıklıktan geçince yayılma doğrultularının genişlemesine **kırınım** denir.
+
+- Açıklık dalga boyuna göre genişse dalgalar büyük ölçüde düz geçer.
+- Açıklık dalga boyu kadar ya da daha darsa dalgalar açıklığın arkasında yarım daireler hâlinde yayılır. Kırınım belirgindir.
+- Kırınımda dalga boyu, frekans ve sürat değişmez. Yalnız yayılma doğrultusu genişler.
+
+Sesin dalga boyu metre düzeyindedir, ışığınki ise milimetrenin binde birinden de küçüktür. Bu yüzden ses köşeleri kolayca dolanır, ışıkta kırınımı görmek için çok dar bir yarık gerekir.`,
+        kontrol: {
+          soru: 'Su dalgalarının geçtiği bir açıklıkta kırınımı daha belirgin yapmak için hangisi yapılmalıdır?',
+          secenekler: ['Açıklık genişletilmelidir.', 'Dalgaların genliği artırılmalıdır.', 'Açıklık daraltılmalıdır.'],
+          dogru: 2,
+          aciklama: 'Kırınım, açıklık dalga boyuna göre dar olduğunda belirgindir. Açıklığı daraltmak kırınımı artırır. Genlik dalgaların yüksekliğidir; yayılma doğrultusunu değiştirmez.',
+          yanlisIpucu: 'Kırınımı belirleyen, açıklığın dalga boyuna göre ne kadar dar olduğudur.'
+        }
+      },
+      {
+        baslik: 'Girişim: dalgalar üst üste gelince',
+        metin: r`İki dalga aynı noktada karşılaşınca o noktadaki uzanımlar toplanır. Buna **girişim** denir.
+
+- Tepe ile tepe ya da çukur ile çukur buluşursa dalgalar birbirini güçlendirir. Genlikleri 1 cm olan iki tepe buluşunca su 2 cm yükselir.
+- Tepe ile çukur buluşursa dalgalar birbirini söndürür. Genlikler eşitse o noktada su durgun kalır.
+- Su yüzeyinde aynı anda titreşen iki kaynak varsa en çok titreşen noktalar bir çizgi boyunca sıralanır; bu çizgiye **katar çizgisi** denir. Sürekli durgun kalan noktaların oluşturduğu çizgiye **düğüm çizgisi** denir.
+
+Girişimden sonra dalgalar yollarına bozulmadan devam eder. Dalgalar birbirini yok etmez; yalnız karşılaştıkları noktada uzanımlar toplanır.`,
+        kontrol: {
+          soru: 'Genliği 3 cm olan iki su dalgasından birinin tepesi ile öbürünün çukuru aynı noktada buluşuyor. O noktada su yüzeyinin uzanımı kaç cm olur?',
+          secenekler: ['0', '6 cm', '3 cm'],
+          dogru: 0,
+          aciklama: r`Tepe $+3$ cm, çukur $-3$ cm uzanım demektir. Toplam: $3 + (-3) = 0$. O noktada su durgun görünür.`,
+          yanlisIpucu: 'Tepeyi artı, çukuru eksi uzanım olarak düşün ve ikisini topla.'
+        }
+      },
+      {
+        baslik: 'Işıkta çift yarık deneyi',
+        sekil: 'sfA41_yarik',
+        metin: r`Işık da bir dalgadır. Bunu gösteren en ünlü deney Young'ın çift yarık deneyidir. Tek renkli ışık birbirine çok yakın iki dar yarıktan geçer ve karşıdaki perdeye düşer.
+
+- Perdede aydınlık ve karanlık şeritler (**saçaklar**) sıralanır. Aydınlık saçaklarda iki yarıktan gelen ışıklar birbirini güçlendirir, karanlıklarda söndürür.
+- Perdenin tam ortasında her zaman aydınlık saçak vardır. Oraya iki yarıktan gelen ışık eşit yol alır.
+- Saçak genişliği ışığın dalga boyu ($\lambda$) ve perde uzaklığı ($L$) arttıkça artar; yarıklar arası uzaklık ($d$) arttıkça azalır: $\Delta x \propto \dfrac{\lambda \times L}{d}$.
+
+Işık yalnız düz giden tanecikler gibi davransaydı perdede yarıkların karşısında iki aydınlık bölge görülürdü. Aydınlık ve karanlık saçakların art arda sıralanması, ışığın dalga gibi davrandığını gösterir.`,
+        kontrol: {
+          soru: 'Çift yarık deneyinde ışık ve perde aynı bırakılıp yarıklar arası uzaklık artırılıyor. Saçaklar nasıl değişir?',
+          secenekler: ['Genişler.', 'Daralır.', 'Değişmez.'],
+          dogru: 1,
+          aciklama: r`Saçak genişliği $d$ ile ters orantılıdır. Yarıklar arası uzaklık artınca saçaklar daralır. Merkezi aydınlık yine perdenin ortasında kalır.`,
+          yanlisIpucu: r`$\Delta x \propto \dfrac{\lambda \times L}{d}$ bağıntısında $d$ kesrin payında mı, paydasında mı?`
+        }
+      },
+      {
+        baslik: 'Doppler olayı: yaklaşan ses tizleşir',
+        sekil: 'sfA41_doppler',
+        metin: r`Bir yarış arabası yanından geçerken motor sesi önce tiz (ince), geçtikten sonra kalın duyulur. Bunun nedeni **Doppler olayıdır**.
+
+- Hareket eden kaynak her tepeyi bir öncekinden biraz ileride üretir. Önündeki tepeler sıkışır, arkasındakiler seyrelir.
+- Kaynağın önündeki dinleyiciye dalgalar daha sık ulaşır; yüksek frekans (tiz ses) duyar. Arkadaki dinleyici düşük frekans (kalın ses) duyar.
+- Kısa yol: Kaynakla dinleyici arasındaki uzaklık azalıyorsa duyulan frekans büyür, artıyorsa küçülür, değişmiyorsa aynı kalır.
+- Dalganın havadaki sürati kaynağın hareketiyle değişmez. Değişen, dinleyicinin algıladığı frekanstır.`,
+        kontrol: {
+          soru: 'Şekildeki kaynak sağa doğru gidiyor. Kaynağın arkasında, solda duran Y dinleyicisi sesi nasıl duyar?',
+          secenekler: ['Kaynağın gerçek frekansından düşük frekansta (kalın).', 'Kaynağın gerçek frekansından yüksek frekansta (tiz).', 'Kaynağın gerçek frekansıyla aynı.'],
+          dogru: 0,
+          aciklama: 'Kaynak Y\'den uzaklaşıyor. Arkadaki tepeler seyrelir, Y\'ye daha seyrek ulaşır. Y düşük frekans, yani kalın ses duyar.',
+          yanlisIpucu: 'Kaynak ile Y arasındaki uzaklık artıyor mu, azalıyor mu? Uzaklık artarken duyulan frekans küçülür.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Su kanalındaki açıklık',
+        metin: 'Bir mühendislik fakültesinin liman modeli laboratuvarında sığ ve uzun bir su kanalı var. Kanalın bir ucundaki motorlu kürek saniyede 2 dalga üretiyor. Dalgaların sürati 60 cm/s\'dir. Kanalın ortasında, iki model dalgakıran arasında 30 cm genişliğinde bir açıklık bırakılmıştır.',
+        adimlar: [
+          {
+            soru: 'Dalgaların dalga boyu kaç cm\'dir?',
+            secenekler: ['120 cm', '30 cm', '15 cm'],
+            dogru: 1,
+            ipucu: r`$\lambda = \dfrac{\vartheta}{f}$. Saniyede 2 dalga, frekansın 2 Hz olduğu anlamına gelir.`,
+            aciklama: r`$\lambda = \dfrac{60}{2} = 30$ cm.`
+          },
+          {
+            soru: 'Dalgalar açıklıktan geçince nasıl yayılır?',
+            secenekler: ['Açıklığın arkasında yarım daireler hâlinde, belirgin kırınımla.', 'Hiç yayılmadan, açıklık genişliğinde düz bir şerit hâlinde.', 'Açıklığın arkasına hiç geçemez.'],
+            dogru: 0,
+            ipucu: 'Açıklığın genişliğini dalga boyuyla karşılaştır. Açıklık dalga boyu kadarsa kırınım belirgin midir?',
+            aciklama: 'Açıklık (30 cm) dalga boyuna (30 cm) eşittir. Açıklık yeni bir kaynak gibi davranır ve dalgalar arkasında yarım daireler hâlinde yayılır.'
+          },
+          {
+            soru: 'Kürek saniyede 4 dalga üretecek biçimde hızlandırılıyor. Dalga boyu ve kırınım nasıl değişir?',
+            secenekler: ['Dalga boyu 60 cm olur, kırınım artar.', 'Dalga boyu 15 cm olur, kırınım azalır.', 'Dalga boyu değişmez, kırınım değişmez.'],
+            dogru: 1,
+            ipucu: 'Sürati ortam belirler, frekansı kaynak. Frekans 2 katına çıkınca dalga boyu ne olur?',
+            aciklama: r`Aynı suda sürat yine 60 cm/s'dir. $\lambda = \dfrac{60}{4} = 15$ cm. Açıklık artık dalga boyunun 2 katıdır; dalgalar daha düz geçer, kırınım azalır.`
+          }
+        ],
+        sonuc: 'Kırınımı açıklık ile dalga boyunun karşılaştırması belirler. Aynı ortamda frekans artınca dalga boyu kısalır ve aynı açıklıkta kırınım azalır.'
+      },
+      {
+        baslik: 'Kırmızı lazerle çift yarık',
+        metin: 'Bir laboratuvarda kırmızı lazer ışığı çift yarıktan geçirilip karşıdaki duvara düşürülüyor. Duvarda art arda sıralanan aydınlık ve karanlık saçaklar görülüyor. Her adımda yalnız söylenen değişiklik yapılıyor, öteki her şey ilk düzenekteki gibi kalıyor.',
+        adimlar: [
+          {
+            soru: 'Lazer yarıklara biraz yaklaştırılırsa saçaklar nasıl değişir?',
+            secenekler: ['Genişler.', 'Daralır.', 'Değişmez.'],
+            dogru: 2,
+            ipucu: r`Saçak genişliği $\lambda$, $L$ ve $d$ niceliklerine bağlıdır. $L$, yarıklar ile duvar arasındaki uzaklıktır. Lazerin yeri bunlardan birini değiştirir mi?`,
+            aciklama: r`Işığın dalga boyu, yarıklar arası uzaklık ve yarıklar ile duvar arasındaki uzaklık değişmez. Bu yüzden saçaklar da değişmez. $L$, lazer ile yarıklar arasındaki uzaklık değildir.`
+          },
+          {
+            soru: 'Yarıklar arası uzaklık artırılırsa desenin tam ortasındaki saçak için hangisi doğrudur?',
+            secenekler: ['Karanlık saçağa dönüşür.', 'Bir yana kayar.', 'Yine aydınlıktır ve yerinden kaymaz.'],
+            dogru: 2,
+            ipucu: 'Desenin tam ortasına iki yarıktan gelen ışıklar eşit yol alır. Yarıklar arası uzaklık değişince bu eşitlik bozulur mu?',
+            aciklama: r`Orta noktaya iki yarıktan gelen ışıkların yolları yine eşittir. Merkezi aydınlık yerinde kalır. Değişen, saçakların genişliğidir: $d$ artınca saçaklar daralır.`
+          },
+          {
+            soru: 'Kırmızı lazer yerine mor lazer kullanılırsa saçaklar nasıl değişir?',
+            secenekler: ['Genişler.', 'Daralır.', 'Değişmez, yalnız renk değişir.'],
+            dogru: 1,
+            ipucu: 'Görünür ışıkta kırmızının dalga boyu en uzun, morunki en kısadır.',
+            aciklama: r`Mor ışığın dalga boyu kırmızınınkinden kısadır. Saçak genişliği $\lambda$ ile orantılı olduğu için saçaklar daralır.`
+          }
+        ],
+        sonuc: r`Çift yarıkta saçak genişliği $\lambda$ ve $L$ ile artar, $d$ ile azalır. Merkezi aydınlık ise her durumda desenin tam ortasında kalır. Lazerin yarıklara uzaklığı saçakları değiştirmez.`
+      },
+      {
+        baslik: 'Sabit hızla uçan drone',
+        metin: 'Bir parkta Elif yerde duruyor. Pervaneleri sabit frekanslı bir uğultu çıkaran bir drone, alçaktan ve sabit hızla doğrusal bir yolda uçuyor. Önce Elif\'e yaklaşıyor, yanından geçiyor, sonra uzaklaşıyor. Hava durgundur.',
+        adimlar: [
+          {
+            soru: 'Drone yaklaşırken Elif uğultuyu hangi frekansta duyar?',
+            secenekler: ['Drone\'un gerçek frekansından yüksek.', 'Drone\'un gerçek frekansından düşük.', 'Drone\'un gerçek frekansıyla aynı.'],
+            dogru: 0,
+            ipucu: 'Aradaki uzaklık azalıyor. Uzaklık azalırken duyulan frekans büyür mü, küçülür mü?',
+            aciklama: 'Drone yaklaşırken aradaki uzaklık azalır. Tepeler Elif\'e daha sık ulaşır; Elif yüksek frekans duyar.'
+          },
+          {
+            soru: 'Drone uzaklaşırken Elif\'in duyduğu frekans nasıldır?',
+            secenekler: ['Yaklaşırkenki ile aynı.', 'Drone\'un gerçek frekansından düşük.', 'Drone\'un gerçek frekansından yüksek.'],
+            dogru: 1,
+            ipucu: 'Bu kez aradaki uzaklık artıyor.',
+            aciklama: 'Uzaklık artarken tepeler seyrelir. Elif gerçek frekanstan düşük, kalın bir uğultu duyar.'
+          },
+          {
+            soru: 'Can, bisikletiyle drone\'un hemen altında, onunla aynı yönde ve aynı hızla gidiyor. Can uğultuyu hangi frekansta duyar?',
+            secenekler: ['Drone\'un gerçek frekansından yüksek.', 'Drone\'un gerçek frekansından düşük.', 'Drone\'un gerçek frekansıyla aynı.'],
+            dogru: 2,
+            ipucu: 'Can ile drone arasındaki uzaklık değişiyor mu?',
+            aciklama: 'Can ile drone arasındaki uzaklık değişmez. Bu yüzden Can, drone\'un gerçek frekansını duyar. Doppler olayında önemli olan, kaynak ile dinleyici arasındaki uzaklığın değişmesidir.'
+          }
+        ],
+        sonuc: 'Doppler olayında tek soruyu sor: Kaynak ile dinleyici arasındaki uzaklık azalıyor mu, artıyor mu, sabit mi? Azalıyorsa frekans yüksek, artıyorsa düşük, sabitse aynı duyulur.'
+      }
+    ],
+    hazir: 'Dalga boyunu, kırınımı, girişimi, çift yarık deneyini ve Doppler olayını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
