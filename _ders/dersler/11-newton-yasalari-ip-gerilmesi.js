@@ -1,32 +1,38 @@
-// 11. sınıf, Kuvvet ve Hareket: Newton’ın hareket yasaları ve ip gerilmesi (yaklaşık 20 dakikalık video)
-// TYMM FİZ.11.1.4 (Newton’ın hareket yasaları) ve FİZ.11.1.5 (serbest cisim diyagramıyla yorum: ip gerilmesi, bağlı cisimler).
-// Sınırlama: sabit ivmeli hareket, aynı ivmeli bağlı cisimler; sürtünme yok (sürtünme FİZ.11.1.6). g = 10 m/s².
+// 11. sınıf, Kuvvet ve Hareket: Newton’ın hareket yasaları (yaklaşık 20 dakikalık video)
+// Akış: üç yasa toplu → serbest cisim diyagramı → temel yasa örnekleri ve ip gerilmeleri → etki-tepki (kütle çekimi, masadaki kitap, yan yana itilen kutular).
+// TYMM FİZ.11.1.4 (Newton’ın hareket yasaları) ve FİZ.11.1.5 (serbest cisim diyagramıyla yorum).
+// Sınırlama: sabit ivmeli hareket, aynı ivmeli bağlı cisimler; sürtünme yok (FİZ.11.1.6). g = 10 m/s².
 module.exports = {
   slug: '11-newton-yasalari-ip-gerilmesi',
-  baslik: '11. Sınıf Fizik: Newton’ın Hareket Yasaları ve İp Gerilmesi',
-  dersAdi: '11. sınıf, Newton’ın yasaları ve ip gerilmesi',
+  baslik: '11. Sınıf Fizik: Newton’ın Hareket Yasaları, İp Gerilmesi ve Etki-Tepki',
+  dersAdi: '11. sınıf, Newton’ın hareket yasaları',
   slaytlar: (k) => {
     const G = '#244f40', N = '#1d3b8f', T = '#b06a3b', F = '#7a3e9d', V = k.V;
     const yaz = (x, y, t, r = '#173430', a = 'middle', s = 22, w = 700) => `<text x="${x}" y="${y}" font-size="${s}" font-weight="${w}" fill="${r}" text-anchor="${a}">${t}</text>`;
+    const gz = (ad, ic) => `<g class="vek gizli" data-ad="${ad}">${ic}</g>`;
     const zemin = (x1, x2, y) => `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="14" fill="#cfc9ba"/>`;
     const tavan = (x1, x2) => `<rect x="${x1}" y="20" width="${x2 - x1}" height="16" fill="#cfc9ba"/>`;
     const ip = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#6b7d76" stroke-width="3"/>`;
 
-    // 2. yasa: kutu, F ve a
-    const s2 = k.svg(460, 290,
-      zemin(20, 440, 200) + yaz(440, 240, 'sürtünmesiz zemin', '#6b7d76', 'end', 18, 600) +
-      k.kutu(190, 165, 70, 'm') +
-      k.ok({ x1: 225, y1: 165, x2: 360, y2: 165, ad: 'F', renk: T, etiket: 'F', ex: 0, ey: -16 }) +
-      k.ok({ x1: 150, y1: 92, x2: 240, y2: 92, ad: 'a', renk: F, kalin: 3, etiket: 'a', ex: 18, ey: 8, gizli: true }));
+    // Serbest cisim diyagramı: iple çekilen kutu ve ayrılmış hâli
+    const sS = k.svg(560, 400,
+      zemin(10, 250, 260) + k.kutu(90, 230, 60, '') + ip(120, 230, 240, 230) + yaz(240, 215, 'ip', '#6b7d76', 'end', 20) +
+      yaz(130, 310, 'Durum', '#6b7d76', 'middle', 18, 600) +
+      `<line x1="275" y1="40" x2="275" y2="380" stroke="#d9e2da" stroke-width="2" stroke-dasharray="6 6"/>` +
+      k.kutu(410, 220, 64, '') +
+      k.ok({ x1: 410, y1: 220, x2: 410, y2: 345, ad: 'G', renk: G, etiket: 'G', ex: 24, ey: 0, gizli: true }) +
+      k.ok({ x1: 410, y1: 220, x2: 410, y2: 95, ad: 'N', renk: N, etiket: 'N', ex: 24, ey: 14, gizli: true }) +
+      k.ok({ x1: 442, y1: 220, x2: 545, y2: 220, ad: 'T', renk: T, etiket: 'T', ex: -10, ey: -16, gizli: true }) +
+      yaz(410, 392, 'Serbest cisim diyagramı', '#6b7d76', 'middle', 18, 600));
 
-    // 3. yasa: A ve B kutuları, el A’yı itiyor
-    const s3 = k.svg(460, 290,
-      zemin(20, 440, 200) +
-      k.kutu(170, 165, 70, 'A') + k.kutu(240, 165, 70, 'B') +
-      k.ok({ x1: 40, y1: 165, x2: 132, y2: 165, ad: 'itme', renk: '#6b7d76', kalin: 4, etiket: 'itme', ex: -50, ey: -16 }) +
-      k.ok({ x1: 240, y1: 112, x2: 335, y2: 112, ad: 'AB', renk: T, kalin: 4, etiket: 'F<sub>AB</sub>', ex: -48, ey: -14, gizli: true }) +
-      k.ok({ x1: 170, y1: 112, x2: 75, y2: 112, ad: 'BA', renk: N, kalin: 4, etiket: 'F<sub>BA</sub>', ex: 48, ey: -14, gizli: true }) +
-      `<g class="vek gizli" data-ad="AB">${yaz(287, 56, 'B’ye etki eder', T, 'middle', 17, 600)}</g><g class="vek gizli" data-ad="BA">${yaz(122, 56, 'A’ya etki eder', N, 'middle', 17, 600)}</g>`);
+    // Temel yasa örneği: 5 kg kutu, 40 N sağa, 15 N sola (4 px/N yatayda)
+    const sT = k.svg(520, 420,
+      zemin(20, 500, 250) + k.kutu(260, 215, 70, '') + yaz(302, 172, '5 kg', '#173430', 'start') +
+      k.ok({ x1: 295, y1: 215, x2: 455, y2: 215, ad: 'F1', renk: T, etiket: '40 N', ex: -10, ey: -16 }) +
+      k.ok({ x1: 225, y1: 215, x2: 165, y2: 215, ad: 'F2', renk: F, etiket: '15 N', ex: 0, ey: -16 }) +
+      k.ok({ x1: 260, y1: 215, x2: 260, y2: 50, ad: 'N', renk: N, etiket: 'N', ex: 24, ey: 14, gizli: true }) +
+      k.ok({ x1: 260, y1: 215, x2: 260, y2: 380, ad: 'G', renk: G, etiket: 'G', ex: 24, ey: 0, gizli: true }) +
+      yaz(500, 292, 'sürtünmesiz zemin', '#6b7d76', 'end', 18, 600));
 
     // İp gerilmesi: tavana asılı kutu
     const s4 = k.svg(340, 380,
@@ -42,7 +48,7 @@ module.exports = {
       k.ok({ x1: 150, y1: 250, x2: 150, y2: 196, ad: 'T2', renk: T, kalin: 4, etiket: 'T<sub>2</sub>', ex: -26, ey: 14, gizli: true }) +
       k.ok({ x1: 170, y1: 320, x2: 170, y2: 392, ad: 'G2', renk: G, kalin: 4, etiket: '30 N', ex: 42, ey: -4, gizli: true }));
 
-    // Yatay düzlemde iki kutu (A 2 kg, B 3 kg, F = 20 N B’ye sağa)
+    // Yatay düzlemde iple bağlı iki kutu (A 2 kg, B 3 kg, F = 20 N B’ye sağa)
     const s6 = k.svg(460, 230,
       zemin(10, 450, 170) +
       k.kutu(95, 135, 70, 'A') + k.kutu(285, 135, 70, 'B') + ip(130, 135, 250, 135) +
@@ -62,60 +68,64 @@ module.exports = {
       k.ok({ x1: 360, y1: 332, x2: 360, y2: 412, ad: 'GB', renk: G, kalin: 4, etiket: 'G', ex: 22, ey: -6, gizli: true }) +
       k.ok({ x1: 450, y1: 250, x2: 450, y2: 330, ad: 'aB', renk: F, kalin: 3, etiket: 'a', ex: -16, ey: 30, gizli: true }));
 
-    // Üç kutu: K 3 kg, L 2 kg, M 1 kg, F = 12 N M’ye sağa
-    const s8 = k.svg(500, 220,
-      zemin(10, 490, 160) +
-      k.kutu(55, 132, 56, 'K') + ip(83, 132, 167, 132) + k.kutu(195, 132, 56, 'L') + ip(223, 132, 307, 132) + k.kutu(335, 132, 56, 'M') +
-      k.ok({ x1: 363, y1: 132, x2: 480, y2: 132, ad: 'F', renk: F, etiket: '12 N', ex: -22, ey: -16 }) +
-      yaz(125, 118, '1. ip', '#6b7d76', 'middle', 19, 600) + yaz(265, 118, '2. ip', '#6b7d76', 'middle', 19, 600) +
-      yaz(55, 204, '3 kg') + yaz(195, 204, '2 kg') + yaz(335, 204, '1 kg'));
+    // Kütle çekimi: Dünya ve elma
+    const sK = k.svg(400, 420,
+      `<circle cx="200" cy="580" r="280" fill="#9fc5b4" stroke="#244f40" stroke-width="3"/>` + yaz(200, 395, 'Dünya', '#244f40', 'middle', 24, 800) +
+      `<circle cx="200" cy="80" r="24" fill="#c4473a"/><path d="M200 57 q8 -14 20 -10" stroke="#244f40" stroke-width="4" fill="none"/>` + yaz(240, 88, 'elma', '#6b7d76', 'start', 20, 600) +
+      k.ok({ x1: 188, y1: 104, x2: 188, y2: 210, ad: 'de', renk: G, kalin: 5, etiket: 'F', ex: -22, ey: 0, gizli: true }) +
+      gz('de', yaz(170, 160, 'Dünya’nın elmaya', G, 'end', 17, 600)) +
+      k.ok({ x1: 212, y1: 330, x2: 212, y2: 224, ad: 'ed', renk: T, kalin: 5, etiket: 'F', ex: 22, ey: 14, gizli: true }) +
+      gz('ed', yaz(232, 280, 'elmanın Dünya’ya', T, 'start', 17, 600)));
+
+    // Masadaki kitap: G, N ve tepkileri
+    const sM = k.svg(440, 370, `<g transform="translate(-40,-100)">` +
+      `<rect x="40" y="420" width="440" height="50" fill="#d8cfb8"/>` + yaz(470, 455, 'Dünya', '#6b7d76', 'end', 20, 800) +
+      `<rect x="60" y="230" width="300" height="18" fill="#cfc9ba"/><rect x="80" y="248" width="12" height="172" fill="#cfc9ba"/><rect x="328" y="248" width="12" height="172" fill="#cfc9ba"/>` +
+      yaz(320, 400, 'masa', '#6b7d76', 'end', 18, 600) +
+      `<rect x="160" y="192" width="100" height="38" rx="4" fill="#e9a774" stroke="#b06a3b" stroke-width="3"/>` + yaz(150, 218, 'kitap', '#173430', 'end', 18) +
+      k.ok({ x1: 188, y1: 211, x2: 188, y2: 305, ad: 'G', renk: G, kalin: 5, etiket: 'G', ex: -22, ey: 0, gizli: true }) +
+      k.ok({ x1: 232, y1: 211, x2: 232, y2: 117, ad: 'N', renk: N, kalin: 5, etiket: 'N', ex: 22, ey: 14, gizli: true }) +
+      k.ok({ x1: 252, y1: 240, x2: 252, y2: 334, ad: 'N2', renk: '#5b6fb5', kalin: 5, etiket: 'N′', ex: 24, ey: 0, gizli: true }) +
+      k.ok({ x1: 420, y1: 420, x2: 420, y2: 326, ad: 'G2', renk: '#4f8a73', kalin: 5, etiket: 'G′', ex: 26, ey: 14, gizli: true }) + `</g>`);
+
+    // Yan yana itilen iki kutu: A 2 kg, B 3 kg, F = 20 N A’ya sağa
+    const sY = k.svg(360, 260,
+      zemin(10, 350, 190) + k.kutu(150, 158, 64, 'A') + k.kutu(224, 148, 84, 'B') +
+      k.ok({ x1: 16, y1: 158, x2: 114, y2: 158, ad: 'F', renk: F, etiket: '20 N', ex: -50, ey: -16 }) +
+      k.ok({ x1: 224, y1: 80, x2: 312, y2: 80, ad: 'AB', renk: T, kalin: 4, etiket: 'F<sub>AB</sub>', ex: -44, ey: -14, gizli: true }) +
+      k.ok({ x1: 150, y1: 80, x2: 66, y2: 80, ad: 'BA', renk: N, kalin: 4, etiket: 'F<sub>BA</sub>', ex: 42, ey: -14, gizli: true }) +
+      gz('AB', yaz(268, 32, 'B’ye etki eder', T, 'middle', 17, 600)) + gz('BA', yaz(108, 32, 'A’ya etki eder', N, 'middle', 17, 600)) +
+      yaz(150, 234, '2 kg') + yaz(224, 234, '3 kg'));
 
     return [
-      k.kapak({ etiket: '11. SINIF FİZİK, KUVVET VE HAREKET', baslik: 'Newton’ın yasaları ve ip gerilmesi.', vurgu: 'Üç yasa, bir ip.', aciklama: 'Eylemsizlik, F = m · a, etki-tepki ve iple bağlı cisimlerde gerilme kuvveti.' }),
+      k.kapak({ etiket: '11. SINIF FİZİK, KUVVET VE HAREKET', baslik: 'Newton’ın hareket yasaları.', vurgu: 'Üç yasa, ip ve etki-tepki.', aciklama: 'Önce üç yasa, sonra serbest cisim diyagramıyla temel yasa ve ip gerilmeleri, en son etki-tepki örnekleri.' }),
       k.konu({
-        etiket: '1. YASA', kod: 'FİZ.11.1.4', baslik: 'Eylemsizlik',
+        etiket: 'ÜÇ YASA', kod: 'FİZ.11.1.4', baslik: 'Newton’ın üç hareket yasası',
+        giris: 'Dinamiğin bütün soruları bu üç yasayla çözülür.',
         maddeler: [
-          'Otobüs aniden fren yapınca yolcular öne doğru savrulur. Onları öne iten bir kuvvet yok.',
-          'Masa örtüsü hızla çekilince üstündeki tabaklar yerinde kalır.',
-          'Cisimlerin hareket durumlarını koruma eğilimine <b>eylemsizlik</b> denir.',
-          '<b>1. yasa:</b> Net kuvvet sıfırsa duran cisim durmaya, hareket eden cisim sabit hızla doğrusal hareketine devam eder.',
-          { formul: 'ΣF = 0 ise a = 0', aciklama: 'Net kuvvetin sıfır olması kuvvet yok demek değildir. Kuvvetler birbirini dengeliyordur.' },
+          { formul: '1. Eylemsizlik: ΣF = 0 ise a = 0', aciklama: 'Net kuvvet sıfırsa duran cisim durur, hareket eden sabit hızla doğrusal gider. Otobüs fren yapınca öne savrulmamız bundandır.' },
+          { formul: '2. Temel yasa: ΣF = m · a', aciklama: 'Net kuvvet, kendi yönünde ivme kazandırır. Kuvvet artarsa ivme artar, kütle artarsa ivme azalır. 1 N = 1 kg · m/s²' },
+          { formul: `3. Etki-tepki: ${V('F<sub>AB</sub>')} = −${V('F<sub>BA</sub>')}`, aciklama: 'A cismi B’ye kuvvet uygularsa B de A’ya eşit büyüklükte, zıt yönde kuvvet uygular. Bu iki kuvvet farklı cisimlere etki eder.' },
         ],
       }),
       k.konu({
-        etiket: '2. YASA', kod: 'FİZ.11.1.4', baslik: 'Net kuvvet ivme kazandırır', sekil: s2,
+        etiket: 'SERBEST CİSİM DİYAGRAMI', kod: 'FİZ.11.1.5', baslik: 'Önce cismi ayır, kuvvetleri çiz', sekil: sS,
         maddeler: [
-          { metin: 'Sürtünmesiz zemindeki kutuya bir kuvvet uygularsak kutunun hızı değişir: kutu ivme kazanır.', vurgu: 'F' },
-          { metin: 'İvme, net kuvvetle aynı yöndedir.', vurgu: 'F,a' },
-          'Kuvvet iki katına çıkarsa ivme iki katına çıkar. Kütle iki katına çıkarsa ivme yarıya iner.',
-          { formul: 'ΣF = m · a', aciklama: 'ΣF: net kuvvet (N), m: kütle (kg), a: ivme (m/s²). 1 N = 1 kg · m/s²', vurgu: 'F,a' },
+          'Kuvvetleri doğru yazmak için cismi çevresinden ayırıp tek başına çizeriz.',
+          { metin: 'Dünya cismi aşağı çeker: ağırlık, G = m · g.', vurgu: 'G' },
+          { metin: 'Yüzey cismi dik olarak iter: tepki kuvveti, N.', vurgu: 'G,N' },
+          { metin: 'İp cismi kendi doğrultusunda çeker: gerilme kuvveti, T.', vurgu: 'G,N,T' },
+          { formul: 'Diyagram → ΣF = m · a', aciklama: 'Yalnızca cisme etki eden kuvvetler çizilir. Sonra her doğrultu için 2. yasa ayrı ayrı yazılır.', vurgu: 'G,N,T' },
         ],
       }),
       k.soru({
-        etiket: 'TEKRAR 1', kod: 'FİZ.11.1.4', baslik: 'Kuvvet, kütle ve ivme',
-        baglam: 'Sürtünmesiz yatay düzlemde duran 2 kg kütleli kutuya 10 N büyüklüğünde yatay bir kuvvet uygulanıyor.',
+        etiket: 'TEMEL YASA', kod: 'FİZ.11.1.4', baslik: 'İki kuvvetle çekilen kutu', sekil: sT,
+        baglam: 'Sürtünmesiz yatay düzlemdeki 5 kg’lık kutuya şekildeki iki yatay kuvvet uygulanıyor. g = 10 m/s².',
         maddeler: [
-          { metin: 'Kutunun ivmesi kaç m/s²’dir?', puan: '3 puan', adimlar: ['a = ΣF / m = 10 / 2'], cevap: '5 m/s², kuvvet yönünde' },
-          { metin: 'Kuvvet 20 N olsaydı ivme kaç m/s² olurdu?', puan: '3 puan', adimlar: ['a = 20 / 2'], cevap: '10 m/s². Kuvvet iki katına çıktı, ivme de iki katına çıktı.' },
-          { metin: 'Aynı 10 N’luk kuvvet 4 kg’lık kutuya uygulansaydı ivme kaç m/s² olurdu?', puan: '4 puan', adimlar: ['a = 10 / 4'], cevap: '2,5 m/s². Kütle iki katına çıktı, ivme yarıya indi.' },
-        ],
-      }),
-      k.konu({
-        etiket: '3. YASA', kod: 'FİZ.11.1.4', baslik: 'Etki ve tepki', sekil: s3,
-        maddeler: [
-          { metin: 'A kutusu B’yi iterse B de A’yı iter.', vurgu: 'AB,BA' },
-          { metin: 'İki kuvvet aynı anda oluşur, büyüklükleri eşit, yönleri zıttır.', vurgu: 'AB,BA' },
-          '<b>Dikkat:</b> Etki ve tepki farklı cisimlere etki eder. Biri A’ya, diğeri B’ye. Bu yüzden birbirini götürmez.',
-          { formul: `${V('F<sub>AB</sub>')} = −${V('F<sub>BA</sub>')}`, aciklama: 'F<sub>AB</sub>: A’nın B’ye uyguladığı kuvvet. Eksi işareti zıt yönü gösterir.', vurgu: 'AB,BA' },
-        ],
-      }),
-      k.soru({
-        etiket: 'TEKRAR 2', kod: 'FİZ.11.1.4', baslik: 'Etki-tepki mi, değil mi?',
-        baglam: 'Her soruyu önce kendin cevapla, sonra ekrana dokun.',
-        maddeler: [
-          { metin: 'Masadaki kitaba etki eden ağırlık ile masanın kitaba uyguladığı tepki kuvveti (N) bir etki-tepki çifti midir?', puan: '4 puan', adimlar: ['İkisi de aynı cisme, kitaba etki ediyor. Kitap dengede olduğu için birbirini dengeliyorlar.'], cevap: 'Hayır. Ağırlığın eşi, kitabın Dünya’yı çektiği kuvvettir. N’nin eşi ise kitabın masaya uyguladığı kuvvettir.' },
-          { metin: 'Bir kamyon küçük bir arabaya çarpıyor. Hangisi diğerine daha büyük kuvvet uygular?', puan: '3 puan', adimlar: ['Çarpışma kuvvetleri bir etki-tepki çiftidir.'], cevap: 'Kuvvetler eşittir. Arabanın kütlesi küçük olduğu için ivmesi daha büyük olur.' },
-          { metin: 'Sürtünmenin önemsiz olduğu buz pistinde 50 kg’lık Ali ile 25 kg’lık kardeşi birbirini itiyor. Kardeşin ivmesi Ali’nin ivmesinin kaç katıdır?', puan: '3 puan', adimlar: ['İki kuvvet eşit büyüklükte. a = F / m ve kardeşin kütlesi yarı.'], cevap: '2 katı, zıt yönde.' },
+          { metin: 'Kutunun serbest cisim diyagramındaki kuvvetler nelerdir?', puan: '2 puan', adimlar: ['Yatayda: 40 N sağa, 15 N sola.', { metin: 'Düşeyde: ağırlık G = 5 · 10 = 50 N aşağı, zeminin tepki kuvveti N yukarı.', vurgu: 'N,G' }], cevap: 'Dört kuvvet: 40 N, 15 N, G ve N', cevapVurgu: 'N,G' },
+          { metin: 'Zeminin tepki kuvveti kaç N’dur?', puan: '2 puan', adimlar: ['Kutu düşeyde hareket etmiyor, düşeyde ivme sıfır: 1. yasa.'], cevap: 'N = G = 50 N', cevapVurgu: 'N,G' },
+          { metin: 'Kutunun ivmesi kaç m/s²’dir?', puan: '3 puan', adimlar: ['ΣF = 40 − 15 = 25 N, sağa', 'a = ΣF / m = 25 / 5'], cevap: '5 m/s², sağa' },
+          { metin: '15 N’luk kuvvet kaldırılırsa ivme kaç m/s² olur?', puan: '3 puan', adimlar: ['a = 40 / 5'], cevap: '8 m/s². Net kuvvet arttı, ivme arttı.' },
         ],
       }),
       k.konu({
@@ -137,21 +147,12 @@ module.exports = {
           { metin: 'Düzenek, 2 m/s²’lik ivmeyle yukarı doğru hızlanan bir asansörün tavanına asılı olsaydı iki ipteki gerilme kaç N olurdu?', puan: '5 puan', adimlar: ['Cisimler asansörle birlikte 2 m/s²’lik ivmeyle yukarı hızlanır.', { metin: '3 kg’lık cisim için: T<sub>2</sub> − 30 = 3 · 2, T<sub>2</sub> = 36 N', vurgu: 'T2,G2' }, 'Bütün sistem için: T<sub>1</sub> − 50 = 5 · 2'], cevap: 'T<sub>1</sub> = 60 N, T<sub>2</sub> = 36 N', cevapVurgu: 'T2,G2' },
         ],
       }),
-      k.konu({
-        etiket: 'YÖNTEM', kod: 'FİZ.11.1.5', baslik: 'Bağlı cisimlerde iki adım',
-        maddeler: [
-          'Gergin bir iple bağlı cisimler (ip uzamıyorsa) aynı büyüklükte ivmeyle hareket eder.',
-          { formul: 'a = ΣF<sub>dış</sub> / m<sub>toplam</sub>', aciklama: '1. adım: Bütün sistemi tek bir cisim gibi düşün. İpin iki ucundaki T’ler iç kuvvettir, sistemin hesabına girmez. Tek cismi incelerken T mutlaka yazılır.' },
-          { formul: 'ΣF = m · a (tek cisim)', aciklama: '2. adım: Bir cismi ayır, onun serbest cisim diyagramından ipteki gerilmeyi bul.' },
-          'Kontrol: Aynı gerilmeyi diğer cisimden de bulabilmelisin.',
-        ],
-      }),
       k.soru({
-        etiket: 'YATAY DÜZLEM', kod: 'FİZ.11.1.5', baslik: 'İple bağlı iki kutu', sekil: s6,
+        etiket: 'BAĞLI CİSİMLER', kod: 'FİZ.11.1.5', baslik: 'İple bağlı iki kutu', sekil: s6,
         baglam: 'Sürtünmesiz yatay düzlemde A ve B kutuları bir iple bağlıdır. B’ye 20 N büyüklüğünde yatay kuvvet uygulanıyor.',
         maddeler: [
-          { metin: 'Sistemin ivmesi kaç m/s²’dir?', puan: '3 puan', adimlar: ['a = 20 / (2 + 3)'], cevap: '4 m/s², sağa' },
-          { metin: 'İpteki gerilme kaç N’dur?', puan: '4 puan', adimlar: [{ metin: 'A’yı yalnızca ip çeker: T = 2 · 4', vurgu: 'TA' }, { metin: 'Kontrol, B için: 20 − T = 3 · 4, T = 8 N', vurgu: 'TA,TB' }], cevap: '8 N', cevapVurgu: 'TA,TB' },
+          { metin: 'Sistemin ivmesi kaç m/s²’dir?', puan: '3 puan', adimlar: ['İki kutuyu tek cisim gibi düşün. İpin iki ucundaki T’ler iç kuvvettir, hesaba girmez.', 'a = 20 / (2 + 3)'], cevap: '4 m/s², sağa' },
+          { metin: 'İpteki gerilme kaç N’dur?', puan: '4 puan', adimlar: [{ metin: 'A’yı tek başına incele. Onu yalnızca ip çeker: T = 2 · 4', vurgu: 'TA' }, { metin: 'Kontrol, B için: 20 − T = 3 · 4, T = 8 N', vurgu: 'TA,TB' }], cevap: '8 N', cevapVurgu: 'TA,TB' },
           { metin: 'Şekildeki kuvvet kaldırılıp aynı 20 N’luk kuvvet A’ya sola doğru uygulansaydı ipteki gerilme kaç N olurdu?', puan: '3 puan', adimlar: ['İvme yine 4 m/s², bu kez sola. İp artık B’yi çeker: T = 3 · 4'], cevap: '12 N. Gerilme, ipin çektiği kütleye bağlıdır.' },
         ],
       }),
@@ -164,27 +165,47 @@ module.exports = {
           { metin: 'Sarkan cisim için sonucu kontrol et. İpteki gerilme neden 20 N değildir?', puan: '3 puan', adimlar: [{ metin: 'Sarkan cisim: G − T = m · a, 20 − T = 2 · 4, T = 12 N', vurgu: 'TB,GB,aB' }], cevap: 'Sarkan cismin ivmesi aşağı yönlü. Bu yüzden T < G.', cevapVurgu: 'TB,GB' },
         ],
       }),
-      k.soru({
-        etiket: 'ÜÇ KUTU', kod: 'FİZ.11.1.5', baslik: 'Hangi ip daha çok gerilir?', sekil: s8,
-        baglam: 'Sürtünmesiz yatay düzlemde K, L ve M kutuları iplerle bağlıdır. M’ye 12 N büyüklüğünde yatay kuvvet uygulanıyor.',
+      k.konu({
+        etiket: 'ETKİ-TEPKİ', kod: 'FİZ.11.1.4', baslik: 'Kuvvetler çift oluşur: kütle çekimi', sekil: sK,
         maddeler: [
-          { metin: 'Sistemin ivmesi kaç m/s²’dir?', puan: '2 puan', adimlar: ['a = 12 / (3 + 2 + 1)'], cevap: '2 m/s²' },
-          { metin: '1. ipteki gerilme kaç N’dur?', puan: '3 puan', adimlar: ['1. ip yalnızca K’yi çeker: T<sub>1</sub> = 3 · 2'], cevap: '6 N' },
-          { metin: '2. ipteki gerilme kaç N’dur?', puan: '3 puan', adimlar: ['2. ip K ve L’yi birlikte çeker: T<sub>2</sub> = (3 + 2) · 2', 'Kontrol, M için: 12 − T<sub>2</sub> = 1 · 2, T<sub>2</sub> = 10 N'], cevap: '10 N' },
-          { metin: 'Kuvvet artırılırsa önce hangi ip kopar?', puan: '2 puan', cevap: '2. ip. Kuvvete yakın olan ip daha çok kütleyi çeker, gerilmesi daha büyüktür.' },
+          { metin: 'Dünya elmayı aşağı çeker. Bu kuvvet elmanın ağırlığıdır.', vurgu: 'de' },
+          { metin: 'Elma da Dünya’yı aynı büyüklükte bir kuvvetle yukarı çeker.', vurgu: 'de,ed' },
+          'Peki Dünya neden elmaya doğru gitmiyor? Kuvvetler eşit ama Dünya’nın kütlesi çok büyük. a = F / m olduğu için ivmesi neredeyse sıfırdır.',
+          'Kütle çekimi, mıknatısların çekmesi, itmek, çarpışmak: her etkileşimde kuvvetler çift oluşur.',
+          { formul: 'Etki = tepki, zıt yönde, farklı cisimlerde', aciklama: 'Farklı cisimlere etki ettikleri için etki ile tepki birbirini götürmez.', vurgu: 'de,ed' },
+        ],
+      }),
+      k.soru({
+        etiket: 'ETKİ-TEPKİ', kod: 'FİZ.11.1.4', baslik: 'Masadaki kitap', sekil: sM,
+        baglam: '2 kg’lık bir kitap yatay masanın üstünde durmaktadır. g = 10 m/s².',
+        maddeler: [
+          { metin: 'Kitaba etki eden kuvvetler nelerdir, büyüklükleri kaç N’dur?', puan: '3 puan', adimlar: [{ metin: 'Dünya kitabı aşağı çeker: G = 2 · 10 = 20 N', vurgu: 'G' }, { metin: 'Masa kitabı yukarı iter: N. Kitap dengede, ΣF = 0.', vurgu: 'G,N' }], cevap: 'G = 20 N aşağı, N = 20 N yukarı', cevapVurgu: 'G,N' },
+          { metin: 'Kitabın ağırlığının (G) tepkisi hangi kuvvettir, hangi cisme etki eder?', puan: '2 puan', adimlar: [{ metin: 'Dünya kitabı çekiyorsa kitap da Dünya’yı çeker.', vurgu: 'G,G2' }], cevap: 'G′ = 20 N, yukarı yönlü, Dünya’ya etki eder.', cevapVurgu: 'G,G2' },
+          { metin: 'Masanın tepki kuvvetinin (N) eşi hangi kuvvettir?', puan: '2 puan', adimlar: [{ metin: 'Masa kitabı itiyorsa kitap da masayı iter.', vurgu: 'N,N2' }], cevap: 'N′ = 20 N, aşağı yönlü, masaya etki eder.', cevapVurgu: 'N,N2' },
+          { metin: 'G ile N bir etki-tepki çifti midir?', puan: '3 puan', adimlar: [{ metin: 'İkisi de aynı cisme, kitaba etki ediyor.', vurgu: 'G,N' }], cevap: 'Hayır. Eşit olmalarının sebebi kitabın dengede olmasıdır (1. yasa), 3. yasa değil.', cevapVurgu: 'G,N' },
+        ],
+      }),
+      k.soru({
+        etiket: 'ETKİ-TEPKİ', kod: 'FİZ.11.1.4', baslik: 'Yan yana iki kutuyu itmek', sekil: sY,
+        baglam: 'Sürtünmesiz yatay düzlemde yan yana duran 2 kg’lık A ve 3 kg’lık B kutularından A’ya 20 N’luk yatay kuvvet uygulanıyor.',
+        maddeler: [
+          { metin: 'Kutuların ivmesi kaç m/s²’dir?', puan: '2 puan', adimlar: ['İki kutu birlikte hareket eder: a = 20 / (2 + 3)'], cevap: '4 m/s², sağa' },
+          { metin: 'A’nın B’ye uyguladığı kuvvet kaç N’dur?', puan: '3 puan', adimlar: [{ metin: 'B’yi yatayda yalnızca A iter: F<sub>AB</sub> = 3 · 4', vurgu: 'AB' }], cevap: '12 N, sağa', cevapVurgu: 'AB' },
+          { metin: 'B’nin A’ya uyguladığı kuvvet kaç N’dur? A için kontrol et.', puan: '3 puan', adimlar: [{ metin: '3. yasa: F<sub>BA</sub>, F<sub>AB</sub> ile eşit büyüklükte ve zıt yönlüdür.', vurgu: 'AB,BA' }, { metin: 'Kontrol, A için: 20 − 12 = 2 · 4', vurgu: 'AB,BA' }], cevap: '12 N, sola', cevapVurgu: 'AB,BA' },
+          { metin: 'Aynı 20 N’luk kuvvet B’ye sola doğru uygulansaydı kutuların birbirine uyguladığı kuvvet kaç N olurdu?', puan: '2 puan', adimlar: ['İvme yine 4 m/s², bu kez sola. Şimdi B, A’yı iter: 2 · 4'], cevap: '8 N. Temas kuvveti, itilen cismin kütlesine bağlıdır.' },
         ],
       }),
       k.konu({
         etiket: 'KISA TEKRAR', baslik: 'Bugün ne öğrendik?',
         maddeler: [
           '1. yasa: Net kuvvet sıfırsa cismin hızı değişmez.',
-          '2. yasa: ΣF = m · a. İvme net kuvvet yönündedir.',
+          '2. yasa: ΣF = m · a. Önce serbest cisim diyagramı, sonra denklem.',
+          'İp yalnızca çeker. Bağlı cisimlerde önce sistemin ivmesi, sonra tek cisimden gerilme bulunur.',
           '3. yasa: Etki ve tepki eşit büyüklükte, zıt yönlü ve farklı cisimler üzerindedir.',
-          'İp yalnızca çeker. Asılı cisimde T, ivmeye göre ağırlıktan büyük, küçük ya da ona eşit olabilir.',
-          'Bağlı cisimlerde önce sistemin ivmesi, sonra tek cisimden ipteki gerilme bulunur.',
+          'Masadaki kitapta G ile N eşittir ama etki-tepki değildir.',
         ],
       }),
-      k.kapanis({ baslik: 'Üç yasa ve ip tamam.', vurgu: 'Gelecek ders: sürtünme kuvvetleri.', aciklama: 'Bu sunumun linki video açıklamasında. Konu notları ve daha fazla soru için: benfizikyapamiyorum.com' }),
+      k.kapanis({ baslik: 'Newton’ın yasaları tamam.', vurgu: 'Gelecek ders: sürtünme kuvvetleri.', aciklama: 'Bu sunumun linki video açıklamasında. Konu notları ve daha fazla soru için: benfizikyapamiyorum.com' }),
     ];
   },
 };

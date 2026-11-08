@@ -8,6 +8,14 @@ module.exports = {
   slaytlar: (k) => {
     const A = '#244f40', B = '#1d3b8f', R = '#b06a3b', M = '#7a3e9d', V = k.V;
 
+    // Vektörel nicelik: okuldan 300 m kuzeye ya da doğuya (1 kare = 100 m)
+    const gy = k.kare({ x0: 0, x1: 6, y0: 0, y1: 5, u: 56, eksen: false });
+    const [ox, oy] = gy.p(1, 1);
+    const sY = k.svg(gy.w, gy.h, gy.zemin +
+      gy.v({ ad: 'kz', from: [1, 1], to: [1, 4], renk: B, etiket: '300 m kuzey', ex: 8, ey: -14 }) +
+      gy.v({ ad: 'dg', from: [1, 1], to: [4, 1], renk: R, etiket: '300 m doğu', ex: 0, ey: 34 }) +
+      `<circle cx="${ox}" cy="${oy}" r="10" fill="#173430"/><text x="${ox - 16}" y="${oy + 34}" font-size="22" font-weight="700" fill="#173430" text-anchor="middle">okul</text>`);
+
     // Vektörün öğeleri
     const g0 = k.kare({ x0: 0, x1: 8, y0: 0, y1: 5, u: 60, eksen: false });
     const [bx, by] = g0.p(1, 1), [ux, uy] = g0.p(7, 4);
@@ -65,13 +73,23 @@ module.exports = {
     return [
       k.kapak({ etiket: '9. SINIF FİZİK, VEKTÖRLER 1', baslik: 'Vektörlere baştan başlıyoruz.', vurgu: 'Skaler, vektörel, ok.', aciklama: 'Her bölümün arkasından bir tekrar sorusu var. Önce sen düşün, sonra ekrana dokun.' }),
       k.konu({
-        etiket: 'BAŞLANGIÇ', kod: 'FİZ.9.2.2', baslik: 'Her nicelik aynı şekilde anlatılmaz',
+        etiket: 'SKALER NİCELİK', kod: 'FİZ.9.2.2', baslik: 'Sayı ve birim yeter',
         maddeler: [
-          '“Sınıfın sıcaklığı 22 °C.” Başka bilgiye gerek var mı? Yok.',
-          '“Kutuyu 50 N ile itiyorum.” Kutu nereye gidecek? Bilmiyoruz. Hangi yöne ittiğimi de söylemeliyim.',
-          '<b>Skaler nicelik:</b> Sayı ve birimle tam anlatılır. Kütle, sıcaklık, zaman, enerji, sürat.',
-          '<b>Vektörel nicelik:</b> Sayı ve birimin yanında yön de gerekir. Kuvvet, yer değiştirme, hız.',
-          { formul: 'Vektörel = büyüklük + yön', aciklama: 'Büyüklük: sayı ve birim. Yön: nereye doğru olduğu.' },
+          '“Sınıfın sıcaklığı 22 °C.” Başka bir bilgiye gerek var mı? Yok.',
+          '“Bu şeker 5 kg.” “Ders 40 dakika sürdü.” Hepsi sayı ve birimle tam anlatıldı.',
+          '<b>Skaler nicelik:</b> Yalnızca sayı ve birimle tam olarak ifade edilen niceliktir.',
+          'Örnekler: kütle, sıcaklık, zaman, uzunluk, hacim, enerji, sürat.',
+          { formul: 'Skaler = sayı + birim', aciklama: 'Skalerler sayılar gibi toplanır: 2 kg + 3 kg = 5 kg.' },
+        ],
+      }),
+      k.konu({
+        etiket: 'VEKTÖREL NİCELİK', kod: 'FİZ.9.2.2', baslik: 'Yön de gerekir', sekil: sY,
+        maddeler: [
+          '“Kutuyu 50 N ile itiyorum.” Kutu nereye gidecek? Hangi yöne ittiğimi söylemeden bilemeyiz.',
+          { metin: 'Okuldan çıkıp 300 m yürüdüm. Kuzeye mi, doğuya mı? Vardığım yer yöne göre bambaşka.', vurgu: 'kz,dg' },
+          '<b>Vektörel nicelik:</b> Sayı ve birimin yanında yönü de belirtilmesi gereken niceliktir.',
+          'Örnekler: kuvvet, yer değiştirme, hız, ivme, ağırlık.',
+          { formul: 'Vektörel = büyüklük + yön', aciklama: 'Büyüklük: sayı ve birim. Yön: nereye doğru olduğu. Vektörler okla gösterilir.' },
         ],
       }),
       k.soru({
