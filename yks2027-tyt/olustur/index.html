@@ -40799,6 +40799,70 @@ BFY_FIG_EKLE('iY73_efsane_4', u => EF(u, I => {
   return s;
 }, { oy: 70 }));
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY73_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+/* Çubuk mıknatısın alan çizgileri; K kutbun hemen önünde (sık), L uzakta (seyrek); bir pusula */
+BFY_FIG_EKLE('sfY73_cubuk', function (u) {
+  const W = 340, H = 240, mx = 120, my = 108, L = 100, h = 26, cy = my + h / 2;
+  const K = [{ x: mx + 0.1 * L, y: cy, q: 1 }, { x: mx + 0.9 * L, y: cy, q: -1 }], sn = [8, 8, 332, 232];
+  let s = zemin(W, H);
+  [28, 55, 85, 118, 150].forEach(a => [a, -a].forEach(b => {
+    const pts = izle(K[0].x + 6 * Math.cos(b * D2R), cy - 6 * Math.sin(b * D2R), K, sn);
+    s += `<path d="${yol(pts)}" fill="none" stroke="${ALAN}" stroke-width="1.5" opacity=".85"/>` + okBasi(pts, a > 140 ? 0.25 : 0.5, ALAN, 7);
+    const son = pts[pts.length - 1];
+    if (Math.hypot(son[0] - K[1].x, son[1] - cy) > 8) {
+      const g = izle(K[1].x - 6 * Math.cos(b * D2R), cy - 6 * Math.sin(b * D2R), K, sn, { geri: true });
+      s += `<path d="${yol(g)}" fill="none" stroke="${ALAN}" stroke-width="1.5" opacity=".85"/>` + okBasi(g.slice().reverse(), 0.75, ALAN, 7);
+    }
+  }));
+  const ek = izle(K[1].x + 6, cy, K, sn, { geri: true });   // eksen üzerindeki çizgi: S'nin sağından ve N'nin solundan
+  s += `<path d="M8 ${cy} L${mx} ${cy}" stroke="${ALAN}" stroke-width="1.5" opacity=".85"/>` + okBasi([[70, cy], [30, cy]], 0.5, ALAN, 7);
+  s += `<path d="${yol(ek)}" fill="none" stroke="${ALAN}" stroke-width="1.5" opacity=".85"/>` + okBasi(ek.slice().reverse(), 0.5, ALAN, 7);
+  s += `<rect x="${mx + 3}" y="${my + 4}" width="${L}" height="${h}" rx="3" fill="#000" opacity=".12"/>`;
+  s += cubuk(u, mx, my, L, h, 'N', { ks: 16 });
+  s += nokta('K', 104, cy - 9, { r: 4.2, size: 16, dx: -9, dy: 3, anchor: 'end' });
+  s += nokta('L', 170, 30, { r: 4.2, size: 16, dx: 9, dy: 6 });
+  const px = 268, py = 196;
+  s += pusula(u, px, py, 16, acisi(...alanK(px, py, K)), { ad: 'pusula' });
+  return svg(W, H, s, u, 80);
+});
+/* Sayfa düzlemine dik tel, akım dışarı: saat yönünün tersine dolanan çizgiler ve dört pusula */
+BFY_FIG_EKLE('sfY73_tel', function (u) {
+  const W = 340, H = 250, cx = 150, cy = 118;
+  let s = zemin(W, H);
+  [38, 64].forEach(r => {
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ALAN}" stroke-width="1.6" opacity=".9"/>`;
+    /* saat yönünün tersi: tepede sola, altta sağa */
+    s += `<polygon points="${cx - 7},${cy - r} ${cx + 4},${cy - r - 4.5} ${cx + 4},${cy - r + 4.5}" fill="${ALAN}"/>`;
+    s += `<polygon points="${cx + 7},${cy + r} ${cx - 4},${cy + r - 4.5} ${cx - 4},${cy + r + 4.5}" fill="${ALAN}"/>`;
+  });
+  s += telKesit(cx, cy, 'disari', 12);
+  const R = 92;
+  [[R, 0, 'dogu'], [0, -R, 'kuzey'], [-R, 0, 'bati'], [0, R, 'guney']].forEach(([dx, dy, ad]) => {
+    const a = Math.atan2(dx, dy) / D2R;   // ⊙: B ∝ (−y_yukarı, x) → ekran açısı atan2(x, −y_yukarı) = atan2(dx, dy_ekran)
+    s += pusula(u, cx + dx, cy + dy, 15, a, { ad });
+  });
+  s += T(cx + 17, cy - 6, 'I', { size: 15, weight: 800, fill: AKIM, italic: true });
+  s += T(W - 12, H - 12, 'akım: dışarı', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+/* Bilim merkezi: düşey bakır çubuğun üstten görünüşü (akım yukarı, ⊙); doğusunda K (yakın) ve L (uzak) */
+BFY_FIG_EKLE('sfY73_gosteri', function (u) {
+  const W = 340, H = 200, cx = 78, cy = 104;
+  let s = zemin(W, H);
+  for (let x = 20; x < 330; x += 50) s += `<line class="bg" x1="${x}" y1="14" x2="${x}" y2="186" stroke="#dfe6ea" stroke-width="1"/>`;
+  for (let y = 24; y < 190; y += 50) s += `<line class="bg" x1="10" y1="${y}" x2="330" y2="${y}" stroke="#dfe6ea" stroke-width="1"/>`;
+  s += `<circle cx="${cx + 2}" cy="${cy + 3}" r="22" fill="#000" opacity=".12"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="21" fill="${TEL}" stroke="#7d4a27" stroke-width="1.6"/><circle cx="${cx - 6}" cy="${cy - 7}" r="7" fill="#fff" opacity=".3"/>`;
+  s += odot(cx, cy, 11, AKIM, `data-tel="${cx},${cy},disari"`);
+  s += T(cx, cy + 44, 'bakır çubuk', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += dashLine(cx + 24, cy, 300, cy, '#9aa8b0', '3 5', 1.2);
+  s += nokta('K', 148, cy, { r: 4.5, size: 16, dx: 0, dy: -14, anchor: 'middle' });
+  s += nokta('L', 262, cy, { r: 4.5, size: 16, dx: 0, dy: -14, anchor: 'middle' });
+  s += arrow(306, 70, 306, 24, { color: P.ink, w: 2, head: 8, headW: 4.6 }) + T(306, 90, 'Kuzey', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(W - 14, H - 14, 'üstten görünüş', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
 if (typeof window !== 'undefined') window.BFY_Y73_ARAC = { alanK, acisi };
 })();
 
@@ -40854,6 +40918,191 @@ const KONU = {
     'X ve Y çubukları: uç-orta denemesiyle mıknatısı bulma', 'geri dönüşüm tesisinde doğru akımla çalışan elektromıknatıslı ayırıcı (olabilir)',
     'eşit boy ve kesitte bakır ve konstantan tel, aynı kaynak ve seri direnç', 'kartondan düşey geçen ⊗ akımlı tel ve A, B, C, D pusulaları, Dünya’nın alanı'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Program alanın büyüklüğünde hesaba izin vermez; bütün sorular yön ve karşılaştırma düzeyindedir. Şekillerdeki pusula
+     yönleri kutup modelinden ve düz telin alanından hesaplanır; qa/Y.7.3/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Mıknatısları, manyetik alanı, akım geçen telin alanını, elektromıknatısı ve Dünya'nın manyetik alanını kısa adımlarla göreceğiz. Bu konuda hesap yok; yön bulmak ve karşılaştırmak yetiyor. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Mıknatısın iki kutbu',
+        metin: r`Buzdolabı süslerinde, çanta kapaklarında ve dolap kapılarının kilitlerinde küçük mıknatıslar vardır.
+
+- Her mıknatısın iki kutbu vardır: **N** (kuzey) ve **S** (güney) kutbu.
+- **Aynı** kutuplar birbirini **iter**, **zıt** kutuplar birbirini **çeker**.
+- Mıknatıs demir, nikel ve kobalt gibi maddeleri çeker. Kâğıdı, plastiği, alüminyumu, bakırı ve altını çekmez.`,
+        kontrol: {
+          soru: 'Bir oyuncak trenin vagonları, uçlarındaki küçük mıknatıslarla birbirine tutunuyor. Çocuk vagonlardan birini ters çevirip yeniden takmaya çalışıyor; bu kez vagonlar birbirini itiyor. Bunun nedeni nedir?',
+          secenekler: ['Ters çevrilen vagonun mıknatısı mıknatıslığını kaybetmiştir.', 'Artık karşılıklı gelen kutuplar aynıdır.', 'Artık karşılıklı gelen kutuplar zıttır.'],
+          dogru: 1,
+          aciklama: 'Vagon ters çevrilince öbür ucundaki mıknatıs öne gelir. Karşılıklı gelen kutuplar artık aynıdır (N ile N ya da S ile S) ve birbirini iter.',
+          yanlisIpucu: 'Mıknatıs hâlâ güçlü; çünkü itme de bir mıknatıs etkisidir. Hangi kutuplar birbirini iter?'
+        }
+      },
+      {
+        baslik: 'Manyetik alan ve alan çizgileri',
+        sekil: 'sfY73_cubuk',
+        metin: r`Mıknatısın çevresinde, dokunmadan etki ettiği bir bölge vardır. Bu bölgeye **manyetik alan** denir.
+
+- Alanı **alan çizgileriyle** gösteririz. Çizgiler mıknatısın dışında **N kutbundan çıkar, S kutbuna girer**. Birbirini hiç kesmez.
+- Bir yere konan **pusulanın N ucu**, o yerdeki alanın yönünü gösterir. Şekildeki pusulanın iğnesi, bulunduğu yerden geçen çizgiyle aynı yöne bakıyor.
+- Çizgilerin **sık** olduğu yerde alan **büyük**, seyrek olduğu yerde küçüktür. Alan, kutupların yakınında en büyüktür.`,
+        kontrol: {
+          soru: 'Şekildeki K ve L noktalarının hangisinde manyetik alan daha büyüktür?',
+          secenekler: ['K noktasında', 'L noktasında', 'İkisinde eşittir.'],
+          dogru: 0,
+          aciklama: 'K noktası N kutbunun hemen önündedir; orada alan çizgileri çok sıktır. L noktası mıknatıstan uzaktadır ve çizgiler seyrektir. Alan K noktasında daha büyüktür.',
+          yanlisIpucu: 'Şekilde hangi noktanın çevresinde çizgiler birbirine daha yakın?'
+        }
+      },
+      {
+        baslik: 'Akım geçen tel de alan oluşturur',
+        sekil: 'sfY73_tel',
+        metin: r`1820'de Ørsted, akım geçen bir telin yanındaki pusula iğnesinin döndüğünü gördü. Demek ki **elektrik akımı manyetik alan oluşturur.** Tel bakırdan da olsa bu alan oluşur.
+
+- Düz telin alan çizgileri, teli **saran çemberlerdir**.
+- Yönü **sağ el kuralı** verir: Sağ elinle teli, başparmağın akımın yönünü gösterecek biçimde kavra. Diğer dört parmağın kıvrıldığı yön, çizgilerin dolanma yönüdür.
+- Sayfaya dik bir telde akım sana doğru, dışarıya geliyorsa $\odot$, içeriye gidiyorsa $\otimes$ çizilir. $\odot$ için çizgiler **saat yönünün tersine**, $\otimes$ için **saat yönünde** dolanır.
+
+Şekilde akım dışarı doğrudur. Telin çevresindeki dört pusulanın iğneleri çemberlere teğettir. Akım büyük olduğu için Dünya'nın alanı burada önemsizdir.`,
+        kontrol: {
+          soru: 'Şekildeki telin akımı kesilirse dört pusulanın N uçları nereyi gösterir?',
+          secenekler: ['Hepsi tele doğru döner.', 'Hepsi kuzeyi gösterir.', 'Bulundukları yerde kalır; hiçbiri dönmez.'],
+          dogru: 1,
+          aciklama: 'Akım kesilince telin manyetik alanı da biter. Pusulalarda yalnız Dünya\'nın manyetik alanı kalır ve hepsinin N ucu kuzeyi gösterir.',
+          yanlisIpucu: 'Akım yoksa telin alanı kalır mı? Bir pusulayı çevrede hiçbir mıknatıs yokken hangi alan yönlendirir?'
+        }
+      },
+      {
+        baslik: 'Elektromıknatıs: açılıp kapanan mıknatıs',
+        metin: r`Bir demir çivinin üstüne yalıtılmış teli sık sık sar. Telin uçlarını bir pile bağla. Çivi ataşları çekmeye başlar. Buna **elektromıknatıs** denir.
+
+- Etkisi teldeki **akım** ve **sarım sayısı** arttıkça artar. İçindeki **demir çekirdek** alanı çok güçlendirir.
+- En önemli üstünlüğü: **Akım kesilince** yumuşak demir çekirdek mıknatıslığının büyük kısmını kaybeder. Yani elektromıknatısı istediğin an açıp kapatabilirsin.
+- Elektrikli ziller, röleler, kapı kilitleri ve çoğu MR cihazı elektromıknatısla çalışır.`,
+        kontrol: {
+          soru: 'Çiviyle yapılan bir elektromıknatıs ataşları tutarken pilin bağlantısı çıkarılıyor. Ne olur?',
+          secenekler: ['Ataşlar yapışık kalır; çünkü çivi kalıcı bir mıknatıs olmuştur.', 'Ataşların çoğu düşer; çünkü çivi mıknatıslığının büyük kısmını kaybeder.', 'Ataşlar itilip fırlar; çünkü çivinin kutupları yer değiştirir.'],
+          dogru: 1,
+          aciklama: 'Akım kesilince sarımlar alan oluşturmaz. Yumuşak demir çekirdek de mıknatıslığının büyük kısmını kaybeder ve ataşların çoğu düşer.',
+          yanlisIpucu: 'Çiviyi mıknatıs yapan şey teldeki akımdı. Akım kesilirse bu etki sürer mi?'
+        }
+      },
+      {
+        baslik: "Dünya dev bir mıknatıs gibidir",
+        metin: r`Yatay tutulan bir pusulanın iğnesi kendiliğinden döner ve kuzey-güney doğrultusunda durur. Çünkü Dünya'nın da bir manyetik alanı vardır.
+
+- Dünya, içinde dev bir çubuk mıknatıs varmış gibi davranır.
+- Pusulanın N ucu kuzeyi gösterir. N ucunu çeken kutup zıt kutup olmalıdır. Bu yüzden coğrafi kuzeye yakın olan manyetik kutup aslında bir **S kutbudur**.
+- Manyetik kutuplar coğrafi kutuplarla tam aynı yerde değildir; ama günlük yön bulmada pusulanın N ucu kuzey kabul edilir.
+- Göçmen kuşlar, deniz kaplumbağaları ve arılar gibi bazı canlılar da yön bulurken bu alandan yararlanır.`,
+        kontrol: {
+          soru: 'Pusulanın N ucu coğrafi kuzeyi gösteriyor. Dünya\'nın coğrafi kuzeye yakın olan manyetik kutbu hangisidir?',
+          secenekler: ['N kutbu', 'S kutbu', 'Orada kutup yoktur.'],
+          dogru: 1,
+          aciklama: 'İğnenin N ucunu kendine çeken kutup, zıt kutup olan S kutbudur. Bu yüzden coğrafi kuzeye yakın manyetik kutup S kutbudur.',
+          yanlisIpucu: 'N ucunu kendine çeken kutup, N ile aynı mıdır, zıt mıdır?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'İskeleden düşen anahtar',
+        metin: r`Ahşap bir iskelede oturan Ece'nin cebinden bazı eşyalar, tahtaların arasından sığ suya düşüyor. Babası güçlü bir çubuk mıknatısı bir ipe bağlayıp suya sarkıtıyor.`,
+        adimlar: [
+          {
+            soru: 'Düşen eşyalar demir bir anahtar, altın bir yüzük ve plastik bir saç tokası. Mıknatısla hangisi çıkarılabilir?',
+            secenekler: ['Altın yüzük', 'Demir anahtar', 'Plastik toka'],
+            dogru: 1,
+            ipucu: 'Mıknatıs her metali çekmez. Hangi maddeleri çektiğini hatırla.',
+            aciklama: 'Mıknatıs demir, nikel ve kobalt gibi maddeleri çeker. Altın ve plastik mıknatısa tutunmaz; yalnız demir anahtar çıkar.'
+          },
+          {
+            soru: 'Anahtar, çubuk mıknatısın hangi bölgesine en sıkı tutunur?',
+            secenekler: ['Tam ortasına', 'Her yerine eşit tutunur.', 'Uçlarından birine'],
+            dogru: 2,
+            ipucu: 'Alan çizgileri mıknatısın neresinde en sıktır?',
+            aciklama: 'Alan kutupların yakınında en büyüktür. Kutuplar da mıknatısın uçlarındadır. Anahtar uçlardan birine en sıkı tutunur; ortası çok zayıf çeker.'
+          },
+          {
+            soru: 'Anahtar ile mıknatıs arasında su var. Mıknatıs anahtarı suyun içinden çekebilir mi?',
+            secenekler: ['Evet; manyetik alan suyun içinden geçer.', 'Hayır; su manyetik alanı tamamen durdurur.', 'Yalnız su tuzluysa çekebilir.'],
+            dogru: 0,
+            ipucu: 'Buzdolabı süsü araya bir kâğıt girince de tutunur. Su, demir gibi manyetik bir madde midir?',
+            aciklama: 'Manyetik alan su, kâğıt, plastik ve cam gibi maddelerin içinden geçer. Mıknatıs suya dalınca anahtarı yine çeker.'
+          }
+        ],
+        sonuc: 'Mıknatıs yalnız demir, nikel ve kobalt gibi maddeleri çeker. En güçlü çektiği yerler kutuplarıdır. Alanı manyetik olmayan maddelerin içinden geçer.'
+      },
+      {
+        baslik: 'Bilim merkezindeki bakır çubuk',
+        sekil: 'sfY73_gosteri',
+        metin: r`Bir bilim merkezinde tavandan zemine uzanan düşey, kalın bir bakır çubuk var. Çubuktan **aşağıdan yukarı** doğru güçlü bir doğru akım geçiyor. Şekil, çubuğun üstten görünüşüdür. K ve L noktaları çubuğun doğusundadır; K çubuğa yakın, L uzaktır. Dünya'nın manyetik alanını önemseme.`,
+        adimlar: [
+          {
+            soru: 'Üstten bakınca akım sana doğru gelir ($\odot$). Çubuğun alan çizgileri hangi yönde dolanır?',
+            secenekler: ['Saat yönünde', 'Saat yönünün tersine', 'Çizgiler çember değildir; çubuktan dışarı doğru çıkar.'],
+            dogru: 1,
+            ipucu: 'Sağ elinin başparmağını sana doğru tut. Dört parmağın hangi yönde kıvrılıyor?',
+            aciklama: r`Akım dışarı ($\odot$) olduğunda sağ el kuralına göre çizgiler saat yönünün tersine dolanır.`
+          },
+          {
+            soru: 'K noktasında manyetik alan hangi yöndedir?',
+            secenekler: ['Kuzeye doğru', 'Güneye doğru', 'Batıya, çubuğa doğru'],
+            dogru: 0,
+            ipucu: 'K, çemberin doğu ucunda. Saat yönünün tersine dönen bir çemberin sağ ucunda hareket hangi yöne doğrudur?',
+            aciklama: 'Alan, çembere teğettir. Saat yönünün tersine dolanan çemberin doğu (sağ) ucunda yön yukarı, yani kuzeye doğrudur.'
+          },
+          {
+            soru: 'K ve L noktalarından hangisinde alan daha büyüktür?',
+            secenekler: ['L noktasında', 'K noktasında', 'İkisinde eşittir.'],
+            dogru: 1,
+            ipucu: 'Telin alanı tele yaklaştıkça mı artar, uzaklaştıkça mı?',
+            aciklama: 'Telin alanı tele olan uzaklık arttıkça azalır. K çubuğa daha yakın olduğu için alan K noktasında daha büyüktür.'
+          },
+          {
+            soru: 'Görevli akımı artırıyor; akımın yönü aynı kalıyor. L noktasındaki alan için ne söylenir?',
+            secenekler: ['Büyür ve yönü değişmez.', 'Büyür ve yönü ters döner.', 'Değişmez; çünkü L uzaktadır.'],
+            dogru: 0,
+            ipucu: 'Alanın büyüklüğü akıma bağlıdır. Yönünü ise akımın yönü belirler.',
+            aciklama: 'Akım arttıkça alan her noktada büyür. Akımın yönü değişmediği için alanın yönü de değişmez; L noktasında yine kuzeye doğrudur.'
+          }
+        ],
+        sonuc: 'Yönü sağ el kuralı verir: Dışarı akımda saat yönünün tersi, içeri akımda saat yönü. Alan çembere teğettir. Akım artınca büyür, telden uzaklaşınca küçülür.'
+      },
+      {
+        baslik: 'Yön bulma yarışı',
+        metin: r`Bir yön bulma yarışında Kaan, haritadaki noktaları pusulasıyla bulacak. Yarışa başlamadan önce pusulayı arabanın çelik kaputunun üstüne koyup okuyor.`,
+        adimlar: [
+          {
+            soru: 'Kaan pusulayı kaputun üstündeyken okursa ne olabilir?',
+            secenekler: ['Pusula daha doğru okunur; çünkü kaput düzdür.', 'İğne yanlış yön gösterebilir; çünkü çelik, iğnenin bulunduğu yerdeki manyetik alanı değiştirir.', 'İğne hiç dönmez; çünkü çelik Dünya\'nın alanını tamamen yok eder.'],
+            dogru: 1,
+            ipucu: 'Çelik, içinde çok demir olan bir alaşımdır. Demir bir cisim pusula iğnesini etkiler mi?',
+            aciklama: 'Pusulanın iğnesi küçük bir mıknatıstır. Çelik kaput iğneyi kendine çeker ve onu saptırabilir. Bu yüzden pusula demir eşyalardan uzakta okunur.'
+          },
+          {
+            soru: 'Kaan pusulayı nerede okumalıdır?',
+            secenekler: ['Arabadan birkaç adım uzakta, elinde yatay tutarak', 'Arabanın aküsünün hemen yanında', 'Demir bir korkuluğun üstünde'],
+            dogru: 0,
+            ipucu: 'Demir eşyalardan, mıknatıslardan ve akım geçen kablolardan uzak bir yer ara.',
+            aciklama: 'Pusula demirden, mıknatıstan ve akım geçen kablolardan uzakta, yatay tutularak okunur. O zaman iğneyi yalnız Dünya\'nın alanı yönlendirir.'
+          },
+          {
+            soru: 'Kaan, pusulanın N ucunun gösterdiği yöne yüzünü dönüyor. Doğu, Kaan\'ın hangi yanında kalır?',
+            secenekler: ['Arkasında', 'Solunda', 'Sağında'],
+            dogru: 2,
+            ipucu: 'Yüzün kuzeye dönükken bir harita düşün. Doğu haritanın hangi yanındadır?',
+            aciklama: 'Pusulanın N ucu kuzeyi gösterir. Yüzü kuzeye dönük birinin sağı doğu, solu batı, arkası güneydir.'
+          }
+        ],
+        sonuc: 'Pusulanın N ucu, Dünya\'nın manyetik alanıyla kuzeyi gösterir. Demir eşyalar, mıknatıslar ve akım geçen kablolar iğneyi saptırabilir; pusula bunlardan uzakta, yatay tutularak okunur.'
+      }
+    ],
+    hazir: r`Mıknatısın kutuplarını, alan çizgilerini, akım geçen telin alanını, elektromıknatısı ve Dünya'nın manyetik alanını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -42417,6 +42666,102 @@ BFY_FIG_EKLE('kY81_bilesik', function (u) {
 });
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY81_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f4f7f9', CAM = '#5d7d8f';
+let N = 0;
+const yid = (u, ad) => `${u}sf81${ad}${++N}`;
+const lg = (id, renkler, yon = 'y') => `<defs><linearGradient id="${id}" ${yon === 'y' ? 'x1="0" y1="0" x2="0" y2="1"' : 'x1="0" y1="0" x2="1" y2="0"'}>${renkler.map((c, i) => `<stop offset="${f1(i / (renkler.length - 1))}" stop-color="${c}"/>`).join('')}</linearGradient></defs>`;
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const poly = (pts, fill, o = '') => `<polygon points="${pts.map(p => p.map(f1).join(',')).join(' ')}" fill="${fill}" ${o}/>`;
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: o.size || 15, weight: o.weight || 700, anchor: o.anchor || 'start', fill: o.fill || P.ink });
+const cizgi = (x1, y1, x2, y2, c = P.ink2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.2"/>`;
+
+/* İlaç şişesi ve damlalık: lastik bırakılmış, ilaç cam boruda yükselmiş */
+BFY_FIG_EKLE('sfY81_damlalik', function (u) {
+  const W = 340, H = 240, g1 = yid(u, 'cam'), g2 = yid(u, 'ilac'), g3 = yid(u, 'last');
+  let s = zemin(W, H) + lg(g1, ['#e9d2b3', '#c58a4a', '#a8692c'], 'x') + lg(g2, ['#f0c27a', '#d58a2c']) + lg(g3, ['#e46b5a', '#b23b2c', '#7e2219'], 'x');
+  s += `<ellipse cx="205" cy="222" rx="70" ry="8" fill="#000" opacity=".1"/>`;
+  /* şişe: gövde ve boyun (amber cam, yarı saydam) */
+  const sise = 'M150 126 Q150 112 166 108 L184 104 L184 86 L226 86 L226 104 L244 108 Q260 112 260 126 L260 210 Q260 220 250 220 L160 220 Q150 220 150 210 Z';
+  s += `<path d="${sise}" fill="url(#${g1})" opacity=".35"/>`;
+  s += `<path d="M152 158 L258 158 L258 210 Q258 218 250 218 L160 218 Q152 218 152 210 Z" fill="url(#${g2})" opacity=".9"/>`;
+  s += `<line x1="152" y1="158" x2="258" y2="158" stroke="#a8692c" stroke-width="1.4"/>`;
+  s += `<path d="${sise}" fill="none" stroke="#8a5a2b" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s += `<rect x="160" y="128" width="8" height="70" rx="4" fill="#fff" opacity=".35"/>`;
+  /* damlalık: cam boru (içinde yükselmiş ilaç) ve lastik */
+  s += `<path d="M199 54 L199 196 L202 206 L208 206 L211 196 L211 54 Z" fill="#eef6fb" opacity=".85" stroke="${CAM}" stroke-width="1.6"/>`;
+  s += `<path d="M200.5 128 L200.5 196 L203 204 L207 204 L209.5 196 L209.5 128 Z" fill="url(#${g2})"/>`;
+  s += `<line x1="200.5" y1="128" x2="209.5" y2="128" stroke="#a8692c" stroke-width="1.2"/>`;
+  s += `<path d="M194 58 L194 46 Q186 36 190 22 Q196 8 205 8 Q214 8 220 22 Q224 36 216 46 L216 58 Z" fill="url(#${g3})" stroke="#6b1c14" stroke-width="1.4"/>`;
+  s += `<ellipse cx="199" cy="24" rx="4" ry="8" fill="#fff" opacity=".35"/>`;
+  s += cizgi(150, 28, 186, 28) + yaz(144, 33, 'lastik', { anchor: 'end' });
+  s += cizgi(150, 72, 196, 72) + yaz(144, 77, 'cam boru', { anchor: 'end' });
+  s += cizgi(140, 188, 168, 188) + yaz(134, 193, 'ilaç', { anchor: 'end' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Kil tabakası üstünde 2 cm × 5 cm × 10 cm'lik tahta blok (en büyük yüzü üzerinde); blok tabakanın ortasında, tabanında hafif iz */
+BFY_FIG_EKLE('sfY81_blok', function (u) {
+  const W = 340, H = 182, gk = yid(u, 'kil'), gt = yid(u, 'tah'), gs = yid(u, 'tah2');
+  let s = zemin(W, H) + lg(gk, ['#d9b79a', '#c0937a']) + lg(gt, ['#f1d8a8', '#e3bf82', '#d6ab68'], 'x') + lg(gs, ['#c99a5a', '#b5843f']);
+  const Y = -68;   // bütün çizimi yukarı kaydırır
+  const ka = 76, kb = 276, ky = 188 + Y, kt = 20, dx = 50, dy = -38;
+  /* kil tabakası: üst yüz, ön yüz, yan yüz */
+  s += poly([[ka, ky], [kb, ky], [kb + dx, ky + dy], [ka + dx, ky + dy]], '#cfa58b', 'stroke="#9c6f55" stroke-width="1.2"');
+  s += poly([[ka, ky], [kb, ky], [kb, ky + kt], [ka, ky + kt]], `url(#${gk})`, 'stroke="#9c6f55" stroke-width="1.2"');
+  s += poly([[kb, ky], [kb + dx, ky + dy], [kb + dx, ky + kt + dy], [kb, ky + kt]], '#b5866b', 'stroke="#9c6f55" stroke-width="1.2"');
+  /* blok: ön yüz 150 × 30 (10 cm × 2 cm), derinlik (32, −19) (5 cm); taban kilin üst yüzünde */
+  const x0 = 96, L = 150, h = 30, ex = 32, ey = -19, yb = 184 + Y, y0 = yb - h;
+  /* blok tabanının çevresinde kilde hafif çökme izi */
+  s += poly([[x0 - 5, yb + 3], [x0 + L + 5, yb + 3], [x0 + L + ex + 5, yb + ey - 2], [x0 + ex - 5, yb + ey - 2]], '#a97b61', 'opacity=".55"');
+  s += poly([[x0, y0], [x0 + L, y0], [x0 + L + ex, y0 + ey], [x0 + ex, y0 + ey]], '#f6e3bd', 'stroke="#8a6232" stroke-width="1.3"');
+  s += poly([[x0, y0], [x0 + L, y0], [x0 + L, y0 + h], [x0, y0 + h]], `url(#${gt})`, 'stroke="#8a6232" stroke-width="1.3"');
+  s += poly([[x0 + L, y0], [x0 + L + ex, y0 + ey], [x0 + L + ex, y0 + ey + h], [x0 + L, y0 + h]], `url(#${gs})`, 'stroke="#8a6232" stroke-width="1.3"');
+  [0.3, 0.55, 0.8].forEach(t => { s += `<path d="M${x0 + 8} ${f1(y0 + h * t)} Q${x0 + L / 2} ${f1(y0 + h * t - 3)} ${x0 + L - 8} ${f1(y0 + h * t + 1)}" stroke="#c99a5a" stroke-width=".8" fill="none" opacity=".7"/>`; });
+  /* ölçüler */
+  const yo = ky + kt + 12;
+  s += `<g stroke="${P.ink2}" stroke-width="1.2"><line x1="${x0}" y1="${yo}" x2="${x0 + L}" y2="${yo}"/><line x1="${x0}" y1="${yo - 6}" x2="${x0}" y2="${yo + 6}"/><line x1="${x0 + L}" y1="${yo - 6}" x2="${x0 + L}" y2="${yo + 6}"/></g>`;
+  s += yaz(x0 + L / 2, yo + 22, '10 cm', { anchor: 'middle', weight: 800 });
+  s += `<g stroke="${P.ink2}" stroke-width="1.2"><line x1="${x0 - 12}" y1="${y0}" x2="${x0 - 12}" y2="${y0 + h}"/><line x1="${x0 - 17}" y1="${y0}" x2="${x0 - 7}" y2="${y0}"/><line x1="${x0 - 17}" y1="${y0 + h}" x2="${x0 - 7}" y2="${y0 + h}"/></g>`;
+  s += yaz(x0 - 22, y0 + h / 2 + 5, '2 cm', { anchor: 'end', weight: 800 });
+  s += `<g stroke="${P.ink2}" stroke-width="1.2"><line x1="${x0 - 5}" y1="${y0 - 9}" x2="${x0 + ex - 5}" y2="${y0 + ey - 9}"/><line x1="${x0 - 8}" y1="${y0 - 4}" x2="${x0 - 2}" y2="${y0 - 14}"/><line x1="${x0 + ex - 8}" y1="${y0 + ey - 4}" x2="${x0 + ex - 2}" y2="${y0 + ey - 14}"/></g>`;
+  s += yaz(x0 + 8, y0 + ey - 18, '5 cm', { anchor: 'end', weight: 800 });
+  s += yaz(kb + dx + 4, ky + dy - 8, 'kil', { anchor: 'end', size: 14, weight: 800, fill: '#5e3a26' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Toprağın altındaki sarnıç: geniş ve dar bölme, tabanda bağlantı; K ve L tabanda */
+BFY_FIG_EKLE('sfY81_sarnic', function (u) {
+  const W = 340, H = 240, gt = yid(u, 'top'), gw = yid(u, 'su'), gb = yid(u, 'bet');
+  let s = zemin(W, H) + lg(gt, ['#cdb38f', '#a8885f']) + lg(gw, ['#bfe0f3', '#7fb8de', '#4f93c4']) + lg(gb, ['#d7dadc', '#b9bec2']);
+  s += `<rect x="8" y="40" width="324" height="192" rx="10" fill="url(#${gt})"/>`;
+  s += `<rect x="8" y="30" width="324" height="12" rx="4" fill="#7fb35d"/>`;
+  for (let i = 0; i < 14; i++) s += `<circle cx="${20 + i * 23}" cy="${70 + (i * 37) % 150}" r="2.2" fill="#8d6e48" opacity=".6"/>`;
+  /* beton gövde */
+  const xa = 36, xb = 214, xc = 234, xd = 286, yt = 56, yf = 200, yw = 98, ya = 170;
+  s += `<rect x="${xa - 10}" y="${yt - 12}" width="${xd - xa + 20}" height="${yf - yt + 22}" rx="6" fill="url(#${gb})" stroke="#8d969c" stroke-width="1.2"/>`;
+  s += `<rect x="${xa}" y="${yt}" width="${xd - xa}" height="${yf - yt}" fill="#eef3f6"/>`;
+  s += `<rect x="${xa}" y="${yw}" width="${xd - xa}" height="${yf - yw}" fill="url(#${gw})"/>`;
+  s += `<rect x="${xb}" y="${yt}" width="${xc - xb}" height="${ya - yt}" fill="url(#${gb})" stroke="#8d969c" stroke-width="1.2"/>`;
+  s += `<line x1="${xa}" y1="${yw}" x2="${xb}" y2="${yw}" stroke="#2a6f9e" stroke-width="1.6"/><line x1="${xc}" y1="${yw}" x2="${xd}" y2="${yw}" stroke="#2a6f9e" stroke-width="1.6"/>`;
+  s += `<rect x="${xc + 10}" y="${yt - 16}" width="32" height="6" rx="2" fill="#6f7a80"/>`;
+  /* noktalar */
+  const kx = 125, lx = 260, py = yf - 7;
+  s += `<circle cx="${kx}" cy="${py}" r="4.5" fill="${P.ink}"/>` + yaz(kx, py - 12, 'K', { anchor: 'middle', size: 16, weight: 800 });
+  s += `<circle cx="${lx}" cy="${py}" r="4.5" fill="${P.ink}"/>` + yaz(lx, py - 12, 'L', { anchor: 'middle', size: 16, weight: 800 });
+  /* h ölçüsü: yüzeyden tabana */
+  s += `<g stroke="${P.ink}" stroke-width="1.3"><line x1="306" y1="${yw}" x2="306" y2="${yf}"/><line x1="300" y1="${yw}" x2="312" y2="${yw}"/><line x1="300" y1="${yf}" x2="312" y2="${yf}"/></g>`;
+  s += dashLine(xd, yw, 300, yw, P.ink2, '3 3', 1);
+  s += T(318, (yw + yf) / 2 + 6, 'h', { size: 17, weight: 800, italic: true, anchor: 'start' });
+  s += yaz(xa + 70, 80, 'geniş bölme', { anchor: 'middle', size: 14, fill: P.ink2 });
+  s += yaz(xd - 26, 80, 'dar', { anchor: 'middle', size: 14, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -42491,6 +42836,189 @@ const KONU = {
     'bilim gösterisinde 12 m yükseklikteki balkondan sarkıtılan hortumla su çekme',
     'fen laboratuvarında geniş, dar ve eğik kollu bileşik kap; K ve M 2h, L 3h derinde (sıralama)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Program modelleri verir, hesaplamaya girmez: sorular oran ve karşılaştırma düzeyindedir. Oranlar ve doğru şıklar
+     qa/Y.8.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Katıların, sıvıların ve gazların basıncını kısa adımlarla göreceğiz. Bu konuda uzun hesap yok; neyin artıp neyin azaldığını karşılaştırmak yetiyor. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Katı basıncı: kuvvet ve temas alanı',
+        metin: r`Ağır bir alışveriş poşetini ince saplarından taşıyınca parmakların acır. Sapın altına katlanmış bir mendil koyarsan acı azalır. Poşetin ağırlığı değişmedi; değişen, parmağa değen yüzeyin alanıdır.
+
+Yüzeye dik etki eden kuvvetin, temas alanına bölümüne **basınç** denir:
+
+$P = \dfrac{F}{A}$
+
+- Kuvvet aynıyken temas alanı **büyürse** basınç **küçülür**.
+- Temas alanı aynıyken kuvvet **büyürse** basınç **büyür**.
+
+Basıncın birimi pascaldır (Pa). $1\ \text{Pa}$, $1\ \text{m}^2$'ye $1\ \text{N}$'luk kuvvet düşmesidir.`,
+        kontrol: {
+          soru: 'Poşetin sapı ile parmaklar arasına konan kalın bir havlu, sapın parmaklara değen alanını 4 katına çıkarıyor. Sapın parmaklara uyguladığı basınç ne olur?',
+          secenekler: ['4 katına çıkar.', '4\'te 1\'ine iner.', 'Değişmez; çünkü poşetin ağırlığı aynıdır.'],
+          dogru: 1,
+          aciklama: r`Kuvvet (poşetin ağırlığı) aynı kaldı, alan 4 katına çıktı. $P = \dfrac{F}{A}$ olduğu için basınç 4'te 1'ine iner.`,
+          yanlisIpucu: 'Basınç kesrinde alan paydadadır. Payda büyürse kesir büyür mü, küçülür mü?'
+        }
+      },
+      {
+        baslik: 'Sıvı basıncı: derinlik ve özkütle',
+        metin: r`Havuzun dibine doğru daldıkça kulaklarında bir baskı hissedersin. Üstündeki su arttıkça suyun basıncı da artar.
+
+Durgun bir sıvının içindeki bir noktada sıvının basıncı:
+
+$P = h \times d \times g$
+
+- $h$, noktanın sıvı **yüzeyinden** aşağı doğru derinliğidir. Tabandan ölçülmez.
+- $d$, sıvının **özkütlesidir**. Aynı derinlikte, özkütlesi büyük sıvının basıncı büyüktür.
+- Sıvı basıncı kabın biçimine ve sıvının miktarına bağlı değildir; yalnız derinliğe ve özkütleye bağlıdır.`,
+        kontrol: {
+          soru: 'Ali 2 m derinliğe bir kez yüzme havuzunda, bir kez de denizde dalıyor. Deniz suyunun özkütlesi havuz suyununkinden biraz büyüktür. Suyun basıncı hangisinde daha büyüktür?',
+          secenekler: ['Havuzda', 'Denizde', 'İkisinde eşittir; çünkü derinlik aynıdır.'],
+          dogru: 1,
+          aciklama: r`Derinlik ve $g$ aynıdır. $P = h \times d \times g$ bağıntısında özkütlesi büyük olan deniz suyunun basıncı daha büyüktür.`,
+          yanlisIpucu: 'Sıvı basıncı yalnız derinliğe bağlı değildir. Bağıntıdaki d neyi gösteriyordu?'
+        }
+      },
+      {
+        baslik: 'Havanın da basıncı var',
+        sekil: 'sfY81_damlalik',
+        metin: r`Dünya'yı saran hava, ağırlığıyla her şeye bastırır. Buna **açık hava basıncı** denir. Hava her yönden bastırdığı için onu çoğu zaman fark etmeyiz.
+
+- Torricelli, cıva dolu bir boruyu cıva dolu bir kaba ters çevirdi. Deniz seviyesinde borudaki cıva 76 cm yükseklikte kaldı. Cıvayı orada tutan, kaptaki cıvanın yüzeyine bastıran açık hava basıncıdır.
+- Yükseklere çıktıkça üstümüzdeki hava azalır. Bu yüzden açık hava basıncı **yükseklikle azalır**.
+
+Damlalığın lastiğini sıkarsan içindeki havanın bir kısmı dışarı çıkar. Ucu ilaca daldırıp lastiği bırakınca içerideki havanın basıncı açık hava basıncından küçük kalır.`,
+        kontrol: {
+          soru: 'Damlalığın lastiği bırakılınca ilacı cam borunun içine iten nedir?',
+          secenekler: ['Damlalığın ilacı emen kuvveti', 'Şişedeki ilacın yüzeyine bastıran açık hava basıncı', 'İlacın kendi ağırlığı'],
+          dogru: 1,
+          aciklama: 'Damlalığın içindeki havanın basıncı açık hava basıncından küçüktür. Şişedeki ilacın yüzeyine bastıran açık hava, ilacı borunun içine iter. Emme diye bir kuvvet yoktur.',
+          yanlisIpucu: 'Akışkanlar çekmez, iter. Büyük basınç nerede, küçük basınç nerede?'
+        }
+      },
+      {
+        baslik: 'Kapalı kaptaki gazın basıncı',
+        metin: r`Gaz, sürekli ve hızla hareket eden çok küçük taneciklerden oluşur. Tanecikler kabın çeperlerine durmadan çarpar. Bu çarpmalar gazın **basıncını** oluşturur.
+
+- Kapalı bir kaptaki gaz **ısınırsa** tanecikler daha hızlı hareket eder, çeperlere daha sık ve daha sert çarpar. Gazın basıncı **artar**.
+- Gaz soğursa basıncı azalır.
+- Kaba daha çok gaz basılırsa da basınç artar. Bisiklet lastiğini şişirirken yaptığın budur.`,
+        kontrol: {
+          soru: 'Deodorant kutularının üstünde "Güneş altında bırakmayın, 50 °C\'nin üstündeki yerlerde saklamayın." uyarısı vardır. Bunun nedeni nedir?',
+          secenekler: ['Kutu ısınınca içindeki gazın basıncı artar ve kutu patlayabilir.', 'Kutu ısınınca içindeki gazın basıncı azalır ve sprey çalışmaz.', 'Kutu ısınınca gaz sıvıya dönüşür.'],
+          dogru: 0,
+          aciklama: 'Kapalı kutudaki gaz ısınınca tanecikleri daha hızlı hareket eder ve basıncı artar. Basınç çok artarsa kutu patlayabilir.',
+          yanlisIpucu: 'Isınan gazın tanecikleri daha hızlı mı, daha yavaş mı hareket eder? Çeperlere çarpmaları ne olur?'
+        }
+      },
+      {
+        baslik: 'Sıvılar basıncı iletir: Pascal ilkesi',
+        metin: r`**Pascal ilkesi:** Kapalı bir kaptaki sıvıya dışarıdan uygulanan basınç, sıvının **her noktasına ve kabın bütün çeperlerine aynen** iletilir.
+
+Otomobillerin hidrolik freni bu ilkeden yararlanır. Basit bir modelde düşünelim: Sürücü fren pedalına basınca, kapalı borulardaki fren yağına bir basınç eklenir. Bu basınç yağ yoluyla tekerleklerdeki frenlere iletilir ve frenler tekerleklere sürtünerek aracı yavaşlatır.`,
+        kontrol: {
+          soru: 'Basit fren modelinde sürücü pedala basınca fren yağına eklenen basınç için hangisi doğrudur?',
+          secenekler: ['Yalnız pedala en yakın tekerleğin frenine ulaşır.', 'Borularda yol alırken azalır ve arka tekerleklere hiç ulaşmaz.', 'Yağın her noktasına aynen iletilir; bütün frenlere ulaşır.'],
+          dogru: 2,
+          aciklama: 'Kapalı borulardaki fren yağı, eklenen basıncı her noktasına aynen iletir. Bu yüzden tek pedal, uzaktaki frenleri de birlikte çalıştırır.',
+          yanlisIpucu: 'Pascal ilkesine göre kapalı kaptaki sıvıya eklenen basınç nerelere iletilir?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Seramik atölyesindeki blok',
+        sekil: 'sfY81_blok',
+        metin: r`Bir seramik atölyesinde masaya yumuşak, düzeltilmiş bir kil tabakası serilmiş. Kenarları 2 cm, 5 cm ve 10 cm olan türdeş, tahta bir blok kilin üstüne konuyor. Blok kile battıkça iz bırakıyor.`,
+        adimlar: [
+          {
+            soru: 'Blok hangi yüzü üzerine konursa kilde en derin iz bırakır?',
+            secenekler: ['En büyük yüzü (5 cm × 10 cm) üzerine', 'En küçük yüzü (2 cm × 5 cm) üzerine', 'Hangi yüzü üzerine konursa konsun iz aynı olur.'],
+            dogru: 1,
+            ipucu: 'Bloğun ağırlığı hep aynıdır. Basıncı büyük yapan ne olur?',
+            aciklama: 'Ağırlık değişmez. Temas alanı en küçük olduğunda basınç en büyük olur; iz en derin olur.'
+          },
+          {
+            soru: 'Blok en büyük yüzü yerine en küçük yüzü üzerine çevrilirse kile uyguladığı basınç ne olur?',
+            secenekler: ['5 katına çıkar.', '5\'te 1\'ine iner.', '2 katına çıkar.'],
+            dogru: 0,
+            ipucu: r`Önce iki yüzün alanını bul: $5 \times 10$ ve $2 \times 5$. Kuvvet aynıysa basınç alanla ters orantılıdır.`,
+            aciklama: r`Alanlar $50\ \text{cm}^2$ ve $10\ \text{cm}^2$'dir. Alan 5'te 1'ine indiği için basınç 5 katına çıkar.`
+          },
+          {
+            soru: 'Blok en büyük yüzü üzerinde dururken üstüne aynı bloktan bir tane daha konuyor. Kile uygulanan basınç ne olur?',
+            secenekler: ['Değişmez; çünkü kile değen yüzey aynıdır.', '4 katına çıkar.', '2 katına çıkar.'],
+            dogru: 2,
+            ipucu: 'Bu kez alan değişmedi. Kile bastıran kuvvet ne oldu?',
+            aciklama: 'Kile değen alan aynıdır, kile bastıran ağırlık 2 katına çıktı. Bu yüzden basınç 2 katına çıkar.'
+          }
+        ],
+        sonuc: 'Katı basıncı, kuvvet ile temas alanına bağlıdır. Alan küçülürse basınç büyür. Kuvvet büyürse basınç büyür.'
+      },
+      {
+        baslik: 'Bahçedeki sarnıç',
+        sekil: 'sfY81_sarnic',
+        metin: r`Bir köy evinin bahçesinde, yağmur suyunun toplandığı beton bir sarnıç var. Sarnıcın geniş ve dar iki bölmesi, tabandaki bir açıklıkla birbirine bağlı. Bu yüzden iki bölmedeki su yüzeyi aynı düzeydedir. K noktası geniş bölmenin, L noktası dar bölmenin tabanındadır.`,
+        adimlar: [
+          {
+            soru: 'Kurak bir yazdan sonra sarnıçtaki su yüksekliği 1 m. Kış yağmurlarıyla su yüksekliği 3 m oluyor. K noktasındaki sıvı basıncı ne olur?',
+            secenekler: ['3 katına çıkar.', '9 katına çıkar.', 'Değişmez; çünkü K noktası yerinden oynamadı.'],
+            dogru: 0,
+            ipucu: r`$P = h \times d \times g$ bağıntısında yalnız $h$ değişti.`,
+            aciklama: r`Özkütle ve $g$ aynıdır, derinlik 3 katına çıktı. Sıvı basıncı derinlikle doğru orantılı olduğu için 3 katına çıkar.`
+          },
+          {
+            soru: 'K ve L noktalarındaki sıvı basınçları için ne söylenir?',
+            secenekler: ['K\'de büyüktür; çünkü geniş bölmede daha çok su vardır.', 'Eşittir.', 'L\'de büyüktür; çünkü dar bölmede su sıkışır.'],
+            dogru: 1,
+            ipucu: 'İki nokta da aynı sudadır ve yüzeyden aynı derinliktedir. Sıvı basıncı suyun miktarına bağlı mıdır?',
+            aciklama: 'İki noktanın derinliği aynıdır ve ikisi de aynı sudadır. Sıvı basıncı kabın biçimine ve suyun miktarına bağlı değildir; K ve L noktalarında basınçlar eşittir.'
+          },
+          {
+            soru: 'Sarnıcın tabanındaki küçük bir çatlaktan su sızıyor. Su yüksekliği azaldıkça sızıntı nasıl değişir?',
+            secenekler: ['Hızlanır.', 'Yavaşlar.', 'Hiç değişmez.'],
+            dogru: 1,
+            ipucu: 'Suyu çatlaktan dışarı iten, tabandaki sıvı basıncıdır. Su azalınca bu basınç ne olur?',
+            aciklama: 'Su yüksekliği azaldıkça tabandaki sıvı basıncı da azalır. Suyu çatlaktan iten basınç küçüldüğü için sızıntı yavaşlar.'
+          }
+        ],
+        sonuc: 'Sıvı basıncı derinlikle doğru orantılıdır. Aynı sıvıda aynı derinlikteki noktaların basıncı, kabın biçimi ne olursa olsun eşittir.'
+      },
+      {
+        baslik: 'Derin dondurucunun kapağı',
+        metin: r`Sandık tipi bir derin dondurucunun kapağı açılıp içine dışarıdaki ılık hava doluyor. Kapak kapatılıyor. Hemen ardından kapağı yeniden açmaya çalışan Zeynep, kapağın zor açıldığını görüyor. Birkaç dakika bekleyince kapak yine kolay açılıyor.`,
+        adimlar: [
+          {
+            soru: 'Kapak kapandıktan sonra içeride kalan ılık hava soğuyor. Bu havanın basıncı nasıl değişir?',
+            secenekler: ['Azalır.', 'Artar.', 'Değişmez; çünkü havanın miktarı aynıdır.'],
+            dogru: 0,
+            ipucu: 'Gaz soğuyunca tanecikleri daha yavaş hareket eder. Çeperlere çarpmaları ne olur?',
+            aciklama: 'Kapalı kaptaki gaz soğuyunca tanecikleri yavaşlar ve çeperlere daha az çarpar. İçerideki havanın basıncı azalır.'
+          },
+          {
+            soru: 'Kapak neden zor açılır?',
+            secenekler: ['İçerideki soğuk hava kapağı içeri doğru çeker.', 'Kapağın dışına bastıran açık hava basıncı, içerideki havanın basıncından büyüktür.', 'Kapak soğuyunca ağırlaşır.'],
+            dogru: 1,
+            ipucu: 'Kapağın üstünde ve altında hangi basınçlar var? Hangisi daha büyük?',
+            aciklama: 'Dışarıdaki açık hava basıncı, içerideki soğumuş havanın basıncından büyüktür. Bu fark kapağı aşağı doğru bastırır; kapak zor açılır.'
+          },
+          {
+            soru: 'Birkaç dakika sonra kapak neden yine kolay açılır?',
+            secenekler: ['İçerideki hava yeniden ısınıp kaynar.', 'Açık hava basıncı birkaç dakikada azalır.', 'Contadaki küçük aralıklardan içeri hava sızar ve içerideki basınç açık hava basıncına yaklaşır.'],
+            dogru: 2,
+            ipucu: 'Basınç farkını ortadan kaldırmak için içerideki havaya ne olmalı?',
+            aciklama: 'Conta havayı tamamen durduramaz. Dışarıdan içeri yavaşça hava sızar, iki yanın basınçları eşitlenir ve kapak kolay açılır.'
+          }
+        ],
+        sonuc: 'Kapalı kaptaki gaz soğuyunca basıncı azalır. İki yanındaki basınçlar farklı olan bir yüzey, büyük basınçlı taraftan küçük basınçlı tarafa doğru itilir.'
+      }
+    ],
+    hazir: r`Katı basıncını, sıvı basıncını, açık hava basıncını, kapalı kaptaki gazın basıncını ve Pascal ilkesini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -44137,6 +44665,101 @@ BFY_FIG_EKLE('iY82_efsane_4', u => EF(u, () => {
 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY82_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f4f7f9', CAM = '#5d7d8f', AKIS = '#1f5f8f';
+let N = 0;
+const yid = (u, ad) => `${u}sf82${ad}${++N}`;
+const lg = (id, renkler, yon = 'y') => `<defs><linearGradient id="${id}" ${yon === 'y' ? 'x1="0" y1="0" x2="0" y2="1"' : 'x1="0" y1="0" x2="1" y2="0"'}>${renkler.map((c, i) => `<stop offset="${f1(i / (renkler.length - 1))}" stop-color="${c}"/>`).join('')}</linearGradient></defs>`;
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: o.size || 15, weight: o.weight || 700, anchor: o.anchor || 'start', fill: o.fill || P.ink });
+const ok = (x1, y1, x2, y2, c = AKIS, w = 2.6) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 9, headW: 5 });
+
+/* Nehir ve köprü ayakları (üstten görünüş): ayakların arasında oklar daha uzun */
+BFY_FIG_EKLE('sfY82_kopru', function (u) {
+  const W = 340, H = 240, gs = yid(u, 'su'), gk = yid(u, 'kiyi'), ga = yid(u, 'ayak');
+  const y1 = 46, y2 = 196, xa = 180;
+  let s = zemin(W, H) + lg(gs, ['#8cc6e8', '#5ea8d6', '#8cc6e8']) + lg(gk, ['#9fca7c', '#7aac5b']) + lg(ga, ['#e3dccf', '#b8ad99']);
+  s += `<rect x="8" y="8" width="324" height="${y1 - 8}" rx="8" fill="url(#${gk})"/><rect x="8" y="${y2}" width="324" height="${H - 8 - y2}" rx="8" fill="url(#${gk})"/>`;
+  s += `<rect x="8" y="${y1}" width="324" height="${y2 - y1}" fill="url(#${gs})"/>`;
+  s += `<line x1="8" y1="${y1}" x2="332" y2="${y1}" stroke="#4f7f3c" stroke-width="1.5"/><line x1="8" y1="${y2}" x2="332" y2="${y2}" stroke="#4f7f3c" stroke-width="1.5"/>`;
+  /* iki köprü ayağı: akışa karşı sivri */
+  const ayak = yc => `<path d="M${xa - 34} ${yc} L${xa - 20} ${yc - 13} L${xa + 20} ${yc - 13} L${xa + 34} ${yc} L${xa + 20} ${yc + 13} L${xa - 20} ${yc + 13} Z" fill="url(#${ga})" stroke="#7d7466" stroke-width="1.4"/>`;
+  const ay = [96, 146];
+  ay.forEach(yc => { s += `<path d="M${xa - 36} ${yc + 3} L${xa + 36} ${yc + 3}" stroke="#2a6f9e" stroke-width="5" opacity=".25"/>` + ayak(yc); });
+  /* köprü tabliyesi: yarı saydam */
+  s += `<rect x="${xa - 14}" y="20" width="28" height="200" fill="#6f7a80" opacity=".28" stroke="#5a646a" stroke-width="1"/>`;
+  /* oklar: önce kısa, aralıklarda uzun, sonra yine kısa */
+  const seritler = [71, 121, 171];
+  seritler.forEach(y => { s += ok(26, y, 70, y) + ok(150, y, 214, y) + ok(262, y, 306, y); });
+  s += yaz(48, 31, 'akış', { size: 14, anchor: 'middle', fill: '#24421a', weight: 800 }) + ok(70, 26, 98, 26, '#24421a', 2);
+  s += yaz(xa + 24, 34, 'köprü', { size: 14, weight: 800, fill: '#24421a' });
+  s += yaz(322, 229, 'üstten görünüş', { size: 14, anchor: 'end', fill: '#24421a' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Yatay boru: geniş, dar, geniş; K tüpü geniş bölümde (yüksek), L tüpü dar bölümde (alçak) */
+BFY_FIG_EKLE('sfY82_boru', function (u) {
+  const W = 340, H = 240, gs = yid(u, 'su'), gc = yid(u, 'cam');
+  const yu = 140, ya = 190, nu = 153, na = 177;   // geniş bölüm üst/alt, dar bölüm üst/alt
+  let s = zemin(W, H) + lg(gs, ['#bfe0f3', '#7fb8de', '#5a9fcc']) + lg(gc, ['#eef6fb', '#d6e8f2'], 'x');
+  const kesit = `M14 ${yu} L112 ${yu} L142 ${nu} L198 ${nu} L228 ${yu} L326 ${yu} L326 ${ya} L228 ${ya} L198 ${na} L142 ${na} L112 ${ya} L14 ${ya} Z`;
+  s += `<path d="${kesit}" fill="url(#${gs})"/>`;
+  s += `<path d="M14 ${yu} L112 ${yu} L142 ${nu} L198 ${nu} L228 ${yu} L326 ${yu}" fill="none" stroke="${CAM}" stroke-width="3.2" stroke-linejoin="round"/>`;
+  s += `<path d="M14 ${ya} L112 ${ya} L142 ${na} L198 ${na} L228 ${ya} L326 ${ya}" fill="none" stroke="${CAM}" stroke-width="3.2" stroke-linejoin="round"/>`;
+  s += `<rect x="16" y="${yu + 4}" width="94" height="5" rx="2.5" fill="#fff" opacity=".45"/>`;
+  /* tüpler */
+  const tup = (x, ust, alt, su) => `<rect x="${x - 7}" y="${ust}" width="14" height="${alt - ust}" fill="url(#${gc})"/>` +
+    `<rect x="${x - 5}" y="${su}" width="10" height="${alt - su + 2}" fill="url(#${gs})"/>` +
+    `<line x1="${x - 5}" y1="${su}" x2="${x + 5}" y2="${su}" stroke="#2a6f9e" stroke-width="1.6"/>` +
+    `<path d="M${x - 7} ${ust} L${x - 7} ${alt} M${x + 7} ${ust} L${x + 7} ${alt}" stroke="${CAM}" stroke-width="2.2"/>`;
+  const kx = 62, lx = 170, ks = 48, ls = 104;
+  s += tup(kx, 26, yu, ks) + tup(lx, 26, nu, ls);
+  s += yaz(kx + 16, 38, 'K', { size: 16, weight: 800 }) + yaz(lx + 16, 38, 'L', { size: 16, weight: 800 });
+  s += `<line x1="${kx + 9}" y1="${ks}" x2="${lx - 9}" y2="${ks}" stroke="${P.ink2}" stroke-width="1" stroke-dasharray="3 4"/>`;
+  /* akış okları: dar bölümde uzun */
+  s += ok(24, 165, 70, 165) + ok(146, 165, 196, 165, '#123f66', 2.6) + ok(262, 165, 308, 165);
+  s += yaz(170, 214, 'dar bölüm', { size: 14, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Puarlı parfüm şişesi: puar sıkılınca hava yatay borudan düşey borunun ağzının üstünden hızla akar */
+BFY_FIG_EKLE('sfY82_parfum', function (u) {
+  const W = 340, H = 240, gc = yid(u, 'cam'), gp = yid(u, 'par'), gr = yid(u, 'puar'), gm = yid(u, 'kap');
+  let s = zemin(W, H) + lg(gc, ['#f4f8fb', '#d4e4ee', '#bcd3e1'], 'x') + lg(gp, ['#f6c6d8', '#e58fb2']) + lg(gr, ['#e46b5a', '#b23b2c', '#7e2219'], 'x') + lg(gm, ['#f3e2a6', '#c9a64a', '#9c7a24'], 'x');
+  s += `<ellipse cx="170" cy="224" rx="70" ry="7" fill="#000" opacity=".1"/>`;
+  /* şişe */
+  const sise = 'M152 108 L152 122 Q112 132 112 172 Q112 218 170 218 Q228 218 228 172 Q228 132 188 122 L188 108 Z';
+  s += `<path d="${sise}" fill="url(#${gc})" opacity=".8"/>`;
+  s += `<path d="M115 180 L225 180 Q222 215 170 215 Q118 215 115 180 Z" fill="url(#${gp})"/>`;
+  s += `<line x1="115" y1="180" x2="225" y2="180" stroke="#b5527c" stroke-width="1.4"/>`;
+  s += `<path d="${sise}" fill="none" stroke="${CAM}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s += `<path d="M122 160 Q124 140 140 134" stroke="#fff" stroke-width="5" fill="none" opacity=".55" stroke-linecap="round"/>`;
+  /* kapak (deliği solda) */
+  s += `<rect x="146" y="94" width="48" height="16" rx="3" fill="url(#${gm})" stroke="#7a5d18" stroke-width="1.2"/>`;
+  s += `<rect x="154" y="98" width="5" height="8" rx="1.5" fill="#3d2e0a"/>`;
+  /* düşey ince boru: parfümün içinden ağzına */
+  s += `<rect x="167" y="66" width="6" height="140" fill="#eef6fb" stroke="${CAM}" stroke-width="1.3"/>`;
+  s += `<rect x="168.3" y="180" width="3.4" height="25" fill="url(#${gp})"/>`;
+  /* yatay hava borusu ve puar */
+  s += `<rect x="180" y="55" width="96" height="7" rx="2" fill="#e9eef1" stroke="${CAM}" stroke-width="1.3"/>`;
+  s += `<path d="M186 62 L186 94 M190 62 L190 94" stroke="#9c7a24" stroke-width="1.6"/><rect x="183" y="72" width="10" height="4" rx="1" fill="#c9a64a" stroke="#7a5d18" stroke-width=".8"/>`;   // metal taşıyıcı kelepçe (boru değil)
+  s += `<path d="M276 52 Q286 50 292 48" stroke="#7e2219" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+  s += `<ellipse cx="312" cy="60" rx="21" ry="27" fill="url(#${gr})" stroke="#6b1c14" stroke-width="1.4"/><ellipse cx="305" cy="50" rx="5" ry="9" fill="#fff" opacity=".35"/>`;
+  /* hava jeti ve püskürme */
+  s += ok(214, 58.5, 150, 58.5, '#3f7fae', 2.4);
+  [[130, 52], [118, 62], [104, 50], [96, 64], [84, 56], [72, 48], [66, 66], [56, 58], [112, 44], [90, 70]].forEach(([x, y], i) => { s += `<circle cx="${x}" cy="${y}" r="${2.4 - (i % 3) * 0.5}" fill="#e58fb2" opacity=".85"/>`; });
+  /* etiketler */
+  s += yaz(312, 108, 'puar', { anchor: 'middle', weight: 800 });
+  s += yaz(244, 44, 'hava', { anchor: 'middle', weight: 800, fill: '#3f7fae', size: 14 });
+  s += `<line x1="104" y1="194" x2="132" y2="194" stroke="${P.ink2}" stroke-width="1.2"/>` + yaz(98, 199, 'parfüm', { anchor: 'end' });
+  s += `<line x1="104" y1="103" x2="152" y2="103" stroke="${P.ink2}" stroke-width="1.2"/>` + yaz(98, 108, 'hava deliği', { anchor: 'end', size: 14 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -44205,6 +44828,172 @@ const KONU = {
     'rüzgâr tünelinde biçimi ve açısı bilinmeyen model kanat (kesinlikle)',
     'mutfak ocağı brülörü: meme, hava delikleri, karışım borusu'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Program Bernoulli ilkesinde hesaba girmez: bütün ilişkiler büyüktür-küçüktür düzeyindedir. Tansiyon değerleri tamsayıdır.
+     Doğru şıklar ve şekil verileri qa/Y.8.2/dogrula.py içinde denetlenir. "Eşit geçiş süresi" açıklaması kullanılmaz. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Akan suyun ve havanın nerede hızlandığını, hızlanınca basıncının nasıl değiştiğini ve bunun günlük hayattaki sonuçlarını kısa adımlarla göreceğiz. Bu konuda hesap yok; karşılaştırmak yetiyor. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Dar yerde akış hızlanır',
+        sekil: 'sfY82_kopru',
+        metin: r`Sıvılar ve gazlar akabildiği için **akışkan** olarak adlandırılır.
+
+Bir nehir köprünün ayaklarına gelince su, ayakların arasındaki daha dar açıklıklardan geçmek zorunda kalır. Nehrin her kesitinden 1 saniyede geçen su miktarı aynıdır. Geçecek yer daraldıysa aynı suyun geçebilmesi için su **hızlanmalıdır**.
+
+- Kesit **daralınca** akışkanın **sürati artar**.
+- Kesit **genişleyince** sürati azalır.
+
+Şekilde okların uzunluğu suyun süratini gösteriyor.`,
+        kontrol: {
+          soru: 'Köprünün ayakları arasındaki açıklıklarda suyun sürati, köprüden önceki geniş bölüme göre nasıldır?',
+          secenekler: ['Daha büyüktür.', 'Daha küçüktür; çünkü su ayaklara çarpıp yavaşlar.', 'Aynıdır; çünkü nehir aynı nehirdir.'],
+          dogru: 0,
+          aciklama: 'Ayakların arasından geçen su, köprüden önceki geniş bölümden geçen suyla aynı miktardadır. Yer daraldığı için su hızlanır; sürati daha büyüktür.',
+          yanlisIpucu: '1 saniyede geçen su miktarı aynı kalıyor. Daha dar bir yerden aynı suyun geçmesi için su ne yapmalı?'
+        }
+      },
+      {
+        baslik: 'Bernoulli ilkesi: hızlı akışta basınç küçüktür',
+        sekil: 'sfY82_boru',
+        metin: r`Yatay bir boruda su akıyor. Borunun ortası dar, iki yanı geniş. Borunun üstüne ağzı açık ince cam tüpler takılmış. Tüpteki suyun yüksekliği, borudaki suyun o noktadaki basıncını gösterir: Basınç büyükse su tüpte daha yükseğe çıkar.
+
+Şekilde dar bölümün üstündeki L tüpünde su, geniş bölümün üstündeki K tüpündekinden daha alçakta duruyor. Su dar bölümde hızlanmıştı; demek ki orada basıncı küçülmüş.
+
+**Bernoulli ilkesi:** Aynı akışta sürati **büyük** olan bölgede akışkanın basıncı **küçük**, sürati küçük olan bölgede basıncı büyüktür.
+
+- Bu ilke sıvılar için de gazlar için de geçerlidir.
+- Akış yönü değişse de sonuç aynıdır: Dar bölümde sürat büyük, basınç küçüktür.`,
+        kontrol: {
+          soru: 'Borunun ucundaki musluk kapatılıyor ve su durgun hâle geliyor. K ve L tüplerindeki su yükseklikleri için ne söylenir?',
+          secenekler: ['L tüpündeki su yine daha alçaktır.', 'İki tüpte su aynı düzeye gelir.', 'Bu kez L tüpündeki su daha yüksektir.'],
+          dogru: 1,
+          aciklama: 'Su akmayınca dar bölümde de hızlanma olmaz. Durgun suda aynı derinlikteki noktaların basıncı eşittir; iki tüpte su aynı düzeye gelir.',
+          yanlisIpucu: 'Tüplerdeki farkı oluşturan, dar bölümdeki hızlanmaydı. Su durunca hızlanma kalır mı?'
+        }
+      },
+      {
+        baslik: 'Rüzgâr ve ters dönen şemsiye',
+        metin: r`Bernoulli ilkesi günlük hayatta pek çok olayı açıklar. Bir cismin bir yanında hava hızlı, öbür yanında yavaş akıyorsa iki yanı arasında bir basınç farkı oluşur. Bu fark cismi **büyük basınçlı** taraftan **küçük basınçlı** tarafa doğru iter. Yani cisim, yavaş akışın olduğu taraftan hızlı akışın olduğu tarafa doğru itilir.
+
+Fırtınada çatılar uçabilir, kapılar sertçe kapanabilir. Rüzgârın şemsiyeyi ters çevirmesi de bu olaylardan biridir.`,
+        kontrol: {
+          soru: 'Şiddetli rüzgâr şemsiyenin kubbesinin üstünden hızla akıyor. Şemsiye neden ters döner?',
+          secenekler: ['Rüzgâr şemsiyeyi üstten aşağı doğru bastırır.', 'Şemsiyenin altındaki hava sıkışıp ısınır.', 'Üstteki hızlı havanın basıncı küçüktür; alttaki daha büyük basınç kubbeyi yukarı iter.'],
+          dogru: 2,
+          aciklama: 'Kubbenin üstünde hava hızlı akar ve basıncı küçüktür. Kubbenin altında hava daha yavaştır ve basıncı büyüktür. Bu fark kubbeyi yukarı iter ve şemsiye ters döner.',
+          yanlisIpucu: 'Şemsiye yukarı doğru ters dönüyor. Onu yukarı iten basınç hangi taraftadır?'
+        }
+      },
+      {
+        baslik: 'Tansiyon: damardaki kanın basıncı',
+        metin: r`Kalp kanı atardamarlara pompalar. Kanın atardamar çeperine yaptığı basınca **tansiyon** denir.
+
+- Kalp kasıldığında tansiyon en büyük değerine çıkar. Buna **büyük tansiyon** denir.
+- Kalp iki atım arasında gevşerken tansiyon en küçük değerine iner. Buna **küçük tansiyon** denir.
+- Tansiyon, kola sarılan bir **manşonla** ölçülür ve çoğunlukla milimetre cıva (mmHg) birimiyle verilir.
+
+Ölçümde manşon şişirilir ve koldaki atardamarı sıkıştırır. Sonra manşondaki hava yavaş yavaş boşaltılır. Bu sırada stetoskopla damardan geçen kanın sesi dinlenir.`,
+        kontrol: {
+          soru: 'Tansiyon ölçülürken manşon neden önce iyice şişirilir?',
+          secenekler: ['Atardamarı sıkıştırıp kanın akışını kısa bir süre durdurmak için', 'Kalbin daha hızlı atmasını sağlamak için', 'Koldaki kanı ısıtmak için'],
+          dogru: 0,
+          aciklama: 'Şişen manşon atardamarı sıkıştırır ve kan bir süre geçemez. Manşon basıncı yavaşça azaltılınca kanın yeniden geçmeye başladığı an dinlenir.',
+          yanlisIpucu: 'Manşon kolu sıkar. Sıkılan bir damarda kana ne olur?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Puarlı parfüm şişesi',
+        sekil: 'sfY82_parfum',
+        metin: r`Eski tip bazı parfüm şişelerinde lastik bir puar vardır. Puar sıkılınca hava, yatay ve ince bir borudan hızla çıkar. Bu borunun ucunun hemen altında, alt ucu parfüme dalan düşey ve ince bir boru vardır. Şişenin kapağında küçük bir hava deliği bulunur.`,
+        adimlar: [
+          {
+            soru: 'Puar sıkılınca düşey borunun üst ağzında havanın basıncı nasıl değişir?',
+            secenekler: ['Artar; çünkü hava oraya çarpar.', 'Azalır; çünkü hava orada hızla akar.', 'Değişmez.'],
+            dogru: 1,
+            ipucu: 'Bernoulli ilkesi: Sürat büyükse basınç ne olur?',
+            aciklama: 'Yatay borudan çıkan hava, düşey borunun ağzının üstünden hızla akar. Hızlı akan havanın basıncı küçüktür.'
+          },
+          {
+            soru: 'Parfüm neden düşey boruda yükselir?',
+            secenekler: ['Şişedeki parfümün yüzeyine bastıran hava basıncı, borunun ağzındaki basınçtan büyüktür.', 'Hızlı hava parfümü yukarı doğru emer.', 'Puar parfümü aşağıdan iter.'],
+            dogru: 0,
+            ipucu: 'Kapaktaki delik sayesinde parfümün yüzeyine hangi basınç bastırır? Borunun ağzındaki basınçla karşılaştır.',
+            aciklama: 'Kapaktaki delikten giren hava, parfümün yüzeyine açık hava basıncıyla bastırır. Borunun ağzındaki basınç bundan küçüktür. Parfüm büyük basınçtan küçük basınca doğru, yani boruda yukarı itilir.'
+          },
+          {
+            soru: 'Puar daha hızlı sıkılırsa ne olur?',
+            secenekler: ['Daha az parfüm püskürür.', 'Hiç parfüm püskürmez.', 'Daha çok parfüm püskürür.'],
+            dogru: 2,
+            ipucu: 'Hava daha hızlı akarsa borunun ağzındaki basınç daha da küçülür mü?',
+            aciklama: 'Hava daha hızlı akınca borunun ağzındaki basınç daha çok düşer. Basınç farkı büyür ve parfüm daha kolay yükselip püskürür.'
+          }
+        ],
+        sonuc: 'Hızlı akan havanın basıncı küçüktür. Sıvı, büyük basınçlı yerden küçük basınçlı yere doğru itilir. Akış ne kadar hızlıysa basınç farkı o kadar büyük olur.'
+      },
+      {
+        baslik: 'Pistte hızlanan uçak',
+        metin: r`Bir yolcu uçağı pistte hızlanıyor. Kanatların biçimi ve gelen havaya göre hafifçe yukarı eğik durmaları yüzünden, kanadın üstünden geçen hava altından geçen havadan daha hızlı akar.`,
+        adimlar: [
+          {
+            soru: 'Kanadın üstündeki havanın basıncı, altındaki havanın basıncına göre nasıldır?',
+            secenekler: ['Daha küçüktür.', 'Daha büyüktür.', 'Eşittir.'],
+            dogru: 0,
+            ipucu: 'Üstte hava daha hızlı akıyor. Bernoulli ilkesini hatırla.',
+            aciklama: 'Kanadın üstünde hava daha hızlı aktığı için basınç daha küçüktür.'
+          },
+          {
+            soru: 'Bu basınç farkı kanada hangi yönde kuvvet uygular?',
+            secenekler: ['Aşağı doğru', 'Yukarı doğru', 'Kuvvet uygulamaz.'],
+            dogru: 1,
+            ipucu: 'Basınç farkı, cismi büyük basınçlı taraftan küçük basınçlı tarafa doğru iter.',
+            aciklama: 'Büyük basınç kanadın altında, küçük basınç üstündedir. Fark kanadı yukarı doğru iter. Bu kuvvete kaldırma kuvveti denir.'
+          },
+          {
+            soru: 'Uçak pistte hızlandıkça kanatlardaki kaldırma kuvveti nasıl değişir?',
+            secenekler: ['Azalır.', 'Değişmez.', 'Artar; uçağın ağırlığını aşınca uçak havalanır.'],
+            dogru: 2,
+            ipucu: 'Uçak hızlandıkça kanatların çevresindeki hava da daha hızlı akar. Basınç farkı ne olur?',
+            aciklama: 'Uçak hızlandıkça kanatların üstündeki ve altındaki akışlar arasındaki fark büyür, kaldırma kuvveti artar. Kaldırma kuvveti uçağın ağırlığını aşınca uçak havalanır.'
+          }
+        ],
+        sonuc: 'Kanadın üstünde hava hızlı, basınç küçüktür. Alttaki büyük basınç kanadı yukarı iter. Uçak yeterince hızlanınca bu kuvvet ağırlığı aşar.'
+      },
+      {
+        baslik: 'Doktorun söylediği tansiyon',
+        metin: r`Doktor tansiyonu ölçtükten sonra Ayşe'ye "Tansiyonun 13'e 8." diyor. Günlük dilde bu sayılar santimetre cıva (cmHg) cinsinden söylenir.`,
+        adimlar: [
+          {
+            soru: '"13" hangi değeri anlatır?',
+            secenekler: ['Kalp gevşerken damardaki en küçük basıncı', 'Dakikadaki kalp atımı sayısını', 'Kalp kasılırken damardaki en büyük basıncı'],
+            dogru: 2,
+            ipucu: 'Büyük olan sayı önce söylenir. Kalp hangi anda kanı en güçlü iter?',
+            aciklama: '13, büyük tansiyondur: Kalp kasılırken atardamardaki en büyük basınç. 8 ise küçük tansiyondur.'
+          },
+          {
+            soru: 'Bu değerler mmHg cinsinden nasıl yazılır?',
+            secenekler: ['130 ve 80', '13 ve 8', '1300 ve 800'],
+            dogru: 0,
+            ipucu: '1 cm, 10 mm\'dir.',
+            aciklama: '1 cmHg, 10 mmHg\'dir. Büyük tansiyon 130 mmHg, küçük tansiyon 80 mmHg olur.'
+          },
+          {
+            soru: 'Ölçüm sırasında manşonun basıncı 100 mmHg iken stetoskopta ne duyulur?',
+            secenekler: ['Hiç ses duyulmaz; damar tamamen kapalıdır.', 'Her kalp atımında bir ses duyulur; kan damardan kesik kesik geçer.', 'Hiç ses duyulmaz; kan damardan hiç daralmadan akar.'],
+            dogru: 1,
+            ipucu: '100 mmHg, büyük tansiyondan (130) küçük, küçük tansiyondan (80) büyüktür. Kalp kasıldığında kan manşonun sıkıştırdığı damarı açabilir mi?',
+            aciklama: 'Manşon basıncı 80 ile 130 mmHg arasındadır. Kalp kasılınca kan damarı açıp geçer, gevşeyince damar yeniden kapanır. Kan kesik kesik geçtiği için her atımda ses duyulur.'
+          }
+        ],
+        sonuc: 'Tansiyon, kanın atardamar çeperine yaptığı basınçtır. "13\'e 8", 130 mmHg büyük ve 80 mmHg küçük tansiyon demektir. Manşon basıncı bu iki değerin arasındayken atım sesleri duyulur.'
+      }
+    ],
+    hazir: r`Kesit daralınca akışın hızlandığını, hızlı akışta basıncın küçüldüğünü, bunun şemsiyede, parfüm şişesinde ve uçak kanadında nasıl ortaya çıktığını ve tansiyonun ne olduğunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
