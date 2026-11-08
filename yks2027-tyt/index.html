@@ -30260,6 +30260,93 @@ BFY_FIG_EKLE('kY52_kalorimetre', function (u) {
   s += T(X(0.62), f1(Y(-9.6)), 'buz', { size: 13, weight: 800, fill: SOGUK });
   return svg(W, H, s, u, 74);
 });
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY52_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+/* Burkulan bileğe konan buz torbası: buz varken torbadaki su 0 °C, ısı bilekten torbaya */
+BFY_FIG_EKLE('sfY52_buz', function (u) {
+  const W = 340, H = 236;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}sfmat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d5dde3"/><stop offset="1" stop-color="#b9c5ce"/></linearGradient>` +
+    `<linearGradient id="${u}sftor" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef8fd" stop-opacity=".9"/><stop offset="1" stop-color="#c3e1f1" stop-opacity=".9"/></linearGradient></defs>`;
+  // minder
+  s += `<rect class="bg" x="0" y="198" width="${W}" height="${H - 198}" rx="14" fill="url(#${u}sfmat)"/><rect class="bg" x="0" y="198" width="${W}" height="16" fill="url(#${u}sfmat)"/>`;
+  // bacak ve ayak (sırtüstü yatan oyuncu, ayak ucu yukarıda)
+  s += `<ellipse cx="160" cy="201" rx="150" ry="5" fill="#000" opacity=".12"/>`;
+  s += `<path d="M0 146 L222 146 C238 146 246 136 248 118 L252 92 C254 78 268 70 282 74 L296 80 C306 86 306 98 302 110 L296 168 C294 190 284 198 268 198 L0 198 Z" fill="url(#${u}skin)" stroke="#c48f6c" stroke-width="1.2" stroke-linejoin="round"/>`;
+  s += `<path d="M30 154 L200 154" stroke="#fff" stroke-width="3" opacity=".25" stroke-linecap="round"/>`;
+  [[270, 76], [281, 76], [291, 81]].forEach(([x, y]) => { s += `<path d="M${x - 4} ${y + 1} q4 -6 8 0" fill="none" stroke="#c48f6c" stroke-width="1"/>`; });
+  s += `<path d="M236 150 q8 6 10 18" fill="none" stroke="#c48f6c" stroke-width="1" opacity=".7"/>`;
+  s += `<g transform="translate(22 0)">`;
+  // ısı okları (bilekten torbaya)
+  [104, 145, 186].forEach(x => { s += arrow(x, 186, x, 158, { color: SICAK, w: 3, head: 9, headW: 5.5 }); });
+  s += T(72, 140, 'ısı', { size: 16, weight: 800, anchor: 'end', fill: SICAK });
+  // buz torbası
+  s += `<path d="M84 150 C78 126 92 104 118 100 L172 100 C198 104 212 126 206 150 C176 158 114 158 84 150 Z" fill="url(#${u}sftor)" stroke="#7fb2c9" stroke-width="1.5"/>`;
+  s += `<path d="M90 140 C120 146 172 146 202 140 C200 148 176 154 145 154 C114 154 92 150 90 140 Z" fill="#8cc6e6" opacity=".75"/>`;
+  [[100, 118, 18, -12], [124, 112, 20, 8], [150, 116, 19, -6], [174, 114, 18, 14], [112, 128, 17, 18], [140, 126, 18, -14], [166, 128, 17, 6]].forEach(([x, y, a, r]) => {
+    s += `<g transform="rotate(${r} ${x + a / 2} ${y + a / 2})"><rect x="${x}" y="${y}" width="${a}" height="${a}" rx="4" fill="#f4fbff" stroke="#8fbfd6" stroke-width="1.1"/><line x1="${x + 4}" y1="${y + 4}" x2="${x + a * 0.5}" y2="${y + 4}" stroke="#fff" stroke-width="2" stroke-linecap="round"/></g>`;
+  });
+  s += `<path d="M138 100 L140 88 L150 88 L152 100 Z" fill="#c3e1f1" stroke="#7fb2c9" stroke-width="1.2"/><rect x="134" y="84" width="22" height="6" rx="3" fill="#2f7fb8"/>`;
+  s += `</g>`;
+  // dijital termometre ve sondası
+  s += `<path d="M232 50 C228 80 212 92 204 104 L198 140" fill="none" stroke="#3d474d" stroke-width="2.2" stroke-linecap="round"/><line x1="198" y1="126" x2="198" y2="146" stroke="#8c979e" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<rect x="222" y="12" width="96" height="42" rx="9" fill="#24323a"/><rect x="230" y="19" width="80" height="28" rx="4" fill="#d6ead0"/>`;
+  s += T(270, 40, '0 °C', { size: 19, weight: 800, anchor: 'middle', fill: '#1f3b2c', halo: false });
+  s += T(20, 84, 'buz torbası', { size: 15, weight: 800, fill: '#2f7fb8' });
+  s += T(252, 226, 'bilek', { size: 15, weight: 800, anchor: 'middle', fill: P.ink }) + `<line x1="252" y1="212" x2="250" y2="196" stroke="${P.ink2}" stroke-width="1.2"/>`;
+  return svg(W, H, s, u, 80);
+});
+
+/* Altı hâl değişimi: kırmızı oklar ısı alarak, mavi oklar ısı vererek */
+BFY_FIG_EKLE('sfY52_haller', function (u) {
+  const W = 340, H = 298, AL = SICAK, VR = SOGUK;
+  let s = zemin(W, H);
+  const kutu = (cx, cy, w, ad, c1, c2, cs) => `<defs><linearGradient id="${u}k${ad}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>` +
+    `<rect x="${cx - w / 2 + 2}" y="${cy - 21}" width="${w}" height="46" rx="11" fill="#000" opacity=".08"/>` +
+    `<rect x="${cx - w / 2}" y="${cy - 23}" width="${w}" height="46" rx="11" fill="url(#${u}k${ad})" stroke="${cs}" stroke-width="1.4"/>` +
+    T(cx, cy + 6, ad, { size: 17, weight: 800, anchor: 'middle', fill: P.ink, halo: false });
+  s += kutu(170, 42, 96, 'GAZ', '#ffffff', '#e3e8ec', '#a9b6bd');
+  s += kutu(100, 210, 84, 'KATI', '#eef8fd', '#bfdcec', '#7fb2c9');
+  s += kutu(240, 210, 84, 'SIVI', '#cfe8f6', '#7cbbe0', '#3f8fbf');
+  const ok2 = (x1, y1, x2, y2, c) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w: 3, head: 10, headW: 6 });
+  // katı ↔ sıvı
+  s += ok2(146, 201, 194, 201, AL) + ok2(194, 220, 146, 220, VR);
+  s += T(170, 188, 'erime', { size: 15, weight: 800, anchor: 'middle', fill: AL });
+  s += T(170, 248, 'donma', { size: 15, weight: 800, anchor: 'middle', fill: VR });
+  // katı ↔ gaz (sol çapraz) ve sıvı ↔ gaz (sağ çapraz)
+  const A = [118, 184], B = [142, 68], d = Math.hypot(B[0] - A[0], B[1] - A[1]), nx = (A[1] - B[1]) / d, ny = (B[0] - A[0]) / d, o = 6.5;
+  s += ok2(A[0] - nx * o, A[1] - ny * o, B[0] - nx * o, B[1] - ny * o, AL) + ok2(B[0] + nx * o, B[1] + ny * o, A[0] + nx * o, A[1] + ny * o, VR);
+  s += ok2(340 - A[0] + nx * o, A[1] - ny * o, 340 - B[0] + nx * o, B[1] - ny * o, AL) + ok2(340 - B[0] - nx * o, B[1] + ny * o, 340 - A[0] - nx * o, A[1] + ny * o, VR);
+  s += T(116, 118, 'süblimleşme', { size: 15, weight: 800, anchor: 'end', fill: AL }) + T(110, 140, 'kırağılaşma', { size: 15, weight: 800, anchor: 'end', fill: VR });
+  s += T(224, 118, 'buharlaşma', { size: 15, weight: 800, fill: AL }) + T(230, 140, 'yoğuşma', { size: 15, weight: 800, fill: VR });
+  // açıklama
+  s += arrow(40, 280, 76, 280, { color: AL, w: 3, head: 10, headW: 6 }) + T(84, 285, 'ısı alır', { size: 15, weight: 700 });
+  s += arrow(184, 280, 220, 280, { color: VR, w: 3, head: 10, headW: 6 }) + T(228, 285, 'ısı verir', { size: 15, weight: 700 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Soğuk sos kavanozu ılık suda: sıcaklık–zaman grafiği (yalıtılmış kabul), T_D = 38 °C */
+BFY_FIG_EKLE('sfY52_kavanoz', function (u) {
+  const V = { su0: 46, kav0: 6, TD: 38, tau: 1.8 };
+  const W = 340, H = 262, L = 56, R = 270, Tp = 40, B = 222, tm = 10, Tm = 50;
+  const px = t => L + t / tm * (R - L), py = v => B - v / Tm * (B - Tp);
+  let s = zemin(W, H) + `<rect class="bg" x="10" y="10" width="320" height="242" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+  [2, 4, 6, 8, 10].forEach(t => { s += `<line x1="${f1(px(t))}" y1="${B}" x2="${f1(px(t))}" y2="${Tp}" stroke="${GRID}" stroke-width="1"/>`; });
+  [10, 20, 30, 40].forEach(v => { s += `<line x1="${L}" y1="${f1(py(v))}" x2="${R}" y2="${f1(py(v))}" stroke="${GRID}" stroke-width="1"/>`; });
+  const xe = R + 12, yTop = Tp - 16;
+  s += `<line x1="${L}" y1="${B}" x2="${xe}" y2="${B}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${xe + 8},${B} ${xe - 1},${B - 4} ${xe - 1},${B + 4}" fill="${P.ink}"/>`;
+  s += `<line x1="${L}" y1="${B}" x2="${L}" y2="${yTop}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${L},${yTop - 8} ${L - 4},${yTop + 1} ${L + 4},${yTop + 1}" fill="${P.ink}"/>`;
+  s += T(xe + 12, B + 5, 't (dk)', { size: 14, weight: 700 }) + T(L + 9, yTop + 2, 'T (°C)', { size: 14, weight: 700 });
+  [2, 4, 6, 8, 10].forEach(t => { s += `<line x1="${f1(px(t))}" y1="${B - 3}" x2="${f1(px(t))}" y2="${B + 3}" stroke="${P.ink}" stroke-width="1.2"/>` + T(px(t), B + 20, String(t), { size: 14, anchor: 'middle', fill: P.ink2 }); });
+  [V.kav0, V.TD, V.su0].forEach(v => { s += `<line x1="${L - 3}" y1="${f1(py(v))}" x2="${L + 3}" y2="${f1(py(v))}" stroke="${P.ink}" stroke-width="1.2"/>` + T(L - 8, py(v) + 5, String(v), { size: 14, anchor: 'end', fill: P.ink2 }); });
+  s += T(L - 8, B + 18, '0', { size: 14, anchor: 'end', fill: P.ink2 });
+  s += dashLine(L, f1(py(V.TD)), R, f1(py(V.TD)), '#9aa8b1', '4 4', 1.2) + dashLine(L, f1(py(V.su0)), px(0.3), f1(py(V.su0)), '#9aa8b1', '3 3', 1);
+  const n = 60, su = t => V.TD + (V.su0 - V.TD) * Math.exp(-t / V.tau), kv = t => V.TD - (V.TD - V.kav0) * Math.exp(-t / V.tau);
+  const yol = f => Array.from({ length: n + 1 }, (_, i) => [px(i / n * tm), py(f(i / n * tm))]);
+  s += egri(yol(su), SICAK, { w: 3.4 }) + egri(yol(kv), SOGUK, { w: 3.4, dash: '9 5' });
+  s += T(px(2.2), py(su(2.2)) - 12, 'su', { size: 16, weight: 800, fill: SICAK });
+  s += T(px(1.7), py(14), 'kavanoz', { size: 16, weight: 800, fill: SOGUK });
+  return svg(W, H, s, u, 80);
+});
 })();
 
 </script>
@@ -30332,6 +30419,186 @@ const KONU = {
     'Selin\'in hipotezi: 5 düzenek (buz 100 g −10 °C, buz 100 g 0 °C, naftalin 100 g 80 °C, buz 200 g 0 °C, buz 200 g 0 °C güçlü ısıtıcı)',
     'kalorimetre kabında su ve 0 °C altındaki buz, iki sensörün sıcaklık-zaman grafiği, t_1–t_2 erime, T_D > 0 °C'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Program gereği ısı ve denge sıcaklığı hesaplanmaz; yalnız oran ve yorum. Sayısal sonuçlar qa/Y.5.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bir madde erirken ısı aldığı hâlde sıcaklığının neden değişmediğini ve sıcak ile soğuk iki madde bir araya gelince ne olduğunu kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Erirken sıcaklık sabit kalır`,
+        sekil: 'sfY52_buz',
+        metin: r`Maçta bileği burkulan bir futbolcunun bileğine buz dolu bir torba konuyor. Torbanın içine bir termometrenin ucu da yerleştiriliyor.
+
+Bilek torbadan daha sıcaktır. Bu yüzden bilekten torbaya sürekli ısı geçer. Buz erimeye başladıktan sonra, torbada buz ile su birlikte olduğu sürece termometre hep 0 °C gösterir.
+
+- Bir maddenin katı, sıvı ya da gaz hâlinden başka bir hâle geçmesine **hâl değişimi** denir.
+- Saf bir madde erirken sıcaklığı değişmez. Alınan ısı, buzu suya dönüştürmeye harcanır.
+- Bu sırada taneciklerin ortalama hızı değişmez ama tanecikler arasındaki bağlar gevşer. Madde ısı aldığı için iç enerjisi artar.`,
+        kontrol: {
+          soru: r`Buzun tamamı eridikten sonra torba bilekte kalmaya devam ederse torbadaki suyun sıcaklığı ne olur?`,
+          secenekler: [r`0 °C'de kalır.`, r`Artmaya başlar.`, r`0 °C'nin altına iner.`],
+          dogru: 1,
+          aciklama: r`Buz bitince alınan ısı artık erimeye harcanmaz. Su ısı aldıkça ısınır ve sıcaklığı artar. Sıcaklık yalnız hâl değişimi sürerken sabit kalır.`,
+          yanlisIpucu: r`Sıcaklığın sabit kalmasının nedeni erimeydi. Eriyecek buz kalmayınca alınan ısı neye harcanır?`
+        }
+      },
+      {
+        baslik: r`Erimek için ne kadar ısı gerekir?`,
+        metin: r`Erime sıcaklığına gelmiş bir maddenin tamamını eritmek için gereken ısı iki şeye bağlıdır:
+
+- **Kütle ($m$):** Madde ne kadar çoksa o kadar çok ısı gerekir. Kütle 2 katına çıkarsa gereken ısı da 2 katına çıkar.
+- **Maddenin cinsi ($L$):** Her maddenin 1 kg'ını eritmek için gereken ısı farklıdır. Buna o maddenin **erime ısısı** denir ve $L_e$ ile gösterilir.
+
+Bu ilişki $Q = m \times L$ ile yazılır. Kaynamada da aynı model kullanılır; o zaman $L$ yerine **buharlaşma ısısı** $L_b$ yazılır. Suyun buharlaşma ısısı, erime ısısından çok büyüktür.
+
+Erime sıcaklığı ise kütleye bağlı değildir. Küçük ya da büyük bir buz parçası aynı sıcaklıkta erir.`,
+        kontrol: {
+          soru: r`Eşit kütleli X ve Y katıları erime sıcaklıklarındadır. X'in erime ısısı Y'ninkinin 2 katıdır. Hangisi doğrudur?`,
+          secenekler: [r`X'i eritmek için, Y'yi eritmek için gerekenin 2 katı ısı gerekir.`, r`Kütleler eşit olduğu için ikisini eritmek için eşit ısı gerekir.`, r`Y'yi eritmek için daha çok ısı gerekir.`],
+          dogru: 0,
+          aciklama: r`$Q = m \times L$ modelinde kütleler eşit, $L_X = 2 \times L_Y$ olduğu için $Q_X = 2 \times Q_Y$ olur. Gereken ısıyı yalnız kütle değil, maddenin cinsi de belirler.`,
+          yanlisIpucu: r`Gereken ısı yalnız kütleye bağlı değildir. Erime ısısı büyük olan madde için ne söylenebilir?`
+        }
+      },
+      {
+        baslik: r`Isı alan ve ısı veren hâl değişimleri`,
+        sekil: 'sfY52_haller',
+        metin: r`Maddenin üç hâli arasında altı hâl değişimi vardır. Şekilde kırmızı oklar ısı alarak, mavi oklar ısı vererek olan değişimleri gösterir.
+
+- **Isı alanlar:** erime (katı → sıvı), buharlaşma (sıvı → gaz), süblimleşme (katı → gaz).
+- **Isı verenler:** donma (sıvı → katı), yoğuşma (gaz → sıvı), kırağılaşma (gaz → katı).
+
+Bir madde erirken aldığı ısıyı, aynı kütle donarken geri verir. Isı alan hâl değişimi çevresini soğutur, ısı veren hâl değişimi çevresini ısıtır.`,
+        kontrol: {
+          soru: r`Havuzdan çıkan bir yüzücü rüzgârlı havada üşür. Bunun nedeni hangisidir?`,
+          secenekler: [r`Tenindeki su buharlaşırken tenden ısı alır.`, r`Tenindeki su yoğuşurken tenden ısı alır.`, r`Tenindeki su, tenine soğukluk verir.`],
+          dogru: 0,
+          aciklama: r`Buharlaşma ısı alan bir hâl değişimidir. Tendeki su buhara dönüşürken gereken ısıyı tenden alır. Rüzgâr buharlaşmayı hızlandırdığı için yüzücü daha çok üşür.`,
+          yanlisIpucu: r`Tendeki su hangi hâle geçiyor: sıvıdan gaza mı, gazdan sıvıya mı? Şekilde bu okun rengine bak.`
+        }
+      },
+      {
+        baslik: r`Isıl denge: sıcaklıklar eşitlenir`,
+        sekil: 'sfY52_kavanoz',
+        metin: r`Buzdolabından çıkan bir kavanoz domates sosu 6 °C'dedir. Sosu biraz ılıtmak için kavanozu 46 °C'deki ılık suyla dolu geniş bir kâseye koyuyorsun. Kâsenin ve havanın aldığı ısıyı önemsemeyelim. Grafik, suyun ve kavanozun sıcaklığını gösteriyor.
+
+- Sıcaklıkları farklı iki madde birbirine değince ısı, sıcak olandan soğuk olana geçer. Burada ısı sudan kavanoza geçer.
+- Suyun sıcaklığı düşer, kavanozunki artar. Sıcaklık farkı küçüldükçe ısı geçişi yavaşlar.
+- Sıcaklıklar eşitlenince net ısı geçişi durur. Bu duruma **ısıl denge**, ortak sıcaklığa **denge sıcaklığı** ($T_D$) denir.`,
+        kontrol: {
+          soru: r`Grafikteki iki eğri 38 °C'de buluştuktan sonra ne olur?`,
+          secenekler: [r`Kavanoz ısınmaya devam eder ve suyun sıcaklığını geçer.`, r`İkisinin sıcaklığı 38 °C'de kalır; aralarında net ısı geçişi olmaz.`, r`Bu kez ısı kavanozdan suya geçmeye başlar.`],
+          dogru: 1,
+          aciklama: r`Isı yalnız sıcaklık farkı varken geçer. Sıcaklıklar eşitlenince net ısı geçişi durur ve ikisi de 38 °C'de kalır.`,
+          yanlisIpucu: r`Isının geçmesi için ne gerekiyordu? Eğriler buluşunca bu koşul hâlâ var mı?`
+        }
+      },
+      {
+        baslik: r`Alınan ısı, verilen ısıya eşittir`,
+        metin: r`Kavanoz örneğine geri dönelim. Suyun sıcaklığı 46 °C'den 38 °C'ye, yani 8 °C düştü. Kavanozun sıcaklığı 6 °C'den 38 °C'ye, yani 32 °C arttı.
+
+Isı başka yere kaçmadığı için suyun verdiği ısının hepsini kavanoz aldı: $Q_\text{alınan} = Q_\text{verilen}$.
+
+Isılar eşit ama sıcaklık değişimleri farklı. Çünkü kâsedeki suyun **ısı sığası** ($m \times c$) kavanozunkinden büyüktür. Isı sığası büyük olanın sıcaklığı az değişir. Bu yüzden denge sıcaklığı, ısı sığası büyük olanın ilk sıcaklığına daha yakındır: 38 °C, 6 °C'ye değil 46 °C'ye yakındır.`,
+        kontrol: {
+          soru: r`Kâseye aynı sıcaklıkta ama yarısı kadar su konsaydı denge sıcaklığı için hangisi söylenebilirdi?`,
+          secenekler: [r`38 °C'den yüksek olurdu.`, r`38 °C'den düşük olurdu.`, r`Yine 38 °C olurdu.`],
+          dogru: 1,
+          aciklama: r`Su azalınca suyun ısı sığası küçülür ve sıcaklığı daha çok düşer. Denge sıcaklığı kavanozun ilk sıcaklığına doğru kayar ve 38 °C'den düşük olur. Yine de 6 °C ile 46 °C arasında kalır.`,
+          yanlisIpucu: r`Isı sığası küçülen suyun sıcaklığı daha az mı, daha çok mu değişir?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Kar eritme makinesi`,
+        metin: r`Kışın belediyenin kar eritme makinesi, yollardan toplanan 0 °C'deki karı eritip suya dönüştürüyor. Karı saf su buzu sayalım. Makine kara her dakika eşit miktarda ısı veriyor ve 200 kg karı 4 dakikada eritiyor.`,
+        adimlar: [
+          {
+            soru: r`Makine 600 kg karı kaç dakikada eritir?`,
+            secenekler: [r`4 dakikada`, r`8 dakikada`, r`12 dakikada`],
+            dogru: 2,
+            ipucu: r`Gereken ısı $Q = m \times L$ ile kütleyle orantılıdır. 600 kg, 200 kg'ın kaç katı?`,
+            aciklama: r`600 kg, 200 kg'ın 3 katıdır. Gereken ısı da 3 katına çıkar. Makine her dakika eşit ısı verdiği için süre de 3 katına çıkar: $3 \times 4 = 12$ dakika.`
+          },
+          {
+            soru: r`Makinenin haznesinde kar ile eriyen su birlikteyken karışımın sıcaklığı nedir?`,
+            secenekler: [r`0 °C`, r`Makine ısı verdikçe artar.`, r`0 °C'nin altındadır.`],
+            dogru: 0,
+            ipucu: r`Erime sürerken saf bir maddenin sıcaklığı değişir mi?`,
+            aciklama: r`Kar eriyip bitene kadar karışım 0 °C'de kalır. Makinenin verdiği ısı, karı suya dönüştürmeye harcanır.`
+          },
+          {
+            soru: r`Aynı 200 kg kar 0 °C'de değil de −5 °C'de olsaydı karın tamamının erimesi için geçen toplam süre ne olurdu?`,
+            secenekler: [r`4 dakikadan kısa`, r`4 dakika`, r`4 dakikadan uzun`],
+            dogru: 2,
+            ipucu: r`Kar −5 °C'deyken hemen erimeye başlayabilir mi? Önce hangi sıcaklığa çıkması gerekir?`,
+            aciklama: r`Kar önce −5 °C'den 0 °C'ye ısınmalıdır. Bunun için de ısı gerekir. Erime ancak ondan sonra başlar. Makine her dakika yine aynı ısıyı verdiği için toplam ısı artınca toplam süre de 4 dakikadan uzun olur.`
+          }
+        ],
+        sonuc: r`Erime için gereken ısı kütleyle orantılıdır. Erime sürerken sıcaklık 0 °C'de sabit kalır. Erime sıcaklığının altındaki bir katı önce bu sıcaklığa kadar ısınmalıdır.`
+      },
+      {
+        baslik: r`Ayazda kuruyan çamaşır`,
+        metin: r`Hava sıcaklığının −6 °C olduğu güneşli bir kış gününde ıslak çamaşırlar bahçedeki ipe asılıyor. Kısa sürede çamaşırlardaki su donup sertleşiyor. Akşama kadar buz hiç erimeden çamaşırlar kuruyor.`,
+        adimlar: [
+          {
+            soru: r`Çamaşırdaki su donarken ısı alır mı, verir mi?`,
+            secenekler: [r`Isı alır.`, r`Isı verir.`, r`Isı alışverişi yapmaz.`],
+            dogru: 1,
+            ipucu: r`Donma, erimenin tersidir. Erime ısı alıyorsa donma ne yapar?`,
+            aciklama: r`Donma ısı veren bir hâl değişimidir. Su donarken çevresindeki soğuk havaya ısı verir.`
+          },
+          {
+            soru: r`Buzun erimeden doğrudan su buharına dönüşmesine ne denir?`,
+            secenekler: [r`Buharlaşma`, r`Kırağılaşma`, r`Süblimleşme`],
+            dogru: 2,
+            ipucu: r`Katı hâlden doğrudan gaz hâline geçiş, altı hâl değişiminden hangisidir?`,
+            aciklama: r`Katının sıvı hâle uğramadan gaza geçmesine süblimleşme denir. Kırağılaşma bunun tersidir: gazdan doğrudan katıya geçiş.`
+          },
+          {
+            soru: r`Süblimleşme sırasında buz ısı alır mı, verir mi?`,
+            secenekler: [r`Isı alır.`, r`Isı verir.`, r`Isı alışverişi yapmaz.`],
+            dogru: 0,
+            ipucu: r`Buz buhar olurken tanecikler birbirinden çok uzaklaşır. Bunun için enerji gerekir mi?`,
+            aciklama: r`Süblimleşme ısı alan bir hâl değişimidir. Buz, gereken ısıyı Güneş'ten ve havadan alır.`
+          }
+        ],
+        sonuc: r`Aynı çamaşırda iki hâl değişimi oldu: Su donarken ısı verdi, buz süblimleşirken ısı aldı. Süblimleşme ve kırağılaşma, sıvı hâle uğramadan olur.`
+      },
+      {
+        baslik: r`Tezgâhtaki üç eşya`,
+        metin: r`Bir mutfakta çelik bir bıçak, ahşap bir kesme tahtası ve porselen bir tabak saatlerdir tezgâhın üstünde duruyor. Mutfağın havası 22 °C ve hiç değişmiyor.`,
+        adimlar: [
+          {
+            soru: r`Üç eşyanın sıcaklıkları için hangisi doğrudur?`,
+            secenekler: [r`Bıçak en soğuktur, çünkü dokununca soğuk gelir.`, r`Üçünün de sıcaklığı 22 °C'dir.`, r`Tahta en sıcaktır, çünkü ahşaptır.`],
+            dogru: 1,
+            ipucu: r`Saatlerdir aynı havada duran eşyalar ile hava arasındaki ısı alışverişi ne zaman durur?`,
+            aciklama: r`Eşyalar havayla uzun süre ısı alışverişi yaptı ve havayla ısıl dengeye geldi. Üçünün de sıcaklığı havanınkine, 22 °C'ye eşittir. Bıçağın soğuk gelmesi, metalin elinden ısıyı hızlı almasından kaynaklanır.`
+          },
+          {
+            soru: r`Bu üç eşya arasında net ısı geçişi olur mu?`,
+            secenekler: [r`Olmaz, çünkü sıcaklıkları eşittir.`, r`Olur; bıçaktan tahtaya ısı geçer.`, r`Olur; tabaktan bıçağa ısı geçer.`],
+            dogru: 0,
+            ipucu: r`İki madde arasında ısı geçmesi için ne gerekiyordu?`,
+            aciklama: r`Isı yalnız sıcaklık farkı varken geçer. Sıcaklıklar eşit olduğu için eşyalar ısıl dengededir ve aralarında net ısı geçişi olmaz.`
+          },
+          {
+            soru: r`Üç eşyanın iç enerjileri için hangisi söylenebilir?`,
+            secenekler: [r`Sıcaklıkları eşit olduğu için iç enerjileri kesinlikle eşittir.`, r`İç enerjileri eşit olmak zorunda değildir.`, r`Üçünün de iç enerjisi sıfırdır.`],
+            dogru: 1,
+            ipucu: r`İç enerji yalnız sıcaklığa mı bağlıdır? Eşyaların kütleleri ve maddeleri aynı mı?`,
+            aciklama: r`İç enerji, maddedeki bütün taneciklerin enerjilerinin toplamıdır. Kütlesi ve maddesi farklı eşyaların iç enerjileri farklı olabilir. Isıl dengede kesin olarak eşit olan yalnız sıcaklıklardır.`
+          }
+        ],
+        sonuc: r`Isıl dengede kesin olarak eşit olan şey sıcaklıktır. İç enerjiler ya da alınıp verilen ısılar eşit olmak zorunda değildir. Bir eşyanın dokununca soğuk gelmesi, sıcaklığının düşük olduğunu göstermez.`
+      }
+    ],
+    hazir: r`Hâl değişimi sırasında sıcaklığın sabit kaldığını, gereken ısının kütleye ve maddenin cinsine bağlı olduğunu ve ısıl dengeyi gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -31867,6 +32134,124 @@ BFY_FIG_EKLE('iY53_efsane_5', u => EF(u, I => {
   s += etiket(186, 16, 'CO₂ tutar', { size: 9, renk: '#6b4fa8' }) + yazi(150, 104, 'kızılötesi geri döner', { size: 8.5, renk: '#d9573b' }) + yazi(46, 58, 'Güneş ışığı', { size: 8.5, renk: '#b07a12' });
   return s;
 }, { oy: 70 }));
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY53_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+/* mavi gaz alevi dili: taban (x, y), boy h */
+const sfAlev = (u, x, y, h) => `<path d="M${x - 5} ${y} C${x - 7} ${y - h * 0.5} ${x - 2} ${y - h * 0.8} ${x} ${y - h} C${x + 2} ${y - h * 0.8} ${x + 7} ${y - h * 0.5} ${x + 5} ${y} Z" fill="url(#${u}sfal)" opacity=".92"/>`;
+
+/* Ocaktaki tava ve tereyağı (kesit); büyüteçte tavanın tabanındaki titreşen tanecikler */
+BFY_FIG_EKLE('sfY53_tava', function (u) {
+  const W = 340, H = 244;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}sfal" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#2a5bd7"/><stop offset=".6" stop-color="#5aa0f2"/><stop offset="1" stop-color="#cfe6ff"/></linearGradient>` +
+    `<linearGradient id="${u}sfdk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5f686f"/><stop offset="1" stop-color="#2c3237"/></linearGradient>` +
+    `<linearGradient id="${u}sfyag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset="1" stop-color="#f2c94c"/></linearGradient></defs>`;
+  // ocak tablası ve ızgara
+  s += `<rect x="20" y="206" width="300" height="26" rx="6" fill="url(#${u}sfdk)"/><rect x="20" y="202" width="300" height="6" rx="3" fill="#7a848b"/>`;
+  s += `<rect x="96" y="194" width="68" height="10" rx="4" fill="#3a4147"/>`;
+  [104, 116, 128, 140, 152].forEach((x, i) => { s += sfAlev(u, x + 2, 194, [14, 18, 20, 18, 14][i]); });
+  // tava (kesit): kalın taban, eğik yan duvarlar, sap
+  s += `<path d="M48 138 L62 172 L198 172 L212 138 L205 138 L192 164 L68 164 L55 138 Z" fill="url(#${u}sfdk)" stroke="#22282c" stroke-width="1"/>`;
+  s += `<rect x="62" y="172" width="136" height="6" rx="2" fill="#3e464c"/>`;
+  s += `<path d="M210 142 L318 132 C324 132 326 140 320 142 L212 152 Z" fill="#2b2f33" stroke="#151819" stroke-width="1"/><circle cx="222" cy="146" r="2.6" fill="#9aa3aa"/>`;
+  // tereyağı: eriyen kalıp ve yayılan sıvı
+  s += `<path d="M84 164 C92 158 168 158 178 164 Z" fill="#f6d65e" opacity=".9"/>`;
+  s += `<path d="M108 162 L110 140 Q111 136 116 136 L146 136 Q151 136 151 141 L152 162 Z" fill="url(#${u}sfyag)" stroke="#d9ac2c" stroke-width="1.1"/>`;
+  s += `<path d="M112 141 L146 141" stroke="#fff" stroke-width="2" opacity=".6" stroke-linecap="round"/>`;
+  // büyüteç: tabandaki tanecikler
+  const cx = 70, cy = 72, r = 50;
+  s += `<path d="M${cx + 30} ${cy + 40} L84 166 M${cx + 46} ${cy + 18} L96 166" stroke="#9aa8b1" stroke-width="1" opacity=".8"/>`;
+  s += `<circle cx="84" cy="168" r="7" fill="none" stroke="#5c6870" stroke-width="1.4"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#fbfbfd" stroke="#5c6870" stroke-width="2.4"/>`;
+  [[0, '#f0a58f', 3.4], [1, '#f4c2b0', 2.4], [2, '#f8ddd2', 1.6]].forEach(([i, c, a]) => {
+    const y = cy + 28 - i * 22;
+    [-30, -10, 10, 30].forEach(dx => {
+      const x = cx + dx;
+      s += `<path d="M${x - 11} ${y} l${a} -3 l${a} 6 l${a} -6" fill="none" stroke="${SICAK}" stroke-width="1.2" opacity=".7"/>`;
+      s += `<circle cx="${x}" cy="${y}" r="6.5" fill="${c}" stroke="#7d4a3a" stroke-width=".9"/>`;
+    });
+  });
+  s += arrow(cx + 44, cy + 30, cx + 44, cy - 30, { color: SICAK, w: 2.6, head: 8, headW: 5 });
+  s += T(130, 52, 'enerji', { size: 15, weight: 800, fill: SICAK });
+  s += T(130, 70, 'yukarı', { size: 14, weight: 700, fill: P.ink2 }) + T(130, 86, 'iletilir', { size: 14, weight: 700, fill: P.ink2 });
+  // etiketler
+  s += T(196, 104, 'tereyağı', { size: 15, weight: 800, fill: '#a27c10' }) + `<line x1="198" y1="110" x2="150" y2="138" stroke="${P.ink2}" stroke-width="1.1"/>`;
+  s += T(244, 124, 'tava', { size: 15, weight: 800 });
+  s += T(36, 198, 'alev', { size: 15, weight: 800, fill: '#2a5bd7' }) + `<line x1="72" y1="193" x2="98" y2="188" stroke="${P.ink2}" stroke-width="1.1"/>`;
+  return svg(W, H, s, u, 80);
+});
+
+/* Cam demlikte konveksiyon: çay yaprakları ortadan yükselip kenarlardan iner */
+BFY_FIG_EKLE('sfY53_demlik', function (u) {
+  const W = 340, H = 262, x1 = 66, x2 = 214, yu = 64, ys = 82, yb = 204, xm = (x1 + x2) / 2;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}sfsu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcefff" stop-opacity=".8"/><stop offset="1" stop-color="#9fcdee" stop-opacity=".85"/></linearGradient>` +
+    `<linearGradient id="${u}sfcm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfe3ef" stop-opacity=".9"/><stop offset=".25" stop-color="#ffffff" stop-opacity=".35"/><stop offset="1" stop-color="#a9c6d8" stop-opacity=".9"/></linearGradient></defs>`;
+  // ısıtıcı tabla
+  s += `<rect x="${xm - 82}" y="${yb + 10}" width="164" height="22" rx="6" fill="#3d474d"/><rect x="${xm - 70}" y="${yb + 4}" width="140" height="9" rx="3" fill="#5c666c"/>`;
+  s += `<rect x="${xm - 58}" y="${yb + 6}" width="116" height="4" rx="2" fill="#ff7a3a" opacity=".85"/><circle cx="${xm + 66}" cy="${yb + 22}" r="4" fill="#c9d1d6"/>`;
+  // su
+  s += `<path d="M${x1 + 3} ${ys} L${x1 + 3} ${yb - 10} Q${x1 + 3} ${yb - 1} ${x1 + 14} ${yb - 1} L${x2 - 14} ${yb - 1} Q${x2 - 3} ${yb - 1} ${x2 - 3} ${yb - 10} L${x2 - 3} ${ys} Z" fill="url(#${u}sfsu)"/>`;
+  s += `<ellipse cx="${xm}" cy="${ys}" rx="${(x2 - x1) / 2 - 3}" ry="4" fill="#e9f5fd" stroke="#8fbfd6" stroke-width=".8"/>`;
+  // konveksiyon halkaları
+  const hal = (yon) => {
+    const xa = xm + yon * 10, xd = xm + yon * 58, yt = ys + 18, yl = yb - 22;
+    return `<path d="M${xa} ${yl} L${xa} ${yt + 10} Q${xa} ${yt} ${xa + yon * 12} ${yt} L${xd - yon * 10} ${yt} Q${xd} ${yt} ${xd} ${yt + 10} L${xd} ${yl - 10} Q${xd} ${yl} ${xd - yon * 10} ${yl} L${xa + yon * 10} ${yl}" fill="none" stroke="#7b8a93" stroke-width="1.2" stroke-dasharray="3 4"/>` +
+      arrow(xa, yl - 8, xa, yt + 18, { color: SICAK, w: 3, head: 10, headW: 6 }) + arrow(xd, yt + 16, xd, yl - 16, { color: SOGUK, w: 3, head: 10, headW: 6 });
+  };
+  s += hal(-1) + hal(1);
+  [[xm - 10, 150], [xm + 10, 116], [xm - 34, ys + 18], [xm + 40, ys + 18], [xm - 58, 140], [xm + 58, 166], [xm - 30, yb - 22], [xm + 26, yb - 22]].forEach(([x, y], i) => {
+    s += `<ellipse cx="${x + (i % 2 ? 7 : -7)}" cy="${y}" rx="4.6" ry="2.4" transform="rotate(${i * 37} ${x + (i % 2 ? 7 : -7)} ${y})" fill="#3f6b2a" stroke="#28451a" stroke-width=".6"/>`;
+  });
+  // cam demlik gövdesi, kapak, sap ve ağız
+  s += `<path d="M${x1} ${yu} L${x1} ${yb - 12} Q${x1} ${yb + 2} ${x1 + 14} ${yb + 2} L${x2 - 14} ${yb + 2} Q${x2} ${yb + 2} ${x2} ${yb - 12} L${x2} ${yu}" fill="url(#${u}sfcm)" fill-opacity=".35" stroke="#7c9fb4" stroke-width="2" stroke-linejoin="round"/>`;
+  s += `<ellipse cx="${xm}" cy="${yu}" rx="${(x2 - x1) / 2}" ry="6" fill="#eef6fb" stroke="#7c9fb4" stroke-width="1.6"/>`;
+  s += `<path d="M${x1 + 4} ${yu + 22} C${x1 - 28} ${yu + 22} ${x1 - 30} ${yu + 96} ${x1 + 4} ${yu + 98}" fill="none" stroke="#7c9fb4" stroke-width="6" stroke-linecap="round"/>`;
+  // ağız: gövdenin alt yarısından çıkan, yukarı doğru incelen cam boru; içindeki su gövdedeki suyla aynı seviyede
+  const agiz = `M${x2 - 1} ${yu + 78} C${x2 + 16} ${yu + 70} ${x2 + 22} ${yu + 24} ${x2 + 34} ${yu - 2} L${x2 + 26} ${yu - 7} C${x2 + 16} ${yu + 14} ${x2 + 10} ${yu + 38} ${x2 - 1} ${yu + 44} Z`;
+  s += `<clipPath id="${u}sfag"><rect x="${x2 - 2}" y="${ys}" width="50" height="${yb - ys}"/></clipPath>`;
+  s += `<path d="${agiz}" fill="#eef6fb" fill-opacity=".7"/><path d="${agiz}" fill="url(#${u}sfsu)" clip-path="url(#${u}sfag)"/>`;
+  s += `<path d="${agiz}" fill="none" stroke="#7c9fb4" stroke-width="1.8" stroke-linejoin="round"/>`;
+  s += `<path d="M${x1 + 8} ${yu + 14} L${x1 + 8} ${yb - 16}" stroke="#fff" stroke-width="3" opacity=".7" stroke-linecap="round"/>`;
+  // etiketler
+  s += T(244, 112, 'ısınan su', { size: 15, weight: 800, fill: SICAK }) + T(244, 130, 'yükselir', { size: 15, weight: 800, fill: SICAK });
+  s += T(244, 168, 'soğuyan su', { size: 15, weight: 800, fill: SOGUK }) + T(244, 186, 'iner', { size: 15, weight: 800, fill: SOGUK });
+  s += T(xm, 254, 'ısıtıcı', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Direkler arasındaki elektrik teli: yazın sarkık, kışın gergin */
+BFY_FIG_EKLE('sfY53_teller', function (u) {
+  const W = 340, H = 268, xa = 34, xb = 306;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}sfdr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9a6a3d"/><stop offset=".5" stop-color="#c79563"/><stop offset="1" stop-color="#8a5c33"/></linearGradient></defs>`;
+  const panel = (y0, ad, sark, gok, ikon) => {
+    let k = `<rect class="bg" x="8" y="${y0}" width="324" height="122" rx="10" fill="${gok}"/>`;
+    k += `<rect class="bg" x="8" y="${y0 + 108}" width="324" height="14" rx="6" fill="#b9cf9a"/>`;
+    const yt = y0 + 40;
+    [xa, xb].forEach(x => {
+      k += `<rect x="${x - 5}" y="${yt - 6}" width="10" height="${y0 + 112 - yt + 6}" rx="2" fill="url(#${u}sfdr)"/>`;
+      k += `<rect x="${x - 18}" y="${yt - 2}" width="36" height="6" rx="2" fill="#7d5530"/>`;
+      k += `<rect x="${x - 3}" y="${yt - 12}" width="6" height="10" rx="2" fill="#dff0e6" stroke="#6f9a83" stroke-width=".8"/>`;
+    });
+    const ya = yt - 12;
+    k += `<path d="M${xa} ${ya} Q${(xa + xb) / 2} ${ya + 2 * sark} ${xb} ${ya}" fill="none" stroke="#2a3330" stroke-width="2.4"/>`;
+    k += ikon(y0) + T(170, y0 + 100, ad, { size: 16, weight: 800, anchor: 'middle' });
+    return k;
+  };
+  const gunes = y0 => {
+    let g = `<circle cx="270" cy="${y0 + 16}" r="8" fill="#f6c23e" stroke="#e39b1c" stroke-width="1.2"/>`;
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; g += `<line x1="${f1(270 + 11 * Math.cos(a))}" y1="${f1(y0 + 16 + 11 * Math.sin(a))}" x2="${f1(270 + 15 * Math.cos(a))}" y2="${f1(y0 + 16 + 15 * Math.sin(a))}" stroke="#e39b1c" stroke-width="1.8" stroke-linecap="round"/>`; }
+    return g;
+  };
+  const kar = y0 => {
+    let g = '';
+    for (let i = 0; i < 3; i++) { const a = i * Math.PI / 3; g += `<line x1="${f1(270 - 11 * Math.cos(a))}" y1="${f1(y0 + 16 - 11 * Math.sin(a))}" x2="${f1(270 + 11 * Math.cos(a))}" y2="${f1(y0 + 16 + 11 * Math.sin(a))}" stroke="#4f8fc0" stroke-width="2.4" stroke-linecap="round"/>`; }
+    return g;
+  };
+  s += panel(8, 'Yaz: tel uzar, sarkar.', 23, '#fdf3dc', gunes);
+  s += panel(138, 'Kış: tel kısalır, gerilir.', 7, '#e8f1f8', kar);
+  return svg(W, H, s, u, 80);
+});
 })();
 
 </script>
@@ -31931,6 +32316,194 @@ const KONU = {
     'termal manken eli ile eldiven testi: yün keçe ve polyester elyaf, 4/8 mm, ısıtıcı gücü (kesinlikle)', 'X, Y, Z metallerinden XY ve YZ çift metal şeritleri, ısıtma ve soğutma (kesinlikle)',
     'mantolu tuğla duvarda yalıtılmamış beton kiriş (ısı köprüsü)', 'Merkür ve Venüs: Güneş\'e uzaklık, atmosfer, gece-gündüz sıcaklıkları'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Program gereği iletim hızı ve genleşme hesaplanmaz; yalnız oran ve yorum. Sayısal sonuçlar qa/Y.5.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Enerjinin bir yerden başka bir yere hangi üç yolla gittiğini, bu geçişi neyin hızlandırıp yavaşlattığını ve ısınan maddelerin neden genleştiğini kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`İletim: tanecikten taneciğe`,
+        sekil: 'sfY53_tava',
+        metin: r`Ocaktaki bir tavaya bir parça tereyağı koyuyorsun. Alev yalnız tavanın altına değiyor, tereyağına değmiyor. Yine de tereyağı kısa sürede eriyor.
+
+Alev, tavanın alt yüzündeki tanecikleri daha hızlı titreştirir. Bu tanecikler komşularına çarpar ve enerjilerinin bir kısmını onlara aktarır. Enerji böylece tavanın tabanı boyunca yukarıya, tereyağına ulaşır.
+
+- Bu yolla enerji aktarımına **iletim** denir.
+- İletimde tanecikler yer değiştirmez; yalnız bulundukları yerde titreşir.
+- İletim için maddesel ortam gerekir. En etkin olduğu yer katılardır.`,
+        kontrol: {
+          soru: r`İletimle ilgili hangisi doğrudur?`,
+          secenekler: [r`Sıcak tanecikler soğuk yere akarak enerjiyi taşır.`, r`Tanecikler yerinde titreşir ve enerjiyi komşularına aktarır.`, r`Enerji, arada madde olmadan da iletimle geçebilir.`],
+          dogru: 1,
+          aciklama: r`İletimde tanecikler yerinden ayrılmaz. Enerji, çarpışmalarla bir tanecikten komşusuna aktarılır. Bu yüzden iletim için madde gerekir.`,
+          yanlisIpucu: r`Tavanın demiri akıp tereyağına mı gitti? Tanecikler yerinde kaldıysa enerji nasıl ilerledi?`
+        }
+      },
+      {
+        baslik: r`Konveksiyon: akışkan taşır`,
+        sekil: 'sfY53_demlik',
+        metin: r`Isıtıcı tablanın üstündeki cam bir kapta su ısıtıyorsun. Suya attığın birkaç çay yaprağı ortadan yukarı çıkıyor, kenarlardan aşağı iniyor ve dönüp duruyor.
+
+Alttaki su ısınınca genleşir, özkütlesi azalır ve yukarı yükselir. Üstteki daha soğuk su aşağı iner; ısınınca o da yükselir. Çay yaprakları bu akıntıyı gösterir.
+
+- Isınan akışkanın yer değiştirerek enerjiyi taşımasına **konveksiyon** denir.
+- Konveksiyon yalnız akışkanlarda, yani sıvılarda ve gazlarda olur.`,
+        kontrol: {
+          soru: r`Konveksiyon hangisinde olmaz?`,
+          secenekler: [r`Kalorifer peteğinin ısıttığı odanın havasında`, r`Ocaktaki tencerenin suyunda`, r`Bir ucu ısıtılan demir çubukta`],
+          dogru: 2,
+          aciklama: r`Demir çubuk katıdır; tanecikleri yer değiştiremez. Katılarda enerji iletimle geçer. Konveksiyon için akışkan gerekir.`,
+          yanlisIpucu: r`Konveksiyonda maddenin kendisi akar. Hangi seçenekteki madde akamaz?`
+        }
+      },
+      {
+        baslik: r`Işıma: boşluğu da aşar`,
+        metin: r`Kışın odada elektrikli bir halojen ısıtıcının karşısına oturuyorsun. Aradaki hava serin olduğu hâlde yüzün ısınıyor. Isıtıcının önüne bir karton tutunca yüzünü ısıtan etki hemen kesiliyor.
+
+Isıtıcı enerjiyi **elektromanyetik dalgalarla** yayar. Bu yolla enerji aktarımına **ışıma** denir.
+
+- Işıma için maddesel ortam gerekmez. Enerji boşlukta da yayılır.
+- Güneş'in enerjisi Dünya'ya uzay boşluğunu aşarak ışımayla ulaşır.
+- Bütün cisimler ışıma yapar. Sıcaklığı yüksek olan cisim daha çok ışıma yapar.`,
+        kontrol: {
+          soru: r`Güneş'in enerjisi Dünya'ya hangi yolla ulaşır?`,
+          secenekler: [r`İletimle`, r`Konveksiyonla`, r`Işımayla`],
+          dogru: 2,
+          aciklama: r`Uzayda Güneş ile Dünya arasında enerjiyi taşıyacak madde yok denecek kadar azdır. İletim ve konveksiyon madde ister. Bu yüzden enerji ışımayla gelir.`,
+          yanlisIpucu: r`Uzayda enerjiyi taşıyacak hava ya da başka bir madde var mı? Hangi yol madde istemez?`
+        }
+      },
+      {
+        baslik: r`İletim hızını ne değiştirir?`,
+        metin: r`Aynı sıcak çayı, aynı camdan yapılmış ince bir bardağa ve kalın cidarlı bir kupaya koy. Bardağın dışı hemen ısınır, kupanın dışı ise daha geç ısınır.
+
+Bir katının içinden her saniye geçen enerjiye **iletim hızı** diyelim. İletim hızı şunlara bağlıdır:
+
+- **Maddenin cinsi:** Metaller enerjiyi hızlı iletir; ahşap, köpük ve durgun hava yavaş iletir. Bunu **ısı iletim katsayısı** ($k$) gösterir.
+- **Kalınlık ($d$):** Kalınlık arttıkça iletim yavaşlar.
+- **Yüzey alanı ($A$):** Alan büyüdükçe iletim hızlanır.
+- **Sıcaklık farkı ($\Delta T$):** İki yüz arasındaki fark büyüdükçe iletim hızlanır.
+
+Evlerdeki yalıtım bu etkenlere göre tasarlanır.`,
+        kontrol: {
+          soru: r`Bir kahve kupasındaki sıcak kahvenin, kupanın cidarından dışarıya iletimle verdiği enerji azaltılmak isteniyor. Hangisi işe yarar?`,
+          secenekler: [r`Cidarı aynı maddeden ama daha kalın yapmak`, r`Cidarı ısı iletim katsayısı büyük bir metalden yapmak`, r`Kupanın yüzey alanını büyütmek`],
+          dogru: 0,
+          aciklama: r`Kalınlık arttıkça iletim yavaşlar. Metal cidar ve büyük yüzey alanı ise iletimi hızlandırır.`,
+          yanlisIpucu: r`İletimi yavaşlatan etkeni ara: büyük kalınlık mı, büyük ısı iletim katsayısı mı, büyük alan mı?`
+        }
+      },
+      {
+        baslik: r`Genleşme: ısınan uzar, soğuyan kısalır`,
+        sekil: 'sfY53_teller',
+        metin: r`Direkler arasındaki elektrik tellerine yazın ve kışın bak. Yazın teller daha sarkıktır, kışın daha gergindir.
+
+Isınan bir maddenin tanecikleri daha hızlı titreşir ve birbirinden biraz uzaklaşır. Madde **genleşir**, boyutları artar. Soğuyan madde ise **büzülür**.
+
+- Yazın ısınan tel uzar ve daha çok sarkar. Kışın soğuyan tel kısalır ve gerilir.
+- Genleşmede maddenin kütlesi değişmez; boyu ve hacmi değişir.
+- Sıvılar da genleşir. Su ise özel davranır: 0 °C ile 4 °C arasında ısıtılınca büzülür.`,
+        kontrol: {
+          soru: r`Kışın soğuyan bir telin hangi özelliği değişmez?`,
+          secenekler: [r`Boyu`, r`Kütlesi`, r`Hacmi`],
+          dogru: 1,
+          aciklama: r`Soğuyan telin tanecikleri birbirine biraz yaklaşır; boyu ve hacmi azalır. Tanecik sayısı değişmediği için kütlesi aynı kalır.`,
+          yanlisIpucu: r`Telden madde eksildi mi? Tanecikler yalnız birbirine yaklaştıysa hangi özellik aynı kalır?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Sıcak kumda yürüyüş`,
+        metin: r`Bir yaz öğlesinde plajın kumu çok ısınmış. Yalınayak yürüyünce ayakların yanıyor.`,
+        adimlar: [
+          {
+            soru: r`Kumdan ayağına enerji asıl hangi yolla geçer?`,
+            secenekler: [r`İletimle`, r`Konveksiyonla`, r`Işımayla`],
+            dogru: 0,
+            ipucu: r`Ayağın kuma değiyor. Birbirine değen iki madde arasında enerji hangi yolla geçer?`,
+            aciklama: r`Ayağın kuma değdiği için enerji, değen yüzeyler arasında tanecikten taneciğe iletimle geçer.`
+          },
+          {
+            soru: r`Kalın köpük tabanlı bir terlik giyince ayağına geçen enerji ne olur?`,
+            secenekler: [r`Artar.`, r`Azalır.`, r`Değişmez.`],
+            dogru: 1,
+            ipucu: r`Kalınlık arttıkça iletim hızı ne oluyordu? Köpüğün ısı iletim katsayısı büyük mü, küçük mü?`,
+            aciklama: r`Terliğin tabanı, enerjinin geçmesi gereken kalınlığı artırır. Köpük de enerjiyi yavaş iletir. İletim yavaşlar ve ayağına daha az enerji geçer.`
+          },
+          {
+            soru: r`Aynı kalınlıkta ama tabanı metal olan bir terlik giyilseydi ne olurdu?`,
+            secenekler: [r`Ayağına, köpük tabanlı terlikteki kadar enerji geçerdi.`, r`Ayağına, köpük tabanlı terliktekinden daha hızlı enerji geçerdi.`, r`Ayağına hiç enerji geçmezdi.`],
+            dogru: 1,
+            ipucu: r`Kalınlık aynı. Değişen tek şey maddenin cinsi. Metalin ısı iletim katsayısı köpüğünkinden büyük mü, küçük mü?`,
+            aciklama: r`Metalin ısı iletim katsayısı köpüğünkinden çok büyüktür. Kalınlık aynı olsa da metal taban enerjiyi çok daha hızlı iletir.`
+          }
+        ],
+        sonuc: r`Ayağını korumak için terliğin tabanı hem kalın hem de ısı iletim katsayısı küçük bir maddeden olmalıdır. Kalınlık ve maddenin cinsi, iletim hızını birlikte belirler.`
+      },
+      {
+        baslik: r`Demir yolu rayları`,
+        metin: r`Eski demir yollarında raylar arasında küçük boşluklar bırakılır. Çelikten yapılmış 12 m uzunluğundaki bir rayın sıcaklığı, bir kış sabahından bir yaz öğlesine 40 °C artıyor ve ray 6 mm uzuyor.
+
+Uzama $\Delta L = L_0 \times \lambda \times \Delta T$ modeliyle anlatılır. Burada $L_0$ ilk boy, $\Delta T$ sıcaklık artışı, $\lambda$ ise maddenin cinsine bağlı bir katsayıdır.`,
+        adimlar: [
+          {
+            soru: r`Aynı çelikten yapılmış 24 m uzunluğundaki bir rayın sıcaklığı yine 40 °C artarsa bu ray kaç mm uzar?`,
+            secenekler: [r`6 mm`, r`12 mm`, r`24 mm`],
+            dogru: 1,
+            ipucu: r`Madde ve sıcaklık artışı aynıyken ilk boy 2 katına çıkarsa uzama ne olur?`,
+            aciklama: r`24 m, 12 m'nin 2 katıdır. Madde ve sıcaklık artışı aynı olduğu için uzama da 2 katına çıkar: $2 \times 6 = 12$ mm.`
+          },
+          {
+            soru: r`12 m'lik rayın sıcaklığı yalnız 20 °C artsaydı ray kaç mm uzardı?`,
+            secenekler: [r`3 mm`, r`6 mm`, r`12 mm`],
+            dogru: 0,
+            ipucu: r`20 °C, 40 °C'nin yarısıdır. Uzama, sıcaklık artışıyla orantılıdır.`,
+            aciklama: r`Sıcaklık artışı yarıya inince uzama da yarıya iner: $6 \div 2 = 3$ mm.`
+          },
+          {
+            soru: r`Raylar arasında boşluk bırakılmasaydı sıcak bir yaz gününde ne olabilirdi?`,
+            secenekler: [r`Raylar kısalır ve aralarında daha büyük boşluk açılırdı.`, r`Uzayan raylar birbirini iter, eğrilip bükülebilirdi.`, r`Rayların kütlesi artardı.`],
+            dogru: 1,
+            ipucu: r`Yazın raylar uzar. Uzayacak yer bulamayan iki ray birbirine ne yapar?`,
+            aciklama: r`Isınan raylar uzar. Boşluk yoksa uçları birbirine dayanır ve birbirini iter. Bu kuvvet rayları yana doğru eğebilir. Boşluk, genleşmeye yer bırakır.`
+          }
+        ],
+        sonuc: r`Uzama, ilk boyla ve sıcaklık artışıyla orantılıdır. Genleşmeye yer bırakılmazsa büyük kuvvetler oluşur. Köprülerdeki ve yollardaki genleşme aralıkları da bu yüzden vardır.`
+      },
+      {
+        baslik: r`Ailenin enerji planı`,
+        metin: r`Bir aile, kışın evi ısıtmak için doğal gaz yakıyor. Aile hem faturayı düşürmek hem de küresel ısınmaya karşı bir şey yapmak istiyor.`,
+        adimlar: [
+          {
+            soru: r`Doğal gaz, kömür ve benzin gibi yakıtlar yanınca havaya karışan ve sera etkisini artıran gaz hangisidir?`,
+            secenekler: [r`Oksijen`, r`Karbondioksit`, r`Azot`],
+            dogru: 1,
+            ipucu: r`Yanma sonunda açığa çıkan ve bitkilerin fotosentezde kullandığı gazı düşün.`,
+            aciklama: r`Yakıtlar yanınca karbondioksit açığa çıkar. Karbondioksit bir sera gazıdır.`
+          },
+          {
+            soru: r`Atmosferde sera gazları artınca ne olur?`,
+            secenekler: [r`Yerin uzaya yaydığı ışımanın daha çoğu atmosferde tutulur; ortalama sıcaklık artar.`, r`Güneş'ten gelen ışınların hepsi geri yansır; Dünya soğur.`, r`Hiçbir şey değişmez; sera gazları ışımayı etkilemez.`],
+            dogru: 0,
+            ipucu: r`Sera gazları, ısınan yerin uzaya yaydığı kızılötesi ışımaya ne yapar?`,
+            aciklama: r`Güneş ışınlarıyla ısınan yer, uzaya kızılötesi ışıma yayar. Sera gazları bu ışımanın bir kısmını tutar. Gazlar arttıkça daha çok enerji tutulur ve Dünya'nın ortalama sıcaklığı artar.`
+          },
+          {
+            soru: r`Hangisi ailenin hem faturasını düşüren hem de küresel ısınmaya karşı bir tedbirdir?`,
+            secenekler: [r`Kaloriferi sonuna kadar açmak`, r`Evin dış duvarlarını ve çatısını yalıtmak`, r`Kısa yolları da arabayla gitmek`],
+            dogru: 1,
+            ipucu: r`Hangi seçenek evden dışarı kaçan enerjiyi azaltır ve daha az yakıt yakılmasını sağlar?`,
+            aciklama: r`Yalıtım, evden dışarıya iletimle kaçan enerjiyi azaltır. Ev daha az yakıtla ısınır. Hem fatura düşer hem de havaya daha az karbondioksit karışır.`
+          }
+        ],
+        sonuc: r`İletim hızını azaltan yalıtım, küresel ısınmaya karşı da işe yarar. Daha az yakıt yakmak, sera gazı salımını azaltır.`
+      }
+    ],
+    hazir: r`İletim, konveksiyon ve ışımayı, iletim hızını değiştiren etkenleri, genleşmeyi ve küresel ısınmayla ilişkisini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -33499,6 +34072,62 @@ BFY_FIG_EKLE('iY61_efsane_5', u => EF(u, I => {
   s += yazi(bx + 18, by + 54, 'şimşek: on C', { size: 9.5 });
   return s;
 }));
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY61_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+/* Nötr atom (3 proton, 3 elektron) ve negatif yüklü atom (3 proton, 4 elektron); ölçekli değildir */
+BFY_FIG_EKLE('sfY61_atom', function (u) {
+  const W = 340, H = 214;
+  let s = zemin(W, H);
+  const atom = (cx, cy, ne) => {
+    let k = '';
+    [-28, 28].forEach(a => { k += `<ellipse cx="${cx}" cy="${cy}" rx="62" ry="24" transform="rotate(${a} ${cx} ${cy})" fill="none" stroke="#9aa8b1" stroke-width="1.3"/>`; });
+    // çekirdek: 3 proton (kırmızı +), 3 nötron (gri)
+    const par = [[0, -11, 'n'], [-11, 6, 'n'], [11, 6, 'n'], [-7, -2, 'p'], [7, -2, 'p'], [0, 9, 'p']];
+    par.forEach(([dx, dy, t]) => {
+      k += `<circle cx="${cx + dx}" cy="${cy + dy}" r="7.2" fill="${t === 'p' ? '#e46a52' : '#b9c1c8'}" stroke="${t === 'p' ? '#9c3423' : '#6d7880'}" stroke-width=".9"/>`;
+      if (t === 'p') k += `<g stroke="#fff" stroke-width="1.8" stroke-linecap="round"><line x1="${cx + dx - 3.4}" y1="${cy + dy}" x2="${cx + dx + 3.4}" y2="${cy + dy}"/><line x1="${cx + dx}" y1="${cy + dy - 3.4}" x2="${cx + dx}" y2="${cy + dy + 3.4}"/></g>`;
+    });
+    // elektronlar yörüngelerde
+    const yer = [[-28, 200], [-28, 20], [28, 110], [28, 290]].slice(0, ne);
+    yer.forEach(([a, th]) => {
+      const t = th * Math.PI / 180, ex = 62 * Math.cos(t), ey = 24 * Math.sin(t), ar = a * Math.PI / 180;
+      const x = cx + ex * Math.cos(ar) - ey * Math.sin(ar), y = cy + ex * Math.sin(ar) + ey * Math.cos(ar);
+      k += `<circle cx="${f1(x)}" cy="${f1(y)}" r="7" fill="#3b7fc4" stroke="#1d4f86" stroke-width=".9"/><line x1="${f1(x - 3.4)}" y1="${f1(y)}" x2="${f1(x + 3.4)}" y2="${f1(y)}" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`;
+    });
+    return k;
+  };
+  s += atom(88, 86, 3) + atom(252, 86, 4);
+  s += `<line x1="170" y1="24" x2="170" y2="196" stroke="#d3d9de" stroke-width="1.2"/>`;
+  s += T(88, 170, '3 proton, 3 elektron', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(88, 194, 'nötr', { size: 16, weight: 800, anchor: 'middle' });
+  s += T(252, 170, '3 proton, 4 elektron', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(252, 194, 'negatif yüklü', { size: 16, weight: 800, anchor: 'middle', fill: BLU });
+  return svg(W, H, s, u, 80);
+});
+
+/* Özdeş iki metal küre: önce +6q ve −2q, dokunup ayrılınca ikisi de +2q */
+BFY_FIG_EKLE('sfY61_dokunma', function (u) {
+  const W = 340, H = 236, y = 86, r = 24, yb = 150;
+  let s = zemin(W, H);
+  s += `<rect class="bg" x="8" y="8" width="158" height="220" rx="10" fill="#fff" stroke="#dde3e8"/><rect class="bg" x="174" y="8" width="158" height="220" rx="10" fill="#fff" stroke="#dde3e8"/>`;
+  s += T(87, 32, 'önce', { size: 16, weight: 800, anchor: 'middle' }) + T(253, 32, 'dokunup ayrılınca', { size: 15, weight: 800, anchor: 'middle' });
+  const kp = (x, n, et, c) => ayak(x, y, r, yb) + kure(u, x, y, r) + kureIsaret(x, y, r, n, { k: 0.6, boy: 3.6, bas: -90 }) + T(x, yb + 26, et, { size: 16, weight: 800, anchor: 'middle', fill: c });
+  s += kp(50, 6, '+6q', RED) + kp(124, -2, '−2q', BLU);
+  s += kp(216, 2, '+2q', RED) + kp(290, 2, '+2q', RED);
+  s += T(87, 210, 'toplam +4q', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(253, 210, 'toplam +4q', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Nötr elektroskoba negatif çubuk yaklaşıyor: topuz pozitif, yapraklar negatif ve açık */
+BFY_FIG_EKLE('sfY61_elektroskop', function (u) {
+  const W = 340, H = 216, x = 150, y = 30, k = 1.35;
+  let s = zemin(W, H);
+  s += `<g transform="translate(${x} ${y}) scale(${k})">` + elk(u, 0, 0, { aci: 26, qt: 2, qtBas: -125, qtAc: 70 }) +
+    [-1, 1].map((yon) => { const a = 26 * Math.PI / 180, d = 17; return isr(yon * (1.3 + d * Math.sin(a) + 9), 84 + d * Math.cos(a), -1, 3.2); }).join('') + `</g>`;
+  s += cubuk(u, 324, 8, 196, 18, 'pvc', { n: -6, w: 12, ara: 16, boy: 4.2 });
+  s += T(330, 62, 'negatif yüklü çubuk', { size: 15, weight: 800, anchor: 'end', fill: BLU });
+  s += T(124, 36, 'topuz', { size: 15, weight: 800, anchor: 'end' });
+  s += T(92, 178, 'yapraklar', { size: 15, weight: 800, anchor: 'end' }) + `<line x1="96" y1="174" x2="131" y2="175" stroke="${P.ink2}" stroke-width="1.1"/>`;
+  s += T(330, 170, 'Toplam yük', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 }) + T(330, 188, 'yine sıfır.', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
 })();
 
 </script>
@@ -33550,6 +34179,187 @@ const KONU = {
     'birbirine değen nötr X ve Y küreleri, pozitif çubukla etki ve ayırma', 'akaryakıt tankeri toprak kablosu, uçak statik boşaltıcıları, metal ağ kaplı ölçüm odası (eşleştirme)',
     'cam, ipek, PVC serisi: ipek bez önce cama sonra PVC boruya sürtülüyor (olabilir)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Yükler q birimiyle tam sayı; elementer yükün sayısal değeri kullanılmaz. Sonuçlar qa/Y.6.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bir cismin neden yüklendiğini, yükün bir cisimden ötekine nasıl geçtiğini ve elektroskobun ne işe yaradığını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: r`Yük nereden gelir?`,
+        sekil: 'sfY61_atom',
+        metin: r`Her madde atomlardan oluşur. Atomun ortasında çekirdek, çevresinde elektronlar vardır.
+
+- Çekirdekteki **protonlar** pozitif (+) yüklüdür. Nötronların yükü yoktur.
+- Çekirdeğin çevresindeki **elektronlar** negatif (−) yüklüdür.
+- Bir protonun yükü ile bir elektronun yükü eşit büyüklükte ve zıt işaretlidir. Bu büyüklüğe **elementer yük** denir ve $e$ ile gösterilir.
+
+Proton sayısı elektron sayısına eşit olan cisim **nötrdür**. Elektron fazlası olan cisim **negatif**, elektron eksiği olan cisim **pozitif** yüklüdür. Şekilde soldaki atom nötr, sağdaki atom ise bir elektron fazlası olduğu için negatif yüklüdür.`,
+        kontrol: {
+          soru: r`Bir atomda 5 proton ve 7 elektron var. Bu atom nasıl yüklüdür?`,
+          secenekler: [r`Pozitif`, r`Negatif`, r`Nötr`],
+          dogru: 1,
+          aciklama: r`Elektron sayısı (7), proton sayısından (5) fazladır. Elektron fazlası olan cisim negatif yüklüdür. Fazla elektron sayısı 2 olduğu için atomun yükü $-2e$ olur.`,
+          yanlisIpucu: r`Proton ve elektron sayılarını karşılaştır. Hangisi fazla? Fazla olan parçacığın yükü hangi işaretli?`
+        }
+      },
+      {
+        baslik: r`Sürtünme: elektronlar yer değiştirir`,
+        metin: r`Bir cam çubuğu ipek bir kumaşa sürtersen çubuk küçük kâğıt parçalarını çekmeye başlar. Çubuk elektrikle yüklenmiştir.
+
+Sürtünme sırasında elektronlar bir cisimden ötekine geçer. Protonlar çekirdekte kalır, yer değiştirmez.
+
+- Elektron **alan** cisim negatif, elektron **veren** cisim pozitif yüklenir.
+- Başlangıçta nötr olan iki cisim **zıt cins** ve **eşit büyüklükte** yükle yüklenir.
+- Yük yoktan var olmaz, var olan yük yok olmaz. Sürtünmeden önce de sonra da toplam yük aynıdır. Buna **yükün korunumu** denir.`,
+        kontrol: {
+          soru: r`Cam çubuk ipeğe sürtülünce pozitif yükleniyor. İpek kumaş için hangisi doğrudur?`,
+          secenekler: [r`Elektron vermiş ve pozitif yüklenmiştir.`, r`Elektron almış ve çubuğunkiyle eşit büyüklükte negatif yükle yüklenmiştir.`, r`Nötr kalmıştır; yüklenen yalnız çubuktur.`],
+          dogru: 1,
+          aciklama: r`Çubuk pozitif yüklendiyse elektron vermiştir. Bu elektronları ipek almıştır. İpek, çubuğunkiyle eşit büyüklükte negatif yükle yüklenir; toplam yük yine sıfırdır.`,
+          yanlisIpucu: r`Çubuktan ayrılan elektronlar nereye gitti? Elektron alan cisim hangi yükle yüklenir?`
+        }
+      },
+      {
+        baslik: r`Dokunma: yük paylaşılır`,
+        sekil: 'sfY61_dokunma',
+        metin: r`Yalıtkan ayaklar üzerinde duran iki **özdeş** metal küre düşün. Küreler birbirine dokundurulunca elektronlar birinden ötekine geçer. Ayrıldıklarında:
+
+- Özdeş iletken küreler toplam yükü **eşit paylaşır**: $q' = \dfrac{q_1 + q_2}{2}$.
+- Toplam yük değişmez. Dokunmadan sonra iki küre de toplam yükün işaretiyle yüklenir. Toplam yük sıfırsa ikisi de nötr olur.
+
+Şekilde $+6q$ ve $-2q$ yüklü küreler dokunuyor. Toplam yük $+4q$ olur. Ayrılınca her küre $+2q$ ile yüklenir.`,
+        kontrol: {
+          soru: r`Özdeş iki metal küreden birinin yükü $+10q$, ötekinin yükü $-4q$ olsun. Küreler dokundurulup ayrılınca her birinin yükü ne olur?`,
+          secenekler: [r`$+7q$`, r`$+3q$`, r`$+6q$`],
+          dogru: 1,
+          aciklama: r`Toplam yük $+10q + (-4q) = +6q$ olur. Özdeş küreler bunu eşit paylaşır: $+6q \div 2 = +3q$.`,
+          yanlisIpucu: r`Önce yükleri işaretleriyle topla, sonra toplamı ikiye böl. Eksi işaretini unutma.`
+        }
+      },
+      {
+        baslik: r`İletken, yalıtkan ve topraklama`,
+        metin: r`Bazı maddelerde elektronlar kolayca hareket eder. Bunlara **iletken** denir; metaller iletkendir. Plastik, cam ve ipek gibi maddelerde elektronlar kolay hareket etmez. Bunlara **yalıtkan** denir.
+
+- İletken bir cisme verilen yük bütün cisme yayılır ve **dış yüzeyde** toplanır. Sivri uçlarda yük daha yoğundur.
+- Yalıtkan bir cisimde yük, verildiği yerde kalır.
+- Yüklü bir iletken toprağa bağlanırsa nötr olur: Fazla elektronlar toprağa akar ya da eksik elektronlar topraktan gelir. Buna **topraklama** denir.`,
+        kontrol: {
+          soru: r`Pozitif yüklü bir metal küre bir telle toprağa bağlanıyor. Ne olur?`,
+          secenekler: [r`Topraktan küreye elektron gelir, küre nötr olur.`, r`Küredeki protonlar toprağa akar, küre nötr olur.`, r`Küreden toprağa elektron akar, küre daha çok yüklenir.`],
+          dogru: 0,
+          aciklama: r`Pozitif kürede elektron eksiği vardır. Topraktan gelen elektronlar bu eksiği tamamlar ve küre nötr olur. Protonlar çekirdekte kalır, hareket etmez.`,
+          yanlisIpucu: r`Elektriklenmede hangi parçacık hareket ediyordu? Elektron eksiği olan küreye elektronlar nereden gelebilir?`
+        }
+      },
+      {
+        baslik: r`Etki ve elektroskop`,
+        sekil: 'sfY61_elektroskop',
+        metin: r`**Elektroskop**, bir cismin yüklü olup olmadığını anlamaya yarayan bir araçtır. Üstte metal bir topuz, altta ona bağlı iki ince metal yaprak vardır.
+
+Şekilde nötr bir elektroskoba negatif yüklü bir çubuk dokunmadan yaklaştırılıyor. Çubuk, topuzdaki elektronları iter ve elektronlar yapraklara iner.
+
+- Topuz pozitif, yapraklar negatif yüklenir. Elektroskobun toplam yükü yine sıfırdır.
+- İki yaprak aynı cins yükle yüklendiği için birbirini iter ve **açılır**.
+- Dokunmadan, yalnız yaklaştırarak yüklerin ayrılmasına **etkiyle elektriklenme** denir. Çubuk uzaklaşınca yükler eski yerine döner ve yapraklar kapanır.`,
+        kontrol: {
+          soru: r`Aynı nötr elektroskoba bu kez pozitif yüklü bir cam çubuk dokunmadan yaklaştırılıyor. Hangisi olur?`,
+          secenekler: [r`Topuz negatif, yapraklar pozitif yüklenir; yapraklar açılır.`, r`Topuz pozitif, yapraklar negatif yüklenir; yapraklar açılır.`, r`Yükler ayrılmaz; yapraklar kapalı kalır.`],
+          dogru: 0,
+          aciklama: r`Pozitif çubuk elektronları kendine çeker. Elektronlar topuzda toplanır ve topuz negatif olur. Yapraklarda elektron eksiği kalır; yapraklar pozitif yüklenir ve birbirini iterek açılır.`,
+          yanlisIpucu: r`Pozitif yüklü çubuk elektronları iter mi, çeker mi? Elektronlar topuza mı gider, yapraklara mı?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: r`Kalem kutusu ve eldiven`,
+        metin: r`Kuru bir kış gününde, nötr ve plastik bir kalem kutusunu nötr bir yün eldivene sürtüyorsun. Sürtünmeden sonra kalem kutusunun yükü $-6q$ ölçülüyor.`,
+        adimlar: [
+          {
+            soru: r`Sürtünme sırasında elektronlar hangi yönde geçmiştir?`,
+            secenekler: [r`Eldivenden kalem kutusuna`, r`Kalem kutusundan eldivene`, r`Elektron geçmemiştir; protonlar geçmiştir.`],
+            dogru: 0,
+            ipucu: r`Kalem kutusu negatif yüklendi. Negatif yüklenen cisim elektron alır mı, verir mi?`,
+            aciklama: r`Kalem kutusu negatif yüklendiğine göre elektron almıştır. Bu elektronlar eldivenden gelmiştir.`
+          },
+          {
+            soru: r`Eldivenin yükü nedir?`,
+            secenekler: [r`$-6q$`, r`$+6q$`, r`$0$`],
+            dogru: 1,
+            ipucu: r`Başlangıçta nötr olan iki cisim sürtünmede zıt cins ve eşit büyüklükte yüklenir.`,
+            aciklama: r`Eldiven, kalem kutusuna geçen elektronları kaybetmiştir. Yükü $+6q$ olur.`
+          },
+          {
+            soru: r`Sürtünmeden sonra kalem kutusu ile eldivenin toplam yükü nedir?`,
+            secenekler: [r`$-12q$`, r`$+12q$`, r`$0$`],
+            dogru: 2,
+            ipucu: r`İki yükü işaretleriyle topla.`,
+            aciklama: r`Toplam yük $-6q + (+6q) = 0$ olur. Sürtünmeden önce de iki cisim nötrdü; toplam yük korunmuştur.`
+          }
+        ],
+        sonuc: r`Sürtünmede yalnız elektronlar yer değiştirir. Başlangıçta nötr olan cisimler zıt cins ve eşit büyüklükte yüklenir; toplam yük değişmez.`
+      },
+      {
+        baslik: r`İçi boş metal kova`,
+        metin: r`Yalıtkan bir taburenin üstünde içi boş, metal bir kova duruyor. Kova negatif yükleniyor. Elinde yalıtkan saplı, küçük ve nötr bir metal bilye var.`,
+        adimlar: [
+          {
+            soru: r`Kovanın yükü nerede toplanır?`,
+            secenekler: [r`Kovanın iç yüzeyinde`, r`Kovanın dış yüzeyinde`, r`Kovanın içindeki havada`],
+            dogru: 1,
+            ipucu: r`Aynı cins yükler birbirini iter. Bir iletkende birbirinden olabildiğince uzaklaşmak için nereye giderler?`,
+            aciklama: r`Negatif yükler birbirini iter ve birbirinden olabildiğince uzaklaşır. İletken kovada yük dış yüzeyde toplanır.`
+          },
+          {
+            soru: r`Bilye kovanın iç yüzeyine dokundurulup dışarı çıkarılıyor. Bilyenin yükü ne olur?`,
+            secenekler: [r`Nötr kalır.`, r`Negatif yüklenir.`, r`Pozitif yüklenir.`],
+            dogru: 0,
+            ipucu: r`Bilyenin dokunduğu iç yüzeyde yük var mı?`,
+            aciklama: r`Kovanın iç yüzeyinde yük yoktur. Bilye yüksüz bir yüzeye dokunduğu için yük almaz ve nötr kalır.`
+          },
+          {
+            soru: r`Bilye bu kez kovanın dış yüzeyine dokundurulup uzaklaştırılıyor. Bilyenin yükü ne olur?`,
+            secenekler: [r`Nötr kalır.`, r`Negatif yüklenir.`, r`Pozitif yüklenir.`],
+            dogru: 1,
+            ipucu: r`Dış yüzeyde yük var. Dokunmada iki cisim hangi işaretle yüklenir?`,
+            aciklama: r`Dış yüzeyde negatif yük vardır. Dokunmada bu yükün bir kısmı bilyeye geçer ve bilye negatif yüklenir.`
+          }
+        ],
+        sonuc: r`İletkende yük dış yüzeyde toplanır; içi yükten korunur. Faraday kafesi de bu ilkeyle çalışır.`
+      },
+      {
+        baslik: r`Binanın tepesindeki paratoner`,
+        metin: r`Yüksek bir binanın tepesinde sivri uçlu bir metal çubuk var. Çubuk, kalın bir bakır kabloyla toprağa bağlıdır. Buna paratoner denir. Binanın üstünden, alt yüzü negatif yüklü bir fırtına bulutu geçiyor.`,
+        adimlar: [
+          {
+            soru: r`Bulut yaklaşınca paratonerin sivri ucunda hangi cins yük toplanır?`,
+            secenekler: [r`Negatif`, r`Pozitif`, r`Hiç yük toplanmaz.`],
+            dogru: 1,
+            ipucu: r`Bulutun negatif yükü, paratonerdeki elektronları iter mi, çeker mi? Elektronlar hangi yöne gider?`,
+            aciklama: r`Bulutun negatif yükü elektronları iter. Elektronlar paratonerden kablo boyunca toprağa doğru itilir. Uçta elektron eksiği kalır ve uç pozitif yüklenir. Bu, etkiyle elektriklenmedir. Sivri uçta yük daha yoğundur.`
+          },
+          {
+            soru: r`Bulut, yıldırım düşmeden uzaklaşıyor. Paratonerin ucundaki pozitif yüke ne olur?`,
+            secenekler: [r`Topraktan uca elektron gelir; uç nötr olur.`, r`Uç pozitif yüklü kalır.`, r`Uçtaki protonlar toprağa akar; uç nötr olur.`],
+            dogru: 0,
+            ipucu: r`Bulut uzaklaşınca elektronları iten etki kalır mı? Paratoner toprağa bağlı; elektronlar nereden gelebilir?`,
+            aciklama: r`Bulut uzaklaşınca elektronları iten etki kalkar. Paratoner toprağa bağlı olduğu için topraktan kablo boyunca elektron gelir ve uç yeniden nötr olur. Protonlar yer değiştirmez.`
+          },
+          {
+            soru: r`Paratoner neden kalın bir kabloyla toprağa bağlanır?`,
+            secenekler: [r`Yıldırımın yükü binanın içinden geçmeden toprağa aksın diye`, r`Kablo buluttaki yükü artırsın diye`, r`Toprak paratonere proton göndersin diye`],
+            dogru: 0,
+            ipucu: r`Toprak çok büyük bir iletkendir. Topraklama yüklü bir cisme ne yapıyordu?`,
+            aciklama: r`Yıldırım düşerse yük, kolay yol olan kablo boyunca toprağa akar. Böylece binanın duvarlarından ve içindeki insanlardan geçmez. Kablo kalın yapılır, çünkü yıldırımın çok büyük yükünü kısa sürede güvenle taşıması gerekir. Bu bir topraklamadır.`
+          }
+        ],
+        sonuc: r`Paratonerde etkiyle elektriklenme ve topraklama birlikte çalışır. Toprağa bağlı bir iletkende elektronlar, yakındaki yüke göre toprağa gider ya da topraktan gelir.`
+      }
+    ],
+    hazir: r`Yükün kaynağını, sürtünme, dokunma ve etkiyle elektriklenmeyi, iletken ile yalıtkanı, topraklamayı ve elektroskobu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
