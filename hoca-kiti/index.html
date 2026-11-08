@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Hoca Kiti | Ben Fizik Yapamıyorum</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1B2F5E;--navy2:#2B4A8A;--acc:#E0731F;--soft:#F3F6FB;--line:#C9D2E0;--muted:#5B6573;--ink:#1a2233;--ok:#1F7A4D;--hata:#B3261E}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:#EEF2F8;color:var(--ink)}
+.w{max-width:760px;margin:0 auto;padding:34px 18px 60px}
+.marka{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:15px;color:var(--acc)}
+h1{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:36px;color:var(--navy);margin:6px 0 6px;line-height:1.1}
+.alt{color:var(--muted);font-size:15px;margin:0 0 22px;line-height:1.6}
+.kartlar{display:grid;gap:14px}
+a.kart{display:flex;align-items:center;gap:16px;background:#fff;border-radius:18px;padding:20px 22px;text-decoration:none;color:var(--ink);border:2px solid transparent;box-shadow:0 8px 26px rgba(27,47,94,.08)}
+a.kart:hover{border-color:var(--navy2)}
+.rozet{flex:none;width:58px;height:58px;border-radius:16px;background:var(--navy);color:#fff;display:grid;place-items:center;font-family:Manrope,sans-serif;font-weight:800;font-size:22px}
+.kart b{display:block;font-size:18px;color:var(--navy)}
+.kart span{color:var(--muted);font-size:14px}
+.kutu{background:#fff;border-radius:18px;padding:20px 22px;margin-top:22px;box-shadow:0 8px 26px rgba(27,47,94,.06)}
+.kutu h2{font-size:17px;margin:0 0 8px;color:var(--navy)}
+.kutu p{margin:6px 0;color:var(--muted);line-height:1.6;font-size:15px}
+textarea{width:100%;min-height:74px;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;font:14px/1.4 Inter,system-ui,sans-serif;resize:vertical}
+.btn{display:inline-block;margin-top:10px;padding:12px 20px;border-radius:12px;background:var(--navy);color:#fff;font-weight:700;font-size:15px;border:0;cursor:pointer}
+.mesaj{margin-top:10px;font-size:15px;line-height:1.5}
+.mesaj.ok{color:var(--ok)}.mesaj.hata{color:var(--hata)}
+.dip{margin-top:28px;color:var(--muted);font-size:13px;line-height:1.6}
+.dip a{color:var(--navy2)}
+</style></head><body><div class="w">
+<div class="marka">Ben Fizik Yapamıyorum</div>
+<h1>Hoca Kiti</h1>
+<p class="alt" id="alt">36 haftalık ders kiti: tahtada anlatım, hoca ve öğrenci görünümü, yazılılar ve PDF'ler. Kit, size özel lisans linkiyle açılır.</p>
+<div class="kartlar" id="kartlar"></div>
+<div class="kutu" id="girisKutu">
+ <h2 id="girisBaslik">Lisans linkiniz</h2>
+ <p>Satın aldıktan sonra e-postanıza gelen linke dokunmanız yeterli. Linki buraya da yapıştırabilirsiniz. Kullanacağınız her cihazda (bilgisayar, akıllı tahta, tablet, telefon) bir kez açın.</p>
+ <textarea id="link" placeholder="https://benfizikyapamiyorum.com/hoca-kiti/#lisans=..." aria-label="Lisans linki"></textarea>
+ <button class="btn" id="kaydet" type="button">Kiti aç</button>
+ <div class="mesaj" id="mesaj" role="status"></div>
+</div>
+<div class="dip">Güncellemeler ücretsizdir: kitte yapılan her düzeltme ve ekleme, aynı linkle açtığınızda kendiliğinden görünür. Kitin içeriği internet bağlantısıyla açılır.<br>Lisans kişiye özeldir, paylaşılan lisanslar iptal edilir. Sorun yaşarsanız <a href="https://wa.me/905425549386">WhatsApp</a> ya da <a href="mailto:cerkeztimur@gmail.com">e-posta</a> ile yazın.<br><a href="/">benfizikyapamiyorum.com</a></div>
+</div>
+<script>
+(function(){
+  var PUB=[{"kty":"EC","crv":"P-256","x":"_TaTTBflkNhET_aI5hsfW9UGRrxkG8CSUZ6NuZht-TQ","y":"qBWA-eJwvUagRLMiCF_HbuHx-L_uPfA1FRcHd0hwDUU"},{"kty":"EC","crv":"P-256","x":"vmG6TPdeE0BDMUH0-KXeZpGziz15ZXnV4HluaZ1R8a4","y":"nAUayVW3k26LUy5pjX9EcNgqKx0-jNVwF9F1qx6-H0g"}], IPTAL=[];
+  var KOD={31:'9',32:'10',33:'11'};
+  var $=function(i){return document.getElementById(i)};
+  function b64u(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return Uint8Array.from(atob(t),function(c){return c.charCodeAt(0)});}
+  function oku(){try{var o=JSON.parse(localStorage.getItem('bfy_hoca_kiti')||'{}');return o&&typeof o==='object'?o:{};}catch(e){return {};}}
+  function yaz(o){try{localStorage.setItem('bfy_hoca_kiti',JSON.stringify(o));return true;}catch(e){return false;}}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]});}
+  async function coz(metin){
+    var m=String(metin||'').match(/lisans=([A-Za-z0-9_-]{8,})\.([A-Za-z0-9_-]{80,90})(?:&|%26)a=([A-Za-z0-9_-]{43})/);
+    if(!m)return {hata:'Bu link eksik ya da hatalı. Size gönderilen linkin tamamını kopyaladığınızdan emin olun.'};
+    var veri=b64u(m[1]),imza=b64u(m[2]),p=new TextDecoder().decode(veri).split('|');
+    if(p[0]!=='B2'||p.length<5||!KOD[p[1]])return {hata:'Bu link bir Hoca Kiti lisansı değil.'};
+    var ok=false;
+    for(var i=0;i<PUB.length&&!ok;i++){var k=await crypto.subtle.importKey('jwk',PUB[i],{name:'ECDSA',namedCurve:'P-256'},false,['verify']);ok=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},k,imza,veri);}
+    if(!ok)return {hata:'Bu lisans geçerli değil.'};
+    if(IPTAL.indexOf(p[3])>=0)return {hata:'Bu lisans iptal edilmiş. Bir sorun olduğunu düşünüyorsanız bizimle iletişime geçin.'};
+    var S=KOD[p[1]];
+    try{
+      var key=await crypto.subtle.importKey('raw',b64u(m[3]),'AES-GCM',false,['decrypt']);
+      var r=await fetch('/hoca-kiti/d'+S+'/m.bin',{cache:'no-cache'});var b=await r.arrayBuffer();
+      await crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(b,0,12)},key,new Uint8Array(b,12));
+    }catch(e){return {hata:'Lisans doğrulandı ama kit açılamadı. İnternet bağlantınızı kontrol edip yeniden deneyin.'};}
+    return {s:S,no:p[3],ad:p.slice(4).join('|').trim(),j:m[1]+'.'+m[2],a:m[3]};
+  }
+  function ciz(){
+    var o=oku(),h='',ss=['9','10','11'].filter(function(s){return o[s]&&o[s].a&&IPTAL.indexOf(o[s].no)<0});
+    ss.forEach(function(s){h+='<a class="kart" href="/hoca-kiti/k'+s+'/"><div class="rozet">'+s+'</div><div><b>'+s+'. Sınıf Hoca Kiti</b><span>'+(o[s].ad?esc(o[s].ad)+' adına lisanslı. ':'')+'36 hafta, yazılılar ve PDF\'ler.</span></div></a>';});
+    $('kartlar').innerHTML=h;
+    if(ss.length){$('alt').textContent='Kitlerinizden birini seçin.';$('girisBaslik').textContent='Başka bir sınıfın lisansını ekleyin';}
+  }
+  async function isle(metin,otomatik){
+    if(!window.crypto||!crypto.subtle){$('mesaj').className='mesaj hata';$('mesaj').textContent='Bu tarayıcı kiti açamıyor. Chrome, Safari ya da Edge’in güncel sürümünü kullanın.';return;}
+    $('mesaj').className='mesaj';$('mesaj').textContent='Lisans kontrol ediliyor…';
+    var r=await coz(metin);
+    if(r.hata){$('mesaj').className='mesaj hata';$('mesaj').textContent=r.hata;return;}
+    var o=oku();o[r.s]={no:r.no,ad:r.ad,j:r.j,a:r.a};
+    if(!yaz(o)){$('mesaj').className='mesaj hata';$('mesaj').textContent='Tarayıcı bu cihazda kayıt yapmaya izin vermiyor. Gizli sekmedeyseniz normal sekmede açın.';return;}
+    $('mesaj').className='mesaj ok';$('mesaj').textContent=r.s+'. Sınıf Hoca Kiti bu cihazda açıldı.';
+    ciz();
+    var q=new URLSearchParams(location.search),geri=q.get('geri');
+    if(otomatik||geri){var hedef=(geri&&q.get('s')===r.s&&/^\/hoca-kiti\/k(9|10|11)\//.test(geri))?geri:'/hoca-kiti/k'+r.s+'/';setTimeout(function(){location.href=hedef},700);}
+  }
+  $('kaydet').onclick=function(){isle($('link').value,false)};
+  ciz();
+  var q=new URLSearchParams(location.search);
+  if(q.get('s')&&!/lisans=/.test(location.hash)){var o=oku();if(!(o[q.get('s')]&&o[q.get('s')].a)){$('mesaj').className='mesaj';$('mesaj').textContent=q.get('s')+'. sınıf kitini açmak için lisans linkiniz gerekiyor.';}}
+  function hashIsle(){if(/lisans=/.test(location.hash)){var h=location.hash;history.replaceState(null,'',location.pathname+location.search);isle(h,true);}}
+  window.addEventListener('hashchange',hashIsle);hashIsle();
+})();
+</script>
+</body></html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Hoca Kiti, PDF</title>
+<style>
+:root{--navy:#1B2F5E;--acc:#E0731F;--ink:#1a2233;--muted:#5B6573}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:#EEF2F8;color:var(--ink)}
+.w{max-width:640px;margin:0 auto;padding:40px 20px}
+h1{font-size:22px;color:var(--navy);margin:0 0 6px;word-break:break-word}
+p{color:var(--muted);line-height:1.6}
+.btn{display:inline-block;margin:8px 8px 0 0;padding:13px 20px;border-radius:12px;background:var(--navy);color:#fff;text-decoration:none;font-weight:700;border:0;font-size:16px;cursor:pointer}
+.btn.ikinci{background:#fff;color:var(--navy);border:2px solid var(--navy)}
+.gizli{display:none}
+</style></head><body><div class="w">
+<h1 id="ad">PDF</h1>
+<p id="durum">PDF hazırlanıyor…</p>
+<div id="dugme" class="gizli"><a id="ac" class="btn" target="_blank" rel="noopener">PDF'i aç</a><a id="indir" class="btn ikinci">İndir</a></div>
+<p><a id="geri" href="#">← Kite dön</a></p>
+</div>
+<script>
+(function(){
+  var q=new URLSearchParams(location.search),S=q.get('s'),F=q.get('f')||'';
+  var $=function(i){return document.getElementById(i)};
+  $('ad').textContent=F.replace(/_/g,' ').replace(/\.pdf$/i,'');
+  $('geri').href='/hoca-kiti/k'+S+'/';
+  $('geri').onclick=function(e){if(history.length>1){e.preventDefault();history.back();}};
+  if(!/^(9|10|11)$/.test(S||'')){$('durum').textContent='Dosya bulunamadı.';return;}
+  var L=null;try{L=(JSON.parse(localStorage.getItem('bfy_hoca_kiti')||'{}')||{})[S];}catch(e){}
+  var IPTAL=[];
+  if(!L||!L.a||IPTAL.indexOf(L.no)>=0){location.replace('/hoca-kiti/?s='+S+'&geri='+encodeURIComponent(location.pathname+location.search));return;}
+  function b64u(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return Uint8Array.from(atob(t),function(c){return c.charCodeAt(0)});}
+  var k;
+  function coz(u){return fetch(u,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('ag');return r.arrayBuffer()}).then(function(b){return crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(b,0,12)},k,new Uint8Array(b,12))});}
+  crypto.subtle.importKey('raw',b64u(L.a),'AES-GCM',false,['decrypt']).then(function(x){k=x;return coz('/hoca-kiti/d'+S+'/m.bin')})
+  .then(function(mb){var d=JSON.parse(new TextDecoder().decode(mb)).dosyalar[F];if(!d)throw new Error('yok');
+    $('durum').textContent='PDF indiriliyor ('+String(Math.round(d[1]/1048576*10)/10).replace('.',',')+'\u00a0MB)…';
+    return coz('/hoca-kiti/d'+S+'/'+d[0]+'.bin')})
+  .then(function(pb){var url=URL.createObjectURL(new Blob([pb],{type:'application/pdf'}));
+    $('ac').href=url;$('indir').href=url;$('indir').download=F;
+    $('durum').textContent='PDF hazır. Açabilir ya da cihazınıza indirebilirsiniz.';$('dugme').className='';})
+  .catch(function(e){$('durum').textContent=e&&e.message==='yok'?'Dosya bulunamadı.':'PDF yüklenemedi. İnternet bağlantınızı kontrol edip sayfayı yenileyin.';});
+})();
+</script></body></html>
