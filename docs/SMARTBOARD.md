@@ -55,10 +55,16 @@ offline or service-worker behaviour is claimed.
 
 ## Şahin garage and acceleration race (local revision)
 
-- `sahin-ivme-yarisi.html` adds a nineteenth experiment. Original procedural geometry; plate 54 BFY 54; orbit/front/side/rear cameras; reduced ride height; opening trunk with reactive speakers; headlights/night; optional instrumental and device-local music.
+- `sahin-ivme-yarisi.html` adds a nineteenth experiment. Original procedural geometry; plate 54 BFY 54; orbit/front/side/rear cameras; reduced ride height; opening trunk with reactive speakers; headlights/night; optional original instrumental rhythm.
 - Reference photographs were inspected for geometry, not shipped as textures: [side](https://www.arabam.com/ilan/sahibinden-satilik-tofas-sahin-s/sahibinden-tofas-sahin-s-1997-model/33465590), [front](https://www.letgo.com/item/tofas-sahin-iid-1678570462), [rear](https://www.arabam.com/ilan/sahibinden-satilik-tofas-sahin-1-6/sahibinden-tofas-sahin-1-6-1994-model/37345508).
 - Shortened the excessive front overhang while keeping the 2.48 m model wheelbase; corrected window/door proportions and rear plate position; replaced headlamp grid geometry with fine glass/reflector texture; reduced bumper and front lip thickness. This is an approximation, not a scanned car or a manufacturer CAD asset.
 - Pure SI physics uses a = Fnet/m, x = at²/2, v = at and p = Fnet*t. Faster vehicle continues until slower vehicle finishes; no artificial stop at the line. Vehicle performance is a teaching model, not actual Şahin specifications. Visual/audio gears do not affect the net-force model.
-- `bfy-sahin-audio.mjs` plays only device-selected recordings. No real Şahin engine clip is bundled: the found community sample pack clipped, and YouTube media download failed. The UI links the candidate video; it does not label an oscillator as a real engine. User music and engine files never upload. No Müslüm Gürses vocal was generated.
+- `bfy-sahin-audio.mjs` now loads a bundled real exhaust recording on the first engine-start gesture. `bfy-sahin-egzoz.wav` is a 2.28 s mono PCM loop (44.1 kHz, 201,140 bytes), prepared from 1.0–3.4 s of [“tofaş egzoz sesi” by Akıl Baştan Çıkaran Arabalar](https://www.youtube.com/watch?v=sgJZ9w3u_hw). Processing: 35 Hz high-pass, 7.5 kHz low-pass, 120 ms equal-power overlap, DC removal, peak 0.82. Source credited beside the controls; no claim of original ownership or a Creative Commons license. Pitch changes are an educational playback effect, not measured engine RPM.
+- Engine controls are direct: start, hold-to-rev, stop, and volume. There is no engine-file selection step. Music has a clearly labeled original rhythm toggle; there is no song-file picker. Engine starts only on user input, retries failed downloads, and cancels pending starts when the page hides. No Müslüm Gürses vocal was generated.
 - Engine and music are opt-in and stop when the page is hidden. Audio levels have separate controls (engine capped at 60%). Real smartboard audio quality and performance remain hardware checks.
 - Renderer uses local Three.js; no new network dependency is needed for the car or instrumental. Scene DPR capped at 2; UI/graph updates throttled to about 15 Hz while car motion remains per-frame.
+
+## Real exhaust verification
+
+- Chrome: bundled recording loaded, engine start/stop and hold-to-rev controls operated without console errors.
+- Audio lifecycle checks: default loading, cache reuse, no overlapping starts, throttle, stop, cancellation during download, failed-request retry, and hidden-page prevention passed.
