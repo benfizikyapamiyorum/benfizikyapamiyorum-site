@@ -103,16 +103,33 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
       t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace; W.sky.set(t, { mips: false }); lo.dispose();
     }, undefined, () => { });
   }
-  W.loadEnv = key => new Promise(res => {
+  W.loadEnv = key => new Promise((res, reject) => {
     const E = ENVS[key]; let pend = 2; const done = () => { if (--pend === 0) res(); };
     texL.load(BASE + E.bg, t => { t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
-      if (W.sky) { W.sky.set(t); loadHiBg(E, t); } else scene.background = t; done(); });
-    hdrL.load(BASE + E.hdr, t => { t.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(t).texture; t.dispose(); done(); });
+      if (W.sky) { W.sky.set(t); loadHiBg(E, t); } else scene.background = t; done(); }, undefined, reject);
+    hdrL.load(BASE + E.hdr, t => { t.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(t).texture; t.dispose(); done(); }, undefined, reject);
     scene.backgroundRotation.set(0, E.rot, 0); scene.environmentRotation.set(0, E.rot, 0);
     scene.backgroundBlurriness = E.blur || 0; scene.backgroundIntensity = 1; scene.environmentIntensity = 1;
     sunDir.copy(uvToDir(E.sunUV[0], E.sunUV[1]).applyAxisAngle(new THREE.Vector3(0, 1, 0), -E.rot));
     sun.color.set(E.sunC); sun.intensity = E.sunI; hemi.intensity = E.hemi; renderer.toneMappingExposure = E.exposure;
   });
+
+  W.showLoadError = error => {
+    console.error('BFY environment could not be loaded', error);
+    const loading = $('loading');
+    if (!loading) return;
+    loading.classList.remove('off');
+    loading.style.opacity = '1';
+    loading.replaceChildren();
+    const box = document.createElement('div');
+    box.style.cssText = 'max-width:480px;text-align:center;padding:24px;line-height:1.6';
+    const message = document.createElement('p');
+    message.textContent = 'Sahne dosyaları yüklenemedi. İnternet bağlantısını kontrol edip yeniden dene.';
+    const retry = document.createElement('button');
+    retry.type = 'button'; retry.className = 'b'; retry.textContent = 'Yeniden dene';
+    retry.addEventListener('click', () => location.reload());
+    box.append(message, retry); loading.append(box);
+  };
 
   /* uyarlanır kalite */
   const qp = new URLSearchParams(location.search).get('q');

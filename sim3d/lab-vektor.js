@@ -1,5 +1,5 @@
 // BFY · 3B Vektör Laboratuvarı — akıntılı nehirde motorlu kayık, bileşke hız
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=7';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=20261108-board1';
 
 const Z0 = 10, Z1 = -10, D = Z0 - Z1;       // kalkış ve varış çizgileri (m)
 const BANK = 13;                            // kıyı çizgisi |z|
@@ -280,5 +280,5 @@ syncUI(); resetAll(); W.orbit.target.set(0, 0, 0); W.orbit.r = 60; W.orbit.th = 
 const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
 // oklar ve köpük de açılışta derlensin: ilk tıklamada takılma olmasın
 async function warm() { const f = foams[0].m, objs = [arK, arA, arR, arCx, arCz].map(a => a.g).concat(f), vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); f.material.opacity = .01; await prewarmLin(); objs.forEach((o, i) => o.visible = vis[i]); f.material.opacity = 0; }
-W.loadEnv('lake').then(warm).then(() => W.start());
+W.loadEnv('lake').then(warm).then(() => W.start()).catch(W.showLoadError);
 window.__bfyLab = { W, S, setScenario, resetAll, go, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

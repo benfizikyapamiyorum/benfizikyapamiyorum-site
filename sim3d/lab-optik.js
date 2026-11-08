@@ -1,5 +1,5 @@
 // BFY · 3B Optik Laboratuvarı — renk karışımı + optik ray (mercek ve ayna)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
 
 const TY = .76;
 const S = { mode: 'color', cam: 'orbit', L: { r: { on: true, k: 1 }, g: { on: true, k: 1 }, b: { on: true, k: 1 } }, obj: 'post', beam: true, labels: true,
@@ -342,5 +342,5 @@ async function warm() {
   await prewarmLin();
   objs.forEach((o, i) => o.visible = vis[i]);
 }
-W.loadEnv('lab').then(warm).then(() => { setMode('color'); W.orbit.th = 1.3; W.orbit.r = 2.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target); setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200); W.start(); });
+W.loadEnv('lab').then(warm).then(() => { setMode('color'); W.orbit.th = 1.3; W.orbit.r = 2.2; camera.position.copy(W.orbitPos()); W.orbit.look.copy(W.orbit.target); setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200); W.start(); }).catch(W.showLoadError);
 window.__bfyLab = { W, S, setMode, setObj, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

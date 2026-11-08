@@ -1,5 +1,5 @@
 // BFY · 3B Hareket Grafikleri — rampada oyuncak araba, hareket sensörü, canlı x-t / v-t / a-t
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
 
 const G = 9.8, TY = .76, LT = 3.1, X_MIN = .12, X_MAX = 2.9, TMAX = 12;
 const XS = -1.5;                       // şerit sıfırının dünya x'i
@@ -352,5 +352,5 @@ const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuf
 async function warm() { const objs = ['A', 'B'].flatMap(k => [lanes[k].arV.g, lanes[k].arA.g]), vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true);
   const smp = [new THREE.Mesh(ringGeo, ringMat), new THREE.Mesh(blockGeo, new THREE.MeshStandardMaterial({ color: '#ff8a78', transparent: true, opacity: .26, roughness: .4, depthWrite: false }))];
   await prewarmLin(smp); objs.forEach((o, i) => o.visible = vis[i]); smp[1].material.dispose(); }
-W.loadEnv('lab').then(warm).then(() => W.start());
+W.loadEnv('lab').then(warm).then(() => W.start()).catch(W.showLoadError);
 window.__bfyLab = { W, S, CAR, lanes, setScenario, resetAll, go, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };

@@ -1,5 +1,5 @@
 // BFY · 3B Manyetik Alan Laboratuvarı — Biot–Savart ile alan, demir tozu, pusulalar
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=7';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=20261108-board1';
 
 const TY = .76, PY = TY + .12, FY = PY + .005;   // plaka üstü = alan düzlemi
 const PL = .46;                                    // plaka kenarı
@@ -300,5 +300,5 @@ setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
 const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
 // gizli kaynaklar, sağ el oku ve alan çizgisi malzemesi de açılışta derlensin: ilk tıklamada takılma olmasın
 async function warm() { const objs = [...Object.values(srcG), hand], vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); await prewarmLin([new THREE.Mesh(new THREE.ConeGeometry(.0035, .01, 12), lineMat)]); objs.forEach((o, i) => o.visible = vis[i]); }
-W.loadEnv('lab').then(warm).then(() => W.start());
+W.loadEnv('lab').then(warm).then(() => W.start()).catch(W.showLoadError);
 window.__bfyLab = { W, S, rebuild, fieldAt, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };
