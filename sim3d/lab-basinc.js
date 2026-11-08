@@ -1,5 +1,5 @@
 // BFY · 3B Kaldırma Kuvveti Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=7';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=20261108-board1';
 
 /* =====================================================================
    Sabitler ve cisimler (SI birimleri: m, kg, s)
@@ -463,7 +463,7 @@ const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuf
 // oklar ve halka da açılışta derlensin: ilk bırakmada takılma olmasın
 async function warm() { const objs = [arW, arF, arT, arN, ...pArrows].map(a => a.g), vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); const r = newRing(); r.visible = true; r.material.opacity = .01;
   await prewarmLin(); objs.forEach((o, i) => o.visible = vis[i]); r.visible = false; ringPool.push(r); }
-W.loadEnv('lab').then(warm).then(() => { W.start(); });
+W.loadEnv('lab').then(warm).then(() => { W.start(); }).catch(W.showLoadError);
 window.__bfyLab = { W, S, items, OBJS, vsub, setMode, select, dropSelected, get waterY() { return waterY; }, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };
 
 window.BFYGrowthLab={prepare(){setMode('free');S.moon=false;$('i-moon').checked=false;setLiquid(LIQS[1]);select('egg');dropSelected();},read(){const it=items.find(it=>it.o.id===S.sel);return it?{selected:S.sel,mode:S.mode,density:S.rho,inTank:it.inTank,hung:it.hung,grab:it.grab,clearFloor:it.y>FLOOR+.002,submerged:vsub(it.o,it.ds)/it.o.V,velocity:it.v}:null;}};

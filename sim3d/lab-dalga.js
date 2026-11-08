@@ -1,5 +1,5 @@
 // BFY · 3B Dalga Leğeni — 2B dalga denkleminin GPU'da sayısal çözümü (FDTD)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
 
 const TY = .76, LEGH = .26;
 const L = .56;                               // su alanının kenarı (m)
@@ -239,5 +239,5 @@ setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
 // derleme son işleme hedefinin varyantıyla yapılsın (doğrusal renk, ton eşlemesiz): ekran varyantı burada hiç kullanılmıyor
 const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
 // sığ cam ve engel malzemeleri ilk tıklamadan önce derlensin
-W.loadEnv('lab').then(() => { clearSim(); return prewarmLin([new THREE.Mesh(unitBox, shallowMat), new THREE.Mesh(unitBox, barMat)]); }).then(() => W.start());
+W.loadEnv('lab').then(() => { clearSim(); return prewarmLin([new THREE.Mesh(unitBox, shallowMat), new THREE.Mesh(unitBox, barMat)]); }).then(() => W.start()).catch(W.showLoadError);
 window.__bfyLab = { W, S, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); }, simAdvance(sec) { const n = Math.round(sec / DT); for (let i = 0; i < n; i++) simStep(); } };

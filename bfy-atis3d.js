@@ -969,7 +969,7 @@ function drawGraph(dt = 0) {
   else if (key === graphKeyLast) return;
   graphKeyLast = key;
   const W = gcW, H = gcH; if (!W) return;
-  if (gc.width !== Math.round(W * DPR)) { gc.width = Math.round(W * DPR); gc.height = Math.round(H * DPR); }
+  if (gc.width !== Math.round(W * DPR) || gc.height !== Math.round(H * DPR)) { gc.width = Math.round(W * DPR); gc.height = Math.round(H * DPR); }
   gx.setTransform(DPR, 0, 0, DPR, 0, 0); gx.clearRect(0, 0, W, H);
   if (S.phase === 'idle' && idleKey !== pk) { idleKey = pk; idleSim = simulate(params()); }
   const sim = cur && (S.phase !== 'idle') ? cur : idleSim;

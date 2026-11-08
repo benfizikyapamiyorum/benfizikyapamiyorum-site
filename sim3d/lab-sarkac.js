@@ -1,5 +1,5 @@
 // BFY · 3B Enerji ve Sarkaç Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=7';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
 
 const TY = .76, TOPY = TY + 1.16, PIV = new THREE.Vector3(0, TOPY - .03, 0);
 const BRASS_RHO = 8500;
@@ -111,14 +111,14 @@ const arV = new Arrow(scene, '#ffc93a'), arG = new Arrow(scene, '#ff4a3d'), arT 
 const gc = $('graph'), gx = gc.getContext('2d'); const hist = []; const HMAX = 12;
 function drawGraph() {
   const DPR = Math.min(devicePixelRatio || 1, 2); const r = gc.getBoundingClientRect(), Wd = r.width, Hh = r.height; if (!Wd) return;
-  if (gc.width !== Math.round(Wd * DPR)) { gc.width = Math.round(Wd * DPR); gc.height = Math.round(Hh * DPR); }
+  if (gc.width !== Math.round(Wd * DPR) || gc.height !== Math.round(Hh * DPR)) { gc.width = Math.round(Wd * DPR); gc.height = Math.round(Hh * DPR); }
   gx.setTransform(DPR, 0, 0, DPR, 0, 0); gx.clearRect(0, 0, Wd, Hh);
   const L = 50, R = 52, T = 14, B = 24, pw = Wd - L - R, ph = Hh - T - B;
   const t1 = hist.length ? hist[hist.length - 1].t : 0, t0 = Math.max(0, t1 - HMAX);
   let lo = 0, hi = 1;
   if (S.gk === 'E') { hi = Math.max(.01, P1.E0) * 1.1; } else if (S.gk === 'th') { hi = Math.max(5, S.th0 / DEG) * 1.15; lo = -hi; } else { const vm = Math.sqrt(2 * S.g * S.L * (1 - Math.cos(S.th0))); hi = Math.max(.1, vm) * 1.15; lo = -hi; }
   const X = t => L + (t - t0) / HMAX * pw, Y = v => T + (hi - v) / (hi - lo) * ph;
-  gx.strokeStyle = '#f0e8d6'; gx.lineWidth = 1; gx.fillStyle = '#8a8375'; gx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+  gx.strokeStyle = '#f0e8d6'; gx.lineWidth = 1; gx.fillStyle = '#8a8375'; gx.font = document.body.classList.contains('board-active') ? '600 14px system-ui' : '600 11px "Plus Jakarta Sans", sans-serif';
   gx.textAlign = 'right'; gx.textBaseline = 'middle'; for (let i = 0; i <= 4; i++) { const v = lo + (hi - lo) * i / 4; gx.beginPath(); gx.moveTo(L, Y(v)); gx.lineTo(L + pw, Y(v)); gx.stroke(); gx.fillText(fmt(v, Math.abs(hi) < 2 ? 2 : 0), L - 6, Y(v)); }
   gx.textAlign = 'center'; gx.textBaseline = 'top'; for (let s = Math.ceil(t0); s <= t0 + HMAX; s += 2) { gx.beginPath(); gx.moveTo(X(s), T); gx.lineTo(X(s), T + ph); gx.stroke(); gx.fillText(s, X(s), T + ph + 5); }
   const y0 = Y(Math.max(lo, 0)); gx.strokeStyle = '#0e0c08'; gx.lineWidth = 1.5; gx.beginPath(); gx.moveTo(L, T - 4); gx.lineTo(L, T + ph); gx.moveTo(L, y0); gx.lineTo(L + pw + 8, y0); gx.stroke();
@@ -214,5 +214,5 @@ setTimeout(() => { setCam(); W.orbit.auto = 0; }, 200);
 const prewarmLin = async objs => { W.renderer.setRenderTarget(W.composer.readBuffer); try { await W.prewarm(objs); } finally { W.renderer.setRenderTarget(null); } };
 // sonradan görünen oklar, 2. sarkaç ve izi de açılışta derlensin: ilk tıklamada takılma olmasın
 async function warm() { const objs = [arV.g, arG.g, arT.g, arTan.g, P2.g, trails[1]], vis = objs.map(o => o.visible); objs.forEach(o => o.visible = true); await prewarmLin(); objs.forEach((o, i) => o.visible = vis[i]); }
-W.loadEnv('lab').then(warm).then(() => W.start());
+W.loadEnv('lab').then(warm).then(() => W.start()).catch(W.showLoadError);
 window.__bfyLab = { W, S, P1, P2, go, resetAll, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };
