@@ -1611,6 +1611,101 @@ BFY_FIG_EKLE('iT11_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 80 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sf111_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const BG = '#f4f7f9';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const cizgi = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P.ink2}" stroke-width="1.3"/>`;
+
+/* Sahilde bir akşam: dalga, batan Güneş'in ışığı, ısınan kum */
+BFY_FIG_EKLE('sf111_sahil', function (u) {
+  const W = 340, H = 236, yu = 122, yk = 176;
+  let s = `<defs><linearGradient id="${u}gb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fb3d8"/><stop offset=".62" stop-color="#f2b47e"/><stop offset="1" stop-color="#f7d69c"/></linearGradient>` +
+    `<linearGradient id="${u}kum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3dcaa"/><stop offset="1" stop-color="#d9b373"/></linearGradient>` +
+    `<radialGradient id="${u}gn" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff2b8"/><stop offset=".6" stop-color="#f9b44a"/><stop offset="1" stop-color="#ee8a2e"/></radialGradient>` +
+    `<clipPath id="${u}kc"><rect x="0" y="0" width="${W}" height="${H}" rx="14"/></clipPath></defs>`;
+  s += `<g clip-path="url(#${u}kc)">`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${yu}" fill="url(#${u}gb)"/>`;
+  s += `<circle cx="244" cy="${yu}" r="44" fill="#f9c66b" opacity=".35"/><circle cx="244" cy="${yu}" r="27" fill="url(#${u}gn)"/>`;
+  s += `<rect x="0" y="${yu}" width="${W}" height="${yk - yu + 8}" fill="url(#${u}water)"/>`;
+  [[0, 34, .8], [7, 24, .6], [15, 16, .45], [24, 10, .35]].forEach(([dy, w, op]) => { s += `<rect x="${244 - w}" y="${yu + 4 + dy}" width="${2 * w}" height="3" rx="1.5" fill="#ffd27a" opacity="${op}"/>`; });
+  // yelkenli
+  s += `<path d="M88 ${yu + 14} h40 l-6 7 h-28 Z" fill="#5b4a3a"/><path d="M106 ${yu + 13} V${yu - 30} L128 ${yu + 10} Z" fill="#fbf4e6" stroke="#8b7a66" stroke-width="1"/><path d="M104 ${yu + 13} V${yu - 22} L90 ${yu + 10} Z" fill="#efe3cc" stroke="#8b7a66" stroke-width="1"/>`;
+  // dalgalar ve köpük
+  for (let i = 0; i < 3; i++) { const y = yk - 22 + i * 9; let d = `M-10 ${y}`; for (let x = -10; x < W + 20; x += 34) d += ` q8.5 -7 17 0 t17 0`; s += `<path d="${d}" fill="none" stroke="#fff" stroke-width="${2.6 - i * 0.5}" opacity="${0.55 + i * 0.15}"/>`; }
+  s += `<path d="M0 ${yk} Q60 ${yk - 6} 120 ${yk} T240 ${yk} T360 ${yk} V${H} H0 Z" fill="url(#${u}kum)"/>`;
+  s += `<path d="M0 ${yk} Q60 ${yk - 6} 120 ${yk} T240 ${yk} T360 ${yk}" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>`;
+  [[40, 200], [96, 214], [150, 196], [280, 206], [310, 220], [214, 224]].forEach(([x, y]) => { s += `<ellipse cx="${x}" cy="${y}" rx="3" ry="1.6" fill="#c49a5a" opacity=".7"/>`; });
+  // şemsiye ve havlu
+  s += `<line x1="292" y1="${yk + 34}" x2="300" y2="${yk - 22}" stroke="#6b5a45" stroke-width="2.4"/><path d="M262 ${yk - 16} Q300 ${yk - 52} 338 ${yk - 24} Z" fill="#d9573b" stroke="#a33d26" stroke-width="1"/><path d="M286 ${yk - 26} Q300 ${yk - 48} 312 ${yk - 23}" fill="none" stroke="#fff" stroke-width="2" opacity=".6"/>`;
+  s += `</g>`;
+  // etiketler (boş alanlarda, çizgiyle bağlı)
+  s += T(300, 40, 'ışık', { size: 15, weight: 800, anchor: 'middle', fill: '#9a4a12' }) + cizgi(292, 46, 262, 98);
+  s += T(30, 36, 'dalga', { size: 15, weight: 800, fill: '#1d5a86' }) + cizgi(48, 42, 60, yk - 16);
+  s += T(112, 222, 'ısınan kum', { size: 15, weight: 800, anchor: 'middle', fill: '#7a5524' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Elektrik kablosu: bakırda atomlar düzenli sıralar hâlinde dizilir (katı hâl fiziği); büyüteçle bakır */
+BFY_FIG_EKLE('sf111_kablo', function (u) {
+  const W = 340, H = 268, yc = 50;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}pl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb2de"/><stop offset=".45" stop-color="#3b7fbf"/><stop offset="1" stop-color="#22507e"/></linearGradient>` +
+    `<linearGradient id="${u}cu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6c08e"/><stop offset=".5" stop-color="#d0803f"/><stop offset="1" stop-color="#8a4f22"/></linearGradient></defs>`;
+  // kablo: kılıf ve soyulmuş uç
+  s += `<rect x="22" y="${yc - 15}" width="190" height="30" rx="14" fill="url(#${u}pl)" stroke="#1d4a73" stroke-width="1.2"/>`;
+  s += `<ellipse cx="212" cy="${yc}" rx="7" ry="15" fill="#2c5f8f" stroke="#1d4a73" stroke-width="1"/>`;
+  for (let i = -2; i <= 2; i++) s += `<path d="M212 ${yc + i * 4.2} C240 ${yc + i * 4.6} 262 ${yc + i * 5.4} 290 ${yc + i * 6.4}" fill="none" stroke="url(#${u}cu)" stroke-width="3.6" stroke-linecap="round"/>`;
+  s += `<rect x="40" y="${yc - 11}" width="150" height="5" rx="2.5" fill="#fff" opacity=".35"/>`;
+  s += T(116, yc - 24, 'elektrik kablosu', { size: 15, weight: 800, anchor: 'middle', fill: '#1d4a73' });
+  s += T(268, yc - 24, 'bakır', { size: 15, weight: 800, anchor: 'middle', fill: '#8a4f22' });
+  // büyüteç: bakırın içi
+  const cy = 160, r = 66, xL = 236;
+  s += dashLine(262, yc + 16, xL + 10, cy - r - 2, '#8a4f22', '4 4', 1.4);
+  s += `<clipPath id="${u}cL"><circle cx="${xL}" cy="${cy}" r="${r}"/></clipPath>`;
+  s += `<circle cx="${xL + 3}" cy="${cy + 4}" r="${r}" fill="#000" opacity=".10"/><circle cx="${xL}" cy="${cy}" r="${r}" fill="#fff6ec"/><g clip-path="url(#${u}cL)">`;
+  for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++) { const x = xL + i * 22, y = cy + j * 22; s += `<circle cx="${x}" cy="${y}" r="8.5" fill="url(#${u}b_copper)" stroke="#7d4a27" stroke-width=".7"/>`; }
+  s += `</g><circle cx="${xL}" cy="${cy}" r="${r}" fill="none" stroke="#8a4f22" stroke-width="3.2"/>`;
+  s += `<line x1="${xL - r * 0.72}" y1="${cy + r * 0.72}" x2="${xL - r * 0.72 - 22}" y2="${cy + r * 0.72 + 22}" stroke="#5f4a36" stroke-width="7" stroke-linecap="round"/>`;
+  // açıklama
+  s += T(22, 128, 'bakır atomları', { size: 15, weight: 800, fill: '#8a4f22' });
+  s += T(22, 150, 'düzenli sıralar', { size: 15, weight: 800, fill: '#8a4f22' });
+  s += T(22, 172, 'hâlinde dizilir', { size: 15, weight: 800, fill: '#8a4f22' });
+  s += arrow(140, 145, xL - r - 6, 152, { color: '#8a4f22', w: 1.6, head: 8, headW: 4.5 });
+  s += T(xL, 254, 'büyütülmüş bakır', { size: 15, weight: 800, anchor: 'middle', fill: '#5f4a36' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Kaykay deneyi: rampanın yüksekliği değiştirilir, düz yolda gidilen uzaklık ölçülür */
+BFY_FIG_EKLE('sf111_rampa', function (u) {
+  const W = 340, H = 240, yz = 186, xa = 60, ya = 92, xb = 190;
+  let s = zemin(W, H);
+  s += `<rect class="bg" x="0" y="${yz}" width="${W}" height="${H - yz}" fill="url(#${u}concrete)"/><line x1="0" y1="${yz}" x2="${W}" y2="${yz}" stroke="#8e979f" stroke-width="1.5"/>`;
+  // rampa
+  s += `<path d="M${xa} ${ya} L${xb} ${yz} L${xa} ${yz} Z" fill="url(#${u}wood)" stroke="#9c7a45" stroke-width="1.5"/>`;
+  s += `<rect x="${xa - 8}" y="${ya - 4}" width="12" height="${yz - ya + 4}" fill="#b08a54" stroke="#7d5f33" stroke-width="1"/>`;
+  // kaykay çizimi (açı derece)
+  const kay = (x, y, a) => `<g transform="translate(${x} ${y}) rotate(${a})"><rect x="-22" y="-9" width="44" height="5" rx="2.5" fill="#2f3a44"/><path d="M-22 -9 q-5 0 -6 -5 M22 -9 q5 0 6 -5" stroke="#2f3a44" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="-16" y="-4" width="5" height="2" fill="#8e979f"/><rect x="11" y="-4" width="5" height="2" fill="#8e979f"/><circle cx="-13" cy="-1" r="4" fill="#e7a93b" stroke="#a5741f" stroke-width="1"/><circle cx="13" cy="-1" r="4" fill="#e7a93b" stroke="#a5741f" stroke-width="1"/></g>`;
+  s += kay(95, 117, 36);
+  s += kay(300, yz, 0);
+  s += `<ellipse cx="300" cy="${yz + 2}" rx="24" ry="3" fill="#000" opacity=".15"/>`;
+  // yükseklik ölçüsü
+  s += `<g stroke="#2f7fb8" stroke-width="1.6"><line x1="${xa - 22}" y1="${ya}" x2="${xa - 22}" y2="${yz}"/><line x1="${xa - 28}" y1="${ya}" x2="${xa - 16}" y2="${ya}"/><line x1="${xa - 28}" y1="${yz}" x2="${xa - 16}" y2="${yz}"/></g>`;
+  s += `<g transform="rotate(-90 22 ${(ya + yz) / 2})">` + T(22, (ya + yz) / 2 + 5, 'yükseklik', { size: 15, weight: 800, anchor: 'middle', fill: '#2f7fb8' }) + `</g>`;
+  // uzaklık ölçüsü
+  const yd = yz + 18;
+  s += arrow(xb + 40, yd, xb, yd, { color: '#d9573b', w: 1.8, head: 8, headW: 4.5 }) + arrow(xb + 60, yd, 300, yd, { color: '#d9573b', w: 1.8, head: 8, headW: 4.5 });
+  s += `<line x1="${xb}" y1="${yz + 8}" x2="${xb}" y2="${yd + 8}" stroke="#d9573b" stroke-width="1.4"/><line x1="300" y1="${yz + 8}" x2="300" y2="${yd + 8}" stroke="#d9573b" stroke-width="1.4"/>`;
+  s += T(xb + 50, yd + 5, 'uzaklık', { size: 15, weight: 800, anchor: 'middle', fill: '#d9573b' });
+  // ne yapılır
+  s += `<rect x="146" y="20" width="184" height="64" rx="10" fill="#fff" stroke="${P.line}" stroke-width="1.2"/>`;
+  s += T(158, 45, 'değiştir:', { size: 14, weight: 700, fill: P.ink2 }) + T(318, 45, 'yükseklik', { size: 14, weight: 800, anchor: 'end', fill: '#2f7fb8' });
+  s += T(158, 71, 'ölç:', { size: 14, weight: 700, fill: P.ink2 }) + T(318, 71, 'uzaklık', { size: 14, weight: 800, anchor: 'end', fill: '#d9573b' });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -1650,6 +1745,198 @@ const KONU = {
     'SİM: yay deneyi, Yay A ve Yay B, 0–400 g, uzama-kütle grafiği (bağımsız, bağımlı, kontrol değişkeni)',
     'SET 3: kâğıt helikopter deneyi, 2,0 m, kanat 6–12 cm, fotokopi kâğıdı ve karton, ataş sayısı, beş tekrarın ortalaması'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Bu konuda hesap yoktur; doğru şıklar qa/T.1.1/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hesap yok. Fiziğin neyi incelediğini, alt dallarını ve bilgiye nasıl ulaştığını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Sahilde bir akşam',
+        sekil: 'sf111_sahil',
+        metin: r`Bir yaz akşamı sahilde oturduğunu düşün. Dalgalar kıyıya vuruyor. Güneş batarken gökyüzü kızıla dönüyor. Gündüz ısınan kum, akşam yavaş yavaş soğuyor. Bu olayların hepsi fiziğin konusudur.
+
+**Fizik**, evreni ve evrendeki olayları madde, enerji, kuvvet, uzay ve zaman arasındaki ilişkilerle açıklamaya çalışan bilimdir.
+
+- Fizik olayları **gözlemler**, **deney** yapar ve ölçer.
+- Bulduğu ilişkileri çoğu zaman **matematik** diliyle yazar.
+- Atomdan galaksilere kadar her büyüklükteki yapıyı inceler.`,
+        kontrol: {
+          soru: 'Bir fizikçi bir olayı nasıl açıklar?',
+          secenekler: ['Herkesin inandığı bilgiyi tekrarlayarak', 'Gözlem ve deney yapıp bulduğu ilişkileri matematikle yazarak', 'Hiç ölçüm yapmadan yalnız tahmin yürüterek'],
+          dogru: 1,
+          aciklama: 'Fizik gözleme ve deneye dayanır. Ölçümlerden bulduğu ilişkileri çoğu zaman matematik diliyle yazar.',
+          yanlisIpucu: 'Fiziğin bilgiye ulaşmak için kullandığı yolları düşün: gözlem, deney ve ölçüm.'
+        }
+      },
+      {
+        baslik: 'Gözle görülen olayların dört dalı',
+        metin: r`Fiziğin konusu çok geniş olduğu için fizik **alt dallara** ayrılır. Bir pastanede bile dört alt dalı bulabilirsin:
+
+- **Mekanik** kuvveti ve hareketi inceler. Pastacının üç katlı pastayı devirmeden taşıması mekaniğin konusudur.
+- **Termodinamik** ısıyı ve sıcaklığı inceler. Fırının içindeki sıcak havanın hamuru ısıtması termodinamiğin konusudur.
+- **Optik** ışık olaylarını inceler. Vitrin camında kendi görüntünü görmen optiğin konusudur.
+- **Elektromanyetizma** elektrik ve mıknatıs olaylarını inceler. Mikserin elektrik motorunun çalışması elektromanyetizmanın konusudur.
+
+Bu dört dal, gözle görebildiğimiz büyüklükteki olaylarla ilgilenir.`,
+        kontrol: {
+          soru: 'Pastanenin kapısındaki zil, içinden elektrik akımı geçince mıknatıs gibi davranan bir parçayla çalışıyor. Bu olay en çok hangi alt dalın konusudur?',
+          secenekler: ['Elektromanyetizma', 'Optik', 'Termodinamik'],
+          dogru: 0,
+          aciklama: 'Elektrik akımı ve mıknatıs olayları elektromanyetizmanın konusudur.',
+          yanlisIpucu: 'Olayda ışık ya da ısı yok. Elektrik akımı ve mıknatıs hangi alt dalın konusuydu?'
+        }
+      },
+      {
+        baslik: 'Çok küçüklerin dünyası',
+        sekil: 'sf111_kablo',
+        metin: r`Bazı alt dallar gözle göremediğimiz kadar küçük yapıları inceler:
+
+- **Atom fiziği** atomun yapısını ve elektronların enerji düzeylerini inceler.
+- **Nükleer fizik** atomun merkezindeki çekirdeği inceler. Nükleer santrallerde enerji, çekirdeklerin bölünmesinden elde edilir.
+- **Yüksek enerji ve plazma fiziği** maddenin temel yapı taşlarını ve plazmayı inceler. Plazma, iyonlaşmış gazdır. Şimşek çakarken havada oluşan parlak kanal bir plazmadır.
+
+**Katı hâl fiziği** iki dünyayı birbirine bağlar. Atomların bir katının içinde nasıl dizildiğine bakarak katının özelliklerini açıklar. Bir elektrik kablosunun içindeki bakırda atomlar düzenli sıralar hâlinde dizilmiştir. Bakır elektriği iyi iletir ve kırılmadan bükülür. Bakırın bu özelliklerini atomların dizilişiyle açıklamak katı hâl fiziğinin işidir.`,
+        kontrol: {
+          soru: 'Bir araştırmacı, bir metalin atomlarının dizilişini değiştirerek metali daha dayanıklı yapmaya çalışıyor. Bu çalışma en çok hangi alt dalın konusudur?',
+          secenekler: ['Nükleer fizik', 'Optik', 'Katı hâl fiziği'],
+          dogru: 2,
+          aciklama: 'Atomların katı içindeki dizilişi ile katının özellikleri arasındaki ilişkiyi katı hâl fiziği inceler.',
+          yanlisIpucu: 'Araştırmacı çekirdekle ya da ışıkla değil, atomların katı içindeki dizilişiyle uğraşıyor.'
+        }
+      },
+      {
+        baslik: 'Bilgiye ulaşmanın üç yolu',
+        sekil: 'sf111_rampa',
+        metin: r`Deniz, bir kaykayın rampadan inince düz yolda ne kadar uzağa gittiğini merak ediyor.
+
+- **Gözlem:** Deniz önce parkta rampayı kullanan çocukları izler ve not alır. Olaya karışmaz; yalnız bakar ve kaydeder.
+- **Deney:** Sonra tek bir şeyi değiştirir: rampanın yüksekliğini. Hep aynı boş kaykayı, aynı zemini kullanır. Kaykayı itmeden, rampanın tepesinden bırakır. Her yükseklik için kaykayın düz yolda gittiği uzaklığı ölçer.
+- **Akıl yürütme:** Ölçümlerini bir tabloya yazar ve verilerden genel bir sonuç çıkarır.
+
+Deneyde değiştirilen şeye **bağımsız değişken**, ölçülen sonuca **bağımlı değişken**, sabit tutulan şeylere **kontrol değişkeni** denir.`,
+        kontrol: {
+          soru: 'Deniz\'in deneyinde bağımsız değişken hangisidir?',
+          secenekler: ['Kaykayın düz yolda gittiği uzaklık', 'Rampanın yüksekliği', 'Kullanılan kaykay'],
+          dogru: 1,
+          aciklama: 'Deniz bilerek yalnız rampanın yüksekliğini değiştiriyor. Bu, bağımsız değişkendir. Gidilen uzaklık ölçülen sonuçtur; kaykay ise sabit tutulur.',
+          yanlisIpucu: 'Bağımsız değişken, deneyi yapanın kendi isteğiyle değiştirdiği şeydir. Deniz neyi değiştiriyor?'
+        }
+      },
+      {
+        baslik: 'Fizik tek başına çalışmaz',
+        metin: r`Bir şirket yeni bir koşu ayakkabısı tasarlıyor. Ekipte farklı alanlardan insanlar var:
+
+- Fizikçiler, tabanın yere basınca ne kadar esneyip geri itildiğini ölçer.
+- Spor bilimciler ve biyologlar, koşarken ayağın ve kasların nasıl çalıştığını inceler.
+- Ölçümler matematikle çözümlenir; tasarımcılar ayakkabının görünüşünü çizer.
+
+Fizik; matematik, kimya, biyoloji, spor ve sanat gibi alanlarla iç içedir. Fizik okuyan biri üniversitede araştırmacı, okulda öğretmen, hastanede medikal fizikçi ya da bir şirkette araştırma geliştirme uzmanı olabilir. Fiziğe yön veren bilim insanlarını ve kurumları konu notunda tanıyacaksın.`,
+        kontrol: {
+          soru: 'Koşu ayakkabısı örneğinden hangi sonuç çıkar?',
+          secenekler: ['Fizik, biyoloji ve matematik gibi alanlarla birlikte çalışır.', 'Spor yalnız biyolojinin konusudur; fizikle ilgisi yoktur.', 'Fizikçiler yalnız laboratuvarda çalışabilir.'],
+          dogru: 0,
+          aciklama: 'Aynı ürün için fizikçiler, biyologlar, matematikçiler ve tasarımcılar birlikte çalışıyor. Fizik öteki alanlarla iş birliği yapar.',
+          yanlisIpucu: 'Ekipte kimler var? Fizikçiler kimlerle birlikte çalışıyor?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Yüzme havuzunda üç olay',
+        metin: 'Kapalı bir yüzme havuzunda üç olay gözleniyor. Her olay için onu en çok inceleyen alt dalı seç.',
+        adimlar: [
+          {
+            soru: 'Havuzun suyu, çatıdaki güneş kolektörlerinde ısınan suyla ılık tutuluyor. Bu olay en çok hangi alt dalın konusudur?',
+            secenekler: ['Optik', 'Termodinamik', 'Nükleer fizik'],
+            dogru: 1,
+            ipucu: 'Olayda ısınma ve sıcaklık var. Isıyı ve sıcaklığı hangi alt dal inceliyordu?',
+            aciklama: 'Suyun ısınması ve sıcaklığının korunması termodinamiğin konusudur.'
+          },
+          {
+            soru: 'Cam çatıdan giren güneş ışığı, dalgalı su yüzeyinden yansıyıp tavanda kıpırdayan parlak desenler oluşturuyor. Bu olay en çok hangi alt dalın konusudur?',
+            secenekler: ['Optik', 'Mekanik', 'Katı hâl fiziği'],
+            dogru: 0,
+            ipucu: 'Tavandaki desenleri oluşturan şey ışıktır. Işık olaylarını hangi alt dal inceler?',
+            aciklama: 'Işığın yansıması optiğin konusudur.'
+          },
+          {
+            soru: 'Atlama tahtası, üstünde zıplayan yüzücüyü yukarı fırlatıyor. Bu olay en çok hangi alt dalın konusudur?',
+            secenekler: ['Elektromanyetizma', 'Termodinamik', 'Mekanik'],
+            dogru: 2,
+            ipucu: 'Tahta esneyip yüzücüye kuvvet uyguluyor ve yüzücü hareket ediyor. Kuvvet ve hareket hangi alt dalın konusudur?',
+            aciklama: 'Kuvvet ve hareket mekaniğin konusudur.'
+          },
+          {
+            soru: 'Bu üç alt dal hangi büyüklükteki olaylarla ilgilenir?',
+            secenekler: ['Atom ve atom altı yapılarla', 'Gözle görülen büyüklükteki olaylarla', 'Yalnız uzaydaki gök cisimleriyle'],
+            dogru: 1,
+            ipucu: 'Su, ışık ve atlama tahtası gözle görülebilir mi?',
+            aciklama: 'Termodinamik, optik ve mekanik gözle görülen büyüklükteki olayları inceler.'
+          }
+        ],
+        sonuc: 'Tek bir havuzda üç ayrı alt dal iş başında. Bu dalların üçü de gözle görülen büyüklükteki olaylarla ilgilenir.'
+      },
+      {
+        baslik: 'Domino taşları',
+        metin: 'Efe, art arda dizilmiş domino taşlarının devrilme süresinin taşların arasındaki uzaklığa bağlı olup olmadığını merak ediyor. 30 taşlık bir sıra diziyor. İlk taşa dokunduğu andan son taş devrilene kadar geçen süreyi ölçüyor.',
+        adimlar: [
+          {
+            soru: 'Efe deneyinde neyi değiştirmelidir?',
+            secenekler: ['Taşların sayısını', 'Taşların arasındaki uzaklığı', 'Taşların türünü'],
+            dogru: 1,
+            ipucu: 'Efe hangi şeyin etkisini merak ediyor? Değiştireceği şey odur.',
+            aciklama: 'Efe aradaki uzaklığın etkisini merak ediyor. Bu yüzden yalnız uzaklığı değiştirir. Bu, bağımsız değişkendir.'
+          },
+          {
+            soru: 'Efe hangilerini her denemede aynı tutmalıdır?',
+            secenekler: ['Taşların arasındaki uzaklığı', 'Ölçtüğü devrilme süresini', 'Taş sayısını, taş türünü ve zemini'],
+            dogru: 2,
+            ipucu: 'Sonucu etkileyebilecek ama araştırılmayan şeyler sabit tutulur.',
+            aciklama: 'Taş sayısı, taş türü ve zemin değişirse Efe süredeki farkın nedenini bilemez. Bunlar kontrol değişkenleridir.'
+          },
+          {
+            soru: 'Efe ölçtüğü süreleri bir tabloya yazıyor ve uzaklık ile süre arasındaki ilişki hakkında genel bir sonuca varıyor. Bu son aşamada hangi yolu kullanıyor?',
+            secenekler: ['Akıl yürütme', 'Gözlem', 'Deney'],
+            dogru: 0,
+            ipucu: 'Elindeki verilerden genel bir sonuç çıkarmak hangi yoldu?',
+            aciklama: 'Ölçümlerden genel bir sonuç çıkarmak akıl yürütmedir. Deney veriyi üretir, akıl yürütme o veriden sonuç çıkarır.'
+          }
+        ],
+        sonuc: 'Deneyde tek bir şey değiştirilir, sonuç ölçülür ve öteki her şey sabit tutulur. Ardından verilerden akıl yürütülerek genel bir sonuca varılır.'
+      },
+      {
+        baslik: 'Düdüklü tencere',
+        metin: 'Bir aşçı kuru fasulyeyi düdüklü tencerede pişiriyor. Kapak sıkıca kapandığı için içeride buhar birikir ve basınç artar. Bu yüzden su 100 °C\'de değil, yaklaşık 120 °C\'de kaynar ve yemek daha çabuk pişer.',
+        adimlar: [
+          {
+            soru: 'Suyun kaynama sıcaklığının basınçla değişmesi en çok hangi alt dalın konusudur?',
+            secenekler: ['Optik', 'Termodinamik', 'Atom fiziği'],
+            dogru: 1,
+            ipucu: 'Kaynama ve sıcaklık hangi alt dalın konusudur?',
+            aciklama: 'Kaynama, ısı ve sıcaklık olaylarıdır; termodinamiğin konusudur.'
+          },
+          {
+            soru: 'Kapaktaki emniyet supabı, buhar onu itince yukarı kalkıyor ve fazla buharı dışarı bırakıyor. Supabın itilip kalkması en çok hangi alt dalın konusudur?',
+            secenekler: ['Mekanik', 'Nükleer fizik', 'Optik'],
+            dogru: 0,
+            ipucu: 'Buhar supaba kuvvet uyguluyor ve supap hareket ediyor.',
+            aciklama: 'Kuvvetin etkisiyle supabın hareket etmesi mekaniğin konusudur.'
+          },
+          {
+            soru: 'Fasulyenin pişerken yapısının ve tadının değişmesi daha çok hangi bilimin konusudur?',
+            secenekler: ['Astronomi', 'Yer bilimleri', 'Kimya'],
+            dogru: 2,
+            ipucu: 'Maddenin yapısının değişmesi, yani yeni maddelerin oluşması hangi bilimin konusudur?',
+            aciklama: 'Pişen yiyecekte maddelerin yapısı değişir. Bu, kimyanın konusudur.'
+          }
+        ],
+        sonuc: 'Bir mutfakta bile fizik ve kimya iç içedir. Fizik tek başına kalmaz; öteki bilimlerle birlikte çalışır.'
+      }
+    ],
+    hazir: r`Fiziğin neyi incelediğini, alt dallarını, bilgiye ulaşmanın üç yolunu ve fiziğin öteki bilimlerle iş birliğini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU (kısa, TYT odaklı) ---------------- */
   not: [
@@ -2706,6 +2993,108 @@ BFY_FIG_EKLE('iT12_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 82 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sf112_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const BG = '#f4f7f9';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const cizgi = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P.ink2}" stroke-width="1.3"/>`;
+
+/* Terazideki yanan mum: uzunluk, kütle, zaman, sıcaklık, ışık şiddeti */
+BFY_FIG_EKLE('sf112_mum', function (u) {
+  const W = 340, H = 262, yt = 236, x0 = 152, x1 = 192, ym = 112, yp = 204;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}mm" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#efe2c4"/><stop offset=".45" stop-color="#fffaf0"/><stop offset="1" stop-color="#d9c79f"/></linearGradient>` +
+    `<radialGradient id="${u}al" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#fffbe0"/><stop offset=".5" stop-color="#ffd25a"/><stop offset="1" stop-color="#f08a24"/></radialGradient>` +
+    `<radialGradient id="${u}hl" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffe9a6" stop-opacity=".8"/><stop offset="1" stop-color="#ffe9a6" stop-opacity="0"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="${yt}" width="${W}" height="${H - yt}" fill="url(#${u}wood)"/><line x1="0" y1="${yt}" x2="${W}" y2="${yt}" stroke="#b8955f" stroke-width="1.4"/>`;
+  // terazi
+  s += `<ellipse cx="${(x0 + x1) / 2}" cy="${yt + 1}" rx="68" ry="4" fill="#000" opacity=".15"/>`;
+  s += `<rect x="104" y="${yp + 6}" width="136" height="${yt - yp - 6}" rx="6" fill="url(#${u}metal)" stroke="#6f7980" stroke-width="1.2"/>`;
+  s += `<rect x="112" y="${yp}" width="120" height="7" rx="3" fill="#cfd5da" stroke="#6f7980" stroke-width="1"/>`;
+  s += `<rect x="178" y="${yp + 11}" width="56" height="18" rx="3" fill="#24323a"/>` + T(206, yp + 25, '180 g', { size: 14, weight: 800, anchor: 'middle', fill: '#9ff0c0', halo: false });
+  // mum
+  s += `<rect x="${x0}" y="${ym}" width="${x1 - x0}" height="${yp - ym}" rx="3" fill="url(#${u}mm)" stroke="#bda67a" stroke-width="1.2"/>`;
+  s += `<ellipse cx="${(x0 + x1) / 2}" cy="${ym}" rx="20" ry="4" fill="#f6ecd4" stroke="#bda67a" stroke-width="1"/>`;
+  s += `<path d="M${x0 + 4} ${ym + 2} q-3 14 1 22 q3 6 0 12" fill="none" stroke="#f3e7cb" stroke-width="4" stroke-linecap="round"/>`;
+  const fx = (x0 + x1) / 2;
+  s += `<circle cx="${fx}" cy="${ym - 26}" r="34" fill="url(#${u}hl)"/>`;
+  s += `<line x1="${fx}" y1="${ym}" x2="${fx}" y2="${ym - 9}" stroke="#3a2a1a" stroke-width="2"/>`;
+  s += `<path d="M${fx} ${ym - 44} C${fx + 12} ${ym - 26} ${fx + 9} ${ym - 8} ${fx} ${ym - 8} C${fx - 9} ${ym - 8} ${fx - 12} ${ym - 26} ${fx} ${ym - 44} Z" fill="url(#${u}al)"/>`;
+  [[-1, -1], [1, -1], [-1.3, 0.2], [1.3, 0.2]].forEach(([a, b]) => { const r1 = 40, r2 = 52, cx = fx, cy = ym - 26, L = Math.hypot(a, b); s += `<line x1="${(cx + a / L * r1).toFixed(1)}" y1="${(cy + b / L * r1).toFixed(1)}" x2="${(cx + a / L * r2).toFixed(1)}" y2="${(cy + b / L * r2).toFixed(1)}" stroke="#f0a43a" stroke-width="2.4" stroke-linecap="round"/>`; });
+  // cetvel
+  s += `<rect x="122" y="${ym}" width="14" height="${yp - ym}" fill="#f7e7a8" stroke="#b39a45" stroke-width="1"/>`;
+  for (let y = ym + 4; y < yp; y += 8) s += `<line x1="122" y1="${y}" x2="${(y - ym) % 24 === 4 ? 132 : 128}" y2="${y}" stroke="#7d6a2a" stroke-width="1"/>`;
+  // saat
+  s += `<circle cx="52" cy="56" r="22" fill="#fff" stroke="#4b6059" stroke-width="3"/><line x1="52" y1="56" x2="52" y2="42" stroke="#173430" stroke-width="2.4" stroke-linecap="round"/><line x1="52" y1="56" x2="62" y2="60" stroke="#173430" stroke-width="2" stroke-linecap="round"/><circle cx="52" cy="56" r="2.2" fill="#d9573b"/>`;
+  // etiketler
+  s += T(52, 98, 'zaman', { size: 15, weight: 800, anchor: 'middle', fill: '#173430' });
+  s += T(112, 162, 'uzunluk', { size: 15, weight: 800, anchor: 'end', fill: '#7d6a2a' });
+  s += T(250, 32, 'ışık şiddeti', { size: 15, weight: 800, anchor: 'middle', fill: '#c26a12' }) + cizgi(238, 38, fx + 26, ym - 52);
+  s += T(258, 112, 'sıcaklık', { size: 15, weight: 800, anchor: 'middle', fill: '#d9573b' }) + cizgi(232, 106, fx + 10, ym - 22);
+  s += T(286, 226, 'kütle', { size: 15, weight: 800, anchor: 'middle', fill: '#24323a' }) + cizgi(264, 222, 240, 220);
+  return svg(W, H, s, u, 80);
+});
+
+/* Uzunluk birimleri merdiveni: aşağı inerken çarp, yukarı çıkarken böl */
+BFY_FIG_EKLE('sf112_merdiven', function (u) {
+  const W = 340, H = 226;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}bs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0c6"/><stop offset="1" stop-color="#3f9a8c"/></linearGradient></defs>`;
+  const ad = ['km', 'm', 'cm', 'mm'], kat = ['× 1000', '× 100', '× 10'];
+  const kx = i => 14 + i * 80, ky = i => 24 + i * 50, bw = 72, bh = 36;
+  for (let i = 0; i < 4; i++) {
+    s += `<rect x="${kx(i) + 3}" y="${ky(i) + 4}" width="${bw}" height="${bh}" rx="9" fill="#000" opacity=".12"/>`;
+    s += `<rect x="${kx(i)}" y="${ky(i)}" width="${bw}" height="${bh}" rx="9" fill="url(#${u}bs)" stroke="#2c6f65" stroke-width="1.4"/>`;
+    s += `<rect x="${kx(i) + 6}" y="${ky(i) + 4}" width="${bw - 12}" height="7" rx="3.5" fill="#fff" opacity=".35"/>`;
+    s += T(kx(i) + bw / 2, ky(i) + 24, ad[i], { size: 17, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  }
+  for (let i = 0; i < 3; i++) {
+    const x1 = kx(i) + bw, y1 = ky(i) + bh / 2, x2 = kx(i + 1) + bw / 2, y2 = ky(i + 1) - 3;
+    s += `<path d="M${x1 + 2} ${y1} Q${x2} ${y1} ${x2} ${y2 - 9}" fill="none" stroke="#d9573b" stroke-width="2.4"/>` + arrow(x2, y2 - 10, x2, y2, { color: '#d9573b', w: 2.4, head: 9, headW: 5 });
+    s += T(x2 + 8, y1 - 6, kat[i], { size: 15, weight: 800, fill: '#d9573b' });
+  }
+  s += T(16, 176, 'aşağı inerken: çarp', { size: 15, weight: 800, fill: '#d9573b' });
+  s += T(16, 202, 'yukarı çıkarken: böl', { size: 15, weight: 800, fill: '#2f7fb8' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Boyanan duvar: 6 m × 3 m, kutu: 1 L boya 9 m² */
+BFY_FIG_EKLE('sf112_boya', function (u) {
+  const W = 340, H = 258, xa = 34, xb = 274, ya = 30, yb = 150;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}dv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1ece3"/><stop offset="1" stop-color="#d8d0c2"/></linearGradient>` +
+    `<linearGradient id="${u}by" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9fd3c7"/><stop offset="1" stop-color="#5aa897"/></linearGradient>` +
+    `<linearGradient id="${u}kt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8e979f"/><stop offset=".4" stop-color="#e4e7e9"/><stop offset="1" stop-color="#8e979f"/></linearGradient></defs>`;
+  // duvar: sol kısmı boyanmış
+  s += `<rect x="${xa}" y="${ya}" width="${xb - xa}" height="${yb - ya}" fill="url(#${u}dv)" stroke="#a89f90" stroke-width="1.4"/>`;
+  s += `<path d="M${xa} ${ya} H140 Q146 60 138 90 Q132 120 142 ${yb} H${xa} Z" fill="url(#${u}by)"/>`;
+  s += `<rect x="${xa}" y="${yb - 8}" width="${xb - xa}" height="8" fill="#e9e3d6" stroke="#a89f90" stroke-width="1"/>`;
+  // rulo
+  s += `<rect x="146" y="62" width="14" height="44" rx="6" fill="#6fb8a6" stroke="#3f7f70" stroke-width="1.2"/>`;
+  s += `<path d="M160 84 h12 v24 l-5 10" fill="none" stroke="#5b6168" stroke-width="3" stroke-linejoin="round"/><rect x="162" y="116" width="10" height="22" rx="4" fill="#d9573b" stroke="#a33d26" stroke-width="1" transform="rotate(20 167 127)"/>`;
+  // ölçüler
+  const yd = yb + 18;
+  s += `<g stroke="#2f7fb8" stroke-width="1.6"><line x1="${xa}" y1="${yd - 6}" x2="${xa}" y2="${yd + 6}"/><line x1="${xb}" y1="${yd - 6}" x2="${xb}" y2="${yd + 6}"/></g>`;
+  s += arrow(140, yd, xa + 1, yd, { color: '#2f7fb8', w: 1.6, head: 8, headW: 4.5 }) + arrow(170, yd, xb - 1, yd, { color: '#2f7fb8', w: 1.6, head: 8, headW: 4.5 });
+  s += T(155, yd + 5, '6 m', { size: 15, weight: 800, anchor: 'middle', fill: '#2f7fb8' });
+  const xd = xb + 18;
+  s += `<g stroke="#2f7fb8" stroke-width="1.6"><line x1="${xd - 6}" y1="${ya}" x2="${xd + 6}" y2="${ya}"/><line x1="${xd - 6}" y1="${yb}" x2="${xd + 6}" y2="${yb}"/></g>`;
+  s += arrow(xd, 80, xd, ya + 1, { color: '#2f7fb8', w: 1.6, head: 8, headW: 4.5 }) + arrow(xd, 102, xd, yb - 1, { color: '#2f7fb8', w: 1.6, head: 8, headW: 4.5 });
+  s += T(xd + 6, 96, '3 m', { size: 15, weight: 800, fill: '#2f7fb8' });
+  // boya kutusu
+  const kx = 52, ky = 200;
+  s += `<ellipse cx="${kx + 28}" cy="${ky + 46}" rx="34" ry="4" fill="#000" opacity=".15"/>`;
+  s += `<rect x="${kx}" y="${ky}" width="56" height="46" rx="4" fill="url(#${u}kt)" stroke="#5b6168" stroke-width="1.2"/>`;
+  s += `<ellipse cx="${kx + 28}" cy="${ky}" rx="28" ry="5" fill="#c9cdd0" stroke="#5b6168" stroke-width="1.2"/>`;
+  s += `<path d="M${kx + 2} ${ky} Q${kx + 28} ${ky - 30} ${kx + 54} ${ky}" fill="none" stroke="#5b6168" stroke-width="2"/>`;
+  s += `<rect x="${kx + 6}" y="${ky + 12}" width="44" height="24" rx="3" fill="url(#${u}by)"/>` + T(kx + 28, ky + 30, '1 L', { size: 15, weight: 800, anchor: 'middle', fill: '#173430', halo: false });
+  s += T(124, ky + 22, '1 L boya', { size: 15, weight: 800, fill: '#173430' });
+  s += T(124, ky + 44, '9 m² boyar', { size: 15, weight: 800, fill: '#3f7f70' });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -2744,6 +3133,198 @@ const KONU = {
     'SİM: 1 m, 1 m² ve 1 m³ içinde L kenarlı parça (10–100 cm), cm ↔ m dönüşümü ve L, L², L³ grafikleri',
     'SET 3: ABD\'deki alışveriş sitesinden sipariş: 27 in monitör 13,0 lb, 2 × 15 lb dambıl çifti, 9,5 lb katlanır masa 28 in, 24 fl oz matara, 29 in tekerlek (NIST dönüşüm katsayıları)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.1.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Ölçümün neden bir birim istediğini, temel ve türetilmiş nicelikleri, birim çevirmeyi ve yönü olan nicelikleri kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Birimsiz sayı eksik kalır',
+        metin: r`Arkadaşın durakta sana "Otobüs 10 sonra gelir." diyor. 10 dakika mı, 10 saat mi? Bu cümleyle bilemezsin.
+
+Ölçülebilen her büyüklüğe **fiziksel nicelik** denir. Bir ölçüm sonucu her zaman **sayı ve birim** ile yazılır: 10 dakika, 3 kg, 25 m gibi.
+
+Herkes aynı birimleri kullansın diye dünyada ortak bir sistem vardır: **Uluslararası Birimler Sistemi**, kısaca **SI**.`,
+        kontrol: {
+          soru: 'Hangisi bir ölçüm sonucunu tam olarak yazar?',
+          secenekler: ['Su şişesinde 500 yazıyor.', 'Şişe yarıya kadar dolu.', 'Şişede 500 mL su var.'],
+          dogru: 2,
+          aciklama: 'Ölçüm sonucu sayı ve birimle yazılır. "500 mL" hem sayıyı hem birimi söyler.',
+          yanlisIpucu: 'Tam bir ölçüm sonucunda iki parça olmalı: bir sayı ve bir birim.'
+        }
+      },
+      {
+        baslik: 'Yedi temel nicelik',
+        sekil: 'sf112_mum',
+        metin: r`Bazı nicelikler başka niceliklerden türetilmez. Bunlara **temel nicelik** denir. SI'da yedi temel nicelik vardır:
+
+- Uzunluk: metre (m).
+- Kütle: kilogram (kg).
+- Zaman: saniye (s).
+- Elektrik akımı: amper (A).
+- Sıcaklık: kelvin (K).
+- Işık şiddeti: kandela (cd).
+- Madde miktarı: mol (mol).
+
+Yanan bir mumda bunların beşini bulabilirsin. Mum kısalır (uzunluk), hafifler (kütle), bir süre yanar (zaman), alevi sıcaktır (sıcaklık) ve ışık verir (ışık şiddeti). Işık şiddetinin birimi kandela, Latincede "mum" demektir.`,
+        kontrol: {
+          soru: 'Yanan mum örneğinde hangi temel niceliğe yer verilmedi?',
+          secenekler: ['Işık şiddeti', 'Elektrik akımı', 'Sıcaklık'],
+          dogru: 1,
+          aciklama: 'Mumda elektrik akımı yoktur. Işık şiddeti ve sıcaklık ise mum örneğinde vardı.',
+          yanlisIpucu: 'Mumun beş özelliğini yeniden oku: kısalır, hafifler, bir süre yanar, sıcaktır, ışık verir.'
+        }
+      },
+      {
+        baslik: 'Temellerden türeyen nicelikler',
+        metin: r`Çatıdaki bir su deposunun uzunluğu 2 m, genişliği 1 m, yüksekliği 1 m'dir. Deponun hacmi:
+
+$V = 2\ \text{m} \times 1\ \text{m} \times 1\ \text{m} = 2\ \text{m}^3$ olur.
+
+Hacim, uzunluk ölçülerinin çarpılmasıyla bulunur. Temel niceliklerden bir bağıntıyla elde edilen niceliklere **türetilmiş nicelik** denir. Alan, hacim, sürat, kuvvet ve enerji türetilmiştir.
+
+Türetilmiş bir niceliğin birimi, tanımındaki işlemden gelir. Sürat, alınan yolun geçen süreye bölünmesidir; birimi de $\text{m/s}$ olur.`,
+        kontrol: {
+          soru: r`Basınç, kuvvetin alana bölünmesiyle bulunur. Kuvvetin birimi $\text{N}$, alanın birimi $\text{m}^2$ ise basıncın birimi hangisidir?`,
+          secenekler: [r`$\text{N/m}^2$`, r`$\text{N} \times \text{m}^2$`, r`$\text{m}^2\text{/N}$`],
+          dogru: 0,
+          aciklama: r`Basınç kuvvetin alana bölümüdür; birimi de $\text{N}$'un $\text{m}^2$'ye bölümü olur: $\text{N/m}^2$.`,
+          yanlisIpucu: 'Tanımdaki işlemi birimlere uygula: Kuvvet, alana bölünüyor.'
+        }
+      },
+      {
+        baslik: 'Birimi çevirirken sayı da değişir',
+        sekil: 'sf112_merdiven',
+        metin: r`Bir uzunluğu farklı birimlerle yazabilirsin. Birimin önündeki ek, kaç katı olduğunu söyler:
+
+- **kilo** (k) 1000 katıdır: 1 km = 1000 m.
+- **santi** (c) yüzde biridir: 1 m = 100 cm.
+- **mili** (m) binde biridir: 1 m = 1000 mm, 1 cm = 10 mm.
+
+Büyük birimden küçük birime inerken sayı büyür. Küçükten büyüğe çıkarken sayı küçülür. Örneğin 3 km = 3000 m ve 400 cm = 4 m olur.`,
+        kontrol: {
+          soru: 'Bir masanın boyu 120 cm\'dir. Bu uzunluk kaç mm\'dir?',
+          secenekler: ['12', '12 000', '1200'],
+          dogru: 2,
+          aciklama: '1 cm = 10 mm olduğu için 120 × 10 = 1200 mm olur. Küçük birime inince sayı büyüdü.',
+          yanlisIpucu: 'Santimetreden milimetreye iniyorsun. 1 cm kaç mm idi? Sayı büyümeli mi, küçülmeli mi?'
+        }
+      },
+      {
+        baslik: 'Yönü olan nicelikler',
+        metin: r`Marketten 3 kg'lık bir poşet taşıyorsun. Poşetin kütlesini söylemek için "3 kg" yeter. Ama poşetin elini aşağı çektiğini de hissedersin. Bunun nedeni, Dünya'nın poşeti aşağı doğru çekmesidir. Dünya'nın bir cismi çektiği bu kuvvete **ağırlık** denir; yönü hep aşağıya doğrudur.
+
+- **Skaler nicelik:** Sayı ve birimle tam anlatılır. Kütle, zaman, sıcaklık, hacim ve enerji skalerdir.
+- **Vektörel nicelik:** Sayı ve birimin yanında yön de gerekir. Kuvvet, ağırlık, hız ve yer değiştirme vektöreldir.
+
+Bir nicelik için iki ayrı soru sorulur: "Temel mi, türetilmiş mi?" ve "Skaler mi, vektörel mi?". Kütle temel ve skalerdir. Ağırlık bir kuvvettir; türetilmiş ve vektöreldir.`,
+        kontrol: {
+          soru: 'Hangisi hem türetilmiş hem de vektörel bir niceliktir?',
+          secenekler: ['Enerji', 'Ağırlık', 'Kütle'],
+          dogru: 1,
+          aciklama: 'Ağırlık bir kuvvettir: Temel niceliklerden türetilir ve yönü vardır. Enerji türetilmiş ama skalerdir. Kütle temel ve skalerdir.',
+          yanlisIpucu: 'Önce yönü olanı bul. Sonra onun temel nicelik olup olmadığına bak.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Okul yolunda adımlar',
+        metin: 'Mert\'in evi ile okulu arasındaki yol 1200 m\'dir. Mert\'in bir adımı 50 cm\'dir ve Mert her saniyede 2 adım atıyor. Mert okula kaç dakikada varır?',
+        adimlar: [
+          {
+            soru: 'Mert bir saniyede kaç santimetre yürür?',
+            secenekler: ['25', '100', '52'],
+            dogru: 1,
+            ipucu: 'Bir saniyede 2 adım atıyor ve bir adımı 50 cm. İki adım kaç santimetre eder?',
+            aciklama: '50 + 50 = 100 cm olur. Mert her saniyede 100 cm yürür.'
+          },
+          {
+            soru: '100 cm kaç metredir?',
+            secenekler: ['1', '10', '10 000'],
+            dogru: 0,
+            ipucu: '1 m = 100 cm. Santimetreden metreye çıkarken sayı küçülür.',
+            aciklama: '100 ÷ 100 = 1 m olur. Mert her saniyede 1 m yürür.'
+          },
+          {
+            soru: 'Mert 1200 m\'lik yolu kaç saniyede yürür?',
+            secenekler: ['600', '2400', '1200'],
+            dogru: 2,
+            ipucu: 'Mert her saniyede 1 m yürüyor. 1200 m için kaç saniye gerekir?',
+            aciklama: 'Her saniyede 1 m yürüyen Mert, 1200 m\'yi 1200 s\'de yürür.'
+          },
+          {
+            soru: 'Bu süre kaç dakikadır?',
+            secenekler: ['72 000', '12', '20'],
+            dogru: 2,
+            ipucu: '1 dakika = 60 s. Saniyeden dakikaya çıkarken sayı küçülür.',
+            aciklama: '1200 ÷ 60 = 20 dakika olur.'
+          }
+        ],
+        sonuc: 'Mert okula 20 dakikada varır. Önce bir saniyede kaç metre yürüdüğünü bulmak, büyük sayılarla uğraşmadan hesabı bitirmeyi sağladı.'
+      },
+      {
+        baslik: 'Duvar boyası',
+        sekil: 'sf112_boya',
+        metin: 'Bir odanın duvarı 6 m genişliğinde ve 3 m yüksekliğindedir. Boya kutusunun üstünde "1 L boya 9 m² duvarı bir kat boyar." yazıyor. Bu duvarı bir kat boyamak için kaç litre boya gerekir?',
+        adimlar: [
+          {
+            soru: 'Duvarın alanı ne kadardır?',
+            secenekler: ['9 m²', '18 m²', '18 m'],
+            dogru: 1,
+            ipucu: 'Alan, genişlik ile yüksekliğin çarpımıdır. Birimi de m ile m\'nin çarpımı olur.',
+            aciklama: '6 m × 3 m = 18 m² olur. Alan uzunluktan türetilmiş bir niceliktir; birimi m²\'dir.'
+          },
+          {
+            soru: 'Bir kat için kaç litre boya gerekir?',
+            secenekler: ['2', '162', '27'],
+            dogru: 0,
+            ipucu: 'Her 1 L boya 9 m² boyuyor. 18 m²\'nin içinde kaç tane 9 m² var?',
+            aciklama: '18 ÷ 9 = 2 L boya gerekir.'
+          },
+          {
+            soru: r`Bu bölmenin birimleri şöyledir: $\dfrac{\text{m}^2}{\text{m}^2\text{/L}}$. Sonucun birimi hangisidir?`,
+            secenekler: ['m²', 'L', 'm⁴/L'],
+            dogru: 1,
+            ipucu: r`Bir kesre bölmek, ters çevirip çarpmaktır: $\text{m}^2 \times \dfrac{\text{L}}{\text{m}^2}$.`,
+            aciklama: r`$\text{m}^2 \times \dfrac{\text{L}}{\text{m}^2} = \text{L}$ olur. Birimler de sonucun litre olduğunu doğruluyor.`
+          }
+        ],
+        sonuc: 'Duvar için 2 L boya yeter. Birimleri işlemle birlikte yazmak, sonucun doğru birimde çıktığını gösterir. Buna birim analizi denir.'
+      },
+      {
+        baslik: 'Kurtarma helikopteri',
+        metin: 'Bir kurtarma helikopteri, dağda mahsur kalan 70 kg kütleli bir dağcıyı halatla yukarı alıyor. Halat dağcıyı yukarı doğru 700 N\'luk kuvvetle çekiyor. Dağcı 2 dakikada helikoptere ulaşıyor. Havanın sıcaklığı −5 °C\'dir.',
+        adimlar: [
+          {
+            soru: 'Bu bilgilerden hangisi vektörel bir niceliktir?',
+            secenekler: ['Dağcının kütlesi', 'Halatın çekme kuvveti', 'Havanın sıcaklığı'],
+            dogru: 1,
+            ipucu: 'Hangi bilgide "yukarı doğru" gibi bir yön söyleniyor?',
+            aciklama: 'Kuvvetin yönü vardır: yukarı doğru. Kuvvet vektörel bir niceliktir.'
+          },
+          {
+            soru: 'Hangisi temel bir niceliktir ve SI birimiyle yazılmıştır?',
+            secenekler: ['Kütle: 70 kg', 'Süre: 2 dakika', 'Sıcaklık: −5 °C'],
+            dogru: 0,
+            ipucu: 'Üçü de temel niceliktir. Zamanın SI birimi saniye, sıcaklığın SI birimi kelvindir.',
+            aciklama: 'Kütlenin SI birimi kilogramdır; 70 kg SI birimiyle yazılmıştır. Dakika ve derece Celsius ise SI birimi değildir.'
+          },
+          {
+            soru: '2 dakika SI birimiyle kaç saniyedir?',
+            secenekler: ['200', '120', '12'],
+            dogru: 1,
+            ipucu: '1 dakika = 60 s.',
+            aciklama: '2 × 60 = 120 s olur.'
+          }
+        ],
+        sonuc: 'Sıcaklığın eksi işareti bir yön değildir; sıcaklık skalerdir. Yönü olan tek bilgi halatın kuvvetidir.'
+      }
+    ],
+    hazir: r`Sayı ve birimi, yedi temel niceliği, türetilmiş nicelikleri, birim çevirmeyi ve skaler ile vektörel nicelikleri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU (kısa, TYT odaklı) ---------------- */
   not: [
@@ -3962,6 +4543,119 @@ BFY_FIG_EKLE('iT13_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 150, oy: 64 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sf113_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const BG = '#f4f7f9';
+const zemin = (W, H, r = BG) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${r}"/>`;
+const ok = (x1, y1, x2, y2, c, w = 3.2) => arrow(x1, y1, x2, y2, { color: c, w, head: 11, headW: 6.5 });
+const C = { v: '#2f7fb8', z: '#d9573b', k: '#2f8f5b', R: '#6b4fa8' };
+
+/* Gölde ördekler (yukarıdan): eşit, zıt ve 3 katı hız vektörleri */
+BFY_FIG_EKLE('sf113_ordek', function (u) {
+  const W = 340, H = 262;
+  let s = zemin(W, H, '#cfe3b8');
+  s += `<rect x="8" y="40" width="${W - 16}" height="${H - 48}" rx="34" fill="url(#${u}water)" stroke="#7aa65a" stroke-width="3"/>`;
+  [[60, 90], [230, 140], [120, 236], [290, 220]].forEach(([x, y]) => { s += `<path d="M${x - 16} ${y} q8 -5 16 0 t16 0" fill="none" stroke="#fff" stroke-width="1.6" opacity=".45"/>`; });
+  // ördek (yukarıdan), yön: +1 doğu, -1 batı; k ölçek
+  const ordek = (x, y, k, d, govde = '#8a6a48', bas = '#2f7a4f') =>
+    `<ellipse cx="${x + 2}" cy="${y + 3}" rx="${15 * k}" ry="${9 * k}" fill="#000" opacity=".12"/>` +
+    `<ellipse cx="${x}" cy="${y}" rx="${15 * k}" ry="${9 * k}" fill="${govde}" stroke="#4b3826" stroke-width="1"/>` +
+    `<path d="M${x - d * 13 * k} ${y} l${-d * 6 * k} ${-3 * k} l0 ${6 * k} Z" fill="${govde}" stroke="#4b3826" stroke-width=".8"/>` +
+    `<ellipse cx="${x - d * 2 * k}" cy="${y}" rx="${8 * k}" ry="${5 * k}" fill="#fff" opacity=".18"/>` +
+    `<circle cx="${x + d * 14 * k}" cy="${y}" r="${6 * k}" fill="${bas}" stroke="#1f4a33" stroke-width=".8"/>` +
+    `<path d="M${x + d * 19 * k} ${y - 2.4 * k} l${d * 7 * k} ${2.4 * k} l${-d * 7 * k} ${2.4 * k} Z" fill="#e7a93b"/>`;
+  // anne ve yavrular (doğuya, 1 m/s = 50 birim)
+  s += ordek(52, 78, 1.15, 1) + ok(82, 78, 132, 78, C.v) + T(107, 66, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
+  s += ordek(42, 128, 0.8, 1, '#c9a46a', '#a88445') + ok(64, 128, 114, 128, C.v) + T(89, 116, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
+  s += ordek(176, 128, 0.8, 1, '#c9a46a', '#a88445') + ok(198, 128, 248, 128, C.v) + T(223, 116, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
+  // kuğu (batıya)
+  s += ordek(290, 176, 1.3, -1, '#fbfbf7', '#f4f4ee').replace(/#4b3826/g, '#9aa3ab').replace('#1f4a33', '#9aa3ab') + ok(256, 176, 206, 176, C.z) + T(231, 164, '−ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.z, italic: true });
+  // kayık (doğuya, 3 katı)
+  const kx = 52, ky = 224;
+  s += `<path d="M${kx - 34} ${ky - 11} H${kx + 18} Q${kx + 38} ${ky} ${kx + 18} ${ky + 11} H${kx - 34} Q${kx - 40} ${ky} ${kx - 34} ${ky - 11} Z" fill="#b5713a" stroke="#6b3f1c" stroke-width="1.4"/>`;
+  s += `<path d="M${kx - 28} ${ky - 6} H${kx + 14} Q${kx + 28} ${ky} ${kx + 14} ${ky + 6} H${kx - 28} Z" fill="#d9a066"/><line x1="${kx - 6}" y1="${ky - 7}" x2="${kx - 6}" y2="${ky + 7}" stroke="#6b3f1c" stroke-width="2.4"/>`;
+  s += ok(96, ky, 246, ky, C.k) + T(171, ky - 12, '3ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.k, italic: true });
+  // yön
+  s += arrow(256, 22, 306, 22, { color: P.ink, w: 2, head: 8, headW: 4.5 }) + T(250, 27, 'doğu', { size: 15, weight: 800, anchor: 'end', fill: P.ink });
+  return svg(W, H, s, u, 80);
+});
+
+/* Arı: kovandan doğuya 8 m, kuzeye 6 m; bileşke R; kesikli: önce kuzey sonra doğu (sıra fark etmez) */
+BFY_FIG_EKLE('sf113_ari', function (u) {
+  const W = 340, H = 268, c = 30, ox = 46, oy = 220;
+  let s = zemin(W, H, '#eef5e6');
+  for (let i = 0; i <= 9; i++) s += `<line x1="${ox - 30 + i * c}" y1="${oy - 6 * c - 10}" x2="${ox - 30 + i * c}" y2="${oy + 20}" stroke="#c9d9bc" stroke-width="1"/>`;
+  for (let j = -1; j <= 7; j++) s += `<line x1="${ox - 30}" y1="${oy - j * c + (j === -1 ? -10 : 0)}" x2="${ox + 8 * c + 30}" y2="${oy - j * c + (j === -1 ? -10 : 0)}" stroke="#c9d9bc" stroke-width="1"/>`;
+  const xA = ox + 8 * c, yB = oy - 6 * c;
+  s += dashLine(ox, oy, ox, yB, '#7d8a84', '6 5', 2) + dashLine(ox, yB, xA, yB, '#7d8a84', '6 5', 2);
+  s += ok(ox, oy, xA - 2, oy, C.v) + ok(xA, oy, xA, yB + 2, C.z) + ok(ox, oy, xA - 3, yB + 3, C.R, 3.6);
+  // kovan
+  s += `<ellipse cx="${ox}" cy="${oy + 2}" rx="20" ry="5" fill="#000" opacity=".15"/>`;
+  [[0, 18, 7], [-9, 15, 7], [-18, 11, 6]].forEach(([dy, rx, ry]) => { s += `<ellipse cx="${ox}" cy="${oy - 6 + dy}" rx="${rx}" ry="${ry}" fill="#e2b55a" stroke="#9a7428" stroke-width="1.2"/>`; });
+  s += `<ellipse cx="${ox}" cy="${oy - 3}" rx="4" ry="3" fill="#4b3826"/>`;
+  // çiçek ve arı
+  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; s += `<ellipse cx="${(xA + 9 * Math.cos(a)).toFixed(1)}" cy="${(yB + 9 * Math.sin(a)).toFixed(1)}" rx="7" ry="4.5" transform="rotate(${k * 60} ${(xA + 9 * Math.cos(a)).toFixed(1)} ${(yB + 9 * Math.sin(a)).toFixed(1)})" fill="#f4a3c0" stroke="#c0567f" stroke-width=".8"/>`; }
+  s += `<circle cx="${xA}" cy="${yB}" r="5.5" fill="#f2c94c" stroke="#b8901f" stroke-width="1"/>`;
+  const ax = xA - 26, ay = yB - 14;
+  s += `<ellipse cx="${ax - 3}" cy="${ay - 6}" rx="6" ry="4" fill="#fff" opacity=".85" stroke="#9aa3ab" stroke-width=".7"/><ellipse cx="${ax + 3}" cy="${ay - 6}" rx="6" ry="4" fill="#fff" opacity=".85" stroke="#9aa3ab" stroke-width=".7"/>`;
+  s += `<ellipse cx="${ax}" cy="${ay}" rx="8" ry="5" fill="#f2c94c" stroke="#3a2a1a" stroke-width="1"/><path d="M${ax - 2} ${ay - 5} v10 M${ax + 2} ${ay - 5} v10" stroke="#3a2a1a" stroke-width="1.6"/>`;
+  // etiketler
+  s += T((ox + xA) / 2, oy + 38, 'A: 8 m', { size: 15, weight: 800, anchor: 'middle', fill: C.v });
+  s += T(xA + 10, (oy + yB) / 2 + 30, 'B:', { size: 15, weight: 800, fill: C.z }) + T(xA + 10, (oy + yB) / 2 + 48, '6 m', { size: 15, weight: 800, fill: C.z });
+  s += T(150, 128, 'R', { size: 18, weight: 800, anchor: 'middle', fill: C.R, italic: true });
+  s += T(14, 24, '1 kare = 1 m', { size: 14, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Golf: iki vuruş, kareli üstten görünüş (1 kare = 2 m); A = (9, −2) kare, B = (3, 7) kare */
+BFY_FIG_EKLE('sf113_golf', function (u) {
+  const W = 340, H = 256, c = 22, ox = 34, oy = 150;
+  let s = zemin(W, H, '#e3f0d8');
+  s += `<defs><radialGradient id="${u}gr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#a9d98a"/><stop offset="1" stop-color="#7fbf62"/></radialGradient></defs>`;
+  s += `<rect x="${ox - 8}" y="${oy - 5 * c - 8}" width="${12 * c + 16}" height="${7 * c + 16}" rx="10" fill="#cfe7bd"/>`;
+  s += `<ellipse cx="${ox + 12 * c - 4}" cy="${oy - 5 * c + 12}" rx="36" ry="28" fill="url(#${u}gr)" opacity=".55"/>`;
+  for (let i = 0; i <= 12; i++) s += `<line x1="${ox + i * c}" y1="${oy - 5 * c}" x2="${ox + i * c}" y2="${oy + 2 * c}" stroke="#7fa86a" stroke-width="1"/>`;
+  for (let j = -2; j <= 5; j++) s += `<line x1="${ox}" y1="${oy - j * c}" x2="${ox + 12 * c}" y2="${oy - j * c}" stroke="#7fa86a" stroke-width="1"/>`;
+  const p1x = ox + 9 * c, p1y = oy + 2 * c, hx = ox + 12 * c, hy = oy - 5 * c;
+  s += ok(ox, oy, p1x - 2, p1y - 1, C.v) + ok(p1x, p1y, hx - 1, hy + 3, C.z);
+  // top, ilk durak, delik ve bayrak
+  s += `<circle cx="${ox}" cy="${oy}" r="6" fill="#fff" stroke="#6f7980" stroke-width="1.2"/>`;
+  s += `<circle cx="${p1x}" cy="${p1y}" r="5" fill="#fff" stroke="#6f7980" stroke-width="1.2" stroke-dasharray="2 2"/>`;
+  s += `<ellipse cx="${hx}" cy="${hy}" rx="6" ry="4" fill="#1f2a24"/><line x1="${hx}" y1="${hy}" x2="${hx}" y2="${hy - 30}" stroke="#4b5258" stroke-width="2"/><path d="M${hx} ${hy - 30} l-20 6 l20 6 Z" fill="#d9573b"/>`;
+  s += T(ox + 4, oy - 12, 'başlangıç', { size: 14, weight: 700, fill: P.ink });
+  s += T(hx - 26, hy - 14, 'delik', { size: 14, weight: 700, anchor: 'end', fill: P.ink });
+  s += T(130, 186, 'A', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
+  s += T(hx - 22, oy - 20, 'B', { size: 18, weight: 800, anchor: 'middle', fill: C.z, italic: true });
+  s += T(W / 2, H - 14, '1 kare = 2 m', { size: 15, weight: 800, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Bagaj bandı köşede dönüyor: önce doğuya 2 m/s, sonra kuzeye 2 m/s (yukarıdan) */
+BFY_FIG_EKLE('sf113_bagaj', function (u) {
+  const W = 340, H = 262, y1 = 176, y2 = 216, x1 = 214, x2 = 254, yt = 30;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}bt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b6168"/><stop offset="1" stop-color="#3a3f44"/></linearGradient>` +
+    `<linearGradient id="${u}vl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e98a6f"/><stop offset="1" stop-color="#b64b30"/></linearGradient></defs>`;
+  // bant (L biçimi) ve kenar korkulukları
+  s += `<path d="M14 ${y1} H${x1} V${yt} H${x2} V${y2} H14 Z" fill="url(#${u}bt)" stroke="#9aa3ab" stroke-width="4" stroke-linejoin="round"/>`;
+  for (let x = 24; x < x1; x += 14) s += `<line x1="${x}" y1="${y1 + 3}" x2="${x}" y2="${y2 - 3}" stroke="#6f7980" stroke-width="1.2"/>`;
+  for (let y = yt + 10; y < y1; y += 14) s += `<line x1="${x1 + 3}" y1="${y}" x2="${x2 - 3}" y2="${y}" stroke="#6f7980" stroke-width="1.2"/>`;
+  // valizler
+  const valiz = (x, y, w, h) => `<rect x="${x + 2}" y="${y + 3}" width="${w}" height="${h}" rx="5" fill="#000" opacity=".25"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="url(#${u}vl)" stroke="#7d2f1c" stroke-width="1.2"/><rect x="${x + w / 2 - 6}" y="${y + h / 2 - 2}" width="12" height="4" rx="2" fill="#3a2a1a"/>`;
+  s += valiz(60, y1 + 7, 40, 26);
+  s += valiz(x1 + 7, 70, 26, 40);
+  // hız okları (bandın dışında)
+  s += ok(56, y1 - 22, 136, y1 - 22, C.v) + T(96, y1 - 34, 'ϑ_{ilk}', { size: 17, weight: 800, anchor: 'middle', fill: C.v, italic: true }) + T(150, y1 - 17, '2 m/s', { size: 15, weight: 800, fill: C.v });
+  s += ok(x1 - 22, 130, x1 - 22, 50, C.z) + T(x1 - 32, 84, 'ϑ_{son}', { size: 17, weight: 800, anchor: 'end', fill: C.z, italic: true }) + T(x1 - 32, 106, '2 m/s', { size: 15, weight: 800, anchor: 'end', fill: C.z });
+  // yönler
+  s += arrow(34, 112, 84, 112, { color: P.ink, w: 2, head: 8, headW: 4.5 }) + arrow(34, 112, 34, 62, { color: P.ink, w: 2, head: 8, headW: 4.5 });
+  s += T(90, 117, 'doğu', { size: 14, weight: 700, fill: P.ink }) + T(34, 52, 'kuzey', { size: 14, weight: 700, anchor: 'middle', fill: P.ink });
+  s += T(W / 2, H - 14, 'Şekil yukarıdan görünüştür.', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -4001,6 +4695,199 @@ const KONU = {
     'SİM: kareli düzlemde A = (2, 3) ile B (−5…5) toplama ve çıkarma, bileşenler, |A − B| ≤ R ≤ A + B sayı doğrusu',
     'SET 3: göç eden leyleğin GPS vericisi, dört günlük doğu ve kuzey bileşenleri (150, −60), (90, −120), (120, −40), (120, −140) km, uçuş süreleri'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.1.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Vektörün ne olduğunu, vektörleri karşılaştırmayı, toplamayı ve bileşenlerine ayırmayı kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Yön de söylenmeli: vektör',
+        metin: r`Bir binanın asansöründesin. Biri sana "Üç kat git." diyor. Yukarı mı, aşağı mı? Bu bilgi eksik.
+
+Büyüklüğünün yanında yönü de söylenmesi gereken niceliklere **vektörel nicelik** denir. Yer değiştirme, hız ve kuvvet böyledir. Bu nicelikler bir okla, yani **vektörle** gösterilir: $\vec{A}$ gibi.
+
+- **Başlangıç noktası:** Okun çıktığı noktadır.
+- **Doğrultu:** Okun üzerinde durduğu doğrudur. Asansörde doğrultu düşeydir.
+- **Yön:** Okun ucunun gösterdiği taraftır: yukarı ya da aşağı.
+- **Büyüklük:** Okun uzunluğudur. Büyüklük hiçbir zaman negatif olmaz.`,
+        kontrol: {
+          soru: 'Asansör 5. kattan 2. kata iniyor. Asansörün yer değiştirme vektörü için hangisi doğrudur?',
+          secenekler: ['Büyüklüğü 3 kat, yönü düşey aşağı', 'Büyüklüğü 3 kat, yönü düşey yukarı', 'Büyüklüğü 2 kat, yönü düşey aşağı'],
+          dogru: 0,
+          aciklama: '5 − 2 = 3 kat yer değiştirir. Asansör aşağı indiği için yön düşey aşağıdır.',
+          yanlisIpucu: 'Asansör kaç kat yol aldı? İnerken okun ucu hangi tarafı gösterir?'
+        }
+      },
+      {
+        baslik: 'Eşit vektör, zıt vektör, kat vektör',
+        sekil: 'sf113_ordek',
+        metin: r`Bir gölde anne ördek ve iki yavrusu doğuya doğru 1 m/s hızla yüzüyor. Anne ördeğin hızına $\vec{\vartheta}$ diyelim.
+
+- Yavruların hızları da $\vec{\vartheta}$'dir. Yönü ve büyüklüğü aynı olan vektörlere **eşit vektör** denir. Gölün farklı yerlerinde olmaları eşitliği bozmaz.
+- Karşıdan bir kuğu batıya doğru 1 m/s hızla geliyor. Kuğunun hızı $-\vec{\vartheta}$'dir. Büyüklüğü aynı, yönü ters olan vektöre **zıt vektör** denir.
+- Bir kayık doğuya doğru 3 m/s hızla gidiyor. Kayığın hızı $3\vec{\vartheta}$'dir.
+
+Bir vektör artı bir sayıyla çarpılınca yönü aynı kalır. Eksi bir sayıyla çarpılınca yönü tersine döner. Büyüklük, sayının işaretsiz değeri kadar katına çıkar.`,
+        kontrol: {
+          soru: r`Bir martı gölün üstünde batıya doğru 4 m/s hızla uçuyor. Martının hızı $\vec{\vartheta}$ cinsinden hangisidir?`,
+          secenekler: [r`$4\vec{\vartheta}$`, r`$-4\vec{\vartheta}$`, r`$-\vec{\vartheta}$`],
+          dogru: 1,
+          aciklama: r`Martının sürati anne ördeğinkinin 4 katıdır ve yönü terstir. Bu yüzden hızı $-4\vec{\vartheta}$ olur.`,
+          yanlisIpucu: r`Önce büyüklüğe bak: 4 m/s, 1 m/s'nin kaç katı? Sonra yöne bak: Batı, doğunun tersidir; ters yön eksi işaretle gösterilir.`
+        }
+      },
+      {
+        baslik: 'Aynı doğrultuda topla ve çıkar',
+        metin: r`Bir dalgıç tekneden suya giriyor. Önce 12 m aşağı dalıyor, sonra 5 m yukarı çıkıyor. İki yer değiştirme de düşey doğrultudadır.
+
+Aynı doğrultudaki vektörleri toplamak için önce bir yönü **artı (+)** seçeriz. Aşağıyı (+) seçelim. Yukarı doğru olan yer değiştirme eksi işaretle yazılır:
+
+$(+12) + (-5) = +7$
+
+Dalgıç başladığı yerin 7 m aşağısındadır. İki vektörün toplamına **bileşke** denir ve $\vec{R}$ ile gösterilir.
+
+Vektörlerde çıkarma, zıt vektörü eklemektir: $\vec{A} - \vec{B} = \vec{A} + (-\vec{B})$.`,
+        kontrol: {
+          soru: r`$\vec{K}$ doğuya doğru 5 birim, $\vec{L}$ batıya doğru 2 birimdir. $\vec{K} - \vec{L}$ hangisidir?`,
+          secenekler: ['Doğuya doğru 7 birim', 'Doğuya doğru 3 birim', 'Batıya doğru 7 birim'],
+          dogru: 0,
+          aciklama: r`Doğuyu (+) seçelim: $\vec{K} = +5$, $\vec{L} = -2$. $\vec{K} - \vec{L} = (+5) - (-2) = +7$ olur. Sonuç doğuya doğru 7 birimdir.`,
+          yanlisIpucu: r`Çıkarmak, zıttını eklemektir. $-\vec{L}$ hangi yöne bakar?`
+        }
+      },
+      {
+        baslik: 'Uç uca ekle: bileşke',
+        sekil: 'sf113_ari',
+        metin: r`Bir arı kovanından çıkıyor. Önce doğuya doğru 8 m ($\vec{A}$), sonra kuzeye doğru 6 m ($\vec{B}$) uçup bir çiçeğe konuyor.
+
+**Uç uca ekleme** yönteminde ikinci vektör, birincinin bittiği yerden başlatılır. Okların yönü ve uzunluğu değiştirilmez. Bileşke $\vec{R}$, ilk okun başlangıcından son okun ucuna çizilir.
+
+$\vec{A}$ ile $\vec{B}$ birbirine dik olduğu için bir dik üçgen oluşur:
+
+$R = \sqrt{8^2 + 6^2} = \sqrt{100} = 10\ \text{m}$
+
+Arı 14 m yol aldı ama kovandan yalnız 10 m uzaktadır. İki vektörü aynı noktadan başlatıp paralelkenar çizersen ortak noktadan çıkan köşegen yine $\vec{R}$ olur.`,
+        kontrol: {
+          soru: 'Arı aynı çiçeğe önce 6 m kuzeye, sonra 8 m doğuya uçarak gitseydi bileşke yer değiştirmesinin büyüklüğü kaç metre olurdu?',
+          secenekler: ['14', '10', '2'],
+          dogru: 1,
+          aciklama: r`Vektörleri toplarken sıra fark etmez: $\vec{B} + \vec{A} = \vec{A} + \vec{B}$. Arı yine aynı çiçeğe varır; bileşke yine 10 m olur.`,
+          yanlisIpucu: 'Şekildeki kesikli yolu izle. Arı nereye varıyor?'
+        }
+      },
+      {
+        baslik: 'Bileşenlerle topla',
+        metin: r`Kareli bir düzlemde doğuyu $+x$, kuzeyi $+y$ yönü seçelim. Her vektörü iki sayıyla yazabiliriz: önce $x$ bileşeni, sonra $y$ bileşeni.
+
+Arı örneğinde $\vec{A} = (8, 0)$ ve $\vec{B} = (0, 6)$ olur. Batıya ve güneye giden parçalar eksi işaretle yazılır.
+
+Bileşenlerle toplamak kolaydır. Aynı eksendeki bileşenler işaretleriyle toplanır:
+
+- $R_x = A_x + B_x = 8 + 0 = 8$
+- $R_y = A_y + B_y = 0 + 6 = 6$
+
+Böylece $\vec{R} = (8, 6)$ olur. Büyüklüğü $R = \sqrt{R_x^2 + R_y^2}$ ile bulunur.`,
+        kontrol: {
+          soru: r`$\vec{A} = (4, -1)$ ve $\vec{B} = (2, 3)$ veriliyor. $\vec{A} + \vec{B}$ hangisidir?`,
+          secenekler: [r`$(2, -4)$`, r`$(6, 4)$`, r`$(6, 2)$`],
+          dogru: 2,
+          aciklama: r`$R_x = 4 + 2 = 6$ ve $R_y = -1 + 3 = 2$ olur. $\vec{A} + \vec{B} = (6, 2)$ bulunur.`,
+          yanlisIpucu: r`$x$ bileşenlerini kendi arasında, $y$ bileşenlerini kendi arasında topla. $-1$'in eksi işaretini unutma.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Masa oyununda kartlar',
+        metin: r`Bir masa oyununda piyon düz bir yol üzerinde ilerliyor. İleri yönü (+) seçelim. $\vec{A}$ kartı piyonu 2 kare ileri götürüyor. Ece sırayla $3\vec{A}$, $-2\vec{A}$ ve $-4\vec{A}$ kartlarını çekiyor.`,
+        adimlar: [
+          {
+            soru: r`$3\vec{A}$ kartı piyonu nereye götürür?`,
+            secenekler: ['6 kare ileri', '3 kare ileri', '6 kare geri'],
+            dogru: 0,
+            ipucu: r`$\vec{A}$ 2 kare ileridir. Artı bir sayıyla çarpınca yön aynı kalır, büyüklük o kadar katına çıkar.`,
+            aciklama: r`$3 \times 2 = 6$ kare olur; yön değişmez. $3\vec{A}$ piyonu 6 kare ileri götürür.`
+          },
+          {
+            soru: r`$-2\vec{A}$ ve $-4\vec{A}$ kartlarının toplamı hangisidir?`,
+            secenekler: ['4 kare ileri', '12 kare geri', '12 kare ileri'],
+            dogru: 1,
+            ipucu: r`$-2\vec{A} + (-4\vec{A}) = -6\vec{A}$ olur. Eksi işaret yönü ters çevirir.`,
+            aciklama: r`$-6\vec{A}$ vektörü $6 \times 2 = 12$ kare büyüklüğündedir ve geri yönlüdür.`
+          },
+          {
+            soru: 'Üç kartın sonunda piyon başladığı yere göre nerededir?',
+            secenekler: ['18 kare ileride', '6 kare ileride', '6 kare geride'],
+            dogru: 2,
+            ipucu: 'İleri giden 6 kareyi ve geri giden 12 kareyi işaretleriyle topla: (+6) + (−12).',
+            aciklama: r`$3\vec{A} - 2\vec{A} - 4\vec{A} = -3\vec{A}$ olur. Bu, 6 kare geridir.`
+          }
+        ],
+        sonuc: 'Piyon toplam 18 kare hareket etti ama başladığı yerin 6 kare gerisinde durdu. Aynı doğrultudaki vektörler işaretleriyle toplanır.'
+      },
+      {
+        baslik: 'Golf topu iki vuruşta delikte',
+        sekil: 'sf113_golf',
+        metin: r`Bir golfçü topu iki vuruşta deliğe sokuyor. Şekil sahayı yukarıdan gösteriyor ve 1 kare 2 m'dir. Doğu $+x$, kuzey $+y$ yönüdür. İlk vuruşta topun yer değiştirmesi $\vec{A} = (18, -4)$ m, ikinci vuruştaki yer değiştirmesi ise şekildeki $\vec{B}$'dir.`,
+        adimlar: [
+          {
+            soru: r`$\vec{B}$'nin bileşenleri kaç metredir?`,
+            secenekler: [r`$(3, 7)$`, r`$(6, 14)$`, r`$(14, 6)$`],
+            dogru: 1,
+            ipucu: r`$\vec{B}$ şekilde 3 kare doğuya, 7 kare kuzeye gidiyor. 1 kare 2 m'dir.`,
+            aciklama: r`$B_x = 3 \times 2 = 6$ m ve $B_y = 7 \times 2 = 14$ m olur: $\vec{B} = (6, 14)$ m.`
+          },
+          {
+            soru: r`Topun toplam yer değiştirmesi $\vec{R} = \vec{A} + \vec{B}$ hangisidir?`,
+            secenekler: [r`$(24, 18)$ m`, r`$(12, 10)$ m`, r`$(24, 10)$ m`],
+            dogru: 2,
+            ipucu: r`$R_x = 18 + 6$ ve $R_y = -4 + 14$. Eksi işareti unutma.`,
+            aciklama: r`$R_x = 18 + 6 = 24$ m ve $R_y = -4 + 14 = 10$ m olur.`
+          },
+          {
+            soru: 'Delik, topun ilk vuruştan önceki yerinden kaç metre uzaktadır?',
+            secenekler: ['34', '26', '14'],
+            dogru: 1,
+            ipucu: r`$R = \sqrt{24^2 + 10^2}$. $24^2 = 576$ ve $10^2 = 100$ olur.`,
+            aciklama: r`$R = \sqrt{576 + 100} = \sqrt{676} = 26$ m olur.`
+          }
+        ],
+        sonuc: 'Delik, topun başlangıçtaki yerinden 26 m uzaktadır. Bileşenleri ayrı ayrı topladık; sonra büyüklüğü dik üçgenle bulduk.'
+      },
+      {
+        baslik: 'Köşeden dönen valiz',
+        sekil: 'sf113_bagaj',
+        metin: r`Havalimanında bagaj bandı bir köşede dönüyor. Bir valiz köşeye gelmeden önce doğuya doğru 2 m/s hızla, köşeyi döndükten sonra kuzeye doğru 2 m/s hızla gidiyor. Doğu $+x$, kuzey $+y$ yönüdür.`,
+        adimlar: [
+          {
+            soru: 'Valizin köşeden önceki ve sonraki hızlarının büyüklükleri için ne söylenebilir?',
+            secenekler: ['İkisi de 2 m/s; eşittir.', 'Kuzeye olan daha büyüktür.', 'Doğuya olan daha büyüktür.'],
+            dogru: 0,
+            ipucu: 'İki hızın sayısal değerlerine bak. Büyüklükte yön önemli değildir.',
+            aciklama: 'İkisinin de büyüklüğü 2 m/s\'dir. Valizin sürati değişmedi.'
+          },
+          {
+            soru: 'Bu iki hız vektörü eşit vektör müdür?',
+            secenekler: ['Evet, büyüklükleri eşittir.', 'Hayır, yönleri farklıdır.', 'Evet, ikisi de aynı banttadır.'],
+            dogru: 1,
+            ipucu: 'Eşit vektör olmak için hangi iki özelliğin aynı olması gerekiyordu?',
+            aciklama: 'Eşit vektörlerin hem büyüklüğü hem yönü aynıdır. Burada yönler farklıdır; vektörler eşit değildir.'
+          },
+          {
+            soru: r`İlk hız $(2, 0)$ m/s, son hız $(0, 2)$ m/s'dir. Hızdaki değişim $\Delta\vec{\vartheta} = \vec{\vartheta}_\text{son} - \vec{\vartheta}_\text{ilk}$ hangisidir?`,
+            secenekler: [r`$(0, 0)$ m/s`, r`$(2, 2)$ m/s`, r`$(-2, 2)$ m/s`],
+            dogru: 2,
+            ipucu: r`Bileşenleri ayrı ayrı çıkar: $x$ için $0 - 2$, $y$ için $2 - 0$.`,
+            aciklama: r`$\Delta\vartheta_x = 0 - 2 = -2$ m/s ve $\Delta\vartheta_y = 2 - 0 = 2$ m/s olur. $\Delta\vec{\vartheta} = (-2, 2)$ m/s bulunur.`
+          }
+        ],
+        sonuc: 'Valizin sürati değişmedi ama hızı değişti, çünkü yönü değişti. Hız bir vektördür; yön değişince hız da değişir.'
+      }
+    ],
+    hazir: r`Vektörün özelliklerini, eşit, zıt ve kat vektörleri, aynı doğrultuda toplamayı, uç uca eklemeyi ve bileşenlerle toplamayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU (kısa, TYT odaklı) ---------------- */
   not: [
