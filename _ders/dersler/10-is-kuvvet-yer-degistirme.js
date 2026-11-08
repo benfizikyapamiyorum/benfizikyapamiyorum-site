@@ -58,8 +58,8 @@ module.exports = {
       `<rect x="${x - 40}" y="140" width="34" height="58" rx="7" fill="#e9a774" stroke="#b06a3b" stroke-width="3" opacity="${op}"/>`;
     const sC = k.svg(500, 330,
       `<rect x="10" y="296" width="480" height="14" fill="#cfc9ba"/>` + cocuk(400, 0.3) + cocuk(120, 1) +
-      k.ok({ x1: 97, y1: 169, x2: 97, y2: 52, ad: 'F', renk: T, etiket: 'F', ex: -22, ey: 14, gizli: true }) +
-      k.ok({ x1: 170, y1: 252, x2: 340, y2: 252, ad: 'dx', renk: N, etiket: 'Δx', ex: -85, ey: -14, gizli: true }));
+      k.ok({ x1: 88, y1: 169, x2: 88, y2: 52, ad: 'F', renk: T, etiket: 'F', ex: -22, ey: 14, gizli: true }) +
+      k.ok({ x1: 150, y1: 50, x2: 400, y2: 50, ad: 'dx', renk: N, etiket: 'Δx', ex: -125, ey: -12, gizli: true }));
 
     return [
       k.kapak({ etiket: '10. SINIF FİZİK, ENERJİ ÜNİTESİ', baslik: 'Fizikte iş.', vurgu: 'Yorulmak yetmez, yer değiştirmek gerek.', aciklama: 'İş nedir, kuvvet–yer değiştirme grafiğinden nasıl bulunur ve hangi durumlarda hiç iş yapılmaz?' }),
@@ -69,8 +69,8 @@ module.exports = {
         maddeler: [
           '1. Ali 10 dakika boyunca okulun duvarını var gücüyle itiyor. Duvar kımıldamıyor.',
           '2. Ayşe yerdeki kitabını kaldırıp rafa koyuyor.',
-          '3. Can sırt çantasıyla düz yolda okula kadar yürüyor. Çanta ne yükseliyor ne alçalıyor.',
-          { formul: 'Fizikte iş, yalnızca 2. durumda tartışmasız var.', aciklama: 'Kitap, uygulanan kuvvetin doğrultusunda yer değiştirdi. Duvar yer değiştirmedi. Çantayı taşıyan kuvvet yukarı, yer değiştirme yatay.' },
+          '3. Can sırt çantasıyla yatay yolda sabit hızla okula kadar yürüyor. Çanta ne yükseliyor ne alçalıyor.',
+          { formul: 'Fizikte iş yalnızca 2. durumda yapılır.', aciklama: 'Kitap, uygulanan kuvvetin doğrultusunda yer değiştirdi. Duvar yer değiştirmedi. Çantayı taşıyan kuvvet yukarı, yer değiştirme yatay.' },
         ],
       }),
       k.konu({
@@ -144,7 +144,7 @@ module.exports = {
         etiket: 'İŞ YOK', kod: 'FİZ.10.2.1', baslik: 'Çantası sırtında yürüyen çocuk', sekil: sC,
         maddeler: [
           { metin: 'Can çantasını sırtında taşıyor. Çantaya yukarı yönde, ağırlığı kadar bir kuvvet uyguluyor.', vurgu: 'F' },
-          { metin: 'Can düz yolda yürüyor. Çanta yatay doğrultuda yer değiştiriyor.', vurgu: 'F,dx' },
+          { metin: 'Can yatay yolda sabit hızla yürüyor. Çanta yatay doğrultuda yer değiştiriyor.', vurgu: 'F,dx' },
           { metin: 'Kuvvet yukarı, yer değiştirme yatay. Kuvvetin doğrultusunda hiç yer değiştirme yok.', vurgu: 'F,dx' },
           { formul: 'Kuvvet harekete dikse W = 0', aciklama: 'Can yorulur ama çantayı taşıyan kuvvet iş yapmaz. Merdiven çıkarken çanta yukarı da yer değiştirir, o zaman iş yapılır.', vurgu: 'F,dx' },
         ],
@@ -155,7 +155,7 @@ module.exports = {
           '<b>1.</b> İş, kuvvet–yer değiştirme grafiğinin altındaki alana eşittir.',
           '<b>2.</b> Sabit kuvvette, kuvvetin büyüklüğü ya da yer değiştirme iki katına çıkarsa iş de iki katına çıkar.',
           '<b>3.</b> Yer değiştirme yoksa iş yoktur. Duvarı ne kadar itersen it, Δx = 0 ise W = 0.',
-          '<b>4.</b> Kuvvet hareket doğrultusuna dikse o kuvvet iş yapmaz. Sırttaki çantayı taşıyan yukarı kuvvet, düz yolda yürürken iş yapmaz.',
+          '<b>4.</b> Kuvvet hareket doğrultusuna dikse o kuvvet iş yapmaz. Sırttaki çantayı taşıyan yukarı kuvvet, yatay yolda sabit hızla yürürken iş yapmaz.',
         ],
       }),
       k.soru({

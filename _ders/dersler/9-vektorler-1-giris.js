@@ -12,9 +12,9 @@ module.exports = {
     const gy = k.kare({ x0: 0, x1: 6, y0: 0, y1: 5, u: 56, eksen: false });
     const [ox, oy] = gy.p(1, 1);
     const sY = k.svg(gy.w, gy.h, gy.zemin +
-      gy.v({ ad: 'kz', from: [1, 1], to: [1, 4], renk: B, etiket: '300 m kuzey', ex: 8, ey: -14 }) +
-      gy.v({ ad: 'dg', from: [1, 1], to: [4, 1], renk: R, etiket: '300 m doğu', ex: 0, ey: 34 }) +
-      `<circle cx="${ox}" cy="${oy}" r="10" fill="#173430"/><text x="${ox - 16}" y="${oy + 34}" font-size="22" font-weight="700" fill="#173430" text-anchor="middle">okul</text>`);
+      gy.v({ ad: 'kz', from: [1, 1], to: [1, 4], renk: B, etiket: '300 m kuzeye', ex: 40, ey: -14 }) +
+      gy.v({ ad: 'dg', from: [1, 1], to: [4, 1], renk: R, etiket: '300 m doğuya', ex: 0, ey: 34 }) +
+      `<text x="${gy.w - 12}" y="${gy.h - 10}" font-size="18" font-weight="600" fill="#6b7d76" text-anchor="end">1 kare = 100 m</text><circle cx="${ox}" cy="${oy}" r="10" fill="#173430"/><text x="${ox - 16}" y="${oy + 34}" font-size="22" font-weight="700" fill="#173430" text-anchor="middle">okul</text>`);
 
     // Vektörün öğeleri
     const g0 = k.kare({ x0: 0, x1: 8, y0: 0, y1: 5, u: 60, eksen: false });
@@ -76,7 +76,7 @@ module.exports = {
         etiket: 'SKALER NİCELİK', kod: 'FİZ.9.2.2', baslik: 'Sayı ve birim yeter',
         maddeler: [
           '“Sınıfın sıcaklığı 22 °C.” Başka bir bilgiye gerek var mı? Yok.',
-          '“Bu şeker 5 kg.” “Ders 40 dakika sürdü.” Hepsi sayı ve birimle tam anlatıldı.',
+          '“Bu paket şeker 5 kg.” “Ders 40 dakika sürdü.” Hepsi sayı ve birimle tam anlatıldı.',
           '<b>Skaler nicelik:</b> Yalnızca sayı ve birimle tam olarak ifade edilen niceliktir.',
           'Örnekler: kütle, sıcaklık, zaman, uzunluk, hacim, enerji, sürat.',
           { formul: 'Skaler = sayı + birim', aciklama: 'Skalerler sayılar gibi toplanır: 2 kg + 3 kg = 5 kg.' },
@@ -85,8 +85,8 @@ module.exports = {
       k.konu({
         etiket: 'VEKTÖREL NİCELİK', kod: 'FİZ.9.2.2', baslik: 'Yön de gerekir', sekil: sY,
         maddeler: [
-          '“Kutuyu 50 N ile itiyorum.” Kutu nereye gidecek? Hangi yöne ittiğimi söylemeden bilemeyiz.',
-          { metin: 'Okuldan çıkıp 300 m yürüdüm. Kuzeye mi, doğuya mı? Vardığım yer yöne göre bambaşka.', vurgu: 'kz,dg' },
+          '“Kutuyu 50 N ile itiyorum.” Kutuyu hangi yöne itiyorum? Bunu söylemeden kutunun nereye gideceğini bilemeyiz.',
+          { metin: 'Okuldan çıkıp dosdoğru 300 m uzaklaştım. Kuzeye mi, doğuya mı? Vardığım yer yöne göre bambaşka.', vurgu: 'kz,dg' },
           '<b>Vektörel nicelik:</b> Sayı ve birimin yanında yönü de belirtilmesi gereken niceliktir.',
           'Örnekler: kuvvet, yer değiştirme, hız, ivme, ağırlık.',
           { formul: 'Vektörel = büyüklük + yön', aciklama: 'Büyüklük: sayı ve birim. Yön: nereye doğru olduğu. Vektörler okla gösterilir.' },
