@@ -5148,6 +5148,188 @@ BFY_FIG_EKLE('iY102_efsane_6', u => EF_OB(u, E => {
 }, { ox: 100, oy: 84, s: 1 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY102_): kart genişliği ~340 px, en küçük yazı 14 ----------
+   Yansıyan ışınlar r = d − 2(d·n)n ile, görüntü ve görüş alanı aynaya göre simetriyle hesaplanır. Veriler SF bloğunda; qa/Y.10.2/dogrula.py okur. */
+(function () {
+const { T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1), R = Math.PI / 180;
+const BG = '#f6f5ef', RAY = '#d08a12', NRM = '#5b6a72';
+const SF = /*SF*/{
+  "normal": { "O": [170, 170], "i": 40, "L": 150 },
+  "yuzey": { "d": [1, 1], "duz": [90, 170, 250], "taban": 268, "kose": [[40, 0], [66, 6], [80, -2], [110, -4], [134, -10], [150, 0], [172, -12], [196, -6], [220, -4], [240, -14], [270, -4], [300, 0]], "vur": [53, 122, 161, 255] },
+  "goruntu": { "ayna": 176, "zemin": 220, "sise": 106, "tepe": 120, "goz": [36, 84], "vur2": 70 },
+  "gorus": { "ayna": [130, 210], "ay": 110, "G": [170, 170], "alt": 290, "saksi": [200, 250], "top": [300, 205] },
+  "dalga": { "kenar": 62, "aci": 30, "lam": 44, "O": [200, 62], "C": 70 }
+}/*SF*/;
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const cizgi = (x1, y1, x2, y2, c, w = 1.4, o = '') => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${o}/>`;
+const kesik = (x1, y1, x2, y2, c = NRM, w = 1.4) => cizgi(x1, y1, x2, y2, c, w, ' stroke-dasharray="6 4"');
+/* ışın: düz çizgi ve ortasında yön oku */
+function isin(x1, y1, x2, y2, c = RAY, w = 2.2, k = 0.55) {
+  const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, mx = x1 + (x2 - x1) * k, my = y1 + (y2 - y1) * k;
+  return cizgi(x1, y1, x2, y2, c, w) + `<polygon points="${f1(mx + ux * 6)},${f1(my + uy * 6)} ${f1(mx - ux * 5 - uy * 5)},${f1(my - uy * 5 + ux * 5)} ${f1(mx - ux * 5 + uy * 5)},${f1(my - uy * 5 - ux * 5)}" fill="${c}"/>`;
+}
+/* açı yayı: merkez, yarıçap, başlangıç ve bitiş açısı (derece, SVG yönünde) */
+function yay(cx, cy, r, a1, a2, c = '#7a5a12') {
+  const p = a => [cx + r * Math.cos(a * R), cy + r * Math.sin(a * R)], [x1, y1] = p(a1), [x2, y2] = p(a2);
+  return `<path d="M${f1(x1)} ${f1(y1)} A${r} ${r} 0 0 ${a2 > a1 ? 1 : 0} ${f1(x2)} ${f1(y2)}" fill="none" stroke="${c}" stroke-width="1.6"/>`;
+}
+const yansit = (d, n) => { const k = d[0] * n[0] + d[1] * n[1]; return [d[0] - 2 * k * n[0], d[1] - 2 * k * n[1]]; };
+/* yatay ayna: ön yüzü y'de, arkası (tarama) altta */
+function aynaY(u, x1, x2, y) {
+  let s = `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="7" fill="url(#${u}metal)" stroke="#6f7a82" stroke-width="1"/>`;
+  for (let x = x1 + 4; x < x2; x += 10) s += cizgi(x, y + 7, x - 8, y + 16, '#8a949b', 1.2);
+  return s;
+}
+function lazer(x, y, aci) {
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(aci)})"><rect x="-58" y="-6" width="52" height="12" rx="5" fill="#3b4246" stroke="#22282b" stroke-width="1"/>` +
+    `<rect x="-8" y="-4" width="8" height="8" rx="1.5" fill="#9aa4ab" stroke="#22282b" stroke-width=".8"/><rect x="-40" y="-8" width="10" height="4" rx="1.5" fill="#d9573b"/></g>`;
+}
+function goz(x, y, aci) {
+  return `<g transform="translate(${f1(x)} ${f1(y)}) rotate(${f1(aci)})"><path d="M-16 0 Q0 -12 16 0 Q0 12 -16 0 Z" fill="#fff" stroke="#2f363b" stroke-width="1.6"/>` +
+    `<circle cx="5" cy="0" r="6" fill="#4f7fa8"/><circle cx="5" cy="0" r="2.8" fill="#1d2326"/><circle cx="3.2" cy="-2" r="1.2" fill="#fff"/></g>`;
+}
+
+/* Adım 2: normal, gelme ve yansıma açısı */
+BFY_FIG_EKLE('sfY102_normal', function (u) {
+  const W = 340, H = 222, g = SF.normal, [ox, oy] = g.O, a = g.i * R, L = g.L;
+  const A = [ox - L * Math.sin(a), oy - L * Math.cos(a)], B = [ox + L * Math.sin(a), oy - L * Math.cos(a)];
+  let s = zemin(W, H) + aynaY(u, 30, 310, oy);
+  s += kesik(ox, oy, ox, 22);
+  s += yay(ox, oy, 44, -90 - g.i, -90) + yay(ox, oy, 44, -90, -90 + g.i);
+  s += isin(A[0], A[1], ox, oy) + isin(ox, oy, B[0], B[1]);
+  s += lazer(A[0], A[1], Math.atan2(oy - A[1], ox - A[0]) / R);
+  s += T(ox + 8, 34, 'normal', { size: 14, weight: 800 });
+  s += T(ox - 60 * Math.sin(20 * R), oy - 60 * Math.cos(20 * R) + 5, 'i', { size: 16, weight: 800, anchor: 'middle', italic: true });
+  s += T(ox + 60 * Math.sin(20 * R), oy - 60 * Math.cos(20 * R) + 5, 'r', { size: 16, weight: 800, anchor: 'middle', italic: true });
+  const yy = 126, gx = ox - (oy - yy) * Math.tan(a), yx = ox + (oy - yy) * Math.tan(a);
+  s += T(gx - 10, yy + 5, 'gelen ışın', { size: 14, weight: 800, anchor: 'end' });
+  s += T(yx + 10, yy + 5, 'yansıyan ışın', { size: 14, weight: 800 });
+  s += T(310, oy + 36, 'ayna', { size: 14, weight: 800, anchor: 'end' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 3: düzgün ve dağınık yansıma; pürüzlü yüzeyde her ışın kendi normaline göre yansır */
+BFY_FIG_EKLE('sfY102_yuzey', function (u) {
+  const W = 340, H = 300, y = SF.yuzey, dL = Math.hypot(...y.d), d = [y.d[0] / dL, y.d[1] / dL];
+  let s = zemin(W, H);
+  // üst: düzgün yansıma
+  const ys = 118;
+  s += `<rect x="40" y="${ys}" width="260" height="8" fill="url(#${u}metal)" stroke="#6f7a82" stroke-width="1"/>`;
+  y.duz.forEach(x => { s += isin(x - 52 * d[0], ys - 52 * d[1], x, ys) + isin(x, ys, x + 52 * d[0], ys - 52 * d[1]); });
+  s += T(14, 24, 'Düzgün yansıma', { size: 15, weight: 800 });
+  s += T(300, ys + 26, 'parlak yüzey', { size: 14, weight: 800, anchor: 'end' });
+  s += cizgi(14, 150, 326, 150, '#d6d0c2', 1.2);
+  // alt: dağınık yansıma
+  const yb = y.taban, P = y.kose.map(([x, dy]) => [x, yb + dy]);
+  s += `<polygon points="${P.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')} 300,${yb + 10} 40,${yb + 10}" fill="#c9c2b4" stroke="#6f6656" stroke-width="1.2"/>`;
+  y.vur.forEach(x => {
+    const k = P.findIndex((p, j) => j < P.length - 1 && p[0] <= x && x <= P[j + 1][0]), [a, b] = [P[k], P[k + 1]];
+    const hy = a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]), tx = b[0] - a[0], ty = b[1] - a[1], tl = Math.hypot(tx, ty);
+    const n = [ty / tl, -tx / tl], r = yansit(d, n);
+    s += kesik(x, hy, x + 24 * n[0], hy + 24 * n[1], NRM, 1.2);
+    s += isin(x - 58 * d[0], hy - 58 * d[1], x, hy) + isin(x, hy, x + 58 * r[0], hy + 58 * r[1]);
+  });
+  s += T(14, 174, 'Dağınık yansıma', { size: 15, weight: 800 });
+  s += T(300, H - 8, 'pürüzlü yüzey', { size: 14, weight: 800, anchor: 'end' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 4: düzlem aynada şişenin görüntüsü (yandan); uzantılar görüntünün tepesinde kesişir */
+BFY_FIG_EKLE('sfY102_goruntu', function (u) {
+  const W = 340, H = 256, g = SF.goruntu, ax = g.ayna, zy = g.zemin, bx = g.sise, ty = g.tepe, ix = 2 * ax - bx, [ex, ey] = g.goz;
+  let s = zemin(W, H);
+  s += `<rect x="14" y="${zy}" width="312" height="8" rx="2" fill="url(#${u}wood)" stroke="#a5875a" stroke-width="1"/>`;
+  const sise = (x, op, kes) => `<g opacity="${op}"><path d="M${x - 14} ${zy} V${ty + 46} Q${x - 14} ${ty + 30} ${x - 5} ${ty + 22} V${ty + 6} H${x + 5} V${ty + 22} Q${x + 14} ${ty + 30} ${x + 14} ${ty + 46} V${zy} Z" fill="url(#${u}sg)" stroke="#1f5a3a" stroke-width="1.4"${kes ? ' stroke-dasharray="5 3"' : ''}/>` +
+    `<rect x="${x - 6}" y="${ty}" width="12" height="7" rx="2" fill="#c0392b" stroke="#7d1f16" stroke-width="1"/><path d="M${x - 9} ${ty + 50} V${zy - 10}" stroke="#fff" stroke-width="3" opacity=".45" stroke-linecap="round"/></g>`;
+  s += `<defs><linearGradient id="${u}sg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2f8a5a"/><stop offset=".45" stop-color="#7fd0a2"/><stop offset="1" stop-color="#1f6b44"/></linearGradient></defs>`;
+  s += sise(bx, 1, false) + sise(ix, 0.42, true);
+  // ayna (düşey): ön yüz ax, arkası taralı
+  s += `<rect x="${ax}" y="40" width="7" height="${zy - 40}" fill="url(#${u}metalV)" stroke="#6f7a82" stroke-width="1"/>`;
+  for (let yy = 44; yy < zy; yy += 10) s += cizgi(ax + 7, yy, ax + 16, yy + 8, '#8a949b', 1.2);
+  // iki ışın: göze giden ve yukarı yansıyan
+  const P1 = [ax, ty + (ey - ty) * (ax - ix) / (ex - ix)], P2 = [ax, g.vur2];
+  const v2 = [P2[0] - ix, P2[1] - ty], l2 = Math.hypot(...v2), E2 = [P2[0] + 70 * v2[0] / l2, P2[1] + 70 * v2[1] / l2];
+  s += kesik(P1[0], P1[1], ix, ty, '#b07a1a', 1.4) + kesik(P2[0], P2[1], ix, ty, '#b07a1a', 1.4);
+  s += isin(bx, ty, P1[0], P1[1]) + isin(P1[0], P1[1], ex + 16, ey + (P1[1] - ey) * 16 / (P1[0] - ex));
+  s += isin(bx, ty, P2[0], P2[1]) + isin(P2[0], P2[1], E2[0], E2[1]);
+  s += goz(ex, ey, Math.atan2(P1[1] - ey, P1[0] - ex) / R);
+  // uzaklıklar
+  const dy = zy + 22, ok = (x1, x2) => cizgi(x1, dy, x2, dy, '#4b6059', 1.3) + cizgi(x1, dy - 5, x1, dy + 5, '#4b6059', 1.3) + cizgi(x2, dy - 5, x2, dy + 5, '#4b6059', 1.3);
+  s += ok(bx, ax) + ok(ax + 7, ix);
+  s += T((bx + ax) / 2, dy - 6, 'd', { size: 15, weight: 800, anchor: 'middle', italic: true }) + T((ax + ix) / 2 + 3, dy - 6, 'd', { size: 15, weight: 800, anchor: 'middle', italic: true });
+  s += T(ex, ey - 20, 'göz', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(bx - 22, zy - 30, 'şişe', { size: 14, weight: 800, anchor: 'end' });
+  s += T(ix + 22, zy - 30, 'görüntü', { size: 14, weight: 800 });
+  s += T(ax + 4, 32, 'ayna', { size: 14, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 5: görüş alanı (üstten); G' noktasından aynanın uçlarına çizilen doğrular */
+BFY_FIG_EKLE('sfY102_gorus', function (u) {
+  const W = 340, H = 300, g = SF.gorus, [x1, x2] = g.ayna, ay = g.ay, [gx, gy] = g.G, gpy = 2 * ay - gy, yb = g.alt;
+  const uc = x => gx + (x - gx) * (yb - gpy) / (ay - gpy);
+  let s = zemin(W, H);
+  s += `<polygon points="${x1},${ay} ${x2},${ay} ${f1(uc(x2))},${yb} ${f1(uc(x1))},${yb}" fill="#7fb7d9" opacity=".28"/>`;
+  s += kesik(gx, gpy, x1, ay, '#2e6f95', 1.4) + kesik(gx, gpy, x2, ay, '#2e6f95', 1.4);
+  s += cizgi(x1, ay, uc(x1), yb, '#2e6f95', 1.8) + cizgi(x2, ay, uc(x2), yb, '#2e6f95', 1.8);
+  s += `<rect x="${x1}" y="${ay - 7}" width="${x2 - x1}" height="7" fill="url(#${u}metal)" stroke="#6f7a82" stroke-width="1"/>`;
+  for (let x = x1 + 4; x < x2; x += 10) s += cizgi(x, ay - 7, x - 8, ay - 16, '#8a949b', 1.2);
+  // saksı (üstten) ve top
+  const [sx, sy] = g.saksi, [tx, ty] = g.top;
+  s += `<circle cx="${sx}" cy="${sy}" r="15" fill="#b5653a" stroke="#7a3f1f" stroke-width="1.4"/><circle cx="${sx}" cy="${sy}" r="11" fill="#5b3a22"/>` +
+    `<path d="M${sx} ${sy} l-9 -6 M${sx} ${sy} l8 -8 M${sx} ${sy} l9 4 M${sx} ${sy} l-4 9" stroke="#3f8a4f" stroke-width="4" stroke-linecap="round"/>`;
+  s += `<circle cx="${tx}" cy="${ty}" r="12" fill="url(#${u}b_blue)" stroke="#1d5a86" stroke-width="1"/>`;
+  // göz ve görüntüsü
+  s += goz(gx, gy, -90) + `<g opacity=".4">${goz(gx, gpy, 90)}</g>`;
+  s += T(gx + 16, gy + 22, 'G', { size: 15, weight: 800 }) + T(gx + 16, gpy - 8, "G'", { size: 15, weight: 800 });
+  s += T(x2 + 10, ay - 4, 'ayna', { size: 14, weight: 800 });
+  s += T(sx - 20, sy + 5, 'saksı', { size: 14, weight: 800, anchor: 'end' });
+  s += T(tx, ty + 28, 'top', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(gx, yb - 6, 'görüş alanı', { size: 14, weight: 800, anchor: 'middle', fill: '#1f5578' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Isınma 3: küvetin düz kenarına eğik gelen doğrusal dalgalar (üstten) */
+BFY_FIG_EKLE('sfY102_dalga', function (u) {
+  const W = 340, H = 270, g = SF.dalga, ky = g.kenar, a = g.aci * R, k = [Math.sin(a), -Math.cos(a)], c = [Math.cos(a), Math.sin(a)];
+  const X1 = 14, X2 = 326, Y2 = 258;
+  let s = zemin(W, H);
+  // kenar (fayans) ve su
+  s += `<rect x="${X1}" y="20" width="${X2 - X1}" height="${ky - 20}" fill="#eef1f3" stroke="#9aa6ad" stroke-width="1.2"/>`;
+  for (let x = X1 + 40; x < X2; x += 40) s += cizgi(x, 20, x, ky, '#c3ccd1', 1);
+  s += `<rect x="${X1}" y="${ky}" width="${X2 - X1}" height="${Y2 - ky}" fill="url(#${u}water)" opacity=".55"/>` + cizgi(X1, ky, X2, ky, '#55646c', 2.4);
+  // dalga tepeleri: k·p = s doğruları, su dikdörtgenine kırpılır
+  const kirp = sv => {
+    const p0 = [k[0] * sv, k[1] * sv]; let t0 = -1e4, t1 = 1e4;
+    [[c[0], p0[0], X1, X2], [c[1], p0[1], ky, Y2]].forEach(([dc, p, lo, hi]) => {
+      if (Math.abs(dc) < 1e-9) { if (p < lo || p > hi) t1 = -1e5; return; }
+      let ta = (lo - p) / dc, tb = (hi - p) / dc; if (ta > tb) [ta, tb] = [tb, ta]; t0 = Math.max(t0, ta); t1 = Math.min(t1, tb);
+    });
+    return t1 > t0 ? [[p0[0] + c[0] * t0, p0[1] + c[1] * t0], [p0[0] + c[0] * t1, p0[1] + c[1] * t1]] : null;
+  };
+  const s0 = g.C * k[0] + ky * k[1];
+  for (let j = -8; j <= 0; j++) {
+    const q = kirp(s0 + j * g.lam); if (!q) continue;
+    s += cizgi(q[0][0], q[0][1], q[1][0], q[1][1], '#1f5f86', 4.6) + cizgi(q[0][0], q[0][1], q[1][0], q[1][1], '#e8f6fd', 2.2);
+  }
+  // ilerleme yönü, normal, açılar
+  const [ox, oy] = g.O, S = [ox - 150 * k[0], oy - 150 * k[1]];
+  s += kesik(ox, oy, ox, oy + 118, '#2f363b', 1.5);
+  s += isin(S[0], S[1], ox, oy, '#c0392b', 2.6, 0.6);
+  s += yay(ox, oy, 38, 90, 90 + g.aci, '#2f363b') + yay(g.C, ky, 34, 0, g.aci, '#2f363b');
+  s += T(ox - 54 * Math.sin(15 * R), oy + 54 * Math.cos(15 * R) + 5, 'i', { size: 16, weight: 800, anchor: 'middle', italic: true });
+  s += T(g.C + 50 * Math.cos(12 * R), ky + 50 * Math.sin(12 * R) + 5, '30°', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(ox + 8, oy + 112, 'normal', { size: 14, weight: 800 });
+  s += T(S[0] - 6, S[1] + 18, 'ilerleme yönü', { size: 14, weight: 800, anchor: 'middle', fill: '#9b2c20' });
+  s += T((X1 + X2) / 2, 45, 'küvetin kenarı', { size: 14, weight: 800, anchor: 'middle' });
+  // etiket sağ üstteki boş suda; ince bir çizgiyle en yakın dalga tepesine bağlanır (tepe çizgileriyle çakışmaz)
+  const lx = 268, ly = ky + (lx - g.C) * Math.tan(a);
+  s += T(X2 - 8, ky + 52, 'dalga tepeleri', { size: 14, weight: 800, fill: '#173f58', anchor: 'end' }) + cizgi(lx, ky + 58, lx, ly - 4, '#173f58', 1.2);
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -5202,6 +5384,192 @@ const KONU = {
     'Tuna saksının görüntüsünü göremiyor; görüş alanı, cam bölme, kapatılmış kısım (olabilir)', 'vitrin tasarımcısı: K saksısının görüntüsü L\'de, yaya G, beş ayna konumu',
     'kafe vitrinine aynalı film; gündüz ve akşam', 'Mert aynanın sol kısmını kâğıtla kapatıyor, vazo V'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Görüş alanında hesap yok; yalnız çizim ve karşılaştırma. Doğru şıklar ve şekil geometrisi qa/Y.10.2/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Işığın bir yüzeyden nasıl geri döndüğünü, aynadaki görüntünün nerede oluştuğunu ve bir aynada neleri görebileceğini kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Işık çarptığı yüzeyden geri döner',
+        metin: r`Gece odanın ışığını kapat. Masadaki kitabı, sandalyeyi, duvardaki resmi göremezsin. Lambayı yakınca hepsi görünür olur. Oysa kitap da sandalye de kendisi ışık üretmez.
+
+Lambadan çıkan ışık bu cisimlere çarpar ve geldiği ortama, yani havaya geri döner. Bu olaya **yansıma** denir. Yansıyan ışığın bir kısmı gözüne ulaşır ve cismi görürsün.
+
+Kısacası bir cismi görmek için ondan çıkan ya da ondan yansıyan ışığın gözümüze gelmesi gerekir.`,
+        kontrol: {
+          soru: 'Kendisi ışık üretmeyen bir sandalyeyi nasıl görürüz?',
+          secenekler: ['Sandalyeden yansıyan ışık gözümüze geldiği için.', 'Gözümüzden çıkan ışınlar sandalyeye çarptığı için.', 'Sandalye karanlıkta biriktirdiği ışığı geri verdiği için.'],
+          dogru: 0,
+          aciklama: 'Lambanın ışığı sandalyeye çarpıp yansır. Bu ışığın bir kısmı gözümüze ulaşır ve sandalyeyi görürüz.',
+          yanlisIpucu: 'Karanlık odada gözün açıkken bile sandalyeyi göremiyordun. Demek ki ışık gözden çıkmıyor. Işık nereden gelip nereye gidiyor?'
+        }
+      },
+      {
+        baslik: 'Normal ve iki açı',
+        sekil: 'sfY102_normal',
+        metin: r`Yansımayı çizerken önce yardımcı bir çizgi çizeriz. Işının yüzeye çarptığı noktada yüzeye dik olan kesikli çizgiye **normal** denir.
+
+- Gelen ışın ile normal arasındaki açıya **gelme açısı** ($i$) denir.
+- Yansıyan ışın ile normal arasındaki açıya **yansıma açısı** ($r$) denir.
+
+Yansımanın kuralı basittir: Gelme açısı yansıma açısına eşittir, yani $i = r$. Ayrıca gelen ışın, yansıyan ışın ve normal aynı düzlemdedir.
+
+Dikkat et: Açılar yüzeyle değil, normalle ölçülür.`,
+        kontrol: {
+          soru: 'Bir ışın aynanın yüzeyiyle 50° açı yapacak biçimde geliyor. Gelme açısı kaç derecedir?',
+          secenekler: ['50°', '40°', '100°'],
+          dogru: 1,
+          aciklama: 'Normal yüzeye diktir, yani yüzeyle 90° yapar. Işın yüzeyle 50° yaptığına göre normalle 90° − 50° = 40° yapar. Gelme açısı 40°\'dir.',
+          yanlisIpucu: 'Açılar yüzeyle değil, normalle ölçülür. Normal ile yüzey arasındaki açı 90°\'dir.'
+        }
+      },
+      {
+        baslik: 'Parlak yüzey, pürüzlü yüzey',
+        sekil: 'sfY102_yuzey',
+        metin: r`Mutfaktaki alüminyum folyonun parlak yüzüne bakınca lambanın görüntüsünü seçebilirsin. Aynı folyoyu buruşturup yeniden açarsan görüntü kaybolur. Folyo yine parlar ama artık hiçbir şeyin görüntüsünü göstermez.
+
+- **Düzgün yansıma:** Düz ve parlak bir yüzeye paralel gelen ışınlar paralel olarak yansır. Ayna, durgun su ve cilalı metal böyledir.
+- **Dağınık yansıma:** Pürüzlü bir yüzeyin her küçük parçası farklı yöne bakar. Her ışın, çarptığı parçanın normaline göre yine $i = r$ kuralıyla yansır. Ama normaller farklı olduğu için ışınlar her yöne dağılır.
+
+Dağınık yansıma işe yarar: Bir kitabın sayfasını odanın her yerinden görebilmeni sağlar.`,
+        kontrol: {
+          soru: 'Pürüzlü bir yüzeyden yansıyan ışınlar her yöne dağılıyor. Bu ışınlar için hangisi doğrudur?',
+          secenekler: ['Yansıma kuralına uymazlar; rastgele dönerler.', 'Her biri, çarptığı yerdeki normale göre gelme açısına eşit bir açıyla yansır.', 'Yalnız yüzeye dik gelen ışınlar yansır, ötekiler yok olur.'],
+          dogru: 1,
+          aciklama: 'Dağınık yansımada da her ışın yansıma kuralına uyar. Işınların dağılmasının nedeni, yüzeyin küçük parçalarının normallerinin farklı yönlere bakmasıdır.',
+          yanlisIpucu: 'Şekildeki pürüzlü yüzeyde her ışının çarptığı yere kısa bir normal çizilmiş. Işın bu normale göre nasıl dönüyor?'
+        }
+      },
+      {
+        baslik: 'Aynadaki görüntü nerede?',
+        sekil: 'sfY102_goruntu',
+        metin: r`Masadaki bir şişeyi düşey bir aynanın önüne koy. Şişenin tepesinden çıkan ışınlar aynaya çarpar ve yansır. Yansıyan ışınlar birbirinden uzaklaşarak ilerler; birkaçı gözüne gelir.
+
+Beynimiz ışığın hep düz bir çizgi boyunca geldiğini varsayar. Bu yüzden yansıyan ışınları geriye doğru uzatır. Şekilde bu **uzantılar** kesikli çizilmiştir. Uzantılar aynanın arkasında bir noktada kesişir. Şişenin tepesini orada görürsün.
+
+- Görüntü aynanın arkasındadır. Aynaya uzaklığı, şişenin aynaya uzaklığına eşittir.
+- Görüntü şişeyle aynı boydadır ve düzdür.
+- Görüntü **sanaldır**: Aynanın arkasına gerçekten ışık gitmez. Bu yüzden bu görüntü bir perdeye düşürülemez.`,
+        kontrol: {
+          soru: 'Şişe aynadan 40 cm uzakta duruyor. Şişe ile görüntüsü arasındaki uzaklık kaç cm\'dir?',
+          secenekler: ['40 cm', '80 cm', '20 cm'],
+          dogru: 1,
+          aciklama: 'Görüntü aynanın 40 cm arkasındadır. Şişe de aynanın 40 cm önünde olduğundan aradaki uzaklık 40 + 40 = 80 cm\'dir.',
+          yanlisIpucu: 'Görüntünün aynaya uzaklığı ile şişenin aynaya uzaklığı eşittir. Şişeden görüntüye giderken aynanın iki yanından da geçersin.'
+        }
+      },
+      {
+        baslik: 'Aynada neleri görebilirsin?',
+        sekil: 'sfY102_gorus',
+        metin: r`Bir aynada her şeyi göremezsin. Aynada görebildiğin bölgeye **görüş alanı** denir. Şekil odayı üstten gösteriyor. Görüş alanını bulmak için şunu yap:
+
+- Önce gözünün ($G$) aynadaki görüntüsünü ($G'$) bul.
+- $G'$ noktasından aynanın iki ucuna doğru çizgiler çiz ve bu çizgileri aynanın önüne uzat.
+- İki çizginin arasında kalan bölge görüş alanıdır.
+
+Şekilde saksı görüş alanının içinde olduğu için aynada görülür. Top ise dışarıda kalır; aynada görülmez.
+
+Görüş alanı aynanın büyüklüğüne ve gözün yerine bağlıdır. Bu konuda hesap yapılmaz; alan çizilerek bulunur.`,
+        kontrol: {
+          soru: 'Göz, aynanın tam karşısında kalarak aynaya yaklaşırsa görüş alanı nasıl değişir?',
+          secenekler: ['Daralır.', 'Değişmez.', 'Genişler.'],
+          dogru: 2,
+          aciklama: 'Göz aynaya yaklaşınca G\' de aynaya yaklaşır. G\' noktasından aynanın uçlarına çizilen çizgiler daha çok açılır ve görüş alanı genişler.',
+          yanlisIpucu: 'Göz yaklaşınca G\' nereye gider? G\' aynaya yakınken aynanın uçlarından geçen çizgiler daha dar mı açılır, daha geniş mi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Bodruma güneş ışığı',
+        metin: r`Sinan, dedesinin evinde bodrumun karanlık köşesini aydınlatmak istiyor. Bodrumun küçük penceresinin önüne bir ayna tutuyor. Güneş ışınları aynaya, normalle 35° açı yaparak geliyor.`,
+        adimlar: [
+          {
+            soru: 'Yansıma açısı kaç derecedir?',
+            secenekler: ['55°', '35°', '70°'],
+            dogru: 1,
+            ipucu: 'Gelme açısı normalle ölçülmüştü. Yansıma kuralı neydi?',
+            aciklama: r`Gelme açısı 35°'dir. Yansıma kuralına göre $i = r$ olduğundan yansıma açısı da 35°'dir.`
+          },
+          {
+            soru: 'Gelen ışın ile yansıyan ışın arasındaki açı kaç derecedir?',
+            secenekler: ['35°', '70°', '110°'],
+            dogru: 1,
+            ipucu: 'İki ışın normalin iki yanındadır. Her biri normalle 35° yapıyor.',
+            aciklama: 'Gelen ışın normalin bir yanında 35°, yansıyan ışın öbür yanında 35° yapar. Aralarındaki açı 35° + 35° = 70°\'dir.'
+          },
+          {
+            soru: 'Sinan aynanın yerine aynı büyüklükte beyaz, mat bir karton tutsaydı köşede ne olurdu?',
+            secenekler: ['Aynı parlaklıkta, keskin kenarlı bir ışık lekesi oluşurdu.', 'Karton ışığı her yöne dağıtırdı; köşeye az ışık gider, keskin bir leke oluşmazdı.', 'Karton ışığı hiç yansıtmadığı için köşeye hiç ışık gitmezdi.'],
+            dogru: 1,
+            ipucu: 'Mat karton pürüzlü bir yüzeydir. Pürüzlü yüzeyde hangi yansıma olur?',
+            aciklama: 'Mat kartonda dağınık yansıma olur. Işık her yöne saçılır; köşeye yalnız bir kısmı ulaşır. Ayna ise ışığı tek bir yöne gönderir ve parlak bir leke oluşturur.'
+          }
+        ],
+        sonuc: 'Yansıma açısı her zaman gelme açısına eşittir. Ayna ışığı tek bir yöne gönderir, mat yüzey ise her yöne dağıtır.'
+      },
+      {
+        baslik: 'Mutfaktan bahçe kapısı',
+        metin: r`Nur, mutfak tezgâhında çalışırken arkasında kalan bahçe kapısını göremiyor. Tezgâhın üstündeki duvara düşey bir düzlem ayna asıyor. Artık başını çevirmeden kapıyı aynada görüyor.`,
+        adimlar: [
+          {
+            soru: 'Nur\'un kapıyı aynada görmesi için ışık hangi yolu izlemelidir?',
+            secenekler: ['Nur\'un gözünden çıkıp aynadan yansıyarak kapıya gitmelidir.', 'Kapıdan çıkıp aynadan yansıyarak Nur\'un gözüne gelmelidir.', 'Kapıdan çıkıp aynanın içinden geçerek duvarın arkasına gitmelidir.'],
+            dogru: 1,
+            ipucu: 'Görme olayında ışık gözden mi çıkar, göze mi gelir?',
+            aciklama: 'Kapıya çarpan ışık yansır, aynaya gelir ve aynadan yansıyarak Nur\'un gözüne ulaşır. Göz ışık göndermez, ışığı alır.'
+          },
+          {
+            soru: 'Nur kapıyı nerede görür?',
+            secenekler: ['Aynanın yüzeyinde, camın tam üstünde.', 'Aynanın arkasında, kapının aynaya göre simetriği olan yerde.', 'Aynanın önünde, kendisi ile ayna arasında.'],
+            dogru: 1,
+            ipucu: 'Düzlem aynada görüntü aynanın neresinde oluşuyordu? Aynaya uzaklığı neye eşitti?',
+            aciklama: 'Görüntü aynanın arkasındadır. Kapı aynadan ne kadar uzaktaysa görüntüsü de aynanın o kadar arkasındadır.'
+          },
+          {
+            soru: 'Nur aynada kapının yalnız bir kısmını görüyor. Hangi değişiklik kapının daha büyük bir kısmını görmesini sağlar?',
+            secenekler: ['Aynayı aynı yerde, daha geniş bir aynayla değiştirmek.', 'Aynanın camını silip daha parlak hâle getirmek.', 'Kapının önüne daha güçlü bir lamba koymak.'],
+            dogru: 0,
+            ipucu: 'Görüş alanı neye bağlıydı? Aynanın büyüklüğüne ve gözün yerine.',
+            aciklama: 'Ayna genişleyince G\' noktasından aynanın uçlarına çizilen çizgiler daha çok açılır. Görüş alanı genişler ve kapının daha büyük bir kısmı alana girer. Parlaklık ya da ışık görüş alanını değiştirmez.'
+          }
+        ],
+        sonuc: 'Aynada bir cismi görmek için cisimden gelen ışık aynadan yansıyıp gözümüze ulaşmalıdır. Neyi görebileceğimizi aynanın büyüklüğü ve gözümüzün yeri belirler.'
+      },
+      {
+        baslik: 'Küvetteki dalgalar',
+        sekil: 'sfY102_dalga',
+        metin: r`Ece, küvetteki suya düz bir cetveli düzenli aralıklarla bastırıp kaldırıyor. Oluşan doğrusal dalgalar küvetin düz kenarına eğik olarak çarpıyor ve geri dönüyor. Suyun derinliği her yerde aynıdır. Şekil küveti üstten gösteriyor ve yalnız gelen dalgaların tepeleri çizilmiştir. Dalga tepeleri küvetin kenarıyla 30° açı yapıyor.`,
+        adimlar: [
+          {
+            soru: 'Dalgaların gelme açısı kaç derecedir?',
+            secenekler: ['60°', '30°', '90°'],
+            dogru: 1,
+            ipucu: 'Dalganın ilerleme yönü tepelere diktir. Normal de kenara diktir. İki çizgiyi de 90° döndürürsen aralarındaki açı değişir mi?',
+            aciklama: 'İlerleme yönü tepelere, normal de kenara diktir. Bu yüzden ilerleme yönü ile normal arasındaki açı, tepeler ile kenar arasındaki açıya eşittir. Gelme açısı 30°\'dir.'
+          },
+          {
+            soru: 'Dalgalar kenardan kaç derecelik yansıma açısıyla döner?',
+            secenekler: ['30°', '60°', '15°'],
+            dogru: 0,
+            ipucu: 'Su dalgaları da ışık gibi yansır. Işıkta hangi kural vardı?',
+            aciklama: r`Su dalgaları da yansıma kuralına uyar: $i = r$. Yansıma açısı 30°'dir.`
+          },
+          {
+            soru: 'Ece cetveli küvetin kenarına paralel tutsaydı dalgalar kenara dik gelirdi. Bu durumda dalgalar kenardan nasıl dönerdi?',
+            secenekler: ['Kenar boyunca kayarak ilerlerdi.', 'Geldikleri yoldan geri dönerdi.', 'Normalle 45° yaparak dönerdi.'],
+            dogru: 1,
+            ipucu: 'Kenara dik gelen dalganın ilerleme yönü normalle aynıdır. Gelme açısı kaç derece olur?',
+            aciklama: 'Dalgalar kenara dik gelince ilerleme yönü normalle çakışır ve gelme açısı 0° olur. Yansıma açısı da 0° olduğundan dalgalar geldikleri yoldan geri döner. Işık da aynaya dik gelince kendi üzerinden döner.'
+          }
+        ],
+        sonuc: 'Su dalgaları da ışık gibi yansır ve gelme açısı yansıma açısına eşittir. Kenara dik gelen dalga, aynaya dik gelen ışık gibi geldiği yoldan geri döner.'
+      }
+    ],
+    hazir: r`Yansımayı, normali, düzgün ve dağınık yansımayı, düzlem aynadaki görüntüyü ve görüş alanını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -6804,6 +7172,129 @@ BFY_FIG_EKLE('iY103_efsane_5', u => EF_OB(u, E => {
 }, { ox: 112, oy: 92, s: 1 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY103_): kart genişliği ~340 px, en küçük yazı 14 ----------
+   Eğri ayna çizimlerinde ışınlar küre yüzeyinden tam yansıma kanunuyla (normal merkezden geçer) yansıtılır; açıklık küçük
+   tutulduğu için paralel ışınlar F'de 3 birimden yakın kesişir. Kareli şekilde not kuralı geçerlidir (ayna T'den geçen düşey doğru).
+   Veriler SF bloğunda; qa/Y.10.3/dogrula.py okur. */
+(function () {
+const { T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f6f5ef', RAY = '#d08a12', MAV = '#2e6f95';
+const SF = /*SF*/{
+  "noktalar": { "eks": 112, "R": 220, "T": 300, "h": 70 },
+  "paralel": { "R": 220, "h": 62, "cukur": { "eks": 88, "T": 316 }, "tumsek": { "eks": 258, "T": 220 }, "isin": [-50, -30, -12] },
+  "ozel": { "eks": 125, "R": 200, "T": 310, "h": 64, "aciM": 12, "hF": -55 },
+  "kareli": { "k": 22, "x0": 306, "y0": 100, "f": 4, "d": 12, "boy": 2 }
+}/*SF*/;
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const cizgi = (x1, y1, x2, y2, c, w = 1.4, o = '') => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${o}/>`;
+const kesik = (x1, y1, x2, y2, c = '#5b6a72', w = 1.4) => cizgi(x1, y1, x2, y2, c, w, ' stroke-dasharray="6 4"');
+function isin(x1, y1, x2, y2, c = RAY, w = 2.2, k = 0.55) {
+  const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, mx = x1 + (x2 - x1) * k, my = y1 + (y2 - y1) * k;
+  return cizgi(x1, y1, x2, y2, c, w) + `<polygon points="${f1(mx + ux * 6)},${f1(my + uy * 6)} ${f1(mx - ux * 5 - uy * 5)},${f1(my - uy * 5 + ux * 5)} ${f1(mx - ux * 5 + uy * 5)},${f1(my - uy * 5 - ux * 5)}" fill="${c}"/>`;
+}
+const yansit = (d, n) => { const k = d[0] * n[0] + d[1] * n[1]; return [d[0] - 2 * k * n[0], d[1] - 2 * k * n[1]]; };
+const nokta = (x, y) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="3.6" fill="#173430"/>`;
+const eksen = (y, x1 = 14, x2 = 326) => cizgi(x1, y, x2, y, '#4b6059', 1.3);
+/* küresel ayna: çukurda yüzey x = mx + √(R² − h²) (merkez solda), tümsekte x = mx − √(R² − h²) (merkez sağda); arka yüz taralı */
+function ayna(mx, my, R, hm, cukur) {
+  const sg = cukur ? 1 : -1, X = h => mx + sg * Math.sqrt(R * R - h * h);
+  let d = '';
+  for (let h = -hm; h <= hm + 0.01; h += hm / 20) d += (d ? ' L' : 'M') + f1(X(h)) + ' ' + f1(my + h);
+  let s = `<path d="${d}" fill="none" stroke="#7d8a92" stroke-width="7" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#e6ecef" stroke-width="2.4" stroke-linecap="round"/>`;
+  for (let h = -hm + 6; h <= hm - 4; h += 11) { const x = X(h); s += cizgi(x + 4, my + h, x + 12, my + h - 7, '#8a949b', 1.2); }
+  return s;
+}
+const vurYatay = (mx, my, R, h, cukur) => [mx + (cukur ? 1 : -1) * Math.sqrt(R * R - h * h), my + h];
+const normalC = (mx, my, R, P) => [(mx - P[0]) / R, (my - P[1]) / R];  /* çukur: yansıtan yüze doğru (merkeze) */
+const normalT = (mx, my, R, P) => [(P[0] - mx) / R, (P[1] - my) / R];  /* tümsek: dışa doğru */
+
+/* Adım 2: çukur aynada M, F, T ve asal eksen */
+BFY_FIG_EKLE('sfY103_noktalar', function (u) {
+  const W = 340, H = 196, g = SF.noktalar, ey = g.eks, R = g.R, tx = g.T, mx = tx - R, fx = tx - R / 2;
+  let s = zemin(W, H) + eksen(ey) + ayna(mx, ey, R, g.h, true);
+  const olcu = (x1, x2, y, ad) => cizgi(x1, y, x2, y, '#4b6059', 1.3) + cizgi(x1, y - 5, x1, y + 5, '#4b6059', 1.3) + cizgi(x2, y - 5, x2, y + 5, '#4b6059', 1.3) + T((x1 + x2) / 2, y - 6, ad, { size: 15, weight: 800, anchor: 'middle', italic: true });
+  s += olcu(fx, tx - 4, ey - 28, 'f') + olcu(mx, tx - 8, ey - 54, 'r');
+  [[mx, 'M', 0], [fx, 'F', 0], [tx, 'T', 18]].forEach(([x, ad, dx]) => { s += nokta(x, ey) + T(x + dx, ey + 22, ad, { size: 15, weight: 800, anchor: 'middle' }); });
+  s += T(14, ey - 8, 'asal eksen', { size: 14, weight: 800 });
+  s += T(tx - 14, 30, 'çukur ayna', { size: 14, weight: 800, anchor: 'end' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 3: paralel ışınlar; çukurda F'de toplanır, tümsekte uzantıları F'de kesişir */
+BFY_FIG_EKLE('sfY103_paralel', function (u) {
+  const W = 340, H = 330, g = SF.paralel, R = g.R;
+  let s = zemin(W, H);
+  // çukur
+  { const ey = g.cukur.eks, tx = g.cukur.T, mx = tx - R, fx = tx - R / 2;
+    s += eksen(ey) + ayna(mx, ey, R, g.h, true);
+    g.isin.forEach(h => {
+      const P = vurYatay(mx, ey, R, h, true), r = yansit([1, 0], normalC(mx, ey, R, P)), t = (P[0] - 112) / -r[0];
+      s += isin(20, P[1], P[0], P[1]) + isin(P[0], P[1], P[0] + t * r[0], P[1] + t * r[1], RAY, 2.2, 0.62);
+    });
+    s += nokta(fx, ey) + T(fx + 14, ey + 22, 'F', { size: 15, weight: 800, anchor: 'middle' });
+    s += T(14, 22, 'Çukur ayna', { size: 15, weight: 800 }); }
+  s += cizgi(14, 166, 326, 166, '#d6d0c2', 1.2);
+  // tümsek
+  { const ey = g.tumsek.eks, tx = g.tumsek.T, mx = tx + R, fx = tx + R / 2;
+    s += eksen(ey) + ayna(mx, ey, R, g.h, false);
+    g.isin.forEach(h => {
+      const P = vurYatay(mx, ey, R, h, false), r = yansit([1, 0], normalT(mx, ey, R, P)), xe = P[0] - (P[1] - ey) * r[0] / r[1];
+      s += isin(20, P[1], P[0], P[1]) + isin(P[0], P[1], P[0] + 70 * r[0], P[1] + 70 * r[1]);
+      s += kesik(P[0], P[1], xe, ey, '#b07a1a', 1.3);
+    });
+    s += nokta(fx, ey) + T(fx, ey + 22, 'F', { size: 15, weight: 800, anchor: 'middle' });
+    s += T(14, 192, 'Tümsek ayna', { size: 15, weight: 800 }); }
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 4: odaktaki lambadan çıkan ışın paralel yansır; merkezden geçen ışın kendi üzerinden döner */
+BFY_FIG_EKLE('sfY103_ozel', function (u) {
+  const W = 340, H = 230, g = SF.ozel, ey = g.eks, R = g.R, tx = g.T, mx = tx - R, fx = tx - R / 2, a = g.aciM * Math.PI / 180;
+  let s = zemin(W, H) + eksen(ey) + ayna(mx, ey, R, g.h, true);
+  // merkezden geçen ışın (mavi)
+  const PM = [mx + R * Math.cos(a), ey + R * Math.sin(a)], S = [20, ey - (mx - 20) * Math.tan(a)];
+  s += isin(S[0], S[1], PM[0], PM[1], MAV, 2.2, 0.3) + isin(PM[0], PM[1], S[0], S[1], MAV, 2.2, 0.3).replace(/<line[^>]*\/>/, '');
+  // odaktan çıkan ışın (turuncu)
+  const PF = vurYatay(mx, ey, R, g.hF, true), d0 = [PF[0] - fx, PF[1] - ey], dl = Math.hypot(...d0), d = [d0[0] / dl, d0[1] / dl];
+  // ders kitabı idealleştirmesi: odaktan çıkan ışın tam olarak asal eksene paralel yansır (küresel sapma çizilmez)
+  const r = [-1, 0], t = PF[0] - 20;
+  s += isin(fx, ey, PF[0], PF[1]) + isin(PF[0], PF[1], PF[0] + t * r[0], PF[1] + t * r[1], RAY, 2.2, 0.5);
+  // odaktaki küçük lamba
+  s += `<defs><radialGradient id="${u}lp" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff4c2"/><stop offset=".5" stop-color="#ffd35c" stop-opacity=".6"/><stop offset="1" stop-color="#ffd35c" stop-opacity="0"/></radialGradient></defs>`;
+  s += `<circle cx="${fx}" cy="${ey}" r="14" fill="url(#${u}lp)"/><circle cx="${fx}" cy="${ey}" r="5" fill="#fffbe8" stroke="#b7801a" stroke-width="1.2"/>`;
+  s += nokta(mx, ey) + nokta(tx, ey);
+  s += T(mx - 6, ey + 22, 'M', { size: 15, weight: 800, anchor: 'end' }) + T(fx - 10, ey - 10, 'F', { size: 15, weight: 800, anchor: 'end' }) + T(tx + 18, ey + 22, 'T', { size: 15, weight: 800, anchor: 'middle' });
+  s += T(14, 96, 'merkezden geçen ışın', { size: 14, weight: 800, fill: '#1f5578' });
+  s += T(14, 56, 'odaktan çıkan ışın', { size: 14, weight: 800, fill: '#8a5a0c' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Isınma 1: kareli zeminde çukur ayna (F 4 kare, M 8 kare), 12 karede 2 kare boyunda fener; iki ışın aynaya kadar */
+BFY_FIG_EKLE('sfY103_kareli', function (u) {
+  const W = 340, H = 190, g = SF.kareli, k = g.k, x0 = g.x0, y0 = g.y0, X = n => x0 - n * k, Y = n => y0 - n * k;
+  let s = zemin(W, H);
+  for (let i = 0; i <= 13; i++) s += cizgi(X(i), Y(3), X(i), Y(-3), '#d9d5c9', 1);
+  for (let j = -3; j <= 3; j++) s += cizgi(X(13), Y(j), x0, Y(j), '#d9d5c9', 1);
+  s += cizgi(X(13), y0, x0, y0, '#4b6059', 1.4);
+  // fener: tepe (d, boy) noktasında
+  const fx = X(g.d), ft = Y(g.boy);
+  s += `<path d="M${fx - 9} ${y0} L${fx - 5} ${ft + 10} H${fx + 5} L${fx + 9} ${y0} Z" fill="#f4f1ea" stroke="#5b4a3a" stroke-width="1.2"/>`;
+  s += `<path d="M${fx - 8.2} ${y0 - 8} L${fx - 7.4} ${y0 - 16} H${fx + 7.4} L${fx + 8.2} ${y0 - 8} Z M${fx - 6.6} ${y0 - 24} L${fx - 5.8} ${ft + 18} H${fx + 5.8} L${fx + 6.6} ${y0 - 24} Z" fill="#c0392b"/>`;
+  s += `<rect x="${fx - 6}" y="${ft + 3}" width="12" height="7" fill="#ffe27a" stroke="#5b4a3a" stroke-width="1"/><path d="M${fx - 7} ${ft + 3} L${fx} ${ft} L${fx + 7} ${ft + 3} Z" fill="#5b4a3a"/>`;
+  // iki ışın
+  s += isin(fx, ft, x0, ft, RAY, 2.2, 0.5);
+  const yF = y0, xF = X(g.f), yv = ft + (yF - ft) * (x0 - fx) / (xF - fx);
+  s += isin(fx, ft, x0, yv, RAY, 2.2, 0.35);
+  // çukur ayna sembolü: uçları öne kıvrık düşey doğru
+  s += `<path d="M${x0 - 10} ${Y(3) - 6} Q${x0} ${Y(3) - 6} ${x0} ${Y(3) + 4} V${Y(-3) - 4} Q${x0} ${Y(-3) + 6} ${x0 - 10} ${Y(-3) + 6}" fill="none" stroke="#7d8a92" stroke-width="5" stroke-linecap="round"/>`;
+  [[X(g.f), 'F'], [X(2 * g.f), 'M']].forEach(([x, ad]) => { s += nokta(x, y0) + T(x - 6, y0 + 20, ad, { size: 15, weight: 800, anchor: 'end' }); });
+  s += nokta(x0, y0) + T(x0 + 14, y0 + 20, 'T', { size: 15, weight: 800, anchor: 'middle' });
+  s += T(fx, Y(-3) + 18, 'fener', { size: 14, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -6857,6 +7348,191 @@ const KONU = {
     'kareli kâğıtta adım adım yaklaşan cisim, görüntü hep düz ve büyüyor (olabilir)', 'P, R, S aynaları 12 cm ve 50 cm gözlem tablosu (kesinlikle)',
     'kareli çukur ayna f = 3, sanal görüntü 6 birimde boy 3, cismi bulma', 'sahne spotu: ampul F\'de ve F–M arasında, perdedeki aydınlık leke'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Programda hesap yok; yalnız r = 2f ilişkisi ve kareli çizim. Doğru şıklar ve şekil geometrisi qa/Y.10.3/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Eğri ve parlak yüzeylerin ışığı nasıl yansıttığını, odak noktasını ve görüntünün nasıl oluştuğunu kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Çukur ayna, tümsek ayna',
+        metin: r`Parlak, kubbe biçimli bir tencere kapağı al. Kapağın yüzeyi bir kürenin parçasına benzer. Dış yüzüne bakınca yüzün küçülmüş görünür. Kapağı ters çevirip iç yüzüne bakınca bambaşka bir görüntü görürsün.
+
+Yansıtıcı yüzeyi bir kürenin parçası olan aynaya **küresel ayna** denir.
+
+- Kürenin **iç yüzü** yansıtıyorsa ayna **çukur aynadır**. Kapağın iç yüzü böyledir.
+- Kürenin **dış yüzü** yansıtıyorsa ayna **tümsek aynadır**. Kapağın dış yüzü böyledir.
+
+Aynanın her küçük parçasında yine bildiğin kural geçerlidir: Gelme açısı yansıma açısına eşittir.`,
+        kontrol: {
+          soru: 'Parlak bir yılbaşı süsü topuna dışarıdan bakıyorsun. Bu top nasıl bir ayna gibi davranır?',
+          secenekler: ['Çukur ayna', 'Tümsek ayna', 'Düzlem ayna'],
+          dogru: 1,
+          aciklama: 'Topun dış yüzü yansıtıyor. Bir kürenin dış yüzü yansıtıyorsa ayna tümsek aynadır.',
+          yanlisIpucu: 'Topun hangi yüzüne bakıyorsun: içine mi, dışına mı?'
+        }
+      },
+      {
+        baslik: 'Merkez, odak ve tepe noktası',
+        sekil: 'sfY103_noktalar',
+        metin: r`Küresel aynayı tanımak için dört şeyi bilmen yeter. Şekil bir çukur aynayı yandan gösteriyor.
+
+- **Merkez ($M$):** Aynanın parçası olduğu kürenin merkezidir.
+- **Tepe noktası ($T$):** Aynanın tam ortasıdır.
+- **Asal eksen:** $M$ ve $T$ noktalarından geçen doğrudur.
+- **Odak noktası ($F$):** $M$ ile $T$'nin tam ortasındadır.
+
+$T$ ile $M$ arasındaki uzaklık kürenin yarıçapıdır ($r$). $F$ ile $T$ arasındaki uzaklığa **odak uzaklığı** ($f$) denir. $F$ noktası tam ortada olduğu için $r = 2f$'dir.`,
+        kontrol: {
+          soru: 'Bir çukur aynanın merkezi, tepe noktasından 60 cm uzakta. Odak noktası tepe noktasından kaç cm uzaktadır?',
+          secenekler: ['30 cm', '60 cm', '120 cm'],
+          dogru: 0,
+          aciklama: r`Odak noktası merkez ile tepe noktasının tam ortasındadır: $f = \dfrac{60}{2} = 30$ cm.`,
+          yanlisIpucu: 'F noktası, T ile M arasında nerede duruyordu?'
+        }
+      },
+      {
+        baslik: 'Paralel ışınlar odakta buluşur',
+        sekil: 'sfY103_paralel',
+        metin: r`Çok uzaktaki bir kaynaktan gelen ışınlar aynaya neredeyse paralel ulaşır. Asal eksene paralel gelen ışınlar iki aynada farklı davranır.
+
+- **Çukur ayna** paralel ışınları toplar. Yansıyan ışınlar odak noktasından ($F$) geçer.
+- **Tümsek ayna** paralel ışınları dağıtır. Yansıyan ışınlar birbirinden uzaklaşır. Bu ışınların aynanın arkasına doğru uzantıları $F$ noktasında kesişir.
+
+Tümsek aynada $F$ ve $M$ aynanın arkasındadır. Bu yüzden orada ışınların kendisi değil, uzantıları buluşur.`,
+        kontrol: {
+          soru: 'Tümsek aynaya asal eksene paralel gelen ışınlar yansıyınca ne olur?',
+          secenekler: ['Aynanın önündeki bir noktada toplanır.', 'Birbirinden uzaklaşır; uzantıları aynanın arkasındaki F noktasında kesişir.', 'Geldikleri yoldan geri döner.'],
+          dogru: 1,
+          aciklama: 'Tümsek ayna ışınları dağıtır. Yansıyan ışınlar kesişmez; geriye doğru uzantıları aynanın arkasındaki odak noktasında kesişir.',
+          yanlisIpucu: 'Şeklin alt bölümüne bak. Tümsek aynadan yansıyan ışınlar birbirine yaklaşıyor mu, uzaklaşıyor mu?'
+        }
+      },
+      {
+        baslik: 'İki kolay ışın daha',
+        sekil: 'sfY103_ozel',
+        metin: r`Çukur aynada yolunu kolayca bildiğimiz iki ışın daha var.
+
+- **Odaktan çıkıp** aynaya gelen ışın, yansıyınca asal eksene **paralel** gider. Bu, bir önceki adımdaki yolun tersidir. Işık bir yolu iki yönde de izleyebilir.
+- **Merkezden geçerek** aynaya gelen ışın, aynaya dik çarpar. Bu yüzden **kendi üzerinden** geri döner.
+
+Merkezden gelen ışın neden dik çarpar? Merkezden aynaya çizilen her çizgi kürenin yarıçapıdır ve yarıçap küre yüzeyine diktir. Yani bu çizgi, çarptığı noktadaki normaldir.`,
+        kontrol: {
+          soru: 'Çukur aynanın odak noktasına küçük bir lamba konuyor. Lambadan çıkıp aynaya çarpan ışınlar yansıyınca nasıl ilerler?',
+          secenekler: ['Asal eksene paralel ilerler.', 'Yine odak noktasında toplanır.', 'Hepsi merkezden geçer.'],
+          dogru: 0,
+          aciklama: 'Odaktan gelen her ışın asal eksene paralel yansır. Bu yüzden aynadan paralel bir ışık demeti çıkar.',
+          yanlisIpucu: 'Paralel gelen ışın odaktan geçiyordu. Işık aynı yolu tersinden izlerse ne olur?'
+        }
+      },
+      {
+        baslik: 'Görüntü nasıl olur?',
+        metin: r`Tencere kapağına geri dönelim.
+
+- Kapağın iç yüzüne, yani çukur aynaya uzaktan bakarsan kendini **ters** ve **küçük** görürsün. Bu görüntü, yansıyan ışınların kendilerinin kesiştiği yerde oluşur; **gerçektir**.
+- Yüzünü çukur aynaya çok yaklaştırırsan, yani $F$ ile $T$ arasına girersen görüntün **düz** ve **büyük** olur. Bu görüntü uzantıların kesiştiği yerde, aynanın arkasında oluşur; **sanaldır**.
+- Kapağın dış yüzünde, yani tümsek aynada görüntü her zaman **düz, sanal ve küçüktür**.
+
+Tek bir ayna için kısa bir kural var: Gerçek görüntü terstir, sanal görüntü düzdür.`,
+        kontrol: {
+          soru: 'Çukur aynada bir cismin görüntüsü düz ve cisimden büyük. Cisim nerededir?',
+          secenekler: ['M noktasının dışında', 'F ile M arasında', 'F ile T arasında'],
+          dogru: 2,
+          aciklama: 'Çukur aynada düz ve büyük görüntü yalnız cisim F ile T arasındayken oluşur. Bu görüntü sanaldır ve aynanın arkasındadır.',
+          yanlisIpucu: 'Düz görüntü sanaldır. Çukur aynada sanal görüntü, cisim aynaya çok yakınken oluşuyordu.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Oyuncak deniz feneri',
+        sekil: 'sfY103_kareli',
+        metin: r`Kareli zeminde bir çukur ayna var. Odak noktası $F$ aynadan 4 kare, merkezi $M$ aynadan 8 kare uzakta. Boyu 2 kare olan ışıklı bir oyuncak deniz feneri, aynadan 12 kare uzakta duruyor. Fenerin tepesinden aynaya iki ışın gidiyor: Biri asal eksene paralel, öbürü $F$'den geçiyor. Kareli çizimde ışınları, aynanın tepe noktasından geçen düşey doğruda yansıtırız.`,
+        adimlar: [
+          {
+            soru: 'Asal eksene paralel giden ışın yansıyınca hangi noktadan geçer?',
+            secenekler: ['M', 'F', 'T'],
+            dogru: 1,
+            ipucu: 'Çukur ayna paralel ışınları nerede topluyordu?',
+            aciklama: r`Asal eksene paralel gelen ışın yansıyınca odak noktasından ($F$) geçer. Işın aynaya asal eksenin 2 kare üstünde çarpar; yansıdıktan sonra her 2 karede 1 kare inerek $F$'ye ulaşır.`
+          },
+          {
+            soru: 'F\'den geçen ışın aynanın neresine çarpar ve nasıl yansır?',
+            secenekler: ['Asal eksenin 1 kare altına çarpar ve asal eksene paralel yansır.', 'Tepe noktasına çarpar ve kendi üzerinden döner.', 'Asal eksenin 1 kare altına çarpar ve yine F\'den geçerek döner.'],
+            dogru: 0,
+            ipucu: 'Işın fenerin tepesinden F\'ye kadar 8 karede 2 kare iniyor. F\'den aynaya 4 kare daha gidince kaç kare daha iner?',
+            aciklama: 'Işın 8 karede 2 kare indiğine göre 4 karede 1 kare iner ve asal eksenin 1 kare altına çarpar. Odaktan geçen ışın asal eksene paralel yansır.'
+          },
+          {
+            soru: 'Yansıyan iki ışının kesiştiği yerde oluşan görüntü için hangisi doğrudur?',
+            secenekler: ['Aynanın arkasındadır; düz ve büyüktür.', 'Aynadan 6 kare uzaktadır; ters ve 1 kare boyundadır.', 'Aynadan 12 kare uzaktadır; ters ve 2 kare boyundadır.'],
+            dogru: 1,
+            ipucu: 'İkinci ışın asal eksenin 1 kare altında yatay gidiyor. Birinci ışın F\'yi geçtikten sonra ne kadar ilerleyince 1 kare aşağıya iner?',
+            aciklama: 'Birinci ışın F\'den sonra 2 kare daha gidince 1 kare aşağı iner; burası aynadan 6 kare uzaktadır. İki ışın burada kesişir. Görüntünün tepesi asal eksenin 1 kare altındadır: Görüntü gerçek, ters ve 1 kare boyundadır, yani cisimden küçüktür.'
+          }
+        ],
+        sonuc: 'Cisim M noktasının dışındayken çukur aynada görüntü F ile M arasında oluşur. Görüntü gerçek, ters ve cisimden küçüktür.'
+      },
+      {
+        baslik: 'Otobüs kapısındaki ayna',
+        metin: r`Bir şehir otobüsünün arka kapısının yanına tümsek bir ayna takılmış. Şoför, kendi koltuğundan bu aynaya bakarak arka kapıdan inen yolcuları görüyor.`,
+        adimlar: [
+          {
+            soru: 'Şoför yolcuların görüntüsünü nasıl görür?',
+            secenekler: ['Ters ve küçük', 'Düz ve küçük', 'Düz ve büyük'],
+            dogru: 1,
+            ipucu: 'Tümsek aynada görüntü her zaman nasıldı?',
+            aciklama: 'Tümsek ayna her zaman düz, sanal ve cisimden küçük görüntü verir.'
+          },
+          {
+            soru: 'Bu iş için düzlem ayna yerine tümsek ayna seçilmesinin nedeni hangisidir?',
+            secenekler: ['Görüntüyü büyüttüğü için.', 'Daha geniş bir alanı gösterdiği için.', 'Gerçek görüntü verdiği için.'],
+            dogru: 1,
+            ipucu: 'Tümsek ayna ışınları dağıtıyordu. Çok farklı yönlerden gelen ışınlar aynı göze ulaşabilir mi?',
+            aciklama: 'Tümsek ayna ışınları dağıttığı için çok farklı yönlerden gelen ışınları şoförün gözüne gönderebilir. Görüntüler küçülür ama görüş alanı genişler.'
+          },
+          {
+            soru: 'Yolcunun görüntüsü nerede oluşur?',
+            secenekler: ['Aynanın önünde, F noktasında.', 'Aynanın arkasında, F ile T arasında.', 'Aynanın arkasında, M noktasının da ötesinde.'],
+            dogru: 1,
+            ipucu: 'Görüntü sanal olduğuna göre aynanın önünde mi, arkasında mı olur? Tümsek aynada görüntü, odaktan daha uzağa gidemez.',
+            aciklama: 'Tümsek aynada görüntü uzantıların kesiştiği yerde, aynanın arkasında oluşur. Cisim ne kadar uzakta olursa olsun görüntü F ile T arasındadır.'
+          }
+        ],
+        sonuc: 'Tümsek ayna her zaman düz, sanal ve küçük görüntü verir ama geniş bir alanı gösterir. Geniş bir alanı izlemek gereken yerlerde bu yüzden tümsek ayna kullanılır.'
+      },
+      {
+        baslik: 'Çatıdaki çanak anten',
+        metin: r`Bir evin çatısındaki çanak antenin içi, çukur bir ayna gibi davranır. Uydu çok uzakta olduğu için ondan gelen yayın dalgaları antene asal eksene paralel ulaşır. Bu dalgalar da ışık gibi yansıma kuralına uyar. Çanağın parçası olduğu kürenin yarıçapı 80 cm'dir.`,
+        adimlar: [
+          {
+            soru: 'Çanaktan yansıyan dalgalar nerede toplanır?',
+            secenekler: ['Merkezde (M)', 'Odak noktasında (F)', 'Tepe noktasında (T)'],
+            dogru: 1,
+            ipucu: 'Asal eksene paralel gelen ışınlar çukur aynada nereden geçiyordu?',
+            aciklama: 'Paralel gelen dalgalar yansıyınca odak noktasında toplanır. Bu yüzden alıcı odak noktasına yerleştirilir.'
+          },
+          {
+            soru: 'Alıcı, çanağın tepe noktasından kaç cm uzağa konmalıdır?',
+            secenekler: ['80 cm', '40 cm', '20 cm'],
+            dogru: 1,
+            ipucu: r`$r = 2f$ bağıntısını hatırla.`,
+            aciklama: r`Odak uzaklığı yarıçapın yarısıdır: $f = \dfrac{80}{2} = 40$ cm.`
+          },
+          {
+            soru: 'Teknisyen alıcıyı yanlışlıkla merkeze (M) yerleştirseydi ne olurdu?',
+            secenekler: ['Dalgalar alıcıda yine toplanırdı.', 'Dalgalar alıcıda toplanmaz, yayın zayıf alınırdı.', 'Dalgalar kendi üzerinden dönüp uyduya geri giderdi.'],
+            dogru: 1,
+            ipucu: 'Paralel gelen dalgalar M\'de mi, F\'de mi buluşuyordu?',
+            aciklama: 'Paralel gelen dalgalar yalnız F noktasında toplanır. M noktasında toplanmadıkları için alıcıya az dalga ulaşır ve yayın zayıf alınır.'
+          }
+        ],
+        sonuc: 'Çukur ayna, paralel gelen ışığı ya da dalgaları odak noktasında toplar. Güneş ocakları ve çanak antenler bu ilkeyle çalışır.'
+      }
+    ],
+    hazir: r`Çukur ve tümsek aynayı, M, F ve T noktalarını, özel ışınları ve görüntünün özelliklerini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -8518,6 +9194,110 @@ BFY_FIG_EKLE('kY104_tamyans', function (u) {
 });
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY104_): kart genişliği ~340 px, en küçük yazı 14 ----------
+   Kırılma açıları n₁ sin i = n₂ sin r ile hesaplanır (cam 3/2, su 4/3); açılar normalle ölçülür. Görünür yer iki komşu
+   kırılmış ışının geriye uzantılarının kesişimidir. Veriler SF bloğunda; qa/Y.10.4/dogrula.py okur. */
+(function () {
+const { T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1), R = Math.PI / 180;
+const BG = '#f6f5ef', RAY = '#d08a12', NRM = '#5b6a72';
+const SF = /*SF*/{
+  "kirilma": { "O": 170, "ust": { "y": 92, "n1": 1, "n2": 1.5, "i": 50 }, "alt": { "y": 258, "n1": 1.5, "n2": 1, "i": 30 } },
+  "tam": { "su": 120, "dip": 222, "S": 40, "n": 1.3333333333333333, "aci": [25, 62] },
+  "gorunur": { "su": 110, "O": [90, 240], "n": 1.3333333333333333, "aci": [28, 32] }
+}/*SF*/;
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const cizgi = (x1, y1, x2, y2, c, w = 1.4, o = '') => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${o}/>`;
+const kesik = (x1, y1, x2, y2, c = NRM, w = 1.4) => cizgi(x1, y1, x2, y2, c, w, ' stroke-dasharray="6 4"');
+function isin(x1, y1, x2, y2, c = RAY, w = 2.2, k = 0.55, op = 1) {
+  const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, mx = x1 + (x2 - x1) * k, my = y1 + (y2 - y1) * k;
+  return `<g opacity="${op}">` + cizgi(x1, y1, x2, y2, c, w) + `<polygon points="${f1(mx + ux * 6)},${f1(my + uy * 6)} ${f1(mx - ux * 5 - uy * 5)},${f1(my - uy * 5 + ux * 5)} ${f1(mx - ux * 5 + uy * 5)},${f1(my - uy * 5 - ux * 5)}" fill="${c}"/></g>`;
+}
+function yay(cx, cy, r, a1, a2, c = '#7a5a12') {
+  const p = a => [cx + r * Math.cos(a * R), cy + r * Math.sin(a * R)], [x1, y1] = p(a1), [x2, y2] = p(a2);
+  return `<path d="M${f1(x1)} ${f1(y1)} A${r} ${r} 0 0 ${a2 > a1 ? 1 : 0} ${f1(x2)} ${f1(y2)}" fill="none" stroke="${c}" stroke-width="1.6"/>`;
+}
+const snell = (n1, n2, i) => { const s = n1 * Math.sin(i * R) / n2; return s > 1 ? null : Math.asin(s) / R; };
+const camDolgu = u => `<defs><linearGradient id="${u}cm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe9ee"/><stop offset="1" stop-color="#9fcfd9"/></linearGradient></defs>`;
+
+/* Adım 3: havadan cama normale yaklaşır, camdan havaya normalden uzaklaşır */
+BFY_FIG_EKLE('sfY104_kirilma', function (u) {
+  const W = 340, H = 340, g = SF.kirilma, ox = g.O;
+  let s = zemin(W, H) + camDolgu(u);
+  [[g.ust, 0, 'hava', 'cam', 'normale yaklaşır'], [g.alt, 172, 'cam', 'hava', 'normalden uzaklaşır']].forEach(([p, y0, a1, a2, sonuc]) => {
+    const oy = p.y, r = snell(p.n1, p.n2, p.i), camUst = p.n1 > p.n2;
+    s += `<rect x="14" y="${camUst ? y0 + 8 : oy}" width="312" height="${camUst ? oy - y0 - 8 : y0 + 160 - oy}" fill="url(#${u}cm)"/>`;
+    s += cizgi(14, oy, 326, oy, '#4f8d9a', 2);
+    s += kesik(ox, oy - 78, ox, oy + 66);
+    const A = [ox - 84 * Math.sin(p.i * R), oy - 84 * Math.cos(p.i * R)], B = [ox + 72 * Math.sin(r * R), oy + 72 * Math.cos(r * R)];
+    s += isin(A[0], A[1], ox, oy) + isin(ox, oy, B[0], B[1]);
+    s += yay(ox, oy, 34, -90 - p.i, -90) + yay(ox, oy, 34, 90 - r, 90);
+    s += T(ox + 48 * Math.cos((-90 - p.i / 2) * R), oy + 48 * Math.sin((-90 - p.i / 2) * R) + 5, 'i', { size: 16, weight: 800, anchor: 'middle', italic: true });
+    s += T(ox + 48 * Math.cos((90 - r / 2) * R), oy + 48 * Math.sin((90 - r / 2) * R) + 5, 'r', { size: 16, weight: 800, anchor: 'middle', italic: true });
+    s += T(20, oy - 54, a1, { size: 14, weight: 800 }) + T(20, oy + 52, a2, { size: 14, weight: 800 });
+    s += T(320, oy - 56, sonuc, { size: 14, weight: 800, anchor: 'end', fill: '#8a3a12' });
+  });
+  s += cizgi(14, 172, 326, 172, '#d6d0c2', 1.2);
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 4: sudan havaya üç ışın; kırılma, sınır açısı (yüzeyi yalama), tam yansıma */
+BFY_FIG_EKLE('sfY104_tam', function (u) {
+  const W = 340, H = 258, g = SF.tam, ys = g.su, yb = g.dip, sx = g.S, D = yb - ys, n = g.n, ts = Math.asin(1 / n) / R;
+  const vur = a => sx + D * Math.tan(a * R), [a1, a3] = g.aci, x1 = vur(a1), x2 = vur(ts), x3 = vur(a3);
+  let s = zemin(W, H);
+  s += `<rect x="14" y="${ys}" width="312" height="${D}" fill="url(#${u}water)" opacity=".45"/>` + cizgi(14, ys, 326, ys, '#2a79ad', 2);
+  s += `<rect x="10" y="${yb}" width="320" height="10" rx="2" fill="#b9c3c8" stroke="#7d8a92" stroke-width="1"/>`;
+  [x1, x2, x3].forEach(x => { s += kesik(x, ys - 30, x, ys + 30, NRM, 1.2); });
+  // 1: kırılma ve zayıf yansıma
+  const r1 = Math.asin(n * Math.sin(a1 * R));
+  s += isin(sx, yb, x1, ys) + isin(x1, ys, x1 + 90 * Math.sin(r1), ys - 90 * Math.cos(r1));
+  s += isin(x1, ys, x1 + 46 * Math.sin(a1 * R), ys + 46 * Math.cos(a1 * R), RAY, 1.6, 0.6, 0.35);
+  // 2: sınır açısı, kırılan ışın yüzeyi yalar
+  s += isin(sx, yb, x2, ys) + isin(x2, ys - 2, x2 + 54, ys - 2, RAY, 2.2, 0.5);
+  s += isin(x2, ys, x2 + 46 * Math.sin(ts * R), ys + 46 * Math.cos(ts * R), RAY, 1.6, 0.6, 0.35);
+  // 3: tam yansıma
+  const t3 = (322 - x3) / Math.sin(a3 * R);
+  s += isin(sx, yb, x3, ys) + isin(x3, ys, 322, ys + t3 * Math.cos(a3 * R));
+  s += yay(x2, ys, 26, 90, 90 + ts, '#2f363b');
+  // etiket yayın sol ucunun yanında, 2. ışının solunda: 3. ışının ve zayıf yansımaların üstüne binmez
+  s += T(x2 - 38, ys + 17, 'θ_s', { size: 15, weight: 800, anchor: 'middle', italic: true });
+  // led
+  s += `<circle cx="${sx}" cy="${yb}" r="15" fill="#ffd35c" opacity=".35"/><path d="M${sx - 7} ${yb} A7 7 0 0 1 ${sx + 7} ${yb} Z" fill="#fff4c2" stroke="#b7801a" stroke-width="1.2"/>`;
+  s += T(x1 + 90 * Math.sin(r1) + 8, ys - 90 * Math.cos(r1) + 4, '1', { size: 15, weight: 800 });
+  s += T(x2 + 30, ys - 12, '2', { size: 15, weight: 800 });
+  s += T(316, ys + t3 * Math.cos(a3 * R) + 20, '3', { size: 15, weight: 800, anchor: 'middle' });
+  s += T(20, 40, 'hava', { size: 14, weight: 800 }) + T(20, ys + 50, 'su', { size: 14, weight: 800, fill: '#173f58' });
+  s += T(sx - 18, yb + 28, 'lamba', { size: 14, weight: 800 });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 5: akvaryumun dibindeki kabuk; kırılan ışınların uzantıları gerçek yerin üstünde kesişir */
+BFY_FIG_EKLE('sfY104_gorunur', function (u) {
+  const W = 340, H = 276, g = SF.gorunur, ys = g.su, [ox, oy] = g.O, n = g.n;
+  const H1 = g.aci.map(a => [ox + (oy - ys) * Math.tan(a * R), ys]), rr = g.aci.map(a => Math.asin(n * Math.sin(a * R)));
+  const d = rr.map(r => [-Math.sin(r), Math.cos(r)]);
+  const sK = ((H1[1][0] - H1[0][0]) * d[1][1] - 0 * d[1][0]) / (d[0][0] * d[1][1] - d[0][1] * d[1][0]);
+  const G = [H1[0][0] + sK * d[0][0], H1[0][1] + sK * d[0][1]];
+  let s = zemin(W, H);
+  s += `<rect x="14" y="${ys}" width="312" height="${oy + 14 - ys}" fill="url(#${u}water)" opacity=".45"/>` + cizgi(14, ys, 326, ys, '#2a79ad', 2);
+  s += `<path d="M14 ${oy + 6} Q90 ${oy - 2} 170 ${oy + 6} T326 ${oy + 4} V${oy + 14} H14 Z" fill="url(#${u}sack)"/>`;
+  H1.forEach(([x]) => { s += kesik(x, ys - 26, x, ys + 26, NRM, 1.1); });
+  const E = H1.map(([x], i) => [x + 92 * Math.sin(rr[i]), ys - 92 * Math.cos(rr[i])]);
+  H1.forEach(([x, y], i) => { s += isin(ox, oy - 6, x, y, RAY, 2, 0.5) + isin(x, y, E[i][0], E[i][1], RAY, 2, 0.5) + kesik(x, y, G[0], G[1], '#b07a1a', 1.3); });
+  const kabuk = (x, y, op, kes) => `<g opacity="${op}"><path d="M${x - 13} ${y} Q${x - 15} ${y - 14} ${x} ${y - 16} Q${x + 15} ${y - 14} ${x + 13} ${y} Q${x} ${y + 5} ${x - 13} ${y} Z" fill="#f2c9a8" stroke="#a4643c" stroke-width="1.3"${kes ? ' stroke-dasharray="4 3"' : ''}/>` +
+    [-8, -3, 3, 8].map(k => `<path d="M${x} ${y + 1} L${x + k * 1.2} ${y - 14}" stroke="#a4643c" stroke-width="1"/>`).join('') + '</g>';
+  s += kabuk(ox, oy, 1, false) + kabuk(G[0], G[1] + 6, 0.45, true);
+  const em = [(E[0][0] + E[1][0]) / 2 + 8, (E[0][1] + E[1][1]) / 2 - 8];
+  s += `<g transform="translate(${f1(em[0])} ${f1(em[1])}) rotate(${f1(90 + (rr[0] + rr[1]) / 2 / R)})"><path d="M-16 0 Q0 -12 16 0 Q0 12 -16 0 Z" fill="#fff" stroke="#2f363b" stroke-width="1.6"/><circle cx="5" cy="0" r="6" fill="#4f7fa8"/><circle cx="5" cy="0" r="2.8" fill="#1d2326"/></g>`;
+  s += T(em[0] + 22, em[1] + 6, 'göz', { size: 14, weight: 800 });
+  s += T(ox, oy + 30, 'kabuk', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(G[0] - 18, G[1] + 2, 'görüntü', { size: 14, weight: 800, anchor: 'end' });
+  s += T(20, 40, 'hava', { size: 14, weight: 800 }) + T(20, ys + 30, 'su', { size: 14, weight: 800, fill: '#173f58' });
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -8575,6 +9355,188 @@ const KONU = {
     'iki özdeş kapta su ve gliserin, işaretler eşit görünür derinlikte (kesinlikle)', 'yarım daire plastik blokla sınır açısı ölçümü, değişkenler',
     'paralel yüzlü K, L, M katmanları: K\'den gelen ışın L\'de kırılıp L–M yüzeyinde tam yansıyor (n_L > n_K, n_M < n_K, kesinlikle)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Snell hesabı yok; yalnız normale yaklaşma, uzaklaşma ve sınır açısıyla karşılaştırma. Doğru şıklar ve şekil açıları qa/Y.10.4/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Işığın bir ortamdan ötekine geçerken neden yön değiştirdiğini, ne zaman hiç geçemediğini ve suyun içindeki cisimlerin neden olduğundan farklı yerde göründüğünü kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Işık ortam değiştirince yön değiştirir',
+        metin: r`Bir alışveriş arabasını asfalttan çimenliğe eğik olarak ittiğini düşün. Arabanın bir yanındaki tekerler önce çimene girer ve yavaşlar. Öbür yandaki tekerler hâlâ asfaltta daha hızlı gider. Bu yüzden araba çimene girerken döner.
+
+Işık da havadan suya ya da cama geçerken hız değiştirir. Yüzeye eğik gelen ışık bu yüzden yön değiştirir. Bu olaya **kırılma** denir. İki ortamı ayıran yüzeye **ayırma yüzeyi** denir.
+
+Su dalgaları da derin sudan sığ suya geçerken yavaşlar ve aynı biçimde yön değiştirir.`,
+        kontrol: {
+          soru: 'Işık iki ortamın ayırma yüzeyine eğik gelince neden yön değiştirir?',
+          secenekler: ['İki ortamda hızı farklı olduğu için.', 'Ayırma yüzeyi ışığı geri yansıttığı için.', 'Işığın rengi değiştiği için.'],
+          dogru: 0,
+          aciklama: 'Kırılmanın nedeni, ışığın iki ortamdaki hızlarının farklı olmasıdır. Eğik gelen ışının bir yanı yeni ortama önce girer ve hızı önce değişir.',
+          yanlisIpucu: 'Alışveriş arabası neden dönüyordu? Tekerlerin neyi farklıydı?'
+        }
+      },
+      {
+        baslik: 'Kırıcılık indisi',
+        metin: r`Işık boşlukta en hızlı ilerler. Havada da neredeyse bu kadar hızlıdır. Suda ve camda ise yavaşlar.
+
+Bir ortamın **kırıcılık indisi** ($n$), ışığın boşluktaki hızının o ortamdaki hızına oranıdır:
+
+$n = \dfrac{c}{\vartheta}$
+
+Burada $c$ ışığın boşluktaki hızı, $\vartheta$ ortamdaki hızıdır. Işık bir ortamda ne kadar yavaşsa o ortamın kırıcılık indisi o kadar büyüktür. Kırıcılık indisi büyük olan ortama **çok kırıcı**, küçük olana **az kırıcı** ortam denir. Hava az kırıcıdır; su havadan, cam da sudan daha kırıcıdır.`,
+        kontrol: {
+          soru: 'Işık K ortamında, L ortamındakinden daha yavaş ilerliyor. Hangisi doğrudur?',
+          secenekler: ['K ortamı L ortamından daha kırıcıdır.', 'L ortamı K ortamından daha kırıcıdır.', 'İki ortamın kırıcılık indisi eşittir.'],
+          dogru: 0,
+          aciklama: 'Işık hangi ortamda daha yavaşsa o ortamın kırıcılık indisi daha büyüktür. K daha kırıcıdır.',
+          yanlisIpucu: r`$n = \dfrac{c}{\vartheta}$ bağıntısında $\vartheta$ küçülürse $n$ ne olur?`
+        }
+      },
+      {
+        baslik: 'Normale yaklaşmak, normalden uzaklaşmak',
+        sekil: 'sfY104_kirilma',
+        metin: r`Kırılmayı çizerken de ayırma yüzeyine dik bir **normal** çizeriz. Gelme açısı ($i$) ve kırılma açısı ($r$) normalle ölçülür.
+
+- Işık **az kırıcı ortamdan çok kırıcı ortama** geçerken (havadan cama) yavaşlar ve **normale yaklaşır**: $r$, $i$'den küçüktür.
+- Işık **çok kırıcı ortamdan az kırıcı ortama** geçerken (camdan havaya) hızlanır ve **normalden uzaklaşır**: $r$, $i$'den büyüktür.
+- Yüzeye **dik** gelen ışık yön değiştirmeden geçer. Hızı yine değişir.
+
+İki ortamın kırıcılıkları arasındaki fark büyüdükçe ışın daha çok sapar.`,
+        kontrol: {
+          soru: 'Sudan havaya eğik çıkan bir ışın için hangisi doğrudur?',
+          secenekler: ['Normale yaklaşır.', 'Normalden uzaklaşır.', 'Yön değiştirmez.'],
+          dogru: 1,
+          aciklama: 'Su havadan daha kırıcıdır. Işık çok kırıcı ortamdan az kırıcı ortama geçerken hızlanır ve normalden uzaklaşır.',
+          yanlisIpucu: 'Hangisi daha kırıcı: su mu, hava mı? Işık bu geçişte yavaşlıyor mu, hızlanıyor mu?'
+        }
+      },
+      {
+        baslik: 'Işık geçemeyince: tam yansıma',
+        sekil: 'sfY104_tam',
+        metin: r`Şekilde su dolu bir kabın dibine su geçirmez küçük bir lamba konmuş. Lambadan yüzeye üç ışın gidiyor. Işık sudan havaya, yani çok kırıcı ortamdan az kırıcı ortama geçmeye çalışıyor.
+
+- **1. ışın** küçük bir gelme açısıyla gelir. Normalden uzaklaşarak havaya çıkar.
+- **2. ışın** daha büyük bir açıyla gelir. Kırılan ışın yüzeyi yalayarak gider; kırılma açısı $90°$'dir. Bu gelme açısına **sınır açısı** ($\theta_s$) denir.
+- **3. ışın** sınır açısından büyük bir açıyla gelir. Havaya hiç çıkamaz, tamamı suya geri yansır. Buna **tam yansıma** denir.
+
+Tam yansıma yalnız ışık çok kırıcı ortamdan az kırıcı ortama giderken olabilir. Fiber optik kablolar ışığı bu sayede taşır.`,
+        kontrol: {
+          soru: 'Tam yansıma hangi geçişte olabilir?',
+          secenekler: ['Havadan suya', 'Havadan cama', 'Camdan havaya'],
+          dogru: 2,
+          aciklama: 'Tam yansıma için ışık çok kırıcı ortamdan az kırıcı ortama gitmelidir. Cam havadan daha kırıcıdır; camdan havaya geçişte tam yansıma olabilir.',
+          yanlisIpucu: 'Tam yansıma, ışık normalden uzaklaşırken oluyordu. Hangi geçişte ışık az kırıcı ortama gidiyor?'
+        }
+      },
+      {
+        baslik: 'Su altındaki cisim yukarıda görünür',
+        sekil: 'sfY104_gorunur',
+        metin: r`Bir akvaryumun dibinde bir deniz kabuğu duruyor. Akvaryuma yukarıdan, su yüzeyinin üstünden bakıyorsun. Kabuktan çıkan ışınlar su yüzeyinde kırılır ve normalden uzaklaşarak gözüne gelir.
+
+Beynimiz ışığın hep düz bir çizgi boyunca geldiğini varsayar ve kırılan ışınları geriye doğru uzatır. Şekilde bu uzantılar kesikli çizilmiştir. Uzantılar, kabuğun gerçek yerinin üstünde kesişir. Kabuğu orada görürsün.
+
+- Havadan suyun içine bakınca cisimler olduklarından **yakın**, yani yukarıda görünür. Akvaryum, havuz ve gölet göründüğünden derindir.
+- Suya ne kadar eğik bakarsan cisim o kadar yukarıda görünür. Tam üstten bakınca da yukarıda görünür ama fark daha azdır.
+- Göz ile cisim aynı ortamdaysa kırılma olmaz. Cisim olduğu yerde görünür.`,
+        kontrol: {
+          soru: 'Kıyıdan bakan biri, sığ ve durgun bir göletin dibindeki taşı nasıl görür?',
+          secenekler: ['Olduğundan daha derinde', 'Olduğundan daha yukarıda', 'Tam olduğu yerde'],
+          dogru: 1,
+          aciklama: 'Taştan gelen ışınlar sudan havaya çıkarken normalden uzaklaşır. Uzantıları taşın gerçek yerinin üstünde kesişir. Taş olduğundan yukarıda, yani yüzeye yakın görünür.',
+          yanlisIpucu: 'Şekilde kesikli uzantılar kabuğun gerçek yerinin üstünde mi, altında mı kesişiyor?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Cam sehpadaki su',
+        metin: r`Ali cam bir sehpanın üstüne biraz su döküyor. Su, camın üstünde ince bir tabaka oluşturuyor. Tavandaki lambadan gelen bir ışın önce havadan suya, sonra sudan cama eğik olarak geçiyor. Camın kırıcılık indisi suyunkinden, suyunki de havanınkinden büyüktür.`,
+        adimlar: [
+          {
+            soru: 'Işın havadan suya geçerken nasıl kırılır?',
+            secenekler: ['Normalden uzaklaşır.', 'Normale yaklaşır.', 'Yön değiştirmez.'],
+            dogru: 1,
+            ipucu: 'Su havadan daha kırıcıdır. Işık daha kırıcı bir ortama girerken ne yapıyordu?',
+            aciklama: 'Işık az kırıcı ortamdan (hava) çok kırıcı ortama (su) geçerken yavaşlar ve normale yaklaşır.'
+          },
+          {
+            soru: 'Işın sudan cama geçerken nasıl kırılır?',
+            secenekler: ['Normale biraz daha yaklaşır.', 'Normalden uzaklaşır.', 'Tam yansıma yapar ve suya geri döner.'],
+            dogru: 0,
+            ipucu: 'Cam sudan daha kırıcıdır. Işık yine daha kırıcı bir ortama mı giriyor?',
+            aciklama: 'Cam sudan daha kırıcıdır. Işık yine daha kırıcı bir ortama girdiği için yavaşlar ve normale biraz daha yaklaşır. Az kırıcıdan çok kırıcıya geçişte tam yansıma olmaz.'
+          },
+          {
+            soru: 'Işık bu üç ortamın hangisinde en yavaş ilerler?',
+            secenekler: ['Havada', 'Suda', 'Camda'],
+            dogru: 2,
+            ipucu: 'Kırıcılık indisi büyük olan ortamda ışık daha mı hızlı, daha mı yavaş ilerler?',
+            aciklama: r`$n = \dfrac{c}{\vartheta}$ olduğundan kırıcılık indisi en büyük olan camda ışık en yavaştır.`
+          }
+        ],
+        sonuc: 'Işık her seferinde daha kırıcı bir ortama girdikçe yavaşlar ve normale biraz daha yaklaşır.'
+      },
+      {
+        baslik: 'Göldeki dalgıcın feneri',
+        metin: r`Bir dalgıç, durgun bir gölün dibinden su geçirmez el fenerini yukarı, su yüzeyine doğru tutuyor. Su ile hava arasındaki sınır açısı yaklaşık 49°'dir. Dalgıç fenerini farklı açılarla tutarak üç deneme yapıyor.`,
+        adimlar: [
+          {
+            soru: 'Işın yüzeye 30°\'lik gelme açısıyla gelirse ne olur?',
+            secenekler: ['Normalden uzaklaşarak havaya çıkar.', 'Tamamı suya geri yansır.', 'Yüzeyi yalayarak ilerler.'],
+            dogru: 0,
+            ipucu: '30° sınır açısından küçük mü, büyük mü?',
+            aciklama: 'Gelme açısı sınır açısından küçüktür. Işık havaya çıkar; sudan havaya geçtiği için normalden uzaklaşır.'
+          },
+          {
+            soru: 'Gelme açısı sınır açısına eşit olursa kırılan ışın nasıl ilerler?',
+            secenekler: ['Normal boyunca dümdüz yukarı çıkar.', 'Su yüzeyini yalayarak ilerler.', 'Normale yaklaşarak havaya çıkar.'],
+            dogru: 1,
+            ipucu: 'Gelme açısı sınır açısına eşit olunca kırılma açısı kaç derece oluyordu?',
+            aciklama: 'Gelme açısı sınır açısına eşit olunca kırılma açısı 90° olur. Kırılan ışın su yüzeyini yalayarak ilerler.'
+          },
+          {
+            soru: 'Gelme açısı 60° olursa ışık nereye gider?',
+            secenekler: ['Normalden uzaklaşarak havaya çıkar.', 'Havaya çıkamaz; tamamı suya geri yansır.', 'Kırılmadan dümdüz havaya çıkar.'],
+            dogru: 1,
+            ipucu: '60° sınır açısından büyüktür. Bu durumda ne oluyordu?',
+            aciklama: 'Gelme açısı sınır açısından büyük olduğu için ışık havaya geçemez. Tam yansıma olur ve ışığın tamamı göle geri döner.'
+          }
+        ],
+        sonuc: 'Işık çok kırıcı ortamdan az kırıcı ortama giderken gelme açısı sınır açısını aşarsa ikinci ortama geçemez. Bu olaya tam yansıma denir.'
+      },
+      {
+        baslik: 'Lavabodaki küpe',
+        metin: r`Selin bulaşık yıkarken küpesi, su dolu lavabonun dibine düşüyor. Su durgundur ve küpe yerinden kıpırdamıyor. Selin lavabonun önünde durup suya eğik olarak bakıyor.`,
+        adimlar: [
+          {
+            soru: 'Selin küpeyi nerede görür?',
+            secenekler: ['Gerçek yerinden daha derinde', 'Gerçek yerinden daha yukarıda', 'Tam gerçek yerinde'],
+            dogru: 1,
+            ipucu: 'Küpeden gelen ışınlar sudan havaya çıkarken normalden uzaklaşır. Göz bu ışınların uzantısına bakar.',
+            aciklama: 'Işınların uzantıları küpenin gerçek yerinin üstünde kesişir. Selin küpeyi olduğundan yukarıda, yüzeye daha yakın görür.'
+          },
+          {
+            soru: 'Selin\'in kardeşi lavabonun öbür ucundan suya Selin\'den daha eğik bakıyor. Kardeşi küpeyi nasıl görür?',
+            secenekler: ['Selin\'in gördüğünden daha yukarıda görür.', 'Selin\'in gördüğünden daha derinde görür.', 'Tam gerçek yerinde görür.'],
+            dogru: 0,
+            ipucu: 'Suya ne kadar eğik bakarsan cisim ne kadar yukarıda görünüyordu?',
+            aciklama: 'Suya daha eğik bakınca ışınlar yüzeyde daha çok sapar. Uzantılar daha yukarıda kesişir. Kardeşi küpeyi Selin\'in gördüğünden daha yukarıda görür.'
+          },
+          {
+            soru: 'Selin lavabonun tıpasını açıyor ve su tamamen boşalıyor. Küpe yine yerinden kıpırdamıyor. Selin küpeyi şimdi nerede görür?',
+            secenekler: ['Yine gerçek yerinden yukarıda', 'Tam gerçek yerinde', 'Gerçek yerinden daha derinde'],
+            dogru: 1,
+            ipucu: 'Su gidince küpeden göze gelen ışık ortam değiştiriyor mu?',
+            aciklama: 'Su boşalınca küpe de göz de havadadır. Işık ortam değiştirmediği için kırılmaz. Selin küpeyi tam gerçek yerinde görür.'
+          }
+        ],
+        sonuc: 'Göz cismi, kırılan ışınların uzantısında görür. Havadan suya bakınca cisimler olduklarından yukarıda görünür ve eğik baktıkça bu fark artar. Işık ortam değiştirmezse cisim olduğu yerde görünür.'
+      }
+    ],
+    hazir: r`Kırılmayı, kırıcılık indisini, normale yaklaşmayı ve uzaklaşmayı, sınır açısını, tam yansımayı ve görünür uzaklığı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
