@@ -35864,6 +35864,120 @@ BFY_FIG_EKLE('iY62_efsane_5', u => EF(u, I => {
 }, { zemin: undefined }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY62_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const BG = '#f4f7f9', KF = '#2f7fb8', KE = '#d9573b';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const ok = (x1, y1, x2, y2, c, o = {}) => arrow(x1, y1, x2, y2, { color: c, w: o.w || 3.2, head: o.head || 11, headW: o.headW || 6.5 });
+const f1 = v => (+v).toFixed(1);
+/* yüklü küre: işaret ortada */
+const kure = (u, x, y, r, isaret) => {
+  const ton = isaret === '+' ? 'kp' : 'kn';
+  return `<ellipse cx="${x + r * 0.15}" cy="${y + r * 1.05}" rx="${r * 0.8}" ry="${r * 0.2}" fill="#000" opacity=".12"/>` +
+    `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u}${ton})" stroke="${isaret === '+' ? '#8c2a17' : '#1d5a86'}" stroke-width="1"/>` +
+    `<ellipse cx="${f1(x - r * 0.35)}" cy="${f1(y - r * 0.4)}" rx="${f1(r * 0.28)}" ry="${f1(r * 0.17)}" fill="#fff" opacity=".5"/>` +
+    T(x, y + r * 0.42, isaret, { size: Math.max(15, r * 1.1), weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+};
+const kdefs = u => `<defs><radialGradient id="${u}kp" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffb3a3"/><stop offset=".55" stop-color="#e2553a"/><stop offset="1" stop-color="#a5311c"/></radialGradient>` +
+  `<radialGradient id="${u}kn" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#bfe2f8"/><stop offset=".55" stop-color="#3b8fc8"/><stop offset="1" stop-color="#1d5a86"/></radialGradient></defs>`;
+
+/* Masadan çekilen iki yapışkan bant, kalemden sarkıyor ve birbirini itiyor */
+BFY_FIG_EKLE('sfY62_bant', function (u) {
+  const W = 340, H = 270, yk = 46;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}kal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset=".5" stop-color="#f2b632"/><stop offset="1" stop-color="#c98a12"/></linearGradient>` +
+    `<linearGradient id="${u}bnt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#efe6c8"/><stop offset=".5" stop-color="#fbf6e4"/><stop offset="1" stop-color="#e2d6ae"/></linearGradient></defs>`;
+  // kalem: gövde, uç, silgi
+  s += `<rect x="58" y="${yk - 8}" width="196" height="16" rx="2" fill="url(#${u}kal)" stroke="#9c6b0e" stroke-width="1"/>`;
+  s += `<path d="M254 ${yk - 8} L282 ${yk} L254 ${yk + 8} Z" fill="#f1d3a6" stroke="#9c6b0e" stroke-width="1"/><path d="M276 ${yk - 2} L282 ${yk} L276 ${yk + 2} Z" fill="#333"/>`;
+  s += `<rect x="42" y="${yk - 8}" width="18" height="16" rx="3" fill="#e88a9b" stroke="#a0505f" stroke-width="1"/><rect x="56" y="${yk - 8}" width="6" height="16" fill="#b9bec4"/>`;
+  // bant: üst ucu kalemde, alt ucu dışa açılmış
+  const bant = (xt, xb, yb) => {
+    const dx = xb - xt, dy = yb - (yk + 8), L = Math.hypot(dx, dy), nx = -dy / L * 9, ny = dx / L * 9;
+    const p = [[xt + nx, yk + 8 + ny], [xt - nx, yk + 8 - ny], [xb - nx, yb - ny], [xb + nx, yb + ny]];
+    return `<polygon points="${p.map(q => f1(q[0]) + ',' + f1(q[1])).join(' ')}" fill="url(#${u}bnt)" stroke="#b9a777" stroke-width="1" opacity=".95"/>` +
+      `<rect x="${xt - 10}" y="${yk - 11}" width="20" height="20" rx="3" fill="#f4ecd2" stroke="#b9a777" stroke-width="1" opacity=".9"/>`;
+  };
+  s += bant(134, 92, 214) + bant(178, 220, 214);
+  // itme kuvvetleri, bantların alt uçlarında, dışa doğru
+  s += ok(78, 204, 30, 204, KF) + ok(234, 204, 282, 204, KF);
+  s += T(52, 190, 'F', { size: 16, weight: 800, fill: KF, italic: true, anchor: 'middle' }) + T(260, 190, 'F', { size: 16, weight: 800, fill: KF, italic: true, anchor: 'middle' });
+  s += T(156, 248, 'aynı cins yük: itme', { size: 15, weight: 800, anchor: 'middle', fill: P.ink });
+  s += T(206, 24, 'kalem', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Aynı iki yük: uzaklık d, 2d, 3d iken kuvvet 36, 9, 4 mN (ok boyları ölçekli) */
+BFY_FIG_EKLE('sfY62_uzaklik', function (u) {
+  const W = 340, H = 300, x0 = 92, d = 56, r = 12, k = 2;
+  let s = zemin(W, H) + kdefs(u);
+  [[1, 36], [2, 9], [3, 4]].forEach(([n, F], i) => {
+    const y = 66 + i * 84, x1 = x0 + n * d, L = F * k, hd = Math.min(10, L);
+    s += ok(x0 - r - 2, y, x0 - r - 2 - L, y, KF, { head: hd, headW: 6 }) + ok(x1 + r + 2, y, x1 + r + 2 + L, y, KF, { head: hd, headW: 6 });
+    s += kure(u, x0, y, r, '+') + kure(u, x1, y, r, '+');
+    s += T(x1 + r + 8 + L / 2 + (n === 3 ? 10 : 0), y - 16, F + ' mN', { size: 15, weight: 800, anchor: 'middle', fill: KF });
+    // uzaklık ölçüsü
+    const yd = y + 26;
+    s += `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="${x0}" y1="${yd}" x2="${x1}" y2="${yd}"/><line x1="${x0}" y1="${yd - 5}" x2="${x0}" y2="${yd + 5}"/><line x1="${x1}" y1="${yd - 5}" x2="${x1}" y2="${yd + 5}"/></g>`;
+    s += T((x0 + x1) / 2, yd + 19, n === 1 ? 'd' : n + 'd', { size: 15, weight: 800, anchor: 'middle', italic: true, fill: P.ink });
+  });
+  return svg(W, H, s, u, 80);
+});
+
+/* Pozitif yükün alan çizgileri ve P noktasındaki alan */
+BFY_FIG_EKLE('sfY62_alan', function (u) {
+  const W = 340, H = 270, cx = 120, cy = 135, R0 = 30, R1 = 116, px = 262;
+  let s = zemin(W, H) + kdefs(u);
+  for (let i = 0; i < 12; i++) {
+    const a = i * Math.PI / 6, c = Math.cos(a), sn = Math.sin(a);
+    const r1 = i === 0 ? px - cx - 16 : R1;
+    s += `<line x1="${f1(cx + R0 * c)}" y1="${f1(cy + R0 * sn)}" x2="${f1(cx + r1 * c)}" y2="${f1(cy + r1 * sn)}" stroke="${KE}" stroke-width="1.8" opacity=".85"/>`;
+    const rm = 70;
+    s += arrow(cx + (rm - 10) * c, cy + (rm - 10) * sn, cx + rm * c, cy + rm * sn, { color: KE, w: 1.8, head: 9, headW: 5 });
+  }
+  s += kure(u, cx, cy, 24, '+');
+  // P noktası ve alan
+  s += `<circle cx="${px}" cy="${cy}" r="4.5" fill="${P.ink}"/>` + T(px - 2, cy - 14, 'P', { size: 16, weight: 800, anchor: 'middle', italic: true });
+  s += ok(px + 6, cy, px + 62, cy, '#1f6b4f') + T(px + 40, cy - 12, 'E', { size: 16, weight: 800, anchor: 'middle', italic: true, fill: '#1f6b4f' });
+  s += T(250, 34, 'alan çizgisi', { size: 14, weight: 700, anchor: 'middle', fill: KE });
+  return svg(W, H, s, u, 80);
+});
+
+/* İki yatay metal levha: üstte pozitif, altta negatif; arada negatif yüklü yağ damlası, solda püskürteç (alan yönü verilmez) */
+BFY_FIG_EKLE('sfY62_damla', function (u) {
+  const W = 340, H = 300, x1 = 56, x2 = 300, yu = 64, ya = 212, t = 16, dx = 16, dy = 10;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}lev" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9edf1"/><stop offset=".5" stop-color="#b7c0c9"/><stop offset="1" stop-color="#8b97a3"/></linearGradient>` +
+    `<linearGradient id="${u}levu" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d5dbe1"/><stop offset="1" stop-color="#f4f6f8"/></linearGradient>` +
+    `<radialGradient id="${u}dm" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff2c2"/><stop offset=".55" stop-color="#e8b33a"/><stop offset="1" stop-color="#a8740f"/></radialGradient>` +
+    `<radialGradient id="${u}pom" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#5b6470"/><stop offset="1" stop-color="#22272d"/></radialGradient></defs>`;
+  // levha: üst yüz (perspektif) + ön yüz
+  const levha = (y, isaret, renk) => {
+    let g = `<polygon points="${x1},${y} ${x1 + dx},${y - dy} ${x2 + dx},${y - dy} ${x2},${y}" fill="url(#${u}levu)" stroke="#6f7b87" stroke-width="1"/>`;
+    g += `<polygon points="${x2},${y} ${x2 + dx},${y - dy} ${x2 + dx},${y - dy + t} ${x2},${y + t}" fill="#8b97a3" stroke="#6f7b87" stroke-width="1"/>`;
+    g += `<rect x="${x1}" y="${y}" width="${x2 - x1}" height="${t}" fill="url(#${u}lev)" stroke="#6f7b87" stroke-width="1"/>`;
+    for (let i = 0; i < 7; i++) g += T(x1 + 22 + i * 33.5, y + t / 2 + 6, isaret, { size: 18, weight: 800, anchor: 'middle', fill: renk, halo: false });
+    return g;
+  };
+  s += levha(yu, '+', '#a5311c') + levha(ya, '−', '#1d5a86');
+  s += T(x1, yu - 20, 'pozitif yüklü levha', { size: 15, weight: 800, fill: '#8c2a17' });
+  s += T(x1, ya + t + 26, 'negatif yüklü levha', { size: 15, weight: 800, fill: '#1d5a86' });
+  // püskürteç: lastik pompa + boru, sol kenardan aralığa
+  const yp = 128;
+  s += `<path d="M14 ${yp - 4} L50 ${yp - 3} L50 ${yp + 3} L14 ${yp + 4} Z" fill="#c9d1d8" stroke="#6f7b87" stroke-width="1"/>`;
+  s += `<ellipse cx="14" cy="${yp + 16}" rx="11" ry="15" fill="url(#${u}pom)"/><rect x="10" y="${yp - 2}" width="8" height="6" fill="#3a4148"/>`;
+  [[62, yp - 4, 1.6], [70, yp + 3, 1.3], [78, yp - 1, 1.5], [88, yp + 5, 1.2], [96, yp - 6, 1.3]].forEach(([x, y, r]) => { s += `<circle cx="${x}" cy="${y}" r="${r}" fill="#d9a22a" opacity=".85"/>`; });
+  // damla
+  const dxm = 186, dym = 140;
+  s += `<circle cx="${dxm}" cy="${dym}" r="10" fill="url(#${u}dm)" stroke="#8a5d08" stroke-width="1"/><ellipse cx="${dxm - 3.5}" cy="${dym - 4}" rx="3" ry="2" fill="#fff" opacity=".7"/>`;
+  s += T(dxm, dym + 26, '−', { size: 20, weight: 800, anchor: 'middle', fill: '#1d5a86' });
+  s += `<line x1="${dxm + 12}" y1="${dym - 6}" x2="${dxm + 42}" y2="${dym - 22}" stroke="${P.ink2}" stroke-width="1.2"/>`;
+  s += T(dxm + 46, dym - 22, 'yağ damlası', { size: 15, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -35917,6 +36031,194 @@ const KONU = {
     'uzay istasyonunda iplerle bağlı üç +q küre, A–B ipinde 5F/4', 'X ve Y arasında X\'e yakın P, elektron X\'e doğru gidiyor (olabilir)',
     'düşey yalıtkan boruda sabit X küresinin üstünde asılı duran Y küresi, Y\'nin yerinde alan aşağı (nitel)', 'X\'in P\'deki alanı doğuya, Y\'ye kuvvet batıya, P\'nin konumu bilinmiyor (kesinlikle)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/Y.6.2/dogrula.py içinde doğrulanır. Coulomb hesabı tek boyutta; elektrik alanda hesap yok. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Yüklü cisimlerin birbirini nasıl ittiğini ya da çektiğini, bu kuvvetin neye bağlı olduğunu ve elektrik alanı kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Yüklü cisimler iter ya da çeker',
+        sekil: 'sfY62_bant',
+        metin: r`Masaya iki şerit yapışkan bant yapıştır. Sonra ikisini de hızla çekip kaldır ve bir kalemin üstünden yan yana sarkıt. Bantlar birbirinden uzaklaşır. Aynı biçimde çekilen iki bant, aynı cins yükle yüklenmiştir.
+
+- Aynı cins yükler birbirini **iter**.
+- Zıt cins yükler birbirini **çeker**.
+
+Yüklü cisimler birbirine dokunmadan kuvvet uygular. Bu kuvvete **elektriksel kuvvet** denir.`,
+        kontrol: {
+          soru: 'Yüklü olduğu bilinen iki cisim birbirini çekiyor. Bu cisimlerin yükleri için ne söylenebilir?',
+          secenekler: ['İkisi de pozitiftir.', 'Yükleri zıt cinstir.', 'İkisi de negatiftir.'],
+          dogru: 1,
+          aciklama: 'Zıt cins yükler birbirini çeker. Cisimlerden biri pozitif, öbürü negatif yüklüdür.',
+          yanlisIpucu: 'Aynı cins yükler birbirini iter. Birbirini çeken iki cismin yükleri aynı cins olabilir mi?'
+        }
+      },
+      {
+        baslik: 'İki cisim, eşit kuvvet',
+        metin: r`Yükü $+2q$ olan küçük bir küre ile yükü $+6q$ olan büyük bir küre yan yana duruyor. Büyük yüklü küre, küçük küreyi daha çok mu iter?
+
+Hayır. İki küre birbirine **eşit büyüklükte ve zıt yönlü** kuvvet uygular. Küçük küre sola itiliyorsa büyük küre sağa itilir ve iki kuvvetin büyüklüğü aynıdır.
+
+Bu, etki-tepki kuvvetlerinin elektrikteki örneğidir. Yükler farklı olsa da kuvvetler eşittir.`,
+        kontrol: {
+          soru: r`Yükü $-q$ olan bir boncuk, yükü $+5q$ olan bir küreyi 4 mN'luk kuvvetle çekiyor. Küre boncuğu kaç mN'luk kuvvetle çeker?`,
+          secenekler: ['4 mN', '20 mN', '4 mN\'dan küçük'],
+          dogru: 0,
+          aciklama: 'İki cisim birbirine eşit büyüklükte kuvvet uygular. Küre de boncuğu 4 mN ile, ters yönde çeker.',
+          yanlisIpucu: 'Etki ve tepki kuvvetlerinin büyüklükleri için ne söylemiştik? Yüklerin farklı olması bunu değiştirir mi?'
+        }
+      },
+      {
+        baslik: 'Yükler büyürse kuvvet büyür',
+        metin: r`İki yük arasındaki uzaklık değişmesin. Yüklerden biri 2 katına çıkarsa kuvvet de 2 katına çıkar. Yüklerden biri 2 katına, öbürü de 2 katına çıkarsa kuvvet $2 \times 2 = 4$ katına çıkar.
+
+Kuvvet, yüklerin **çarpımıyla doğru orantılıdır**. Bunu **Coulomb Yasası** söyler:
+
+$F = k \times \dfrac{q_1 \times q_2}{d^2}$
+
+Burada $q_1$ ve $q_2$ yüklerin büyüklüğü, $d$ yükler arasındaki uzaklıktır. $k$ bir sabittir; boşluk ve hava için $k = 9 \times 10^9\ \text{N} \times \text{m}^2/\text{C}^2$'dir.`,
+        kontrol: {
+          soru: r`İki yük arasındaki kuvvet $F$'dir. Uzaklık değişmeden yüklerden biri 2 katına, öbürü 3 katına çıkarılıyor. Kuvvet kaç $F$ olur?`,
+          secenekler: [r`$5F$`, r`$6F$`, r`$3F$`],
+          dogru: 1,
+          aciklama: r`Kuvvet yüklerin çarpımıyla orantılıdır: $2 \times 3 = 6$. Yeni kuvvet $6F$ olur.`,
+          yanlisIpucu: 'Katları toplama, çarp. Formülde yükler birbiriyle çarpılıyor.'
+        }
+      },
+      {
+        baslik: 'Uzaklık artarsa kuvvet hızla azalır',
+        sekil: 'sfY62_uzaklik',
+        metin: r`Şimdi yükler aynı kalsın, aralarındaki uzaklık artsın. Formülde $d$ paydadadır ve karesi alınmıştır. Bu yüzden:
+
+- Uzaklık 2 katına çıkarsa kuvvet $2 \times 2 = 4$'e bölünür.
+- Uzaklık 3 katına çıkarsa kuvvet $3 \times 3 = 9$'a bölünür.
+
+Kuvvet, uzaklığın **karesiyle ters orantılıdır**. Şekilde aynı iki yük arasındaki 36 mN'luk kuvvet, uzaklık 2 katına çıkınca 9 mN'a, 3 katına çıkınca 4 mN'a iner.`,
+        kontrol: {
+          soru: r`İki yük arasındaki kuvvet $F$'dir. Yükler değişmeden aralarındaki uzaklık yarıya indiriliyor. Kuvvet ne olur?`,
+          secenekler: [r`$4F$`, r`$2F$`, r`$\dfrac{F}{4}$`],
+          dogru: 0,
+          aciklama: r`Uzaklık yarıya inince $d^2$ dörtte birine iner. Payda küçülünce kuvvet büyür ve $4F$ olur.`,
+          yanlisIpucu: 'Yükler birbirine yaklaşınca kuvvet artar mı, azalır mı? Uzaklığın karesini de unutma.'
+        }
+      },
+      {
+        baslik: 'Elektrik alan: yükün çevresindeki etki',
+        sekil: 'sfY62_alan',
+        metin: r`Bir mıknatıs, çevresindeki toplu iğneleri dokunmadan çeker. Yüklü bir cisim de çevresindeki bölgeyi değiştirir: Bu bölgeye giren her yük bir kuvvet hisseder. Bu bölgeye **elektrik alan** denir ve $E$ ile gösterilir.
+
+- Alanın yönü, oraya konan **pozitif** bir yüke etki eden kuvvetin yönüdür.
+- Pozitif yükün alanı yükten **dışarı** doğrudur. Negatif yükün alanı yüke **doğrudur**.
+- Negatif bir yüke etki eden kuvvet alana **zıt** yöndedir.
+
+Alan çizgilerinin sık olduğu yerde alan büyüktür. Şekilde yüke yaklaştıkça çizgiler sıklaşıyor.`,
+        kontrol: {
+          soru: 'Şekildeki P noktasına bir elektron konuyor. Elektrona etki eden elektriksel kuvvet hangi yöndedir?',
+          secenekler: ['Sağa, alanla aynı yönde', 'Sola, pozitif yüke doğru', 'Elektrona kuvvet etki etmez.'],
+          dogru: 1,
+          aciklama: 'Elektron negatif yüklüdür. Negatif yüke etki eden kuvvet alana zıttır. P noktasında alan sağa doğru olduğu için kuvvet sola, pozitif yüke doğrudur. Zıt yükler birbirini çeker diye düşünsen de aynı sonuca varırsın.',
+          yanlisIpucu: 'Alanın yönü pozitif yüke etki eden kuvvetin yönüdür. Elektronun yükü pozitif mi, negatif mi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Bilim festivalindeki iki metal top',
+        metin: r`Bir bilim festivalinde, yalıtkan direkler üzerindeki iki büyük metal topun yükleri $+2\ \mu\text{C}$ ve $-3\ \mu\text{C}$'dur. Topların merkezleri arasındaki uzaklık 3 m'dir. Toplar noktasal yük gibi düşünülebilir. ($k = 9 \times 10^9\ \text{N} \times \text{m}^2/\text{C}^2$, $1\ \mu\text{C} = 10^{-6}\ \text{C}$)`,
+        adimlar: [
+          {
+            soru: 'Toplar birbirini iter mi, çeker mi?',
+            secenekler: ['İter.', 'Çeker.', 'Birbirine kuvvet uygulamaz.'],
+            dogru: 1,
+            ipucu: 'Bir top pozitif, öbürü negatif yüklü. Zıt cins yükler ne yapar?',
+            aciklama: 'Yükler zıt cinstir. Toplar birbirini çeker.'
+          },
+          {
+            soru: r`Formülde yüklerin yalnız büyüklüğü kullanılır. $q_1 \times q_2$ çarpımı kaç $\text{C}^2$'dir?`,
+            secenekler: [r`$6 \times 10^{-12}$`, r`$6 \times 10^{-6}$`, r`$5 \times 10^{-12}$`],
+            dogru: 0,
+            ipucu: r`Önce sayıları çarp: $2 \times 3$. Sonra 10'un kuvvetlerini çarp: 10'un kuvvetleri çarpılırken üsler toplanır, $(-6) + (-6)$.`,
+            aciklama: r`$2 \times 10^{-6} \times 3 \times 10^{-6} = 6 \times 10^{-12}\ \text{C}^2$ olur.`
+          },
+          {
+            soru: 'Topların birbirine uyguladığı kuvvetin büyüklüğü kaç N\'dur?',
+            secenekler: [r`$6 \times 10^{-3}$`, r`$18 \times 10^{-3}$`, r`$54 \times 10^{-3}$`],
+            dogru: 0,
+            ipucu: r`Uzaklığın karesi $d^2 = 3 \times 3 = 9\ \text{m}^2$'dir. $k$ içindeki 9 ile paydadaki 9 sadeleşir. Geriye $10^9 \times 6 \times 10^{-12}$ kalır.`,
+            aciklama: r`$F = \dfrac{9 \times 10^9 \times 6 \times 10^{-12}}{9} = 6 \times 10^{-3}\ \text{N}$ olur. Bu, 6 mN demektir.`
+          },
+          {
+            soru: 'Hangi top öbürüne daha büyük kuvvet uygular?',
+            secenekler: [r`Yükü büyük olan $-3\ \mu\text{C}$'luk top`, r`Yükü küçük olan $+2\ \mu\text{C}$'luk top`, 'İkisi birbirine eşit büyüklükte kuvvet uygular.'],
+            dogru: 2,
+            ipucu: 'İkinci adımda iki kürenin birbirine uyguladığı kuvvetler için ne söylemiştik?',
+            aciklama: 'Etki ve tepki kuvvetleri eşit büyüklüktedir. İki top da öbürünü 6 mN ile çeker.'
+          }
+        ],
+        sonuc: 'Coulomb Yasası\'nda yüklerin yalnız büyüklüğü kullanılır; itme ya da çekme, yük cinslerinden anlaşılır. 10\'un kuvvetlerini çarparken üsleri toplarsın. İki top birbirini eşit büyüklükte kuvvetlerle çeker.'
+      },
+      {
+        baslik: 'Çubuğa geçirilmiş iki boncuk',
+        metin: r`Yalıtkan, yatay bir çubuğa iki küçük yüklü boncuk geçirilmiş. Boncuklar çubuk üzerinde istenen yere kaydırılıp sabitlenebiliyor. Hassas bir kuvvet ölçerle boncuklar arasındaki elektriksel kuvvet 18 μN olarak ölçülüyor. ($1\ \mu\text{N} = 10^{-6}\ \text{N}$)`,
+        adimlar: [
+          {
+            soru: 'Yükler değişmeden boncuklar arasındaki uzaklık 3 katına çıkarılıyor. Kuvvet kaç μN olur?',
+            secenekler: [r`$6$`, r`$2$`, r`$9$`],
+            dogru: 1,
+            ipucu: r`Uzaklık 3 katına çıkınca kuvvet $3 \times 3 = 9$'a bölünür.`,
+            aciklama: r`$\dfrac{18}{9} = 2\ \mu\text{N}$ olur.`
+          },
+          {
+            soru: 'Uzaklık böyle kalırken boncuklardan birinin yükü 3 katına çıkarılıyor. Kuvvet kaç μN olur?',
+            secenekler: [r`$18$`, r`$6$`, r`$54$`],
+            dogru: 1,
+            ipucu: 'Kuvvet yükle doğru orantılıdır. Bir önceki adımda bulduğun 2 μN\'u 3 ile çarp.',
+            aciklama: r`$2 \times 3 = 6\ \mu\text{N}$ olur. Uzaklığın 3 katına çıkması kuvveti 9'a bölmüştü; tek yükün 3 katına çıkması bunu geri getirmeye yetmez.`
+          },
+          {
+            soru: 'Kuvvetin yeniden 18 μN olması için öbür boncuğun yükü kaç katına çıkarılmalıdır?',
+            secenekler: [r`$3$`, r`$9$`, r`$2$`],
+            dogru: 0,
+            ipucu: '6 μN\'u 18 μN yapmak için kaçla çarpmak gerekir?',
+            aciklama: r`$6 \times 3 = 18\ \mu\text{N}$ olur. İki yükün de 3 katına çıkması kuvveti $3 \times 3 = 9$ ile çarpar. Bu, uzaklığın 3 katına çıkmasıyla gelen 9'a bölmeyi tam dengeler.`
+          }
+        ],
+        sonuc: 'Uzaklık kuvveti karesiyle, yükler ise doğrudan etkiler. Uzaklık 3 katına çıkınca kuvveti geri getirmek için yüklerin çarpımını 9 katına çıkarmak gerekir.'
+      },
+      {
+        baslik: 'İki levha arasında asılı kalan damla',
+        sekil: 'sfY62_damla',
+        metin: r`Laboratuvarda iki yatay metal levha üst üste duruyor. Üstteki levha pozitif, alttaki levha negatif yüklüdür. Levhaların arasına çok küçük yağ damlaları püskürtülüyor. Bu damlalardan biri negatif yüklüdür. Elektronun yükünü ölçen ünlü Millikan deneyi de buna benzer bir düzenekle yapılmıştı.`,
+        adimlar: [
+          {
+            soru: 'Levhaların arasındaki elektrik alan hangi yöndedir?',
+            secenekler: ['Düşey yukarı, alttaki levhadan üstteki levhaya', 'Düşey aşağı, üstteki levhadan alttaki levhaya', 'Yatay'],
+            dogru: 1,
+            ipucu: 'Alan çizgileri pozitif yükten çıkar, negatif yüke girer. Pozitif levha hangisi, negatif levha hangisi?',
+            aciklama: 'Pozitif yükler üstteki levhada, negatif yükler alttaki levhada. Alan pozitiften negatife, yani düşey aşağı yöndedir.'
+          },
+          {
+            soru: 'Negatif yüklü damlaya etki eden elektriksel kuvvet hangi yöndedir?',
+            secenekler: ['Düşey aşağı', 'Düşey yukarı', 'Damlaya kuvvet etki etmez.'],
+            dogru: 1,
+            ipucu: 'Negatif bir yüke etki eden kuvvet, alana göre hangi yöndedir?',
+            aciklama: 'Negatif yüke etki eden kuvvet alana zıttır. Alan aşağı doğru olduğu için kuvvet yukarı doğrudur. Pozitif üst levha damlayı çeker, negatif alt levha damlayı iter diye de düşünebilirsin.'
+          },
+          {
+            soru: 'Levhaların yükü artırılınca aralarındaki alan büyüyor. Damlanın yükü aynı kalırsa damlaya etki eden elektriksel kuvvet nasıl değişir?',
+            secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+            dogru: 0,
+            ipucu: r`$E = \dfrac{F}{q}$ bağıntısını $F = q \times E$ diye de yazabilirsin. $q$ aynıyken $E$ büyürse $F$ ne olur?`,
+            aciklama: r`$F = q \times E$ olduğundan aynı yükte alan büyüdükçe kuvvet de büyür. Yukarı doğru elektriksel kuvvet, damlanın ağırlığına eşit olursa damla havada asılı kalır.`
+          }
+        ],
+        sonuc: 'Alanın yönü, pozitif yüke etki eden kuvvetin yönüdür. Negatif yüklü damla alana zıt yönde, yukarı doğru itilir. Alan büyüdükçe bu kuvvet de büyür.'
+      }
+    ],
+    hazir: r`Elektriksel kuvvetin yönünü, Coulomb Yasası'nı, kuvvetin yüke ve uzaklığa nasıl bağlı olduğunu ve elektrik alanı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -37514,6 +37816,73 @@ BFY_FIG_EKLE('kY71_vi', function (u) {
 });
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY71_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const INK = P.ink, BG = '#f4f7f9', VC = '#a8402a', RC = '#c8412b', GL = '#ffd95a';
+const f1 = v => (+v).toFixed(1);
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const tel = pts => `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+const nokta = (x, y) => `<circle cx="${x}" cy="${y}" r="3.6" fill="${INK}"/>`;
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: o.size || 15, weight: o.weight || 800, anchor: o.anchor || 'middle', fill: o.fill || INK, italic: o.italic });
+/* yatay üreteç: + kutbu solda (uzun ince), − sağda (kısa kalın); x±6 arası boşluk */
+const pilH = (x, y) => `<line x1="${x - 6}" y1="${y - 16}" x2="${x - 6}" y2="${y + 16}" stroke="${INK}" stroke-width="2.4"/><line x1="${x + 6}" y1="${y - 9}" x2="${x + 6}" y2="${y + 9}" stroke="${INK}" stroke-width="6"/>` +
+  yaz(x - 18, y - 8, '+', { size: 15 }) + yaz(x + 18, y - 8, '−', { size: 16 });
+/* dikey üreteç: + kutbu üstte */
+const pilV = (x, y) => `<line x1="${x - 16}" y1="${y - 6}" x2="${x + 16}" y2="${y - 6}" stroke="${INK}" stroke-width="2.4"/><line x1="${x - 9}" y1="${y + 6}" x2="${x + 9}" y2="${y + 6}" stroke="${INK}" stroke-width="6"/>` +
+  yaz(x + 24, y - 6, '+', { size: 15 }) + yaz(x + 24, y + 16, '−', { size: 16 });
+const dirH = (x1, x2, y) => { const m = (x1 + x2) / 2, a = m - 22, b = m + 22, n = 6, d = (b - a) / n; let p = `M${x1} ${y} H${a}`; for (let i = 0; i < n; i++) p += ` L${f1(a + d * (i + 0.5))} ${y + (i % 2 ? 7 : -7)}`; return `<path d="${p} L${b} ${y} H${x2}" fill="none" stroke="${RC}" stroke-width="2.4" stroke-linejoin="round"/>`; };
+const olcer = (x, y, h) => `<circle cx="${x}" cy="${y}" r="15" fill="#fff" stroke="${INK}" stroke-width="2"/>` + yaz(x, y + 5.5, h, { size: 16 });
+const lambaV = (x, y) => `<circle cx="${x}" cy="${y}" r="20" fill="${GL}" opacity=".35"/><circle cx="${x}" cy="${y}" r="14" fill="#fff6d6" stroke="${INK}" stroke-width="2"/><path d="M${f1(x - 9.9)} ${f1(y - 9.9)} L${f1(x + 9.9)} ${f1(y + 9.9)} M${f1(x - 9.9)} ${f1(y + 9.9)} L${f1(x + 9.9)} ${f1(y - 9.9)}" stroke="${INK}" stroke-width="1.8"/>`;
+
+/* Aynı maddeden üç tel: boy ve kesit alanı değişince direnç (kalınlık √2 oranında gerçek) */
+BFY_FIG_EKLE('sfY71_tel', function (u) {
+  const W = 340, H = 290, x0 = 26, L = 110;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}cu" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a4d22"/><stop offset=".3" stop-color="#f3b07a"/><stop offset=".55" stop-color="#d07b3e"/><stop offset="1" stop-color="#7a4019"/></linearGradient></defs>`;
+  const silindir = (y, uz, cap) => `<ellipse cx="${x0 + uz / 2 + 4}" cy="${y + cap / 2 + 5}" rx="${uz / 2}" ry="3" fill="#000" opacity=".1"/>` +
+    `<rect x="${x0}" y="${y - cap / 2}" width="${uz}" height="${cap}" fill="url(#${u}cu)"/>` +
+    `<ellipse cx="${x0}" cy="${y}" rx="${cap * 0.22}" ry="${cap / 2}" fill="#b8693a"/>` +
+    `<ellipse cx="${x0 + uz}" cy="${y}" rx="${cap * 0.22}" ry="${cap / 2}" fill="#e9a26e" stroke="#7a4019" stroke-width=".8"/>`;
+  [[62, L, 12, 'boy L, kesit A', 'R'], [152, 2 * L, 12, 'boy 2L, kesit A', '2R'], [242, L, 17, 'boy L, kesit 2A', 'R / 2']].forEach(([y, uz, cap, et, r]) => {
+    s += silindir(y, uz, cap);
+    s += T(x0, y - cap / 2 - 12, et, { size: 15, weight: 700, fill: P.ink2 });
+    s += T(x0 + uz + 22, y + 6, r, { size: 17, weight: 800, fill: RC, italic: true });
+  });
+  return svg(W, H, s, u, 80);
+});
+
+/* Vitrindeki süs lambaları: 24 V üreteç, ampermetre, 2 Ω ve 6 Ω lamba seri; voltmetre 6 Ω'a paralel */
+BFY_FIG_EKLE('sfY71_seri', function (u) {
+  const W = 340, H = 250, xl = 44, xr = 300, yt = 58, yb = 158, xp = 172;
+  let s = zemin(W, H);
+  s += tel([[xp - 6, yt], [xl, yt], [xl, 93]]) + tel([[xl, 123], [xl, yb], [xr, yb], [xr, yt], [xp + 6, yt]]);
+  s += pilH(xp, yt) + yaz(xp, yt - 26, '24 V', { fill: VC, size: 16 });
+  s += olcer(xl, 108, 'A');
+  s += tel([[xl, yb], [106, yb]]) + tel([[134, yb], [212, yb]]) + tel([[240, yb], [xr, yb]]);
+  s += lambaV(120, yb) + lambaV(226, yb);
+  s += yaz(120, yb - 30, '2 Ω') + yaz(226, yb - 30, '6 Ω');
+  // voltmetre 6 Ω'un uçlarına
+  s += tel([[192, yb], [192, 210], [211, 210]]) + tel([[241, 210], [260, 210], [260, yb]]) + nokta(192, yb) + nokta(260, yb);
+  s += olcer(226, 210, 'V');
+  return svg(W, H, s, u, 80);
+});
+
+/* Kamyonet: 24 V akü, ana kolda ampermetre, 8 Ω ve 24 Ω lambalar paralel */
+BFY_FIG_EKLE('sfY71_paralel', function (u) {
+  const W = 340, H = 260, xa = 86, yt = 50, yb = 214, x1 = 196, x2 = 292, ym = 132;
+  let s = zemin(W, H);
+  s += tel([[xa, ym - 6], [xa, yt], [126, yt]]) + tel([[156, yt], [x2, yt], [x2, ym - 14]]) + tel([[x2, ym + 14], [x2, yb], [xa, yb], [xa, ym + 6]]);
+  s += tel([[x1, yt], [x1, ym - 14]]) + tel([[x1, ym + 14], [x1, yb]]) + nokta(x1, yt) + nokta(x1, yb);
+  s += pilV(xa, ym) + yaz(xa - 24, ym + 6, '24 V', { anchor: 'end', fill: VC, size: 16 });
+  s += olcer(141, yt, 'A');
+  s += lambaV(x1, ym) + lambaV(x2, ym);
+  s += yaz(x1 - 26, ym + 6, '8 Ω', { anchor: 'end' }) + yaz(x2 - 26, ym + 6, '24 Ω', { anchor: 'end' });
+  s += yaz((xa + x2) / 2 + 30, yb + 30, 'akü ve iki çalışma lambası', { size: 14, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -37569,6 +37938,191 @@ const KONU = {
     'yerleri karışmış ölçü aletleri: 12 V, 2 Ω ana kolda, voltmetre 6 Ω\'a seri, ampermetre 3 Ω\'a paralel', 'ideal ampermetre ve voltmetre yargıları',
     'öğrencinin V-I grafiği: X (6 Ω), Y (3 Ω) ve bilinmeyen bağlantı Z (2 Ω, paralel), kollara akım paylaşımı'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/Y.7.1/dogrula.py içinde doğrulanır. Telin direncinde hesap yok, yalnız karşılaştırma. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Elektrik akımının ne olduğunu, direnci, Ohm yasasını ve dirençlerin nasıl bağlandığını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Akım: yüklerin akışı',
+        metin: r`Bir üst geçidin üstünden aşağıdaki yolu izlediğini düşün. Bir dakikada altından çok araba geçiyorsa trafik yoğundur. Elektrikte de bir telin kesitinden geçen yük sayılır.
+
+Bir kesitten birim zamanda geçen yük miktarına **elektrik akımı** denir:
+
+$I = \dfrac{q}{t}$
+
+Yük coulomb (C), süre saniye (s) ise akım amper (A) çıkar. Bir kesitten her saniye 1 C yük geçiyorsa akım 1 A'dir.`,
+        kontrol: {
+          soru: 'Oyuncak bir arabanın motoruna giden telin bir kesitinden 4 s\'de 12 C yük geçiyor. Telden geçen akım kaç A\'dir?',
+          secenekler: [r`$3$`, r`$48$`, r`$8$`],
+          dogru: 0,
+          aciklama: r`$I = \dfrac{q}{t} = \dfrac{12}{4} = 3\ \text{A}$ olur.`,
+          yanlisIpucu: 'Akım, birim zamanda geçen yüktür. Yükü süreyle çarpma; süreye böl.'
+        }
+      },
+      {
+        baslik: 'Akımı kim taşır?',
+        metin: r`Akım için hareket edebilen yüklü tanecikler gerekir. Bunlara **yük taşıyıcı** denir.
+
+- **Metallerde** akımı serbest elektronlar taşır.
+- **Sıvılarda** (tuzlu su, asitli su) akımı pozitif ve negatif iyonlar taşır.
+- **Gazlarda ve plazmada** akımı hem iyonlar hem elektronlar taşır.
+
+Akımın yönü, pozitif yüklerin hareket yönü kabul edilir. Bu yüzden bir telde elektronlar hangi yöne gidiyorsa akım onun tersi yöndedir.`,
+        kontrol: {
+          soru: 'Bir bakır telde elektronlar doğuya doğru hareket ediyor. Teldeki akımın yönü hangisidir?',
+          secenekler: ['Doğuya doğru', 'Batıya doğru', 'Telde akım yoktur.'],
+          dogru: 1,
+          aciklama: 'Akımın yönü pozitif yüklerin hareket yönü kabul edilir. Elektronlar negatif olduğu için akım, elektronların hareketine zıt yönde, batıya doğrudur.',
+          yanlisIpucu: 'Elektronların yükü negatiftir. Akımın yönü hangi yüklerin hareket yönü kabul ediliyordu?'
+        }
+      },
+      {
+        baslik: 'Direnç: akıma karşı koyma',
+        sekil: 'sfY71_tel',
+        metin: r`Uzun ve ince bir hortumdan su zor akar. Teller de akıma karşı koyar. Bu karşı koymaya **direnç** denir; $R$ ile gösterilir, birimi ohm ($\Omega$)'dur.
+
+Sıcaklığı sabit, katı bir telin direnci üç şeye bağlıdır:
+
+- **Boy ($L$):** Tel uzadıkça direnç büyür.
+- **Kesit alanı ($A$):** Tel kalınlaştıkça direnç küçülür.
+- **Maddenin cinsi ($\rho$):** Aynı boyutlardaki bakır telin direnci, nikelin telinkinden küçüktür.
+
+Bunu $R = \rho \times \dfrac{L}{A}$ bağıntısı özetler. Şekilde aynı maddeden yapılmış üç tel var.`,
+        kontrol: {
+          soru: 'Aynı maddeden yapılmış X ve Y tellerinin boyları eşittir. X\'in kesit alanı Y\'ninkinin 3 katıdır. X\'in direnci için ne söylenebilir?',
+          secenekler: ['Y\'ninkinin 3 katıdır.', 'Y\'ninkinin 3\'te 1\'idir.', 'Y\'ninkine eşittir.'],
+          dogru: 1,
+          aciklama: r`Kesit alanı paydadadır. Kesit 3 katına çıkınca direnç 3'e bölünür. Kalın tel akıma daha kolay yol verir.`,
+          yanlisIpucu: 'Kalın hortumdan su daha kolay mı akar, daha zor mu? Kalın telin direnci büyük mü olur, küçük mü?'
+        }
+      },
+      {
+        baslik: 'Ohm yasası',
+        metin: r`Bir telin uçları arasındaki **potansiyel fark** ($V$), yükleri telde ilerlemeye zorlayan etkidir; birimi volttur (V). Potansiyel fark büyüdükçe akım da büyür.
+
+Sıcaklığı sabit bir telde potansiyel farkın akıma oranı hep aynıdır. Bu oran telin direncidir:
+
+$\dfrac{V}{I} = R$ ya da $V = I \times R$
+
+Bu bağıntıya **Ohm yasası** denir. Örneğin direnci 3 Ω olan bir telin uçlarına 6 V uygulanırsa telden $\dfrac{6}{3} = 2\ \text{A}$ akım geçer.`,
+        kontrol: {
+          soru: 'Direnci 5 Ω olan bir ısıtıcı telin uçları arasındaki potansiyel fark 20 V\'tur. Telden geçen akım kaç A\'dir?',
+          secenekler: [r`$100$`, r`$4$`, r`$25$`],
+          dogru: 1,
+          aciklama: r`$I = \dfrac{V}{R} = \dfrac{20}{5} = 4\ \text{A}$ olur.`,
+          yanlisIpucu: r`$V = I \times R$ ise akımı bulmak için potansiyel farkı dirence bölmelisin.`
+        }
+      },
+      {
+        baslik: 'Seri ve paralel bağlama',
+        metin: r`Dirençler iki temel biçimde bağlanır.
+
+- **Seri:** Dirençler art arda, tek bir yol üstündedir. Hepsinden aynı akım geçer. Eşdeğer direnç, dirençlerin toplamıdır: $R_{\text{eş}} = R_1 + R_2$.
+- **Paralel:** Dirençlerin uçları aynı iki noktaya bağlıdır. Hepsinin uçları arasındaki potansiyel fark aynıdır; akım kollara ayrılır. Eşdeğer direnç en küçük dirençten de küçüktür: $\dfrac{1}{R_{\text{eş}}} = \dfrac{1}{R_1} + \dfrac{1}{R_2}$.
+
+Akımı ölçen **ampermetre** devreye seri, potansiyel farkı ölçen **voltmetre** ise ölçtüğü elemana paralel bağlanır.`,
+        kontrol: {
+          soru: 'Dirençleri 4 Ω olan iki özdeş direnç paralel bağlanıyor. Eşdeğer direnç kaç Ω\'dur?',
+          secenekler: [r`$8$`, r`$2$`, r`$4$`],
+          dogru: 1,
+          aciklama: r`$\dfrac{1}{R_{\text{eş}}} = \dfrac{1}{4} + \dfrac{1}{4} = \dfrac{2}{4}$ olur. Buradan $R_{\text{eş}} = 2\ \Omega$ bulunur. Akıma iki yol açılınca toplam direnç küçülür.`,
+          yanlisIpucu: 'Paralel bağlamada dirençler toplanmaz. Eşdeğer direnç en küçük dirençten bile küçük olmalıydı.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Isıtmalı eldiven',
+        metin: r`Kışın kullanılan ısıtmalı bir eldivenin içinde ince bir ısıtıcı tel var. Telin direnci 4 Ω'dur. Eldiven çalışırken telin bir kesitinden 1 dakikada 120 C yük geçiyor.`,
+        adimlar: [
+          {
+            soru: 'Telden geçen akım kaç A\'dir?',
+            secenekler: [r`$120$`, r`$2$`, r`$30$`],
+            dogru: 1,
+            ipucu: 'Önce süreyi saniyeye çevir: 1 dakika 60 s\'dir. Sonra yükü süreye böl.',
+            aciklama: r`$I = \dfrac{120}{60} = 2\ \text{A}$ olur.`
+          },
+          {
+            soru: 'Telin uçları arasındaki potansiyel fark kaç V\'tur?',
+            secenekler: [r`$8$`, r`$2$`, r`$6$`],
+            dogru: 0,
+            ipucu: r`Ohm yasasını kullan: $V = I \times R$.`,
+            aciklama: r`$V = 2 \times 4 = 8\ \text{V}$ olur.`
+          },
+          {
+            soru: 'Eldivenin pili zayıflıyor ve telin uçları arasındaki potansiyel fark 4 V\'a düşüyor. Telden geçen akım kaç A olur?',
+            secenekler: [r`$1$`, r`$2$`, r`$16$`],
+            dogru: 0,
+            ipucu: 'Telin direnci değişmez. Yeni potansiyel farkı dirence böl.',
+            aciklama: r`$I = \dfrac{4}{4} = 1\ \text{A}$ olur. Direnç sabitken potansiyel fark yarıya inince akım da yarıya iner; eldiven daha az ısınır.`
+          }
+        ],
+        sonuc: 'Akımı bulmak için yük ve süre yetti. Ohm yasası akımı, potansiyel farkı ve direnci birbirine bağladı.'
+      },
+      {
+        baslik: 'Vitrindeki süs lambaları',
+        sekil: 'sfY71_seri',
+        metin: r`Bir oyuncakçının vitrininde, 24 V'luk bir üretece bağlı iki süs lambası var. Lambaların dirençleri 2 Ω ve 6 Ω'dur ve seri bağlıdır. Devrede bir ampermetre vardır; 6 Ω'luk lambaya da bir voltmetre bağlanmıştır. Üretecin iç direnci ve ölçü aletlerinin etkisi önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Devrenin eşdeğer direnci kaç Ω\'dur?',
+            secenekler: [r`$8$`, r`$4$`, r`$12$`],
+            dogru: 0,
+            ipucu: 'Seri bağlı dirençler toplanır.',
+            aciklama: r`$R_{\text{eş}} = 2 + 6 = 8\ \Omega$ olur.`
+          },
+          {
+            soru: 'Ampermetre kaç A gösterir?',
+            secenekler: [r`$12$`, r`$3$`, r`$4$`],
+            dogru: 1,
+            ipucu: r`Seri devrede akım her yerde aynıdır: $I = \dfrac{V}{R_{\text{eş}}}$.`,
+            aciklama: r`$I = \dfrac{24}{8} = 3\ \text{A}$ olur. İki lambadan da 3 A geçer.`
+          },
+          {
+            soru: 'Voltmetre kaç V gösterir?',
+            secenekler: [r`$24$`, r`$6$`, r`$18$`],
+            dogru: 2,
+            ipucu: '6 Ω\'luk lambadan geçen akımı bu lambanın direnciyle çarp.',
+            aciklama: r`$V = 3 \times 6 = 18\ \text{V}$ olur. Kalan $24 - 18 = 6\ \text{V}$ de 2 Ω'luk lambanın uçları arasındadır.`
+          }
+        ],
+        sonuc: 'Seri devrede akım ortaktır. Üretecin potansiyel farkı dirençler arasında paylaşılır; büyük direnç büyük pay alır.'
+      },
+      {
+        baslik: 'Kamyonetin çalışma lambaları',
+        sekil: 'sfY71_paralel',
+        metin: r`Bir kamyonetin kasasındaki iki çalışma lambası, 24 V'luk aküye paralel bağlıdır. Lambaların dirençleri 8 Ω ve 24 Ω'dur. Ana koldaki ampermetre, aküden çekilen toplam akımı ölçüyor. Akünün iç direnci önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Her lambanın uçları arasındaki potansiyel fark kaç V\'tur?',
+            secenekler: [r`$12$`, r`$24$`, r`$48$`],
+            dogru: 1,
+            ipucu: 'Paralel bağlı lambaların uçları aynı iki noktaya, yani akünün iki ucuna bağlıdır.',
+            aciklama: 'Paralel bağlı lambaların her biri akünün potansiyel farkını alır: 24 V.'
+          },
+          {
+            soru: '8 Ω\'luk lambadan geçen akım kaç A\'dir?',
+            secenekler: [r`$3$`, r`$1$`, r`$4$`],
+            dogru: 0,
+            ipucu: 'Bu lambanın potansiyel farkını direncine böl.',
+            aciklama: r`$I_1 = \dfrac{24}{8} = 3\ \text{A}$ olur.`
+          },
+          {
+            soru: 'Ana koldaki ampermetre kaç A gösterir?',
+            secenekler: [r`$3$`, r`$4$`, r`$1$`],
+            dogru: 1,
+            ipucu: 'Ana koldaki akım, kollardaki akımların toplamıdır. 24 Ω\'luk lambanın akımını da bul.',
+            aciklama: r`24 Ω'luk lambadan $\dfrac{24}{24} = 1\ \text{A}$ geçer. Ana koldaki akım $3 + 1 = 4\ \text{A}$ olur. Eşdeğer direnç $\dfrac{24}{4} = 6\ \Omega$'dur; 8 Ω'dan da küçüktür.`
+          }
+        ],
+        sonuc: 'Paralel bağlı lambaların her biri aynı potansiyel farkı alır. Ana koldaki akım, kol akımlarının toplamıdır.'
+      }
+    ],
+    hazir: r`Akımı, yük taşıyıcıları, direncin neye bağlı olduğunu, Ohm yasasını ve seri ile paralel bağlamayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -39080,6 +39634,66 @@ BFY_FIG_EKLE('iY72_efsane_5', u => EF(u, I => {
 }, { oy: 64 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY72_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const INK = P.ink, BG = '#f4f7f9', VC = '#a8402a', GL = '#ffd95a';
+const f1 = v => (+v).toFixed(1);
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const tel = pts => `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${INK}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+const nokta = (x, y) => `<circle cx="${x}" cy="${y}" r="3.6" fill="${INK}"/>`;
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: o.size || 15, weight: o.weight || 800, anchor: o.anchor || 'middle', fill: o.fill || INK });
+/* yatay üreteç: + solda */
+const pilH = (x, y) => `<line x1="${x - 6}" y1="${y - 16}" x2="${x - 6}" y2="${y + 16}" stroke="${INK}" stroke-width="2.4"/><line x1="${x + 6}" y1="${y - 9}" x2="${x + 6}" y2="${y + 9}" stroke="${INK}" stroke-width="6"/>` +
+  yaz(x - 17, y + 22, '+') + yaz(x + 17, y + 22, '−', { size: 16 });
+/* dikey üreteç: + üstte, işaretler sağda */
+const pilV = (x, y) => `<line x1="${x - 16}" y1="${y - 6}" x2="${x + 16}" y2="${y - 6}" stroke="${INK}" stroke-width="2.4"/><line x1="${x - 9}" y1="${y + 6}" x2="${x + 9}" y2="${y + 6}" stroke="${INK}" stroke-width="6"/>` +
+  yaz(x + 24, y - 8, '+') + yaz(x + 24, y + 18, '−', { size: 16 });
+const lamba = (x, y) => `<circle cx="${x}" cy="${y}" r="21" fill="${GL}" opacity=".4"/><circle cx="${x}" cy="${y}" r="14" fill="#fff6d6" stroke="${INK}" stroke-width="2"/><path d="M${f1(x - 9.9)} ${f1(y - 9.9)} L${f1(x + 9.9)} ${f1(y + 9.9)} M${f1(x - 9.9)} ${f1(y + 9.9)} L${f1(x + 9.9)} ${f1(y - 9.9)}" stroke="${INK}" stroke-width="1.8"/>`;
+
+/* 4 V ve 2 V'luk üreteçler düz seri: lambaya 6 V */
+BFY_FIG_EKLE('sfY72_seri', function (u) {
+  const W = 340, H = 230, xl = 50, xr = 290, yt = 64, yb = 180, x1 = 130, x2 = 210;
+  let s = zemin(W, H);
+  s += tel([[xl, yt], [x1 - 6, yt]]) + tel([[x1 + 6, yt], [x2 - 6, yt]]) + tel([[x2 + 6, yt], [xr, yt], [xr, yb], [184, yb]]) + tel([[156, yb], [xl, yb], [xl, yt]]);
+  s += pilH(x1, yt) + pilH(x2, yt);
+  s += yaz(x1, yt - 26, '4 V', { fill: VC, size: 16 }) + yaz(x2, yt - 26, '2 V', { fill: VC, size: 16 });
+  s += lamba(170, yb) + yaz(170, yb - 30, 'lamba', { size: 14, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* İki özdeş 6 V'luk pil paralel: lambaya yine 6 V */
+BFY_FIG_EKLE('sfY72_paralel', function (u) {
+  const W = 340, H = 250, xa = 88, xb = 200, xl = 290, yt = 50, yb = 210, ym = 130;
+  let s = zemin(W, H);
+  s += tel([[xa, ym - 6], [xa, yt], [xl, yt], [xl, ym - 14]]) + tel([[xl, ym + 14], [xl, yb], [xa, yb], [xa, ym + 6]]);
+  s += tel([[xb, yt], [xb, ym - 6]]) + tel([[xb, ym + 6], [xb, yb]]) + nokta(xb, yt) + nokta(xb, yb);
+  s += pilV(xa, ym) + pilV(xb, ym);
+  s += yaz(xa - 22, ym + 6, '6 V', { anchor: 'end', fill: VC, size: 16 }) + yaz(xb - 22, ym + 6, '6 V', { anchor: 'end', fill: VC, size: 16 });
+  s += lamba(xl, ym);
+  return svg(W, H, s, u, 80);
+});
+
+/* Elektrik sayacı: başta 01248 kWh, 2 saat sonra 01252 kWh */
+BFY_FIG_EKLE('sfY72_sayac', function (u) {
+  const W = 340, H = 230;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}kut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f5f6"/><stop offset="1" stop-color="#c9d0d5"/></linearGradient></defs>`;
+  const sayac = (x, et, deger) => {
+    let t = `<rect x="${x + 4}" y="58" width="146" height="132" rx="10" fill="#000" opacity=".1"/>`;
+    t += `<rect x="${x}" y="54" width="146" height="132" rx="10" fill="url(#${u}kut)" stroke="#7d8890" stroke-width="1.4"/>`;
+    t += `<rect x="${x + 12}" y="78" width="122" height="44" rx="5" fill="#1e2a2e" stroke="#0d1416"/>`;
+    t += T(x + 73, 110, deger, { size: 24, weight: 800, anchor: 'middle', fill: '#9be7a1', halo: false });
+    t += T(x + 73, 146, 'kWh', { size: 15, weight: 800, anchor: 'middle', fill: P.ink2 });
+    t += `<circle cx="${x + 30}" cy="168" r="4" fill="#d9573b"/><rect x="${x + 50}" y="164" width="72" height="8" rx="4" fill="#9aa5ac"/>`;
+    t += T(x + 73, 38, et, { size: 15, weight: 800, anchor: 'middle', fill: P.ink });
+    return t;
+  };
+  s += sayac(14, 'Başta', '01248') + sayac(180, '2 saat sonra', '01252');
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -39141,6 +39755,187 @@ const KONU = {
     'dirençleri bilinmeyen X ana kolda, Y ∥ Z; Y ile Z eşit parlak, X daha sönük (kesinlikle)', 'otomobilde 12 V ısıtıcılı termos: 7 A, 10 dk, 0,4 kg su, yüzde 80, 24 °C',
     'el telsizi: konuşma 3,6 W, bekleme 0,2 W, yalnız konuşmada 8 saat; günde 2 saat konuşma ve 12 saat bekleme ile 3 gün'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/Y.7.2/dogrula.py içinde doğrulanır. İç dirençte hesap yok; güç ve enerji hesabı tek dirençte. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Üreteçlerin nasıl bağlandığını, elektriksel gücü, elektrik enerjisini ve elektrikle güvenli çalışmayı kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Üreteç: devrenin pompası',
+        metin: r`Bir su pompası suyu borularda dolaştırır. **Üreteç** de devrede yükleri iter ve akımı sürdürür. Pil ve akü birer üreteçtir.
+
+- Üretecin iki ucu vardır: **pozitif (+)** uç ve **negatif (−)** uç.
+- Üretecin, kendisinden akım çekilmezken uçları arasında oluşturduğu potansiyel farka **elektromotor kuvvet** denir; $\varepsilon$ ile gösterilir, birimi volttur.
+- Pil, içindeki **kimyasal enerjiyi** elektrik enerjisine dönüştürür.
+
+İlk pili Alessandro Volta yaptı. Volta, Galvani'nin kurbağa bacağıyla yaptığı deneyleri inceledi. Sonra iki farklı metal diski, tuzlu suya batırılmış kartonlarla üst üste dizerek sürekli akım elde etti.`,
+        kontrol: {
+          soru: 'Şarjlı bir el feneri, bataryası dolu iken açılıyor. Batarya feneri çalıştırırken hangi enerji dönüşümü olur?',
+          secenekler: ['Elektrik enerjisi kimyasal enerjiye dönüşür.', 'Kimyasal enerji elektrik enerjisine dönüşür.', 'Isı enerjisi kimyasal enerjiye dönüşür.'],
+          dogru: 1,
+          aciklama: 'Batarya, içinde depoladığı kimyasal enerjiyi elektrik enerjisine dönüştürür. Şarj ederken ise tersi olur: Elektrik enerjisi kimyasal enerji olarak depolanır.',
+          yanlisIpucu: 'Batarya şu anda enerji mi depoluyor, yoksa depoladığı enerjiyi mi veriyor?'
+        }
+      },
+      {
+        baslik: 'Seri bağlama: potansiyel farklar toplanır',
+        sekil: 'sfY72_seri',
+        metin: r`Üreteçler art arda, birinin + ucu öbürünün − ucuna gelecek biçimde bağlanırsa **seri** bağlanmış olur. Seri bağlı üreteçlerin potansiyel farkları toplanır.
+
+Şekilde 4 V ve 2 V'luk iki üreteç seri bağlı. Lambaya $4 + 2 = 6\ \text{V}$ uygulanır.
+
+Bir üreteç **ters** bağlanırsa, yani iki üretecin aynı adlı uçları birbirine gelirse, onun potansiyel farkı toplamdan çıkarılır. Şekildeki 2 V'luk üreteç ters çevrilse lambaya $4 - 2 = 2\ \text{V}$ kalırdı.`,
+        kontrol: {
+          soru: '12 V\'luk bir akü ile 4 V\'luk bir pil, − uçları birbirine gelecek biçimde ters bağlanıyor. Toplam potansiyel fark kaç V\'tur?',
+          secenekler: [r`$16$`, r`$8$`, r`$3$`],
+          dogru: 1,
+          aciklama: r`Ters bağlanan üreteçlerin potansiyel farkları çıkarılır: $12 - 4 = 8\ \text{V}$ olur.`,
+          yanlisIpucu: 'Uçlar düz sırayla (+ ucundan − ucuna) gelmiyor. Ters bağlanan üretecin potansiyel farkı eklenir mi, çıkarılır mı?'
+        }
+      },
+      {
+        baslik: 'Paralel bağlama: üreteç daha geç tükenir',
+        sekil: 'sfY72_paralel',
+        metin: r`Özdeş pillerin + uçları bir noktaya, − uçları başka bir noktaya bağlanırsa piller **paralel** bağlanmış olur.
+
+- Özdeş paralel pillerin toplam potansiyel farkı **tek bir pilinki kadardır**. Şekilde lambaya yine 6 V uygulanır.
+- Lambanın çektiği akım piller arasında paylaşılır. Her pil daha az akım verir ve daha **geç tükenir**.
+
+İki özdeş pil paralel bağlanınca lamba tek pildeki kadar parlak yanar, ama yaklaşık 2 kat uzun süre yanar.`,
+        kontrol: {
+          soru: 'Tek bir pille 5 saat yanan bir lambaya, aynı pilden 3 tanesi paralel bağlanıyor. Lamba yaklaşık kaç saat yanar?',
+          secenekler: ['15 saat', '5 saat', 'Lamba 3 kat parlak yanar ve 5 saatten kısa sürede söner.'],
+          dogru: 0,
+          aciklama: 'Paralel bağlı üç özdeş pil lambaya yine tek pilin potansiyel farkını verir; lamba aynı parlaklıkta yanar. Akım üç pile paylaşıldığı için piller yaklaşık 3 kat geç tükenir: 15 saat.',
+          yanlisIpucu: 'Paralel bağlamada potansiyel fark değişmez, akım piller arasında paylaşılır. Her pil daha az akım verirse daha erken mi, daha geç mi tükenir?'
+        }
+      },
+      {
+        baslik: 'Elektriksel güç',
+        metin: r`Bir cihazın birim zamanda harcadığı elektrik enerjisine **elektriksel güç** denir. Birimi watt (W)'tır:
+
+$P = V \times I$
+
+Ohm yasasıyla birleştirirsen aynı güç $P = I^2 \times R$ ve $P = \dfrac{V^2}{R}$ biçiminde de yazılır.
+
+Güç, mekanik güçte olduğu gibi enerjinin ne kadar hızlı harcandığını gösterir. Bir lambanın **parlaklığı** harcadığı güçle artar. Örneğin 12 V'luk bir aküden 2 A çeken bir lamba $12 \times 2 = 24\ \text{W}$ güç harcar.`,
+        kontrol: {
+          soru: 'Bir dizüstü bilgisayarın şarj aleti 20 V\'luk potansiyel farkla 3 A akım veriyor. Şarj aletinin gücü kaç W\'tır?',
+          secenekler: [r`$23$`, r`$60$`, r`$17$`],
+          dogru: 1,
+          aciklama: r`$P = V \times I = 20 \times 3 = 60\ \text{W}$ olur.`,
+          yanlisIpucu: 'Güç, potansiyel fark ile akımın toplamı değil, çarpımıdır.'
+        }
+      },
+      {
+        baslik: 'Elektrik enerjisi ve kilowattsaat',
+        sekil: 'sfY72_sayac',
+        metin: r`Bir cihazın harcadığı enerji, gücü ile çalışma süresinin çarpımıdır:
+
+$E = P \times t$
+
+Güç watt, süre saniye ise enerji joule (J) çıkar. Evlerde ise **kilowattsaat (kWh)** kullanılır: Gücü 1 kW olan bir cihaz 1 saat çalışırsa 1 kWh enerji harcar. Örneğin gücü 1 kW olan bir ısıtıcı 3 saat çalışırsa 3 kWh harcar.
+
+Evdeki elektrik sayacı harcanan enerjiyi kWh olarak sayar. Elektrik faturası bu sayıya göre ödenir.`,
+        kontrol: {
+          soru: 'Evde yalnız elektrikli fırın çalışırken sayaç şekildeki gibi 2 saatte 4 kWh ilerliyor. Fırının gücü kaç kW\'tır?',
+          secenekler: [r`$8$`, r`$2$`, r`$6$`],
+          dogru: 1,
+          aciklama: r`$P = \dfrac{E}{t} = \dfrac{4}{2} = 2\ \text{kW}$ olur. Sayacın gösterdiği iki değerin farkı, bu sürede harcanan enerjidir.`,
+          yanlisIpucu: r`$E = P \times t$ ise güç, enerjinin süreye bölümüdür. Önce sayacın ne kadar ilerlediğine bak.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Pastanın üstündeki ışıklı yazı',
+        metin: r`Bir doğum günü pastasının üstüne konacak ışıklı bir yazı 9 V ile çalışıyor. Elinde her biri 3 V olan özdeş düğme piller var. Pillerin iç direnci önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Işıklı yazının çalışması için kaç pil seri bağlanmalıdır?',
+            secenekler: [r`$9$`, r`$3$`, r`$6$`],
+            dogru: 1,
+            ipucu: 'Seri bağlı pillerin potansiyel farkları toplanır. 9 V elde etmek için kaç tane 3 V gerekir?',
+            aciklama: r`$3 + 3 + 3 = 9\ \text{V}$ olur. Üç pil seri bağlanmalıdır.`
+          },
+          {
+            soru: 'Pilleri takarken üçünden birini ters takarsan toplam potansiyel fark kaç V olur?',
+            secenekler: [r`$9$`, r`$6$`, r`$3$`],
+            dogru: 2,
+            ipucu: 'Ters takılan pilin potansiyel farkı toplamdan çıkarılır. Yalnız onu yok saymak yetmez.',
+            aciklama: r`$3 + 3 - 3 = 3\ \text{V}$ olur. Ters pil, düz pillerden birinin etkisini götürür; 3 V yazının çalışmasına yetmez.`
+          },
+          {
+            soru: 'Üç pil seri yerine paralel bağlanırsa ne olur?',
+            secenekler: ['Yazıya 9 V uygulanır ve daha uzun süre yanar.', 'Yazıya 3 V uygulanır ve yazı çalışmaz.', 'Yazıya 27 V uygulanır ve yazı bozulur.'],
+            dogru: 1,
+            ipucu: 'Özdeş paralel pillerin toplam potansiyel farkı kaç pilinki kadardır?',
+            aciklama: 'Özdeş paralel pillerin potansiyel farkı tek pilinki kadardır: 3 V. Bu, yazının çalışması için yetmez. Paralel bağlama yalnız tükenme süresini uzatır.'
+          }
+        ],
+        sonuc: 'Seri bağlama potansiyel farkı artırır. Paralel bağlama potansiyel farkı değiştirmez ama pillerin daha geç tükenmesini sağlar. Ters takılan pil toplamı azaltır.'
+      },
+      {
+        baslik: 'Şarjlı matkap',
+        metin: r`Şarjlı bir matkabın motoru, 18 V'luk bataryasından 10 A akım çekiyor. Bir usta, bir rafın deliklerini açarken matkabı toplam 5 dakika çalıştırıyor.`,
+        adimlar: [
+          {
+            soru: 'Motorun gücü kaç W\'tır?',
+            secenekler: [r`$28$`, r`$180$`, r`$8$`],
+            dogru: 1,
+            ipucu: r`$P = V \times I$ bağıntısını kullan.`,
+            aciklama: r`$P = 18 \times 10 = 180\ \text{W}$ olur.`
+          },
+          {
+            soru: 'Motor 5 dakikada kaç J elektrik enerjisi harcar?',
+            secenekler: [r`$900$`, r`$54\,000$`, r`$10\,800$`],
+            dogru: 1,
+            ipucu: 'Süre saniye olmalı: 5 dakika 300 s\'dir. Sonra gücü süreyle çarp.',
+            aciklama: r`$E = P \times t = 180 \times 300 = 54\,000\ \text{J}$ olur. Bu, 54 kJ demektir.`
+          },
+          {
+            soru: 'Motor, harcadığı elektrik enerjisini en çok hangi enerjiye dönüştürür?',
+            secenekler: ['Mekanik enerjiye, yani matkap ucunun dönmesine; bir kısmı da ısıya ve sese', 'Bataryada kimyasal enerjiye', 'Işık enerjisine'],
+            dogru: 0,
+            ipucu: 'Motorun işi bir şeyi döndürmektir. Uzun çalışan matkabın gövdesi neden ısınır?',
+            aciklama: 'Motor elektrik enerjisini dönme hareketine çevirir. Bir kısmı sürtünme ve telin direnci yüzünden ısıya, bir kısmı da sese dönüşür.'
+          }
+        ],
+        sonuc: 'Güç, potansiyel fark ile akımın çarpımıdır. Enerji için gücü saniye cinsinden süreyle çarparsın. Elektrik enerjisi motorda harekete, bir kısmı da ısıya dönüşür.'
+      },
+      {
+        baslik: 'Şantiyedeki seyyar lamba',
+        metin: r`Bir şantiyede, kablosunun yalıtımı yıpranmış bir seyyar lambayı tutan bir işçiyi elektrik çarpıyor. İşçi lambayı elinden bırakamıyor. Yakındaki arkadaşı ona yardım etmek istiyor.`,
+        adimlar: [
+          {
+            soru: 'Arkadaşı ilk olarak ne yapmalıdır?',
+            secenekler: ['İşçiyi kolundan tutup hemen çekmelidir.', 'Sigortayı ya da şalteri kapatarak elektriği kesmelidir.', 'Lambanın üstüne su dökmelidir.'],
+            dogru: 1,
+            ipucu: 'Önce akımın kaynağını düşün. Akım kesilmeden işçiye dokunan biri ne yaşar?',
+            aciklama: 'İlk iş elektriği kesmektir. Lamba prize takılıysa fiş çekilir ya da o hattın sigortası kapatılır. Hangi sigorta olduğu bilinmiyorsa ana şalter kapatılır. Akım kesildikten sonra işçiye yardım edilir ve 112 aranır.'
+          },
+          {
+            soru: 'Elektrik kesilmeden işçiye çıplak elle dokunmak neden tehlikelidir?',
+            secenekler: ['Dokunan kişi de akımın yolu olur ve onu da elektrik çarpar.', 'Dokunan kişi akımı kendi üstüne alır ve işçiden geçen akım tamamen biter.', 'Tehlikeli değildir; akım yalnız işçiden geçer.'],
+            dogru: 0,
+            ipucu: 'İnsan vücudu akımı iletir. Yeni dokunan kişi devrede nasıl bir yol oluşturur?',
+            aciklama: 'İnsan vücudu iletkendir. Dokunan kişi akıma yeni bir yol açar; akım onun üstünden de toprağa geçer. Elektrik hemen kesilemiyorsa yardım eden kişi kuru bir zeminde durur ve işçiyi kuru bir tahta sopa gibi yalıtkan bir cisimle akım kaynağından ayırır.'
+          },
+          {
+            soru: 'Hangi düzenek, insan vücudundan toprağa akım kaçtığını algılayıp devreyi kendiliğinden keser?',
+            secenekler: ['Sigorta', 'Kaçak akım rölesi', 'Uzatma kablosu'],
+            dogru: 1,
+            ipucu: 'Vücuttan geçen birkaç on miliamperlik akım bile tehlikelidir. Bu kadar küçük bir kaçağı hangi düzenek fark eder?',
+            aciklama: 'Kaçak akım rölesi, hattan giden ve dönen akımı karşılaştırır; fark yaklaşık 30 mA\'i aşınca devreyi saniyenin küçük bir kesrinde keser. Kişi yine bir an çarpılır ama akım çok kısa sürdüğü için ağır zarar büyük ölçüde önlenir. Sigorta ise kabloları aşırı akımdan korur; bu kadar küçük bir kaçakta atmaz. Röle olsa bile yalıtımı yıpranmış kablo hiç kullanılmaz.'
+          }
+        ],
+        sonuc: 'Elektrik çarpmasında önce akım kesilir. Çarpılan kişiye çıplak elle dokunulmaz. Kaçak akım rölesi insanı korumak için, sigorta kabloları aşırı akımdan korumak için kullanılır. Hiçbiri yıpranmış kablonun yerini tutmaz.'
+      }
+    ],
+    hazir: r`Üreteçlerin seri, ters ve paralel bağlanmasını, elektriksel gücü, elektrik enerjisini ve güvenlik önlemlerini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
