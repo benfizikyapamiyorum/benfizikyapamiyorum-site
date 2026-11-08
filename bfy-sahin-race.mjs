@@ -1,6 +1,6 @@
 import * as T from './bfy-three.module.min.js';
 import {createSahin} from './bfy-sahin-model.mjs';
-import {RecordedEngine} from './bfy-sahin-audio.mjs';
+import {RecordedEngine} from './bfy-sahin-audio.mjs?v=20261108-exhaust1';
 import {makeRace,raceSample} from './bfy-sahin-physics.mjs';
 const $=id=>document.getElementById(id),fmt=(n,d=1)=>n.toFixed(d).replace('.',','),clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 let model,t=0,phase='ready',last=performance.now(),countStart=0,prediction=null,night=false,lights=false,bootOpen=false,bootAngle=0,cameraMode='garage';
@@ -44,10 +44,18 @@ $('music').onclick=()=>setMusic(!music);$('choose-track').onclick=()=>$('music-f
 window.addEventListener('pagehide',()=>{clearInterval(beatTimer);audio.pause();audioCtx?.suspend();if(fileURL)URL.revokeObjectURL(fileURL);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(phase==='running'||phase==='countdown'){phase='paused';$('countdown').hidden=true;sync();}if(music)setMusic(false);}});
 const engine=new RecordedEngine();
+let engineBusy=false;
+function engineControls(){
+ $('engine-toggle').disabled=engineBusy;$('engine-file-button').disabled=engineBusy;$('engine-default').disabled=engineBusy;
+ $('engine-rev').disabled=!engine.enabled;$('engine-toggle').setAttribute('aria-pressed',String(engine.enabled));
+ $('engine-toggle').textContent=engineBusy?'Kayıt yükleniyor…':engine.enabled?'Motoru durdur':'Motoru çalıştır';
+ $('engine-default').hidden=!engine.custom;
+}
 $('engine-file-button').onclick=()=>$('engine-file').click();
-$('engine-file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const seconds=await engine.load(file);$('engine-toggle').disabled=false;$('engine-rev').disabled=false;$('engine-toggle').textContent='Motoru çalıştır';$('engine-toggle').setAttribute('aria-pressed','false');$('engine-status').textContent=`${file.name} · ${fmt(seconds)} saniye. Motoru çalıştırıp gaz verebilirsin.`;}catch(error){$('engine-status').textContent=error.message;}};
-function stopEngine(){engine.stop();$('engine-toggle').textContent='Motoru çalıştır';$('engine-toggle').setAttribute('aria-pressed','false');}
-$('engine-toggle').onclick=async()=>{if(engine.enabled){stopEngine();return;}try{await engine.start();$('engine-toggle').textContent='Motoru durdur';$('engine-toggle').setAttribute('aria-pressed','true');}catch(error){$('engine-status').textContent=error.message;}};
+$('engine-file').onchange=async e=>{const file=e.target.files[0];if(!file||engineBusy)return;engineBusy=true;engineControls();try{const seconds=await engine.load(file);$('engine-status').textContent=`${file.name} · ${fmt(seconds)} saniye. Motoru çalıştırıp gaz verebilirsin.`;}catch(error){$('engine-status').textContent=error.message;}finally{engineBusy=false;engineControls();e.target.value='';}};
+function stopEngine(){engine.stop();engineControls();$('engine-status').textContent='Motor kapalı. Yeniden çalıştırabilirsin.';}
+$('engine-default').onclick=()=>{engine.useDefault();engineControls();$('engine-status').textContent='Gerçek Tofaş egzoz kaydı hazır. Motoru çalıştır, gaz ver.';};
+$('engine-toggle').onclick=async()=>{if(engine.enabled){stopEngine();return;}if(engineBusy)return;engineBusy=true;engineControls();$('engine-status').textContent='Egzoz kaydı hazırlanıyor…';try{const started=await engine.start();$('engine-status').textContent=started?(engine.custom?'Seçtiğin motor kaydı çalıyor.':'Gerçek Tofaş egzoz kaydı çalıyor. Gaz düğmesini basılı tut veya yarışı başlat.'):'Motor kapalı. Yeniden çalıştırabilirsin.';}catch(error){$('engine-status').textContent=error.message;}finally{engineBusy=false;engineControls();}};
 $('engine-volume').oninput=e=>engine.setVolume(+e.target.value/100);
 $('engine-rev').onpointerdown=e=>{if(!engine.enabled)return;e.preventDefault();e.target.setPointerCapture(e.pointerId);engine.rev=true;};
 for(const event of ['pointerup','pointercancel','lostpointercapture','blur'])$('engine-rev').addEventListener(event,()=>engine.rev=false);
