@@ -10563,6 +10563,133 @@ BFY_FIG_EKLE('iY105_efsane_5', u => EF_OB(u, E => {
 }, { ox: 110, oy: 86, s: 1 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY105_): kart genişliği ~340 px, en küçük yazı 14 ----------
+   İnce mercek optik merkezden geçen düşey doğruda kırar (asal eksene yakın ışınlar). İnce kenarlıda paralel ışın
+   öbür taraftaki F'den geçer; kalın kenarlıda uzantısı geldiği taraftaki F'den geçer. Veriler SF bloğunda;
+   qa/Y.10.5/dogrula.py okur. */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const SF = /*SF*/{
+  "iki": { "xm": 150, "f": 96, "ust": 82, "alt": 250, "hT": [-44, -24, 24, 44], "hD": [-30, -15, 15, 30], "xSon": 256, "x0": 74 },
+  "ozel": { "xm": 170, "yc": 132, "f": 70, "h1": -52, "x0": 30, "y2": 111, "s3": [30, 200] },
+  "bolge": { "xm": 300, "f": 80, "yc": 66 },
+  "egri": { "xm": 104, "ust": 78, "alt": 228, "fAz": 150, "fCok": 80, "bAz": 4, "bCok": 11, "h": [-36, -18, 18, 36] }
+}/*SF*/;
+const RAY = '#e8590c', RAY2 = '#7048e8', RAY3 = '#0b7285', CAM = '#3d7fa6';
+const zemin = (W, H, c = '#f3f8f6') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${c}"/>`;
+function isin(x1, y1, x2, y2, c = RAY, at = 0.55, w = 2) {
+  const mx = x1 + (x2 - x1) * at, my = y1 + (y2 - y1) * at, L = Math.hypot(x2 - x1, y2 - y1) || 1, ux = (x2 - x1) / L, uy = (y2 - y1) / L;
+  const bx = mx - ux * 4.5, by = my - uy * 4.5, tx = mx + ux * 4.5, ty = my + uy * 4.5;
+  return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>` +
+    `<polygon points="${f1(tx)},${f1(ty)} ${f1(bx - uy * 4.2)},${f1(by + ux * 4.2)} ${f1(bx + uy * 4.2)},${f1(by - ux * 4.2)}" fill="${c}"/>`;
+}
+const uzanti = (x1, y1, x2, y2, c = RAY) => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="1.5" stroke-dasharray="5 4" opacity=".9"/>`;
+const eksen = (x1, x2, y) => `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${P.ink}" stroke-width="1.4"/>`;
+const centik = (x, y) => `<line x1="${f1(x)}" y1="${y - 5}" x2="${f1(x)}" y2="${y + 5}" stroke="${P.ink}" stroke-width="1.8"/>`;
+const lab = (x, y, t, o = {}) => T(f1(x), f1(y), t, Object.assign({ size: 15, anchor: 'middle', weight: 800 }, o));
+const camDef = u => `<defs><linearGradient id="${u}mc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#bfe0f2"/><stop offset=".5" stop-color="#eef8fd"/><stop offset="1" stop-color="#a9d3ea"/></linearGradient></defs>`;
+/* mercek kesiti: x0 merkez, h yarı yükseklik, e kenar (ince) ya da orta (kalın) kalınlık, b yüzey şişkinliği (negatif = çukur) */
+function mercek(u, x0, y0, h, tip, b) {
+  const e = tip === 1 ? 4 : 2 * b + 4, bb = tip === 1 ? b : -b, xl = x0 - e / 2, xr = x0 + e / 2;
+  const d = `M${f1(xl)} ${f1(y0 - h)} Q${f1(xl - 2 * bb)} ${f1(y0)} ${f1(xl)} ${f1(y0 + h)} L${f1(xr)} ${f1(y0 + h)} Q${f1(xr + 2 * bb)} ${f1(y0)} ${f1(xr)} ${f1(y0 - h)} Z`;
+  return `<path d="${d}" fill="url(#${u}mc)" stroke="${CAM}" stroke-width="2" stroke-linejoin="round"/>` +
+    `<path d="M${f1(xl + 1)} ${f1(y0 - h + 8)} Q${f1(xl - 2 * bb * 0.7 + 3)} ${f1(y0 - h * 0.4)} ${f1(xl + 2)} ${f1(y0 - h * 0.1)}" fill="none" stroke="#ffffff" stroke-width="2" opacity=".8" stroke-linecap="round"/>` +
+    `<line x1="${x0}" y1="${y0 - h}" x2="${x0}" y2="${y0 + h}" stroke="${CAM}" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`;
+}
+
+/* Adım 2: ince kenarlı mercek paralel ışınları F'de toplar; kalın kenarlı dağıtır, uzantılar geldiği taraftaki F'de */
+BFY_FIG_EKLE('sfY105_iki', function (u) {
+  const W = 340, H = 340, g = SF.iki, xm = g.xm, f = g.f;
+  let s = zemin(W, H) + camDef(u);
+  s += `<line x1="14" y1="168" x2="326" y2="168" stroke="#d6d0c2" stroke-width="1.2"/>`;
+  // üst panel: ince kenarlı
+  let y = g.ust;
+  s += eksen(14, 326, y) + centik(xm - f, y) + centik(xm + f, y);
+  g.hT.forEach(h => {
+    const xe = 326, ye = y + h * (1 - (xe - xm) / f);
+    s += isin(g.x0, y + h, xm, y + h, RAY, 0.5) + isin(xm, y + h, xe, ye, RAY, 0.35);
+  });
+  s += mercek(u, xm, y, 54, 1, 7);
+  s += lab(xm - f, y + 19, 'F') + lab(xm + f + 2, y + 26, 'F') + lab(xm - 20, y + 16, 'O', { size: 14 });
+  s += T(16, 22, 'İnce kenarlı: toplar', { size: 15, weight: 800, fill: '#8a3a12' });
+  // alt panel: kalın kenarlı
+  y = g.alt;
+  s += eksen(14, 326, y) + centik(xm - f, y) + centik(xm + f, y);
+  g.hD.forEach(h => {
+    const xe = g.xSon, ye = y + h * (xe - (xm - f)) / f;
+    s += isin(g.x0, y + h, xm, y + h, RAY, 0.5) + isin(xm, y + h, xe, ye, RAY, 0.5) + uzanti(xm, y + h, xm - f, y);
+  });
+  s += mercek(u, xm, y, 40, -1, 6);
+  s += lab(xm - f, y + 30, 'F') + lab(xm + f, y - 10, 'F') + lab(xm + 16, y + 14, 'O', { size: 14 });
+  s += T(16, 192, 'Kalın kenarlı: dağıtır', { size: 15, weight: 800, fill: '#8a3a12' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 3: ince kenarlı mercekte yolu bilinen üç ışın (ayrı ayrı; görüntü çizilmez) */
+BFY_FIG_EKLE('sfY105_ozel', function (u) {
+  const W = 340, H = 262, g = SF.ozel, xm = g.xm, yc = g.yc, f = g.f;
+  let s = zemin(W, H) + camDef(u);
+  s += eksen(14, 326, yc);
+  [xm - 2 * f, xm - f, xm + f, xm + 2 * f].forEach(x => { s += centik(x, yc); });
+  // 1: paralel gelir, öbür taraftaki F'den geçer
+  const y1 = yc + g.h1, xe1 = 326, ye1 = y1 + (yc - y1) * (xe1 - xm) / f;
+  s += isin(g.x0, y1, xm, y1, RAY, 0.5) + isin(xm, y1, xe1, ye1, RAY, 0.4);
+  // 2: geldiği taraftaki F'den geçerek gelir, paralel çıkar
+  const x0 = g.x0, y0 = g.y2, y2 = yc + (yc - y0) * f / ((xm - f) - x0);
+  s += isin(x0, y0, xm, y2, RAY2, 0.3) + isin(xm, y2, 326, y2, RAY2, 0.6);
+  // 3: optik merkezden yön değiştirmeden geçer
+  const [ax, ay] = g.s3, k = (yc - ay) / (xm - ax), xe3 = 316;
+  s += isin(ax, ay, xm, yc, RAY3, 0.5) + isin(xm, yc, xe3, yc + k * (xe3 - xm), RAY3, 0.5);
+  s += mercek(u, xm, yc, 86, 1, 8);
+  s += lab(xm - 2 * f + 6, yc + 26, '2F') + lab(xm - f, yc - 12, 'F') + lab(xm + f, yc - 12, 'F') + lab(xm + 2 * f, yc - 12, '2F') + lab(xm - 20, yc - 10, 'O', { size: 14 });
+  s += lab(18, y1 + 6, '1', { size: 16, fill: RAY }) + lab(18, y0 + 6, '2', { size: 16, fill: RAY2 }) + lab(18, ay + 6, '3', { size: 16, fill: RAY3 });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 4: ince kenarlı mercekte cismin bölgesine göre görüntü */
+BFY_FIG_EKLE('sfY105_bolge', function (u) {
+  const W = 340, H = 226, g = SF.bolge, xm = g.xm, f = g.f, yc = g.yc, x2F = xm - 2 * f, xF = xm - f;
+  let s = zemin(W, H) + camDef(u);
+  const bant = (x1, x2, c, sat) => {
+    let t = `<rect x="${x1 + 2}" y="${yc + 14}" width="${x2 - x1 - 4}" height="104" rx="8" fill="${c}"/>`;
+    sat.forEach((z, i) => { t += lab((x1 + x2) / 2, yc + 40 + i * 26, z, { size: 15, weight: 800, fill: '#26343b' }); });
+    return t;
+  };
+  s += bant(14, x2F, '#dcecf8', ['küçük', 'ters', 'gerçek']) + bant(x2F, xF, '#fde4cc', ['büyük', 'ters', 'gerçek']) + bant(xF, xm - 8, '#d9f0dc', ['büyük', 'düz', 'sanal']);
+  s += eksen(14, 326, yc) + centik(x2F, yc) + centik(xF, yc);
+  // her bölgede küçük bir cisim (mavi ok)
+  [(14 + x2F) / 2, (x2F + xF) / 2, (xF + xm) / 2 - 6].forEach(x => {
+    s += `<line x1="${f1(x)}" y1="${yc}" x2="${f1(x)}" y2="${yc - 26}" stroke="#1c7ed6" stroke-width="3" stroke-linecap="round"/><polygon points="${f1(x)},${yc - 34} ${f1(x - 5)},${yc - 24} ${f1(x + 5)},${yc - 24}" fill="#1c7ed6"/>`;
+  });
+  s += mercek(u, xm, yc, 56, 1, 7);
+  s += lab(x2F, yc - 12, '2F') + lab(xF, yc - 12, 'F') + lab(xm + 18, yc + 22, 'O', { size: 14 });
+  s += T(16, yc + 146, 'Cisim F’deyse görüntü oluşmaz.', { size: 14, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 5: aynı camdan, aynı çapta iki ince kenarlı mercek; şişkin olanın odağı merceğe daha yakın */
+BFY_FIG_EKLE('sfY105_egri', function (u) {
+  const W = 340, H = 306, g = SF.egri, xm = g.xm;
+  let s = zemin(W, H) + camDef(u);
+  s += `<line x1="14" y1="152" x2="326" y2="152" stroke="#d6d0c2" stroke-width="1.2"/>`;
+  [[g.ust, g.fAz, g.bAz, 'az şişkin'], [g.alt, g.fCok, g.bCok, 'çok şişkin']].forEach(([y, f, b, ad]) => {
+    s += eksen(14, 326, y) + centik(xm + f, y);
+    g.h.forEach(h => {
+      const xe = Math.min(326, xm + 2.3 * f), ye = y + h * (1 - (xe - xm) / f);
+      s += isin(16, y + h, xm, y + h, RAY, 0.5) + isin(xm, y + h, xe, ye, RAY, 0.3);
+    });
+    s += mercek(u, xm, y, 46, 1, b);
+    // odak uzaklığı ölçüsü
+    const yo = y + 58;
+    s += `<line x1="${xm}" y1="${yo}" x2="${xm + f}" y2="${yo}" stroke="${P.ink2}" stroke-width="1.3"/><line x1="${xm}" y1="${yo - 5}" x2="${xm}" y2="${yo + 5}" stroke="${P.ink2}" stroke-width="1.3"/><line x1="${xm + f}" y1="${yo - 5}" x2="${xm + f}" y2="${yo + 5}" stroke="${P.ink2}" stroke-width="1.3"/>`;
+    s += lab(xm + f / 2, yo - 6, 'f', { italic: true, size: 16 }) + lab(xm + f + 2, y - 12, 'F');
+    s += T(16, y - 52, ad, { size: 15, weight: 800, fill: '#8a3a12' });
+  });
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -10620,6 +10747,197 @@ const KONU = {
     'ışıklı ok, mercek ve buzlu cam ekran eşit d uzaklıkta', 'göz merceğinin şişkinleşmesi ve fotoğraf makinesinde objektifin kayması',
     'iki mercekten paralel girip paralel çıkan demet (olabilir)', 'K, L, M, N mercekleri: A ve B camı, az ve çok eğri, hava ve su (tablo, kesinlikle)'
   ],
+
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Merceklerin ışığı nasıl topladığını ya da dağıttığını, yolu bilinen ışınları ve bir merceğin cismin yerine göre nasıl görüntü verdiğini kısa adımlarla göreceğiz. Burada hesap yok; yalnız ışığın davranışını tanıyacağız. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Mercek nedir?',
+        metin: r`Bir gözlükçünün vitrinindeki camları yandan incelediğini düşün. Bazı camların ortası kenarlarından kalındır. Bazılarının ise kenarları ortasından kalındır.
+
+Işığı kırarak yolunu değiştiren, en az bir yüzeyi küresel olan saydam cisme **mercek** denir. Mercekler kesitlerine göre iki gruba ayrılır:
+
+- Kenarları ortasından ince olan merceğe **ince kenarlı mercek** denir.
+- Kenarları ortasından kalın olan merceğe **kalın kenarlı mercek** denir.
+
+Merceğe yandan bakıp kenarını ortasıyla karşılaştırmak, türünü anlamanın en kolay yoludur.`,
+        kontrol: {
+          soru: 'Bir cam merceğin ortası 2 mm, kenarları 5 mm kalınlığındadır. Bu mercek hangi türdendir?',
+          secenekler: ['Kalın kenarlı mercek', 'İnce kenarlı mercek', 'Mercek değil, düz cam'],
+          dogru: 0,
+          aciklama: 'Kenarları (5 mm) ortasından (2 mm) kalın olduğu için bu bir kalın kenarlı mercektir.',
+          yanlisIpucu: 'Kenarı mı daha kalın, ortası mı? Merceğe adını kenarı verir.'
+        }
+      },
+      {
+        baslik: 'Toplayan mercek, dağıtan mercek',
+        sekil: 'sfY105_iki',
+        metin: r`Merceğin ortasından geçen ve yüzeylerine dik olan doğruya **asal eksen** denir. Merceğin tam ortasındaki noktaya **optik merkez** ($O$) denir.
+
+Havadaki cam merceklere asal eksene paralel ışınlar gönderelim:
+
+- **İnce kenarlı mercek** ışınları kırar ve bir noktada toplar. Bu noktaya **odak noktası** ($F$) denir.
+- **Kalın kenarlı mercek** ışınları dağıtır. Dağılan ışınların kendileri birleşmez. Geriye doğru uzantıları, ışınların geldiği taraftaki odak noktasından geçer. Şekilde uzantılar kesikli çizilmiştir.
+
+Odak noktasının optik merkeze uzaklığına **odak uzaklığı** ($f$) denir. Merceğin iki yanında aynı ortam varsa iki yandaki odaklar merceğe eşit uzaklıktadır.
+
+Su dolu bir cam şişe ya da şişe dibi gibi kavisli bir cam kırığı da ince kenarlı mercek gibi davranabilir. Güneş ışığını kuru otların üzerinde toplayıp yangın başlatabilir. Bu yüzden doğaya cam bırakılmaz.`,
+        kontrol: {
+          soru: 'Asal eksene paralel ışınlar kalın kenarlı bir mercekten geçiyor. Hangisi doğrudur?',
+          secenekler: ['Işınlar merceğin arkasındaki odakta toplanır.', 'Işınlar dağılır; uzantıları geldikleri taraftaki odaktan geçer.', 'Işınlar hiç kırılmadan geçer.'],
+          dogru: 1,
+          aciklama: 'Kalın kenarlı mercek paralel ışınları dağıtır. Işınların kendileri kesişmez; geriye uzantıları geldikleri taraftaki odak noktasında birleşir.',
+          yanlisIpucu: 'Şekildeki alttaki merceğe bak. Çıkan ışınlar birbirine yaklaşıyor mu, uzaklaşıyor mu?'
+        }
+      },
+      {
+        baslik: 'Yolu bilinen üç ışın',
+        sekil: 'sfY105_ozel',
+        metin: r`Optik merkezden odak uzaklığının iki katı uzaklıktaki noktaya $2F$ denir. Merceğin iki yanında birer $F$ ve birer $2F$ noktası vardır.
+
+İnce kenarlı mercekte bazı ışınların yolunu önceden biliriz:
+
+- **1. ışın:** Asal eksene paralel gelen ışın, kırıldıktan sonra öbür taraftaki odaktan geçer.
+- **2. ışın:** Odaktan geçerek gelen ışın, kırıldıktan sonra asal eksene paralel gider.
+- **3. ışın:** Optik merkeze gelen ışın, yönünü değiştirmeden geçer.
+
+Birinci ve ikinci ışının kuralları birbirinin tersidir. Işık bir yolu hangi yönde izlerse izlesin aynı yoldan geçer. Buna ışığın **tersinirliği** denir.`,
+        kontrol: {
+          soru: 'İnce kenarlı merceğin optik merkezine eğik gelen bir ışın nasıl ilerler?',
+          secenekler: ['Yönünü değiştirmeden geçer.', 'Kırılıp odaktan geçer.', 'Asal eksene paralel olur.'],
+          dogru: 0,
+          aciklama: 'Optik merkezde merceğin iki yüzeyi birbirine paraleldir. Bu yüzden ışın yönünü değiştirmeden geçer. Şekildeki 3. ışın budur.',
+          yanlisIpucu: 'Şekildeki 3. ışını izle. Mercekten önce ve sonra aynı doğru üzerinde mi?'
+        }
+      },
+      {
+        baslik: 'Cismin yeri görüntüyü belirler',
+        sekil: 'sfY105_bolge',
+        metin: r`İnce kenarlı bir merceğin önüne yanan bir mum koyduğunu düşün. Merceğin öbür yanına beyaz bir karton tutarsan bazen mumun net görüntüsü kartona düşer, bazen hiçbir şey göremezsin. Ne göreceğin, mumun hangi bölgede olduğuna bağlıdır.
+
+- Mercekten geçen ışınların **kendileri** kesişirse **gerçek** görüntü oluşur. Gerçek görüntü terstir, merceğin öbür yanındadır ve kartona (perdeye) düşer.
+- Işınların yalnız **uzantıları** kesişirse **sanal** görüntü oluşur. Sanal görüntü düzdür ve perdeye düşmez. Mercekten bakınca görülür.
+
+Şekilde ince kenarlı mercekte her bölgenin görüntüsü yazılıdır. Cisim tam $2F$'deyse görüntü öbür taraftaki $2F$'de oluşur ve cisimle eşit boydadır. Cisim tam $F$'deyse kırılan ışınlar paralel çıkar ve görüntü oluşmaz.
+
+Kalın kenarlı mercekte iş kolaydır: Cisim nerede olursa olsun görüntü **düz, sanal ve cisimden küçüktür**.`,
+        kontrol: {
+          soru: 'İnce kenarlı bir mercekte düz ve cisimden büyük bir görüntü görmek için cisim nereye konmalıdır?',
+          secenekler: ['2F\'nin dışına', 'F ile 2F arasına', 'F ile O arasına'],
+          dogru: 2,
+          aciklama: 'Cisim F ile O arasındayken görüntü düz, sanal ve cisimden büyüktür. Büyüteç bu bölgede kullanılır.',
+          yanlisIpucu: 'Şekilde "düz" yazan bölge hangisi?'
+        }
+      },
+      {
+        baslik: 'Odak uzaklığı neye bağlı?',
+        sekil: 'sfY105_egri',
+        metin: r`Şekildeki iki mercek aynı camdan yapılmıştır ve çapları aynıdır. Alttakinin yüzeyleri daha şişkindir. Daha şişkin mercek ışığı daha çok kırar ve ışınları merceğe daha yakın bir noktada toplar.
+
+Bir merceğin odak uzaklığı şunlara bağlıdır:
+
+- **Yüzeylerin eğriliği:** Yüzeyler şişkinleştikçe odak uzaklığı küçülür.
+- **Merceğin ve ortamın maddesi:** Mercek ile içinde bulunduğu ortamın kırıcılık indisleri arasındaki fark büyüdükçe ışık daha çok kırılır. Odak uzaklığı küçülür.
+- **Işığın rengi:** Cam mor ışığı kırmızı ışıktan daha çok kırar. Mor ışığın odağı merceğe daha yakındır.
+
+Merceğin çapı, cismin uzaklığı ve ışığın şiddeti odak uzaklığını değiştirmez.`,
+        kontrol: {
+          soru: 'İnce kenarlı bir cam merceğe asal eksene paralel olarak önce kırmızı, sonra mavi ışık gönderiliyor. Hangi ışığın toplandığı nokta merceğe daha yakındır?',
+          secenekler: ['Kırmızı ışığınki', 'Mavi ışığınki', 'İkisi aynı noktada toplanır'],
+          dogru: 1,
+          aciklama: 'Cam mavi ışığı kırmızı ışıktan daha çok kırar. Mavi ışınlar merceğe daha yakın bir noktada toplanır.',
+          yanlisIpucu: 'Adımda mor ve kırmızı ışık için ne yazıyordu? Mavi ışık, renk sırasında mora daha yakındır.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Eşit boyda kopya',
+        metin: r`Eski tip fotokopi makinelerinde belge ile ışığa duyarlı yüzey arasında ince kenarlı bir mercek bulunur. Belgeden gelen ışık mercekte kırılır ve belgenin görüntüsü bu yüzeye düşürülür. Makine aynı boyda kopya alırken belge merceğin $2F$ noktasındadır.`,
+        adimlar: [
+          {
+            soru: 'Belgenin görüntüsü nerede oluşur?',
+            secenekler: ['Merceğin öbür yanında, 2F noktasında', 'Merceğin öbür yanında, F noktasında', 'Belgeyle aynı tarafta'],
+            dogru: 0,
+            ipucu: 'Cisim tam 2F\'deyken görüntü nerede oluşuyordu? Yüzeye düşen görüntü merceğin hangi yanındadır?',
+            aciklama: 'Cisim 2F\'deyken görüntü merceğin öbür yanındaki 2F noktasında oluşur. Gerçek görüntü olduğu için yüzeye düşer.'
+          },
+          {
+            soru: 'Bu görüntü nasıldır?',
+            secenekler: ['Düz ve belgeden küçük', 'Ters ve belgeyle eşit boyda', 'Ters ve belgeden büyük'],
+            dogru: 1,
+            ipucu: 'Görüntü yüzeye düşüyor; yani gerçektir. Gerçek görüntü ters mi, düz mü? Cisim 2F\'deyken boyu ne oluyordu?',
+            aciklama: 'Cisim 2F\'deyken görüntü gerçek, ters ve cisimle eşit boydadır. Kopya bu yüzden belgeyle aynı boyda çıkar.'
+          },
+          {
+            soru: 'Büyütülmüş kopya almak için belge merceğe biraz yaklaştırılıp F ile 2F arasına getiriliyor. Görüntü nasıl olur?',
+            secenekler: ['Belgeden büyük ve yine ters', 'Belgeden küçük', 'Düz ve sanal'],
+            dogru: 0,
+            ipucu: 'Şekilde F ile 2F arasındaki bölgede ne yazıyordu?',
+            aciklama: 'Cisim F ile 2F arasındayken görüntü gerçek, ters ve cisimden büyüktür. Görüntü öbür taraftaki 2F noktasının da ötesinde oluşur.'
+          }
+        ],
+        sonuc: 'İnce kenarlı mercekte cisim 2F\'deyken görüntü cisimle eşit boyda, F ile 2F arasındayken cisimden büyüktür. İki durumda da görüntü gerçek ve terstir.'
+      },
+      {
+        baslik: 'Minibüsün arka camı',
+        metin: r`Bazı minibüslerin arka camına, arkadaki geniş bir alanın görülebilmesi için kalın kenarlı mercek gibi davranan ince, saydam bir plastik levha yapıştırılır. En arka koltukta oturan Can, minibüsün arkasındaki bir bisikletliye bu levhanın içinden bakıyor.`,
+        adimlar: [
+          {
+            soru: 'Can bisikletlinin görüntüsünü nasıl görür?',
+            secenekler: ['Ters', 'Düz', 'Bisikletlinin uzaklığına göre bazen ters, bazen düz'],
+            dogru: 1,
+            ipucu: 'Kalın kenarlı mercekte görüntü cismin yerine bağlı mıydı?',
+            aciklama: 'Kalın kenarlı mercek her zaman düz görüntü verir. Bisikletli nerede olursa olsun düz görünür.'
+          },
+          {
+            soru: 'Görüntünün boyu bisikletlinin boyuna göre nasıldır?',
+            secenekler: ['Daha büyük', 'Eşit', 'Daha küçük'],
+            dogru: 2,
+            ipucu: 'Kalın kenarlı mercekte görüntünün üç özelliği hiç değişmiyordu: düz, sanal ve ...',
+            aciklama: 'Kalın kenarlı mercekte görüntü her zaman cisimden küçüktür. Her şey küçük göründüğü için levhada arkadaki geniş bir alan bir arada görülür.'
+          },
+          {
+            soru: 'Can, levha ile kendisi arasına beyaz bir kâğıt tutup bisikletlinin görüntüsünü kâğıtta arıyor. Görüntü kâğıda düşer mi?',
+            secenekler: ['Evet, net bir görüntü düşer.', 'Hayır, çünkü görüntü sanaldır.', 'Evet, ama görüntü ters düşer.'],
+            dogru: 1,
+            ipucu: 'Perdeye düşen görüntü gerçek görüntüdür. Kalın kenarlı merceğin görüntüsü gerçek mi, sanal mı?',
+            aciklama: 'Kalın kenarlı mercekten çıkan ışınlar dağılır ve kendileri kesişmez. Görüntü sanaldır. Perdeye ya da kâğıda düşmez, yalnız mercekten bakınca görülür.'
+          }
+        ],
+        sonuc: 'Kalın kenarlı mercek her zaman düz, sanal ve cisimden küçük görüntü verir. Sanal görüntü perdeye düşmez ama mercekten bakınca görülür.'
+      },
+      {
+        baslik: 'Okul mikroskobu',
+        metin: r`Okul laboratuvarındaki ışık mikroskobunda iki ince kenarlı mercek vardır. Preparata yakın olan **objektif**, preparatın büyük bir görüntüsünü tüpün içinde oluşturur. Göze yakın olan **göz merceği**, bu görüntüyü bir büyüteç gibi bir kez daha büyütür.`,
+        adimlar: [
+          {
+            soru: 'Preparat, objektifin F ve 2F noktaları arasındadır. Objektifin oluşturduğu görüntü nasıldır?',
+            secenekler: ['Ters, gerçek ve preparattan büyük', 'Düz, sanal ve preparattan büyük', 'Ters, gerçek ve preparattan küçük'],
+            dogru: 0,
+            ipucu: 'Şekilde F ile 2F arasındaki bölgede ne yazıyordu?',
+            aciklama: 'Cisim F ile 2F arasındayken ince kenarlı mercek ters, gerçek ve cisimden büyük bir görüntü oluşturur.'
+          },
+          {
+            soru: 'Objektifin görüntüsü, göz merceğinin odak noktası ile optik merkezi arasında kalır. Göz merceği bu görüntüden nasıl bir görüntü oluşturur?',
+            secenekler: ['Ona göre ters ve küçük', 'Ona göre düz, sanal ve büyük', 'Gerçek ve eşit boyda'],
+            dogru: 1,
+            ipucu: 'Göz merceği için cisim artık objektifin görüntüsüdür. Cisim F ile O arasındayken görüntü nasıldı?',
+            aciklama: 'Cisim F ile O arasındayken görüntü cisme göre düz, sanal ve büyüktür. Göz merceği büyüteç gibi çalışır.'
+          },
+          {
+            soru: 'Öğrenci preparatı biraz sağa itiyor. Mikroskopta gördüğü görüntü hangi yöne kayar?',
+            secenekler: ['Sağa', 'Sola', 'Kaymaz'],
+            dogru: 1,
+            ipucu: 'Objektif görüntüyü ters çeviriyor, göz merceği yönü değiştirmiyor. Son görüntü preparata göre ters mi, düz mü?',
+            aciklama: 'Objektifin görüntüsü terstir. Göz merceği bu ters görüntüyü yönünü değiştirmeden büyütür. Son görüntü preparata göre ters olduğu için sağ ile sol da yer değiştirir. Preparat sağa itilince görüntü sola kayar.'
+          }
+        ],
+        sonuc: 'Mikroskopta objektif ters, gerçek ve büyük bir görüntü oluşturur. Göz merceği bu görüntüyü büyüteç gibi büyütür. Son görüntü preparata göre terstir.'
+      }
+    ],
+    hazir: r`Mercek türlerini, odak noktasını, yolu bilinen ışınları, cismin yerine göre görüntüyü ve odak uzaklığının neye bağlı olduğunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -12360,6 +12678,123 @@ BFY_FIG_EKLE('iY106_efsane_5', u => EF(u, I => {
 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY106_): kart genişliği ~340 px, en küçük yazı 14 ----------
+   Işın yolları vektör biçimli Snell Yasası ile hesaplanır (eşkenar cam prizma, tepe yukarıda). Tayf şeklinde renkler arası
+   kırıcılık farkı görünür olsun diye abartılmıştır; sıra gerçektir. Veriler SF bloğunda; qa/Y.10.6/dogrula.py okur. */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const SF = /*SF*/{
+  "yol": { "A": [170, 46], "L": 176, "t": 0.5, "i": 50, "n": 1.5 },
+  "tayf": { "A": [118, 70], "L": 120, "t": 0.5, "i": 50, "perde": 262,
+    "n": { "kirmizi": 1.45, "turuncu": 1.48, "sari": 1.51, "yesil": 1.54, "mavi": 1.57, "lacivert": 1.6, "mor": 1.63 } },
+  "isik": { "r": 78, "C": { "kirmizi": [128, 112], "yesil": [212, 112], "mavi": [170, 184] } }
+}/*SF*/;
+const RK = { kirmizi: '#e03131', turuncu: '#f76707', sari: '#f2c200', yesil: '#2f9e44', mavi: '#1c6fd1', lacivert: '#3b3fb6', mor: '#8e3fc9' };
+const D2R = Math.PI / 180;
+const nrm = v => { const L = Math.hypot(v[0], v[1]); return [v[0] / L, v[1] / L]; };
+/* kırılma: v gelen birim vektör, N yüzey normali (gelen tarafa doğru, birim), n1 → n2 */
+function kir(v, N, n1, n2) {
+  const c1 = -(v[0] * N[0] + v[1] * N[1]), r = n1 / n2, k = 1 - r * r * (1 - c1 * c1);
+  if (k < 0) return null;
+  const c2 = Math.sqrt(k); return nrm([r * v[0] + (r * c1 - c2) * N[0], r * v[1] + (r * c1 - c2) * N[1]]);
+}
+/* eşkenar prizma, tepe A, kenar L; sol yüzde t oranındaki noktaya i gelme açısıyla gelen ışının yolu */
+function prizmaYol(A, L, t, i, n) {
+  const h = L * Math.sqrt(3) / 2, B = [A[0] - L / 2, A[1] + h], C = [A[0] + L / 2, A[1] + h];
+  const Nsol = [-Math.cos(30 * D2R), -Math.sin(30 * D2R)], Nsag = [Math.cos(30 * D2R), -Math.sin(30 * D2R)];
+  const Pg = [B[0] + (A[0] - B[0]) * t, B[1] + (A[1] - B[1]) * t];
+  const d0 = [Math.cos((30 - i) * D2R), Math.sin((30 - i) * D2R)];   // içe doğru normalden (30°) i kadar yukarı döndürülmüş
+  const d1 = kir(d0, Nsol, 1, n);
+  // sağ yüz: A + s (C − A); P + u d1
+  const ex = C[0] - A[0], ey = C[1] - A[1], det = d1[0] * (-ey) - d1[1] * (-ex);
+  const u = ((A[0] - Pg[0]) * (-ey) - (A[1] - Pg[1]) * (-ex)) / det, Q = [Pg[0] + u * d1[0], Pg[1] + u * d1[1]];
+  const d2 = kir(d1, [-Nsag[0], -Nsag[1]], n, 1);   // normal, gelen taraf olan prizmanın içine doğru
+  return { B, C, Pg, Q, d0, d1, d2, Nsol, Nsag };
+}
+const cizgi = (a, b, c, w = 2, ek = '') => `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0])}" y2="${f1(b[1])}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${ek}/>`;
+function okluIsin(a, b, c, w = 2.2, at = 0.55) {
+  const m = [a[0] + (b[0] - a[0]) * at, a[1] + (b[1] - a[1]) * at], d = nrm([b[0] - a[0], b[1] - a[1]]);
+  const t = [m[0] + d[0] * 5, m[1] + d[1] * 5], k = [m[0] - d[0] * 5, m[1] - d[1] * 5];
+  return cizgi(a, b, c, w) + `<polygon points="${f1(t[0])},${f1(t[1])} ${f1(k[0] - d[1] * 4.5)},${f1(k[1] + d[0] * 4.5)} ${f1(k[0] + d[1] * 4.5)},${f1(k[1] - d[0] * 4.5)}" fill="${c}"/>`;
+}
+const camDef = u => `<defs><linearGradient id="${u}pc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3f3fa"/><stop offset=".55" stop-color="#bfe0ef"/><stop offset="1" stop-color="#93c4dc"/></linearGradient></defs>`;
+const prizma = (u, A, B, C, o = {}) => `<polygon points="${f1(A[0] + 3)},${f1(B[1] + 5)} ${f1(B[0] + 3)},${f1(B[1] + 5)} ${f1(C[0] + 3)},${f1(C[1] + 5)}" fill="#000" opacity=".10"/>` +
+  `<polygon points="${f1(A[0])},${f1(A[1])} ${f1(B[0])},${f1(B[1])} ${f1(C[0])},${f1(C[1])}" fill="${o.fill || `url(#${u}pc)`}" fill-opacity="${o.op ?? 0.9}" stroke="#4f86a6" stroke-width="2" stroke-linejoin="round"/>` +
+  `<line x1="${f1(A[0] - 6)}" y1="${f1(A[1] + 18)}" x2="${f1(A[0] - (A[0] - B[0]) * 0.36 + 5)}" y2="${f1(A[1] + (B[1] - A[1]) * 0.36)}" stroke="#fff" stroke-width="2.4" opacity=".75" stroke-linecap="round"/>`;
+const lab = (x, y, t, o = {}) => T(f1(x), f1(y), t, Object.assign({ size: 15, anchor: 'middle', weight: 800 }, o));
+
+/* Adım 1: tek renkli ışın eşkenar cam prizmada; girişte normale yaklaşır, çıkışta normalden uzaklaşır, tabana doğru sapar */
+BFY_FIG_EKLE('sfY106_yol', function (u) {
+  const W = 340, H = 244, g = SF.yol, Y = prizmaYol(g.A, g.L, g.t, g.i, g.n), { B, C, Pg, Q, d0, d1, d2, Nsol, Nsag } = Y;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f8f6"/>` + camDef(u);
+  s += prizma(u, g.A, B, C);
+  // normaller
+  const kes = ' stroke-dasharray="5 4"';
+  s += cizgi([Pg[0] + Nsol[0] * 52, Pg[1] + Nsol[1] * 52], [Pg[0] - Nsol[0] * 40, Pg[1] - Nsol[1] * 40], '#6b7c88', 1.3, kes);
+  s += cizgi([Q[0] + Nsag[0] * 52, Q[1] + Nsag[1] * 52], [Q[0] - Nsag[0] * 40, Q[1] - Nsag[1] * 40], '#6b7c88', 1.3, kes);
+  // gelme doğrultusunun uzantısı (sapmayı görmek için)
+  s += cizgi(Pg, [Pg[0] + d0[0] * 190, Pg[1] + d0[1] * 190], '#9aa5ab', 1.4, ' stroke-dasharray="3 4"');
+  const L0 = 112, S = [Pg[0] - d0[0] * L0, Pg[1] - d0[1] * L0], E = [Q[0] + d2[0] * 110, Q[1] + d2[1] * 110];
+  s += okluIsin(S, Pg, '#2f9e44') + okluIsin(Pg, Q, '#2f9e44', 2.2, 0.5) + okluIsin(Q, E, '#2f9e44', 2.2, 0.5);
+  s += lab(g.A[0], B[1] + 26, 'taban', { size: 15, fill: '#3d5a6c' }) + lab(g.A[0], g.A[1] - 10, 'tepe', { size: 15, fill: '#3d5a6c' });
+  s += T(14, S[1] + 26, 'yeşil lazer', { size: 14, weight: 700, fill: '#2b7a3a' });
+  s += lab(W - 50, E[1] + 24, 'sapan ışın', { size: 14, weight: 700, fill: '#2b7a3a' });
+  s += lab(W - 64, 40, 'geliş doğrultusu', { size: 14, weight: 700, fill: '#6b7880' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 3: beyaz ışık prizmada renklerine ayrılır; kırmızı en az, mor en çok sapar (aralık abartılı) */
+BFY_FIG_EKLE('sfY106_tayf', function (u) {
+  const W = 340, H = 250, g = SF.tayf;
+  let s = `<rect x="0" y="0" width="${W}" height="${H}" rx="14" fill="#1d2731"/>` + camDef(u);
+  const ad = Object.keys(g.n);
+  const yollar = ad.map(k => prizmaYol(g.A, g.L, g.t, g.i, g.n[k]));
+  const { B, C, Pg, d0 } = yollar[0];
+  const S = [Pg[0] - d0[0] * 66, Pg[1] - d0[1] * 66];
+  s += cizgi(S, Pg, '#ffffff', 3.2) + okluIsin(S, Pg, '#ffffff', 3.2, 0.5);
+  s += prizma(u, g.A, B, C, { op: 0.55 });
+  const uc = [];
+  ad.forEach((k, j) => {
+    const { Q, d1, d2 } = yollar[j], t = (g.perde - Q[0]) / d2[0], E = [g.perde, Q[1] + d2[1] * t];
+    uc.push(E);
+    s += `<polygon points="${f1(Pg[0])},${f1(Pg[1])} ${f1(Q[0])},${f1(Q[1])} ${f1(Q[0])},${f1(Q[1] + 0.8)}" fill="none" stroke="${RK[k]}" stroke-width="1.2" opacity=".9"/>`;
+    s += cizgi(Q, E, RK[k], 2);
+  });
+  // perde
+  s += `<rect x="${g.perde}" y="40" width="8" height="196" rx="2" fill="#e9e3d0" stroke="#b7ab8c" stroke-width="1"/>`;
+  uc.forEach((E, j) => { s += `<rect x="${g.perde}" y="${f1(E[1] - 2.5)}" width="8" height="5" fill="${RK[ad[j]]}"/>`; });
+  s += T(g.perde + 14, uc[0][1] + 5, 'kırmızı', { size: 14, weight: 800, fill: '#ff8a8a', haloColor: '#1d2731' });
+  s += T(g.perde + 14, uc[ad.length - 1][1] + 5, 'mor', { size: 14, weight: 800, fill: '#d0a6ff', haloColor: '#1d2731' });
+  s += T(14, 28, 'beyaz ışık', { size: 15, weight: 800, fill: '#ffffff', haloColor: '#1d2731' });
+  s += T(g.perde + 18, 30, 'perde', { size: 14, weight: 800, anchor: 'end', fill: '#e9e3d0', haloColor: '#1d2731' });
+  s += T(g.A[0], B[1] + 26, 'cam prizma', { size: 14, weight: 700, anchor: 'middle', fill: '#cfe3ee', haloColor: '#1d2731' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 4: karanlık duvarda kırmızı, yeşil ve mavi ışık; ikişer ikişer ara renkler, üçü birlikte beyaz */
+BFY_FIG_EKLE('sfY106_isik', function (u) {
+  const W = 340, H = 290, g = SF.isik, r = g.r, [R, G, Bm] = ['kirmizi', 'yesil', 'mavi'].map(k => g.C[k]);
+  const daire = (c, fill, ek = '') => `<circle cx="${c[0]}" cy="${c[1]}" r="${r}" fill="${fill}"${ek}/>`;
+  let s = `<rect x="0" y="0" width="${W}" height="${H}" rx="14" fill="#20262c"/>`;
+  s += `<defs><clipPath id="${u}cR">${daire(R, '#000')}</clipPath><clipPath id="${u}cG">${daire(G, '#000')}</clipPath><clipPath id="${u}cB">${daire(Bm, '#000')}</clipPath>` +
+    `<radialGradient id="${u}pr"><stop offset=".75" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></radialGradient></defs>`;
+  s += daire(R, '#ff2a2a') + daire(G, '#22e04a') + daire(Bm, '#2a5bff');
+  s += `<g clip-path="url(#${u}cR)">${daire(G, '#ffee33')}</g>`;
+  s += `<g clip-path="url(#${u}cG)">${daire(Bm, '#33f0ff')}</g>`;
+  s += `<g clip-path="url(#${u}cR)">${daire(Bm, '#ff3df2')}</g>`;
+  s += `<g clip-path="url(#${u}cR)"><g clip-path="url(#${u}cG)">${daire(Bm, '#ffffff')}</g></g>`;
+  [R, G, Bm].forEach(c => { s += daire(c, `url(#${u}pr)`); });
+  const et = (x, y, t) => T(f1(x), f1(y), t, { size: 14, weight: 800, anchor: 'middle', fill: '#111' });
+  const M = [(R[0] + G[0] + Bm[0]) / 3, (R[1] + G[1] + Bm[1]) / 3];
+  s += et(R[0] - 30, R[1] - 22, 'kırmızı') + et(G[0] + 30, G[1] - 22, 'yeşil') + et(Bm[0], Bm[1] + 46, 'mavi');
+  s += et((R[0] + G[0]) / 2, R[1] - 38, 'sarı') + et((G[0] + Bm[0]) / 2 + 22, (G[1] + Bm[1]) / 2 + 16, 'camgöbeği') + et((R[0] + Bm[0]) / 2 - 22, (R[1] + Bm[1]) / 2 + 16, 'magenta');
+  s += et(M[0], M[1] + 5, 'beyaz');
+  s += T(16, H - 14, 'karanlık odada duvar', { size: 14, weight: 700, fill: '#d6dde2', haloColor: '#20262c' });
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -12428,6 +12863,191 @@ const KONU = {
     'ışık algılayıcısı: magenta filtre, camgöbeği kâğıt, camgöbeği filtre; beş sütun grafiği',
     'sunum projektörü camgöbeği boyalı duvarda: kırmızı yazı, beyaz zeminde camgöbeği yazı, sarı yazı'
   ],
+
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Işığın prizmadan nasıl geçtiğini, beyaz ışığın neden renklere ayrıldığını ve cisimlerin neden renkli göründüğünü kısa adımlarla göreceğiz. Burada hesap yok; yalnız ışığın davranışını tanıyacağız. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Prizma ışığı tabana doğru büker',
+        sekil: 'sfY106_yol',
+        metin: r`Kesiti üçgen olan saydam cam parçasına **ışık prizması** denir. Üçgenin sivri köşesine **tepe**, karşısındaki kenara **taban** denir.
+
+Şekilde tek renkli bir yeşil lazer ışını, havadaki cam prizmanın sol yüzüne eğik olarak geliyor. Kesikli çizgiler yüzeylerin normalleridir.
+
+- Işın havadan cama girerken yavaşlar ve **normale yaklaşır**.
+- Camdan havaya çıkarken hızlanır ve **normalden uzaklaşır**.
+- İki kırılma da ışını prizmanın **tabanına doğru** saptırır.
+
+Yüzeye dik gelen ışın ise o yüzeyde kırılmadan geçer.`,
+        kontrol: {
+          soru: 'Işın cam prizmadan havaya eğik olarak çıkarken nasıl kırılır?',
+          secenekler: ['Normale yaklaşır.', 'Normalden uzaklaşır.', 'Hiç kırılmaz.'],
+          dogru: 1,
+          aciklama: 'Cam havadan daha kırıcıdır. Işık camdan havaya geçerken hızlanır ve normalden uzaklaşır.',
+          yanlisIpucu: 'Işık bu yüzeyde çok kırıcı ortamdan az kırıcı ortama mı geçiyor, tersine mi?'
+        }
+      },
+      {
+        baslik: 'Tam yansımalı prizma',
+        metin: r`Kesiti ikizkenar dik üçgen olan cam prizmaya **tam yansımalı prizma** denir. Camın havaya göre sınır açısı yaklaşık $42°$'dir.
+
+- Işın bir dik kenara dik olarak girerse kırılmadan içeri geçer. Uzun kenara (hipotenüse) $45°$'lik gelme açısıyla gelir. $45°$ sınır açısından büyük olduğu için ışın tam yansıma yapar ve $90°$ döner.
+- Işın uzun kenara dik olarak girerse iki dik kenarda art arda tam yansıma yapar. $180°$ döner ve geldiği yöne paralel olarak geri gider.
+
+Tam yansımada ışığın tamamı geri döner. Bu yüzden periskop ve dürbünlerde ayna yerine bu prizmalar kullanılır. Bisiklet reflektörleri de ışığı benzer biçimde geldiği yöne geri gönderir.`,
+        kontrol: {
+          soru: 'Tam yansımalı prizma ışığın yönünü hangi olayla değiştirir?',
+          secenekler: ['Tam yansımayla', 'Işığı renklerine ayırarak', 'Işığı soğurarak'],
+          dogru: 0,
+          aciklama: 'Işık uzun kenara sınır açısından büyük bir açıyla gelir. Havaya çıkamaz ve tamamı prizmanın içine geri yansır. Yön böyle değişir.',
+          yanlisIpucu: 'Prizmanın adında cevap saklı.'
+        }
+      },
+      {
+        baslik: 'Beyaz ışık renklerine ayrılır',
+        sekil: 'sfY106_tayf',
+        metin: r`Yağmurdan sonra güneşe sırtını dönünce gökkuşağını görürsün. Güneşin beyaz ışığı yağmur damlalarında renklerine ayrılmıştır. Prizma da aynı işi yapar.
+
+Beyaz ışık, birçok renkteki ışığın karışımıdır. Cam her rengi biraz farklı kırar:
+
+- **Kırmızı ışık en az**, **mor ışık en çok** sapar.
+- Perdede şu sıra oluşur: kırmızı, turuncu, sarı, yeşil, mavi, lacivert, mor. Bu renk dizisine **tayf** denir.
+- Mor ışığı en çok kıran cam, mor ışığı en çok da yavaşlatır. Mor ışık camda en yavaş ilerler.
+
+Tek renkli bir ışık, örneğin kırmızı bir lazer ışığı, prizmada kırılır ama başka renklere ayrılmaz. Şekilde renkler arasındaki açılar görünsün diye büyütülmüştür.`,
+        kontrol: {
+          soru: 'Beyaz ışık cam prizmadan geçerken hangi renk en az sapar?',
+          secenekler: ['Mor', 'Kırmızı', 'Yeşil'],
+          dogru: 1,
+          aciklama: 'Cam kırmızı ışığı en az kırar. Tayfta kırmızı, ışığın geliş doğrultusuna en yakın renktir.',
+          yanlisIpucu: 'Şekilde perdeye bak. Hangi renk geliş doğrultusundan en az ayrılmış?'
+        }
+      },
+      {
+        baslik: 'Işığın renkleri',
+        sekil: 'sfY106_isik',
+        metin: r`Karanlık bir odada beyaz bir duvara kırmızı, yeşil ve mavi ışık veren üç el feneri tuttuğunu düşün. Işıklar üst üste düştükçe yeni renkler ortaya çıkar.
+
+- Işığın **ana renkleri** kırmızı, yeşil ve mavidir.
+- İki ana renk üst üste düşünce **ara renk** oluşur: kırmızı ile yeşil sarıyı, yeşil ile mavi camgöbeğini, kırmızı ile mavi magentayı verir.
+- Üç ana renk birlikte **beyaz** ışığı verir.
+- Birleşince beyaz ışık veren iki renge **tamamlayıcı renkler** denir: kırmızı ile camgöbeği, yeşil ile magenta, mavi ile sarı.
+
+Göz, tek renkli **saf sarı** ışık ile kırmızı ve yeşilin karışımı olan **karışım sarı** ışığı aynı renkte görür. Prizma ise ikisini ayırır: Saf sarı perdede tek çizgi, karışım sarı kırmızı ve yeşil iki çizgi verir.`,
+        kontrol: {
+          soru: 'Duvarın bir bölgesine yalnız kırmızı ve mavi ışık düşüyor. Bu bölge hangi renkte görünür?',
+          secenekler: ['Sarı', 'Camgöbeği', 'Magenta'],
+          dogru: 2,
+          aciklama: 'Kırmızı ve mavi ışık üst üste düşünce magenta renk oluşur. Şekilde kırmızı ve mavi dairelerin ortak bölgesine bak.',
+          yanlisIpucu: 'Şekilde kırmızı ile mavi dairenin kesiştiği yerde ne yazıyor?'
+        }
+      },
+      {
+        baslik: 'Cisimler neden renkli görünür?',
+        metin: r`Kendisi ışık vermeyen bir cismi, üzerine düşüp gözümüze yansıyan ışıkla görürüz. Cisim gelen ışığın bir kısmını yansıtır, kalanını soğurur. **Gördüğümüz renk, yansıyan ışığın rengidir**.
+
+- Beyaz cisim bütün renkleri yansıtır, siyah cisim hepsini soğurur.
+- Yeşil bir yaprak beyaz ışıktan yalnız yeşili yansıtır. Yaprağın üzerine yeşil içermeyen bir ışık düşerse yansıyacak ışık kalmaz ve yaprak **siyah** görünür.
+- **Filtre**, renkli saydam bir camdır. Yalnız kendi rengindeki ışığı geçirir, ötekileri soğurur. Filtre ışığa renk eklemez.
+
+Boyalar da yansıtarak renk verir. Boyanın ana renkleri sarı, camgöbeği ve magentadır. Sarı boya kırmızı ve yeşili, camgöbeği boya yeşil ve maviyi yansıtır. İkisi karışınca yalnız ortak olan yeşil yansır ve karışım yeşil görünür.`,
+        kontrol: {
+          soru: 'Beyaz ışıkta yeşil görünen bir şemsiye yalnız yeşil ışığı yansıtıyor. Şemsiye, yalnız kırmızı ışıkla aydınlatılan bir odada hangi renkte görünür?',
+          secenekler: ['Kırmızı', 'Yeşil', 'Siyah'],
+          dogru: 2,
+          aciklama: 'Şemsiye yalnız yeşil ışığı yansıtır, kırmızıyı soğurur. Odada yeşil ışık olmadığı için hiç ışık yansıtmaz ve siyah görünür.',
+          yanlisIpucu: 'Şemsiye hangi rengi yansıtıyor? O renk odadaki ışıkta var mı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Farın prizmalı camı',
+        metin: r`Bazı eski otomobil farlarının ön camında yan yana dizilmiş küçük cam prizmalar bulunur. Bu prizmalar, ampulden ileri giden ışığın bir kısmını yola doğru, yani aşağı doğru saptırır. Işık prizmaların yüzeylerine eğik olarak gelir.`,
+        adimlar: [
+          {
+            soru: 'Işık havadan prizmaya girerken nasıl kırılır?',
+            secenekler: ['Normalden uzaklaşır.', 'Normale yaklaşır.', 'Hiç kırılmaz.'],
+            dogru: 1,
+            ipucu: 'Işık az kırıcı ortamdan (hava) çok kırıcı ortama (cam) geçiyor. Bu geçişte yavaşlıyor mu?',
+            aciklama: 'Işık havadan cama geçerken yavaşlar ve normale yaklaşır.'
+          },
+          {
+            soru: 'Işığı aşağı saptırmak için prizmaların tabanı hangi yönde olmalıdır?',
+            secenekler: ['Aşağıda', 'Yukarıda', 'Yön önemli değildir'],
+            dogru: 0,
+            ipucu: 'Prizma ışığı tepesine doğru mu, tabanına doğru mu saptırıyordu?',
+            aciklama: 'Prizma ışığı tabanına doğru saptırır. Işığın yola doğru, aşağı sapması için prizmaların tabanı aşağıda, tepesi yukarıda olmalıdır.'
+          },
+          {
+            soru: 'Farın ışığı beyazdır. Prizmalardan geçen ışıkta en çok sapan renk hangisidir?',
+            secenekler: ['Kırmızı', 'Yeşil', 'Mor'],
+            dogru: 2,
+            ipucu: 'Cam hangi rengi en çok kırıyordu?',
+            aciklama: 'Cam mor ışığı en çok kırar. Beyaz ışığın içindeki renklerden en çok mor ışık sapar.'
+          }
+        ],
+        sonuc: 'Prizma ışığı tabanına doğru saptırır. Prizmanın hangi yöne baktığı, ışığın nereye gideceğini belirler. Beyaz ışıkta en çok sapan renk mordur.'
+      },
+      {
+        baslik: 'Renkli LED şerit',
+        metin: r`Selin, çalışma masasının arkasındaki beyaz duvarı aydınlatmak için masanın arka kenarına bir LED şerit yapıştırıyor. Şeritte kırmızı, yeşil ve mavi ışık veren LED'ler var. Telefondaki uygulamayla her renk ayrı ayrı yakılıp söndürülebiliyor.`,
+        adimlar: [
+          {
+            soru: 'Yalnız kırmızı ve yeşil LED\'ler yanarsa duvar hangi renkte görünür?',
+            secenekler: ['Sarı', 'Magenta', 'Beyaz'],
+            dogru: 0,
+            ipucu: 'Kırmızı ve yeşil ışık üst üste düşünce hangi ara renk oluşuyordu?',
+            aciklama: 'Kırmızı ile yeşil ışık birlikte sarı ışığı verir. Beyaz duvar bu ışığı yansıtır ve sarı görünür.'
+          },
+          {
+            soru: 'Selin duvarı camgöbeği renkte görmek istiyor. Hangi iki rengin LED\'lerini yakmalıdır?',
+            secenekler: ['Kırmızı ve mavi', 'Yeşil ve mavi', 'Kırmızı ve yeşil'],
+            dogru: 1,
+            ipucu: 'Camgöbeği hangi iki ana rengin birleşimiydi?',
+            aciklama: 'Yeşil ile mavi ışık birlikte camgöbeğini verir. Selin yeşil ve mavi LED\'leri yakmalıdır.'
+          },
+          {
+            soru: 'Duvar sarı görünürken ışığı beyaza çevirmek için hangi renkteki LED\'ler de yakılmalıdır?',
+            secenekler: ['Mavi', 'Kırmızı', 'Yeşil'],
+            dogru: 0,
+            ipucu: 'Sarının tamamlayıcısı hangi renkti? Kırmızı ve yeşil zaten yanıyor.',
+            aciklama: 'Sarı ile mavi tamamlayıcı renklerdir. Mavi LED\'ler de yanınca üç ana renk bir arada olur ve duvar beyaz görünür.'
+          }
+        ],
+        sonuc: 'Işıkta renkler toplanır: İki ana renk bir ara renk, üç ana renk beyazı verir. Bir rengi tamamlayıcısıyla birleştiren de beyaz ışık elde eder.'
+      },
+      {
+        baslik: 'Karanlık odadaki kırmızı lamba',
+        metin: r`Siyah beyaz fotoğrafların kâğıda basıldığı eski tip karanlık odalarda yalnız kırmızı ışık veren bir lamba kullanılır. Bu lamba, beyaz ışık veren bir ampulün önüne kırmızı bir filtre konarak yapılmıştır. Filtre ve odadaki cisimlerin boyaları idealdir.`,
+        adimlar: [
+          {
+            soru: 'Filtre ampulün beyaz ışığına ne yapar?',
+            secenekler: ['Işığı kırmızıya boyar.', 'Yalnız kırmızı ışığı geçirir, ötekileri soğurur.', 'Bütün renkleri geçirir.'],
+            dogru: 1,
+            ipucu: 'Filtre ışığa renk ekler mi, yoksa bazı renkleri tutar mı?',
+            aciklama: 'Kırmızı filtre beyaz ışığın içindeki kırmızı ışığı geçirir, öteki renkleri soğurur. Işığa renk eklemez.'
+          },
+          {
+            soru: 'Beyaz ışıkta beyaz görünen bir kâğıt bu odada hangi renkte görünür?',
+            secenekler: ['Kırmızı', 'Beyaz', 'Siyah'],
+            dogru: 0,
+            ipucu: 'Beyaz kâğıt her rengi yansıtır. Odada hangi renk ışık var?',
+            aciklama: 'Beyaz kâğıt üzerine düşen her rengi yansıtır. Odada yalnız kırmızı ışık olduğu için kâğıt kırmızı görünür.'
+          },
+          {
+            soru: 'Beyaz ışıkta camgöbeği görünen bir şişe kapağı bu odada hangi renkte görünür?',
+            secenekler: ['Kırmızı', 'Camgöbeği', 'Siyah'],
+            dogru: 2,
+            ipucu: 'Camgöbeği boya hangi renkleri yansıtıyordu? Bunlardan biri odada var mı?',
+            aciklama: 'Camgöbeği boya yeşil ve maviyi yansıtır, kırmızıyı soğurur. Odada yalnız kırmızı ışık olduğu için kapak hiç ışık yansıtmaz ve siyah görünür.'
+          }
+        ],
+        sonuc: 'Bir cismin rengi, üzerine düşen ışık ile cismin yansıttığı renklerin ortak kısmıdır. Ortak renk yoksa cisim siyah görünür.'
+      }
+    ],
+    hazir: r`Prizmada ışığın yolunu, tam yansımalı prizmayı, beyaz ışığın renklere ayrılmasını, ışığın renklerini ve cisimlerin neden renkli göründüğünü gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
