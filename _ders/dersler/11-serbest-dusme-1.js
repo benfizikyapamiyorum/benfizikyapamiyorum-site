@@ -15,15 +15,14 @@ module.exports = {
     [[0, 0, 0], [1, 5, 10], [2, 20, 20], [3, 45, 30]].forEach(([t, h, v], i) => {
       const y = 40 + h * 7;
       st += `<g class="vek${i ? ' gizli' : ''}" data-ad="t${t}"><circle cx="150" cy="${y}" r="16" fill="${T}"/>` +
-        yaz(185, y + 7, `t = ${t} s`, '#173430', 'start') + yaz(300, y + 7, `v = ${v} m/s`, N, 'start') +
-        yaz(115, y + 7, `${h} m`, '#6b7d76', 'end', 19, 600) + `</g>`;
+        yaz(185, y + 7, `t = ${t} s`, '#173430', 'start') + yaz(300, y + 7, `v = ${v} m/s`, N, 'start') + `</g>`;
     });
     const s1 = k.svg(440, 400, st);
 
     // Üç grafik (ilk hızı sıfır): v-t, a-t, düşülen yol-t
     const gv = k.grafik({ x1: 4, y1: 40, w: 360, h: 250, pl: 56, xt: [0, 1, 2, 3, 4], yt: [0, 20, 40], xad: 't (s)', yad: 'v (m/s)' });
     const ga = k.grafik({ x1: 4, y1: 15, w: 360, h: 250, pl: 56, xt: [0, 1, 2, 3, 4], yt: [0, 10], xad: 't (s)', yad: 'a (m/s²)' });
-    const gx = k.grafik({ x1: 4, y1: 80, w: 360, h: 250, pl: 56, xt: [0, 1, 2, 3, 4], yt: [0, 40, 80], xad: 't (s)', yad: 'h (m)' });
+    const gx = k.grafik({ x1: 4, y1: 80, w: 360, h: 250, pl: 56, xt: [0, 1, 2, 3, 4], yt: [0, 40, 80], xad: 't (s)', yad: 'y (m)' });
     const s2 = k.svg(760, 540,
       `<g transform="translate(0,0)">${gv.zemin}${gv.cizgi([[0, 0], [4, 40]], T, 'gv', true)}</g>` +
       `<g transform="translate(400,0)">${ga.zemin}${ga.cizgi([[0, 10], [4, 10]], N, 'ga', true)}</g>` +
@@ -35,14 +34,15 @@ module.exports = {
       `<rect x="0" y="342" width="420" height="58" fill="#b9d3e6"/>` +
       `<circle cx="250" cy="70" r="14" fill="${T}"/>` +
       `<line x1="250" y1="92" x2="250" y2="330" stroke="${T}" stroke-width="2" stroke-dasharray="6 7"/>` +
-      k.ok({ x1: 330, y1: 342, x2: 330, y2: 76, ad: 'h', renk: G, kalin: 3, etiket: 'h = ?', ex: 30, ey: 140, gizli: true }) +
+      k.ok({ x1: 330, y1: 209, x2: 330, y2: 76, ad: 'h', renk: G, kalin: 3, etiket: 'h = ?', ex: 58, ey: 142, gizli: true }) +
+      k.ok({ x1: 330, y1: 209, x2: 330, y2: 342, ad: 'h', renk: G, kalin: 3, gizli: true }) +
       yaz(250, 40, 'bırakılıyor', '#6b7d76', 'middle', 20, 600));
 
     // Yukarı fırlatılan top: v-t (yukarı +), 20 → -20 m/s, 0-4 s
     const gu = k.grafik({ x1: 5, y0: -30, y1: 30, w: 560, h: 400, xt: [0, 1, 2, 3, 4, 5], yt: [-20, -10, 0, 10, 20], xad: 't (s)', yad: 'v (m/s)' });
     const s4 = k.svg(gu.w, gu.h, gu.zemin +
       gu.alan([[0, 0], [0, 20], [2, 0]], '#e9a774', 'up', true, '+20 m') +
-      gu.alan([[2, 0], [4, -20], [4, 0]], '#b9c6ec', 'dn', true, '−20 m') +
+      gu.alan([[2, 0], [4, -20], [4, 0]], '#b9c6ec', 'dn', true) + gu.yazi(3.55, -6, '−20 m', '#173430', 'dn', true, 22) +
       gu.cizgi([[0, 20], [4, -20]], T, 'v'));
 
     return [
@@ -59,9 +59,9 @@ module.exports = {
       k.konu({
         etiket: 'TANIM', kod: 'FİZ.11.1.1', baslik: 'Serbest düşme nedir?',
         maddeler: [
-          'Yalnızca yer çekimi etkisindeki harekete <b>serbest düşme</b> denir. Hava direnci ihmal edilir.',
+          'Yalnızca yer çekimi etkisinde, düşey doğrultuda yapılan harekete <b>serbest düşme</b> denir. Hava direnci ihmal edilir.',
           'Elden bırakılan taş serbest düşer. İlk hızı sıfırdır.',
-          'Yukarı ya da aşağı doğru fırlatılan top da, elden çıktıktan sonra serbest düşer. Yalnızca ilk hızı sıfırdan farklıdır.',
+          'Düşey yukarı ya da aşağı fırlatılan top da elden çıktıktan sonra serbest düşer. Yalnızca ilk hızı sıfırdan farklıdır.',
           { formul: 'g ≈ 10 m/s², düşey aşağı ve sabit', aciklama: 'Serbest düşen her cismin ivmesi yer çekimi ivmesidir. Cisim yukarı çıkarken de, inerken de.' },
         ],
       }),
@@ -81,16 +81,17 @@ module.exports = {
         tablo: { basliklar: ['t (s)', 'v (m/s)', 'Toplam düşülen yol (m)'], doldur: 1, satirlar: [['0', '0', '0'], ['1', '10', '5'], ['2', '20', '20'], ['3', '30', '45'], ['4', '40', '80']] },
         maddeler: [
           { metin: 'Hız her saniye kaç m/s artıyor? Topun ivmesi kaçtır?', puan: '2 puan', cevap: 'Her saniye 10 m/s artıyor: a = 10 m/s².' },
-          { metin: 'Ortalama hız = (ilk hız + son hız) / 2 bağıntısını kullanarak toplam düşülen yol sütununu doldurunuz.', puan: '5 puan', adimlar: ['Örnek, ilk 2 saniye: ortalama hız (0 + 20) / 2 = 10 m/s, yol 10 · 2 = 20 m'] },
+          { metin: 'Ortalama hız = (ilk hız + son hız) / 2 bağıntısını kullanarak toplam düşülen yol sütununu doldurunuz. Örnek, ilk 2 saniye: ortalama hız (0 + 20) / 2 = 10 m/s, yol 10 · 2 = 20 m.', puan: '5 puan', adimlar: ['Kontrol, ilk 3 saniye: ortalama hız (0 + 30) / 2 = 15 m/s, yol 15 · 3 = 45 m'] },
           { metin: 'Her bir saniyede düşülen yollar arasında nasıl bir örüntü var?', puan: '3 puan', adimlar: ['1. saniye 5 m, 2. saniye 15 m, 3. saniye 25 m, 4. saniye 35 m'], cevap: 'Her saniye bir öncekinden 10 m daha fazla yol alınıyor.' },
         ],
       }),
       k.konu({
         etiket: 'GRAFİKLER', kod: 'FİZ.11.1.2', baslik: 'Serbest düşmenin üç grafiği', sekil: s2,
+        giris: 'Bırakılan top için. Bırakılma noktası başlangıç, aşağı yön artı alındı.',
         maddeler: [
           { metin: '<b>Hız–zaman:</b> Başlangıçtan geçen düz bir çizgi. Eğimi ivmedir: 10 m/s².', vurgu: 'gv' },
           { metin: '<b>İvme–zaman:</b> Yatay bir çizgi. İvme hiç değişmiyor.', vurgu: 'gv,ga' },
-          { metin: '<b>Düşülen yol–zaman:</b> Giderek dikleşen bir eğri. Cisim her saniye daha çok yol alıyor.', vurgu: 'gv,ga,gx' },
+          { metin: '<b>Konum–zaman:</b> Giderek dikleşen bir eğri. Cisim her saniye daha çok yol alıyor.', vurgu: 'gv,ga,gx' },
           { formul: 'Hız–zaman grafiğinin altındaki alan = yer değiştirme', aciklama: 'İlk 4 saniye: ½ · 4 · 40 = 80 m. Tablodaki değerin aynısı.', vurgu: 'gv' },
         ],
       }),
@@ -140,7 +141,7 @@ module.exports = {
           'Yukarı fırlatılan cisim de serbest düşer. Tepede hızı sıfırdır ama ivmesi yine 10 m/s², aşağı.',
         ],
       }),
-      k.kapanis({ baslik: 'Serbest düşme tamam.', vurgu: 'Gelecek ders: iki boyutta hareket.', aciklama: 'Bu sunumun linki video açıklamasında. Konu notları ve daha fazla soru için: benfizikyapamiyorum.com' }),
+      k.kapanis({ baslik: 'Serbest düşme tamam.', vurgu: 'Gelecek ders: serbest düşmede soru çözümü.', aciklama: 'Bu sunumun linki video açıklamasında. Konu notları ve daha fazla soru için: benfizikyapamiyorum.com' }),
     ];
   },
 };

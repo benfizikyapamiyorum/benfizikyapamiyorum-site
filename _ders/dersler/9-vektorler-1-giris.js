@@ -52,15 +52,15 @@ module.exports = {
       g4.v({ ad: 'B', from: [3, 1], to: [4, 4], renk: B, etiket: 'B', ex: 26, ey: 30, gizli: true }) +
       g4.v({ ad: 'R', from: [0, 0], to: [4, 4], renk: R, etiket: 'R', ex: -28, ey: 4, gizli: true }));
 
-    // Tekrar 4: üç vektör A(2,1), B(1,2), C(-1,1), bileşke (2,4)
-    const g5 = k.kare({ x0: -2, x1: 5, y0: -1, y1: 5, u: 56 });
+    // Tekrar 4: üç vektör A(2,1), B(1,2), C(-2,1), bileşke (1,4)
+    const g5 = k.kare({ x0: -3, x1: 5, y0: -1, y1: 5, u: 56 });
     const s5 = k.svg(g5.w, g5.h, g5.zemin +
       g5.v({ ad: 'A', from: [0, 0], to: [2, 1], renk: A, etiket: 'A', ex: 0, ey: 32 }) +
       g5.v({ ad: 'B', from: [0, 0], to: [1, 2], renk: B, etiket: 'B', ex: -22, ey: 0 }) +
-      g5.v({ ad: 'C', from: [0, 0], to: [-1, 1], renk: M, etiket: 'C', ex: -22, ey: 0 }) +
+      g5.v({ ad: 'C', from: [0, 0], to: [-2, 1], renk: M, etiket: 'C', ex: -22, ey: 0 }) +
       g5.v({ ad: 'B2', from: [2, 1], to: [3, 3], renk: B, etiket: '', gizli: true }) +
-      g5.v({ ad: 'C2', from: [3, 3], to: [2, 4], renk: M, etiket: '', gizli: true }) +
-      g5.v({ ad: 'R', from: [0, 0], to: [2, 4], renk: R, etiket: 'R', ex: -24, ey: 4, gizli: true }));
+      g5.v({ ad: 'C2', from: [3, 3], to: [1, 4], renk: M, etiket: '', gizli: true }) +
+      g5.v({ ad: 'R', from: [0, 0], to: [1, 4], renk: R, etiket: 'R', ex: -24, ey: 4, gizli: true }));
 
     return [
       k.kapak({ etiket: '9. SINIF FİZİK, VEKTÖRLER 1', baslik: 'Vektörlere baştan başlıyoruz.', vurgu: 'Skaler, vektörel, ok.', aciklama: 'Her bölümün arkasından bir tekrar sorusu var. Önce sen düşün, sonra ekrana dokun.' }),
@@ -79,11 +79,11 @@ module.exports = {
         baglam: 'Aşağıdaki nicelikleri tek tek düşün. Her biri için “yön söylemem gerekir mi?” diye sor.',
         tablo: { basliklar: ['Nicelik', 'Örnek', 'Türü'], doldur: 0, satirlar: [
           ['Kütle', '5 kg şeker', 'Skaler'], ['Kuvvet', '20 N, doğuya', 'Vektörel'], ['Sıcaklık', '−5 °C', 'Skaler'],
-          ['Yer değiştirme', '300 m, kuzeye', 'Vektörel'], ['Zaman', '45 dakika', 'Skaler'], ['Hız', '60 km/sa, batıya', 'Vektörel'],
-          ['Sürat', '60 km/sa', 'Skaler'], ['Enerji', '200 J', 'Skaler']] },
+          ['Yer değiştirme', '300 m, kuzeye', 'Vektörel'], ['Zaman', '45 dakika', 'Skaler'], ['Hız', '60 km/h, batıya', 'Vektörel'],
+          ['Sürat', '60 km/h', 'Skaler'], ['Enerji', '200 J', 'Skaler']] },
         maddeler: [
           { metin: 'Tablodaki nicelikleri skaler ve vektörel olarak sınıflandırınız.', puan: '8 puan', cevap: 'Skaler: kütle, sıcaklık, zaman, sürat, enerji. Vektörel: kuvvet, yer değiştirme, hız.' },
-          { metin: 'Hız ile sürat arasındaki fark nedir?', puan: '2 puan', cevap: 'Hızın yönü vardır, vektöreldir. Sürat yalnızca büyüklüktür, skalerdir.' },
+          { metin: 'Hız ile sürat arasındaki fark nedir?', puan: '2 puan', cevap: 'Hız yer değiştirmeye bağlıdır ve yönü vardır, vektöreldir. Sürat alınan yola bağlıdır, yönü yoktur, skalerdir.' },
         ],
       }),
       k.konu({
@@ -111,7 +111,7 @@ module.exports = {
           { metin: '<b>Eşit vektörler:</b> Büyüklükleri ve yönleri aynı. Nerede çizildikleri önemli değil.', vurgu: 'A,es' },
           { metin: '<b>Zıt vektör:</b> Büyüklüğü aynı, yönü ters. ' + V('A') + ' vektörünün zıttı −' + V('A') + '.', vurgu: 'A,zit' },
           { metin: '<b>Sayıyla çarpma:</b> 2' + V('A') + ' aynı yönde, iki kat uzun.', vurgu: 'A,iki' },
-          { metin: 'Eksi bir sayıyla çarpınca yön ters döner: −½' + V('A') + ' ters yönde, yarı uzunlukta.', vurgu: 'A,yarim' },
+          { metin: 'Negatif bir sayıyla çarpınca yön ters döner: −½' + V('A') + ' ters yönde, yarı uzunlukta.', vurgu: 'A,yarim' },
           { formul: 'Sayının büyüklüğü uzunluğu, işareti yönü belirler.', aciklama: 'Artı: aynı yön. Eksi: ters yön.' },
         ],
       }),
@@ -119,14 +119,14 @@ module.exports = {
         etiket: 'TEKRAR 2', kod: 'FİZ.9.2.3', baslik: 'Kareli düzlemde dört vektör', sekil: s2,
         baglam: 'K, L, M ve N vektörleri aynı doğrultudadır. Kareler eşit büyüklüktedir.',
         maddeler: [
-          { metin: 'K’ye eşit olan vektör hangisidir?', puan: '2 puan', adimlar: [{ metin: 'K: 3 kare, sağa. L: 3 kare, sağa.', vurgu: 'K,L' }], cevap: 'L, çünkü büyüklüğü ve yönü aynı.' },
-          { metin: 'K’nin zıttı olan vektör hangisidir?', puan: '2 puan', adimlar: [{ metin: 'N: 3 kare, sola. Büyüklük aynı, yön ters.', vurgu: 'K,N' }], cevap: 'N = −K' },
-          { metin: 'M’yi K türünden yazınız.', puan: '2 puan', adimlar: [{ metin: 'M: 6 kare, sağa. K’nin iki katı ve aynı yönde.', vurgu: 'K,M' }], cevap: 'M = 2K' },
-          { metin: 'N’yi M türünden yazınız.', puan: '2 puan', adimlar: [{ metin: 'N, M’nin yarısı kadar uzun ve ters yönde.', vurgu: 'M,N' }], cevap: 'N = −½M' },
+          { metin: V('K') + '’ye eşit olan vektör hangisidir?', puan: '2 puan', adimlar: [{ metin: 'K: 3 kare, sağa. L: 3 kare, sağa.', vurgu: 'K,L' }], cevap: V('L') + ', çünkü büyüklüğü ve yönü aynı.' },
+          { metin: V('K') + '’nin zıttı olan vektör hangisidir?', puan: '2 puan', adimlar: [{ metin: 'N: 3 kare, sola. Büyüklük aynı, yön ters.', vurgu: 'K,N' }], cevap: V('N') + ' = −' + V('K') },
+          { metin: V('M') + '’yi ' + V('K') + ' türünden yazınız.', puan: '2 puan', adimlar: [{ metin: 'M: 6 kare, sağa. K’nin iki katı ve aynı yönde.', vurgu: 'K,M' }], cevap: V('M') + ' = 2' + V('K') },
+          { metin: V('N') + '’yi ' + V('M') + ' türünden yazınız.', puan: '2 puan', adimlar: [{ metin: 'N, M’nin yarısı kadar uzun ve ters yönde.', vurgu: 'M,N' }], cevap: V('N') + ' = −½' + V('M') },
         ],
       }),
       k.konu({
-        etiket: 'AYNI DOĞRULTUDA TOPLAMA', kod: 'FİZ.9.2.3', baslik: 'Bileşke: hepsinin yerini tutan tek vektör', sekil: s3,
+        etiket: 'AYNI DOĞRULTUDA TOPLAMA', kod: 'FİZ.9.2.4', baslik: 'Bileşke: hepsinin yerini tutan tek vektör', sekil: s3,
         maddeler: [
           { metin: '<b>Aynı yönde:</b> Büyüklükler toplanır. 3 N + 2 N, sağa doğru.', vurgu: 'ay' },
           { metin: 'Bileşke 5 N, yine sağa.', vurgu: 'ay,ayR' },
@@ -159,15 +159,15 @@ module.exports = {
         baglam: 'Kareli düzlemde A, B ve C vektörleri aynı başlangıç noktasından çizilmiştir.',
         maddeler: [
           {
-            metin: 'Uç uca ekleme yöntemiyle A + B + C bileşkesini çiziniz. Bileşkenin ucu hangi noktadadır?', puan: '6 puan',
+            metin: 'Uç uca ekleme yöntemiyle ' + V('A') + ' + ' + V('B') + ' + ' + V('C') + ' bileşkesini çiziniz. Bileşkenin ucu hangi noktadadır?', puan: '6 puan',
             adimlar: [
-              { metin: 'A’yı olduğu gibi bırak: ucu (2, 1).', vurgu: 'A' },
-              { metin: 'B’yi A’nın ucuna taşı: 1 sağa, 2 yukarı. Ucu (3, 3).', vurgu: 'A,B2' },
-              { metin: 'C’yi B’nin ucuna taşı: 1 sola, 1 yukarı. Ucu (2, 4).', vurgu: 'A,B2,C2' },
+              { metin: V('A') + '’yı olduğu gibi bırak: ucu (2, 1).', vurgu: 'A' },
+              { metin: V('B') + '’yi ' + V('A') + '’nın ucuna taşı: 1 sağa, 2 yukarı. Ucu (3, 3).', vurgu: 'A,B2' },
+              { metin: V('C') + '’yi ' + V('B') + '’nin ucuna taşı: 2 sola, 1 yukarı. Ucu (1, 4).', vurgu: 'A,B2,C2' },
             ],
-            cevap: 'Bileşke başlangıç noktasından (2, 4) noktasına çizilen vektördür.', cevapVurgu: 'A,B2,C2,R',
+            cevap: 'Bileşke başlangıç noktasından (1, 4) noktasına çizilen vektördür.', cevapVurgu: 'A,B2,C2,R',
           },
-          { metin: 'Vektörleri C, A, B sırasıyla ekleseydik bileşke değişir miydi?', puan: '2 puan', cevap: 'Değişmezdi. Toplama sırası bileşkeyi değiştirmez.', cevapVurgu: 'R' },
+          { metin: 'Vektörleri ' + V('C') + ', ' + V('A') + ', ' + V('B') + ' sırasıyla ekleseydik bileşke değişir miydi?', puan: '2 puan', cevap: 'Değişmezdi. Toplama sırası bileşkeyi değiştirmez.', cevapVurgu: 'R' },
         ],
       }),
       k.soru({
@@ -185,7 +185,7 @@ module.exports = {
           'Skaler: sayı ve birim. Vektörel: sayı, birim ve yön.',
           'Vektör okla gösterilir: uzunluğu büyüklük, ucu yön.',
           'Eşit vektör: aynı büyüklük, aynı yön. Zıt vektör: aynı büyüklük, ters yön.',
-          'Sayıyla çarpmada sayının büyüklüğü uzunluğu, işareti yönü değiştirir.',
+          'Sayıyla çarpmada sayının büyüklüğü uzunluğu, işareti yönü belirler (eksi: ters yön).',
           'Aynı doğrultuda: aynı yönde topla, zıt yönde çıkar. Farklı doğrultuda: uç uca ekle.',
         ],
       }),
