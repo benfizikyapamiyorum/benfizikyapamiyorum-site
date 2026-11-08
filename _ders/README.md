@@ -28,3 +28,16 @@ Adres: `https://benfizikyapamiyorum.com/sunum/<slug>.html` (arama motorlarına k
 ## Motor
 `motor.css` ve `motor.js`, 1. yazılı sunumlarından (sunum/9-1-yazili.html) alınan, denenmiş motordur.
 Yazı boyu, tüm adımlar açıkken slayta sığacak şekilde otomatik küçülür.
+
+## Ek özellikler
+- `gizli: true` (k.ok, g.v, g.kesik'in 6. argümanı): şekil öğesi, adı bir adımın `vurgu`sunda geçip o adım açılana kadar görünmez.
+  Sorunun cevabı olan oklar (bileşke, diyagram kuvvetleri) böyle çizilir, soru ilk açıldığında cevap görünmez.
+- `cevapVurgu: 'R'`: maddenin son (koyu) cevap kutusu açılınca şekilde vurgulanacak/görünecek öğeler.
+- `k.V('C')`: vektör adının üstüne ok koyar (vektör ile büyüklük karışmasın).
+- Sayı ve birimler satır sonunda bölünmez (3 600 000 J, 2 kW gibi), kit bunu kendisi yapar.
+
+## Haftalık ders düzeni
+Dosya adı: `<sınıf>-hafta-<hafta no>-<konu>.js`. Hafta ve konu: `ucretsiz/pdf.html` içindeki okul takvimi
+(takvim-9/10/11). Öğrenme çıktısı ve sınırlamalar: tymm.meb.gov.tr fizik dersi ünite sayfaları.
+Her ders yayından önce: sayıları Python ile doğrula, cevabı görmeyen ayrı bir ajana denetlet, tüm slaytları
+boş ve tamamen açık hâlde ekran görüntüsüyle kontrol et.

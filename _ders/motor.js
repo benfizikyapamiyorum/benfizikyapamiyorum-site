@@ -26,8 +26,10 @@ function guncelle(){const sl=S[si],A=adimlar(sl),n=A.filter(a=>a.classList.conta
   sl.querySelectorAll('.madde').forEach(m=>m.classList.remove('su'));
   const son=[...A].reverse().find(a=>a.classList.contains('acik')); const mm=son&&son.closest('.madde'); if(mm)mm.classList.add('su');
   vurgula(sl,son);}
-function vurgula(sl,son){const sv=sl.querySelector('.vsvg');if(!sv)return;const v=son&&son.dataset&&son.dataset.vurgu;
-  sv.classList.toggle('odak',!!v);sv.querySelectorAll('g.vek').forEach(g=>g.classList.toggle('on',!!v&&v.split(',').includes(g.dataset.ad)));}
+function vurgula(sl,son){const v=son&&son.dataset&&son.dataset.vurgu;
+  // açılmış adımların andığı gizli şekil öğeleri görünür olur (cevap şekli soruyla birlikte görünmesin)
+  const acik=new Set();adimlar(sl).filter(a=>a.classList.contains('acik')).forEach(a=>(a.dataset.vurgu||'').split(',').filter(Boolean).forEach(x=>acik.add(x)));
+  sl.querySelectorAll('.vsvg').forEach(sv=>{sv.classList.toggle('odak',!!v);sv.querySelectorAll('g.vek').forEach(g=>{g.classList.toggle('on',!!v&&v.split(',').includes(g.dataset.ad));if(g.classList.contains('gizli'))g.classList.toggle('goster',acik.has(g.dataset.ad));});});}
 function ileri(){const A=adimlar(S[si]),k=A.find(a=>!a.classList.contains('acik'));
   if(k){k.classList.add('acik');guncelle();if(k.scrollIntoView)0;return;} if(si<S.length-1)goster(si+1);}
 function geri(){const A=adimlar(S[si]),k=[...A].reverse().find(a=>a.classList.contains('acik'));

@@ -2,8 +2,10 @@
 // Parmakla dokunuş -> sıradaki .adim açılır; Apple Pencil -> üstüne yazar (motor.js).
 'use strict';
 
-const esc = s => String(s);           // içerik bilerek HTML olarak yazılır (<sub>, <b>, SVG...)
-const P = (t) => t ? `<p>${t}</p>` : '';
+const esc = s => String(s);
+// sayılar ve birimler satır sonunda bölünmesin: 3 600 000 J, 2 kW, 5 h
+const ns = (t) => t == null ? t : String(t).replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u00a0').replace(/(\d) (?=(?:kWh|kW|MJ|kN|kg|TL|W|J|N|m|s|h)(?![A-Za-zçğıöşüÇĞİÖŞÜ]))/g, '$1\u00a0').replace(/ ([×=+−\/·]) /g, '\u00a0$1 ');           // içerik bilerek HTML olarak yazılır (<sub>, <b>, SVG...)
+const P = (t) => t ? `<p>${ns(t)}</p>` : '';
 
 let SORU_NO = 0, DERS_ADI = '';
 function basla(dersAdi) { SORU_NO = 0; DERS_ADI = dersAdi; }
@@ -26,9 +28,9 @@ function bolum({ etiket = 'BÖLÜM', baslik, aciklama = '' }) {
 // maddeler: ['metin', {metin, vurgu:'F1,F2'}, {formul:'v = Δx / Δt', aciklama:'...'}]
 function konu({ etiket = 'KONU', kod = '', baslik, giris = '', maddeler = [], sekil = '' }) {
   const m = maddeler.map(x => {
-    if (typeof x === 'string') return `<div class="nokta adim">${x}</div>`;
-    if (x.formul) return `<div class="formul adim"${x.vurgu ? ` data-vurgu="${x.vurgu}"` : ''}><div class="f">${x.formul}</div>${x.aciklama ? `<div class="fa">${x.aciklama}</div>` : ''}</div>`;
-    return `<div class="nokta adim"${x.vurgu ? ` data-vurgu="${x.vurgu}"` : ''}>${x.metin}</div>`;
+    if (typeof x === 'string') return `<div class="nokta adim">${ns(x)}</div>`;
+    if (x.formul) return `<div class="formul adim"${x.vurgu ? ` data-vurgu="${x.vurgu}"` : ''}><div class="f">${ns(x.formul)}</div>${x.aciklama ? `<div class="fa">${ns(x.aciklama)}</div>` : ''}</div>`;
+    return `<div class="nokta adim"${x.vurgu ? ` data-vurgu="${x.vurgu}"` : ''}>${ns(x.metin)}</div>`;
   }).join('');
   const sol = `<div class="sol mad">${giris ? `<p class="ac">${giris}</p>` : ''}${m}</div>`;
   const sag = sekil ? `<div class="sag"><div class="sekil">${sekil}</div></div>` : '';
@@ -52,10 +54,10 @@ function soru({ etiket = 'SORU', etiketRenk = 'A', kod = '', baslik, baglam = ''
   const md = maddeler.map((m, i) => {
     const harf = 'abcdefgh'[i];
     const ad = (m.adimlar || []).map(a => typeof a === 'string'
-      ? `<div class="cev adim">${a}</div>`
-      : `<div class="cev adim"${a.vurgu ? ` data-vurgu="${a.vurgu}"` : ''}>${a.metin}</div>`).join('');
-    const cv = m.cevap ? `<div class="cev adim son">${m.cevap}</div>` : '';
-    return `<div class="madde" data-m="${i}"><div class="mm">${m.puan ? `<span class="p">${m.puan}</span>` : ''}<b>${harf})</b>${m.metin}</div>${ad}${cv}</div>`;
+      ? `<div class="cev adim">${ns(a)}</div>`
+      : `<div class="cev adim"${a.vurgu ? ` data-vurgu="${a.vurgu}"` : ''}>${ns(a.metin)}</div>`).join('');
+    const cv = m.cevap ? `<div class="cev adim son"${m.cevapVurgu ? ` data-vurgu="${m.cevapVurgu}"` : ''}>${ns(m.cevap)}</div>` : '';
+    return `<div class="madde" data-m="${i}"><div class="mm">${m.puan ? `<span class="p">${m.puan}</span>` : ''}<b>${harf})</b>${ns(m.metin)}</div>${ad}${cv}</div>`;
   }).join('');
   const dold = tablo && tablo.doldur !== undefined ? ` data-dold="${tablo.doldur}"` : '';
   const sol = `<div class="sol bag">${P(baglam)}${tb}${sekil ? `<div class="sekil">${sekil}</div>` : ''}</div>`;
@@ -72,14 +74,47 @@ function kapanis({ baslik = 'Bir sonraki derste görüşürüz.', vurgu = 'Abone
 }
 
 // Vektör/ok çizimi için küçük SVG yardımcıları (şekiller elle de yazılabilir)
-function ok({ x1, y1, x2, y2, renk = '#244f40', kalin = 5, ad = '', etiket = '', ex = 0, ey = 0 }) {
+function ok({ x1, y1, x2, y2, renk = '#244f40', kalin = 5, ad = '', etiket = '', ex = 0, ey = 0, gizli = false }) {
+  etiket = String(etiket).replace(/<sub>(.*?)<\/sub>/g, '<tspan font-size="0.68em" dy="0.32em">$1</tspan><tspan dy="-0.32em"> </tspan>');
   const id = 'u' + Math.random().toString(36).slice(2, 8);
   const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, h = 16, w = 8;
   const bx = x2 - ux * h, by = y2 - uy * h;
   const tri = `${x2},${y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`;
   const lbl = etiket ? `<text x="${x2 + ex}" y="${y2 + ey}" font-size="26" font-weight="800" fill="${renk}" text-anchor="middle">${etiket}</text>` : '';
-  return `<g class="vek" data-ad="${ad}"><line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${renk}" stroke-width="${kalin}" stroke-linecap="round"/><polygon points="${tri}" fill="${renk}"/>${lbl}</g>`;
+  return `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${renk}" stroke-width="${kalin}" stroke-linecap="round"/><polygon points="${tri}" fill="${renk}"/>${lbl}</g>`;
 }
 const svg = (w, h, ic) => `<svg class="vsvg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" font-family="Plus Jakarta Sans,sans-serif">${ic}</svg>`;
 
-module.exports = { basla, kapak, bolum, konu, soru, kapanis, ok, svg };
+// Kareli düzlem: tam sayı koordinatlı vektör çizimleri için.
+// const g = k.kare({ x0:-1, x1:7, y0:-2, y1:5, u:56 }); g.p(3,2) -> [px,py];  k.svg(g.w, g.h, g.zemin + ...)
+function kare({ x0 = 0, x1 = 6, y0 = 0, y1 = 6, u = 56, pad = 34, eksen = true }) {
+  const w = (x1 - x0) * u + 2 * pad, h = (y1 - y0) * u + 2 * pad;
+  const p = (x, y) => [pad + (x - x0) * u, pad + (y1 - y) * u];
+  let z = `<rect x="${pad}" y="${pad}" width="${(x1 - x0) * u}" height="${(y1 - y0) * u}" fill="#fff"/>`;
+  for (let x = x0; x <= x1; x++) { const [a] = p(x, 0); z += `<line x1="${a}" y1="${pad}" x2="${a}" y2="${h - pad}" stroke="#dfe6df" stroke-width="1.5"/>`; }
+  for (let y = y0; y <= y1; y++) { const [, b] = p(0, y); z += `<line x1="${pad}" y1="${b}" x2="${w - pad}" y2="${b}" stroke="#dfe6df" stroke-width="1.5"/>`; }
+  if (eksen && x0 <= 0 && x1 >= 0 && y0 <= 0 && y1 >= 0) {
+    const [ax, ay] = p(0, 0);
+    z += `<line x1="${pad}" y1="${ay}" x2="${w - pad + 14}" y2="${ay}" stroke="#6b7d76" stroke-width="2.5"/><text x="${w - pad + 8}" y="${ay - 10}" font-size="22" fill="#6b7d76" font-weight="700">x</text>`;
+    z += `<line x1="${ax}" y1="${h - pad}" x2="${ax}" y2="${pad - 14}" stroke="#6b7d76" stroke-width="2.5"/><text x="${ax + 10}" y="${pad - 4}" font-size="22" fill="#6b7d76" font-weight="700">y</text>`;
+  }
+  // kareli düzlemde vektör: g.v({ad, from:[x,y], to:[x,y], renk, etiket, ex, ey})
+  const v = ({ ad = '', from, to, renk = '#244f40', etiket = '', ex = 0, ey = 0, kalin = 5, gizli = false }) => {
+    const [x1p, y1p] = p(...from), [x2p, y2p] = p(...to);
+    return ok({ x1: x1p, y1: y1p, x2: x2p, y2: y2p, ad, renk, etiket, ex, ey, kalin, gizli });
+  };
+  // kesikli yardımcı çizgi
+  const kesik = (a, b, renk = '#6b7d76', ad = '', gizli = false) => {
+    const [x1p, y1p] = p(...a), [x2p, y2p] = p(...b);
+    return `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><line x1="${x1p}" y1="${y1p}" x2="${x2p}" y2="${y2p}" stroke="${renk}" stroke-width="2.5" stroke-dasharray="8 7"/></g>`;
+  };
+  return { w, h, p, v, kesik, zemin: z };
+}
+
+// Serbest cisim diyagramı için kutu (cisim). Merkezi [cx,cy].
+const kutu = (cx, cy, s = 70, yazi = '') => `<rect x="${cx - s / 2}" y="${cy - s / 2}" width="${s}" height="${s}" rx="8" fill="#e9a774" stroke="#b06a3b" stroke-width="3"/>${yazi ? `<text x="${cx}" y="${cy + 9}" font-size="26" font-weight="800" fill="#173430" text-anchor="middle">${yazi}</text>` : ''}`;
+
+// vektör adı üstünde ok: k.V('C') ya da k.V('C<sub>x</sub>')
+const V = (t) => `<span class="vk">${t}</span>`;
+
+module.exports = { V, basla, kapak, bolum, konu, soru, kapanis, ok, svg, kare, kutu };
