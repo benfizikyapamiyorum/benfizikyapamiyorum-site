@@ -23882,6 +23882,99 @@ BFY_FIG_EKLE('iY41_efsane_5', u => EF(u, I => {
 }, { oy: 70 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY41_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (Math.round(v * 10) / 10).toString();
+const BG = '#f4f7f9', KUV = '#d9573b', HAR = '#2f9a5e', GRID = '#e3eaee', TEN = '#e8b892';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const ok = (x1, y1, x2, y2, c) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w: 3.4, head: 12, headW: 7 });
+/* yandan insan (sağa bakar): ayak ortası (x, yA), boy h; eller: el uçları; egim: omuzların öne kayması; adim: bacak açıklığı */
+function kisi(x, yA, h, o = {}) {
+  const k = h / 100, eg = o.egim || 0, kx = x, ky = yA - 47 * k, ox = x + eg, oy = yA - 80 * k, bx = ox + eg * 0.15 + 2 * k, by = yA - 91 * k, ad = o.adim ?? 9;
+  let s = `<ellipse cx="${f1(x)}" cy="${f1(yA + 1.5)}" rx="${f1(18 * k)}" ry="${f1(3 * k)}" fill="#000" opacity=".12"/>`;
+  s += `<path d="M${f1(kx)} ${f1(ky)} L${f1(x - ad * k)} ${f1(yA - 2)} M${f1(kx)} ${f1(ky)} L${f1(x + ad * k)} ${f1(yA - 2)}" stroke="${o.pantolon || '#2c3e50'}" stroke-width="${f1(8.5 * k)}" stroke-linecap="round"/>`;
+  s += `<path d="M${f1(x - ad * k - 2)} ${f1(yA - 1)} h${f1(9 * k)} M${f1(x + ad * k - 2)} ${f1(yA - 1)} h${f1(9 * k)}" stroke="#1d2328" stroke-width="${f1(4 * k)}" stroke-linecap="round"/>`;
+  s += `<path d="M${f1(kx)} ${f1(ky)} L${f1(ox)} ${f1(oy)}" stroke="${o.renk || '#f4f4f2'}" stroke-width="${f1(18 * k)}" stroke-linecap="round"/>`;
+  if (o.yelek) s += `<path d="M${f1(kx + 1)} ${f1(ky + 2)} L${f1(ox + 1)} ${f1(oy + 4)}" stroke="${o.yelek}" stroke-width="${f1(11 * k)}" stroke-linecap="round"/>`;
+  (o.eller || []).forEach(([ex, ey]) => { s += `<path d="M${f1(ox)} ${f1(oy + 3 * k)} L${f1(ex)} ${f1(ey)}" stroke="${o.kol || o.renk || '#f4f4f2'}" stroke-width="${f1(6.5 * k)}" stroke-linecap="round"/><circle cx="${f1(ex)}" cy="${f1(ey)}" r="${f1(3.8 * k)}" fill="${TEN}" stroke="#c99a74" stroke-width=".6"/>`; });
+  s += `<circle cx="${f1(bx)}" cy="${f1(by)}" r="${f1(8.5 * k)}" fill="${TEN}" stroke="#c99a74" stroke-width=".7"/>`;
+  s += `<path d="M${f1(bx - 8.5 * k)} ${f1(by - 1 * k)} A${f1(8.5 * k)} ${f1(8.5 * k)} 0 0 1 ${f1(bx + 8.5 * k)} ${f1(by - 1 * k)} Q${f1(bx)} ${f1(by - 4 * k)} ${f1(bx - 8.5 * k)} ${f1(by - 1 * k)} Z" fill="${o.sac || '#3b2a20'}"/>`;
+  return s;
+}
+function parke(u, W, y, H) {
+  let s = `<defs><linearGradient id="${u}pk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b77c"/><stop offset="1" stop-color="#b8935a"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="${y}" width="${W}" height="${H - y}" fill="url(#${u}pk)"/><line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#8f6d3c" stroke-width="1.5"/>`;
+  for (let x = 40; x < W; x += 70) s += `<line class="bg" x1="${x}" y1="${y + 1}" x2="${x - 14}" y2="${H}" stroke="#a9844d" stroke-width=".8" opacity=".6"/>`;
+  return s;
+}
+const tabak = (cx, y, r) => `<ellipse cx="${f1(cx)}" cy="${f1(y)}" rx="${r}" ry="${f1(r * 0.28)}" fill="#fff" stroke="#9aa6ae" stroke-width="1"/><ellipse cx="${f1(cx)}" cy="${f1(y - 0.5)}" rx="${f1(r * 0.6)}" ry="${f1(r * 0.15)}" fill="#eef1f3"/>`;
+
+/* Garson servis arabasını sağa itiyor: F (mercan) sağa, Δx (yeşil) sağa */
+BFY_FIG_EKLE('sfY41_servis', function (u) {
+  const W = 340, H = 240, yz = 184;
+  let s = zemin(W, H) + parke(u, W, yz, H);
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${yz}" rx="14" fill="#f3efe7"/><line class="bg" x1="0" y1="${yz - 26}" x2="${W}" y2="${yz - 26}" stroke="#d9cfbf" stroke-width="2"/>`;
+  // servis arabası: iki raflı, metal çerçeve, ahşap raflar, tekerlekler
+  const xa = 150, xb = 284, ys = 112, ya = 150, yt = yz - 9;
+  s += `<ellipse cx="${(xa + xb) / 2}" cy="${yz + 2}" rx="74" ry="4" fill="#000" opacity=".15"/>`;
+  [xa + 6, xb - 6].forEach(x => { s += `<line x1="${x}" y1="${ys}" x2="${x}" y2="${yt - 6}" stroke="url(#${u}metalV)" stroke-width="5"/><line x1="${x}" y1="${ys}" x2="${x}" y2="${yt - 6}" stroke="#6f7a83" stroke-width=".8" opacity=".6"/>`; });
+  [ys, ya].forEach(y => { s += `<rect x="${xa}" y="${y - 4}" width="${xb - xa}" height="9" rx="2" fill="url(#${u}wood)" stroke="#9b7a46" stroke-width="1"/>`; });
+  s += `<path d="M${xa + 6} ${ys} L${xa - 10} ${ys - 10}" stroke="url(#${u}metal)" stroke-width="5" stroke-linecap="round"/><path d="M${xa + 6} ${ys} L${xa - 10} ${ys - 10}" stroke="#5f6a72" stroke-width="1" opacity=".5" stroke-linecap="round"/>`;
+  [xa + 8, xb - 8].forEach(x => { s += `<circle cx="${x}" cy="${yt}" r="8" fill="#2f3438"/><circle cx="${x}" cy="${yt}" r="3" fill="#aab4bb"/>`; });
+  s += tabak(xa + 34, ys - 6, 20) + tabak(xa + 34, ys - 10, 18) + tabak(xa + 92, ys - 6, 22);
+  s += `<path d="M${xa + 82} ${ys - 9} q4 -12 10 -12 q6 0 10 12 Z" fill="#c9602e" opacity=".85"/>`;
+  s += tabak(xa + 40, ya - 6, 22) + tabak(xa + 40, ya - 10, 20) + tabak(xa + 96, ya - 6, 20);
+  // garson: sağa eğik, elleri tutamakta
+  s += kisi(104, yz, 128, { egim: 13, adim: 12, renk: '#f4f4f2', yelek: '#2c3e50', eller: [[xa - 10, ys - 10], [xa - 13, ys - 7]], kol: '#e9e9e6' });
+  // kuvvet ve yer değiştirme
+  s += ok(xa + 10, 66, xa + 92, 66, KUV) + T(xa + 100, 72, 'F = 40 N', { size: 16, weight: 800, fill: KUV });
+  s += ok(118, yz + 30, 298, yz + 30, HAR) + T(208, yz + 21, 'Δx = 5 m', { size: 16, weight: 800, anchor: 'middle', fill: HAR, haloColor: '#d9b77c' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Garson tepsiyi yatay taşıyor: elin kuvveti F yukarı, yer değiştirme Δx yatay (birbirine dik) */
+BFY_FIG_EKLE('sfY41_tepsi', function (u) {
+  const W = 340, H = 240, yz = 196;
+  let s = zemin(W, H) + parke(u, W, yz, H);
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${yz}" rx="14" fill="#f3efe7"/><line class="bg" x1="0" y1="${yz - 26}" x2="${W}" y2="${yz - 26}" stroke="#d9cfbf" stroke-width="2"/>`;
+  const px = 120, ty = 106, cx = 178;
+  s += kisi(px, yz, 132, { egim: 3, adim: 13, renk: '#f4f4f2', yelek: '#2c3e50', eller: [[cx - 4, ty + 3], [px + 14, yz - 66]], kol: '#e9e9e6' });
+  // tepsi ve bardaklar
+  s += `<ellipse cx="${cx}" cy="${ty}" rx="42" ry="6" fill="url(#${u}metal)" stroke="#6f7a83" stroke-width="1"/>`;
+  [cx - 26, cx + 26].forEach(x => { s += `<path d="M${x - 7} ${ty - 30} L${x + 7} ${ty - 30} L${x + 5} ${ty - 3} L${x - 5} ${ty - 3} Z" fill="#dff0fa" fill-opacity=".6" stroke="#7c9fb4" stroke-width="1.3"/><rect x="${x - 5.5}" y="${ty - 18}" width="11" height="14" fill="#e08a2c" opacity=".85"/>`; });
+  // F yukarı (tepsinin ortasından), hareket sağa (tepsiden), dik açı işareti
+  s += ok(cx, ty - 7, cx, ty - 78, KUV) + T(cx + 10, ty - 62, 'F', { size: 18, weight: 800, fill: KUV, italic: true });
+  s += ok(46, yz + 24, 300, yz + 24, HAR) + T(172, yz + 16, 'Δx (hareket yönü)', { size: 16, weight: 800, anchor: 'middle', fill: HAR, haloColor: '#d9b77c' });
+  return svg(W, H, s, u, 80);
+});
+
+/* İş–zaman grafiği: aşçı 120 J'ü 3 s'de, çırak 6 s'de yapıyor; sonra iş sabit */
+BFY_FIG_EKLE('sfY41_guc', function (u) {
+  const W = 340, H = 262, x = 10, y = 10, w = 320, h = 242;
+  const L = x + 52, R = x + w - 66, Tp = y + 40, B = y + h - 34, tm = 7, Wm = 140;
+  const px = t => L + t / tm * (R - L), py = v => B - v / Wm * (B - Tp);
+  let s = zemin(W, H) + `<rect class="bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+  for (let t = 1; t <= 7; t++) s += `<line x1="${f1(px(t))}" y1="${B}" x2="${f1(px(t))}" y2="${Tp}" stroke="${GRID}" stroke-width="1"/>`;
+  [40, 80, 120].forEach(v => { s += `<line x1="${L}" y1="${f1(py(v))}" x2="${f1(px(tm))}" y2="${f1(py(v))}" stroke="${GRID}" stroke-width="1"/>`; });
+  const xe = R + 12, yTop = Tp - 16;
+  s += `<line x1="${L}" y1="${B}" x2="${xe}" y2="${B}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${xe + 8},${B} ${xe - 1},${B - 4} ${xe - 1},${B + 4}" fill="${P.ink}"/>`;
+  s += `<line x1="${L}" y1="${B}" x2="${L}" y2="${yTop}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${L},${yTop - 8} ${L - 4},${yTop + 1} ${L + 4},${yTop + 1}" fill="${P.ink}"/>`;
+  s += T(xe + 12, B + 5, 't (s)', { size: 14, weight: 700 }) + T(L + 9, yTop + 2, 'W (J)', { size: 14, weight: 700 });
+  for (let t = 1; t <= 6; t++) s += `<line x1="${f1(px(t))}" y1="${B - 3}" x2="${f1(px(t))}" y2="${B + 3}" stroke="${P.ink}" stroke-width="1.2"/>` + T(px(t), B + 21, String(t), { size: 14, anchor: 'middle', fill: P.ink2 });
+  [40, 80, 120].forEach(v => { s += `<line x1="${L - 3}" y1="${f1(py(v))}" x2="${L + 3}" y2="${f1(py(v))}" stroke="${P.ink}" stroke-width="1.2"/>` + T(L - 8, py(v) + 5, String(v), { size: 14, anchor: 'end', fill: P.ink2 }); });
+  s += T(L - 8, B + 18, '0', { size: 14, anchor: 'end', fill: P.ink2 });
+  const A = '#d9573b', C = '#2f7fb8';
+  s += `<polyline points="${L},${B} ${f1(px(3))},${f1(py(120))} ${f1(px(tm))},${f1(py(120))}" fill="none" stroke="${A}" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += `<polyline points="${L},${B} ${f1(px(6))},${f1(py(120))} ${f1(px(tm))},${f1(py(120))}" fill="none" stroke="${C}" stroke-width="3.2" stroke-dasharray="8 5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += dashLine(px(3), py(120), px(3), B, '#9aa8b1', '3 3', 1.2);
+  s += `<circle cx="${f1(px(3))}" cy="${f1(py(120))}" r="4.5" fill="${A}"/><circle cx="${f1(px(6))}" cy="${f1(py(120))}" r="4.5" fill="${C}"/>`;
+  s += T(px(1.55), py(80), 'aşçı', { size: 15, weight: 800, anchor: 'end', fill: A });
+  s += T(px(4.1), py(48), 'çırak', { size: 15, weight: 800, anchor: 'start', fill: C });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -23953,6 +24046,183 @@ const KONU = {
     'fabrikada K sabit güç, L duraklayan, M gücü artan motorların iş-zaman grafiği eşleştirmesi',
     'dağ kurtarma ekibinin vinci sedyeyi çekiyor: ϑ-t 0–2 s hızlanma, 2–12 s 1 m/s, 12–14 s yavaşlama'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Fizikte "iş" sözcüğünün ne anlama geldiğini, işin ne zaman artı, eksi ya da sıfır olduğunu ve gücü kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Fizikte iş: kuvvet ve yer değiştirme',
+        sekil: 'sfY41_servis',
+        metin: r`Bir lokantada garson, tabak dolu servis arabasını mutfaktan salona itiyor. Arabaya ileri doğru 40 N'luk kuvvet uyguluyor ve araba ileri doğru 5 m yer değiştiriyor.
+
+Fizikte bir kuvvetin **iş** yapması için iki şart vardır:
+- Cisme bir kuvvet etki etmelidir.
+- Cisim, kuvvetin doğrultusunda yer değiştirmelidir.
+
+Kuvvet hareketle aynı yöndeyse iş, kuvvet ile yer değiştirmenin çarpımıdır: $W = F \times \Delta x$. Garsonun yaptığı iş $W = 40 \times 5 = 200$ J olur. İşin birimi **joule** (J), yani $\text{N} \times \text{m}$'dir.`,
+        kontrol: {
+          soru: 'Aşağıdakilerin hangisinde fiziksel anlamda iş yapılır?',
+          secenekler: ['Saatlerce ders çalışmak', 'Kıpırdamayan bir duvarı itmek', 'Yerdeki bir kutuyu kaldırıp masaya koymak'],
+          dogru: 2,
+          aciklama: 'Kutu yukarı doğru kaldırılıyor ve yukarı doğru yer değiştiriyor; iki şart da var. Ders çalışırken cisme kuvvet uygulayıp onu yer değiştirmiyorsun. Duvar ise hiç yer değiştirmiyor.',
+          yanlisIpucu: 'İki şartı ara: Bir kuvvet var mı ve cisim o kuvvetin doğrultusunda yer değiştiriyor mu? Yorulmak ya da emek vermek tek başına yetmez.'
+        }
+      },
+      {
+        baslik: 'Kuvvet harekete zıtsa: negatif iş',
+        metin: r`Servis arabası salona girerken fazla hızlanıyor. Garson arabayı yavaşlatmak için onu geriye doğru çekiyor. Araba hâlâ ileri gidiyor ama garsonun kuvveti geriye doğru.
+
+- Kuvvet hareketle aynı yöndeyse iş **pozitiftir**. Kuvvet cisme enerji aktarır.
+- Kuvvet harekete zıt yöndeyse iş **negatiftir**: $W = -F \times \Delta x$. Kuvvet cisimden enerji alır; araba bu yüzden yavaşlar.
+
+İşin işareti bir yön göstermez. Kuvvetin cisme enerji mi verdiğini, cisimden enerji mi aldığını gösterir.`,
+        kontrol: {
+          soru: 'Bir basketbolcu, kendisine doğru gelen topu elleriyle tutup durduruyor. Ellerin topa uyguladığı kuvvetin işi için ne söylenir?',
+          secenekler: ['Pozitiftir.', 'Negatiftir.', 'Sıfırdır.'],
+          dogru: 1,
+          aciklama: 'Top oyuncuya doğru gidiyor, eller ise topu geriye doğru itiyor. Kuvvet harekete zıt olduğu için iş negatiftir; eller topun hareket enerjisini alır ve top durur.',
+          yanlisIpucu: 'Top hangi yöne gidiyor, eller topu hangi yöne itiyor? Bu iki yön aynı mı, zıt mı?'
+        }
+      },
+      {
+        baslik: 'Kuvvet var ama iş sıfır',
+        sekil: 'sfY41_tepsi',
+        metin: r`Garson şimdi elindeki tepsiyi düz salonda bir masaya taşıyor. Eli tepsiyi yukarı doğru tutuyor; tepsi ise yatay olarak ilerliyor. Kuvvet yukarı, yer değiştirme yatay. Kuvvet harekete dik olduğu için elin tepsiye yaptığı iş **sıfırdır**.
+
+İşin sıfır olduğu iki durum vardır:
+- Kuvvet hareket doğrultusuna diktir.
+- Cisim hiç yer değiştirmez ($\Delta x = 0$). Tepsiyi masanın yanında havada tutmak yorar ama iş yapılmaz.`,
+        kontrol: {
+          soru: 'Aşağıdaki kuvvetlerden hangisi iş yapmaz?',
+          secenekler: ['Ağaçtan düşen bir elmaya etki eden ağırlık', 'Düz yolda giden bir otobüsteki yolcunun ağırlığı', 'Yukarı çıkan bir asansörün tabanının yolcuya uyguladığı kuvvet'],
+          dogru: 1,
+          aciklama: 'Otobüs düz yolda yatay gidiyor; yolcunun ağırlığı ise aşağı doğru. Kuvvet harekete dik olduğu için ağırlığın işi sıfırdır. Düşen elmada ağırlık da hareket de aşağı doğrudur; asansörde taban kuvveti de hareket de yukarı doğrudur.',
+          yanlisIpucu: 'Her seçenekte kuvvetin yönünü ve hareketin yönünü karşılaştır. Hangisinde bu iki yön birbirine dik?'
+        }
+      },
+      {
+        baslik: 'Yukarı kaldırmanın işi',
+        metin: r`Aşçı, kütlesi 6 kg olan dolu bir tencereyi yerden 2 m yükseklikteki rafa sabit hızla kaldırıyor. Tencereyi sabit hızla kaldırmak için ağırlığı kadar kuvvet uygulaması gerekir:
+
+$F = G = m \times g = 6 \times 10 = 60$ N
+
+Kuvvet yukarı, yer değiştirme de yukarı. Aşçının yaptığı iş $W = 60 \times 2 = 120$ J olur. Kısaca sabit hızla kaldırmada $W = m \times g \times h$ yazılır. Bu 120 J, aşçıdan tencereye aktarılan enerjidir.`,
+        kontrol: {
+          soru: 'Bir kütüphaneci 3 kg kütleli bir kitap destesini yerden 2 m yükseklikteki rafa sabit hızla kaldırıyor. Kütüphanecinin yaptığı iş kaç J\'dür?',
+          secenekler: ['6 J', '60 J', '30 J'],
+          dogru: 1,
+          aciklama: r`Önce ağırlık bulunur: $G = 3 \times 10 = 30$ N. Sonra iş: $W = 30 \times 2 = 60$ J.`,
+          yanlisIpucu: 'Kuvvet kütle değil ağırlıktır. Önce 3 kg\'lık destenin ağırlığını bul: kütleyi g = 10 ile çarp. Sonra yükseklikle çarp.'
+        }
+      },
+      {
+        baslik: 'Güç: işin ne kadar hızlı yapıldığı',
+        sekil: 'sfY41_guc',
+        metin: r`Aynı tencereyi aynı rafa aşçı 3 s'de, çırağı 6 s'de kaldırıyor. İkisi de tencereye 120 J iş yapar. Ama aşçı bu işi daha kısa sürede bitirir.
+
+Birim zamanda yapılan işe **güç** denir: $P = \dfrac{W}{t}$. Birimi **watt**'tır ($1\ \text{W} = 1\ \text{J/s}$).
+- Aşçının gücü: $P = \dfrac{120}{3} = 40$ W.
+- Çırağın gücü: $P = \dfrac{120}{6} = 20$ W.
+
+Grafikte işin zamanla değişimi var. Doğrusu daha dik olanın gücü daha büyüktür. Aynı işi daha kısa sürede yapan daha güçlüdür.`,
+        kontrol: {
+          soru: 'Bir öğrenci 400 J\'lük bir işi 8 s\'de yapıyor. Öğrencinin gücü kaç W\'tır?',
+          secenekler: ['50 W', '3200 W', '400 W'],
+          dogru: 0,
+          aciklama: r`$P = \dfrac{W}{t} = \dfrac{400}{8} = 50$ W. Öğrenci her saniye 50 J iş yapıyor.`,
+          yanlisIpucu: 'Güç, işin süreye bölümüdür. İşi süreyle çarpma; böl.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Tiyatroda yükselen dekor',
+        metin: 'Bir tiyatroda 40 kg kütleli bir dekor parçası, sahnenin üstündeki makaradan geçen halatla sabit hızla 6 m yukarı çekiliyor. Bu iş 12 s sürüyor. (g = 10 m/s².)',
+        adimlar: [
+          {
+            soru: 'Halatın dekora uyguladığı kuvvet kaç N\'dur?',
+            secenekler: ['40 N', '400 N', '240 N'],
+            dogru: 1,
+            ipucu: 'Dekor sabit hızla çıkıyor. Halat, dekorun ağırlığı kadar kuvvetle çekmelidir. Ağırlığı bulmak için kütleyi g ile çarp.',
+            aciklama: r`Sabit hızda halatın kuvveti ağırlığa eşittir: $F = G = 40 \times 10 = 400$ N.`
+          },
+          {
+            soru: 'Halatın dekora yaptığı iş kaç J\'dür?',
+            secenekler: ['2400 J', '4800 J', '240 J'],
+            dogru: 0,
+            ipucu: 'Kuvvet yukarı, dekor da yukarı gidiyor. İş, kuvvet ile yer değiştirmenin çarpımıdır.',
+            aciklama: r`$W = F \times \Delta x = 400 \times 6 = 2400$ J.`
+          },
+          {
+            soru: 'Halatın dekora aktardığı güç kaç W\'tır?',
+            secenekler: ['28800 W', '2400 W', '200 W'],
+            dogru: 2,
+            ipucu: 'Güç, işin süreye bölümüdür. İş 2400 J, süre 12 s.',
+            aciklama: r`$P = \dfrac{2400}{12} = 200$ W.`
+          }
+        ],
+        sonuc: 'Sabit hızla kaldırmada önce ağırlığı bul, sonra yükseklikle çarpıp işi, en son süreye bölüp gücü hesapla. Aynı dekor 6 s\'de çekilseydi iş yine 2400 J olurdu, güç ise iki katına çıkardı.'
+      },
+      {
+        baslik: 'İskeleye çekilen kano',
+        metin: 'Bir kano kulübünde antrenör, boş bir kanoyu ipe bağlayıp iskeleye doğru sabit hızla 8 m çekiyor. İp suya paralel ve kanoya 20 N\'luk kuvvet uyguluyor. Su da kanoya harekete zıt yönde 20 N\'luk direnç kuvveti uyguluyor.',
+        adimlar: [
+          {
+            soru: 'İpin kanoya yaptığı iş kaç J\'dür?',
+            secenekler: ['160 J', '−160 J', '0'],
+            dogru: 0,
+            ipucu: 'İp kanoyu iskeleye doğru çekiyor, kano da iskeleye doğru gidiyor. Kuvvet ve hareket aynı yönde.',
+            aciklama: r`Kuvvet hareket yönünde: $W = 20 \times 8 = 160$ J. İp kanoya enerji aktarır.`
+          },
+          {
+            soru: 'Suyun direnç kuvvetinin kanoya yaptığı iş kaç J\'dür?',
+            secenekler: ['160 J', '−160 J', '0'],
+            dogru: 1,
+            ipucu: 'Direnç kuvveti hareketin tersine. Kuvvet harekete zıtsa işin işareti ne olur?',
+            aciklama: r`Direnç harekete zıt: $W = -20 \times 8 = -160$ J. Su, kanodan enerji alır.`
+          },
+          {
+            soru: 'Kanonun ağırlığının bu 8 m\'de yaptığı iş kaç J\'dür?',
+            secenekler: ['160 J', '−160 J', '0'],
+            dogru: 2,
+            ipucu: 'Ağırlık aşağı doğru, kano ise yatay gidiyor. Bu iki yön arasındaki açıyı düşün.',
+            aciklama: 'Ağırlık harekete dik olduğu için işi sıfırdır. Kano yukarı ya da aşağı yer değiştirmiyor.'
+          }
+        ],
+        sonuc: 'Aynı harekette bir kuvvet pozitif, bir kuvvet negatif iş yapabilir; bir kuvvet de hiç iş yapmayabilir. Bu yüzden önce "hangi kuvvetin işi?" diye sor. Kano sabit hızla gittiği için işlerin toplamı sıfırdır.'
+      },
+      {
+        baslik: 'Dördüncü kata çıkan iki arkadaş',
+        metin: 'Ali (50 kg) ve Ece (60 kg), okulun giriş katından 12 m yükseklikteki dördüncü kata merdivenle çıkıyor. Ali bu yolu 20 s\'de, Ece 30 s\'de çıkıyor. İkisi de kendi ağırlıklarını yukarı taşıyor. (g = 10 m/s².)',
+        adimlar: [
+          {
+            soru: 'Hangisi daha çok iş yapar?',
+            secenekler: ['Ali', 'Ece', 'İkisi eşit iş yapar.'],
+            dogru: 1,
+            ipucu: 'İkisi de aynı yüksekliğe çıkıyor. İş, ağırlık ile yüksekliğin çarpımıdır. Kimin ağırlığı büyük?',
+            aciklama: r`Ali: $W = 500 \times 12 = 6000$ J. Ece: $W = 600 \times 12 = 7200$ J. Ece daha ağır olduğu için daha çok iş yapar.`
+          },
+          {
+            soru: 'Ali\'nin gücü kaç W\'tır?',
+            secenekler: ['600 W', '300 W', '120 W'],
+            dogru: 1,
+            ipucu: 'Ali\'nin işi 6000 J, süresi 20 s. Gücü bulmak için işi süreye böl.',
+            aciklama: r`$P = \dfrac{6000}{20} = 300$ W.`
+          },
+          {
+            soru: 'Ece\'nin gücü kaç W\'tır ve kimin gücü daha büyüktür?',
+            secenekler: ['240 W; Ali\'nin gücü daha büyük.', '240 W; Ece\'nin gücü daha büyük.', '360 W; Ece\'nin gücü daha büyük.'],
+            dogru: 0,
+            ipucu: 'Ece\'nin işi 7200 J, süresi 30 s. Bulduğun sonucu Ali\'nin 300 W\'ıyla karşılaştır.',
+            aciklama: r`$P = \dfrac{7200}{30} = 240$ W. Ali'nin gücü (300 W) daha büyüktür.`
+          }
+        ],
+        sonuc: 'Ece daha çok iş yaptı ama Ali daha güçlü çıktı, çünkü işini daha kısa sürede bitirdi. Çok iş yapmak ile güçlü olmak aynı şey değildir.'
+      }
+    ],
+    hazir: 'İşin iki şartını, işin artı, eksi ve sıfır olduğu durumları ve gücü gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -25582,6 +25852,105 @@ BFY_FIG_EKLE('kY42_vagon', function (u) {
 });
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY42_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (Math.round(v * 10) / 10).toString();
+const BG = '#f4f7f9', HIZ = '#6b4fb3', EP = '#2f9a5e', EK = '#2f7fb8';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const ok = (x1, y1, x2, y2, c) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w: 3.4, head: 12, headW: 7 });
+
+/* Aynı süratle atılan voleybol topu ve ağır sağlık topu */
+BFY_FIG_EKLE('sfY42_toplar', function (u) {
+  const W = 340, H = 232;
+  let s = zemin(W, H);
+  s += `<defs><radialGradient id="${u}vb" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#f1e6b8"/><stop offset="1" stop-color="#b9a65c"/></radialGradient>`;
+  s += `<radialGradient id="${u}st" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#8c6a4f"/><stop offset=".6" stop-color="#5a3f2b"/><stop offset="1" stop-color="#2e1f15"/></radialGradient></defs>`;
+  const iz = (x, y, r) => [0, 1, 2].map(i => `<line x1="${f1(x - r - 10 - i * 4)}" y1="${f1(y - 8 + i * 8)}" x2="${f1(x - r - 40 - i * 6)}" y2="${f1(y - 8 + i * 8)}" stroke="#9aa8b1" stroke-width="2" stroke-linecap="round" opacity="${(0.7 - i * 0.15).toFixed(2)}"/>`).join('');
+  // voleybol topu
+  const y1 = 64, x1 = 120, r1 = 22;
+  s += iz(x1, y1, r1);
+  s += `<circle cx="${x1}" cy="${y1}" r="${r1}" fill="url(#${u}vb)" stroke="#8d7c3a" stroke-width="1.2"/>`;
+  s += `<path d="M${x1 - r1 + 3} ${y1 - 6} Q${x1} ${y1 - 2} ${x1 + 8} ${y1 - r1 + 1} M${x1 - 6} ${y1 + r1 - 1} Q${x1 - 2} ${y1 + 2} ${x1 + r1 - 1} ${y1 + 4} M${x1 - r1 + 8} ${y1 + 14} Q${x1 + 4} ${y1 + 8} ${x1 + 2} ${y1 - r1 + 1}" fill="none" stroke="#2f6fb0" stroke-width="2.4"/>`;
+  s += ok(x1 + r1 + 10, y1, x1 + r1 + 100, y1, HIZ) + T(x1 + r1 + 108, y1 + 6, 'ϑ', { size: 18, weight: 800, fill: HIZ, italic: true });
+  s += T(x1, y1 + r1 + 24, 'voleybol topu', { size: 15, weight: 700, anchor: 'middle' });
+  // sağlık topu (deri, dikişli)
+  const y2 = 160, x2 = 120, r2 = 30;
+  s += iz(x2, y2, r2);
+  s += `<circle cx="${x2}" cy="${y2}" r="${r2}" fill="url(#${u}st)" stroke="#20150e" stroke-width="1.2"/>`;
+  s += `<path d="M${x2 - r2} ${y2} Q${x2} ${y2 + 10} ${x2 + r2} ${y2} M${x2} ${y2 - r2} Q${x2 - 10} ${y2} ${x2} ${y2 + r2}" fill="none" stroke="#c9a77d" stroke-width="1.6" stroke-dasharray="3 3"/>`;
+  s += `<ellipse cx="${x2 - 10}" cy="${y2 - 12}" rx="8" ry="5" fill="#fff" opacity=".18"/>`;
+  s += ok(x2 + r2 + 10, y2, x2 + r2 + 100, y2, HIZ) + T(x2 + r2 + 108, y2 + 6, 'ϑ', { size: 18, weight: 800, fill: HIZ, italic: true });
+  s += T(x2, y2 + r2 + 24, 'sağlık topu', { size: 15, weight: 700, anchor: 'middle' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Tükenmez kalemin yayı: serbest boy ve parmaklar arasında sıkışmış hâl; x sıkışma miktarı */
+BFY_FIG_EKLE('sfY42_kalem', function (u) {
+  const W = 340, H = 262;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}tel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9edf0"/><stop offset=".5" stop-color="#8e979f"/><stop offset="1" stop-color="#5f6a72"/></linearGradient>`;
+  s += `<linearGradient id="${u}gov" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6f1fa" stop-opacity=".9"/><stop offset=".5" stop-color="#bcd5ea" stop-opacity=".55"/><stop offset="1" stop-color="#8fb3cf" stop-opacity=".8"/></linearGradient></defs>`;
+  const yay = (xa, xb, y, n, r = 11) => { const st = (xb - xa) / n; let d = `M${f1(xa)} ${y}`; for (let i = 0; i < n; i++) { const x = xa + i * st; d += ` L${f1(x + st * 0.25)} ${y - r} L${f1(x + st * 0.75)} ${y + r} L${f1(x + st)} ${y}`; } return `<path d="${d}" fill="none" stroke="url(#${u}tel)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff" stroke-width=".8" opacity=".5"/>`; };
+  // kalem (saydam gövde, içinde yay)
+  const ky = 42;
+  s += `<ellipse cx="170" cy="${ky + 16}" rx="140" ry="3" fill="#000" opacity=".08"/>`;
+  s += `<path d="M28 ${ky} L36 ${ky - 6} L46 ${ky - 6} L46 ${ky + 6} L36 ${ky + 6} Z" fill="#c9cdd0" stroke="#6f7a83" stroke-width="1"/>`;
+  s += `<rect x="46" y="${ky - 12}" width="232" height="24" rx="6" fill="url(#${u}gov)" stroke="#5d84a3" stroke-width="1.3"/>`;
+  s += `<line x1="56" y1="${ky}" x2="200" y2="${ky}" stroke="#2f5f9e" stroke-width="3"/>` + yay(200, 262, ky, 7, 7);
+  s += `<rect x="278" y="${ky - 9}" width="28" height="18" rx="4" fill="#2f5f9e" stroke="#1f3f6a" stroke-width="1"/><path d="M240 ${ky - 13} L240 ${ky - 17} L296 ${ky - 17} L296 ${ky - 9}" fill="none" stroke="#2f5f9e" stroke-width="3.5" stroke-linejoin="round"/>`;
+  s += T(170, ky + 34, 'tükenmez kalem ve içindeki yay', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // serbest yay
+  const y1 = 128, xa = 70, L0 = 180;
+  s += `<rect x="${xa - 10}" y="${y1 - 16}" width="10" height="32" rx="3" fill="#b8c0c7" stroke="#5f6a72"/>` + yay(xa, xa + L0, y1, 9);
+  s += T(xa + L0 + 12, y1 + 5, 'serbest', { size: 15, weight: 700 });
+  // sıkışmış yay: sağda parmak itiyor
+  const y2 = 212, Lc = 120;
+  s += `<rect x="${xa - 10}" y="${y2 - 16}" width="10" height="32" rx="3" fill="#b8c0c7" stroke="#5f6a72"/>` + yay(xa, xa + Lc, y2, 9);
+  const fx = xa + Lc;
+  s += `<path d="M${W - 6} ${y2 - 17} L${fx + 16} ${y2 - 17} C${fx + 2} ${y2 - 17} ${fx - 1} ${y2 - 6} ${fx} ${y2} C${fx - 1} ${y2 + 8} ${fx + 4} ${y2 + 17} ${fx + 18} ${y2 + 17} L${W - 6} ${y2 + 17} Z" fill="url(#${u}skin)" stroke="#c99a74" stroke-width="1.1"/>`;
+  s += `<path d="M${fx + 8} ${y2 - 13} C${fx + 4} ${y2 - 10} ${fx + 4} ${y2 - 2} ${fx + 8} ${y2 + 1} L${fx + 30} ${y2 + 1} C${fx + 33} ${y2 - 4} ${fx + 33} ${y2 - 9} ${fx + 30} ${y2 - 13} Z" fill="#f6dccb" stroke="#d3a98a" stroke-width="1"/>`;
+  s += `<path d="M${fx + 62} ${y2 - 15} q-4 15 0 30 M${fx + 100} ${y2 - 15} q-4 15 0 30" fill="none" stroke="#c99a74" stroke-width="1" opacity=".7"/>`;
+  s += dashLine(xa + L0, y1 + 16, xa + L0, y2 + 26, '#9aa8b1', '4 3', 1.3) + dashLine(xa + Lc, y2 - 26, xa + Lc, y2 - 20, '#9aa8b1', '4 3', 1.3);
+  const yo = y2 - 34;
+  s += `<line x1="${xa + Lc + 4}" y1="${yo}" x2="${xa + L0 - 4}" y2="${yo}" stroke="${P.ink}" stroke-width="1.3"/><polygon points="${xa + Lc},${yo} ${xa + Lc + 7},${yo - 3.5} ${xa + Lc + 7},${yo + 3.5}" fill="${P.ink}"/><polygon points="${xa + L0},${yo} ${xa + L0 - 7},${yo - 3.5} ${xa + L0 - 7},${yo + 3.5}" fill="${P.ink}"/>`;
+  s += dashLine(xa + Lc, yo - 6, xa + Lc, y2 - 20, '#9aa8b1', '4 3', 1.3);
+  s += T(xa + (Lc + L0) / 2, yo - 8, 'x', { size: 18, weight: 800, anchor: 'middle', italic: true });
+  s += T(xa + 6, y2 + 42, 'sıkışmış', { size: 15, weight: 700 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Düşen ceviz: 1 (dal), 2 (yolun ortası), 3 (yere varırken); her konumda E_P ve E_K sütunları, toplam aynı */
+BFY_FIG_EKLE('sfY42_ceviz', function (u) {
+  const W = 340, H = 286, yz = 258, xc = 74;
+  let s = zemin(W, H);
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${yz}" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${yz}" width="${W}" height="${H - yz}" fill="url(#${u}grass)"/><line x1="0" y1="${yz}" x2="${W}" y2="${yz}" stroke="#4f7d3a" stroke-width="1.4"/>`;
+  // dal ve yapraklar
+  s += `<path d="M0 30 Q40 34 70 44 Q90 50 104 48" fill="none" stroke="#6b4a2b" stroke-width="9" stroke-linecap="round"/>`;
+  [[24, 22, -20], [52, 50, 30], [96, 36, -35], [12, 44, 25]].forEach(([x, y, a]) => { s += `<ellipse cx="${x}" cy="${y}" rx="15" ry="7" transform="rotate(${a} ${x} ${y})" fill="#5f9448" stroke="#3f6a2f" stroke-width=".8"/>`; });
+  const yk = [62, 160, 238];
+  const ceviz = (x, y) => `<ellipse cx="${x}" cy="${y}" rx="10" ry="11" fill="#a97b48" stroke="#6b4a2b" stroke-width="1.2"/><path d="M${x} ${y - 11} Q${x - 4} ${y} ${x} ${y + 11}" fill="none" stroke="#6b4a2b" stroke-width="1"/><ellipse cx="${x - 3}" cy="${y - 4}" rx="3" ry="2" fill="#fff" opacity=".3"/>`;
+  s += dashLine(xc, yk[0] + 12, xc, yz, '#8aa0ad', '4 4', 1.3);
+  s += `<line x1="${xc}" y1="48" x2="${xc}" y2="${yk[0] - 10}" stroke="#6b4a2b" stroke-width="2"/>`;
+  yk.forEach((y, i) => { s += ceviz(xc, y) + T(xc + 16, y + 6, String(i + 1), { size: 16, weight: 800 }); });
+  // sütunlar: birim yüksekliği 26 px, toplam 4 birim
+  const bw = 34, b0 = 214, un = 26, xs = [146, 210, 274], par = [[4, 0], [2, 2], [0, 4]];
+  s += `<rect x="128" y="62" width="198" height="${b0 - 62 + 28}" rx="10" fill="#fff" opacity=".85"/>`;
+  par.forEach(([p, k], i) => {
+    const x = xs[i] - bw / 2;
+    if (p) s += `<rect x="${x}" y="${b0 - p * un}" width="${bw}" height="${p * un}" fill="${EP}" stroke="#1f6b40" stroke-width="1"/>`;
+    if (k) s += `<rect x="${x}" y="${b0 - (p + k) * un}" width="${bw}" height="${k * un}" fill="${EK}" stroke="#1d5a86" stroke-width="1"/>`;
+    for (let j = 1; j < p + k; j++) s += `<line x1="${x}" y1="${b0 - j * un}" x2="${x + bw}" y2="${b0 - j * un}" stroke="#fff" stroke-width="1" opacity=".6"/>`;
+    s += T(xs[i], b0 + 20, String(i + 1), { size: 16, weight: 800, anchor: 'middle' });
+  });
+  s += `<line x1="128" y1="${b0}" x2="326" y2="${b0}" stroke="${P.ink}" stroke-width="1.2"/>`;
+  s += `<rect x="150" y="18" width="14" height="14" rx="2" fill="${EP}"/>` + T(170, 31, 'E_P', { size: 16, weight: 800, fill: EP });
+  s += `<rect x="222" y="18" width="14" height="14" rx="2" fill="${EK}"/>` + T(242, 31, 'E_K', { size: 16, weight: 800, fill: EK });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -25658,6 +26027,181 @@ const KONU = {
     'ilçenin elektriği rüzgâr ve tarım atığı biyokütle santralinden (kesinlikle)',
     'lunaparkta hız treni vagonu: K, L, M, N noktalarında üst üste E_P ve E_K sütunları (6+1, 2+5, 4+2, 1+5 bölme)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Hareketin, yüksekliğin ve yayın enerjisini, enerjinin nasıl biçim değiştirdiğini, verimi ve enerji kaynaklarını kısa adımlarla göreceğiz. Burada hesap yok; "neye bağlı, kaç katına çıkar, nereye gider?" sorularını soracağız. Her adımın sonunda tek bir küçük soru var.`,
+    adimlar: [
+      {
+        baslik: 'Hareketin enerjisi: kinetik enerji',
+        sekil: 'sfY42_toplar',
+        metin: r`Spor salonunda antrenör sana önce bir voleybol topu, sonra aynı süratle ağır bir sağlık topu atıyor. Sağlık topunu tutmak çok daha zordur. Hızlı gelen voleybol topu da yavaş gelenden daha çok acıtır.
+
+Hareket eden her cismin **kinetik enerjisi** vardır: $E_K = \tfrac{1}{2} \times m \times \vartheta^2$.
+- Kinetik enerji kütleyle doğru orantılıdır. Kütle 2 katına çıkarsa $E_K$ de 2 katına çıkar.
+- Kinetik enerji süratin **karesiyle** orantılıdır. Sürat 2 katına çıkarsa $E_K$, $2^2 = 4$ katına çıkar.`,
+        kontrol: {
+          soru: 'Bir topun sürati 3 katına çıkarsa kinetik enerjisi kaç katına çıkar?',
+          secenekler: ['3 katına', '6 katına', '9 katına'],
+          dogru: 2,
+          aciklama: r`Kinetik enerji süratin karesiyle değişir: $3^2 = 9$. Topun kütlesi değişmediği için $E_K$ 9 katına çıkar.`,
+          yanlisIpucu: 'Formülde sürat karesiyle yer alıyor. Sürat 3 katına çıkınca karesi kaç katına çıkar?'
+        }
+      },
+      {
+        baslik: 'Yüksekliğin enerjisi: potansiyel enerji',
+        metin: r`Kitaplığın en üst rafında duran bir sözlük düşerse yere sertçe çarpar; alt raftaki aynı sözlük ise hafifçe düşer. Yükseğe konan cisim, konumu yüzünden enerji taşır. Buna **yer çekimi potansiyel enerjisi** denir: $E_P = m \times g \times h$.
+
+- $h$, seçilen **referans düzeyinden** yüksekliktir. Burada referans düzeyi yerdir.
+- $E_P$ kütleyle ve yükseklikle doğru orantılıdır. Burada kare yoktur.`,
+        kontrol: {
+          soru: 'Aynı sözlük, yerden yüksekliği 4 katı olan bir rafa konuyor. Sözlüğün yere göre potansiyel enerjisi kaç katına çıkar?',
+          secenekler: ['2 katına', '4 katına', '16 katına'],
+          dogru: 1,
+          aciklama: r`$E_P = m \times g \times h$ ifadesinde yükseklik kare değildir. Kütle aynı, yükseklik 4 katı; bu yüzden $E_P$ de 4 katına çıkar.`,
+          yanlisIpucu: 'Potansiyel enerji formülünde yüksekliğin karesi var mı? Yükseklik ne kadar artarsa enerji de o kadar artar.'
+        }
+      },
+      {
+        baslik: 'Yayda saklanan enerji',
+        sekil: 'sfY42_kalem',
+        metin: r`Bir tükenmez kalemin içindeki küçük yayı çıkarıp iki parmağınla sıkıştır. Bıraktığında yay sıçrar. Sıkıştırırken yaya verdiğin enerji yayda saklanmıştı. Buna **esneklik potansiyel enerjisi** denir: $E_{\text{esneklik}} = \tfrac{1}{2} \times k \times x^2$.
+
+- $x$, yayın serbest boyundan itibaren ne kadar sıkıştığını (ya da uzadığını) gösterir. Yayın toplam boyu değildir.
+- $k$, yay sabitidir. Sert yayın yay sabiti büyüktür.
+- Enerji, sıkışmanın **karesiyle** orantılıdır.`,
+        kontrol: {
+          soru: 'Yayı öncekinin yarısı kadar sıkıştırırsan yayda saklanan esneklik potansiyel enerjisi ne olur?',
+          secenekler: ['Yarısına iner.', 'Dörtte birine iner.', 'Değişmez.'],
+          dogru: 1,
+          aciklama: r`Enerji sıkışmanın karesiyle değişir. Sıkışma yarıya inince enerji $\left(\tfrac{1}{2}\right)^2 = \tfrac{1}{4}$ katına, yani dörtte birine iner.`,
+          yanlisIpucu: 'Sıkışma formülde karesiyle yer alıyor. Yarının karesi kaçtır?'
+        }
+      },
+      {
+        baslik: 'Enerji biçim değiştirir, toplam korunur',
+        sekil: 'sfY42_ceviz',
+        metin: r`Bir ceviz, dalından kopup yere düşüyor. Hava direncini önemsemiyoruz.
+
+- Dalda dururken cevizin yalnız potansiyel enerjisi vardır.
+- Düştükçe yüksekliği azalır, sürati artar. Potansiyel enerji kinetik enerjiye dönüşür.
+- Yere varmadan hemen önce enerjinin tamamı kinetik enerjidir.
+
+Şekildeki sütunlarda iki parçanın toplamı her yerde aynıdır. Bu toplama **mekanik enerji** denir: $E_M = E_K + E_P$. Enerji yoktan var edilemez, var olan enerji yok edilemez; yalnız biçim değiştirir. Buna **enerjinin korunumu** denir.`,
+        kontrol: {
+          soru: 'Ceviz, dal ile yer arasındaki yolun tam ortasından geçerken kinetik enerjisi ile potansiyel enerjisi için ne söylenir?',
+          secenekler: ['Kinetik enerji daha büyüktür.', 'İkisi eşittir.', 'Kinetik enerji sıfırdır.'],
+          dogru: 1,
+          aciklama: 'Yarı yüksekliğe inince yere göre potansiyel enerjinin yarısı kalır. Kaybolan yarısı kinetik enerjiye dönüşmüştür. Toplam aynı kaldığı için ikisi eşittir.',
+          yanlisIpucu: 'Yükseklik yarıya indi; potansiyel enerji ne kadar kaldı? Eksilen kısım nereye gitti?'
+        }
+      },
+      {
+        baslik: 'Enerjinin bir kısmı ısıya kaçar: verim',
+        metin: r`Telefonunu şarj ederken şarj aleti ılınır. Prizden gelen elektrik enerjisinin çoğu, telefonun bataryasında kimyasal enerji olarak depolanır; bir kısmı ise aletin içinde istenmeyen ısıya dönüşür. Enerji kaybolmaz ama tamamı istediğimiz biçime de dönüşmez.
+
+Bir sistemin **verimi**, verilen enerjinin ne kadarının istenen (yararlı) biçime dönüştüğünü gösterir:
+
+$\text{Verim} = \dfrac{E_{\text{yararlı}}}{E_{\text{harcanan}}}$
+
+Sürtünme ve istenmeyen ısı yüzünden hiçbir makinenin verimi yüzde 100 olamaz. Sürtünen parçaları yağlamak ya da ısı kaybını azaltmak verimi artırır.`,
+        kontrol: {
+          soru: 'Bir makinenin verimi neden yüzde 100 olamaz?',
+          secenekler: ['Verilen enerjinin bir kısmı istenmeyen ısıya ve sese dönüşür.', 'Makine çalışırken enerjinin bir kısmı yok olur.', 'Makine aldığı enerjinin tamamını içinde saklar.'],
+          dogru: 0,
+          aciklama: 'Enerji yok olmaz; bir kısmı sürtünme yüzünden ısıya ve sese dönüşür. Bu kısım istenen iş için kullanılamaz; bu yüzden verim yüzde 100\'den küçük kalır.',
+          yanlisIpucu: 'Enerjinin korunumunu hatırla: Enerji yok edilemez. Öyleyse eksik kalan kısım hangi biçime dönüşmüş olabilir?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Yazı tura atışı',
+        metin: 'Ali, bir madeni parayı başparmağıyla düz yukarı fırlatıyor. Para yükseliyor, bir an duruyor, sonra aşağı iniyor ve Ali onu fırlattığı yükseklikte yakalıyor. Hava direncini önemsemiyoruz.',
+        adimlar: [
+          {
+            soru: 'Para yükselirken hangi enerjisi azalır?',
+            secenekler: ['Potansiyel enerjisi', 'Kinetik enerjisi', 'Hiçbiri; ikisi de artar.'],
+            dogru: 1,
+            ipucu: 'Para yükseldikçe yavaşlıyor mu, hızlanıyor mu? Sürati azalan cismin hangi enerjisi azalır?',
+            aciklama: 'Para yükseldikçe yavaşlar; kinetik enerjisi azalır. Yüksekliği arttığı için potansiyel enerjisi artar. Kinetik enerji potansiyel enerjiye dönüşür.'
+          },
+          {
+            soru: 'Para en yüksek noktada bir an durduğunda kinetik enerjisi kaçtır?',
+            secenekler: ['Sıfır', 'En büyük değerinde', 'Potansiyel enerjisine eşit'],
+            dogru: 0,
+            ipucu: 'Kinetik enerji hareketin enerjisidir. O anda paranın sürati kaç?',
+            aciklama: 'En yüksek noktada sürat sıfırdır; kinetik enerji de sıfırdır. Bu anda mekanik enerjinin tamamı potansiyel enerjidir.'
+          },
+          {
+            soru: 'Ali parayı fırlattığı yükseklikte yakalarken paranın sürati, fırlatıldığı andaki süratine göre nasıldır?',
+            secenekler: ['Daha küçük', 'Daha büyük', 'Eşit'],
+            dogru: 2,
+            ipucu: 'Hava direnci yok; mekanik enerji korunur. Aynı yükseklikte potansiyel enerji aynıysa kinetik enerji ne olmalı?',
+            aciklama: 'Mekanik enerji korunur. Aynı yükseklikte potansiyel enerji aynı olduğu için kinetik enerji de aynıdır; para aynı süratle döner.'
+          }
+        ],
+        sonuc: 'Çıkarken kinetik enerji potansiyel enerjiye, inerken potansiyel enerji kinetik enerjiye dönüştü. Hava direnci olmadığı için toplam hiç değişmedi.'
+      },
+      {
+        baslik: 'Yayla evinin elektriği',
+        metin: 'Şebekeye uzak bir yayla evinde bir aile elektriği iki yoldan sağlıyor: Çatıdaki güneş panelleri ve evin yanındaki derede dönen küçük bir türbin. Daha önce benzinli bir jeneratör kullanıyorlardı.',
+        adimlar: [
+          {
+            soru: 'Ailenin eskiden kullandığı benzin hangi tür kaynaktır?',
+            secenekler: ['Yenilenebilir', 'Yenilenemez', 'Sonsuz'],
+            dogru: 1,
+            ipucu: 'Benzin petrolden elde edilir. Petrolün oluşması ne kadar sürer; kullandığımız hızla yeniden oluşur mu?',
+            aciklama: 'Benzin petrolden elde edilir. Petrol milyonlarca yılda oluşur ve kullanıldıkça tükenir; yenilenemez bir kaynaktır.'
+          },
+          {
+            soru: 'Güneş panellerinin bu ev için dezavantajı hangisidir?',
+            secenekler: ['Çalışırken baca gazı çıkarır.', 'Yakıt olarak benzin ister.', 'Gece ve bulutlu havada elektrik üretimi durur ya da azalır.'],
+            dogru: 2,
+            ipucu: 'Panel ışıkla çalışır. Işığın olmadığı saatlerde ne olur?',
+            aciklama: 'Güneş paneli yakıt yakmaz ve baca gazı çıkarmaz. Ama ışık azalınca üretim düşer; gece hiç üretmez. Bu yüzden ailenin ikinci bir kaynağa ihtiyacı var.'
+          },
+          {
+            soru: 'Dere türbininde akan suyun hangi enerjisi elektriğe dönüşür?',
+            secenekler: ['Kinetik enerjisi', 'Esneklik potansiyel enerjisi', 'Kimyasal enerjisi'],
+            dogru: 0,
+            ipucu: 'Akan su hareket eder. Hareketin enerjisi hangisiydi?',
+            aciklama: 'Akan suyun kinetik enerjisi türbinin kanatlarını döndürür ve jeneratörde elektriğe dönüşür. Bir kısmı da ısıya ve sese gider. Dere yağmur ve karla beslendiği için bu kaynak yenilenir.'
+          }
+        ],
+        sonuc: 'Güneş ve akarsu yenilenebilir kaynaklardır ama her birinin bir eksiği vardır. İki kaynağı birlikte kullanmak bu eksikleri kapatmaya yardım eder.'
+      },
+      {
+        baslik: 'Macera parkındaki tirolyen hattı',
+        metin: 'Bir macera parkında iki ağaç arasına eğik bir çelik halat gerilmiş. Halata makarayla asılan bir koltukta oturan Defne, yüksekteki ağaçtan durgun hâlde kaymaya başlıyor ve alçaktaki ağaca varıyor. Makara ile halat arasında sürtünme var.',
+        adimlar: [
+          {
+            soru: 'Defne aşağı kayarken potansiyel enerjisi ne olur?',
+            secenekler: ['Artar.', 'Değişmez.', 'Azalır.'],
+            dogru: 2,
+            ipucu: 'Potansiyel enerji yüksekliğe bağlıdır. Defne kaydıkça yüksekliği ne oluyor?',
+            aciklama: 'Defne alçaldıkça yüksekliği azalır; potansiyel enerjisi de azalır. Bu enerjinin bir kısmı kinetik enerjiye dönüşür.'
+          },
+          {
+            soru: 'Hattın sonunda Defne\'nin sürati, sürtünme olmasaydı varacağı süratle karşılaştırılırsa nasıldır?',
+            secenekler: ['Daha küçüktür.', 'Eşittir.', 'Daha büyüktür.'],
+            dogru: 0,
+            ipucu: 'Sürtünme varsa potansiyel enerjinin tamamı kinetik enerjiye dönüşebilir mi?',
+            aciklama: 'Sürtünme yüzünden potansiyel enerjinin bir kısmı kinetik enerjiye değil, başka bir biçime dönüşür. Bu yüzden Defne\'nin sürati daha küçük olur.'
+          },
+          {
+            soru: 'Sürtünme yüzünden kinetik enerjiye dönüşmeyen enerji nereye gider?',
+            secenekler: ['Yok olur.', 'Isıya ve sese dönüşür; makara ve halat ısınır.', 'Defne\'nin potansiyel enerjisine geri eklenir.'],
+            dogru: 1,
+            ipucu: 'Enerji yok edilemezdi. Sürtünen iki yüzey dokununca ne hissedersin?',
+            aciklama: 'Enerji yok olmaz. Sürtünme, mekanik enerjinin bir kısmını ısıya ve sese çevirir; makara ve halat biraz ısınır. Toplam enerji yine korunur.'
+          }
+        ],
+        sonuc: 'Sürtünme varken mekanik enerji azalır ama toplam enerji korunur; eksilen kısım ısı ve ses olarak çevreye geçer. Gerçek makinelerde verimin yüzde 100 olamamasının nedeni de budur.'
+      }
+    ],
+    hazir: 'Kinetik, potansiyel ve esneklik potansiyel enerjisini, enerjinin korunumunu, verimi ve enerji kaynaklarını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -27119,6 +27663,104 @@ BFY_FIG_EKLE('iY51_efsane_5', u => EF(u, I => {
 }, { oy: 78, ox: 72 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY51_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (Math.round(v * 10) / 10).toString();
+const BG = '#f4f7f9', ISI = '#d9573b', GRID = '#e3eaee';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+
+/* Soğuk (4 °C) ve sıcak (60 °C) süt: büyütülmüş tanecikler, kısa ve uzun hız okları */
+BFY_FIG_EKLE('sfY51_tanecik', function (u) {
+  const W = 340, H = 250;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}sut" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#efe6cf"/></linearGradient>`;
+  s += `<linearGradient id="${u}cam" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfe3ef" stop-opacity=".9"/><stop offset=".25" stop-color="#ffffff" stop-opacity=".5"/><stop offset="1" stop-color="#a9c6d8" stop-opacity=".9"/></linearGradient></defs>`;
+  // tanecik konumları ve hareket yönleri (derece)
+  const tn = [[-34, -40, 20], [6, -46, 160], [36, -30, 250], [-22, -8, 300], [18, -4, 40], [-38, 24, 110], [0, 26, 200], [34, 22, 330], [-14, 52, 70], [24, 54, 140]];
+  const kap = (cx, et, sic, L, yz, sicak) => {
+    const top = 70, bot = 214, w2 = 58;
+    let k = `<ellipse cx="${cx}" cy="${bot + 4}" rx="${w2 + 4}" ry="5" fill="#000" opacity=".12"/>`;
+    k += `<path d="M${cx - w2} ${top} L${cx - w2 + 4} ${bot} Q${cx} ${bot + 6} ${cx + w2 - 4} ${bot} L${cx + w2} ${top}" fill="url(#${u}sut)"/>`;
+    k += `<ellipse cx="${cx}" cy="${top + 10}" rx="${w2 - 1}" ry="5" fill="#fffef9" stroke="#e2d6b8" stroke-width="1"/>`;
+    tn.forEach(([dx, dy, a]) => {
+      const x = cx + dx * 0.95, y = 150 + dy, r = a * Math.PI / 180;
+      k += `<circle cx="${f1(x)}" cy="${f1(y)}" r="5.5" fill="${yz}" stroke="#2c3e50" stroke-width=".7"/>`;
+      k += arrow(f1(x + 7 * Math.cos(r)), f1(y + 7 * Math.sin(r)), f1(x + (7 + L) * Math.cos(r)), f1(y + (7 + L) * Math.sin(r)), { color: '#2c3e50', w: 1.6, head: 6, headW: 3.4 });
+    });
+    k += `<path d="M${cx - w2 - 2} ${top - 8} L${cx - w2 + 3} ${bot + 1} Q${cx} ${bot + 8} ${cx + w2 - 3} ${bot + 1} L${cx + w2 + 2} ${top - 8}" fill="url(#${u}cam)" fill-opacity=".35" stroke="#7c9fb4" stroke-width="1.8" stroke-linejoin="round"/>`;
+    k += `<ellipse cx="${cx}" cy="${top - 8}" rx="${w2 + 2}" ry="5" fill="none" stroke="#7c9fb4" stroke-width="1.5"/>`;
+    if (sicak) [-22, 0, 22].forEach(d => { k += `<path d="M${cx + d} ${top - 14} q-6 -6 0 -12 q6 -6 0 -12" fill="none" stroke="#b9c6cf" stroke-width="2.4" stroke-linecap="round"/>`; });
+    k += T(cx, 28, et, { size: 15, weight: 800, anchor: 'middle', fill: sic });
+    return k;
+  };
+  s += kap(88, 'soğuk süt, 4 °C', '#2f7fb8', 8, '#bcdcf2', false);
+  s += kap(252, 'sıcak süt, 60 °C', ISI, 20, '#f6c3b4', true);
+  s += T(170, 242, 'Büyütülmüş tanecikler ve hızları', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Kalorifer peteği ve üşüyen el: ısı petekten ele */
+BFY_FIG_EKLE('sfY51_petek', function (u) {
+  const W = 340, H = 236, yz = 214;
+  let s = zemin(W, H);
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${yz}" rx="14" fill="#efeae1"/><rect class="bg" x="0" y="${yz}" width="${W}" height="${H - yz}" fill="url(#${u}wood)"/><line x1="0" y1="${yz}" x2="${W}" y2="${yz}" stroke="#a88a5a" stroke-width="1.4"/>`;
+  s += `<defs><linearGradient id="${u}pt" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e3e7ea"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="#cfd5da"/></linearGradient></defs>`;
+  // petek: dilimli
+  const x0 = 26, y0 = 92, n = 8, dw = 18, ph = 104;
+  s += `<rect x="${x0 - 2}" y="${y0 + ph}" width="${n * dw + 4}" height="6" fill="#000" opacity=".08"/>`;
+  for (let i = 0; i < n; i++) s += `<rect x="${x0 + i * dw}" y="${y0}" width="${dw - 2}" height="${ph}" rx="7" fill="url(#${u}pt)" stroke="#aab4bb" stroke-width="1"/>`;
+  s += `<rect x="${x0 - 2}" y="${y0 + 10}" width="${n * dw + 2}" height="8" fill="#e8ecef" stroke="#aab4bb" stroke-width=".8"/><rect x="${x0 - 2}" y="${y0 + ph - 18}" width="${n * dw + 2}" height="8" fill="#e8ecef" stroke="#aab4bb" stroke-width=".8"/>`;
+  s += `<path d="M${x0 + 4} ${y0 + ph} v${yz - y0 - ph}" stroke="#c4ccd2" stroke-width="5"/><path d="M${x0 + n * dw - 8} ${y0 + ph} v${yz - y0 - ph}" stroke="#c4ccd2" stroke-width="5"/>`;
+  [0, 1, 2].forEach(i => { const x = x0 + 30 + i * 46; s += `<path d="M${x} ${y0 - 10} q-6 -9 0 -18 q6 -9 0 -18" fill="none" stroke="#e0a48f" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>`; });
+  s += T(x0 + n * dw / 2, y0 - 50, 'sıcak petek', { size: 15, weight: 800, anchor: 'middle', fill: ISI });
+  // el: sağdan gelen kol, avuç içi peteğe dönük, parmaklar yukarıda (elin dışı görünüyor)
+  const hx = x0 + n * dw + 1, hy = 150;
+  const ten = `fill="url(#${u}skin)" stroke="#c99a74" stroke-width="1.1"`;
+  // başparmak (izleyiciye doğru, avucun sağ üstünden)
+  s += `<rect x="0" y="-6" width="30" height="12" rx="6" transform="translate(${hx + 40} ${hy + 4}) rotate(-58)" ${ten}/>`;
+  // dört parmak: işaret, orta, yüzük, serçe
+  [[1, 46], [12, 52], [23, 49], [34, 40]].forEach(([d, L]) => { s += `<rect x="${hx + d}" y="${hy - L}" width="10.5" height="${L + 6}" rx="5.2" ${ten}/>`; });
+  // avuç (elin dışı) ve bilek
+  s += `<path d="M${hx} ${hy - 6} L${hx + 46} ${hy - 6} Q${hx + 50} ${hy + 18} ${hx + 50} ${hy + 40} L${hx + 4} ${hy + 40} Q${hx} ${hy + 18} ${hx} ${hy - 6} Z" ${ten} stroke-linejoin="round"/>`;
+  [6, 17, 28, 39].forEach(d => { s += `<path d="M${hx + d} ${hy - 4} q2 -3 4 0" fill="none" stroke="#c99a74" stroke-width=".9" opacity=".7"/>`; });
+  // kol ve manşet
+  s += `<path d="M${W - 6} ${hy + 4} L${hx + 44} ${hy + 6} L${hx + 44} ${hy + 46} L${W - 6} ${hy + 50} Z" fill="#4f7fa8" stroke="#2f5f86" stroke-width="1"/>`;
+  s += `<rect x="${hx + 40}" y="${hy + 4}" width="10" height="44" rx="3" fill="#3f6f98" stroke="#2f5f86" stroke-width="1"/>`;
+  s += T(hx + 70, hy - 50, 'soğuk el', { size: 15, weight: 800, fill: '#2f7fb8' });
+  // ısı oku
+  s += arrow(x0 + n * dw - 30, 64, hx + 46, 64, { color: ISI, w: 4, head: 13, headW: 8 }) + T((x0 + n * dw - 30 + hx + 46) / 2 + 26, 54, 'ısı', { size: 17, weight: 800, anchor: 'middle', fill: ISI });
+  return svg(W, H, s, u, 80);
+});
+
+/* Özdeş ısıtıcılar: küçük akvaryum 20 → 26 °C, büyük (3 kat su) 20 → 22 °C, 120 dakikada */
+BFY_FIG_EKLE('sfY51_akvaryum', function (u) {
+  const W = 340, H = 266, x = 10, y = 10, w = 320, h = 246;
+  const L = x + 50, R = x + w - 74, Tp = y + 40, B = y + h - 34, tm = 135, T0 = 18, Tm = 27;
+  const px = t => L + t / tm * (R - L), py = v => B - (v - T0) / (Tm - T0) * (B - Tp);
+  let s = zemin(W, H) + `<rect class="bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+  [30, 60, 90, 120].forEach(t => { s += `<line x1="${f1(px(t))}" y1="${B}" x2="${f1(px(t))}" y2="${Tp}" stroke="${GRID}" stroke-width="1"/>`; });
+  [20, 22, 24, 26].forEach(v => { s += `<line x1="${L}" y1="${f1(py(v))}" x2="${f1(px(tm))}" y2="${f1(py(v))}" stroke="${GRID}" stroke-width="1"/>`; });
+  const xe = R + 12, yTop = Tp - 16;
+  s += `<line x1="${L}" y1="${B}" x2="${xe}" y2="${B}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${xe + 8},${B} ${xe - 1},${B - 4} ${xe - 1},${B + 4}" fill="${P.ink}"/>`;
+  s += `<line x1="${L}" y1="${B}" x2="${L}" y2="${yTop}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${L},${yTop - 8} ${L - 4},${yTop + 1} ${L + 4},${yTop + 1}" fill="${P.ink}"/>`;
+  // eksen kırığı (0'dan 18'e atlanıyor)
+  s += `<path d="M${L - 6} ${B - 8} l12 -4 M${L - 6} ${B - 14} l12 -4" stroke="${P.ink}" stroke-width="1.3"/><rect x="${L - 2}" y="${B - 15}" width="4" height="5" fill="#fff"/>`;
+  s += T(xe + 12, B + 5, 't (dk)', { size: 14, weight: 700 }) + T(L + 9, yTop + 2, 'T (°C)', { size: 14, weight: 700 });
+  [30, 60, 90, 120].forEach(t => { s += `<line x1="${f1(px(t))}" y1="${B - 3}" x2="${f1(px(t))}" y2="${B + 3}" stroke="${P.ink}" stroke-width="1.2"/>` + T(px(t), B + 21, String(t), { size: 14, anchor: 'middle', fill: P.ink2 }); });
+  [20, 22, 24, 26].forEach(v => { s += `<line x1="${L - 3}" y1="${f1(py(v))}" x2="${L + 3}" y2="${f1(py(v))}" stroke="${P.ink}" stroke-width="1.2"/>` + T(L - 8, py(v) + 5, String(v), { size: 14, anchor: 'end', fill: P.ink2 }); });
+  s += T(L - 8, B + 18, '0', { size: 14, anchor: 'end', fill: P.ink2 });
+  const K = '#d9573b', Bc = '#2f7fb8';
+  s += `<line x1="${L}" y1="${f1(py(20))}" x2="${f1(px(120))}" y2="${f1(py(26))}" stroke="${K}" stroke-width="3.2" stroke-linecap="round"/>`;
+  s += `<line x1="${L}" y1="${f1(py(20))}" x2="${f1(px(120))}" y2="${f1(py(22))}" stroke="${Bc}" stroke-width="3.2" stroke-dasharray="8 5" stroke-linecap="round"/>`;
+  s += `<circle cx="${f1(px(120))}" cy="${f1(py(26))}" r="4.5" fill="${K}"/><circle cx="${f1(px(120))}" cy="${f1(py(22))}" r="4.5" fill="${Bc}"/>`;
+  s += dashLine(px(120), py(26), px(120), B, '#9aa8b1', '3 3', 1.2);
+  s += T(px(52), py(24.6), 'küçük', { size: 15, weight: 800, anchor: 'end', fill: K });
+  s += T(px(84), py(21) + 22, 'büyük', { size: 15, weight: 800, anchor: 'middle', fill: Bc });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -27185,6 +27827,189 @@ const KONU = {
     'X ve Y maddeleriyle dört ısıtma denemesi tablosu, 4. denemede bilinmeyen kütle', 'fırından çıkan döküm demir tava ve seramik kek kalıbı, 20 °C mutfak (kesinlikle)',
     'atölyede bakır bara m/4 ve 3m/4 parçalara kesiliyor, her birine Q/2', 'açık beherde elektrikli ısıtıcı, ısı kaybıyla öz ısı ve ısı sığası ölçüm hatası'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Sıcaklık, ısı ve iç enerjinin farkını, üç sıcaklık ölçeğini ve bir maddenin neden kolay ya da zor ısındığını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Sıcaklık: tanecikler ne kadar hızlı?',
+        sekil: 'sfY51_tanecik',
+        metin: r`Buzdolabından aldığın sütü ocakta ısıtıyorsun. Sütün sıcaklığı 4 °C'den 60 °C'ye çıkıyor.
+
+Süt, gözle görülmeyen çok küçük taneciklerden oluşur. Bu tanecikler hiç durmadan hareket eder. Süt ısındıkça tanecikler ortalama olarak daha hızlı hareket eder.
+
+- **Sıcaklık**, taneciklerin ortalama kinetik enerjisinin göstergesidir.
+- Sıcaklık **termometreyle** ölçülür.
+- SI birimi kelvindir (K). Günlük hayatta °C kullanırız.`,
+        kontrol: {
+          soru: 'Termometre bize neyi söyler?',
+          secenekler: ['Cismin içinde ne kadar ısı olduğunu', 'Cismin sıcaklığını', 'Cismin kaç tanecikten oluştuğunu'],
+          dogru: 1,
+          aciklama: 'Termometre sıcaklığı ölçer. Sıcaklık, taneciklerin ortalama kinetik enerjisinin göstergesidir. Cisimlerin içinde ısı bulunmaz; ısı ileride göreceğimiz gibi aktarılan enerjidir.',
+          yanlisIpucu: 'Termometrenin ölçtüğü niceliğin adı nedir? Bu nicelik taneciklerin hareketiyle ilgiliydi.'
+        }
+      },
+      {
+        baslik: 'Isı: sıcaktan soğuğa giden enerji',
+        sekil: 'sfY51_petek',
+        metin: r`Kış günü üşüyen ellerini sıcak kalorifer peteğine koyuyorsun. Bir süre sonra ellerin ısınır.
+
+- Petek ellerinden daha sıcaktır. Bu sıcaklık farkı yüzünden petekten ellerine enerji geçer. Sıcaklık farkı yüzünden aktarılan bu enerjiye **ısı** denir.
+- Isı her zaman sıcak olandan soğuk olana kendiliğinden geçer. Birimi jouledür (J).
+- Bir maddedeki bütün taneciklerin enerjilerinin toplamına **iç enerji** denir. Ellerin ısı aldıkça iç enerjileri artar.
+
+Cisimler ısı içermez; ısı yalnız aktarılırken vardır. Sıcaklık termometreyle ölçülür; alınan ya da verilen ısı ise kalorimetre kabıyla belirlenir.`,
+        kontrol: {
+          soru: 'Hangi cümle bilimsel olarak doğrudur?',
+          secenekler: ['Peteğin içinde çok ısı vardır.', 'Petek ellerinden daha sıcaktır; ısı petekten ellerine geçer.', 'Ellerin peteğe soğuk verir.'],
+          dogru: 1,
+          aciklama: 'Isı, sıcaklık farkı yüzünden aktarılan enerjidir ve sıcaktan soğuğa geçer. Petek ısı "içermez"; "soğuk" diye aktarılan bir şey de yoktur.',
+          yanlisIpucu: 'Isı bir cismin içinde duran bir şey değil, bir cisimden ötekine geçen enerjidir. Hangi seçenek bir aktarımı anlatıyor?'
+        }
+      },
+      {
+        baslik: 'Üç sıcaklık ölçeği',
+        metin: r`Bir termometreyi ölçeklendirmek için iki **sabit nokta** seçilir: Deniz seviyesinde suyun donduğu ve kaynadığı sıcaklıklar. Aradaki aralık eşit bölmelere ayrılır.
+
+- **Celsius:** Su 0 °C'de donar, 100 °C'de kaynar. Arada 100 bölme vardır.
+- **Kelvin:** Su 273 K'de donar, 373 K'de kaynar. Arada yine 100 bölme vardır. Kelvin ölçeğinde eksi değer yoktur.
+- **Fahrenheit:** Su 32 °F'de donar, 212 °F'de kaynar. Arada 180 bölme vardır.
+
+Celsius ile Kelvin'in bölmeleri aynı büyüklüktedir. Bu yüzden Celsius değerine 273 eklenince Kelvin değeri bulunur: $T_K = T_C + 273$.`,
+        kontrol: {
+          soru: 'Hava sıcaklığı 27 °C\'dir. Bu sıcaklık kaç K\'dir?',
+          secenekler: ['300 K', '246 K', '27 K'],
+          dogru: 0,
+          aciklama: r`$T_K = T_C + 273 = 27 + 273 = 300$ K.`,
+          yanlisIpucu: 'Kelvin değeri, Celsius değerinden 273 büyüktür. Çıkarma değil, toplama yap.'
+        }
+      },
+      {
+        baslik: 'Her madde farklı ısınır: öz ısı',
+        metin: r`Bir yaz günü balkonda, eşit kütleli bir demir dambıl ile içi su dolu bir şişe güneşte kalıyor. Sabah ikisinin sıcaklığı aynıdır. Güneşin ikisine de eşit ısı verdiğini ve ısı kaybı olmadığını düşünelim. Akşamüstü dambıl eli yakacak kadar ısınmışken su yalnız ılınmıştır.
+
+Eşit kütleli farklı maddeler eşit ısı alsa da sıcaklıkları farklı artar. Bunu maddenin **öz ısısı** ($c$) belirler.
+- Öz ısı, 1 kg maddenin sıcaklığını 1 °C artırmak için gereken ısıdır.
+- Öz ısısı büyük olan madde zor ısınır ve zor soğur.
+- Öz ısı maddeyi tanıtan bir özelliktir. Suyun öz ısısı yaygın maddelerin çoğundan büyüktür.`,
+        kontrol: {
+          soru: 'Bu örnekte hangi maddenin öz ısısı daha büyüktür?',
+          secenekler: ['Demirin', 'Suyun', 'İkisinin öz ısısı eşittir.'],
+          dogru: 1,
+          aciklama: 'Kütleler ve alınan ısılar eşitken suyun sıcaklığı daha az arttı. Az ısınan maddenin öz ısısı büyüktür; bu madde sudur.',
+          yanlisIpucu: 'Eşit ısı alan eşit kütleli maddelerden hangisinin sıcaklığı daha az arttı? Zor ısınan maddenin öz ısısı büyüktür.'
+        }
+      },
+      {
+        baslik: 'Kütle de önemli: ısı sığası',
+        sekil: 'sfY51_akvaryum',
+        metin: r`Özdeş iki akvaryum ısıtıcısı aynı anda çalıştırılıyor. Biri küçük bir akvaryumda, öbürü küçüğün 3 katı kadar su alan büyük bir akvaryumda. Isı kaybını önemsemiyoruz. Grafik, iki akvaryumdaki suyun sıcaklığını gösteriyor.
+
+Özdeş ısıtıcılar eşit sürede eşit ısı verir. Ama büyük akvaryumdaki suyun kütlesi 3 katı olduğu için sıcaklığı üçte biri kadar artar.
+
+Bir cismin tamamının sıcaklığını 1 °C artırmak için gereken ısıya **ısı sığası** denir: $C = m \times c$. Isı, sıcaklık değişimi, kütle ve öz ısı arasındaki bağ şudur:
+
+$Q = m \times c \times \Delta T$
+
+Eşit ısı alan cisimlerden ısı sığası küçük olanın sıcaklığı daha çok değişir.`,
+        kontrol: {
+          soru: 'Büyük akvaryumdaki suyun sıcaklığının da 6 °C artması için ısıtıcının kaç dakika çalışması gerekir?',
+          secenekler: ['120 dakika', '240 dakika', '360 dakika'],
+          dogru: 2,
+          aciklama: 'Büyük akvaryumdaki su 120 dakikada 2 °C ısındı. 6 °C için 3 kat ısı, yani 3 kat süre gerekir: 3 × 120 = 360 dakika.',
+          yanlisIpucu: 'Grafikte büyük akvaryumdaki su 120 dakikada kaç °C ısınıyor? 6 °C bunun kaç katı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kuzenin hava durumu mesajı',
+        metin: 'Yurt dışında yaşayan kuzenin "Bugün burada hava 77 °F" diye yazıyor. Bu sıcaklığı önce Celsius, sonra Kelvin ölçeğine çevirelim. Fahrenheit\'ta 180 bölme, Celsius\'ta 100 bölmeye karşılık gelir; yani her 9 °F bölmesi 5 °C bölmesine eşittir.',
+        adimlar: [
+          {
+            soru: 'Fahrenheit termometresinde 77 °F, suyun donma noktasından kaç bölme yukarıdadır?',
+            secenekler: ['77', '45', '109'],
+            dogru: 1,
+            ipucu: 'Fahrenheit ölçeğinde su 0\'da değil, 32 °F\'de donar. Donma noktasından uzaklığı bulmak için 77\'den 32\'yi çıkar.',
+            aciklama: 'Donma noktası 32 °F\'dir: 77 − 32 = 45 bölme yukarıdadır.'
+          },
+          {
+            soru: '45 Fahrenheit bölmesi kaç Celsius bölmesine eşittir? Yani hava kaç °C\'dir?',
+            secenekler: ['25 °C', '81 °C', '45 °C'],
+            dogru: 0,
+            ipucu: 'Her 9 Fahrenheit bölmesi 5 Celsius bölmesine eşit. 45\'in içinde kaç tane 9 var? Her biri için 5 bölme say.',
+            aciklama: r`$45 = 5 \times 9$. Her 9 °F bölmesi 5 °C bölmesi ettiğine göre $5 \times 5 = 25$ °C. Celsius ölçeğinde donma noktası 0 olduğu için hava 25 °C'dir.`
+          },
+          {
+            soru: 'Bu sıcaklık kaç K\'dir?',
+            secenekler: ['248 K', '25 K', '298 K'],
+            dogru: 2,
+            ipucu: 'Kelvin değeri, Celsius değerinden 273 büyüktür.',
+            aciklama: r`$T_K = 25 + 273 = 298$ K.`
+          }
+        ],
+        sonuc: 'Ölçek çevirirken önce donma noktasından kaç bölme uzakta olduğunu bul, sonra bölmeleri öbür ölçeğe taşı. Kuzeninin şehrinde hava 25 °C, yani ılık.'
+      },
+      {
+        baslik: 'Çiftlikteki su kazanı',
+        metin: 'Bir çiftlikte buzağıların mamasını hazırlamak için elektrikli bir kazanda 40 kg su ısıtılıyor. Kazan bir süre çalışınca su 15 °C\'den 35 °C\'ye ısınıyor. Isı kaybını önemsemiyoruz.',
+        adimlar: [
+          {
+            soru: 'Kazanda 40 kg yerine 20 kg su olsaydı, kazan aynı süre çalışınca suyun sıcaklığı kaç °C artardı?',
+            secenekler: ['10 °C', '20 °C', '40 °C'],
+            dogru: 2,
+            ipucu: 'Aynı sürede kazan aynı ısıyı verir. Su yarıya inerse sıcaklık artışı ne olur? 40 kg su 20 °C ısınıyordu.',
+            aciklama: r`$\Delta T = \dfrac{Q}{m \times c}$. Isı ve öz ısı aynı, kütle yarı; sıcaklık artışı 2 katına çıkar: $2 \times 20 = 40$ °C. Su 15 °C'den 55 °C'ye ısınırdı.`
+          },
+          {
+            soru: '40 kg suyu 15 °C\'den 35 °C\'ye ısıtmak için gereken ısı, aynı suyu 15 °C\'den 20 °C\'ye ısıtmak için gereken ısının kaç katıdır?',
+            secenekler: ['2 katı', '4 katı', '7 katı'],
+            dogru: 1,
+            ipucu: 'Isı, sıcaklık değişimiyle doğru orantılıdır. İki durumda sıcaklık değişimleri kaç °C?',
+            aciklama: 'Birinci durumda sıcaklık 20 °C, ikinci durumda 5 °C değişiyor. Kütle ve madde aynı olduğu için ısı da 20 / 5 = 4 katıdır.'
+          },
+          {
+            soru: 'Bir kış sabahı 40 kg su kazana 15 °C yerine 10 °C\'de konuyor. Kazan yine aynı süre çalışıyor. Suyun son sıcaklığı kaç °C olur?',
+            secenekler: ['30 °C', '35 °C', '25 °C'],
+            dogru: 0,
+            ipucu: 'Kütle, madde ve verilen ısı aynı. Sıcaklık artışı değişir mi? Artışı ilk sıcaklığa ekle.',
+            aciklama: 'Q, m ve c aynı olduğu için sıcaklık artışı yine 20 °C\'dir. Su 10 °C\'den 30 °C\'ye ısınır.'
+          }
+        ],
+        sonuc: 'Sıcaklık artışı verilen ısıya, kütleye ve öz ısıya bağlıdır; suyun ilk sıcaklığına bağlı değildir. Kütle yarıya inince aynı ısı sıcaklığı iki kat artırır.'
+      },
+      {
+        baslik: 'Küvet ve çaydanlık',
+        metin: 'Bir küvette 40 °C\'de 150 kg su var. Mutfaktaki çaydanlıkta ise 80 °C\'de 1 kg su var. Çaydanlıktaki su küvete dökülecek.',
+        adimlar: [
+          {
+            soru: 'Hangi suyun sıcaklığı daha yüksektir?',
+            secenekler: ['Küvetteki suyun', 'İkisinin sıcaklığı eşittir.', 'Çaydanlıktaki suyun'],
+            dogru: 2,
+            ipucu: 'Sıcaklık termometrenin gösterdiği değerdir. 40 °C ile 80 °C\'yi karşılaştır.',
+            aciklama: 'Çaydanlıktaki su 80 °C\'dir, küvetteki 40 °C\'dir. Çaydanlıktaki suyun tanecikleri ortalama olarak daha hızlıdır.'
+          },
+          {
+            soru: 'Hangi suyun iç enerjisi daha büyüktür?',
+            secenekler: ['Küvetteki suyun', 'Çaydanlıktaki suyun', 'İkisinin iç enerjisi eşittir.'],
+            dogru: 0,
+            ipucu: 'İç enerji bütün taneciklerin enerjilerinin toplamıdır. Küvette çok daha fazla su var.',
+            aciklama: 'İkisi de sıvı sudur. Küvetteki suyun kütlesi 150 katıdır; tanecik sayısı çok daha büyüktür. Tanecikleri ortalama olarak daha yavaş olsa da toplam enerjileri, yani iç enerjileri daha büyüktür.'
+          },
+          {
+            soru: 'Çaydanlıktaki su küvete dökülünce ısı hangi yönde aktarılır?',
+            secenekler: ['Küvetteki sudan çaydanlıktan gelen suya', 'Çaydanlıktan gelen sudan küvetteki suya', 'Hiç ısı aktarılmaz.'],
+            dogru: 1,
+            ipucu: 'Isının yönünü iç enerji değil, sıcaklık belirler. Hangisi daha sıcak?',
+            aciklama: 'Isı sıcaktan soğuğa geçer. Çaydanlıktan gelen su daha sıcak olduğu için ısı ondan küvetteki suya aktarılır. Küvetteki suyun iç enerjisinin büyük olması yönü değiştirmez.'
+          }
+        ],
+        sonuc: 'Sıcaklık taneciklerin ortalama enerjisini, iç enerji toplam enerjiyi anlatır. Isının yönünü sıcaklık belirler: Isı her zaman sıcak olandan soğuk olana geçer.'
+      }
+    ],
+    hazir: 'Sıcaklık, ısı ve iç enerjinin farkını, üç sıcaklık ölçeğini, öz ısıyı ve ısı sığasını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
