@@ -36,6 +36,21 @@ module.exports = {
       g4.alan([[15, 0], [15, 20], [25, 20], [25, 0]], '#9fc5b4', 'b2', true, '200 J') +
       g4.cizgi([[0, 40], [15, 40]], T, 'cz', true) + g4.cizgi([[15, 20], [25, 20]], T, 'cz', true));
 
+    // Zıt yönde iki kuvvet: Ali 50 N sağa, Ayşe 20 N sola, kutu 4 m sağa
+    const sZ = k.svg(500, 270,
+      `<rect x="20" y="180" width="460" height="14" fill="#cfc9ba"/>` + k.kutu(250, 145, 70, '') +
+      k.ok({ x1: 285, y1: 145, x2: 435, y2: 145, ad: 'F1', renk: T, etiket: 'Ali, 50 N', ex: -40, ey: -16 }) +
+      k.ok({ x1: 215, y1: 145, x2: 155, y2: 145, ad: 'F2', renk: '#7a3e9d', etiket: 'Ayşe, 20 N', ex: -52, ey: -16 }) +
+      k.ok({ x1: 215, y1: 228, x2: 375, y2: 228, ad: 'dx', renk: N, etiket: 'Δx = 4 m', ex: -80, ey: 32 }));
+
+    // MEB ders kitabındaki tekne örneği: I 20 N (0-5 m), II 0 (5-10 m), III -30 N (10-15 m)
+    const g5 = k.grafik({ x1: 16, y0: -40, y1: 40, xt: [0, 5, 10, 15], yt: [-30, -20, -10, 0, 10, 20, 30], xad: 'Δx (m)', yad: 'F (N)' });
+    const s5 = k.svg(g5.w, g5.h, g5.zemin +
+      g5.alan([[0, 0], [0, 20], [5, 20], [5, 0]], '#e9a774', 'b1', true) + g5.yazi(2.5, 7, '+100 J', '#173430', 'b1y', true, 22) +
+      g5.alan([[10, 0], [10, -30], [15, -30], [15, 0]], '#b9c6ec', 'b3', true) + g5.yazi(12.5, -17, '−150 J', '#173430', 'b3y', true, 22) +
+      g5.cizgi([[0, 20], [5, 20]], T, 'Fc') + g5.cizgi([[5, 0], [10, 0]], T, 'Fc', false, 6) + g5.cizgi([[10, -30], [15, -30]], T, 'Fc') +
+      g5.yazi(2.5, 33, 'I', '#6b7d76', '', false, 22) + g5.yazi(7.5, 33, 'II', '#6b7d76', '', false, 22) + g5.yazi(12.5, 33, 'III', '#6b7d76', '', false, 22));
+
     // Çantası sırtında düz yolda yürüyen çocuk
     const cizgi = (x1, y1, x2, y2, op = 1) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#173430" stroke-width="7" stroke-linecap="round" opacity="${op}"/>`;
     const cocuk = (x, op) => `<circle cx="${x}" cy="112" r="22" fill="none" stroke="#173430" stroke-width="6" opacity="${op}"/>` +
@@ -65,7 +80,8 @@ module.exports = {
           'Kuvvet sabitse ve yer değiştirmeyle aynı yöndeyse iş, ikisinin çarpımıdır.',
           { formul: 'W = F · Δx', aciklama: 'W: iş (J), F: kuvvet (N), Δx: yer değiştirme (m).' },
           '1 joule: Cisim, kendisine uygulanan 1 N’luk kuvvetin yönünde 1 m yer değiştirdiğinde kuvvetin yaptığı iştir. 1 J = 1 N · m',
-          'İş skaler bir niceliktir, yönü yoktur.',
+          'Kuvvet hareketin tersine yönelmişse iş negatiftir. Böyle bir kuvvet cismi yavaşlatır.',
+          'İş skaler bir niceliktir, yönü yoktur. İşaret yalnızca hareketi hızlandırıp yavaşlattığını gösterir.',
         ],
       }),
       k.konu({
@@ -87,6 +103,15 @@ module.exports = {
           { metin: 'Kuvvet 40 N olsaydı 4 m sonunda yapılan iş kaç J olurdu?', puan: '3 puan', adimlar: ['W = 40 · 4'], cevap: '160 J. Kuvvet iki katına çıkınca iş de iki katına çıkar.' },
         ],
       }),
+      k.soru({
+        etiket: 'ZIT KUVVET', kod: 'FİZ.10.2.1', baslik: 'İki yandan itilen kutu', sekil: sZ,
+        baglam: 'Ali bir kutuyu 50 N’luk kuvvetle sağa itiyor. Ayşe aynı anda kutuyu 20 N’luk kuvvetle sola itiyor. Kutu 4 m sağa yer değiştiriyor.',
+        maddeler: [
+          { metin: 'Ali’nin uyguladığı kuvvetin yaptığı iş kaç J’dür?', puan: '3 puan', adimlar: [{ metin: 'Kuvvet hareket yönünde: W = 50 · 4', vurgu: 'F1,dx' }], cevap: '200 J' },
+          { metin: 'Ayşe’nin uyguladığı kuvvetin yaptığı iş kaç J’dür?', puan: '4 puan', adimlar: [{ metin: 'Kuvvet hareketin tersine, iş negatif: W = −20 · 4', vurgu: 'F2,dx' }], cevap: '−80 J. Bu kuvvet hareketi zorlaştırır.' },
+          { metin: 'Kutu üzerinde yapılan net iş kaç J’dür?', puan: '3 puan', adimlar: ['1. yol, işleri topla: 200 + (−80)', '2. yol, net kuvvetle: (50 − 20) · 4'], cevap: '120 J. İki yol aynı sonucu verir.' },
+        ],
+      }),
       k.konu({
         etiket: 'KUVVET DEĞİŞİRSE', kod: 'FİZ.10.2.1', baslik: 'Sabit olmayan kuvvetin işi', sekil: s2,
         maddeler: [
@@ -103,6 +128,16 @@ module.exports = {
           { metin: 'İlk 2 m’de kuvvetin yaptığı iş kaç J’dür?', puan: '3 puan', adimlar: [{ metin: 'Dikdörtgen: 10 · 2', vurgu: 'F,a1' }], cevap: '20 J', cevapVurgu: 'a1,a1y' },
           { metin: '2 m ile 4 m arasında yapılan iş kaç J’dür?', puan: '4 puan', adimlar: [{ metin: 'Yamuk: (10 + 30) / 2 · 2', vurgu: 'F,a2' }], cevap: '40 J', cevapVurgu: 'a1,a2,a2y' },
           { metin: '6 m sonunda yapılan toplam iş kaç J’dür?', puan: '3 puan', adimlar: [{ metin: 'Son parça dikdörtgen: 30 · 2 = 60 J', vurgu: 'F,a3' }, '20 + 40 + 60'], cevap: '120 J', cevapVurgu: 'a1,a2,a3,a1y,a2y,a3y' },
+        ],
+      }),
+      k.soru({
+        etiket: 'MEB ÖRNEĞİ', kod: 'FİZ.10.2.1', baslik: 'Teknenin kuvvet–yer değiştirme grafiği', sekil: s5,
+        baglam: 'Durgun suda hep ileri giden bir tekneye etki eden net kuvvetin, teknenin yer değiştirmesine göre değişimi grafikteki gibidir. Kuvvet ileri yönde artı alınmıştır.',
+        maddeler: [
+          { metin: 'I. bölgede yapılan iş kaç J’dür?', puan: '2 puan', adimlar: [{ metin: 'Eksenin üstündeki dikdörtgen: 20 · 5', vurgu: 'b1' }], cevap: '+100 J. Tekne hızlanır.', cevapVurgu: 'b1,b1y' },
+          { metin: 'II. bölgede iş yapılır mı?', puan: '2 puan', adimlar: ['Net kuvvet sıfır, grafiğin altında alan yok.'], cevap: '0 J. Tekne sabit hızla gider.' },
+          { metin: 'III. bölgede yapılan iş kaç J’dür? Neden negatiftir?', puan: '3 puan', adimlar: [{ metin: 'Eksenin altındaki dikdörtgen: −30 · 5', vurgu: 'b3' }], cevap: '−150 J. Kuvvet hareketin tersine, tekne yavaşlar.', cevapVurgu: 'b3,b3y' },
+          { metin: '15 m sonunda yapılan net iş kaç J’dür?', puan: '3 puan', adimlar: [{ metin: '100 + 0 + (−150)', vurgu: 'b1,b3' }], cevap: '−50 J', cevapVurgu: 'b1,b3,b1y,b3y' },
         ],
       }),
       k.konu({
@@ -147,6 +182,7 @@ module.exports = {
           'Kuvvet sabitse W = F · Δx. Birimi joule (J).',
           'Kuvvet–yer değiştirme grafiğinin altındaki alan her zaman işi verir.',
           'Δx = 0 ise ya da kuvvet harekete dikse iş yapılmaz.',
+          'Harekete zıt yönlü kuvvet negatif iş yapar. Grafikte eksenin altındaki alan negatiftir.',
         ],
       }),
       k.kapanis({ baslik: 'İşi öğrendik.', vurgu: 'Gelecek ders: güç ve kWh.', aciklama: 'Bu sunumun linki video açıklamasında. Konu notları ve daha fazla soru için: benfizikyapamiyorum.com' }),
