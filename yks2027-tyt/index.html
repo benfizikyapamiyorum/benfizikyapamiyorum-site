@@ -2966,6 +2966,99 @@ BFY_FIG_EKLE('iY101_efsane_6', u => EF(u, I => {
 }, { oy: 72 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY101_): kart genişliği ~340 px, en küçük yazı 14 ----------
+   Gölge sınırları kaynağın uçlarından engelin uçlarına çizilen ışınlarla hesaplanır. Veriler SF bloğunda; qa/Y.10.1/dogrula.py okur. */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f6f5ef', RAY = '#d08a12', TAM = '#3b4349', YARI = '#aab4ba';
+const SF = /*SF*/{
+  "golge": { "L": [44, 116], "C": [150, 122], "r": 24, "duvar": 292 },
+  "yari": { "S": [[40, 100], [40, 140]], "E": [[150, 96], [150, 144]], "perde": 240 },
+  "fener": { "duvar": 300, "uzak": [[240, 60], [120, 180]], "R": [14, 42] }
+}/*SF*/;
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const cizgi = (x1, y1, x2, y2, c, w = 1.4, o = '') => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"${o}/>`;
+const poli = (pts, fill, op = 1) => `<polygon points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="${fill}" opacity="${op}"/>`;
+const uzat = (x1, y1, x2, y2, x) => y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+function parilti(u, x, y, r, ad) {
+  return `<defs><radialGradient id="${u}${ad}" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff4c2"/><stop offset=".45" stop-color="#ffd35c" stop-opacity=".55"/><stop offset="1" stop-color="#ffd35c" stop-opacity="0"/></radialGradient></defs>` +
+    `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#${u}${ad})"/>`;
+}
+const duvar = (x, y1, y2) => `<rect x="${x}" y="${y1}" width="14" height="${y2 - y1}" fill="#e2ddd0" stroke="#a89f8c" stroke-width="1.2"/>`;
+
+/* Adım 3: küçük (noktasal) lamba, elma, duvarda keskin tam gölge */
+BFY_FIG_EKLE('sfY101_golge', function (u) {
+  const W = 340, H = 236, g = SF.golge, [lx, ly] = g.L, [cx, cy] = g.C, r = g.r, wx = g.duvar;
+  let s = zemin(W, H);
+  const D = Math.hypot(cx - lx, cy - ly), t0 = Math.atan2(cy - ly, cx - lx), a = Math.asin(r / D), k = Math.sqrt(D * D - r * r);
+  const tp = [t0 - a, t0 + a].map(t => [lx + k * Math.cos(t), ly + k * Math.sin(t)]);
+  const wy = tp.map(p => uzat(lx, ly, p[0], p[1], wx));
+  s += `<rect x="${wx}" y="20" width="14" height="${H - 40}" fill="#fff3c4" stroke="#a89f8c" stroke-width="1.2"/>`;
+  s += poli([[lx, ly], [wx, 20], [wx, wy[0]]], '#ffe9a6', 0.35) + poli([[lx, ly], [wx, wy[1]], [wx, H - 20]], '#ffe9a6', 0.35);
+  s += poli([tp[0], [wx, wy[0]], [wx, wy[1]], tp[1]], TAM, 0.8);
+  s += `<rect x="${wx}" y="${f1(wy[0])}" width="14" height="${f1(wy[1] - wy[0])}" fill="#2a3035"/>`;
+  tp.forEach((p, i) => { s += cizgi(lx, ly, wx, wy[i], RAY, 1.6, ' stroke-dasharray="6 4"'); });
+  // lamba (küçük LED) ve tutucusu
+  s += `<rect x="${lx - 4}" y="${ly + 6}" width="8" height="${H - 30 - ly - 6}" fill="#8b98a2"/><rect x="${lx - 18}" y="${H - 30}" width="36" height="8" rx="3" fill="#5f6a72"/>`;
+  s += parilti(u, lx, ly, 18, 'pl') + `<circle cx="${lx}" cy="${ly}" r="5" fill="#fffbe8" stroke="#b7801a" stroke-width="1"/>`;
+  // elma
+  s += `<defs><radialGradient id="${u}elma" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#ff9a8a"/><stop offset=".5" stop-color="#d9342b"/><stop offset="1" stop-color="#7d1712"/></radialGradient></defs>`;
+  s += `<path d="M${cx} ${cy - r + 4} C${cx + 30} ${cy - r - 6} ${cx + r + 6} ${cy + 10} ${cx + 4} ${cy + r} C${cx} ${cy + r + 1} ${cx - 4} ${cy + r + 1} ${cx - 8} ${cy + r} C${cx - r - 6} ${cy + 10} ${cx - 30} ${cy - r - 6} ${cx} ${cy - r + 4} Z" fill="url(#${u}elma)" stroke="#6b1410" stroke-width="1"/>`;
+  s += `<path d="M${cx} ${cy - r + 4} q2 -10 7 -14" fill="none" stroke="#5b3a22" stroke-width="2.4" stroke-linecap="round"/><path d="M${cx + 4} ${cy - r - 4} q12 -8 18 0 q-10 6 -18 0 Z" fill="#4f9a5c"/>`;
+  s += `<rect x="${cx - 4}" y="${cy + r + 2}" width="8" height="${H - 30 - cy - r - 2}" fill="#8b98a2"/><rect x="${cx - 18}" y="${H - 30}" width="36" height="8" rx="3" fill="#5f6a72"/>`;
+  s += T(14, ly - 34, 'küçük lamba', { size: 14, weight: 800, anchor: 'start' });
+  s += T(cx, cy - r - 22, 'elma', { size: 15, weight: 800, anchor: 'middle' });
+  s += T(wx + 7, 16, 'duvar', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(232, cy + 6, 'tam gölge', { size: 14, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 4: geniş kaynak, engel, perdede tam gölge ve iki yanında yarı gölge */
+BFY_FIG_EKLE('sfY101_yarigolge', function (u) {
+  const W = 340, H = 240, y = SF.yari, [S1, S2] = y.S, [Et, Eb] = y.E, px = y.perde;
+  let s = zemin(W, H);
+  const at = (a, b) => uzat(a[0], a[1], b[0], b[1], px);
+  const y1 = at(S2, Et), y2 = at(S1, Et), y3 = at(S2, Eb), y4 = at(S1, Eb);
+  s += poli([Et, [px, y1], [px, y2]], YARI, 0.75) + poli([Eb, [px, y3], [px, y4]], YARI, 0.75);
+  s += poli([Et, Eb, [px, y3], [px, y2]], TAM, 0.85);
+  [[S1, Et], [S1, Eb], [S2, Et], [S2, Eb]].forEach(([a, b]) => { s += cizgi(a[0], a[1], px, at(a, b), RAY, 1.4, ' stroke-dasharray="6 4"'); });
+  s += `<rect x="${px}" y="24" width="8" height="${H - 48}" fill="#e9ecee" stroke="#8a979f" stroke-width="1.2"/>`;
+  s += `<rect x="${px}" y="${f1(y1)}" width="8" height="${f1(y2 - y1)}" fill="${YARI}"/><rect x="${px}" y="${f1(y3)}" width="8" height="${f1(y4 - y3)}" fill="${YARI}"/><rect x="${px}" y="${f1(y2)}" width="8" height="${f1(y3 - y2)}" fill="#2a3035"/>`;
+  // geniş kaynak: düşey ışık tüpü
+  s += parilti(u, S1[0], (S1[1] + S2[1]) / 2, 34, 'gk');
+  s += `<rect x="${S1[0] - 6}" y="${S1[1]}" width="12" height="${S2[1] - S1[1]}" rx="6" fill="#fff3b0" stroke="#c48a1c" stroke-width="1.2"/>`;
+  s += `<rect x="${S1[0] - 9}" y="${S1[1] - 6}" width="18" height="6" rx="2" fill="#8b98a2"/><rect x="${S1[0] - 9}" y="${S2[1]}" width="18" height="6" rx="2" fill="#8b98a2"/>`;
+  // engel
+  s += `<rect x="${Et[0] - 3}" y="${Et[1]}" width="6" height="${Eb[1] - Et[1]}" fill="#4a3f35" stroke="#2a221b" stroke-width=".8"/>`;
+  s += T(S1[0] - 14, S1[1] - 18, 'geniş kaynak', { size: 14, weight: 800 });
+  s += T(Et[0], Et[1] - 12, 'engel', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(px + 4, 18, 'perde', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(px + 14, (y1 + y2) / 2 + 5, 'yarı gölge', { size: 14, weight: 800 });
+  s += T(px + 14, (y2 + y3) / 2 + 5, 'tam gölge', { size: 14, weight: 800 });
+  s += T(px + 14, (y3 + y4) / 2 + 5, 'yarı gölge', { size: 14, weight: 800 });
+  return svg(W, H, s, u, 90);
+});
+
+/* Isınma 3: el feneri duvara yakın ve uzak; aynı ışık daha geniş daireye yayılır */
+BFY_FIG_EKLE('sfY101_fener', function (u) {
+  const W = 340, H = 300, f = SF.fener, wx = f.duvar;
+  let s = zemin(W, H);
+  const fener = (x, y) => `<rect x="${x - 44}" y="${y - 7}" width="38" height="14" rx="4" fill="#3b4246" stroke="#22282b" stroke-width="1"/>` +
+    `<path d="M${x - 8} ${y - 7} L${x} ${y - 11} V${y + 11} L${x - 8} ${y + 7} Z" fill="#5d666b" stroke="#22282b" stroke-width="1"/><rect x="${x - 34}" y="${y - 10}" width="8" height="4" rx="1" fill="#d9573b"/>`;
+  [[76, f.uzak[0], f.R[0], 0.95, '1. durum: yakından'], [214, f.uzak[1], f.R[1], 0.38, '2. durum: uzaktan']].forEach(([yc, [x, d], R, op, ad]) => {
+    s += duvar(wx, yc - 60, yc + 60);
+    s += poli([[x, yc], [wx, yc - R], [wx, yc + R]], '#ffe58a', 0.45 * op + 0.1);
+    s += `<ellipse cx="${wx + 7}" cy="${yc}" rx="6" ry="${R}" fill="#ffd84d" opacity="${op}" stroke="#d0a31a" stroke-width="1"/>`;
+    s += fener(x, yc);
+    s += T(14, yc - 46, ad, { size: 14, weight: 800 });
+  });
+  s += cizgi(14, 146, wx - 10, 146, '#d6d0c2', 1.2);
+  s += T(wx + 7, H - 12, 'duvar', { size: 14, weight: 800, anchor: 'middle' });
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -3017,6 +3110,186 @@ const KONU = {
     'perdede yalnız yarı gölge: lamba noktasal değil, lamba toptan büyük (kesinlikle)', 'X ve Y lambaları, E_X > E_Y (olabilir)', 'atölye tavanında ray üzerinde lamba, O noktasının E–t grafiği',
     'iki lamba, K tam gölge, L yarı gölge, M aydınlık (kesinlikle)', 'küp oda, lamba D duvarına kaydırılıyor', 'perde toptan uzaklaştırılıyor, tam gölge alanı (olabilir)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Programda hesap yok; yalnız oran düzeyinde karşılaştırma. Doğru şıklar ve şekil geometrisi qa/Y.10.1/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Işığın nasıl yayıldığını, maddelerin ışığı nasıl geçirdiğini, gölgenin nasıl oluştuğunu ve bir yüzeyin ne kadar aydınlandığını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Işık düz bir yol izler',
+        metin: r`Işığın ne olduğu bilim insanlarını yüzyıllarca düşündürdü. Kimi onu küçük taneciklerin akışı, kimi bir dalga olarak açıkladı. Bugün ışığın hem dalga hem tanecik gibi davranabildiğini biliyoruz.
+
+Gölgeyi anlamak için bu ayrıntılara gerek yok. Işık, kaynaktan her yöne **düz çizgiler** boyunca yayılır. Bu düz çizgilere **ışın** denir.
+
+Sisli bir sabah ağaçların arasından süzülen güneş ışığına bak. Işık, dümdüz çizgiler hâlinde ilerliyormuş gibi görünür.`,
+        kontrol: {
+          soru: 'Gölge çizerken ışığı nasıl düşünürüz?',
+          secenekler: ['Kaynaktan çıkan düz çizgiler, yani ışınlar olarak', 'Cisimlerin çevresinden kıvrılıp dolanan çizgiler olarak', 'Yalnız yukarıdan aşağı düşen çizgiler olarak'],
+          dogru: 0,
+          aciklama: 'Işık kaynaktan her yöne doğrusal yayılır. Gölgeyi bulmak için kaynaktan çıkan düz ışınlar çizeriz.',
+          yanlisIpucu: 'Sisteki ışık hüzmeleri eğri mi görünüyordu, düz mü? Işık yalnız aşağı mı gider, her yöne mi?'
+        }
+      },
+      {
+        baslik: 'Işığı geçiren ve geçirmeyen maddeler',
+        metin: r`Maddeleri, ışığı nasıl geçirdiklerine göre üçe ayırırız.
+
+- **Saydam maddeler** ışığın çoğunu geçirir. Arkalarındaki cisimler net görünür: pencere camı, temiz su.
+- **Yarı saydam maddeler** ışığın bir kısmını dağıtarak geçirir. Arkalarındaki cisimler bulanık görünür ya da hiç seçilmez: buzlu cam, ince kâğıt.
+- **Saydam olmayan maddeler** ışığı geçirmez. Arkalarında koyu bir gölge oluşur: tahta, metal, taş.`,
+        kontrol: {
+          soru: 'Hangisi yarı saydam bir maddedir?',
+          secenekler: ['Gözlük camı', 'Aydınger kâğıdı', 'Tahta cetvel'],
+          dogru: 1,
+          aciklama: 'Aydınger kâğıdı ışığın bir kısmını geçirir ama arkasındaki cisimler net görünmez; yarı saydamdır. Gözlük camı saydam, tahta cetvel saydam olmayan bir maddedir.',
+          yanlisIpucu: 'Arkasından ışığı görebildiğin ama cisimleri net seçemediğin maddeyi ara.'
+        }
+      },
+      {
+        baslik: 'Gölge: ışığın ulaşamadığı yer',
+        sekil: 'sfY101_golge',
+        metin: r`Karanlık bir odada küçük bir lambanın önüne bir elma koy. Arkadaki duvarda elmanın gölgesi oluşur.
+
+Elma saydam değildir; ışığı geçirmez. Işık da düz gittiği için elmanın kenarlarından geçen ışınlar elmanın arkasına kıvrılamaz. Elmanın arkasında lambadan hiç ışık almayan bir bölge kalır. Bu bölgeye **tam gölge** denir.
+
+Lamba çok küçükse, yani **noktasal** bir kaynaksa, duvarda yalnız tam gölge oluşur. Gölgenin kenarı keskindir. Şekilde gölgenin sınırları, lambadan elmanın kenarlarına çizilen ışınlarla bulunmuştur.`,
+        kontrol: {
+          soru: 'Duvarda elmanın gölgesi neden oluşur?',
+          secenekler: ['Elma ışığı geçirmez ve ışık düz gittiği için elmanın arkasına ulaşamaz.', 'Elma lambadan gelen ışığı karanlığa çevirip duvara gönderir.', 'Işık elmanın çevresinden dolanıp duvarın kenarlarında toplanır.'],
+          dogru: 0,
+          aciklama: 'Gölge, ışığın ulaşamadığı yerdir. Elma ışığı geçirmez, ışık da elmanın arkasına kıvrılamaz.',
+          yanlisIpucu: 'Gölge bir şeyin gönderilmesi mi, yoksa ışığın ulaşamaması mı?'
+        }
+      },
+      {
+        baslik: 'Büyük kaynak: yarı gölge',
+        sekil: 'sfY101_yarigolge',
+        metin: r`Kaynak küçük bir nokta değil de uzun ya da büyük bir lambaysa durum değişir. Bu tür kaynaklara **genişlikli** ya da geniş kaynak denir.
+
+Şekilde kaynağın üst ucundan ve alt ucundan engelin kenarlarına ışınlar çizilmiştir.
+
+- Perdenin ortasındaki koyu bölgeye kaynağın hiçbir noktasından ışık gelmez. Burası **tam gölgedir**.
+- Tam gölgenin iki yanındaki açık gri bölgelere kaynağın yalnız bir kısmından ışık gelir. Bu bölgelere **yarı gölge** denir.
+- Yarı gölge yüzünden gölgenin kenarı keskin değil, bulanıktır.`,
+        kontrol: {
+          soru: 'Yarı gölgedeki bir noktaya ışık nereden gelir?',
+          secenekler: ['Kaynağın hiçbir noktasından', 'Kaynağın yalnız bir kısmından', 'Kaynağın bütün noktalarından'],
+          dogru: 1,
+          aciklama: 'Yarı gölgedeki bir noktayı engel, kaynağın bir kısmından sakladığı için oraya yalnız kaynağın öbür kısmından ışık gelir.',
+          yanlisIpucu: 'Hiç ışık almayan yer tam gölgeydi. Yarı gölge biraz ışık alır mı?'
+        }
+      },
+      {
+        baslik: 'Işık şiddeti ve aydınlanma',
+        metin: r`Bir lambanın ışık verme gücüne **ışık şiddeti** denir. Sembolü $I$, birimi kandeladır (cd). Işık şiddeti lambaya aittir. Lambadan uzaklaşsan da lamba aynı lambadır.
+
+Bir yüzeyin birim alanına düşen ışığa ise **aydınlanma şiddeti** denir. Sembolü $E$, birimi lükstür (lx). Aydınlanma, yüzeye aittir.
+
+Kitabını bir lambanın karşısında tutup yavaş yavaş geri çekil. Sayfa giderek kararır. Lamba aynıdır ama ışık daha geniş bir alana yayılır. Işınlar yüzeye dik geldiğinde aydınlanma şöyle bulunur:
+
+$E = \dfrac{I}{d^2}$
+
+Burada $d$, lamba ile yüzey arasındaki uzaklıktır. Uzaklık arttıkça aydınlanma hızla azalır.`,
+        kontrol: {
+          soru: 'Kitabı lambadan uzaklaştırınca hangisi değişmez?',
+          secenekler: ['Sayfanın aydınlanma şiddeti', 'Lambanın ışık şiddeti', 'Sayfanın ne kadar parlak göründüğü'],
+          dogru: 1,
+          aciklama: 'Işık şiddeti lambanın özelliğidir; uzaklıkla değişmez. Sayfanın aydınlanma şiddeti ise azalır ve sayfa daha karanlık görünür.',
+          yanlisIpucu: 'Hangi nicelik lambaya, hangisi sayfaya aitti? Geri çekilen lamba değil, kitaptı.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Yemek masasındaki sürahi',
+        metin: r`Bir yemek masasının tam üstünde, tavanda büyük ve yuvarlak bir lamba var. Masada, sürahinin dibinde koyu bir gölge, onun çevresinde de açık gri bir halka görünüyor. Sürahi saydam olmayan bir seramikten yapılmış.`,
+        adimlar: [
+          {
+            soru: 'Sürahinin dibindeki koyu bölge için hangisi doğrudur?',
+            secenekler: ['Tam gölgedir; lambanın hiçbir noktasından ışık almaz.', 'Yarı gölgedir; lambanın bir kısmından ışık alır.', 'Aydınlık bölgedir; lambanın her noktasından ışık alır.'],
+            dogru: 0,
+            ipucu: 'Koyu bölge ile açık gri halkadan hangisi hiç ışık almıyor olabilir?',
+            aciklama: 'Koyu bölgeye lambanın hiçbir noktasından ışık ulaşmaz. Burası tam gölgedir.'
+          },
+          {
+            soru: 'Açık gri halkada duran bir karınca yukarı, lambaya baksaydı ne görürdü?',
+            secenekler: ['Lambayı hiç göremezdi.', 'Lambanın bir kısmını görür, bir kısmını sürahi saklardı.', 'Lambanın tamamını görürdü.'],
+            dogru: 1,
+            ipucu: 'Açık gri halka yarı gölgedir. Yarı gölgeye ışık kaynağın neresinden geliyordu?',
+            aciklama: 'Yarı gölgedeki karınca lambanın yalnız bir kısmını görür; öbür kısmını sürahi saklar. Bu yüzden oraya biraz ışık ulaşır.'
+          },
+          {
+            soru: 'Büyük lambanın yerine çok küçük bir ampul takılırsa açık gri halkaya ne olur?',
+            secenekler: ['Genişler.', 'Ortadan kalkar; gölgenin kenarı keskinleşir.', 'Daha da koyulaşır ama yine yarı gölge olarak kalır.'],
+            dogru: 1,
+            ipucu: 'Noktasal kaynakla yarı gölge oluşur mu?',
+            aciklama: 'Çok küçük, yani noktasal bir kaynakta yarı gölge oluşmaz. Yalnız keskin kenarlı bir tam gölge kalır.'
+          }
+        ],
+        sonuc: 'Yarı gölge, kaynağın genişliğinden doğar. Kaynak küçüldükçe yarı gölge daralır ve gölgenin kenarı keskinleşir.'
+      },
+      {
+        baslik: 'Balkonda kitap okuma',
+        metin: r`Elif akşam balkonda kitap okuyor. Duvardaki lamba sayfayı tam karşıdan aydınlatıyor; ışınlar sayfaya dik geliyor. Lambayı noktasal bir kaynak sayalım. Elif sandalyesini kaydırınca kitabın lambaya uzaklığı 1 m'den 2 m'ye çıkıyor.`,
+        adimlar: [
+          {
+            soru: 'Elif uzaklaşınca lambanın ışık şiddeti nasıl değişir?',
+            secenekler: ['Azalır.', 'Değişmez.', 'Artar.'],
+            dogru: 1,
+            ipucu: 'Işık şiddeti lambanın mı, sayfanın mı özelliğiydi?',
+            aciklama: 'Işık şiddeti lambanın özelliğidir. Elif uzaklaşsa da lamba aynıdır; ışık şiddeti değişmez.'
+          },
+          {
+            soru: 'Sayfanın aydınlanma şiddeti ilk değerinin kaçta kaçına iner?',
+            secenekler: ['Yarısına', 'Dörtte birine', 'Değişmez.'],
+            dogru: 1,
+            ipucu: r`$E = \dfrac{I}{d^2}$ bağıntısında $d$ iki katına çıkarsa $d^2$ kaç katına çıkar?`,
+            aciklama: r`Uzaklık 2 katına çıkınca $d^2$ 4 katına çıkar. $I$ aynı kaldığı için aydınlanma 4'te 1'ine iner.`
+          },
+          {
+            soru: 'Elif 2 m uzakta kalmak istiyor. Sayfa yine ilk durumdaki kadar aydınlansın diye lamba, ışık şiddeti ilkinin kaç katı olan bir lambayla değiştirilmelidir?',
+            secenekler: ['2 katı', '4 katı', '8 katı'],
+            dogru: 1,
+            ipucu: 'Aydınlanma 4\'te 1\'ine inmişti. Işık şiddeti kaç katına çıkarsa aydınlanma eski değerine döner?',
+            aciklama: r`$E = \dfrac{I}{d^2}$ olduğundan $d^2$ 4 katına çıkınca $I$ da 4 katına çıkarsa aydınlanma değişmez. Işık şiddeti 4 katı olan bir lamba gerekir.`
+          }
+        ],
+        sonuc: 'Işık şiddeti kaynağa, aydınlanma şiddeti yüzeye aittir. Uzaklık arttıkça aydınlanma, uzaklığın karesiyle ters orantılı olarak azalır.'
+      },
+      {
+        baslik: 'Duvardaki ışık dairesi',
+        sekil: 'sfY101_fener',
+        metin: r`Elektrikler kesilince Mert el fenerini duvara tutuyor. Fener duvara yakınken duvarda küçük ve parlak bir daire, uzaktayken büyük ve soluk bir daire oluşuyor. Fenerden çıkan ışığın hepsi dairenin içine düşüyor.`,
+        adimlar: [
+          {
+            soru: 'İki durumda daireye düşen toplam ışık için ne söylenebilir?',
+            secenekler: ['Uzaktayken daha fazladır.', 'İki durumda da aynıdır.', 'Yakınken daha fazladır.'],
+            dogru: 1,
+            ipucu: 'Fener aynı fener ve çıkan ışığın hepsi daireye düşüyor. Daireye düşen ışık neden değişsin?',
+            aciklama: 'Fenerden çıkan ışığın hepsi iki durumda da daireye düşer. Daireye düşen toplam ışık aynıdır; yalnız daha geniş bir alana yayılır.'
+          },
+          {
+            soru: 'Bir yüzeye düşen toplam ışık miktarına ne ad verilir?',
+            secenekler: ['Işık akısı', 'Işık şiddeti', 'Tam gölge'],
+            dogru: 0,
+            ipucu: 'Işık şiddeti kaynağın gücüydü. Yüzeye ulaşan ışık miktarı için yeni bir ad gerekir.',
+            aciklama: r`Bir yüzeye düşen toplam ışık miktarına ışık akısı denir. Sembolü $\Phi$ (fi), birimi lümendir (lm). Aydınlanma şiddeti, akının alana bölünmesiyle bulunur: $E = \dfrac{\Phi}{A}$.`
+          },
+          {
+            soru: 'Fener uzaklaşınca dairenin yarıçapı 3 katına çıkıyor. Dairedeki aydınlanma şiddeti ilk değerinin kaçta kaçına iner?',
+            secenekler: ['Üçte birine', 'Dokuzda birine', 'Değişmez.'],
+            dogru: 1,
+            ipucu: 'Yarıçap 3 katına çıkınca dairenin alanı kaç katına çıkar? Akı aynı kalıyordu.',
+            aciklama: r`Yarıçap 3 katına çıkınca alan 9 katına çıkar. Akı aynı olduğundan $E = \dfrac{\Phi}{A}$ 9'da 1'ine iner.`
+          }
+        ],
+        sonuc: 'Aynı ışık akısı daha geniş bir alana yayılınca aydınlanma azalır. Uzaklaşınca kararmanın nedeni budur.'
+      }
+    ],
+    hazir: r`Işığın doğrusal yayılmasını, saydam, yarı saydam ve saydam olmayan maddeleri, tam gölge ile yarı gölgeyi, ışık şiddetini, ışık akısını ve aydınlanmayı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -53271,6 +53544,146 @@ BFY_FIG_EKLE('iY93_efsane_5', u => EF(u, I => {
 }, { oy: 78 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY93_): kart genişliği ~340 px, en küçük yazı 14 ----------
+   Ekran verileri SF nesnesinde; qa/Y.9.3/dogrula.py bu bloğu JSON olarak okur (T: periyot, A: genlik; bölme). */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f5f4f9', MOR = '#6b4c9a', YESIL = '#2f8a5f', EKR = '#14302a', IZG = '#2d5a4e', IZ = '#8ff0bf';
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const ok = (x1, y1, x2, y2, c, o = {}) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), Object.assign({ color: c, w: 3, head: 11, headW: 6 }, o));
+const SF = /*SF*/{
+  "teller": { "nx": 12, "ince": { "T": 2, "A": 2 }, "kalin": { "T": 6, "A": 2 } },
+  "ksilofon": { "nx": 12, "K": { "T": 3, "A": 1.5 }, "L": { "T": 6, "A": 1.5 }, "M": { "T": 4, "A": 1.5 } }
+}/*SF*/;
+/* osiloskop ekranı: sol üst (x, y), nx × ny bölme, bölme b; sinüs iz (T, A bölme) */
+function ekran(x, y, nx, ny, b, z) {
+  const w = nx * b, h = ny * b, yc = y + h / 2;
+  let s = `<rect x="${f1(x - 6)}" y="${f1(y - 6)}" width="${f1(w + 12)}" height="${f1(h + 12)}" rx="8" fill="#3b4246"/>`;
+  s += `<rect x="${f1(x - 6)}" y="${f1(y - 6)}" width="${f1(w + 12)}" height="5" rx="3" fill="#5d666b"/>`;
+  s += `<rect x="${f1(x)}" y="${f1(y)}" width="${f1(w)}" height="${f1(h)}" fill="${EKR}"/>`;
+  for (let i = 1; i < nx; i++) s += `<line x1="${f1(x + i * b)}" y1="${f1(y)}" x2="${f1(x + i * b)}" y2="${f1(y + h)}" stroke="${IZG}" stroke-width=".8"/>`;
+  for (let j = 1; j < ny; j++) s += `<line x1="${f1(x)}" y1="${f1(y + j * b)}" x2="${f1(x + w)}" y2="${f1(y + j * b)}" stroke="${IZG}" stroke-width="${j === ny / 2 ? 1.4 : 0.8}"/>`;
+  const N = Math.round(w * 2);
+  let d = '';
+  for (let i = 0; i <= N; i++) { const xx = i / N * nx; d += (i ? 'L' : 'M') + f1(x + xx * b) + ',' + f1(yc - z.A * b * Math.sin(2 * Math.PI * xx / z.T)); }
+  s += `<path d="${d}" fill="none" stroke="${IZ}" stroke-width="2.4" stroke-linejoin="round"/>`;
+  return s;
+}
+/* ses yayları: merkez (x, y), yön (derece), n yay */
+function yaylar(x, y, yon, n, r0, dr, renk, ac = 56, w = 2.4, kesik = '') {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const r = r0 + i * dr, a1 = (yon - ac / 2) * Math.PI / 180, a2 = (yon + ac / 2) * Math.PI / 180;
+    s += `<path d="M${f1(x + r * Math.cos(a1))} ${f1(y + r * Math.sin(a1))} A${f1(r)} ${f1(r)} 0 0 1 ${f1(x + r * Math.cos(a2))} ${f1(y + r * Math.sin(a2))}" fill="none" stroke="${renk}" stroke-width="${w}" stroke-linecap="round"${kesik ? ` stroke-dasharray="${kesik}"` : ''} opacity="${f1(1 - i * 0.16)}"/>`;
+  }
+  return s;
+}
+
+/* Adım 1: titreşen gitar, havada sıkışma ve seyrelmeler, dinleyen kişi */
+BFY_FIG_EKLE('sfY93_tel', function (u) {
+  const W = 340, H = 236, yc = 122;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}gv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9b071"/><stop offset=".6" stop-color="#c47b3a"/><stop offset="1" stop-color="#8a4f22"/></linearGradient></defs>`;
+  // gitar gövdesi (önden), sap yukarı
+  s += `<ellipse cx="62" cy="214" rx="46" ry="8" fill="#000" opacity=".10"/>`;
+  s += `<path d="M62 92 C88 92 96 108 90 126 C86 138 104 146 104 172 C104 200 84 212 62 212 C40 212 20 200 20 172 C20 146 38 138 34 126 C28 108 36 92 62 92 Z" fill="url(#${u}gv)" stroke="#6e3d18" stroke-width="1.6"/>`;
+  s += `<rect x="55" y="18" width="14" height="80" rx="3" fill="#5b3a22" stroke="#3b2414" stroke-width="1"/>`;
+  for (let i = 0; i < 5; i++) s += `<line x1="55" y1="${30 + i * 15}" x2="69" y2="${30 + i * 15}" stroke="#c9c2b5" stroke-width="1.2"/>`;
+  s += `<circle cx="62" cy="146" r="14" fill="#2b1a0e" stroke="#e8c48f" stroke-width="2"/>`;
+  s += `<rect x="46" y="186" width="32" height="7" rx="2" fill="#3b2414"/>`;
+  // teller; ortadaki titreşiyor (zarf)
+  [56, 60, 64, 68].forEach(x => { s += `<line x1="${x}" y1="20" x2="${x}" y2="190" stroke="#eee6d6" stroke-width="1" opacity=".9"/>`; });
+  s += `<path d="M62 20 Q51 105 62 190 Q73 105 62 20 Z" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.2"/>`;
+  // titreşim işaretleri
+  s += `<path d="M42 64 q-5 6 0 12 M36 60 q-7 10 0 20" fill="none" stroke="${MOR}" stroke-width="2" stroke-linecap="round"/>`;
+  s += `<path d="M82 64 q5 6 0 12 M88 60 q7 10 0 20" fill="none" stroke="${MOR}" stroke-width="2" stroke-linecap="round"/>`;
+  // hava tanecikleri: sıkışma ve seyrelme
+  const lam = 56, x0 = 122, A = 7;
+  for (let i = 0; i < 26; i++) {
+    const xb = x0 + i * 5.6, x = xb - A * Math.sin(2 * Math.PI * (xb - x0) / lam);
+    for (let j = 0; j < 9; j++) {
+      const y = yc - 44 + j * 11 + (i % 2) * 5.5;
+      s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="2.3" fill="#6f8796"/>`;
+    }
+  }
+  // sıkışma: x0 + lam (taneciklerin en sık olduğu yer), seyrelme: x0 + 3 lam / 2
+  const sk = x0 + lam, sy = x0 + 1.5 * lam;
+  s += T(f1(sk), yc - 58, 'sıkışma', { size: 14, weight: 800, anchor: 'middle', fill: MOR });
+  s += T(f1(sy), yc + 66, 'seyrelme', { size: 14, weight: 800, anchor: 'middle', fill: '#4b6059' });
+  s += ok(130, 206, 244, 206, MOR) + T(187, 230, 'ses dalgası', { size: 14, weight: 700, anchor: 'middle', fill: MOR });
+  // dinleyen kişi (sola bakıyor)
+  const hx = 300, hy = 112;
+  s += `<path d="M${hx - 20} 236 C${hx - 20} 176 ${hx + 30} 176 ${hx + 30} 236 Z" fill="#3f7fb0" stroke="#2a5c82" stroke-width="1"/>`;
+  s += `<rect x="${hx - 2}" y="${hy + 22}" width="14" height="22" fill="#e8b892"/>`;
+  s += `<path d="M${hx - 22} ${hy} C${hx - 22} ${hy - 26} ${hx + 26} ${hy - 30} ${hx + 26} ${hy} C${hx + 26} ${hy + 24} ${hx + 12} ${hy + 34} ${hx - 6} ${hy + 32} L${hx - 14} ${hy + 22} L${hx - 18} ${hy + 18} L${hx - 26} ${hy + 6} L${hx - 22} ${hy} Z" fill="#f0c6a2" stroke="#a5765a" stroke-width="1"/>`;
+  s += `<path d="M${hx - 20} ${hy - 6} C${hx - 18} ${hy - 30} ${hx + 30} ${hy - 32} ${hx + 28} ${hy + 4} C${hx + 22} ${hy - 6} ${hx + 6} ${hy - 12} ${hx - 20} ${hy - 6} Z" fill="#3b2a20"/>`;
+  s += `<ellipse cx="${hx + 8}" cy="${hy + 4}" rx="6" ry="9" fill="#e8a986" stroke="#a5765a" stroke-width="1"/><path d="M${hx + 6} ${hy} q4 4 0 8" fill="none" stroke="#a5765a" stroke-width="1.2"/>`;
+  s += `<circle cx="${hx - 12}" cy="${hy + 2}" r="1.8" fill="#2a1d14"/>`;
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 2: aynı ayarlı iki ekran: ince telin ve kalın telin sesi */
+BFY_FIG_EKLE('sfY93_teller', function (u) {
+  const W = 340, H = 344, b = 20, nx = SF.teller.nx, ny = 6, x = 50;
+  let s = zemin(W, H);
+  [['ince tel', SF.teller.ince, 34], ['kalın tel', SF.teller.kalin, 192]].forEach(([ad, z, y]) => {
+    s += T(x - 6, y - 12, ad, { size: 16, weight: 800, fill: MOR });
+    s += ekran(x, y, nx, ny, b, z);
+  });
+  s += T(W / 2, H - 8, 'İki ekranın ayarı aynıdır.', { size: 14, weight: 600, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 90);
+});
+
+/* Isınma 1: ksilofonun K, L, M çubuklarının sesleri (aynı ayar) */
+BFY_FIG_EKLE('sfY93_ksilofon', function (u) {
+  const W = 340, H = 444, b = 20, nx = SF.ksilofon.nx, ny = 4, x = 62;
+  let s = zemin(W, H);
+  // oyuncak ksilofon
+  const cub = [['K', 54, '#d9573b'], ['M', 66, '#e7a93b'], ['L', 80, '#2f7fb8']];
+  s += `<rect x="70" y="52" width="200" height="8" rx="3" fill="#7a5230"/><rect x="70" y="${52 + 44}" width="200" height="8" rx="3" fill="#7a5230"/>`;
+  cub.forEach(([ad, h, c], i) => {
+    const cx = 110 + i * 60, top = 74 - h / 2 + 4;
+    s += `<rect x="${cx - 18}" y="${top}" width="36" height="${h}" rx="5" fill="${c}" stroke="#00000055" stroke-width="1.2"/>`;
+    s += `<rect x="${cx - 13}" y="${top + 4}" width="7" height="${h - 8}" rx="3" fill="#fff" opacity=".35"/>`;
+    s += T(cx, top - 8, ad, { size: 16, weight: 800, anchor: 'middle' });
+  });
+  [['K', SF.ksilofon.K], ['L', SF.ksilofon.L], ['M', SF.ksilofon.M]].forEach(([ad, z], i) => {
+    const y = 144 + i * 100;
+    s += T(30, y + ny * b / 2 + 6, ad, { size: 18, weight: 800, anchor: 'middle' });
+    s += ekran(x, y, nx, ny, b, z);
+  });
+  return svg(W, H, s, u, 90);
+});
+
+/* Isınma 2: yunus, balık sürüsü, giden ses ve yankı */
+BFY_FIG_EKLE('sfY93_yunus', function (u) {
+  const W = 340, H = 250;
+  let s = `<defs><linearGradient id="${u}deniz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ee"/><stop offset="1" stop-color="#1f5f8f"/></linearGradient>` +
+    `<linearGradient id="${u}yn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5f7d93"/><stop offset=".55" stop-color="#9fb6c6"/><stop offset="1" stop-color="#e9f0f4"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}deniz)"/>`;
+  s += `<path class="bg" d="M0 16 q20 -6 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 V0 H0 Z" fill="#dff2fb" opacity=".8"/>`;
+  // yunus (sağa bakıyor)
+  s += `<g transform="translate(2 4)">`;
+  s += `<path d="M104 128 C98 124 90 123 84 121 C78 108 62 104 48 108 C34 112 24 120 16 130 L6 122 L10 134 L2 146 L16 140 C28 144 40 146 54 145 C70 146 86 142 96 135 C100 132 104 130 104 128 Z" fill="url(#${u}yn)" stroke="#3f5a6d" stroke-width="1.4"/>`;
+  s += `<path d="M44 109 C46 98 52 92 60 90 C56 98 56 103 58 107 Z" fill="#5f7d93" stroke="#3f5a6d" stroke-width="1.2"/>`;
+  s += `<path d="M64 140 C62 148 56 154 50 156 C53 149 55 144 55 141 Z" fill="#7d97aa" stroke="#3f5a6d" stroke-width="1.1"/>`;
+  s += `<circle cx="84" cy="124" r="2.2" fill="#1d2a33"/><path d="M90 131 q6 1 12 -1" fill="none" stroke="#3f5a6d" stroke-width="1.1"/>`;
+  s += `</g>`;
+  // balık sürüsü
+  const balik = (x, y) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="5" fill="#e9c46a" stroke="#9a7a2a" stroke-width="1"/><path d="M${x + 10} ${y} l9 -6 v12 Z" fill="#d4a93e" stroke="#9a7a2a" stroke-width=".9"/><circle cx="${x - 6}" cy="${y - 1}" r="1.3" fill="#222"/>`;
+  [[282, 104], [304, 118], [276, 128], [300, 140], [284, 152], [312, 96]].forEach(([x, y]) => { s += balik(x, y); });
+  // giden ses (sağa) ve yankı (sola)
+  s += yaylar(110, 130, 0, 3, 14, 12, '#f4f0ff', 54, 2.6);
+  s += yaylar(266, 128, 180, 3, 14, 12, '#b9f5d4', 54, 2.6, '6 4');
+  s += ok(136, 60, 246, 60, '#ffffff') + T(191, 46, 'giden ses', { size: 15, weight: 800, anchor: 'middle', fill: '#1d3557', haloColor: '#eaf6fc' });
+  s += ok(246, 200, 136, 200, '#b9f5d4', { dash: '7 5' }) + T(191, 228, 'yankı', { size: 15, weight: 800, anchor: 'middle', fill: '#0f4d33', haloColor: '#d8f5e6' });
+  s += T(296, 184, 'balıklar', { size: 14, weight: 700, anchor: 'middle', fill: '#fff', halo: false });
+  s += T(54, 184, 'yunus', { size: 14, weight: 700, anchor: 'middle', fill: '#fff', halo: false });
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -53324,6 +53737,187 @@ const KONU = {
     'vakumlu cam: boşluk, destek parçaları, kenar bağlantısı', 'Berk ve Sude: iki ayrı osiloskop, zaman ayarı bilinmiyor (kesinlikle)',
     'hoparlörün frekansı artırılırken sırayla titreşen K, M, L diyapazonları (kesinlikle)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Programda hesap yok; sorular kavram ve ekran okuma düzeyinde. Doğru şıklar ve şekil verileri qa/Y.9.3/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Sesin nasıl oluştuğunu, bir sesi ince ya da kalın, şiddetli ya da zayıf yapan şeyi ve yankıyı kısa adımlarla göreceğiz. Bu konuda hesap yok; bakmayı ve karşılaştırmayı öğreneceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Ses bir titreşimdir',
+        sekil: 'sfY93_tel',
+        metin: r`Gitarın bir telini çekip bırak. Tel hızla ileri geri titreşir, gitarın gövdesi de onunla birlikte titreşir ve bir ses duyarsın. Teli parmağınla tutup durdurursan ses de kesilir.
+
+Titreşen gövde, önündeki havayı bir iter bir bırakır. Hava tanecikleri bir yerde sıkışır, bir yerde seyrelir. Bu sıkışma ve seyrelmeler havada ilerleyip kulağına ulaşır. Buna **ses dalgası** denir.
+
+- Hava tanecikleri gitardan kulağına taşınmaz. Yerlerinde ileri geri titreşir ve titreşimi komşularına aktarır.
+- Ses ilerlemek için hava, su ya da bir katı gibi bir ortama ihtiyaç duyar. Boşlukta yayılmaz.`,
+        kontrol: {
+          soru: 'Ay\'ın yüzeyinde hava yoktur. Bir astronot, birkaç metre ötesindeki bir kayaya çekiçle vuruyor. Yanındaki astronot bu sesi havadan duyabilir mi?',
+          secenekler: ['Evet, ses her yerde yayılır.', 'Hayır, sesi taşıyacak hava yoktur.', 'Evet, ama sesi daha kalın duyar.'],
+          dogru: 1,
+          aciklama: 'Ses, ortamın taneciklerinin titreşimiyle ilerler. Ay\'ın yüzeyinde hava olmadığı için ses havadan yayılamaz.',
+          yanlisIpucu: 'Sıkışma ve seyrelmeleri hangi tanecikler taşıyordu? Ay\'da bu tanecikler var mı?'
+        }
+      },
+      {
+        baslik: 'İnce ses ve kalın ses',
+        sekil: 'sfY93_teller',
+        metin: r`Gitarın ince teli ince bir ses, kalın teli kalın bir ses çıkarır. Aradaki fark, telin bir saniyede kaç kez titreştiğidir.
+
+Bir saniyedeki titreşim sayısına **frekans** denir. Birimi hertzdir (Hz). Frekansı büyük olan ses **incedir**, frekansı küçük olan ses **kalındır**. Fizikte sesin inceliğine ya da kalınlığına sesin **yüksekliği** denir.
+
+Şekildeki iki ekran, iki telin sesini aynı ayarla gösteriyor. Yatay yön zamanı gösterir. İnce telin sesinde aynı sürede 6 tam dalga, kalın telin sesinde 2 tam dalga var.`,
+        kontrol: {
+          soru: 'Ekranlara göre ince telin sesi neden daha incedir?',
+          secenekler: ['Dalgaları daha yüksek olduğu için', 'Aynı sürede daha çok titreşim olduğu için', 'Dalgaları daha uzun olduğu için'],
+          dogru: 1,
+          aciklama: 'İnce telin sesinde aynı sürede 6 tam dalga var, kalın telinkinde 2. Frekansı büyük olan ses incedir. İki ekranda dalgaların genliği aynıdır.',
+          yanlisIpucu: 'Dalgaların boyuna değil, aynı sürede kaç tane olduklarına bak.'
+        }
+      },
+      {
+        baslik: 'Şiddetli ses ve zayıf ses',
+        metin: r`Bir kapıyı önce hafifçe, sonra güçlüce tıklat. İkinci ses daha **şiddetlidir**. Güçlü vuruşta kapı daha büyük genlikle titreşir. Havadaki sıkışma ve seyrelmeler de daha belirgin olur ve dalga daha çok enerji taşır.
+
+- Sesin şiddeti **genliğe** bağlıdır. Aynı incelikteki iki sesten genliği büyük olan daha şiddetlidir.
+- Kapıya aynı yerinden vurduğun için sesin inceliği değişmez. Genlik değişir, frekans değişmez.
+- Kaynaktan uzaklaştıkça sesin enerjisi geniş bir alana dağılır. Bu yüzden ses uzaktan daha zayıf duyulur.
+
+Günlük dilde "yüksek ses" çoğu zaman şiddetli ses demektir. Fizikte ise yükseklik, sesin inceliği ya da kalınlığıdır. İkisini karıştırma.`,
+        kontrol: {
+          soru: 'Sınıfın en arkasında oturan Ayşe, öğretmeninin sesini en öndeki Mert\'ten daha zayıf duyuyor. İki öğrencinin duyduğu seste hangi özellik farklıdır?',
+          secenekler: ['Şiddeti', 'Yüksekliği', 'Tınısı'],
+          dogru: 0,
+          aciklama: 'Ayşe kaynaktan daha uzakta olduğu için ses ona daha zayıf, yani daha az şiddetli ulaşır. Sesin inceliği değişmez ve Ayşe öğretmeninin sesini yine tanır.',
+          yanlisIpucu: 'Uzaklaşınca sesin inceliği mi değişir, yoksa ne kadar güçlü duyulduğu mu?'
+        }
+      },
+      {
+        baslik: 'Tını: sesin parmak izi',
+        metin: r`Telefonda arkadaşın yalnız "Alo" der ve onu hemen tanırsın. Başka biri aynı sözcüğü aynı incelikte ve aynı şiddette söylese bile iki ses birbirine benzemez.
+
+Her kaynağın sesinin kendine özgü bir **dalga biçimi** vardır. Sesleri birbirinden ayırt etmemizi sağlayan bu özelliğe **tını** denir.
+
+Ney ile bağlama aynı notayı aynı şiddette çalsa sesleri yine de ayırt edersin. İki sesin frekansı aynıdır ama tınıları farklıdır.`,
+        kontrol: {
+          soru: 'Kapının arkasından gelen bir sesi duyuyorsun ve konuşanın okul müdürü olduğunu anlıyorsun. Sesi tanımanı sağlayan özellik hangisidir?',
+          secenekler: ['Sesin şiddeti', 'Sesin tınısı', 'Sesin sürati'],
+          dogru: 1,
+          aciklama: 'Herkesin sesinin kendine özgü bir dalga biçimi, yani tınısı vardır. Sesleri tınılarından tanırız.',
+          yanlisIpucu: 'Aynı incelikte ve aynı şiddette konuşan iki kişiyi bile ayırt etmeni sağlayan özellik hangisiydi?'
+        }
+      },
+      {
+        baslik: 'Ses yansır: yankı',
+        metin: r`Ses bir engele çarpınca geri döner. Buna sesin **yansıması** denir. Yansıyan sesi, kaynaktan çıkan sesten ayrı olarak duyarsak buna **yankı** denir.
+
+Boş bir parkta, uzaktaki yüksek bir apartman duvarına doğru "Hey!" diye seslendiğinde sesin kısa bir süre sonra geri geldiğini duyabilirsin.
+
+- Sert ve düzgün yüzeyler (kaya, beton, cam) sesi iyi yansıtır.
+- Halı, perde ve sünger gibi yumuşak ve gözenekli yüzeyler sesin çoğunu soğurur.
+- Yankı duymak için engel yeterince uzakta olmalıdır. Yakın bir duvardan yansıyan ses ilk sesle karışır ve ayrı duyulmaz.
+- Engel ne kadar uzaktaysa yankı o kadar geç duyulur.`,
+        kontrol: {
+          soru: 'Aşağıdaki yüzeylerin üçü de senden aynı uzaklıkta ve yeterince uzakta. Hangisinin karşısında yankı duyma olasılığın en fazladır?',
+          secenekler: ['Kalın kumaş perdelerle kaplı bir duvar', 'Düz ve sert bir kaya duvarı', 'Sık yapraklı bir ağaç kümesi'],
+          dogru: 1,
+          aciklama: 'Sert ve düzgün kaya, sesin çoğunu geri yansıtır. Perde ve yapraklar sesi soğurur ya da her yöne dağıtır.',
+          yanlisIpucu: 'Sesi iyi yansıtan yüzeyler sert mi, yumuşak mı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Oyuncak ksilofon',
+        sekil: 'sfY93_ksilofon',
+        metin: r`Melis, oyuncak ksilofonunun K, L ve M çubuklarına sırayla aynı güçle vuruyor. Telefonundaki bir ses uygulaması her sesi aynı ayarla bir ekranda gösteriyor. Şekilde üç sesin ekranları var.`,
+        adimlar: [
+          {
+            soru: 'Hangi çubuğun sesi en incedir?',
+            secenekler: ['K', 'L', 'M'],
+            dogru: 0,
+            ipucu: 'İnce sesin frekansı büyüktür. Aynı sürede hangi ekranda daha çok dalga var?',
+            aciklama: 'K ekranında aynı sürede 4 tam dalga var. Frekansı en büyük olan bu sestir; en ince ses K\'ninkidir.'
+          },
+          {
+            soru: 'Sesleri kalından inceye doğru sıralarsan hangisi doğru olur?',
+            secenekler: ['K, M, L', 'L, M, K', 'M, L, K'],
+            dogru: 1,
+            ipucu: 'Kalın sesin frekansı küçüktür. Ekranlarda aynı sürede kaç tam dalga var: K\'de 4, L\'de ve M\'de kaç?',
+            aciklama: 'L\'de 2, M\'de 3, K\'de 4 tam dalga var. Kalından inceye sıra L, M, K olur. Şekildeki çubuklarda da en uzun çubuk L, en kısa çubuk K\'dir.'
+          },
+          {
+            soru: 'Melis M çubuğuna daha güçlü vurursa M ekranında ne değişir?',
+            secenekler: ['Aynı süredeki dalga sayısı artar.', 'Dalgaların genliği büyür, dalga sayısı aynı kalır.', 'Dalgaların biçimi değişir, genliği aynı kalır.'],
+            dogru: 1,
+            ipucu: 'Güçlü vuruş sesin şiddetini artırır. Şiddet ekranda neyle görünür?',
+            aciklama: 'Güçlü vuruşta çubuk daha büyük genlikle titreşir. Ses daha şiddetli olur ama inceliği değişmez; ekranda dalgalar büyür, sayıları aynı kalır.'
+          }
+        ],
+        sonuc: 'Aynı ayarlı ekranlarda dalga sayısına bakarak yüksekliği karşılaştırırsın. Aynı incelikteki seslerde genliğe bakarak şiddeti karşılaştırırsın.'
+      },
+      {
+        baslik: 'Avlanan yunus',
+        sekil: 'sfY93_yunus',
+        metin: r`Yunuslar bulanık ve karanlık suda da av bulabilir. Kısa tıklama sesleri çıkarır ve bu seslerin geri dönüşünü dinlerler. Av ararken çıkardıkları seslerin önemli bir kısmının frekansı 20 000 Hz'den büyüktür. İnsan kulağı yaklaşık 20 Hz ile 20 000 Hz arasındaki sesleri duyar.`,
+        adimlar: [
+          {
+            soru: 'Yunusun frekansı 20 000 Hz\'den büyük olan sesleri için hangisi doğrudur?',
+            secenekler: ['İnfrasestir; insan kulağı duyamaz.', 'Ultrasestir; insan kulağı duyamaz.', 'Çok şiddetli olduğu için insan kulağı duyamaz.'],
+            dogru: 1,
+            ipucu: 'Buradaki sınır frekansla ilgilidir. Frekansı 20 000 Hz\'in üstündeki seslere ne ad verilir?',
+            aciklama: 'Frekansı 20 000 Hz\'den büyük seslere ultrases denir. Bu sesler insan kulağının duyma aralığının dışındadır. İnfrases ise frekansı 20 Hz\'den küçük seslerdir.'
+          },
+          {
+            soru: 'Yunus balık sürüsünün yerini nasıl anlar?',
+            secenekler: ['Gönderdiği sesin balıklarda tamamen yok olmasından', 'Balıklardan yansıyıp kendisine geri dönen sesi duyarak', 'Sesin balıkları kendisine doğru taşımasından'],
+            dogru: 1,
+            ipucu: 'Ses bir engele çarpınca ne olur? Şekildeki kesikli yaylar hangi yöne gidiyor?',
+            aciklama: 'Yunusun sesi balıklara çarpıp yansır ve yunusa geri döner. Yunus bu yankıyı duyarak balıkların yerini anlar.'
+          },
+          {
+            soru: 'Balık sürüsü yunustan uzaklaşırsa yankı yunusa nasıl ulaşır?',
+            secenekler: ['Daha kısa sürede', 'Daha uzun sürede', 'Aynı sürede'],
+            dogru: 1,
+            ipucu: 'Ses suda aynı süratle ilerler. Balıklar uzaklaşınca ses gidip dönerken daha uzun mu, daha kısa mı yol alır?',
+            aciklama: 'Ses, aynı süratle daha uzun bir yolu gidip döner. Bu yüzden yankı daha geç gelir. Engel ne kadar uzaktaysa yankı o kadar geç duyulur.'
+          }
+        ],
+        sonuc: 'Ses suda da yayılır ve engellerden yansır. Gemilerdeki ekosounder da suya ses gönderip yankısını dinleyerek çalışır.'
+      },
+      {
+        baslik: 'Tıngırdayan pencere camı',
+        metin: r`Çok şiddetli müzik çalan bir otomobil, trafik ışığında Can'ın evinin önünde bekliyor. Müzikte bazı kalın notalar çalınınca evin pencere camı tıngırdıyor. Aynı şiddetteki başka notalarda cam pek titremiyor. Her cismin kendine özgü bir titreşim frekansı vardır. Buna cismin **doğal frekansı** denir.`,
+        adimlar: [
+          {
+            soru: 'Camı tıngırdatan notaların frekansı için ne söylenebilir?',
+            secenekler: ['Camın doğal frekansına eşit ya da çok yakındır.', 'Camın doğal frekansından çok büyüktür.', 'Frekansın önemi yoktur; cam her notada aynı titreşir.'],
+            dogru: 0,
+            ipucu: 'Notaların şiddeti aynı; cam yalnız bazı notalarda titriyor. Bu notaları ötekilerden ayıran ne olabilir?',
+            aciklama: 'Cam yalnız belirli notalarda güçlü titreşiyor. Bu notaların frekansı camın doğal frekansına eşit ya da çok yakındır.'
+          },
+          {
+            soru: 'Bir cismin, kendisine ulaşan titreşimin frekansı doğal frekansına eşit olunca büyük genlikle titreşmesine ne ad verilir?',
+            secenekler: ['Yankı', 'Rezonans', 'Tını'],
+            dogru: 1,
+            ipucu: 'Yankı yansıyan sestir, tını sesin dalga biçimidir. Üçüncü kavram hangisi?',
+            aciklama: 'Bu olaya rezonans denir. Cisim, doğal frekansındaki titreşimlerden enerjiyi en etkili biçimde alır ve büyük genlikle titreşir.'
+          },
+          {
+            soru: 'Hangi örnekte rezonanstan yararlanılır?',
+            secenekler: ['Gitarın içi boş tahta gövdesinin telin sesini güçlendirmesi', 'Halının odadaki sesi soğurması', 'Uzaktaki bir sesin zayıf duyulması'],
+            dogru: 0,
+            ipucu: 'Rezonansta bir cisim başka bir cismin titreşimiyle büyük genlikle titreşir. Hangi örnekte böyle bir titreşim var?',
+            aciklama: 'Gitarın gövdesi ve içindeki hava, telin titreşimiyle birlikte titreşir ve sesi güçlendirir. Halı sesi soğurur; uzaktaki sesin zayıf duyulması ise uzaklıkla ilgilidir.'
+          }
+        ],
+        sonuc: 'Rezonans bazen istenmeyen titreşimlere yol açar, çalgılarda ise sesi güçlendirmek için kullanılır.'
+      }
+    ],
+    hazir: r`Sesin bir titreşim olduğunu, yükseklik, şiddet ve tını kavramlarını, yankıyı ve rezonansı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -54717,6 +55311,102 @@ BFY_FIG_EKLE('iY94_efsane_5', u => EF(u, I => {
 }, { oy: 74 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY94_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const BG = '#f4f7f9';
+const R = { kaya: '#d8cfc1', kayaK: '#8f8170', fay: '#c8322b', yer: '#e6dccb', yerK: '#a8977d', gok: '#eaf3f9' };
+const zemin = (W, H) => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${BG}"/>`;
+const ev = (x, y, w, h, c) => `<rect x="${x}" y="${y - h}" width="${w}" height="${h}" fill="${c}" stroke="#6b5a45" stroke-width="1"/>` +
+  `<path d="M${x - 4} ${y - h} L${x + w / 2} ${y - h - 16} L${x + w + 4} ${y - h} Z" fill="#b5523b" stroke="#7d3424" stroke-width="1"/>` +
+  `<rect x="${x + w / 2 - 4}" y="${y - 12}" width="8" height="12" fill="#6b4a2f"/><rect x="${x + 5}" y="${y - h + 6}" width="7" height="7" fill="#cfe6f5" stroke="#6b5a45" stroke-width=".6"/><rect x="${x + w - 12}" y="${y - h + 6}" width="7" height="7" fill="#cfe6f5" stroke="#6b5a45" stroke-width=".6"/>`;
+
+/* Adım 1: yer kesiti; fay, odak, merkez üssü, odak derinliği, yayılan dalgalar */
+BFY_FIG_EKLE('sfY94_odak', function (u) {
+  const W = 340, H = 272, yy = 76, Fx = 160, Fy = 198;
+  let s = `<defs><clipPath id="${u}yer"><rect x="0" y="${yy}" width="${W}" height="${H - yy}" rx="0"/></clipPath>` +
+    `<linearGradient id="${u}kat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3d6bf"/><stop offset=".5" stop-color="#cdbb9c"/><stop offset="1" stop-color="#a99272"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${R.gok}"/>`;
+  s += `<path class="bg" d="M0 ${yy} H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="url(#${u}kat)"/>`;
+  s += `<path class="bg" d="M0 ${yy + 70} C80 ${yy + 60} 220 ${yy + 84} ${W} ${yy + 72}" fill="none" stroke="#b9a481" stroke-width="1.4" opacity=".8"/>`;
+  s += `<path class="bg" d="M0 ${yy + 140} C90 ${yy + 130} 240 ${yy + 152} ${W} ${yy + 138}" fill="none" stroke="#9c8565" stroke-width="1.4" opacity=".8"/>`;
+  s += `<rect class="bg" x="0" y="${yy - 6}" width="${W}" height="7" fill="#8fbf6f"/>`;
+  s += ev(32, yy - 6, 34, 26, '#f2e6cf') + ev(74, yy - 6, 26, 20, '#ece0c4') + ev(232, yy - 6, 30, 24, '#f2e6cf') + ev(276, yy - 6, 36, 30, '#e9dcc0');
+  // yayılan dalgalar (yer altında)
+  s += `<g clip-path="url(#${u}yer)">`;
+  [26, 50, 76, 104].forEach((r, i) => { s += `<circle cx="${Fx}" cy="${Fy}" r="${r}" fill="none" stroke="#6b4c9a" stroke-width="2.2" opacity="${f1(0.9 - i * 0.17)}"/>`; });
+  s += `</g>`;
+  // fay
+  s += `<line x1="118" y1="${H - 6}" x2="${f1(Fx + (Fy - yy) * 0.6)}" y2="${yy}" stroke="${R.fay}" stroke-width="2.6" stroke-dasharray="9 5"/>`;
+  s += T(104, H - 16, 'fay', { size: 15, weight: 800, anchor: 'end', fill: R.fay });
+  // odak derinliği
+  s += `<line x1="${Fx}" y1="${yy + 4}" x2="${Fx}" y2="${Fy - 10}" stroke="#173430" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+  s += T(Fx - 10, 132, 'odak', { size: 14, weight: 700, anchor: 'end' }) + T(Fx - 10, 149, 'derinliği', { size: 14, weight: 700, anchor: 'end' });
+  // odak (yıldız) ve merkez üssü
+  const yild = (x, y, r) => { let d = ''; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; d += (i ? 'L' : 'M') + f1(x + rr * Math.cos(a)) + ' ' + f1(y + rr * Math.sin(a)); } return `<path d="${d}Z" fill="#f2c94c" stroke="#9a6b12" stroke-width="1.2"/>`; };
+  s += yild(Fx, Fy, 11) + T(Fx + 16, Fy + 30, 'odak', { size: 15, weight: 800 });
+  s += `<path d="M${Fx} ${yy - 2} l-8 -14 h16 Z" fill="${R.fay}" stroke="#7d1e19" stroke-width="1"/>`;
+  s += T(Fx, yy - 24, 'merkez üssü', { size: 15, weight: 800, anchor: 'middle', fill: '#7d1e19' });
+  return svg(W, H, s, u, 90);
+});
+
+/* Adım 4: bir depremin şiddet haritası; merkez üssünden uzaklaştıkça şiddet azalır */
+BFY_FIG_EKLE('sfY94_harita', function (u) {
+  const W = 340, H = 286, cx = 160, cy = 140;
+  let s = zemin(W, H);
+  s += `<rect class="bg" x="10" y="10" width="${W - 20}" height="${H - 20}" rx="10" fill="#eef1e4" stroke="#c9cdb8" stroke-width="1"/>`;
+  s += `<path class="bg" d="M10 236 C70 222 120 248 180 236 C230 226 280 246 330 232 V266 Q330 276 320 276 H20 Q10 276 10 266 Z" fill="#acd5ee" opacity=".7"/>`;
+  const zon = [[142, 104, '#f6e7a6', 'IV'], [96, 70, '#f4b56b', 'VI'], [52, 38, '#d9573b', 'VIII']];
+  zon.forEach(([rx, ry, c]) => { s += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" transform="rotate(-12 ${cx} ${cy})" fill="${c}" opacity=".85" stroke="#fff" stroke-width="1.5"/>`; });
+  s += `<path d="M10 70 C80 90 150 60 220 96 S300 150 330 140" fill="none" stroke="#9aa3ab" stroke-width="3"/>`;
+  s += `<path d="M${cx} ${cy} m0 -11 l3 7 l8 1 l-6 5 l2 8 l-7 -4 l-7 4 l2 -8 l-6 -5 l8 -1 Z" fill="#fff" stroke="#7d1e19" stroke-width="1.4"/>`;
+  s += T(cx, cy - 18, 'merkez üssü', { size: 14, weight: 800, anchor: 'middle', fill: '#5a1712', haloColor: '#f8d6c8' });
+  s += T(cx - 70, cy + 22, 'VI', { size: 18, weight: 800, anchor: 'middle', fill: '#7a3d0c', haloColor: '#fbe0bd' });
+  s += T(cx + 100, cy + 66, 'IV', { size: 18, weight: 800, anchor: 'middle', fill: '#6b5a12', haloColor: '#fbf2cf' });
+  s += T(cx, cy + 34, 'VIII', { size: 18, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  s += T(24, 34, 'şiddet haritası', { size: 15, weight: 800 });
+  return svg(W, H, s, u, 90);
+});
+
+/* Isınma 2: Zeynep'in odası: sabitlenmemiş uzun kitaplık, yatağın üstünde ağır eşyalı raf */
+BFY_FIG_EKLE('sfY94_oda', function (u) {
+  const W = 340, H = 262, yer = 214;
+  let s = `<defs><linearGradient id="${u}duvar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef3f6"/><stop offset="1" stop-color="#dde6eb"/></linearGradient>` +
+    `<linearGradient id="${u}par" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b47c"/><stop offset="1" stop-color="#b98a4f"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="url(#${u}duvar)"/>`;
+  s += `<path class="bg" d="M0 ${yer} H${W} V${H - 14} Q${W} ${H} ${W - 14} ${H} H14 Q0 ${H} 0 ${H - 14} Z" fill="url(#${u}par)"/>`;
+  for (let x = 30; x < W; x += 44) s += `<line class="bg" x1="${x}" y1="${yer}" x2="${x - 14}" y2="${H}" stroke="#a87b45" stroke-width="1"/>`;
+  // yatak
+  s += `<rect x="14" y="${yer - 52}" width="12" height="52" rx="2" fill="#8a5a33"/>`;
+  s += `<rect x="22" y="${yer - 30}" width="168" height="18" rx="3" fill="#a06a3c"/>`;
+  s += `<rect x="24" y="${yer - 48}" width="164" height="20" rx="6" fill="#f7f4ee" stroke="#c9c2b5" stroke-width="1"/>`;
+  s += `<path d="M70 ${yer - 50} H186 Q192 ${yer - 50} 192 ${yer - 40} V${yer - 28} H70 Z" fill="#6b8fc4" stroke="#4a6a99" stroke-width="1"/>`;
+  s += `<ellipse cx="46" cy="${yer - 52}" rx="22" ry="9" fill="#fff" stroke="#c9c2b5" stroke-width="1"/>`;
+  s += `<rect x="24" y="${yer - 12}" width="8" height="12" fill="#6b4a2f"/><rect x="180" y="${yer - 12}" width="8" height="12" fill="#6b4a2f"/>`;
+  // yatağın üstündeki raf: ağır saksı ve kitaplar
+  s += `<rect x="30" y="92" width="120" height="7" rx="2" fill="#8a5a33"/><path d="M40 99 l10 10 M140 99 l-10 10" stroke="#6b4a2f" stroke-width="3"/>`;
+  s += `<path d="M44 92 L48 66 H74 L78 92 Z" fill="#c46a3c" stroke="#7d3e1f" stroke-width="1"/><path d="M50 66 C46 46 58 40 62 54 C64 38 78 40 72 66 Z" fill="#4f9a5c" stroke="#2f6b3a" stroke-width="1"/>`;
+  [['#2f7fb8', 14], ['#d9573b', 12], ['#e7a93b', 14], ['#3f8a67', 11], ['#6b4c9a', 13]].forEach(([c, w], i) => { s += `<rect x="${92 + i * 11}" y="${62 + (i % 2) * 4}" width="${w - 2}" height="${30 - (i % 2) * 4}" fill="${c}" stroke="#00000040" stroke-width=".8"/>`; });
+  s += T(158, 98, 'raf', { size: 15, weight: 800 });
+  s += T(108, yer - 62, 'yatak', { size: 15, weight: 800, anchor: 'middle' });
+  // uzun kitaplık (sabitlenmemiş)
+  const kx = 238, kw = 84, kt = 34;
+  s += `<rect x="${kx}" y="${kt}" width="${kw}" height="${yer - kt}" fill="#a87442" stroke="#6b4a2f" stroke-width="1.4"/>`;
+  s += `<rect x="${kx + 6}" y="${kt + 6}" width="${kw - 12}" height="${yer - kt - 12}" fill="#7d5531"/>`;
+  for (let j = 1; j < 5; j++) s += `<rect x="${kx + 6}" y="${kt + 6 + j * 35 - 4}" width="${kw - 12}" height="5" fill="#a87442"/>`;
+  const kc = ['#2f7fb8', '#d9573b', '#e7a93b', '#3f8a67', '#6b4c9a', '#c9a33a', '#4b6059'];
+  for (let j = 0; j < 5; j++) for (let i = 0; i < 6; i++) {
+    const h = 24 - ((i + j) % 3) * 3, x = kx + 9 + i * 11.5, y = kt + 6 + (j + 1) * 35 - 4 - h;
+    s += `<rect x="${f1(x)}" y="${f1(y)}" width="9" height="${h}" fill="${kc[(i + 2 * j) % 7]}" stroke="#00000040" stroke-width=".7"/>`;
+  }
+  s += T(kx + kw / 2, 24, 'kitaplık', { size: 15, weight: 800, anchor: 'middle' });
+  // pencere
+  s += `<rect x="174" y="18" width="50" height="42" fill="#cfe6f5" stroke="#8a979f" stroke-width="2"/><line x1="199" y1="18" x2="199" y2="60" stroke="#8a979f" stroke-width="2"/>`;
+  return svg(W, H, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -54765,6 +55455,181 @@ const KONU = {
     'merkez üssü A, eşit uzaklıkta B (kaya) ve C (alüvyon), daha uzak D (kesinlikle)', 'beş binalı tablo: zemin ve yönetmelik etkisini ayırma (kontrol değişkeni)',
     'bahçedeki uzun ahşap bank, lastik tokmak, su dolu K ve L kaseleri (hız ortama bağlı, vuruşa değil)', 'kayadan alüvyona geçen dalga: hız, frekans, dalga boyu'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Programda hesap ve dalga türü yok; büyüklük-şiddet ayrımı ve korunma önlemleri. Doğru şıklar qa/Y.9.4/dogrula.py içinde denetlenir. */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Depremin nasıl başladığını, deprem dalgasının neyi taşıdığını, büyüklük ile şiddetin farkını ve depremde kendimizi nasıl koruyacağımızı kısa adımlarla göreceğiz. Bu konuda hesap yok. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Yerin altında bir kırılma',
+        sekil: 'sfY94_odak',
+        metin: r`Yerin kilometrelerce altındaki büyük kaya kütleleri, yani kayaçlar, yıllarca birbirini iter. Kayaçlarda gerilme birikir. Bir gün kayaçlar bir **fay** boyunca aniden kırılıp kayar. Açığa çıkan enerji her yöne yayılır ve yer sarsılır. Buna **deprem** denir.
+
+- Kırılmanın başladığı, yerin altındaki noktaya **odak** denir.
+- Odağın tam üstündeki yeryüzü noktasına **merkez üssü** denir.
+- Odak ile merkez üssü arasındaki uzaklık **odak derinliğidir**.`,
+        kontrol: {
+          soru: 'Bir depremin odağı yerin 10 km altındadır. Bu depremin merkez üssü nerededir?',
+          secenekler: ['Odağın tam üstündeki yeryüzü noktasında', 'Odaktan 10 km uzaktaki herhangi bir yeryüzü noktasında', 'Yerin 10 km altında, odakla aynı yerde'],
+          dogru: 0,
+          aciklama: 'Merkez üssü yeryüzündedir ve odağın tam üstündeki noktadır. Bu depremde merkez üssü ile odak arasındaki uzaklık, yani odak derinliği 10 km\'dir.',
+          yanlisIpucu: 'Odak yerin altındadır. Merkez üssü yeryüzünde mi, yerin altında mı? Odağa göre nerededir?'
+        }
+      },
+      {
+        baslik: 'Dalga enerjiyi taşır, toprağı taşımaz',
+        metin: r`Kalabalık bir otobüs kuyruğunu düşün. En arkadaki kişi öndekini hafifçe iterse itiş kişiden kişiye aktarılır ve en öndeki kişi sendeler. Arkadaki kişi öne gelmez. Herkes yerinde biraz sallanır ama itiş en öne ulaşır.
+
+Odaktan çıkan **deprem dalgası** da böyledir. Yerin içinden her yöne yayılan mekanik bir dalgadır.
+
+- Toprak ve kayaçlar yerlerinde titreşir. Odaktan uzaklara taşınmaz.
+- Dalga, odakta açığa çıkan enerjiyi uzaklara taşır. Bu yüzden merkez üssünden kilometrelerce uzaktaki binalar da sallanır.`,
+        kontrol: {
+          soru: 'Merkez üssünden 80 km uzaktaki bir kasabada evler sallanıyor. Bu kasabaya odaktan ne ulaşmıştır?',
+          secenekler: ['Odaktaki kayaçların kendisi', 'Deprem dalgasının taşıdığı enerji', 'Fay boyunca akıp gelen toprak'],
+          dogru: 1,
+          aciklama: 'Kayaçlar ve toprak yerlerinde titreşir. Kasabaya ulaşan, deprem dalgasının taşıdığı enerjidir.',
+          yanlisIpucu: 'Kuyruktaki en arkadaki kişi öne geliyor muydu? Öne ulaşan neydi?'
+        }
+      },
+      {
+        baslik: 'Büyüklük: depremin tek değeri',
+        metin: r`Bir deprem olunca haberlerde önce depremin **büyüklüğü** duyurulur. Büyüklük, depremin kaynağında, yani yerin altındaki kırılmada açığa çıkan enerjinin ölçüsüdür.
+
+- Büyüklük, sismograf denen aletlerin kayıtlarından hesaplanır.
+- Bir depremin tek bir büyüklüğü vardır. Merkez üssünde de çok uzaklarda da aynıdır.
+- Büyüklük arttıkça açığa çıkan enerji çok hızlı artar.`,
+        kontrol: {
+          soru: 'Depremin büyüklüğü neyin ölçüsüdür?',
+          secenekler: ['Depremin kaynağında açığa çıkan enerjinin', 'Bir binada oluşan hasarın', 'Depremin kaç saniye sürdüğünün'],
+          dogru: 0,
+          aciklama: 'Büyüklük, depremin kaynağında açığa çıkan enerjinin ölçüsüdür ve aletlerin kayıtlarından hesaplanır. Bir yerdeki hasar ise şiddetle ilgilidir.',
+          yanlisIpucu: 'Büyüklük her yerde aynı olan bir değerdi. Hasar ya da sarsıntının süresi her yerde aynı mıdır?'
+        }
+      },
+      {
+        baslik: 'Şiddet: yerden yere değişir',
+        sekil: 'sfY94_harita',
+        metin: r`Aynı deprem her yerde aynı hissedilmez. Sarsıntının bir yerde nasıl hissedildiğine ve orada ne kadar hasar bıraktığına **şiddet** denir.
+
+- Şiddet, insanların gözlemlerine ve binalardaki hasarın incelenmesine göre belirlenir. Roma rakamlarıyla I'den XII'ye kadar derecelendirilir.
+- Merkez üssünden uzaklaştıkça şiddet genellikle azalır. Şekildeki haritada iç bölgede şiddet büyük, dış bölgede küçüktür.
+- Zemin ve binanın sağlamlığı da şiddeti etkiler. Yumuşak ve gevşek zeminde sarsıntı daha güçlü hissedilir.`,
+        kontrol: {
+          soru: 'Bir yerdeki deprem şiddeti nasıl belirlenir?',
+          secenekler: ['Yalnız depremin büyüklüğüne bakılarak', 'İnsanların gözlemlerine ve hasarın incelenmesine göre', 'Depremin günün hangi saatinde olduğuna göre'],
+          dogru: 1,
+          aciklama: 'Şiddet, sarsıntının o yerdeki etkisidir. İnsanların ne hissettiği ve binalarda ne kadar hasar oluştuğu incelenerek belirlenir.',
+          yanlisIpucu: 'Büyüklük her yerde aynıydı ama şiddet yerden yere değişiyordu. Öyleyse şiddet yalnız büyüklükten bulunabilir mi?'
+        }
+      },
+      {
+        baslik: 'Depremden korunmak',
+        metin: r`Depremde can kayıplarının en büyük nedeni yıkılan binalar ve devrilen eşyalardır. Deprem dalgasını durduramayız ama zararını azaltabiliriz.
+
+- **Önce:** Bina sağlam zemine, yönetmeliğe uygun ve denetimli yapılır. Dolap ve raflar duvara sabitlenir. İçinde su, el feneri ve düdük olan bir deprem çantası hazırlanır. Evine en yakın toplanma alanı öğrenilir.
+- **Sırasında:** Sağlam bir masanın altında ya da dolgun bir koltuğun, kanepenin yanında **çök, kapan, tutun**: yere diz üstü çök, başını ve enseni kollarınla koru, düşmemek için sabit bir yere tutun. Sarsıntı bitene kadar yerinde kal. Merdivene, çıkışa ya da balkona koşma, asansöre binme. Pencere ve camlardan uzak dur.
+- **Sonra:** Sarsıntı bitince sakin biçimde, merdivenle binadan çık ve toplanma alanına git. Hasarlı binaya geri girme.`,
+        kontrol: {
+          soru: 'Hangisi deprem olmadan önce alınabilecek bir önlemdir?',
+          secenekler: ['Su, el feneri ve düdük içeren bir deprem çantası hazırlamak', 'Sarsıntı sırasında asansörle aşağı inmek', 'Sarsıntı biter bitmez hasarlı binaya eşya almak için girmek'],
+          dogru: 0,
+          aciklama: 'Deprem çantası deprem olmadan önce hazırlanır. Öteki iki davranış deprem sırasında ve sonrasında yapılmaması gereken tehlikeli davranışlardır.',
+          yanlisIpucu: 'Seçeneklerden yalnız biri depremden önce yapılabilir. Öbür ikisi ne zaman yapılıyor ve güvenli mi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Telefondaki iki kardeş',
+        metin: r`Bir gece bir deprem oluyor. Ece, merkez üssüne 20 km uzaklıktaki bir kasabada yaşıyor; evinde raflardan tabaklar düşüyor. Ağabeyi Can, merkez üssüne 300 km uzaklıktaki bir şehirde yaşıyor; evinde yalnız avize hafifçe sallanıyor. İki evin zemini ve yapısı birbirine benziyor. Haberlerde depremin büyüklüğü 6 olarak açıklanıyor.`,
+        adimlar: [
+          {
+            soru: 'Can telefonda "Deprem bizim burada daha küçüktü, büyüklüğü 6\'dan azdı." diyor. Bu söz doğru mu?',
+            secenekler: ['Doğru; uzaklaştıkça büyüklük azalır.', 'Yanlış; bir depremin tek bir büyüklüğü vardır.', 'Doğru; şehirlerde büyüklük her zaman daha küçük ölçülür.'],
+            dogru: 1,
+            ipucu: 'Büyüklük, depremin kaynağında açığa çıkan enerjinin ölçüsüydü. Kaynakta açığa çıkan enerji, onu nereden ölçtüğümüze göre değişir mi?',
+            aciklama: 'Büyüklük depremin kaynağına aittir. Bu depremin büyüklüğü her yerde 6\'dır.'
+          },
+          {
+            soru: 'Depremin şiddeti için hangisi doğrudur?',
+            secenekler: ['Ece\'nin kasabasında daha büyüktür.', 'Can\'ın şehrinde daha büyüktür.', 'İki yerde eşittir.'],
+            dogru: 0,
+            ipucu: 'İki yerde gözlenenleri karşılaştır: tabakların düşmesi mi, avizenin hafifçe sallanması mı daha güçlü bir sarsıntıyı gösterir?',
+            aciklama: 'Ece merkez üssüne daha yakındır ve evinde tabaklar düşmüştür. Zemin ve yapı benzer olduğundan şiddet Ece\'nin kasabasında daha büyüktür.'
+          },
+          {
+            soru: 'Can\'ın anlatmak istediği şeyi doğru söyleyen cümle hangisidir?',
+            secenekler: ['Bizim burada depremin büyüklüğü küçüktü.', 'Bizim burada depremin şiddeti küçüktü.', 'Bizim buraya deprem dalgası hiç ulaşmadı.'],
+            dogru: 1,
+            ipucu: 'Yerden yere değişen nicelik hangisiydi? Avize sallandığına göre dalga şehre ulaşmış mı?',
+            aciklama: 'Can\'ın şehrinde sarsıntı zayıf hissedildi; yani orada şiddet küçüktü. Avize sallandığına göre deprem dalgası şehre ulaşmıştır.'
+          }
+        ],
+        sonuc: 'Büyüklük depremin kaynağına aittir ve tektir. Şiddet ise bir yerdeki etkidir; uzaklığa, zemine ve yapıya göre değişir.'
+      },
+      {
+        baslik: 'Zeynep\'in odası',
+        sekil: 'sfY94_oda',
+        metin: r`Zeynep odasını depreme hazırlamak istiyor. Odada tavana yakın yükseklikte, duvara sabitlenmemiş uzun bir kitaplık var. Yatağının hemen üstündeki rafta ağır bir saksı ve kitaplar duruyor.`,
+        adimlar: [
+          {
+            soru: 'Deprem sırasında kitaplığın devrilmemesi için ne yapılmalıdır?',
+            secenekler: ['Kitaplık duvara sabitlenmelidir.', 'Ağır kitaplar en üst raflara dizilmelidir.', 'Kitaplık yatağın yanına taşınmalıdır.'],
+            dogru: 0,
+            ipucu: 'Sarsıntıda uzun ve sabitlenmemiş eşyalar kolayca devrilir. Hangi seçenek kitaplığı yerinde tutar?',
+            aciklama: 'Duvara sabitlenen kitaplık sarsıntıda devrilmez. Ağır kitapları üst raflara koymak kitaplığı daha kolay devrilir hâle getirir.'
+          },
+          {
+            soru: 'Yatağın üstündeki raftaki saksı ve kitaplar için hangisi doğrudur?',
+            secenekler: ['Rafta kalabilirler; uyurken deprem olmaz.', 'Yatağın üstünden kaldırılıp alçak ve sabit bir yere konmalıdır.', 'Raf daha yükseğe asılmalıdır.'],
+            dogru: 1,
+            ipucu: 'Deprem günün her saatinde olabilir. Sarsıntıda raftaki ağır eşyalar nereye düşer?',
+            aciklama: 'Sarsıntıda raftaki ağır eşyalar yatağın üstüne düşüp yaralayabilir. Bu eşyalar yatağın üstünden kaldırılmalıdır.'
+          },
+          {
+            soru: 'Zeynep kitaplığı sabitledi, raftaki eşyaları da yatağın üstünden kaldırdı. Gece deprem olursa ve Zeynep yataktaysa en doğru davranış hangisidir?',
+            secenekler: ['Merdivenlere koşmak', 'Yatakta kalıp başını ve boynunu yastıkla korumak', 'Pencereye gidip dışarı bakmak'],
+            dogru: 1,
+            ipucu: 'Sarsıntı sırasında yürümek ve koşmak düşmeye, kırılan camlar yaralanmaya yol açar. Hangi seçenek başı korur?',
+            aciklama: 'Üstüne düşebilecek ağır bir eşya kalmadığı için sarsıntı sürerken yatakta kalıp başını ve boynunu yastıkla korumak en güvenli davranıştır. Merdivenler ve pencere önü tehlikelidir. Üstüne düşebilecek ağır bir eşya olsaydı en yakındaki güvenli yere geçmesi gerekirdi.'
+          }
+        ],
+        sonuc: 'Depremde yaralanmaların önemli bir kısmı devrilen ve düşen eşyalardan olur. Eşyaları sabitlemek kolay ve etkili bir önlemdir.'
+      },
+      {
+        baslik: 'Sinema salonunda sarsıntı',
+        metin: r`Elif, bir alışveriş merkezinin üçüncü katındaki kalabalık bir sinema salonunda arkadaşlarıyla film izlerken güçlü bir sarsıntı başlıyor.`,
+        adimlar: [
+          {
+            soru: 'Sarsıntı sürerken Elif ne yapmalıdır?',
+            secenekler: ['Hemen çıkış kapısına koşmalıdır.', 'Koltukların arasına çöküp başını ve boynunu kollarıyla korumalıdır.', 'Koltuğun üstüne çıkıp ayakta beklemelidir.'],
+            dogru: 1,
+            ipucu: 'Kalabalık bir salonda herkes kapıya koşarsa ne olur? Sarsıntı sırasında önce başını korumalısın.',
+            aciklama: 'Sarsıntı sürerken koşmak düşmeye ve kalabalıkta ezilmeye yol açabilir. Koltukların arasında çöküp başını ve boynunu korumak en güvenlisidir.'
+          },
+          {
+            soru: 'Sarsıntı bitti. Elif aşağı nasıl inmelidir?',
+            secenekler: ['Asansörle, en hızlı yol olduğu için', 'Merdivenle, sakin ve itişmeden', 'Koşarak ve öndekileri iterek'],
+            dogru: 1,
+            ipucu: 'Depremden sonra elektrik kesilebilir ve asansör katlar arasında kalabilir. Kalabalıkta itişmek de tehlikelidir.',
+            aciklama: 'Depremden sonra asansör kullanılmaz. Merdivenden sakin ve sırayla inmek gerekir.'
+          },
+          {
+            soru: 'Dışarı çıkınca nerede beklemek en güvenlidir?',
+            secenekler: ['Binalardan, elektrik direklerinden ve ağaçlardan uzak, açık bir alanda', 'Binanın hemen dibinde, saçağın altında', 'Büyük cam vitrinlerin önünde'],
+            dogru: 0,
+            ipucu: 'Yeni bir sarsıntıda üstüne ne düşebilir? Düşebilecek bir şeyin olmadığı yeri seç.',
+            aciklama: 'Yeni bir sarsıntıda binalardan parçalar, camlar ve direkler düşebilir. Bunlardan uzak, açık bir alan en güvenli yerdir. Elif oradan en yakın toplanma alanına geçebilir.'
+          }
+        ],
+        sonuc: 'Sarsıntı sırasında önce kendini korursun. Sarsıntı bitince sakin biçimde güvenli bir alana geçersin. Okuldaki deprem tatbikatları bunu alıştırmak içindir.'
+      }
+    ],
+    hazir: r`Odağı, merkez üssünü, deprem dalgasının enerji taşıdığını, büyüklük ile şiddetin farkını ve depremden korunma yollarını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
