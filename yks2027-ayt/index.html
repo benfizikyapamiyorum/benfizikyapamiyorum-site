@@ -8559,6 +8559,146 @@ BFY_FIG_EKLE('kA14_dolly', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.4 başlangıç şekilleri (sfA14_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', MOR = '#6b4fa8', KIR = '#d24b3e', GRI = '#9aa9a0';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+
+/* hız-zaman grafiği iskeleti: eksen adları okların ucunda, t ekseninin adı sağ uçta */
+function grafik(o) {
+  const { x0, y0, W, H, tMax, vMax } = o;
+  const sx = t => x0 + t / tMax * W, sy = v => y0 + (vMax - v) / vMax * H, zy = sy(0);
+  let s = `<rect class="bg" x="0" y="0" width="340" height="${o.h}" rx="14" fill="#f6f9f7"/>`;
+  s += `<line x1="${x0}" y1="${zy}" x2="${x0}" y2="${y0 - 10}" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${x0},${y0 - 20} ${x0 - 5},${y0 - 8} ${x0 + 5},${y0 - 8}" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${zy}" x2="${x0 + W + 12}" y2="${zy}" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${x0 + W + 22},${zy} ${x0 + W + 10},${zy - 5} ${x0 + W + 10},${zy + 5}" fill="${P.ink}"/>`;
+  s += yaz(x0 + 10, y0 - 10, 'ϑ (m/s)', { weight: 800 });
+  s += yaz(x0 + W + 26, zy + 5, 't (s)', { weight: 800 });
+  s += yaz(x0 - 8, zy + 5, '0', { anchor: 'end', fill: P.ink2 });
+  (o.tTicks || []).forEach(t => { s += `<line x1="${f1(sx(t))}" y1="${zy - 4}" x2="${f1(sx(t))}" y2="${zy + 4}" stroke="${P.ink}" stroke-width="1.3"/>` + yaz(sx(t), zy + 22, String(t), { anchor: 'middle', fill: P.ink2 }); });
+  (o.vTicks || []).forEach(v => { s += `<line x1="${x0 - 4}" y1="${f1(sy(v))}" x2="${x0 + 4}" y2="${f1(sy(v))}" stroke="${P.ink}" stroke-width="1.3"/>` + yaz(x0 - 9, sy(v) + 5, String(v), { anchor: 'end', fill: P.ink2 }); });
+  return { s, sx, sy, zy };
+}
+const kk = (x1, y1, x2, y2) => dashLine(f1(x1), f1(y1), f1(x2), f1(y2), GRI, '4 4', 1.2);
+
+/* Adım 2: rüzgâr sörfçüsünün ϑ-t grafiği, eğim ve alan */
+BFY_FIG_EKLE('sfA14_sorf', function (u) {
+  const G = grafik({ h: 262, x0: 62, y0: 46, W: 210, H: 168, tMax: 3, vMax: 10, tTicks: [1, 2, 3], vTicks: [2, 4, 6, 8] });
+  let s = G.s;
+  const p = [[0, 2], [3, 8]].map(([t, v]) => [G.sx(t), G.sy(v)]);
+  s += `<polygon points="${f1(G.sx(0))},${f1(G.zy)} ${f1(p[0][0])},${f1(p[0][1])} ${f1(p[1][0])},${f1(p[1][1])} ${f1(G.sx(3))},${f1(G.zy)}" fill="url(#${u}posA)" stroke="none"/>`;
+  s += kk(G.sx(0), p[1][1], p[1][0], p[1][1]) + kk(p[1][0], p[1][1], p[1][0], G.zy);
+  s += `<line x1="${f1(p[0][0])}" y1="${f1(p[0][1])}" x2="${f1(p[1][0])}" y2="${f1(p[1][1])}" stroke="${MAV}" stroke-width="3.2" stroke-linecap="round"/>`;
+  s += `<circle cx="${f1(p[0][0])}" cy="${f1(p[0][1])}" r="4" fill="${MAV}"/><circle cx="${f1(p[1][0])}" cy="${f1(p[1][1])}" r="4" fill="${MAV}"/>`;
+  // eğim üçgeni
+  const a = [G.sx(1), G.sy(4)], b = [G.sx(2), G.sy(4)], c = [G.sx(2), G.sy(6)];
+  s += `<path d="M${f1(a[0])} ${f1(a[1])} L${f1(b[0])} ${f1(b[1])} L${f1(c[0])} ${f1(c[1])}" fill="none" stroke="${KIR}" stroke-width="1.8" stroke-dasharray="5 3"/>`;
+  s += yaz((a[0] + b[0]) / 2, a[1] + 19, '1 s', { anchor: 'middle', fill: KIR });
+  s += yaz(b[0] + 7, (b[1] + c[1]) / 2 + 5, '2 m/s', { fill: KIR });
+  s += yaz(G.sx(0.95), G.sy(6.4), 'eğim = ivme', { anchor: 'middle', fill: KIR, weight: 800 });
+  s += yaz(G.sx(1.5), G.sy(1.3), 'alan = yer değiştirme', { anchor: 'middle', fill: P.green, weight: 800 });
+  return svg(340, 262, s, u, 90);
+});
+
+/* Isınma 2: tramvayın iki durak arasındaki ϑ-t grafiği */
+BFY_FIG_EKLE('sfA14_tramvay', function (u) {
+  const G = grafik({ h: 250, x0: 56, y0: 70, W: 228, H: 128, tMax: 50, vMax: 12, tTicks: [10, 40, 50], vTicks: [10] });
+  let s = G.s;
+  const pts = [[0, 0], [10, 10], [40, 10], [50, 0]].map(([t, v]) => [G.sx(t), G.sy(v)]);
+  s += `<polygon points="${pts.map(q => f1(q[0]) + ',' + f1(q[1])).join(' ')}" fill="url(#${u}posA)"/>`;
+  s += kk(G.sx(0), G.sy(10), G.sx(10), G.sy(10)) + kk(G.sx(10), G.sy(10), G.sx(10), G.zy) + kk(G.sx(40), G.sy(10), G.sx(40), G.zy);
+  s += `<polyline points="${pts.map(q => f1(q[0]) + ',' + f1(q[1])).join(' ')}" fill="none" stroke="${MAV}" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  // küçük tramvay
+  const tx = 150, ty = 14;
+  s += `<rect x="${tx}" y="${ty + 6}" width="92" height="30" rx="7" fill="#d9573b" stroke="#8f3524" stroke-width="1.2"/>`;
+  s += `<rect x="${tx}" y="${ty + 26}" width="92" height="6" fill="#f2efe6"/>`;
+  [0, 1, 2, 3].forEach(i => s += `<rect x="${tx + 7 + i * 21}" y="${ty + 11}" width="15" height="11" rx="2" fill="url(#${u}glass)" stroke="#8f3524" stroke-width=".8"/>`);
+  s += `<line x1="${tx + 46}" y1="${ty + 6}" x2="${tx + 58}" y2="${ty - 6}" stroke="#4d565c" stroke-width="2"/><line x1="${tx + 40}" y1="${ty - 6}" x2="${tx + 76}" y2="${ty - 6}" stroke="#4d565c" stroke-width="2"/>`;
+  [tx + 18, tx + 74].forEach(x => s += `<circle cx="${x}" cy="${ty + 38}" r="5" fill="#3b4348"/>`);
+  s += `<line x1="${tx - 12}" y1="${ty + 43}" x2="${tx + 104}" y2="${ty + 43}" stroke="#7d868d" stroke-width="2"/>`;
+  return svg(340, 250, s, u, 90);
+});
+
+/* Adım 3: geri tuşuna basılan kumandalı araba, her saniyedeki hız */
+function araba(x, y, yon) {
+  // x: arabanın ortası, y: tekerlek altı; yon: +1 doğuya bakar, -1 batıya
+  const k = yon;
+  let s = `<ellipse cx="${x}" cy="${y + 1}" rx="21" ry="3" fill="#000" opacity=".14"/>`;
+  s += `<path d="M${x - 20 * k} ${y - 6} L${x - 20 * k} ${y - 15} L${x - 8 * k} ${y - 15} L${x - 2 * k} ${y - 23} L${x + 10 * k} ${y - 23} L${x + 16 * k} ${y - 15} L${x + 20 * k} ${y - 13} L${x + 20 * k} ${y - 6} Z" fill="#2f7fb8" stroke="#1d5a86" stroke-width="1.2" stroke-linejoin="round"/>`;
+  s += `<path d="M${x} ${y - 21} L${x + 9 * k} ${y - 21} L${x + 13 * k} ${y - 15} L${x} ${y - 15} Z" fill="#d8ebf5"/>`;
+  s += `<line x1="${x - 16 * k}" y1="${y - 15}" x2="${x - 16 * k}" y2="${y - 28}" stroke="#2a3330" stroke-width="1.3"/>`;
+  [x - 11, x + 11].forEach(cx => s += `<circle cx="${cx}" cy="${y - 5}" r="5.5" fill="#2a3330"/><circle cx="${cx}" cy="${y - 5}" r="2.2" fill="#b8c0c7"/>`);
+  return s;
+}
+BFY_FIG_EKLE('sfA14_rc', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="262" rx="14" fill="#f5f3fa"/>`;
+  const sat = (y, ad) => {
+    let r = `<rect class="bg" x="8" y="${y}" width="324" height="12" rx="3" fill="#cfd3d6"/><line class="bg" x1="14" y1="${y + 6}" x2="326" y2="${y + 6}" stroke="#fff" stroke-width="1.6" stroke-dasharray="10 8"/>`;
+    return r + yaz(14, y - 84, ad, { fill: MOR, weight: 800 });
+  };
+  const K = 6; // 1 m/s = 6 px
+  // 1. sıra: gidiş, 0–3 s
+  s += sat(108, 'Yavaşlıyor');
+  [[0, 6], [1, 4], [2, 2], [3, 0]].forEach(([t, v], i) => {
+    const x = 40 + i * 82;
+    s += yaz(x, 50, `t = ${t} s`, { anchor: 'middle', fill: P.ink2 });
+    s += araba(x, 106, 1);
+    if (v) s += ok(x + 22, 92, x + 22 + v * K, 92, MAV, 3);
+    s += yaz(v ? x + 22 + v * K / 2 : x, 74, v ? `${v} m/s` : 'ϑ = 0', { anchor: 'middle', fill: v ? MAV : P.ink, weight: 800 });
+  });
+  // 2. sıra: dönüş, 3–5 s (sağdan sola)
+  s += sat(222, 'Geri dönüp hızlanıyor');
+  [[3, 0], [4, 2], [5, 4]].forEach(([t, v], i) => {
+    const x = 286 - i * 96;
+    s += yaz(x, 164, `t = ${t} s`, { anchor: 'middle', fill: P.ink2 });
+    s += araba(x, 220, 1);
+    if (v) s += ok(x - 22, 206, x - 22 - v * K, 206, MAV, 3);
+    s += yaz(v ? x - 22 - v * K / 2 : x, 188, v ? `${v} m/s` : 'ϑ = 0', { anchor: 'middle', fill: v ? MAV : P.ink, weight: 800 });
+  });
+  // yön ve ivme
+  s += ok(270, 20, 318, 20, P.ink, 2.2) + yaz(266, 25, 'doğu (+)', { anchor: 'end', fill: P.ink });
+  s += ok(118, 250, 62, 250, KIR, 3) + yaz(126, 255, 'a = 2 m/s², hep batıya', { fill: KIR, weight: 800 });
+  return svg(340, 262, s, u, 90);
+});
+
+/* Adım 4: kuyuya bırakılan taş, 0, 1 ve 2. saniyedeki konum ve hız */
+BFY_FIG_EKLE('sfA14_kuyu', function (u) {
+  let s = `<defs><pattern id="${u}tas" width="26" height="16" patternUnits="userSpaceOnUse"><rect width="26" height="16" fill="#c9bda6"/><path d="M0 0 H26 M0 8 H26 M8 0 V8 M21 8 V16" stroke="#9c8e74" stroke-width="1.2"/></pattern>
+  <linearGradient id="${u}ic" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a5248"/><stop offset="1" stop-color="#2c2823"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="300" rx="14" fill="url(#${u}sky)"/>`;
+  const X1 = 128, X2 = 208, Y0 = 62, M = 10, YS = Y0 + 20 * M, Y1 = Y0 + 8 + (YS - Y0 - 8) / 4;
+  // toprak ve çim
+  s += `<rect class="bg" x="0" y="${Y0}" width="340" height="${300 - Y0}" fill="url(#${u}soil)"/><rect class="bg" x="0" y="${Y0 - 4}" width="340" height="6" fill="#7fae5f"/>`;
+  // kuyu iç boşluğu ve taş duvarı
+  s += `<rect x="${X1 - 12}" y="${Y0}" width="12" height="${300 - Y0}" fill="url(#${u}tas)"/><rect x="${X2}" y="${Y0}" width="12" height="${300 - Y0}" fill="url(#${u}tas)"/>`;
+  s += `<rect x="${X1}" y="${Y0}" width="${X2 - X1}" height="${YS - Y0}" fill="url(#${u}ic)"/>`;
+  s += `<rect x="${X1}" y="${YS}" width="${X2 - X1}" height="${300 - YS}" fill="url(#${u}water)"/><path d="M${X1} ${YS} q10 -3 20 0 t20 0 t20 0 t20 0" stroke="#d7eefb" stroke-width="1.6" fill="none"/>`;
+  // bilezik (kuyu ağzı)
+  s += `<rect x="${X1 - 22}" y="${Y0 - 26}" width="${X2 - X1 + 44}" height="26" rx="4" fill="url(#${u}tas)" stroke="#857a64" stroke-width="1.3"/>`;
+  s += `<rect x="${X1 - 26}" y="${Y0 - 32}" width="${X2 - X1 + 52}" height="8" rx="3" fill="#b3a68c" stroke="#857a64" stroke-width="1.2"/>`;
+  // taşlar ve hız okları
+  const tas = (y, a) => `<ellipse cx="${(X1 + X2) / 2 - 10}" cy="${y}" rx="8" ry="6.5" fill="#8d8f8c" stroke="#55585a" stroke-width="1.1" opacity="${a}"/><ellipse cx="${(X1 + X2) / 2 - 12}" cy="${y - 2}" rx="3" ry="2" fill="#fff" opacity=".45"/>`;
+  const cx = (X1 + X2) / 2 - 10;
+  s += tas(Y0 + 8, 1) + tas(Y1, 1) + tas(YS - 7, 1);
+  s += ok(cx + 26, Y1 - 4, cx + 26, Y1 + 26, '#7fd0ff', 3) + ok(cx + 26, YS - 66, cx + 26, YS - 6, '#7fd0ff', 3);
+  // sol: zaman ve hız
+  const sol = (y, a, b) => yaz(X1 - 30, y, a, { anchor: 'end', weight: 800 }) + (b ? yaz(X1 - 30, y + 18, b, { anchor: 'end', fill: MAV, weight: 800 }) : '');
+  s += sol(Y0 + 12, 't = 0', 'ϑ = 0') + sol(Y1 + 4, 't = 1 s', '10 m/s') + sol(YS - 10, 't = 2 s', '20 m/s');
+  [Y0 + 8, Y1, YS - 2].forEach(y => s += dashLine(X1 - 26, y, X1 - 2, y, P.ink2, '3 3', 1.1));
+  // sağ: ölçüler
+  const olc = (x, y1, y2, l) => `<g stroke="${P.ink}" stroke-width="1.3"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/><line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}"/><line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}"/></g>` + yaz(x + 9, (y1 + y2) / 2 + 5, l, { weight: 800 });
+  s += olc(X2 + 30, Y0 + 8, Y1, '5 m') + olc(X2 + 76, Y0 + 8, YS, '20 m');
+  s += dashLine(X2 + 14, Y1, X2 + 34, Y1, P.ink2, '3 3', 1.1);
+  s += yaz(X2 + 30, YS + 26, 'su', { fill: '#1d5a86', weight: 800 });
+  return svg(340, 300, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -8638,6 +8778,211 @@ const KONU = {
     'çatı saçağından kopan buz parçası 1,8 m\'lik pencerenin önünden 0,2 s\'de geçiyor: üst kenarın 3,2 m yukarısından',
     "film setinde raydaki kamera arabası ϑ-t: −4 → +4 m/s (0–4 s), sonra +4 m/s; 2 s'de −4 m, 4 s'de işarette, 6 s'de +8 m (yorumlama eki, I-II-III)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hızı düzenli olarak değişen cisimleri ve havada düşen cisimleri inceleyeceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Hız her saniye aynı miktarda değişir',
+        metin: r`Pistin başında duran bir yolcu uçağı kalkış için hızlanıyor. Hızı her saniye 2 m/s artıyor:
+- 1 s sonra 2 m/s, 2 s sonra 4 m/s, 3 s sonra 6 m/s.
+
+Hız her saniye aynı miktarda değişiyorsa cisim **sabit ivmeli** hareket yapar. Bu uçağın ivmesi $a = 2\ \text{m/s}^2$'dir.
+
+Cisim başta $\vartheta_0$ hızıyla gidiyorsa $t$ saniye sonraki hızı şöyle bulunur:
+$\vartheta = \vartheta_0 + a \times t$.
+
+Uçak durgun başladığı için $\vartheta_0 = 0$'dır. 40 s sonra hızı $0 + 2 \times 40 = 80$ m/s olur.`,
+        kontrol: {
+          soru: 'Bir banliyö treni 4 m/s hızla giderken 1 m/s² sabit ivmeyle hızlanmaya başlıyor. 6 s sonra trenin hızı kaç m/s olur?',
+          secenekler: ['10 m/s', '6 m/s', '24 m/s'],
+          dogru: 0,
+          aciklama: r`$\vartheta = \vartheta_0 + a \times t = 4 + 1 \times 6 = 10$ m/s. Tren her saniye 1 m/s hız kazandı; 6 s'de hızına 6 m/s eklendi.`,
+          yanlisIpucu: 'Tren durgun hâlden başlamıyor. İlk hıza, 6 s boyunca kazandığı hızı ekle.'
+        }
+      },
+      {
+        baslik: 'Hız-zaman grafiği: eğim ve alan',
+        sekil: 'sfA14_sorf',
+        metin: r`Bir rüzgâr sörfçüsü 2 m/s hızla giderken rüzgâr güçleniyor. Sörfçünün hızı 3 s içinde düzgün olarak 8 m/s'ye çıkıyor. Şekil, bu 3 saniyenin hız-zaman grafiğidir.
+
+- **Eğim ivmeyi verir:** $a = \dfrac{\Delta\vartheta}{\Delta t} = \dfrac{8 - 2}{3} = 2\ \text{m/s}^2$.
+- **Alan yer değiştirmeyi verir:** Grafiğin altındaki boyalı bölge bir yamuktur.
+
+Sabit ivmede ortalama hız, ilk ve son hızın ortalamasıdır: $\vartheta_\text{ort} = \dfrac{2 + 8}{2} = 5$ m/s. Yamuğun alanı da ortalama hız ile sürenin çarpımına eşittir.`,
+        kontrol: {
+          soru: 'Sörfçü bu 3 saniyede kaç metre yer değiştirmiştir?',
+          secenekler: ['24 m', '9 m', '15 m'],
+          dogru: 2,
+          aciklama: r`Alan = ortalama hız × süre = $5 \times 3 = 15$ m. Yamuğu bir dikdörtgen ($2 \times 3 = 6$ m) ve bir üçgen ($\dfrac{1}{2} \times 3 \times 6 = 9$ m) olarak da toplayabilirsin: $6 + 9 = 15$ m.`,
+          yanlisIpucu: 'Son hızı süreyle çarpma; sörfçü 3 s boyunca hep 8 m/s ile gitmedi. Boyalı alanın tamamını hesapla.'
+        }
+      },
+      {
+        baslik: 'Hız ile ivme zıtsa cisim yavaşlar',
+        sekil: 'sfA14_rc',
+        metin: r`Ece, uzaktan kumandalı arabasını düz bir yolda doğuya 6 m/s hızla sürüyor. Sonra kumandada geri tuşuna basıyor. Araba bu andan sonra batıya doğru 2 m/s² sabit ivme kazanıyor. Doğuyu $+$ seçelim: $\vartheta_0 = +6$ m/s, $a = -2\ \text{m/s}^2$.
+
+- Hız ile ivmenin işaretleri zıt olduğu için araba yavaşlar. Hızı her saniye 2 m/s azalır: 6, 4, 2, 0.
+- 3. saniyenin sonunda araba bir an durur.
+- İvme hâlâ batıya doğrudur. Araba bu kez batıya doğru hızlanır: 1 s sonra 2 m/s, 2 s sonra 4 m/s.
+
+İvme hiç yön değiştirmedi; değişen, hızın yönüdür. Hız ile ivme aynı yöndeyse cisim hızlanır, zıt yöndeyse yavaşlar.`,
+        kontrol: {
+          soru: 'Geri tuşuna basıldıktan 5 s sonra arabanın hızı nedir?',
+          secenekler: ['16 m/s, doğuya', '4 m/s, batıya', '4 m/s, doğuya'],
+          dogru: 1,
+          aciklama: r`$\vartheta = 6 + (-2) \times 5 = -4$ m/s. Eksi işareti hızın batıya doğru olduğunu söyler. Araba 3 s'de durdu, sonraki 2 s'de batıya doğru 4 m/s hız kazandı.`,
+          yanlisIpucu: 'İvmenin işareti eksi. Her saniye hızdan 2 m/s çıkar; sonuç sıfırın altına inerse araba batıya gidiyor demektir.'
+        }
+      },
+      {
+        baslik: 'Serbest düşme: hız her saniye 10 m/s artar',
+        sekil: 'sfA14_kuyu',
+        metin: r`Eski bir köy kuyusunun ağzından içeri küçük bir taş bırakılıyor. Hava direncini önemsemiyoruz. Taşa yalnız ağırlığı etki eder ve taş $g = 10\ \text{m/s}^2$ ivmesiyle düşer. Buna **serbest düşme** denir.
+
+- Hızı her saniye 10 m/s artar: $\vartheta = g \times t$. 1 s sonra 10 m/s, 2 s sonra 20 m/s olur.
+- Düştüğü yükseklik: $h = \dfrac{1}{2} \times g \times t^2$. Taş 1 s'de 5 m, 2 s'de 20 m düşer.
+
+Taş 2 s sonra suya çarpıyorsa suyun yüzeyi kuyunun ağzından 20 m aşağıdadır. (Sesin yukarı gelme süresini önemsemiyoruz.)
+
+Hava direnci yoksa düşüş kütleye bağlı değildir. Aynı anda bırakılan büyük ve küçük iki taş suya aynı anda ulaşır.`,
+        kontrol: {
+          soru: 'Başka bir kuyuda bırakılan taş 3 s sonra suya ulaşıyor. Suyun yüzeyi kuyunun ağzından kaç metre aşağıdadır?',
+          secenekler: ['30 m', '15 m', '45 m'],
+          dogru: 2,
+          aciklama: r`$h = \dfrac{1}{2} \times 10 \times 3^2 = 5 \times 9 = 45$ m. Taşın hızı her saniye arttığı için yalnız 3. saniyede 25 m yol alır.`,
+          yanlisIpucu: r`Taş sabit hızla düşmüyor; hızı her saniye artıyor. $h = \dfrac{1}{2} \times g \times t^2$ bağıntısında süreyi karesiyle kullan.`
+        }
+      },
+      {
+        baslik: 'Hava direnci ve limit hız',
+        metin: r`Gerçekte hava, düşen cisme hareketine zıt yönde bir **direnç kuvveti** ($F_d$) uygular. Bu kuvvet cismin sürati arttıkça büyür. Aynı süratte, kesit alanı büyük olan cisimde daha büyüktür.
+
+Bir model roket en yüksek noktada bir an duruyor, paraşütünü açıyor ve inmeye başlıyor. Roketin ağırlığı 4 N'dur.
+- İnişin başında sürat küçüktür; direnç kuvveti 4 N'dan küçüktür. Net kuvvet aşağı doğrudur ve roket hızlanır.
+- Sürat arttıkça direnç büyür; net kuvvet ve ivme küçülür.
+- Direnç kuvveti 4 N'a, yani ağırlığa eşit olunca net kuvvet sıfır olur. Roket bundan sonra sabit hızla iner. Bu hıza **limit hız** denir.`,
+        kontrol: {
+          soru: 'Roket inerken sürati limit hıza yaklaştıkça ivmesi nasıl değişir?',
+          secenekler: ['Azalır.', 'Artar.', 'Değişmez.'],
+          dogru: 0,
+          aciklama: r`Sürat arttıkça direnç kuvveti büyür. Net kuvvet ($G - F_d$) küçülür, ivme de onunla birlikte azalır. Limit hızda ivme sıfır olur.`,
+          yanlisIpucu: 'Hızlanan bir cismin ivmesi her zaman artmaz. Net kuvvete bak: Direnç büyüdükçe net kuvvet ne olur?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Hemzemin geçitte duran kamyon',
+        metin: r`Bir kamyon düz bir yolda 12 m/s hızla giderken hemzemin geçidin bariyerinin indiğini görüyor. Sürücü frene basıyor ve kamyon düzgün yavaşlayarak 4 s'de duruyor. Kamyonun ne kadar yolda durduğunu bulacağız. Hareket yönü $+$ yöndür. (Sürücünün frene basana kadar geçen süresini önemsemiyoruz.)`,
+        adimlar: [
+          {
+            soru: 'Kamyonun ivmesi kaç m/s²\'dir?',
+            secenekler: ['−3 m/s²', '+3 m/s²', '−12 m/s²'],
+            dogru: 0,
+            ipucu: r`$a = \dfrac{\Delta\vartheta}{\Delta t} = \dfrac{0 - 12}{4}$. Hız değişimini süreye bölmeyi unutma.`,
+            aciklama: r`$a = \dfrac{0 - 12}{4} = -3\ \text{m/s}^2$. Eksi işareti ivmenin harekete zıt olduğunu, yani kamyonun yavaşladığını gösterir. $-12$ m/s² hız değişimidir, ivme değildir.`
+          },
+          {
+            soru: 'Fren boyunca kamyonun ortalama hızı kaç m/s\'dir?',
+            secenekler: ['12 m/s', '6 m/s', '3 m/s'],
+            dogru: 1,
+            ipucu: 'Sabit ivmede ortalama hız, ilk ve son hızın ortalamasıdır.',
+            aciklama: r`$\vartheta_\text{ort} = \dfrac{12 + 0}{2} = 6$ m/s.`
+          },
+          {
+            soru: 'Kamyon frene bastığı andan durana kadar kaç m yol alır?',
+            secenekler: ['48 m', '12 m', '24 m'],
+            dogru: 2,
+            ipucu: 'Ortalama hızı süreyle çarp.',
+            aciklama: r`$6 \times 4 = 24$ m. Zamansız hız bağıntısıyla da kontrol edebilirsin: $0 = 12^2 + 2 \times (-3) \times x$, buradan $x = \dfrac{144}{6} = 24$ m.`
+          },
+          {
+            soru: 'Kamyon 24 m/s hızla gelseydi ve aynı ivmeyle yavaşlasaydı kaç metrede dururdu?',
+            secenekler: ['48 m', '96 m', '192 m'],
+            dogru: 1,
+            ipucu: r`$\vartheta^2 = \vartheta_0^2 + 2 \times a \times x$ bağıntısında son hız sıfırdır. İlk hız 2 katına çıkınca $\vartheta_0^2$ kaç katına çıkar?`,
+            aciklama: r`$0 = 24^2 + 2 \times (-3) \times x$, buradan $x = \dfrac{576}{6} = 96$ m. Hız 2 katına çıktı, durma yolu 4 katına çıktı.`
+          }
+        ],
+        sonuc: 'Durma yolu hızla değil, hızın karesiyle büyür. Hızı iki katına çıkan araç, aynı frenle dört kat uzun yolda durur.'
+      },
+      {
+        baslik: 'İki durak arasında tramvay',
+        sekil: 'sfA14_tramvay',
+        metin: r`Bir tramvay duraktan kalkıp bir sonraki durakta duruyor. Şekil, tramvayın hız-zaman grafiğidir: 10 s'de 10 m/s'ye hızlanıyor, 30 s sabit hızla gidiyor, son 10 s'de duruyor.`,
+        adimlar: [
+          {
+            soru: 'İlk 10 saniyede tramvayın ivmesi kaç m/s²\'dir?',
+            secenekler: ['100 m/s²', '1 m/s²', '10 m/s²'],
+            dogru: 1,
+            ipucu: 'İvme, hız-zaman doğrusunun eğimidir: hız değişimini süreye böl.',
+            aciklama: r`$a = \dfrac{10 - 0}{10} = 1\ \text{m/s}^2$. Tramvay her saniye 1 m/s hız kazanıyor.`
+          },
+          {
+            soru: '40. ve 50. saniyeler arasında ivme kaç m/s²\'dir?',
+            secenekler: ['−1 m/s²', '+1 m/s²', '−10 m/s²'],
+            dogru: 0,
+            ipucu: 'Hız 10 s içinde 10 m/s\'den 0\'a iniyor. Hız azalıyorsa ivmenin işareti ne olur?',
+            aciklama: r`$a = \dfrac{0 - 10}{10} = -1\ \text{m/s}^2$. İvme harekete zıt, tramvay yavaşlıyor. Hız hâlâ pozitiftir: Tramvay geri gitmiyor.`
+          },
+          {
+            soru: 'İki durak arası kaç m\'dir?',
+            secenekler: ['500 m', '300 m', '400 m'],
+            dogru: 2,
+            ipucu: 'Grafiğin altındaki alanı üç parçada topla: üçgen, dikdörtgen, üçgen.',
+            aciklama: r`$\dfrac{1}{2} \times 10 \times 10 + 30 \times 10 + \dfrac{1}{2} \times 10 \times 10 = 50 + 300 + 50 = 400$ m.`
+          },
+          {
+            soru: 'Tramvayın bu yolculuktaki ortalama hızı kaç m/s\'dir?',
+            secenekler: ['10 m/s', '8 m/s', '5 m/s'],
+            dogru: 1,
+            ipucu: 'Ortalama hız, toplam yer değiştirmenin toplam süreye oranıdır. Toplam süre 50 s.',
+            aciklama: r`$\vartheta_\text{ort} = \dfrac{400}{50} = 8$ m/s. $\dfrac{0 + 10}{2} = 5$ m/s yalnız ivmenin hep aynı kaldığı bir bölüm için doğrudur; bu yolculukta ivme iki kez değişti.`
+          }
+        ],
+        sonuc: 'Hız-zaman grafiğinde eğim ivmeyi, alan yer değiştirmeyi verir. Birkaç bölümlü bir harekette ortalama hızı her zaman toplam yer değiştirmeyi toplam süreye bölerek bul.'
+      },
+      {
+        baslik: 'Paraşütünü açan paraşütçü',
+        metin: r`Ekipmanıyla birlikte kütlesi 80 kg olan bir paraşütçü, havada asılı duran bir helikopterden atlıyor. Bir süre paraşütü kapalı düşüyor ve limit hıza ulaşıyor. Sonra paraşütünü açıyor. Hava direnci süratle ve kesit alanıyla artar.`,
+        adimlar: [
+          {
+            soru: 'Atladığı ilk anda paraşütçünün sürati sıfırdır. Bu anda ivmesi kaç m/s² olur?',
+            secenekler: ['0', '10 m/s²', '80 m/s²'],
+            dogru: 1,
+            ipucu: 'Sürat sıfırken hava direnci de sıfırdır. Paraşütçüye yalnız ağırlığı etki eder.',
+            aciklama: r`Direnç yokken net kuvvet ağırlıktır: $a = \dfrac{80 \times 10}{80} = 10\ \text{m/s}^2$. İlk an serbest düşmeyle aynıdır.`
+          },
+          {
+            soru: 'Paraşüt kapalıyken limit hızla düşerken hava direnci kaç N\'dur?',
+            secenekler: ['800 N', '0', '1600 N'],
+            dogru: 0,
+            ipucu: 'Limit hızda ivme sıfırdır. Net kuvvetin sıfır olması için direnç ne kadar olmalı?',
+            aciklama: r`Sabit hızda net kuvvet sıfırdır: $F_d = G = 80 \times 10 = 800$ N.`
+          },
+          {
+            soru: 'Paraşüt açıldığı anda paraşütçünün hareketi nasıl değişir?',
+            secenekler: ['Hızlanmaya başlar.', 'Hızı değişmez.', 'Yavaşlar.'],
+            dogru: 2,
+            ipucu: 'Paraşüt açılınca kesit alanı çok büyür. Aynı süratte direnç kuvveti ağırlıktan büyük mü, küçük mü olur?',
+            aciklama: 'Kesit alanı büyüyünce aynı süratte direnç 800 N\'dan çok büyük olur. Net kuvvet yukarı doğru olur. Paraşütçü hâlâ aşağı iner ama yavaşlar.'
+          },
+          {
+            soru: 'Paraşütçü sonunda yeni, küçük bir limit hızla sabit iniyor. Bu sırada hava direnci kaç N\'dur?',
+            secenekler: ['800 N\'dan büyük', '800 N', '800 N\'dan küçük'],
+            dogru: 1,
+            ipucu: 'Sabit hızla inen cismin ivmesi ve net kuvveti kaçtır?',
+            aciklama: r`Yine sabit hız, yine net kuvvet sıfır: $F_d = 800$ N. Paraşüt açıkken bu dengeye çok daha küçük bir süratte ulaşılır.`
+          }
+        ],
+        sonuc: 'Limit hızda direnç kuvveti her zaman ağırlığa eşittir; paraşütün açık ya da kapalı olması bunu değiştirmez. Kesit alanı, bu dengeye hangi süratte ulaşılacağını belirler.'
+      }
+    ],
+    hazir: 'Sabit ivmeli hareketi, hız-zaman grafiğini, yavaşlayıp geri dönen cismi, serbest düşmeyi ve limit hızı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -10330,6 +10675,139 @@ BFY_FIG_EKLE('iA15_tanim', u => I0.sahne(u, Ib => {
 }, { w: 320, h: 150, mm: 110, ox: 162, oy: 92, s: 0.74 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.5 başlangıç şekilleri (sfA15_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', MOR = '#6b4fa8', KIR = '#d24b3e', YES = '#2f8f5b';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const olcV = (x, y1, y2, l, sag = true) => `<g stroke="${P.ink}" stroke-width="1.3"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/><line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}"/><line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}"/></g>` + yaz(sag ? x + 8 : x - 8, (y1 + y2) / 2 + 5, l, { weight: 800, anchor: sag ? 'start' : 'end' });
+const yol = pts => `<polyline points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="${P.ink2}" stroke-width="1.8" stroke-dasharray="6 5"/>`;
+
+function pelikan(x, y, a = 1) {
+  // x, y: gövde ortası; sağa uçar
+  let s = `<g opacity="${a}">`;
+  s += `<path d="M${x - 30} ${y - 2} Q${x - 10} ${y - 30} ${x + 12} ${y - 6} Z" fill="#dfe4e8" stroke="#7d868d" stroke-width="1"/>`;
+  s += `<ellipse cx="${x}" cy="${y}" rx="22" ry="9" fill="#f7f7f4" stroke="#8a949c" stroke-width="1.1"/>`;
+  s += `<path d="M${x - 22} ${y} L${x - 34} ${y - 5} L${x - 32} ${y + 5} Z" fill="#e6e6e0" stroke="#8a949c" stroke-width=".9"/>`;
+  s += `<circle cx="${x + 22}" cy="${y - 7}" r="6.5" fill="#f7f7f4" stroke="#8a949c" stroke-width="1"/><circle cx="${x + 24}" cy="${y - 8}" r="1.4" fill="#2a3330"/>`;
+  s += `<path d="M${x + 27} ${y - 8} L${x + 52} ${y - 3} L${x + 28} ${y - 3} Z" fill="#e8a33b" stroke="#a86d1a" stroke-width=".9"/>`;
+  s += `<path d="M${x + 28} ${y - 3} Q${x + 38} ${y + 6} ${x + 48} ${y - 2}" fill="#f2c27a" stroke="#a86d1a" stroke-width=".8"/>`;
+  s += `<path d="M${x - 14} ${y - 4} Q${x - 4} ${y - 34} ${x + 10} ${y - 4} Z" fill="#c9d0d5" stroke="#7d868d" stroke-width="1"/>`;
+  return s + '</g>';
+}
+function balik(x, y, a = 1) {
+  return `<g opacity="${a}"><ellipse cx="${x}" cy="${y}" rx="10" ry="4.5" fill="#b8c7d1" stroke="#5f7380" stroke-width="1"/><path d="M${x - 9} ${y} L${x - 17} ${y - 5} L${x - 17} ${y + 5} Z" fill="#8fa3b0" stroke="#5f7380" stroke-width=".9"/><circle cx="${x + 6}" cy="${y - 1}" r="1.2" fill="#2a3330"/></g>`;
+}
+
+/* Adım 2: pelikanın düşürdüğü balık (yatay atış) */
+BFY_FIG_EKLE('sfA15_pelikan', function (u) {
+  const M = 10, MX = 15, X0 = 58, Y0 = 92, YS = Y0 + 20 * M;
+  let s = `<rect class="bg" x="0" y="0" width="340" height="330" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${YS}" width="340" height="${330 - YS}" fill="url(#${u}water)"/>`;
+  [[30, YS + 14], [150, YS + 26], [250, YS + 12]].forEach(([x, y]) => s += `<path class="bg" d="M${x} ${y} q8 -4 16 0 t16 0" stroke="#d7eefb" stroke-width="1.5" fill="none"/>`);
+  // balığın yolu ve konumları (düşeyde 1 m = 10 px, yatayda 1 m = 15 px)
+  const yer = t => [X0 + 6 * t * MX, Y0 + 5 * t * t * M];
+  const pts = []; for (let i = 0; i <= 20; i++) pts.push(yer(i / 10));
+  s += yol(pts);
+  [0, 1, 2].forEach(t => {
+    const [x, y] = yer(t);
+    s += dashLine(x, 70, x, y - 8, P.ink2, '2 4', 1);
+    s += pelikan(x - 8, 58, t === 0 ? 1 : 0.35);
+    s += balik(x, t === 2 ? y - 5 : y, 1);
+  });
+  s += yaz(yer(0)[0] - 8, Y0 + 24, 't = 0', { anchor: 'middle', weight: 800 });
+  s += yaz(yer(1)[0] + 16, yer(1)[1] + 5, 't = 1 s', { weight: 800 });
+  s += yaz(yer(2)[0] - 16, yer(2)[1] - 6, 't = 2 s', { weight: 800, anchor: 'end' });
+  s += ok(18, 20, 58, 20, MAV, 2.6) + yaz(64, 25, 'yatay hız: 6 m/s', { fill: MAV, weight: 800 });
+  s += olcV(312, Y0, YS, '20 m', false);
+  s += dashLine(272, Y0, 318, Y0, P.ink2, '3 3', 1.1);
+  return svg(340, 330, s, u, 90);
+});
+
+/* Adım 3–5: golf vuruşu, ilk hızın bileşenleri ve yörünge */
+function golfTop(x, y) {
+  return `<circle cx="${f1(x)}" cy="${f1(y)}" r="4.6" fill="#fdfdfb" stroke="#6d767d" stroke-width="1"/><circle cx="${f1(x - 1.4)}" cy="${f1(y - 1.4)}" r="1.4" fill="#fff"/>`;
+}
+BFY_FIG_EKLE('sfA15_golf', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="224" rx="14" fill="url(#${u}sky)"/>`;
+  const GY = 176, X0 = 70, K = 4.2; // 1 m = 4,2 px
+  s += `<rect class="bg" x="0" y="${GY}" width="340" height="${224 - GY}" fill="url(#${u}grass)"/>`;
+  for (let i = 0; i < 9; i++) s += `<line class="bg" x1="${20 + i * 38}" y1="${GY + 6}" x2="${10 + i * 38}" y2="${GY + 40}" stroke="#a6cf89" stroke-width="1.3" opacity=".7"/>`;
+  // aşılacak ağaç (yaklaşık 9 m, yörüngenin altında)
+  const ax0 = 262;
+  s += `<rect x="${ax0 - 4}" y="${GY - 16}" width="8" height="16" fill="#7a5638" stroke="#4f3622" stroke-width="1"/>`;
+  s += `<ellipse cx="${ax0}" cy="${GY - 28}" rx="17" ry="14" fill="#4f8f45" stroke="#2f6a2c" stroke-width="1.1"/><ellipse cx="${ax0 - 5}" cy="${GY - 33}" rx="7" ry="5" fill="#7bb86a" opacity=".7"/>`;
+  // yörünge: x = 15 t, y = 20 t − 5 t²
+  const pts = []; for (let i = 0; i <= 40; i++) { const t = i / 10; pts.push([X0 + 15 * t * K, GY - (20 * t - 5 * t * t) * K]); }
+  s += yol(pts);
+  // golfçü (vuruş anı: sopanın başı topun hemen arkasında)
+  const hx = X0 - 32;
+  s += `<ellipse cx="${hx + 2}" cy="${GY + 1}" rx="18" ry="3" fill="#000" opacity=".15"/>`;
+  s += `<path d="M${hx - 3} ${GY - 32} L${hx - 8} ${GY - 3} M${hx + 3} ${GY - 32} L${hx + 7} ${GY - 17} L${hx + 4} ${GY - 3}" stroke="#3a4a5e" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+  s += `<path d="M${hx - 8} ${GY - 2} l7 0 M${hx + 4} ${GY - 2} l8 0" stroke="#f2efe6" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<path d="M${hx - 7} ${GY - 34} L${hx + 6} ${GY - 34} L${hx + 13} ${GY - 60} Q${hx + 6} ${GY - 65} ${hx - 1} ${GY - 59} Z" fill="#2f8f5b" stroke="#1f6a40" stroke-width="1"/>`;
+  s += `<circle cx="${hx + 11}" cy="${GY - 70}" r="7.5" fill="url(#${u}skin)" stroke="#8a6a50" stroke-width=".9"/>`;
+  s += `<path d="M${hx + 3} ${GY - 72} Q${hx + 10} ${GY - 82} ${hx + 18} ${GY - 73} L${hx + 25} ${GY - 71} L${hx + 3} ${GY - 71} Z" fill="#f2efe6" stroke="#9aa3aa" stroke-width=".8"/>`;
+  s += `<path d="M${hx + 9} ${GY - 58} Q${hx + 12} ${GY - 46} ${hx + 15} ${GY - 38}" stroke="url(#${u}skin)" stroke-width="5" stroke-linecap="round" fill="none"/>`;
+  s += `<line x1="${hx + 15}" y1="${GY - 38}" x2="${X0 - 8}" y2="${GY - 5}" stroke="#4d565c" stroke-width="2.4" stroke-linecap="round"/><path d="M${X0 - 14} ${GY - 2} L${X0 - 5} ${GY - 2} L${X0 - 5} ${GY - 8} Z" fill="#9aa3aa" stroke="#4d565c" stroke-width="1"/>`;
+  s += golfTop(X0, GY - 5);
+  // ilk hız ve bileşenleri (1 m/s = 3 px)
+  const ax = X0, ay = GY - 5, H = 3;
+  s += dashLine(ax + 15 * H, ay, ax + 15 * H, ay - 20 * H, P.ink2, '3 3', 1.1) + dashLine(ax, ay - 20 * H, ax + 15 * H, ay - 20 * H, P.ink2, '3 3', 1.1);
+  s += ok(ax, ay, ax + 15 * H, ay, YES, 2.8) + ok(ax, ay, ax, ay - 20 * H, KIR, 2.8) + ok(ax, ay, ax + 15 * H, ay - 20 * H, MAV, 3.2);
+  s += yaz(ax + 52, ay - 46, '25 m/s', { fill: MAV, weight: 800 });
+  s += yaz(ax + 8, ay - 64, '20 m/s', { fill: KIR, weight: 800 });
+  s += yaz(ax + 46, ay + 20, '15 m/s', { fill: YES, weight: 800, anchor: 'middle' });
+  s += `<path d="M${ax + 20} ${ay} A20 20 0 0 0 ${f1(ax + 20 * 0.6)} ${f1(ay - 20 * 0.8)}" fill="none" stroke="${P.ink}" stroke-width="1.3"/>` + yaz(ax + 24, ay - 10, '53°', { weight: 800 });
+  // tepe noktası
+  const tx = X0 + 30 * K, ty = GY - 20 * K;
+  s += golfTop(tx, ty);
+  s += ok(tx + 8, ty, tx + 8 + 15 * H, ty, YES, 2.8) + yaz(tx + 30, ty - 10, 'yalnız ϑ_x', { fill: YES, weight: 800, anchor: 'middle' });
+  s += yaz(tx, ty - 30, 'tepe noktası', { anchor: 'middle', fill: MOR, weight: 800 });
+  s += dashLine(tx, ty + 6, tx, GY, MOR, '4 4', 1.3) + yaz(tx + 6, (ty + GY) / 2 + 5, 'h_{max}', { fill: MOR, weight: 800 });
+  // menzil
+  const xm = X0 + 60 * K;
+  s += golfTop(xm, GY - 5);
+  s += `<g stroke="${P.ink}" stroke-width="1.3"><line x1="${X0}" y1="${GY + 24}" x2="${xm}" y2="${GY + 24}"/><line x1="${X0}" y1="${GY + 18}" x2="${X0}" y2="${GY + 30}"/><line x1="${xm}" y1="${GY + 18}" x2="${xm}" y2="${GY + 30}"/></g>`;
+  s += yaz((X0 + xm) / 2, GY + 42, 'menzil', { anchor: 'middle', weight: 800 });
+  return svg(340, 224, s, u, 90);
+});
+
+/* Isınma 2: gemiden yatay atılan can simidi */
+BFY_FIG_EKLE('sfA15_simit', function (u) {
+  const M = 18, DY = 116, SY = DY + 5 * M, HX = 112;
+  let s = `<rect class="bg" x="0" y="0" width="340" height="270" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="${SY}" width="340" height="${270 - SY}" fill="url(#${u}water)"/>`;
+  [[150, SY + 18], [210, SY + 56], [290, SY + 14]].forEach(([x, y]) => s += `<path class="bg" d="M${x} ${y} q8 -4 16 0 t16 0" stroke="#d7eefb" stroke-width="1.5" fill="none"/>`);
+  // gemi gövdesi (yandan) ve güverte
+  s += `<path d="M0 ${DY} L${HX} ${DY} L${HX - 14} ${SY + 24} L0 ${SY + 24} Z" fill="#2f4f6a" stroke="#1d3244" stroke-width="1.4"/>`;
+  s += `<rect x="0" y="${SY - 10}" width="${HX - 9}" height="7" fill="#c8574a"/>`;
+  [24, 54, 84].forEach(x => s += `<circle cx="${x}" cy="${DY + 26}" r="6" fill="#d8ebf5" stroke="#1d3244" stroke-width="1.2"/>`);
+  s += `<rect x="6" y="${DY - 46}" width="58" height="46" rx="3" fill="#f2efe6" stroke="#8a949c" stroke-width="1.1"/>`;
+  [12, 32].forEach(x => s += `<rect x="${x}" y="${DY - 38}" width="14" height="12" rx="2" fill="url(#${u}glass)" stroke="#7d868d" stroke-width=".8"/>`);
+  s += `<line x1="${HX - 30}" y1="${DY}" x2="${HX - 30}" y2="${DY - 18}" stroke="#7d868d" stroke-width="2"/><line x1="${HX - 30}" y1="${DY - 18}" x2="${HX}" y2="${DY - 18}" stroke="#7d868d" stroke-width="2"/><line x1="${HX - 30}" y1="${DY - 9}" x2="${HX}" y2="${DY - 9}" stroke="#7d868d" stroke-width="1.4"/>`;
+  // denizci
+  const px = HX - 46;
+  s += `<circle cx="${px}" cy="${DY - 42}" r="7" fill="url(#${u}skin)" stroke="#8a6a50" stroke-width=".9"/><rect x="${px - 8}" y="${DY - 53}" width="16" height="5" rx="2" fill="#fff" stroke="#8a949c" stroke-width=".8"/>`;
+  s += `<path d="M${px} ${DY - 35} L${px} ${DY - 14} M${px} ${DY - 14} L${px - 6} ${DY} M${px} ${DY - 14} L${px + 6} ${DY} M${px} ${DY - 30} L${px + 22} ${DY - 22}" stroke="#2f4f6a" stroke-width="5" stroke-linecap="round" fill="none"/>`;
+  // can simidi: atış anı ve yol
+  const R = (x, y, a = 1) => `<g opacity="${a}"><circle cx="${x}" cy="${y}" r="10" fill="none" stroke="#e4572e" stroke-width="6"/><circle cx="${x}" cy="${y}" r="10" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="5 10.7"/></g>`;
+  const x0 = HX + 6, y0 = DY - 20;
+  const pts = []; for (let i = 0; i <= 20; i++) { const t = i / 20; pts.push([x0 + 8 * t * M, y0 + 5 * t * t * M]); }
+  s += yol(pts) + R(x0, y0) + R(x0 + 8 * M, SY - 4, 0.45);
+  s += ok(x0 + 14, y0 - 18, x0 + 62, y0 - 18, MAV, 2.8) + yaz(x0 + 68, y0 - 13, '8 m/s', { fill: MAV, weight: 800 });
+  s += olcV(HX + 52, y0, SY, '5 m');
+  s += dashLine(HX + 20, y0, HX + 58, y0, P.ink2, '3 3', 1.1);
+  s += yaz(x0 + 8 * M, SY + 34, 'x = ?', { anchor: 'middle', weight: 800, fill: P.ink });
+  return svg(340, 270, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -10389,6 +10867,202 @@ const KONU = {
     'buz pistinde ϑ ile kayan patenci Mert topu kendine göre ϑ ile atıyor: serbest düşme, düşey atış, yatay atış (olabilir)', 'tahıl silosu 37° boşaltma oluğu, 5 m/s eğik aşağı, kasa tabanı 3,6 m aşağıda, 2,4 m',
     'sensörlü futbol topu: tepede kinetik enerji %64, 37°, h_max / menzil = 3/16', 'beyzbol vuruşu 40 m/s, 53°: hızın ilk hıza dik olduğu an 5 s, sürat 30 m/s (hız vektörleri üçgeni)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda havaya atılan cisimlerin yolunu inceleyeceğiz: yukarı atılan, yatay atılan ve açıyla atılan cisimler. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Yukarı atılan cisim her saniye 10 m/s yavaşlar',
+        metin: r`Bir hokkabaz, gösterinin sonunda toplarından birini düşey yukarı 10 m/s hızla fırlatıyor. Hava direncini önemsemiyoruz. Top elden çıktıktan sonra ona yalnız ağırlığı etki eder. Topun ivmesi her an $g = 10\ \text{m/s}^2$ ve aşağı yönlüdür.
+
+- Çıkarken hız yukarı, ivme aşağı doğrudur. Top her saniye 10 m/s yavaşlar.
+- 10 m/s ile çıkan top 1 s sonra **tepe noktasında** bir an durur: $t_\text{çıkış} = \dfrac{\vartheta_0}{g}$.
+- Tepe noktasında hız sıfırdır ama ivme sıfır değildir; yine 10 m/s², aşağı doğru.
+- İnerken top aynı oranda hızlanır. Atıldığı yüksekliğe aynı süratle, bu kez aşağı doğru gelir.`,
+        kontrol: {
+          soru: 'Top, atıldığı yükseklikte yakalanıyor. Top elden çıktıktan kaç saniye sonra hokkabazın eline geri döner?',
+          secenekler: ['1 s', '2 s', '10 s'],
+          dogru: 1,
+          aciklama: 'Top 1 s\'de tepe noktasına çıkar, 1 s\'de geri iner. Çıkış ve iniş süreleri eşit olduğu için toplam süre 2 s\'dir. Top ele yine 10 m/s süratle gelir.',
+          yanlisIpucu: 'Tepeye çıkış süresini buldun mu? Top aynı yüksekliğe inmek için de o kadar süre harcar.'
+        }
+      },
+      {
+        baslik: 'Yatay atış: yatayda hız değişmez',
+        sekil: 'sfA15_pelikan',
+        metin: r`Bir pelikan, deniz yüzeyinden 20 m yükseklikte yatay doğrultuda 6 m/s hızla uçarken gagasındaki balığı düşürüyor. Balık, düştüğü anda pelikanla aynı yatay hıza sahiptir: 6 m/s. Hava direncini önemsemiyoruz.
+
+Balığın hareketini iki parçaya ayır:
+- **Yatayda** balığa hiçbir kuvvet etki etmez. Yatay hızı hep 6 m/s kalır; balık her saniye yatayda 6 m ilerler.
+- **Düşeyde** balık serbest düşer. 20 m'yi $h = \dfrac{1}{2} \times g \times t^2$ bağıntısına göre 2 s'de düşer.
+
+İki hareket birbirini bozmaz. Balık, aynı yükseklikten bırakılan durgun bir balıkla aynı anda suya ulaşır. Şekilde balığın hep pelikanın tam altında kaldığına da dikkat et.`,
+        kontrol: {
+          soru: 'Balık suya, düşürüldüğü noktanın yatayda kaç metre ilerisinde ulaşır?',
+          secenekler: ['20 m', '6 m', '12 m'],
+          dogru: 2,
+          aciklama: r`Balık 2 s havada kalır ve bu sürede yatayda hep 6 m/s hızla gider: $x = 6 \times 2 = 12$ m.`,
+          yanlisIpucu: 'Önce düşme süresini bul: Balık 20 m\'yi kaç saniyede düşer? Sonra yatay hızı bu süreyle çarp.'
+        }
+      },
+      {
+        baslik: 'Açıyla atış: hızı ikiye ayır',
+        sekil: 'sfA15_golf',
+        metin: r`Bir golfçü, önündeki ağaçların üstünden aşırmak için yerdeki topa yatayla $53°$ açı yapacak şekilde 25 m/s hızla vuruyor. Hava direncini önemsemiyoruz. Bu hızı iki bileşene ayırırız ($\sin 53° = \dfrac{4}{5}$, $\cos 53° = \dfrac{3}{5}$):
+- Yatay bileşen: $\vartheta_{0x} = 25 \times \cos 53° = 25 \times \dfrac{3}{5} = 15$ m/s.
+- Düşey bileşen: $\vartheta_{0y} = 25 \times \sin 53° = 25 \times \dfrac{4}{5} = 20$ m/s.
+
+Bundan sonra her bileşen kendi yolunda gider. Yatay bileşen hiç değişmez. Düşey bileşen, yukarı atılan bir cisim gibi her saniye 10 m/s azalır.`,
+        kontrol: {
+          soru: 'Topa vurulduktan 1 s sonra hızının düşey bileşeni kaç m/s olur?',
+          secenekler: ['10 m/s', '15 m/s', '20 m/s'],
+          dogru: 0,
+          aciklama: r`Düşey bileşen her saniye 10 m/s azalır: $20 - 10 \times 1 = 10$ m/s, hâlâ yukarı doğru. Yatay bileşen ise 15 m/s olarak kalır.`,
+          yanlisIpucu: 'Düşey bileşen yukarı atılan bir cisim gibi davranır. Başlangıçta 20 m/s idi; 1 s\'de ne kadar azalır?'
+        }
+      },
+      {
+        baslik: 'Tepe noktasında hız sıfır değildir',
+        metin: r`Topun hızının düşey bileşeni her saniye 10 m/s azalır: 20, 10, 0. Düşey bileşen 2 s sonra sıfır olur. Top bu anda **tepe noktasındadır**: $t_\text{çıkış} = \dfrac{\vartheta_{0y}}{g} = \dfrac{20}{10} = 2$ s.
+
+- Tepe noktasında topun yalnız yatay hızı kalır: 15 m/s. Hızı sıfır değildir; top hâlâ ileri gider.
+- Tepe noktasının yüksekliği, 20 m/s ile düşey yukarı atılan bir cismin çıkabileceği yüksekliktir: $h_\text{max} = \dfrac{\vartheta_{0y}^{\,2}}{2\,g} = \dfrac{400}{20} = 20$ m.`,
+        kontrol: {
+          soru: 'Top tepe noktasından geçerken ivmesi nedir?',
+          secenekler: ['Sıfır', '10 m/s², düşey aşağı', '10 m/s², yatay'],
+          dogru: 1,
+          aciklama: 'Top havadayken ona yalnız ağırlığı etki eder. Bu yüzden ivmesi her noktada, tepe noktasında da, 10 m/s² ve düşey aşağı doğrudur. Tepe noktasında sıfır olan ivme değil, hızın düşey bileşenidir.',
+          yanlisIpucu: 'Tepe noktasında topa hangi kuvvet etki ediyor? İvme bu kuvvetin yönündedir.'
+        }
+      },
+      {
+        baslik: 'Uçuş süresi ve menzil',
+        metin: r`Top 2 s'de tepeye çıkar, 2 s'de de aynı yüksekliğe iner. Golf sahasının düz olduğunu, topun vurulduğu düzeydeki bir noktaya düştüğünü kabul edelim.
+
+- **Uçuş süresi:** $t_\text{uçuş} = 2 \times t_\text{çıkış} = 4$ s.
+- **Menzil:** Top bu 4 s boyunca yatayda hep $\vartheta_{0x}$ hızıyla gider: $x_\text{menzil} = \vartheta_{0x} \times t_\text{uçuş}$.
+
+Menzili hesaplarken hızın tamamını değil, yalnız yatay bileşenini kullanırız.`,
+        kontrol: {
+          soru: 'Topun menzili kaç metredir?',
+          secenekler: ['100 m', '60 m', '30 m'],
+          dogru: 1,
+          aciklama: r`$x_\text{menzil} = 15 \times 4 = 60$ m. 100 m, hızın tamamını ($25 \times 4$) kullanınca çıkar; 30 m ise yalnız çıkış süresini ($15 \times 2$) kullanınca.`,
+          yanlisIpucu: 'Yatayda top hangi hızla gidiyor: 25 m/s mi, 15 m/s mi? Havada kalma süresi de tepeye çıkış süresinin iki katıdır.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Festivalde fırlatılan top',
+        metin: r`Bir sahil festivalinde yaylı bir fırlatıcı, küçük bir plastik topu yerden düşey yukarı 20 m/s hızla fırlatıyor. Hava direncini önemsemiyoruz. Yukarı yön $+$ yöndür.`,
+        adimlar: [
+          {
+            soru: 'Top kaç saniyede tepe noktasına çıkar?',
+            secenekler: ['2 s', '20 s', '4 s'],
+            dogru: 0,
+            ipucu: 'Hız her saniye 10 m/s azalır. 20 m/s\'lik hız kaç saniyede sıfır olur?',
+            aciklama: r`$t_\text{çıkış} = \dfrac{\vartheta_0}{g} = \dfrac{20}{10} = 2$ s.`
+          },
+          {
+            soru: 'Top yerden en çok kaç metre yükselir?',
+            secenekler: ['40 m', '20 m', '10 m'],
+            dogru: 1,
+            ipucu: 'Çıkarken hız 20 m/s\'den 0\'a düzgün azalır. Ortalama hız kaçtır, bu hızla 2 s\'de ne kadar yol alınır?',
+            aciklama: r`Ortalama hız $\dfrac{20 + 0}{2} = 10$ m/s, çıkış süresi 2 s: $h_\text{max} = 10 \times 2 = 20$ m. Bağıntıyla da aynı sonuç çıkar: $\dfrac{20^2}{2 \times 10} = 20$ m.`
+          },
+          {
+            soru: 'Atıştan 3 s sonra topun hızı nedir?',
+            secenekler: ['10 m/s, yukarı', '50 m/s, aşağı', '10 m/s, aşağı'],
+            dogru: 2,
+            ipucu: r`$\vartheta = \vartheta_0 - g \times t$ bağıntısını kullan ve sonucun işaretine bak.`,
+            aciklama: r`$\vartheta = 20 - 10 \times 3 = -10$ m/s. Eksi işareti topun aşağı indiğini gösterir: Top 2 s'de tepeye çıktı, 1 s'dir iniyor.`
+          },
+          {
+            soru: 'Atıştan 3 s sonra top yerden kaç metre yüksektedir?',
+            secenekler: ['15 m', '60 m', '5 m'],
+            dogru: 0,
+            ipucu: 'Top tepeden 1 s önce inmeye başladı. Durgun hâlden 1 s\'de kaç metre düşer?',
+            aciklama: r`Top tepeden (20 m) 1 s'de 5 m iner: $20 - 5 = 15$ m. Bağıntıyla: $h = 20 \times 3 - \dfrac{1}{2} \times 10 \times 3^2 = 60 - 45 = 15$ m.`
+          }
+        ],
+        sonuc: 'Yukarı atılan cisim tepeye kadar düzgün yavaşlar, sonra serbest düşen bir cisim gibi iner. Hızın işareti cismin çıktığını ya da indiğini söyler.'
+      },
+      {
+        baslik: 'Gemiden atılan can simidi',
+        sekil: 'sfA15_simit',
+        metin: r`Bir denizci, denizde duran bir geminin güvertesinden can simidini yatay doğrultuda 8 m/s hızla fırlatıyor. Can simidi, deniz yüzeyinden 5 m yükseklikte elden çıkıyor. Hava direncini önemsemiyoruz.`,
+        adimlar: [
+          {
+            soru: 'Can simidi kaç saniye sonra suya düşer?',
+            secenekler: ['1 s', '2 s', '5 s'],
+            dogru: 0,
+            ipucu: r`Düşey hareket serbest düşmedir: $5 = \dfrac{1}{2} \times 10 \times t^2$.`,
+            aciklama: r`$5 = 5 \times t^2$, buradan $t = 1$ s. Düşme süresini yalnız yükseklik belirler; yatay hız bu süreyi değiştirmez.`
+          },
+          {
+            soru: 'Can simidi, atıldığı noktanın yatayda kaç metre ilerisinde suya düşer?',
+            secenekler: ['5 m', '8 m', '16 m'],
+            dogru: 1,
+            ipucu: 'Yatayda hız hep 8 m/s. Bu hızı havada kalma süresiyle çarp.',
+            aciklama: r`$x = 8 \times 1 = 8$ m.`
+          },
+          {
+            soru: 'Suya çarptığı anda hızının düşey bileşeni kaç m/s\'dir?',
+            secenekler: ['5 m/s', '8 m/s', '10 m/s'],
+            dogru: 2,
+            ipucu: 'Düşeyde ilk hız sıfırdı ve hız her saniye 10 m/s artıyor.',
+            aciklama: r`$\vartheta_y = g \times t = 10 \times 1 = 10$ m/s, aşağı doğru.`
+          },
+          {
+            soru: 'Suya çarptığı anda hızının yatay bileşeni kaç m/s\'dir?',
+            secenekler: ['0', '8 m/s', '18 m/s'],
+            dogru: 1,
+            ipucu: 'Havada can simidine yatay doğrultuda bir kuvvet etki ediyor mu?',
+            aciklama: 'Yatayda kuvvet yok, ivme yok. Yatay bileşen baştan sona 8 m/s kalır. Can simidi suya hem ileri hem aşağı doğru hızla çarpar.'
+          }
+        ],
+        sonuc: 'Yatay atışta süreyi yükseklikten bul, sonra yatay hızla çarp. Yatay hız hiç değişmez; düşey hız serbest düşmedeki gibi artar.'
+      },
+      {
+        baslik: 'Hentbolda uzun pas',
+        metin: r`Bir hentbol kalecisi, hızlı hücum için topu ileri ve yukarı doğru fırlatıyor. Top elden çıkarken hızının yatay bileşeni 12 m/s, düşey bileşeni 10 m/s'dir. Top, atıldığı yükseklikte bir takım arkadaşının ellerine ulaşıyor. Hava direncini önemsemiyoruz.`,
+        adimlar: [
+          {
+            soru: 'Top kaç saniyede tepe noktasına çıkar?',
+            secenekler: ['1 s', '10 s', '2 s'],
+            dogru: 0,
+            ipucu: 'Tepeye çıkış süresini yalnız düşey bileşen belirler. 10 m/s kaç saniyede sıfıra iner?',
+            aciklama: r`$t_\text{çıkış} = \dfrac{\vartheta_{0y}}{g} = \dfrac{10}{10} = 1$ s.`
+          },
+          {
+            soru: 'Top, elden çıktığı yükseklikten en çok kaç metre yukarı çıkar?',
+            secenekler: ['10 m', '5 m', '20 m'],
+            dogru: 1,
+            ipucu: r`$h_\text{max} = \dfrac{\vartheta_{0y}^{\,2}}{2\,g}$. Yatay bileşen yüksekliği etkilemez.`,
+            aciklama: r`$h_\text{max} = \dfrac{10^2}{2 \times 10} = 5$ m.`
+          },
+          {
+            soru: 'Top tepe noktasından geçerken sürati kaç m/s\'dir?',
+            secenekler: ['12 m/s', '0', '10 m/s'],
+            dogru: 0,
+            ipucu: 'Tepe noktasında hangi bileşen sıfırdır, hangisi hiç değişmez?',
+            aciklama: 'Tepe noktasında düşey bileşen sıfır olur, yatay bileşen 12 m/s kalır. Sürat 12 m/s\'dir.'
+          },
+          {
+            soru: 'Takım arkadaşı, kalecinin kaç metre ilerisindedir?',
+            secenekler: ['12 m', '20 m', '24 m'],
+            dogru: 2,
+            ipucu: 'Uçuş süresi, çıkış süresinin iki katıdır. Bu süreyi yatay bileşenle çarp.',
+            aciklama: r`$t_\text{uçuş} = 2 \times 1 = 2$ s, $x = 12 \times 2 = 24$ m. 12 m, yalnız çıkış süresini kullanınca çıkar.`
+          }
+        ],
+        sonuc: 'Açıyla atışta iki bileşeni ayrı düşün: Düşey bileşen süreyi ve yüksekliği, yatay bileşen menzili belirler. İki ekseni bağlayan tek şey zamandır.'
+      }
+    ],
+    hazir: 'Yukarı atışı, yatay atışı, hızı bileşenlerine ayırmayı, tepe noktasını ve menzili gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -12013,6 +12687,110 @@ BFY_FIG_EKLE('iA16_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 150, oy: 78, s: 0.84 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.6 başlangıç şekilleri (sfA16_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', MOR = '#6b4fa8';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const olcV = (x, y1, y2, l, sag = true) => `<g stroke="${P.ink}" stroke-width="1.3"><line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"/><line x1="${x - 5}" y1="${y1}" x2="${x + 5}" y2="${y1}"/><line x1="${x - 5}" y1="${y2}" x2="${x + 5}" y2="${y2}"/></g>` + yaz(sag ? x + 8 : x - 8, (y1 + y2) / 2 + 5, l, { weight: 800, anchor: sag ? 'start' : 'end' });
+
+/* Adım 4: vinçten sarkan yıkım topu (sarkaç) */
+BFY_FIG_EKLE('sfA16_yikim', function (u) {
+  let s = `<defs><radialGradient id="${u}top" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#9aa3aa"/><stop offset=".6" stop-color="#4d565c"/><stop offset="1" stop-color="#262c30"/></radialGradient>
+  <pattern id="${u}tug" width="24" height="14" patternUnits="userSpaceOnUse"><rect width="24" height="14" fill="#c9765a"/><path d="M0 0 H24 M0 7 H24 M6 0 V7 M18 7 V14" stroke="#efe4d6" stroke-width="1.4"/></pattern></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="280" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="250" width="340" height="30" fill="url(#${u}soil)"/>`;
+  // yıkılacak duvar
+  s += `<rect x="286" y="96" width="54" height="154" fill="url(#${u}tug)" stroke="#8f4d36" stroke-width="1.2"/>`;
+  // vinç kolu (kafes)
+  const px = 180, py = 34, L = 150, H = 60;
+  s += `<path d="M0 26 L${px + 14} ${py - 6} L${px + 14} ${py + 4} L0 40 Z" fill="#e7a93b" stroke="#a86d1a" stroke-width="1.2"/>`;
+  for (let i = 0; i < 10; i++) { const x = i * 20; s += `<line x1="${x}" y1="${f1(40 - x * 0.04)}" x2="${x + 20}" y2="${f1(26 + (x + 20) * 0.04 - 4)}" stroke="#a86d1a" stroke-width="1"/>`; }
+  s += `<circle cx="${px}" cy="${py}" r="5" fill="#4d565c"/>`;
+  // salınım yolu: pivot çevresinde çember yayı, duvara kadar
+  const th = Math.acos((L - H) / L), yp = [];
+  for (let i = 0; i <= 40; i++) { const a = -th + 2 * th * i / 40, x = px + L * Math.sin(a), y = py + L * Math.cos(a); if (x < 268) yp.push(f1(x) + ',' + f1(y)); }
+  s += `<polyline points="${yp.join(' ')}" fill="none" stroke="${P.ink2}" stroke-width="1.6" stroke-dasharray="6 5"/>`;
+  const sx = px - L * Math.sin(th), sy = py + L * Math.cos(th), by = py + L;
+  // alttaki konum (soluk) ve bırakılma konumu
+  s += `<line x1="${px}" y1="${py}" x2="${px}" y2="${by - 18}" stroke="#4d565c" stroke-width="1.6" opacity=".35"/><circle cx="${px}" cy="${by}" r="18" fill="url(#${u}top)" opacity=".35"/>`;
+  s += `<line x1="${px}" y1="${py}" x2="${f1(sx + 18 * Math.sin(th))}" y2="${f1(sy - 18 * Math.cos(th))}" stroke="#2a3330" stroke-width="2"/><circle cx="${f1(sx)}" cy="${f1(sy)}" r="18" fill="url(#${u}top)"/>`;
+  s += dashLine(sx + 20, sy, 258, sy, P.ink2, '3 3', 1.1) + dashLine(px + 22, by, 258, by, P.ink2, '3 3', 1.1);
+  s += olcV(250, sy, by, '5 m', false);
+  s += yaz(f1(sx), f1(sy - 28), 'bırakılıyor', { anchor: 'middle', fill: MOR, weight: 800 });
+  s += yaz(px, by + 38, 'en alt nokta', { anchor: 'middle', fill: P.ink2, weight: 800 });
+  return svg(340, 280, s, u, 90);
+});
+
+/* Adım 5: kum tepesinden kayan kum kayakçısı */
+function kayakci(x, y, a = 1) {
+  // y: tahtanın altı; sağa doğru iner
+  let s = `<g opacity="${a}">`;
+  s += `<rect x="${x - 22}" y="${y - 6}" width="44" height="6" rx="3" fill="#2f7fb8" stroke="#1d5a86" stroke-width="1"/>`;
+  s += `<path d="M${x - 8} ${y - 6} L${x - 4} ${y - 22} L${x + 8} ${y - 6}" stroke="#2a3a55" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+  s += `<path d="M${x - 4} ${y - 22} L${x - 2} ${y - 42}" stroke="#e4572e" stroke-width="10" stroke-linecap="round"/>`;
+  s += `<path d="M${x - 3} ${y - 36} L${x - 18} ${y - 28} M${x - 2} ${y - 36} L${x + 14} ${y - 32}" stroke="#e4572e" stroke-width="4.5" stroke-linecap="round"/>`;
+  s += `<circle cx="${x - 1}" cy="${y - 51}" r="7" fill="#f1c9a5" stroke="#8a6a50" stroke-width=".9"/><path d="M${x - 8} ${y - 53} Q${x - 1} ${y - 62} ${x + 6} ${y - 53}" fill="#2a3330"/>`;
+  return s + '</g>';
+}
+BFY_FIG_EKLE('sfA16_kum', function (u) {
+  let s = `<defs><linearGradient id="${u}kum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2d59a"/><stop offset="1" stop-color="#d9b06a"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="260" rx="14" fill="url(#${u}dawn)"/>`;
+  const TY = 74, BY = 214;
+  s += `<path d="M0 ${TY} L46 ${TY} C120 ${TY} 150 ${BY} 250 ${BY} L340 ${BY} L340 260 L0 260 Z" fill="url(#${u}kum)" stroke="#b98d47" stroke-width="1.4"/>`;
+  [[60, 120], [120, 168], [200, 236], [280, 240]].forEach(([x, y]) => s += `<path class="bg" d="M${x} ${y} q10 -4 20 0" stroke="#c99b55" stroke-width="1.4" fill="none"/>`);
+  s += kayakci(30, TY) + yaz(56, TY - 36, 'durgun', { fill: MOR, weight: 800 });
+  s += kayakci(272, BY);
+  s += ok(298, BY - 30, 334, BY - 30, MAV, 3) + yaz(334, BY - 42, '10 m/s', { anchor: 'end', fill: MAV, weight: 800 });
+  s += dashLine(46, TY, 112, TY, P.ink2, '3 3', 1.1) + dashLine(112, BY, 200, BY, P.ink2, '3 3', 1.1);
+  s += olcV(112, TY, BY, '8 m', false);
+  s += yaz(150, 248, 'kütle: 50 kg', { anchor: 'middle', weight: 800 });
+  return svg(340, 260, s, u, 90);
+});
+
+/* Isınma 1: zipline hattının sonundaki yaylı frene gelen kişi */
+BFY_FIG_EKLE('sfA16_zipline', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="230" rx="14" fill="url(#${u}sky)"/>`;
+  const ZY = 196, CY = 70;
+  s += `<rect class="bg" x="0" y="${ZY}" width="340" height="${230 - ZY}" fill="url(#${u}grass)"/>`;
+  // bitiş direği ve platform
+  s += `<rect x="306" y="34" width="14" height="${ZY - 34}" rx="3" fill="#8a6440" stroke="#5a3f26" stroke-width="1.2"/>`;
+  s += `<rect x="309" y="40" width="3" height="${ZY - 46}" fill="#b08860" opacity=".6"/>`;
+  // çelik tel: sol üstten inip sonda yataylaşıyor
+  s += `<path d="M0 26 L118 ${CY - 1} L306 ${CY}" fill="none" stroke="#4d565c" stroke-width="2.2" stroke-linejoin="round"/>`;
+  // yaylı fren: fren bloğu ve yay (direğe bağlı)
+  const y1 = 238, y2 = 306;
+  let d = `M${y1} ${CY}`; const n = 8, w = (y2 - y1) / n;
+  for (let i = 0; i < n; i++) d += ` l${f1(w / 2)} -8 l${f1(w / 2)} 16 l0 -8`;
+  s += `<path d="${d}" fill="none" stroke="#5d656b" stroke-width="2.6" stroke-linejoin="round"/>`;
+  s += `<rect x="226" y="${CY - 10}" width="12" height="20" rx="3" fill="#e7a93b" stroke="#a86d1a" stroke-width="1.2"/>`;
+  s += yaz(262, CY - 26, 'k = 320 N/m', { anchor: 'middle', weight: 800 });
+  // makara (trolley)
+  const mx = 168;
+  s += `<path d="M${mx - 13} ${CY + 2} L${mx + 13} ${CY + 2} L${mx + 8} ${CY + 14} L${mx - 8} ${CY + 14} Z" fill="#c8574a" stroke="#8f3524" stroke-width="1.1"/>`;
+  [mx - 8, mx + 8].forEach(cx => s += `<circle cx="${cx}" cy="${CY - 3}" r="5" fill="url(#${u}metalV)" stroke="#4d565c" stroke-width="1"/>`);
+  // emniyet halatları ve kişi (oturma kemerinde), makaranın altından 1,2 kat büyütülmüş
+  s += `<g transform="translate(${mx} ${CY + 14}) scale(1.2) translate(${-mx} ${-(CY + 14)})">`;
+  s += `<path d="M${mx - 3} ${CY + 14} L${mx - 2} ${CY + 52} M${mx + 3} ${CY + 14} L${mx + 6} ${CY + 52}" stroke="#2a3330" stroke-width="1.6"/>`;
+  s += `<path d="M${mx + 2} ${CY + 76} L${mx + 26} ${CY + 80} L${mx + 36} ${CY + 102}" stroke="#2a3a55" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+  s += `<path d="M${mx + 34} ${CY + 104} l9 -2" stroke="#2a3330" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<path d="M${mx - 2} ${CY + 48} Q${mx - 6} ${CY + 64} ${mx + 2} ${CY + 78}" stroke="#2f7fb8" stroke-width="11" stroke-linecap="round" fill="none"/>`;
+  s += `<path d="M${mx - 9} ${CY + 70} L${mx + 11} ${CY + 74}" stroke="#2a3330" stroke-width="3"/>`;
+  s += `<path d="M${mx - 1} ${CY + 52} Q${mx + 2} ${CY + 38} ${mx - 1} ${CY + 24} M${mx + 1} ${CY + 52} Q${mx + 8} ${CY + 40} ${mx + 5} ${CY + 26}" stroke="url(#${u}skin)" stroke-width="4" stroke-linecap="round" fill="none"/>`;
+  s += `<circle cx="${mx - 8}" cy="${CY + 38}" r="7" fill="url(#${u}skin)" stroke="#8a6a50" stroke-width=".9"/>`;
+  s += `<path d="M${mx - 16} ${CY + 37} Q${mx - 9} ${CY + 26} ${mx - 1} ${CY + 35} Z" fill="#e4572e" stroke="#a83a1c" stroke-width=".9"/>`;
+  s += '</g>' + yaz(mx - 26, CY + 92, '80 kg', { anchor: 'end', weight: 800 });
+  // sürat oku
+  s += ok(mx - 96, CY - 34, mx - 46, CY - 34, MAV, 3) + yaz(mx - 40, CY - 29, '2 m/s', { fill: MAV, weight: 800 });
+  return svg(340, 230, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -12085,6 +12863,189 @@ const KONU = {
     '3B: sürtünmesiz ve sürtünmeli U rampada 2 kg kaykay, 1,8 m, 36 J (src/anim3b.js rampa sahnesi)',
     'efsane: taşıyıcı bantta sürtünmenin pozitif işi, kuyuda negatif E_P, sarkaçta korunum ve net kuvvet, uzay istasyonunda kutu, limit süratli yağmur damlası, trendeki yolcunun kinetik enerjisi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda bir kuvvetin ne zaman iş yaptığını, enerjinin nasıl biçim değiştirdiğini ve gücü göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'İş: kuvvet ve yer değiştirme',
+        metin: r`Bir bahçıvan, toprak dolu el arabasını düz bir yolda 60 N'luk yatay kuvvetle iterek 15 m götürüyor. Kuvvet, cismi kendi doğrultusunda yer değiştirirse **iş** yapar:
+$W = F \times \Delta x = 60 \times 15 = 900$ J.
+
+İşin birimi joule'dür (J). İş, kuvvetin cisme aktardığı enerjidir.
+
+Kuvvet yer değiştirmeye dikse iş yapmaz. Bahçıvanın el arabasını yukarı tutan kuvveti, yatay yer değiştirmeye diktir; bu kuvvetin işi sıfırdır.`,
+        kontrol: {
+          soru: 'Bir öğrenci kucağında 10 kg\'lık bir koliyle düz bir koridorda sabit hızla 5 m yürüyor. Öğrencinin koliyi yukarı tutan kuvvetinin koliye yaptığı iş kaç J\'dür?',
+          secenekler: ['0', '500 J', '50 J'],
+          dogru: 0,
+          aciklama: 'Öğrenci koliyi yukarı doğru 100 N ile tutuyor, ama koli yatay doğrultuda yer değiştiriyor. Kuvvet yer değiştirmeye dik olduğu için iş sıfırdır.',
+          yanlisIpucu: 'Kuvvet hangi yönde, yer değiştirme hangi yönde? Birbirine dik olan kuvvet ve yer değiştirme iş üretmez.'
+        }
+      },
+      {
+        baslik: 'Net iş kinetik enerjiyi değiştirir',
+        metin: r`Hareket eden her cismin **kinetik enerjisi** vardır: $E_K = \dfrac{1}{2} \times m \times \vartheta^2$.
+
+Buz pistinde duran 40 kg kütleli bir patenciyi antrenörü arkasından 20 N'luk yatay kuvvetle 4 m boyunca itiyor. Buzun sürtünmesini önemsemiyoruz.
+- Net kuvvetin işi: $W_\text{net} = 20 \times 4 = 80$ J.
+- Bu iş patencinin kinetik enerjisine eklenir: $W_\text{net} = \Delta E_K$. Patenci durgun başladığı için $E_K = 80$ J olur.
+- Sürati: $\dfrac{1}{2} \times 40 \times \vartheta^2 = 80$, buradan $\vartheta^2 = 4$ ve $\vartheta = 2$ m/s.`,
+        kontrol: {
+          soru: 'Antrenör aynı kuvvetle 4 m yerine 8 m itseydi patencinin kinetik enerjisi kaç J olurdu?',
+          secenekler: ['320 J', '160 J', '80 J'],
+          dogru: 1,
+          aciklama: r`$W_\text{net} = 20 \times 8 = 160$ J. Yol iki katına çıkınca iş de, kinetik enerji de iki katına çıkar.`,
+          yanlisIpucu: r`Kinetik enerji, net kuvvetin yaptığı işe eşittir. $W = F \times \Delta x$ ile işi yeniden hesapla.`
+        }
+      },
+      {
+        baslik: 'Yüksekliğin enerjisi ve referans',
+        metin: r`Bir ambarda 20 kg'lık bir un çuvalı yerden 3 m yükseklikteki asma kata çıkarılıyor. Yükseğe çıkarılan cisim, yer çekimi nedeniyle **potansiyel enerji** kazanır: $E_P = m \times g \times h$.
+
+Yere göre: $E_P = 20 \times 10 \times 3 = 600$ J.
+
+Yüksekliği hangi düzeyden ölçeceğimizi biz seçeriz; bu düzeye **referans** denir. Referansta potansiyel enerji sıfırdır. Hesapta önemli olan potansiyel enerjinin kendisi değil, iki nokta arasındaki farkıdır: çuval yerden asma kata çıkarken 600 J kazanır.`,
+        kontrol: {
+          soru: 'Referans düzeyi asma katın zemini seçilirse, asma katta duran çuvalın potansiyel enerjisi kaç J olur?',
+          secenekler: ['600 J', '0', '60 J'],
+          dogru: 1,
+          aciklama: 'Çuval referans düzeyinde duruyor, yani yüksekliği sıfırdır: $E_P = 0$. Çuvalın enerjisi değişmedi; değişen, yüksekliği ölçtüğümüz yerdir.',
+          yanlisIpucu: 'Yükseklik, referans düzeyinden ölçülür. Çuval referans düzeyinin ne kadar üstünde?'
+        }
+      },
+      {
+        baslik: 'Sürtünme yoksa mekanik enerji korunur',
+        sekil: 'sfA16_yikim',
+        metin: r`Bir bina yıkımında vinçten sarkan çelik yıkım topu yana çekiliyor. Top, en alt noktasından 5 m yükseğe kaldırılıp bırakılıyor. Hava direncini ve sürtünmeyi önemsemiyoruz.
+
+Kinetik ve potansiyel enerjinin toplamına **mekanik enerji** denir. Sürtünme yoksa mekanik enerji korunur:
+- Bırakıldığı anda top durgundur; enerjisinin hepsi potansiyel enerjidir.
+- Top inerken potansiyel enerjisi kinetik enerjiye dönüşür.
+- En alt noktada: $m \times g \times h = \dfrac{1}{2} \times m \times \vartheta^2$. Kütle iki yanda da var, sadeleşir: $\vartheta^2 = 2 \times 10 \times 5 = 100$, $\vartheta = 10$ m/s.`,
+        kontrol: {
+          soru: 'Top en alt noktadan geçip öbür yana salınıyor. Duvara çarpmasaydı en alt noktanın en çok kaç metre üstüne çıkardı?',
+          secenekler: ['10 m', '20 m', '5 m'],
+          dogru: 2,
+          aciklama: 'Mekanik enerji korunduğu için top, bırakıldığı yüksekliğe kadar çıkar: 5 m. Orada bütün kinetik enerji yeniden potansiyel enerjiye dönüşmüştür.',
+          yanlisIpucu: 'Enerji kaybolmuyorsa top, bırakıldığı andaki enerjisini nereye kadar taşıyabilir? Sürati yükseklikle karıştırma.'
+        }
+      },
+      {
+        baslik: 'Sürtünme varsa bir kısmı ısıya dönüşür',
+        sekil: 'sfA16_kum',
+        metin: r`Kütlesi 50 kg olan bir genç, 8 m yüksekliğindeki bir kum tepesinin üstünden tahtasıyla durgun hâlde kaymaya başlıyor. Tepenin dibinde sürati 10 m/s oluyor.
+
+- Tepede mekanik enerji: $E_P = 50 \times 10 \times 8 = 4000$ J.
+- Dipte mekanik enerji: $E_K = \dfrac{1}{2} \times 50 \times 10^2 = 2500$ J.
+
+Mekanik enerji azaldı. Kaybolan enerji yok olmadı: Kum ile tahta arasındaki sürtünme ve hava direnci onu **ısıya** dönüştürdü. Tahtayla kum biraz ısındı.`,
+        kontrol: {
+          soru: 'Kayış sırasında kaç J enerji ısıya dönüşmüştür?',
+          secenekler: ['4000 J', '2500 J', '1500 J'],
+          dogru: 2,
+          aciklama: r`Isı = baştaki mekanik enerji − sondaki mekanik enerji $= 4000 - 2500 = 1500$ J. Toplam enerji korunur: $4000 = 2500 + 1500$.`,
+          yanlisIpucu: 'Tepedeki enerjiden dipteki enerjiyi çıkar. Aradaki fark nereye gitti?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Tirolyen hattının sonundaki yaylı fren',
+        sekil: 'sfA16_zipline',
+        metin: r`Bir macera parkında, iki direk arasına gerilmiş çelik telden makarayla kayılarak inilen bir tirolyen hattı var. Ekipmanıyla birlikte kütlesi 80 kg olan bir kişi, hattın sonundaki yatay bölüme 2 m/s süratle geliyor ve teldeki yaylı frene çarpıyor. Frenin yay sabiti $k = 320$ N/m'dir. Sürtünmeyi ve hava direncini önemsemiyoruz. Sıkıştırılan yayda depolanan enerji: $E_\text{esneklik} = \dfrac{1}{2} \times k \times x^2$ ($x$ metre cinsinden).`,
+        adimlar: [
+          {
+            soru: 'Kişinin frene çarpmadan önceki kinetik enerjisi kaç J\'dür?',
+            secenekler: ['160 J', '320 J', '80 J'],
+            dogru: 0,
+            ipucu: r`$E_K = \dfrac{1}{2} \times m \times \vartheta^2$. Sürati karesiyle kullanmayı ve $\dfrac{1}{2}$'yi unutma.`,
+            aciklama: r`$E_K = \dfrac{1}{2} \times 80 \times 2^2 = 160$ J.`
+          },
+          {
+            soru: 'Yay en çok sıkıştığı anda kişi bir an durur. Bu anda yayda depolanan enerji kaç J\'dür?',
+            secenekler: ['0', '80 J', '160 J'],
+            dogru: 2,
+            ipucu: 'Kişi durduğunda kinetik enerjisi sıfırdır. Bu enerji nereye gitti?',
+            aciklama: 'Sürtünme yok; kişinin 160 J kinetik enerjisinin hepsi yaya aktarılır: $E_\\text{esneklik} = 160$ J.'
+          },
+          {
+            soru: 'Yay en çok kaç metre sıkışır?',
+            secenekler: ['1 m', '2 m', '4 m'],
+            dogru: 0,
+            ipucu: r`$\dfrac{1}{2} \times 320 \times x^2 = 160$ eşitliğinden $x^2$'yi bul.`,
+            aciklama: r`$160 \times x^2 = 160$, buradan $x^2 = 1$ ve $x = 1$ m.`
+          },
+          {
+            soru: 'Kişi frene 4 m/s süratle gelseydi yay en çok kaç metre sıkışırdı?',
+            secenekler: ['4 m', '2 m', '1 m'],
+            dogru: 1,
+            ipucu: 'Sürat 2 katına çıkınca kinetik enerji 4 katına çıkar. Yay enerjisi de 4 katına çıkmalı; $x^2$ 4 katına çıkarsa $x$ kaç katına çıkar?',
+            aciklama: r`$E_K = \dfrac{1}{2} \times 80 \times 4^2 = 640$ J. $160 \times x^2 = 640$, $x^2 = 4$, $x = 2$ m. Sürat 2 katına çıkınca sıkışma da 2 katına çıkar.`
+          }
+        ],
+        sonuc: 'Kinetik enerji yaya aktarılır ve yayda esneklik potansiyel enerjisi olarak depolanır. İki enerjiyi eşitleyerek sıkışmayı bulursun.'
+      },
+      {
+        baslik: 'Surun tepesine çıkan taş blok',
+        metin: r`Eski bir kalenin onarımında elektrikli bir vinç, 200 kg'lık bir taş bloğu yerden 30 m yükseklikteki sur tepesine 60 s'de sabit hızla çıkarıyor. Sürtünmeleri önemsemiyoruz. **Güç**, birim zamanda yapılan iştir: $P = \dfrac{W}{t}$. Birimi watt'tır (W).`,
+        adimlar: [
+          {
+            soru: 'Vincin bloğu 30 m yukarı çıkarırken yaptığı iş kaç J\'dür?',
+            secenekler: ['60 000 J', '6000 J', '2000 J'],
+            dogru: 0,
+            ipucu: 'Blok sabit hızla çıktığı için kinetik enerjisi değişmez. Vincin işi, potansiyel enerjideki artışa eşittir: m × g × h.',
+            aciklama: r`$W = m \times g \times h = 200 \times 10 \times 30 = 60\,000$ J.`
+          },
+          {
+            soru: 'Vincin gücü kaç W\'tır?',
+            secenekler: ['100 W', '1000 W', '60 000 W'],
+            dogru: 1,
+            ipucu: 'İşi geçen süreye böl. Süre 60 s.',
+            aciklama: r`$P = \dfrac{60\,000}{60} = 1000$ W.`
+          },
+          {
+            soru: 'Aynı blok aynı yüksekliğe 30 s\'de çıkarılsaydı vincin gücü kaç W olurdu?',
+            secenekler: ['500 W', '1000 W', '2000 W'],
+            dogru: 2,
+            ipucu: 'Yapılan iş değişmez. Aynı iş yarı sürede yapılırsa güç ne olur?',
+            aciklama: r`İş yine 60 000 J'dür: $P = \dfrac{60\,000}{30} = 2000$ W. Aynı işi daha kısa sürede yapmak daha büyük güç ister.`
+          }
+        ],
+        sonuc: 'İş, ne kadar enerji aktarıldığını; güç, bu aktarmanın ne kadar hızlı yapıldığını söyler. Aynı işi yarı sürede yapan vincin gücü iki katıdır.'
+      },
+      {
+        baslik: 'Pedal çevirmeyi bırakan bisikletli',
+        metin: r`Bisikletiyle birlikte kütlesi 80 kg olan biri, düz bir yolda 5 m/s süratle giderken pedal çevirmeyi bırakıyor ve frene de basmıyor. Bisiklete harekete zıt yönde, toplam 20 N'luk sabit bir direnç kuvveti etki ediyor (yolun sürtünmesi ve hava direnci).`,
+        adimlar: [
+          {
+            soru: 'Bisikletlinin pedalı bıraktığı andaki kinetik enerjisi kaç J\'dür?',
+            secenekler: ['1000 J', '2000 J', '400 J'],
+            dogru: 0,
+            ipucu: r`$E_K = \dfrac{1}{2} \times m \times \vartheta^2$. Sürati karesiyle kullan.`,
+            aciklama: r`$E_K = \dfrac{1}{2} \times 80 \times 5^2 = 40 \times 25 = 1000$ J.`
+          },
+          {
+            soru: 'Bisiklet durana kadar direnç kuvvetinin yaptığı iş kaç J\'dür?',
+            secenekler: ['+1000 J', '−1000 J', '0'],
+            dogru: 1,
+            ipucu: 'Bisiklet durunca kinetik enerjisi sıfır olur. Direnç kuvveti harekete zıtsa yaptığı işin işareti ne olur?',
+            aciklama: r`$W_\text{net} = \Delta E_K = 0 - 1000 = -1000$ J. Direnç harekete zıt olduğu için işi negatiftir; kinetik enerjiyi ısıya dönüştürür.`
+          },
+          {
+            soru: 'Bisiklet, pedal bırakıldıktan sonra kaç metre gidip durur?',
+            secenekler: ['100 m', '20 m', '50 m'],
+            dogru: 2,
+            ipucu: r`Direncin işinin büyüklüğü $F \times \Delta x$'tir: $20 \times \Delta x = 1000$.`,
+            aciklama: r`$20 \times \Delta x = 1000$, buradan $\Delta x = 50$ m.`
+          }
+        ],
+        sonuc: 'Harekete zıt kuvvet negatif iş yapar ve kinetik enerjiyi azaltır. Durma yolunu, kinetik enerjiyi direnç kuvvetine bölerek bulursun.'
+      }
+    ],
+    hazir: 'İşi, kinetik ve potansiyel enerjiyi, mekanik enerjinin korunumunu ve sürtünmenin ısıya dönüştürdüğü enerjiyi gördün. Isınmalarda yay enerjisini ve gücü de kullandın. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
