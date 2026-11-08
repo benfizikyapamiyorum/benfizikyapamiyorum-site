@@ -43915,6 +43915,142 @@ BFY_FIG_EKLE('iA53_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 80, s: 0.72 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.5.3 başlangıç şekilleri (sfA53_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', TEL = '#2a3330', MAV = '#2f6fb8';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.5 });
+const bg = (w, h, renk = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${renk}"/>`;
+const grad = (id, a, b, yatay) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="${yatay ? 1 : 0}" y2="${yatay ? 0 : 1}"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>`;
+function olcuY(x1, x2, y, metin) {
+  return `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="${f1(x1)}" y1="${y}" x2="${f1(x2)}" y2="${y}"/><line x1="${f1(x1)}" y1="${y - 6}" x2="${f1(x1)}" y2="${y + 6}"/><line x1="${f1(x2)}" y1="${y - 6}" x2="${f1(x2)}" y2="${y + 6}"/></g>` +
+    yaz((x1 + x2) / 2, y + 21, metin, { anchor: 'middle', fill: P.ink });
+}
+function olcuD(x, y1, y2, metin) {
+  return `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="${x}" y1="${f1(y1)}" x2="${x}" y2="${f1(y2)}"/><line x1="${x - 6}" y1="${f1(y1)}" x2="${x + 6}" y2="${f1(y1)}"/><line x1="${x - 6}" y1="${f1(y2)}" x2="${x + 6}" y2="${f1(y2)}"/></g>` +
+    yaz(x + 9, (y1 + y2) / 2 + 5, metin, { fill: P.ink });
+}
+// Uzay gemisi (yandan): arka uç x, merkez hattı y, boy L, gövde yüksekliği H; burun sağda
+function gemi(u, id, x, y, L, H) {
+  const h = H / 2;
+  let s = grad(u + id, '#eef2f5', '#9eabb6');
+  s += `<path d="M${f1(x + 0.04 * L)} ${f1(y - h)} L${f1(x + 0.24 * L)} ${f1(y - h)} L${f1(x + 0.1 * L)} ${f1(y - h - 0.5 * H)} L${f1(x)} ${f1(y - h - 0.5 * H)}Z" fill="#7d8b97" stroke="#4f5b63" stroke-width="1"/>`;
+  s += `<path d="M${f1(x + 0.04 * L)} ${f1(y + h)} L${f1(x + 0.24 * L)} ${f1(y + h)} L${f1(x + 0.1 * L)} ${f1(y + h + 0.5 * H)} L${f1(x)} ${f1(y + h + 0.5 * H)}Z" fill="#7d8b97" stroke="#4f5b63" stroke-width="1"/>`;
+  s += `<path d="M${f1(x)} ${f1(y - h)} L${f1(x + 0.7 * L)} ${f1(y - h)} Q${f1(x + 0.96 * L)} ${f1(y - h)} ${f1(x + L)} ${f1(y)} Q${f1(x + 0.96 * L)} ${f1(y + h)} ${f1(x + 0.7 * L)} ${f1(y + h)} L${f1(x)} ${f1(y + h)}Z" fill="url(#${u + id})" stroke="#4f5b63" stroke-width="1.4"/>`;
+  s += `<line x1="${f1(x + 0.06 * L)}" y1="${f1(y + h * 0.5)}" x2="${f1(x + 0.62 * L)}" y2="${f1(y + h * 0.5)}" stroke="${MAV}" stroke-width="${f1(H * 0.12)}"/>`;
+  for (let i = 0; i < 3; i++) s += `<circle cx="${f1(x + (0.3 + i * 0.13) * L)}" cy="${f1(y - h * 0.2)}" r="${f1(H * 0.13)}" fill="#cfe5f4" stroke="#4f5b63" stroke-width="1"/>`;
+  return s;
+}
+// Yanıp sönen lamba (ışınlarıyla)
+function lamba(x, y) {
+  let s = `<circle cx="${x}" cy="${y}" r="13" fill="#ffe28a" opacity=".45"/><circle cx="${x}" cy="${y}" r="6" fill="#f5b400" stroke="#b07d00" stroke-width="1"/>`;
+  [-40, 0, 40].forEach(a => { const r = a * Math.PI / 180; s += `<line x1="${f1(x + 16 * Math.cos(r))}" y1="${f1(y + 16 * Math.sin(r))}" x2="${f1(x + 25 * Math.cos(r))}" y2="${f1(y + 25 * Math.sin(r))}" stroke="#e0a000" stroke-width="2.2" stroke-linecap="round"/>`; });
+  return s;
+}
+
+/* Adım 1: düz rayda sabit hızla giden vagon; içeride topu dik atan çocuk, perdeler kapalı */
+BFY_FIG_EKLE('sfA53_tren', function (u) {
+  let s = bg(340, 236);
+  // ray ve traversler
+  for (let x = 16; x < 330; x += 22) s += `<rect x="${x}" y="206" width="12" height="6" rx="1" fill="#8a6a4a"/>`;
+  s += `<rect x="8" y="200" width="324" height="6" rx="2" fill="#7b8590"/>`;
+  // vagon gövdesi
+  s += grad(u + 'vg', '#e9eef2', '#a9b7c2');
+  s += `<rect x="26" y="58" width="288" height="128" rx="12" fill="url(#${u}vg)" stroke="#4f5b63" stroke-width="1.6"/>`;
+  s += `<rect x="26" y="168" width="288" height="12" fill="#b8473c" opacity=".85"/>`;
+  // kesit: iç duvar ve zemin
+  s += `<rect x="40" y="70" width="260" height="96" rx="4" fill="#fbf5ea" stroke="#9aa6b0" stroke-width="1"/>`;
+  s += `<rect x="40" y="156" width="260" height="10" fill="#c9b28f"/>`;
+  // kapalı perdeli pencereler
+  [58, 132, 236].forEach(x => {
+    s += `<rect x="${x}" y="82" width="52" height="40" rx="3" fill="#cfe5f4" stroke="#7d8b97" stroke-width="1.2"/>`;
+    s += `<rect x="${x + 1}" y="83" width="50" height="38" fill="#d9a35f"/>`;
+    for (let k = 1; k < 5; k++) s += `<line x1="${x + k * 10}" y1="84" x2="${x + k * 10}" y2="120" stroke="#b47f3e" stroke-width="1.4"/>`;
+  });
+  // tekerlekler
+  [74, 112, 228, 266].forEach(x => { s += `<circle cx="${x}" cy="190" r="10" fill="#3d454c" stroke="#22282d" stroke-width="1.2"/><circle cx="${x}" cy="190" r="3.5" fill="#9aa6b0"/>`; });
+  // çocuk
+  const cx = 196, zem = 156;
+  s += `<ellipse cx="${cx}" cy="${zem + 1}" rx="13" ry="3" fill="#000" opacity=".15"/>`;
+  s += `<g stroke="${TEL}" stroke-width="5" stroke-linecap="round" fill="none"><path d="M${cx - 5} ${zem} L${cx - 2} 134 M${cx + 5} ${zem} L${cx + 2} 134"/></g>`;
+  s += `<rect x="${cx - 8}" y="108" width="16" height="28" rx="6" fill="#2f8f5b" stroke="#22663f" stroke-width="1"/>`;
+  s += `<g stroke="#e3b48c" stroke-width="4.5" stroke-linecap="round" fill="none"><path d="M${cx + 6} 113 L${cx + 14} 101 L${cx + 16} 92"/><path d="M${cx - 6} 113 L${cx - 12} 128"/></g>`;
+  s += `<circle cx="${cx}" cy="98" r="9" fill="#f1c8a3" stroke="#c99a74" stroke-width="1"/><path d="M${cx - 9} 96 Q${cx} 84 ${cx + 9} 95" fill="#5a3b26"/>`;
+  // top ve yolu
+  s += `<line x1="${cx + 16}" y1="86" x2="${cx + 16}" y2="62" stroke="${KIR}" stroke-width="1.8" stroke-dasharray="4 4"/>`;
+  s += `<defs><radialGradient id="${u}top" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#ffd27a"/><stop offset="1" stop-color="#e2721c"/></radialGradient></defs>`;
+  s += `<circle cx="${cx + 16}" cy="78" r="7" fill="url(#${u}top)" stroke="#a9520f" stroke-width="1"/>`;
+  s += yaz(cx + 28, 82, 'top', { fill: KIR });
+  // hız
+  s += ok(104, 34, 196, 34, TEL) + yaz(206, 39, 'ϑ sabit', { size: 15, weight: 800, italic: false });
+  return svg(340, 236, s, u, 90);
+});
+
+/* Adım 3: lamba gemiye göre 1 s'de bir yanıp söner; istasyondaki ekip daha uzun ölçer */
+BFY_FIG_EKLE('sfA53_isaret', function (u) {
+  let s = bg(340, 276, '#eef2f8');
+  [[30, 60], [310, 24], [140, 120], [300, 120], [24, 230], [170, 262], [318, 200]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="1.4" fill="#9aa8bd"/>`; });
+  // üst panel: astronota göre
+  s += yaz(16, 28, 'Astronota göre', { size: 15, weight: 800, fill: P.ink2 });
+  s += gemi(u, 'g1', 22, 80, 170, 34) + lamba(204, 80);
+  s += yaz(242, 86, 'Δt₀ = 1 s', { size: 16, weight: 800, fill: MAV });
+  s += yaz(22, 128, 'Gemi durur, lamba 1 s\'de bir yanar.', { fill: P.ink2 });
+  s += `<line x1="14" y1="146" x2="326" y2="146" stroke="#c9d3dc" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+  // alt panel: istasyona göre
+  s += yaz(16, 172, 'İstasyona göre', { size: 15, weight: 800, fill: P.ink2 });
+  // istasyon
+  const ix = 62, iy = 222;
+  s += `<rect x="${ix - 50}" y="${iy - 9}" width="32" height="18" fill="#9cc3e6" stroke="#3d6f95" stroke-width="1"/><rect x="${ix + 18}" y="${iy - 9}" width="32" height="18" fill="#9cc3e6" stroke="#3d6f95" stroke-width="1"/>`;
+  [ix - 39, ix - 29, ix + 29, ix + 39].forEach(x => { s += `<line x1="${x}" y1="${iy - 9}" x2="${x}" y2="${iy + 9}" stroke="#3d6f95" stroke-width=".8"/>`; });
+  s += `<line x1="${ix - 18}" y1="${iy}" x2="${ix + 18}" y2="${iy}" stroke="#4f5b63" stroke-width="2.5"/>`;
+  s += `<rect x="${ix - 12}" y="${iy - 17}" width="24" height="34" rx="5" fill="#dfe5ea" stroke="#4f5b63" stroke-width="1.3"/><circle cx="${ix}" cy="${iy - 6}" r="4" fill="#cfe5f4" stroke="#4f5b63" stroke-width=".8"/>`;
+  s += yaz(ix, 262, 'Δt > 1 s', { size: 16, weight: 800, fill: KIR, anchor: 'middle' });
+  // geçen gemi
+  s += gemi(u, 'g2', 150, 226, 140, 28) + lamba(300, 226);
+  s += ok(186, 194, 262, 194, TEL) + yaz(272, 199, 'ϑ', { size: 16, weight: 800 });
+  return svg(340, 276, s, u, 90);
+});
+
+/* Adım 4: sondanın hareket doğrultusundaki ölçüm kolu (4 m) ve harekete dik anteni (1 m); ölçek 40 px = 1 m */
+BFY_FIG_EKLE('sfA53_kol', function (u) {
+  let s = bg(340, 306);
+  s += grad(u + 'gv', '#f3d27a', '#b8892a');
+  s += grad(u + 'kl', '#e4e9ed', '#8e9aa4');
+  function sonda(x, y, k) {
+    // x: gövdenin arka ucu, y: gövde orta hattı, k: hareket doğrultusundaki ölçek çarpanı
+    const gw = 56 * k, kol = 160 * k;
+    let p = `<ellipse cx="${f1(x + (gw + kol) / 2)}" cy="${y + 34}" rx="${f1((gw + kol) / 2)}" ry="4" fill="#000" opacity=".08"/>`;
+    // anten (harekete dik, 1 m = 40 px)
+    p += `<line x1="${f1(x + gw / 2)}" y1="${y - 18}" x2="${f1(x + gw / 2)}" y2="${y - 58}" stroke="#6b7782" stroke-width="3" stroke-linecap="round"/>`;
+    p += `<circle cx="${f1(x + gw / 2)}" cy="${y - 58}" r="4" fill="#d24b3e"/>`;
+    // gövde
+    p += `<rect x="${f1(x)}" y="${y - 18}" width="${f1(gw)}" height="36" rx="4" fill="url(#${u}gv)" stroke="#8a6414" stroke-width="1.2"/>`;
+    p += `<line x1="${f1(x + gw * 0.15)}" y1="${y - 6}" x2="${f1(x + gw * 0.85)}" y2="${y - 6}" stroke="#d9b45a" stroke-width="2"/><line x1="${f1(x + gw * 0.15)}" y1="${y + 6}" x2="${f1(x + gw * 0.85)}" y2="${y + 6}" stroke="#d9b45a" stroke-width="2"/>`;
+    // ölçüm kolu (hareket doğrultusunda, 4 m = 160 px) ve ucundaki algılayıcı
+    p += `<rect x="${f1(x + gw)}" y="${y - 3}" width="${f1(kol)}" height="6" rx="2" fill="url(#${u}kl)" stroke="#5f6b75" stroke-width="1"/>`;
+    for (let i = 1; i < 4; i++) p += `<line x1="${f1(x + gw + i * kol / 4)}" y1="${y - 3}" x2="${f1(x + gw + i * kol / 4)}" y2="${y + 3}" stroke="#5f6b75" stroke-width="1"/>`;
+    p += `<rect x="${f1(x + gw + kol - 3)}" y="${y - 8}" width="10" height="16" rx="3" fill="#7d8b97" stroke="#4f5b63" stroke-width="1"/>`;
+    return { p, gw, kol };
+  }
+  // üst: sondaya göre
+  s += yaz(16, 28, 'Sondaya göre', { size: 15, weight: 800, fill: P.ink2 });
+  let a = sonda(30, 92, 1);
+  s += a.p + olcuY(30 + a.gw, 30 + a.gw + a.kol, 122, '4 m') + olcuD(30 + a.gw / 2 + 16, 34, 74, '1 m');
+  s += `<line x1="14" y1="154" x2="326" y2="154" stroke="#c9d3dc" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+  // alt: Dünya'ya göre (hareket doğrultusunda kısa)
+  s += yaz(16, 180, 'Dünya\'ya göre', { size: 15, weight: 800, fill: P.ink2 });
+  s += ok(196, 174, 262, 174, TEL) + yaz(272, 179, 'ϑ', { size: 16, weight: 800 });
+  a = sonda(30, 252, 0.6);
+  s += a.p + olcuY(30 + a.gw, 30 + a.gw + a.kol, 280, '4 m\'den kısa') + olcuD(30 + a.gw / 2 + 16, 194, 234, '1 m');
+  return svg(340, 306, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -43993,6 +44129,186 @@ const KONU = {
     'çift yıldız sistemi, binlerce ışık yılı, düzenli yörüngeler: hangi varsayımla çelişir',
     'durgunken boyu tünele eşit tren ve tünel: iki gözlemcinin uzunluk ölçümleri'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda ışık süratine yakın giden gözlemcilerin zamanı ve uzunluğu nasıl ölçtüğünü göreceğiz. Bu konuda hesap yok. Hangi niceliğin büyüdüğünü, hangisinin küçüldüğünü, hangisinin değişmediğini düşüneceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Sabit hızla giden trende her şey evdeki gibi',
+        sekil: 'sfA53_tren',
+        metin: r`Düz bir rayda sabit hızla, sarsıntısız giden bir trende perdeler kapalı olsun. Bardağa su dökersin, su dosdoğru bardağa iner. Elindeki anahtarı bırakırsın, anahtar ayağının dibine düşer. Gözlerini kapatırsan trenin gittiğini anlayamazsın.
+
+- Hızı sabit olan, yani ivmesi olmayan gözlemciye **eylemsiz gözlemci** denir. Duran gözlemci de eylemsizdir.
+- **1. postüla:** Fizik yasaları bütün eylemsiz gözlemciler için aynıdır.
+- Bu yüzden kapalı bir vagonda yapılan hiçbir deney, vagonun durduğunu mu yoksa sabit hızla mı gittiğini göstermez.
+
+Tren fren yaparsa ya da viraj dönerse durum değişir: Bardaktaki su çalkalanır. Hızı değişen gözlemci eylemsiz değildir.`,
+        kontrol: {
+          soru: 'Perdeleri kapalı, düz rayda sabit hızla giden bir vagonda bir çocuk topu dik olarak yukarı atıyor. Top nereye düşer?',
+          secenekler: ['Çocuğun eline, vagon dururken olduğu gibi.', 'Çocuğun arkasına, çünkü vagon ileri gider.', 'Çocuğun önüne, çünkü top ileri fırlar.'],
+          dogru: 0,
+          aciklama: 'Top, atılmadan önce vagonla aynı hızla ileri gidiyordu. Havadayken de bu hızla ileri gitmeyi sürdürür. Vagonun içinden bakınca top dik çıkıp dik iner ve çocuğun eline düşer. Sabit hızla giden vagonda sonuç, duran vagondakiyle aynıdır.',
+          yanlisIpucu: 'Top, elden çıkmadan önce vagonla birlikte ileri gidiyordu. Havada bu ileri hızını kaybeder mi?'
+        }
+      },
+      {
+        baslik: 'Işığın sürati herkes için aynı',
+        metin: r`Trende vagonun içinde öne doğru yürüdüğünü düşün. Tren yere göre 20 m/s, sen trene göre 2 m/s gidiyorsun. Yerdeki biri seni 22 m/s ile gidiyor ölçer. Günlük hayatta süratler böyle toplanır.
+
+19. yüzyılda bilim insanları ışığın da ses gibi bir ortamda yayıldığını düşünüyordu. Bu ortama **esir** dediler. Dünya esirin içinde hareket ediyorsa ışığın sürati farklı doğrultularda biraz farklı çıkmalıydı.
+
+- 1887'de Michelson ve Morley bu farkı çok duyarlı bir düzenekle aradı. Beklenen fark bulunamadı.
+- Einstein 1905'te iki postüla öne sürdü. **2. postüla:** Işığın boşluktaki sürati $c$, kaynak ya da gözlemci nasıl hareket ederse etsin, bütün eylemsiz gözlemciler için aynıdır.
+- $c$, saniyede yaklaşık 300 000 km'dir. Işığın sürati, trendeki yürüyüş gibi toplanmaz.`,
+        kontrol: {
+          soru: 'Michelson ve Morley düzeneklerini farklı doğrultulara çevirdiler ama ışığın süratinde beklenen farkı göremediler. Bu sonuç neyi destekler?',
+          secenekler: ['Dünya uzayda hareket etmez.', 'Işık her doğrultuda aynı süratle yayılır.', 'Işık aynalardan yansıyınca yavaşlar.'],
+          dogru: 1,
+          aciklama: 'Dünya Güneş\'in çevresinde dolanır, bu bilinen bir gerçektir. Deneyin sonucu, ışığın her doğrultuda aynı süratle yayıldığını gösterir. Esir rüzgârı diye bir etki bulunamadı.',
+          yanlisIpucu: 'Dünya\'nın Güneş çevresinde dolandığını biliyoruz. Deneyde aranan şey, farklı doğrultulardaki ışık süratleri arasındaki farktı.'
+        }
+      },
+      {
+        baslik: 'Hareket eden saat yavaş işler',
+        sekil: 'sfA53_isaret',
+        metin: r`Bir uzay gemisinin burnundaki lamba, gemideki saate göre her 1 saniyede bir yanıp sönüyor. Gemi bir istasyonun yanından ışık süratine yakın sabit süratle geçiyor.
+
+- Gemideki astronot için iki yanıp sönme arası tam 1 saniyedir. İki olay ona göre **aynı yerde**, lambanın bulunduğu yerde olur. Bu süreye **özzaman** ($\Delta t_0$) denir.
+- İstasyondaki ekip aynı aralığı 1 saniyeden uzun ölçer: $\Delta t > \Delta t_0$. Buna **zaman genişlemesi** denir.
+- Ekip, ışığın istasyona gelene kadar yolda geçirdiği süreyi de hesaba katar. Fark yine de kalır; bu bir yanılsama değildir.
+- Astronot kendi saatinde bir tuhaflık görmez. Saati, lambası ve kalp atışı ona göre normaldir.
+
+Gemi yavaş giderse fark ölçülemeyecek kadar küçük olur.`,
+        kontrol: {
+          soru: 'Bir sondanın içindeki saat, sondaya göre 10 dakika süren bir ölçüm yapıyor. Sonda, Dünya\'ya göre ışık süratine yakın sabit süratle gidiyor. Dünya\'daki ekip bu ölçümün süresini nasıl bulur?',
+          secenekler: ['10 dakikadan kısa.', '10 dakika.', '10 dakikadan uzun.'],
+          dogru: 2,
+          aciklama: 'Ölçüm, sondaya göre aynı yerde başlayıp biter. Sondanın saatindeki 10 dakika özzamandır ve en kısa süredir. Sondaya göre hareket eden Dünya\'daki ekip daha uzun bir süre bulur.',
+          yanlisIpucu: 'Özzaman, iki olayın aynı yerde olduğu gözlemcinin ölçtüğü süredir ve en kısa süredir. Dünya\'daki ekip özzamanı mı ölçer?'
+        }
+      },
+      {
+        baslik: 'Boy yalnız hareket doğrultusunda kısalır',
+        sekil: 'sfA53_kol',
+        metin: r`Birçok uzay sondasının gövdesinden dışarı uzanan uzun bir ölçüm kolu vardır. Bir sondanın kolu hareket doğrultusunda uzanıyor. Sondadaki ölçüme göre kol 4 m uzunluğunda. Gövdenin üstündeki anten ise harekete dik ve 1 m boyunda. Sonda, Dünya'ya göre ışık süratine yakın sabit süratle gidiyor.
+
+- Cisme göre durgun gözlemcinin ölçtüğü boya **özuzunluk** ($L_0$) denir. Kolun özuzunluğu 4 m'dir. En uzun boy budur.
+- Dünya'daki gözlemci, hareket doğrultusundaki kolu 4 m'den kısa ölçer: $L < L_0$. Buna **boy kısalması** denir.
+- Harekete dik anten değişmez, yine 1 m ölçülür.
+- Kol sıkışmaz, ısınmaz. Kısalma, cisme göre hareket eden gözlemcinin ölçümünde ortaya çıkar.`,
+        kontrol: {
+          soru: 'Sondadaki astronot, ölçüm kolunun boyunu ölçüyor. Ne bulur?',
+          secenekler: ['4 m\'den uzun.', '4 m\'den kısa.', '4 m.'],
+          dogru: 2,
+          aciklama: 'Astronot sondayla birlikte gider; kol ona göre durgundur. Astronot özuzunluğu, yani 4 m\'yi ölçer. Kolu kısa ölçen, sondaya göre hareket eden Dünya\'daki gözlemcidir.',
+          yanlisIpucu: 'Kısalma, cisme göre hareket eden gözlemcinin ölçümünde ortaya çıkar. Astronota göre kol hareket ediyor mu?'
+        }
+      },
+      {
+        baslik: 'Kütle de bir enerji biçimidir',
+        metin: r`Einstein'a göre kütle ve enerji birbirine dönüşebilir. Bir cismin kütlesine karşılık gelen enerji $E = m \times c^2$ bağıntısıyla verilir.
+
+- $c^2$ çok büyük bir sayıdır. Bu yüzden çok küçük bir kütle, çok büyük bir enerjiye karşılık gelir.
+- Bir cisim enerji kazanırsa kütlesi çok az artar. Enerji verirse kütlesi çok az azalır.
+- Isıtma, yemek pişirme gibi günlük olaylarda kütle değişimi ölçülemeyecek kadar küçüktür. Çekirdek tepkimelerinde ise ölçülebilir.`,
+        kontrol: {
+          soru: 'Bir telefonun bataryası boşken tartılıyor. Sonra tam doldurulup yeniden tartılıyor. Bataryanın kütlesi için hangisi doğrudur?',
+          secenekler: ['Çok çok az artar; bu fark tartıyla ölçülemeyecek kadar küçüktür.', 'Hiç değişmez; enerjinin kütleyle bir ilgisi yoktur.', 'Belirgin biçimde artar; mutfak terazisi bile farkı gösterir.'],
+          dogru: 0,
+          aciklama: r`Dolan batarya enerji depolar. $E = m \times c^2$ bağıntısına göre enerjisi artan cismin kütlesi de artar. $c^2$ çok büyük olduğu için artış, bir gramın milyarda birinden de küçüktür.`,
+          yanlisIpucu: r`Enerji ile kütle $E = m \times c^2$ bağıntısıyla bağlıdır. Enerji artınca kütle ne olur? $c^2$ ne kadar büyüktür?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Gemide filizlenen tohum',
+        metin: 'Bir keşif gemisi, Dünya\'ya göre ışık süratine yakın sabit süratle gidiyor. Gemideki laboratuvarda bir tohum, gemideki saate göre 4 günde filizleniyor. Zaman genişlemesi yalnız saatlerde değil, kalp atışında ve bitkinin büyümesinde de aynı biçimde görülür.',
+        adimlar: [
+          {
+            soru: 'Gemideki biyoloğa göre filizlenme ne kadar sürer?',
+            secenekler: ['4 günden kısa.', '4 gün.', '4 günden uzun.'],
+            dogru: 1,
+            ipucu: 'Biyolog tohumla birlikte gider. Kendi saatini, kendi bitkisini nasıl işliyor görür?',
+            aciklama: 'Tohum biyoloğa göre durgundur; filizlenme ona göre aynı yerde başlar ve biter. Biyolog özzamanı, yani 4 günü ölçer. Ona göre her şey normal işler.'
+          },
+          {
+            soru: 'Dünya\'daki ekibe göre filizlenme ne kadar sürer?',
+            secenekler: ['4 günden uzun.', '4 gün.', '4 günden kısa.'],
+            dogru: 0,
+            ipucu: 'Ekibe göre tohum gemiyle birlikte hareket ediyor. Hareket eden saat yavaş mı, hızlı mı işler?',
+            aciklama: 'Dünya\'daki ekibe göre gemi ve içindeki her şey hareket hâlindedir. Ekip, özzamandan daha uzun bir süre ölçer: 4 günden uzun.'
+          },
+          {
+            soru: 'Gemideki biyolog, Dünya\'daki ekibin saatini nasıl işliyor bulur?',
+            secenekler: ['Kendi saatinden hızlı.', 'Kendi saatinden yavaş.', 'Kendi saatiyle aynı hızda.'],
+            dogru: 1,
+            ipucu: 'Biyoloğa göre hareket eden kim? Gemi mi, Dünya mı?',
+            aciklama: 'Biyoloğa göre Dünya, aynı süratle ters yönde hareket eder. Bu yüzden o da Dünya\'daki saati yavaş ölçer. Etki karşılıklıdır; iki gözlemciden hiçbiri ayrıcalıklı değildir.'
+          }
+        ],
+        sonuc: 'Her gözlemci kendi saatini normal işliyor görür. Olayların aynı yerde olduğu gözlemci özzamanı, yani en kısa süreyi ölçer. Birbirine göre hareket eden iki eylemsiz gözlemciden her biri ötekinin saatini yavaş ölçer.'
+      },
+      {
+        baslik: 'Ses ve ışık aynı mı davranır?',
+        metin: 'Rüzgârsız bir günde ses, durgun havaya göre yaklaşık 340 m/s ile yayılır. Hava yere göre durduğu için ses yere göre de 340 m/s ile ilerler. Yol kenarında duran bir siren ötüyor. Bir araç, sirene doğru yere göre 20 m/s süratle yaklaşıyor.',
+        adimlar: [
+          {
+            soru: 'Araçtaki yolcuya göre sesin sürati kaç m/s\'dir?',
+            secenekler: ['320 m/s', '340 m/s', '360 m/s'],
+            dogru: 2,
+            ipucu: 'Ses havada yayılır ve sürati havaya göre 340 m/s\'dir. Yolcu, havaya göre sese doğru gidiyor.',
+            aciklama: 'Ses havaya göre 340 m/s ile gelir. Yolcu da havaya göre 20 m/s ile sese doğru gider. Yolcuya göre ses 340 + 20 = 360 m/s ile yaklaşır.'
+          },
+          {
+            soru: 'Uzayda bir uzay aracı bir yıldıza doğru gidiyor. Araçtaki ölçüme göre yıldızdan gelen ışığın sürati nedir?',
+            secenekler: [r`$c$'den büyük.`, r`$c$`, r`$c$'den küçük.`],
+            dogru: 1,
+            ipucu: '2. postüla, ışığın boşluktaki süratinin gözlemcinin hareketine bağlı olup olmadığı hakkında ne diyor?',
+            aciklama: r`Işığın boşluktaki sürati bütün eylemsiz gözlemciler için $c$'dir. Araç yıldıza doğru gitse de ölçülen sürat $c$'dir. Seste yaptığımız toplama ışık için geçerli değildir.`
+          },
+          {
+            soru: 'Ses ile ışık arasındaki bu farkın nedeni hangisidir?',
+            secenekler: ['Işık sesten çok hızlı olduğu için araç süratinin etkisi görülmez.', 'Uzayda hava olmadığı için araç yıldıza yaklaşamaz.', 'Sesin sürati havaya göredir; ışığın boşluktaki sürati ise her gözlemciye göre aynıdır.'],
+            dogru: 2,
+            ipucu: 'Sesin 340 m/s olan sürati neye göre ölçülmüştü? Işık için böyle bir ortam bulundu mu?',
+            aciklama: 'Ses, havanın titreşimiyle yayılır; sürati havaya göre bellidir. Işık için esir adlı bir ortam arandı ama bulunamadı. Işığın boşluktaki sürati, araç ne kadar hızlı giderse gitsin aynı ölçülür.'
+          }
+        ],
+        sonuc: r`Ortamda yayılan ses gibi dalgalarda, ortama göre hareket edince ölçülen sürat değişir. Işığın boşluktaki sürati ise herkes için $c$'dir. Işık için süratler toplanmaz.`
+      },
+      {
+        baslik: 'Vakum borusundaki proton',
+        metin: 'Bir parçacık laboratuvarında 2 km uzunluğunda, iç çapı 10 cm olan düz bir vakum borusu var. Bir proton, boruya göre ışık süratine yakın sabit süratle borunun içinde ilerliyor. Protonla birlikte hareket eden hayalî bir gözlemci düşün.',
+        adimlar: [
+          {
+            soru: 'Borunun özuzunluğunu kim ölçer?',
+            secenekler: ['Protonla giden gözlemci.', 'Laboratuvardaki teknisyen.', 'İkisi de aynı boyu ölçtüğü için ikisi de.'],
+            dogru: 1,
+            ipucu: 'Özuzunluk, cisme göre durgun gözlemcinin ölçtüğü boydur. Boruya göre kim durgun?',
+            aciklama: 'Boru laboratuvara göre durgundur. Teknisyenin ölçtüğü 2 km, borunun özuzunluğudur.'
+          },
+          {
+            soru: 'Protonla giden gözlemci borunun boyunu nasıl ölçer?',
+            secenekler: ['2 km\'den kısa.', '2 km.', '2 km\'den uzun.'],
+            dogru: 0,
+            ipucu: 'Bu gözlemciye göre boru hareket ediyor. Boru hareket doğrultusunda mı uzanıyor?',
+            aciklama: 'Protonla giden gözlemciye göre boru hareket eder. Borunun boyu hareket doğrultusunda olduğu için özuzunluktan kısa, yani 2 km\'den kısa ölçülür.'
+          },
+          {
+            soru: 'Protonla giden gözlemci borunun iç çapını nasıl ölçer?',
+            secenekler: ['10 cm\'den kısa.', '10 cm\'den uzun.', '10 cm.'],
+            dogru: 2,
+            ipucu: 'Boy kısalması hangi doğrultuda olur? Borunun çapı harekete paralel mi, dik mi?',
+            aciklama: 'Borunun çapı hareket doğrultusuna diktir. Harekete dik boyutlar değişmez; çap 10 cm ölçülür.'
+          }
+        ],
+        sonuc: 'Özuzunluğu, cisme göre durgun gözlemci ölçer. Cisme göre hareket eden gözlemci yalnız hareket doğrultusundaki boyu kısa ölçer. Harekete dik boyutlar herkes için aynıdır.'
+      }
+    ],
+    hazir: 'Eylemsiz gözlemciyi, iki postülayı, özzamanı, özuzunluğu ve kütle-enerji eşdeğerliğini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -45364,6 +45680,98 @@ BFY_FIG_EKLE('kA54_ikiolcum', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.5.4 başlangıç şekilleri (sfA54_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', TEL = '#2a3330', MAV = '#2f6fb8', YES = '#2f8f5b', MOR = '#6b4fa8';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.5 });
+const bg = (w, h, renk = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${renk}"/>`;
+// Dalga çizgisi: (x1, y1)'den (x2, y2)'ye, dalga boyu lam, genlik A; uçta ok başı
+function dalga(x1, y1, x2, y2, lam, A, c) {
+  const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, nx = -uy, ny = ux, son = L - 12;
+  let d = '';
+  for (let s = 0; s <= son; s += 1.5) { const a = A * Math.sin(2 * Math.PI * s / lam) * Math.min(1, s / 8, (son - s) / 8 + 0.0001); d += (s ? ' L' : 'M') + f1(x1 + ux * s + nx * a) + ' ' + f1(y1 + uy * s + ny * a); }
+  const bx = x1 + ux * son, by = y1 + uy * son;
+  return `<path d="${d}" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<polygon points="${f1(x2)},${f1(y2)} ${f1(bx + nx * 6)},${f1(by + ny * 6)} ${f1(bx - nx * 6)},${f1(by - ny * 6)}" fill="${c}"/>`;
+}
+function elektron(u, x, y, r = 9) {
+  return `<defs><radialGradient id="${u}el" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#bfe0ff"/><stop offset="1" stop-color="#1f5fa8"/></radialGradient></defs>` +
+    `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="url(#${u}el)" stroke="#173f70" stroke-width="1"/>` +
+    `<line x1="${f1(x - r * 0.45)}" y1="${f1(y)}" x2="${f1(x + r * 0.45)}" y2="${f1(y)}" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`;
+}
+
+/* Adım 1: ayarlı anahtarla yavaş yavaş açılan akkor lamba; tel ısındıkça koyu kırmızı, turuncu, sarımsı beyaz */
+BFY_FIG_EKLE('sfA54_isitma', function (u) {
+  let s = `<rect x="0" y="0" width="340" height="236" rx="14" fill="#2b2f36"/>`; // koyu zemin bilerek .bg sınıfsız (ekonomi temasında da görünsün)
+  const lam = [
+    { x: 60, tel: '#c0301f', g: '#b3261e', op: 0.35, ad: 'koyu kırmızı' },
+    { x: 170, tel: '#ff8a2a', g: '#ff7a1f', op: 0.5, ad: 'turuncu' },
+    { x: 280, tel: '#fff4d6', g: '#ffe7a3', op: 0.75, ad: 'sarımsı beyaz' }
+  ];
+  lam.forEach((c, i) => {
+    const x = c.x, y = 86;
+    s += `<defs><radialGradient id="${u}p${i}" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${c.g}" stop-opacity="${c.op}"/><stop offset="1" stop-color="${c.g}" stop-opacity="0"/></radialGradient></defs>`;
+    s += `<circle cx="${x}" cy="${y}" r="${46 + i * 6}" fill="url(#${u}p${i})"/>`;
+    // cam balon
+    s += `<path d="M${x - 15} ${y + 30} C${x - 15} ${y + 18} ${x - 34} ${y + 8} ${x - 34} ${y - 12} A34 34 0 1 1 ${x + 34} ${y - 12} C${x + 34} ${y + 8} ${x + 15} ${y + 18} ${x + 15} ${y + 30}Z" fill="#ffffff" fill-opacity=".10" stroke="#c9d3dc" stroke-width="1.6"/>`;
+    s += `<path d="M${x - 22} ${y - 28} A26 26 0 0 1 ${x - 4} ${y - 40}" fill="none" stroke="#fff" stroke-width="2.5" opacity=".35" stroke-linecap="round"/>`;
+    // tel tutucuları ve sarmal tel
+    s += `<path d="M${x - 6} ${y + 30} L${x - 10} ${y - 8} M${x + 6} ${y + 30} L${x + 10} ${y - 8}" stroke="#9aa3ab" stroke-width="1.6" fill="none"/>`;
+    let d = `M${x - 10} ${y - 8}`; for (let k = 0; k < 6; k++) d += ` q1.7 -7 3.4 0`;
+    s += `<path d="${d}" fill="none" stroke="${c.tel}" stroke-width="2.6" stroke-linecap="round"/>`;
+    // duy
+    s += `<rect x="${x - 15}" y="${y + 30}" width="30" height="22" rx="3" fill="#a7adb3" stroke="#6b737a" stroke-width="1"/>`;
+    for (let k = 0; k < 3; k++) s += `<line x1="${x - 15}" y1="${y + 36 + k * 6}" x2="${x + 15}" y2="${y + 33 + k * 6}" stroke="#6b737a" stroke-width="1.2"/>`;
+    s += `<path d="M${x - 8} ${y + 52} L${x + 8} ${y + 52} L${x + 4} ${y + 58} L${x - 4} ${y + 58}Z" fill="#4b5157"/>`;
+    s += yaz(x, 176, c.ad, { anchor: 'middle', fill: '#f4f1ea', haloColor: '#2b2f36' });
+  });
+  s += ok(40, 204, 300, 204, '#f4f1ea', 2.4);
+  s += yaz(170, 226, 'sıcaklık artar', { anchor: 'middle', fill: '#f4f1ea', haloColor: '#2b2f36' });
+  return svg(340, 236, s, u, 90);
+});
+
+/* Adım 4: foton enerjisi = eşik enerjisi + en büyük kinetik enerji */
+BFY_FIG_EKLE('sfA54_enerji', function (u) {
+  let s = bg(340, 256);
+  // metal levha
+  s += `<defs><linearGradient id="${u}mt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d7dde2"/><stop offset="1" stop-color="#7d8892"/></linearGradient></defs>`;
+  s += `<rect x="16" y="196" width="160" height="40" rx="4" fill="url(#${u}mt)" stroke="#5f6b75" stroke-width="1.2"/>`;
+  s += yaz(96, 222, 'metal', { anchor: 'middle', fill: '#2f3a42', haloColor: '#c5ccd2' });
+  // gelen foton ve sökülen elektron
+  s += dalga(24, 64, 84, 192, 16, 6, MOR) + yaz(22, 50, 'foton', { fill: MOR });
+  s += ok(100, 190, 146, 120, MAV, 2.6) + elektron(u, 152, 110);
+  s += yaz(112, 92, 'elektron', { fill: MAV });
+  // enerji sütunu
+  const x = 204, w = 40, ust = 64, orta = 124, alt = 214;
+  s += yaz(x + w / 2, 30, 'fotonun enerjisi', { anchor: 'middle', fill: P.ink2 });
+  s += yaz(x + w / 2, 50, 'h × f', { anchor: 'middle', size: 15, weight: 800 });
+  s += `<rect x="${x}" y="${orta}" width="${w}" height="${alt - orta}" fill="#9aa6b0" stroke="#5f6b75" stroke-width="1.2"/>`;
+  s += `<rect x="${x}" y="${ust}" width="${w}" height="${orta - ust}" fill="#7fc79a" stroke="${YES}" stroke-width="1.2"/>`;
+  s += yaz(x + w + 10, (ust + orta) / 2 + 5, 'E_{k(max)}', { fill: YES, size: 15, weight: 800 });
+  s += yaz(x + w + 10, (orta + alt) / 2 + 5, 'E_0', { fill: '#4f5b63', size: 15, weight: 800 });
+  return svg(340, 256, s, u, 90);
+});
+
+/* Adım 5: Compton saçılması; gelen foton sağa, saçılan foton sağ üste (dalga boyu uzun), elektron sağ alta */
+BFY_FIG_EKLE('sfA54_compton', function (u) {
+  let s = bg(340, 236);
+  const ex = 168, ey = 126;
+  s += dalga(14, ey, ex - 14, ey, 13, 6, MOR) + yaz(18, ey - 18, 'gelen foton', { fill: MOR });
+  s += `<circle cx="${ex}" cy="${ey}" r="9" fill="none" stroke="${MAV}" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+  s += dalga(ex + 8, ey - 8, 296, 40, 26, 7, '#b0498a') + yaz(186, 40, 'saçılan foton', { fill: '#b0498a' });
+  s += ok(ex + 8, ey + 6, 262, 192, MAV, 2.6) + elektron(u, 270, 198);
+  s += yaz(154, 214, 'elektron', { fill: MAV });
+  s += yaz(256, 92, 'dalga boyu', { fill: P.ink2 }) + yaz(256, 110, 'daha uzun', { fill: P.ink2 });
+  return svg(340, 236, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -45422,6 +45830,184 @@ const KONU = {
     'enerji düzeyleri 0; 2,1; 3,6; 4,4 eV olan gaz, eşik enerjisi 2,0 ve 2,2 eV metal levha, 2,4 V', 'K (2 V, 10 μA) ve L (1 V, 20 μA) ışıklarının I–V eğrileri ve birlikte gönderilmeleri',
     "X (eşik 5 × 10¹⁴ Hz) ve Y (eşik 7,5 × 10¹⁴ Hz) E_k(max)–f doğruları; f1 = 10, f2 = 12,5 (× 10¹⁴ Hz) ışıklarından biriyle 2 V: X-f1 ya da Y-f2, öteki ışıkla 1 V değişim (yorumlama eki)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda ışığın enerjisini küçük paketler hâlinde taşıdığını göreceğiz. Isıtılan cisimlerin ışımasından başlayıp ışığın metalden elektron sökmesine ve elektronla çarpışmasına geçeceğiz. Hesaplar eV birimiyle, küçük tam sayılarla yapılır. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Isınan cisim ışık saçar',
+        sekil: 'sfA54_isitma',
+        metin: r`Akkor (telli) bir lambayı ayarlı bir anahtarla yavaş yavaş açtığını düşün. Lambanın teli önce koyu kırmızı, sonra turuncu, en sonunda sarımsı beyaz parlar.
+
+- Isıtılan her cisim ışıma yapar. Akımla ısınan tel de böyledir. Üzerine düşen bütün ışığı soğuran ideal cisme **siyah cisim** denir.
+- Sıcaklık artınca cisim her dalga boyunda daha çok ışıma yapar.
+- Işımanın en güçlü olduğu dalga boyu, sıcaklık artınca **kısa dalga boylarına** kayar. Renk kırmızıdan beyaza bu yüzden döner.
+
+Klasik fizik bu ışımanın dalga boylarına nasıl dağıldığını açıklayamadı. 1900'de Planck, ışıma enerjisinin küçük paketler hâlinde yayıldığını varsaydı ve ölçümlerle uyumlu sonucu buldu.`,
+        kontrol: {
+          soru: 'Bir elektrikli ocağın teli ısınırken rengi koyu kırmızıdan turuncuya dönüyor. Bu sırada ışımanın en güçlü olduğu dalga boyu ne olur?',
+          secenekler: ['Uzun dalga boylarına kayar.', 'Kısa dalga boylarına kayar.', 'Değişmez, yalnız ışıma artar.'],
+          dogru: 1,
+          aciklama: 'Sıcaklık arttıkça ışımanın en güçlü olduğu dalga boyu kısa dalga boylarına kayar. Tel, dalga boyu kısa olan ışığı da giderek daha çok yayar. Turuncu ışığın dalga boyu kırmızınınkinden kısa olduğu için tel kırmızıdan turuncuya döner.',
+          yanlisIpucu: 'Kırmızı ve turuncudan hangisinin dalga boyu daha kısadır? Isınan cisim hangi yöne doğru renk değiştiriyor?'
+        }
+      },
+      {
+        baslik: 'Işık enerji paketleridir: foton',
+        metin: r`Bir kum torbasını düşün. Kumu tane tane alabilirsin ama yarım tane alamazsın. Işığın enerjisi de böyledir.
+
+- Işık, **foton** denen enerji paketlerinden oluşur.
+- Bir fotonun enerjisi $E = h \times f$ bağıntısıyla bulunur. $f$ ışığın frekansı, $h$ Planck sabitidir.
+- Frekans büyüdükçe bir fotonun enerjisi büyür. Morötesi fotonun enerjisi, kırmızı fotonunkinden büyüktür.
+- Bu konuda enerji çoğunlukla **eV** (elektronvolt) birimiyle yazılır. $h$ yaklaşık $4 \times 10^{-15}\ \text{eV} \times \text{s}$ alınabilir.`,
+        kontrol: {
+          soru: r`Frekansı $5 \times 10^{14}\ \text{Hz}$ olan ışığın bir fotonunun enerjisi kaç eV'tur? ($h = 4 \times 10^{-15}\ \text{eV} \times \text{s}$ alınız.)`,
+          secenekler: ['20 eV', '9 eV', '2 eV'],
+          dogru: 2,
+          aciklama: r`$E = h \times f = 4 \times 10^{-15} \times 5 \times 10^{14} = 20 \times 10^{-1} = 2$ eV. Bu, turuncu ışığın foton enerjisidir.`,
+          yanlisIpucu: r`Sayıları ve üsleri ayrı ayrı çarp: $4 \times 5 = 20$, $10^{-15} \times 10^{14} = 10^{-1}$.`
+        }
+      },
+      {
+        baslik: 'Elektron sökmek için eşik aşılmalı',
+        metin: r`Bir metale ışık düşünce yüzeyden elektron sökülebilir. Buna **fotoelektrik olay** denir. Işıkla çalışan fotoseller bu olaya dayanır.
+
+- Elektron metale bağlıdır. Onu koparmak için gereken en küçük enerjiye **eşik enerjisi** ($E_0$) denir. Her metalin eşik enerjisi farklıdır.
+- Bir foton enerjisinin tamamını **tek bir elektrona** verir. Fotonun enerjisi $E_0$'dan küçükse elektron sökülmez.
+- Işık ne kadar parlak olursa olsun, ne kadar uzun süre tutulursa tutulsun sonuç değişmez. Parlak ışıkta foton çoktur ama her biri tek başına yetersizdir.
+- Fotonun enerjisi $E_0$'dan büyükse elektron hemen, beklemeden sökülür.`,
+        kontrol: {
+          soru: 'Eşik enerjisi 2 eV olan bir metal levhaya, her bir fotonunun enerjisi 1 eV olan güçlü bir kızılötesi ısıtıcı lambası uzun süre tutuluyor. Ne olur?',
+          secenekler: ['Lamba güçlü olduğu için elektron hemen sökülür.', 'Elektron sökülmez.', 'Enerji birikir, bir süre sonra elektron sökülür.'],
+          dogru: 1,
+          aciklama: 'Her foton enerjisini tek bir elektrona verir. 1 eV, 2 eV\'luk eşik enerjisinden küçüktür. Fotonlar ne kadar çok olursa olsun, ne kadar beklenirse beklensin elektron sökülmez. Levha yalnız ısınır.',
+          yanlisIpucu: 'Sıradan ışıkta bir elektron, iki fotonun enerjisini toplayıp kullanamaz. Tek bir fotonun enerjisi eşiği aşıyor mu?'
+        }
+      },
+      {
+        baslik: 'Artan enerji elektronun hareket enerjisi olur',
+        sekil: 'sfA54_enerji',
+        metin: r`Fotonun enerjisi eşik enerjisinden büyükse fazlası, sökülen elektrona kinetik enerji olarak kalır.
+
+- **Einstein denklemi:** $E_{k(\text{max})} = h \times f - E_0$.
+- "En büyük" denmesinin nedeni şu: Yüzeydeki elektron yalnız $E_0$ kadar enerji harcar. Daha içerideki elektronlar dışarı çıkarken fazladan enerji kaybeder ve daha yavaş çıkar.
+- En hızlı elektronları da durdurmak için gereken ters gerilime **durdurma gerilimi** ($V_d$) denir: $e \times V_d = E_{k(\text{max})}$.
+- Enerji eV ile yazılırsa $V_d$ aynı sayı olur: $E_{k(\text{max})} = 3$ eV ise $V_d = 3$ V.`,
+        kontrol: {
+          soru: 'Eşik enerjisi 4 eV olan bir metal levhaya, her biri 6 eV enerji taşıyan fotonlar düşüyor. Sökülen elektronların en büyük kinetik enerjisi kaç eV\'tur?',
+          secenekler: ['2 eV', '10 eV', '6 eV'],
+          dogru: 0,
+          aciklama: r`$E_{k(\text{max})} = 6 - 4 = 2$ eV. Fotonun 4 eV'luk kısmı elektronu koparmaya harcanır, kalan 2 eV elektronun kinetik enerjisi olur.`,
+          yanlisIpucu: 'Elektronu koparmak için harcanan enerji fotonun enerjisinden çıkarılır, eklenmez.'
+        }
+      },
+      {
+        baslik: 'Foton da çarpışır: Compton saçılması',
+        sekil: 'sfA54_compton',
+        metin: r`Bilardoda hareketli top duran topa çarpınca enerjisinin bir kısmını ona verir ve yavaşlayarak yoluna devam eder. Foton da serbest bir elektronla buna benzer biçimde çarpışır.
+
+- Bir X ışını fotonu serbest bir elektrona çarpar. Elektron hareket kazanır. Foton enerjisinin bir kısmını kaybedip başka bir yöne saçılır.
+- Foton yavaşlamaz; sürati yine $c$'dir. Enerjisi azaldığı için **frekansı küçülür, dalga boyu büyür.**
+- Bu olay, ışığın tanecik gibi davrandığını gösterir. Girişim ve kırınım ise ışığın dalga gibi davrandığını gösterir. Işık **ikili doğaya** sahiptir.
+- De Broglie bunun tersini düşündü: Hareket eden elektron gibi parçacıkların da bir dalga boyu vardır.`,
+        kontrol: {
+          soru: 'Compton saçılmasında elektrona çarpıp saçılan fotonun dalga boyu, gelen fotonunkiyle karşılaştırılınca nasıldır?',
+          secenekler: ['Daha kısadır.', 'Aynıdır.', 'Daha uzundur.'],
+          dogru: 2,
+          aciklama: r`Foton enerjisinin bir kısmını elektrona verir. Enerjisi azalan fotonun frekansı küçülür. Sürati $c$ olarak kaldığı için dalga boyu büyür.`,
+          yanlisIpucu: r`Fotonun enerjisi $h \times f$'dir. Enerji azalınca frekans ne olur? Sürat değişmeyince frekans küçülürse dalga boyu ne olur?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Morötesi ışıkla elektron sökmek',
+        metin: r`Bir laboratuvarda frekansı $10^{15}\ \text{Hz}$ olan morötesi ışık, eşik enerjisi 3 eV olan bir metal levhaya gönderiliyor. ($h = 4 \times 10^{-15}\ \text{eV} \times \text{s}$ alınız.)`,
+        adimlar: [
+          {
+            soru: 'Bir fotonun enerjisi kaç eV\'tur?',
+            secenekler: ['3 eV', '4 eV', '40 eV'],
+            dogru: 1,
+            ipucu: r`Foton enerjisi $E = h \times f$'dir. Üsleri toplarken dikkat et: $10^{-15} \times 10^{15} = 10^0 = 1$.`,
+            aciklama: r`$E = 4 \times 10^{-15} \times 10^{15} = 4$ eV. Bu enerji 3 eV'luk eşikten büyüktür; elektron sökülür.`
+          },
+          {
+            soru: 'Sökülen elektronların en büyük kinetik enerjisi kaç eV\'tur?',
+            secenekler: ['7 eV', '4 eV', '1 eV'],
+            dogru: 2,
+            ipucu: 'Fotonun enerjisinden, elektronu koparmak için harcanan eşik enerjisini çıkar.',
+            aciklama: r`$E_{k(\text{max})} = 4 - 3 = 1$ eV.`
+          },
+          {
+            soru: 'Elektronların hepsini durdurmak için gereken en küçük ters gerilim kaç volttur?',
+            secenekler: ['1 V', '3 V', '4 V'],
+            dogru: 0,
+            ipucu: r`$e \times V_d = E_{k(\text{max})}$. Enerji eV ile yazılınca durdurma gerilimi volt cinsinden aynı sayıdır.`,
+            aciklama: r`$E_{k(\text{max})} = 1$ eV olduğu için $V_d = 1$ V. Bu gerilim en hızlı elektronları da durdurur.`
+          }
+        ],
+        sonuc: r`Sıra hep aynıdır: Önce foton enerjisini bul. Sonra eşik enerjisini çıkarıp en büyük kinetik enerjiyi bul. eV cinsinden bu sayı, volt cinsinden durdurma gerilimidir. Dalga boyu verilirse foton enerjisi $E = \dfrac{1240}{\lambda}$ eV ile bulunur; burada $h \times c = 1240\ \text{eV} \times \text{nm}$ alınmış ve $\lambda$ nm cinsinden yazılmıştır. Soruda hangi sabit verildiyse onu kullan.`
+      },
+      {
+        baslik: 'Lamba yaklaşınca ne değişir?',
+        metin: 'Bir öğrenci, bir fotoselin metal levhasına mavi ışık veren bir lamba tutuyor. Mavi fotonların enerjisi levhanın eşik enerjisinden büyüktür. Öğrenci sonra lambayı levhaya yaklaştırıyor; levhaya her saniye daha çok foton düşüyor.',
+        adimlar: [
+          {
+            soru: 'Lamba yaklaşınca her saniye sökülen elektron sayısı ne olur?',
+            secenekler: ['Azalır.', 'Artar.', 'Değişmez.'],
+            dogru: 1,
+            ipucu: 'Her foton en çok bir elektron sökebilir. Levhaya her saniye düşen foton sayısı arttı.',
+            aciklama: 'Her saniye levhaya daha çok foton düşer. Bu yüzden her saniye daha çok elektron sökülür ve fotoselin akımı artar.'
+          },
+          {
+            soru: 'Sökülen elektronların en büyük kinetik enerjisi ne olur?',
+            secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+            dogru: 2,
+            ipucu: 'Lamba yaklaşınca fotonların sayısı değişti. Tek bir fotonun enerjisi değişti mi?',
+            aciklama: r`Mavi fotonların her biri yine aynı enerjiyi taşır. $E_{k(\text{max})} = h \times f - E_0$ bağıntısında hiçbir şey değişmedi; en büyük kinetik enerji aynı kalır.`
+          },
+          {
+            soru: 'Öğrenci mavi lamba yerine aynı uzaklığa morötesi ışık veren bir lamba koyuyor. Sökülen elektronların en büyük kinetik enerjisi ne olur?',
+            secenekler: ['Değişmez.', 'Artar.', 'Azalır.'],
+            dogru: 1,
+            ipucu: 'Morötesi ışığın frekansı maviden büyük mü, küçük mü? Frekans büyüyünce bir fotonun enerjisi ne olur?',
+            aciklama: r`Morötesi ışığın frekansı mavi ışığınkinden büyüktür. Her foton daha çok enerji taşır. Eşik enerjisi aynı olduğu için $E_{k(\text{max})}$ artar.`
+          }
+        ],
+        sonuc: 'Işığın şiddeti, yani her saniye düşen foton sayısı, sökülen elektron sayısını belirler. Işığın frekansı, yani bir fotonun enerjisi, elektronların en büyük kinetik enerjisini belirler.'
+      },
+      {
+        baslik: 'Etiketi silinmiş levha',
+        metin: 'Laboratuvarda etiketi silinmiş bir metal levha bulunuyor. Öğretmen, eşik enerjisini bulmak için levhayı bir fotosele yerleştiriyor. Her biri 5 eV enerji taşıyan fotonlar gönderiyor ve durdurma gerilimini 3 V ölçüyor.',
+        adimlar: [
+          {
+            soru: 'Sökülen elektronların en büyük kinetik enerjisi kaç eV\'tur?',
+            secenekler: ['3 eV', '5 eV', '8 eV'],
+            dogru: 0,
+            ipucu: 'Durdurma gerilimi volt cinsinden, en büyük kinetik enerji eV cinsinden aynı sayıdır.',
+            aciklama: r`$V_d = 3$ V olduğu için $E_{k(\text{max})} = 3$ eV.`
+          },
+          {
+            soru: 'Levhanın eşik enerjisi kaç eV\'tur?',
+            secenekler: ['8 eV', '2 eV', '5 eV'],
+            dogru: 1,
+            ipucu: r`$E_{k(\text{max})} = h \times f - E_0$ bağıntısında $E_0$ yalnız bırakılırsa $E_0 = h \times f - E_{k(\text{max})}$ olur.`,
+            aciklama: r`$E_0 = 5 - 3 = 2$ eV. Sezyum gibi bazı metallerin eşik enerjisi bu değere yakındır.`
+          },
+          {
+            soru: 'Aynı levhaya her biri 6 eV enerji taşıyan fotonlar gönderilirse durdurma gerilimi kaç volt olur?',
+            secenekler: ['6 V', '3 V', '4 V'],
+            dogru: 2,
+            ipucu: 'Eşik enerjisi metale bağlıdır; foton değişince değişmez. Yeni en büyük kinetik enerjiyi bul.',
+            aciklama: r`$E_{k(\text{max})} = 6 - 2 = 4$ eV, yani $V_d = 4$ V. Eşik enerjisi levhanın özelliğidir, aynı kalır.`
+          }
+        ],
+        sonuc: 'Durdurma gerilimi ölçülerek eşik enerjisi bulunabilir. Eşik enerjisi metale bağlıdır; ışık değişince değişmez.'
+      }
+    ],
+    hazir: 'Isınan cismin ışımasını, fotonu, eşik enerjisini, Einstein denklemini ve Compton saçılmasını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -47080,6 +47666,97 @@ BFY_FIG_EKLE('iA55_tanim', u => I0.sahne(u, I1 => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 92, s: 1.12 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.5.5 başlangıç şekilleri (sfA55_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', TEL = '#2a3330', MAV = '#2f6fb8', YES = '#2f8f5b';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const bg = (w, h, renk = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${renk}"/>`;
+const cizgi = (x1, y1, x2, y2, c = P.ink2, w = 1.3, d = '') => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${c}" stroke-width="${w}"${d ? ` stroke-dasharray="${d}"` : ''}/>`;
+
+/* Adım 4: niyobyum telin direnç-sıcaklık grafiği; T_c ≈ 9 K, sıvı helyum 4 K, sıvı azot 77 K */
+BFY_FIG_EKLE('sfA55_direnc', function (u) {
+  let s = bg(340, 236);
+  const ox = 50, oy = 196, sx = T_ => ox + T_ * 2.2;  // 0–100 K → 50–270 px
+  // eksenler
+  s += arrow(ox, oy, 292, oy, { color: P.ink, w: 1.6, head: 9, headW: 4.5 }) + arrow(ox, oy, ox, 34, { color: P.ink, w: 1.6, head: 9, headW: 4.5 });
+  s += yaz(298, oy + 5, 'T (K)', { fill: P.ink });
+  s += yaz(ox + 8, 40, 'R (Ω)', { fill: P.ink });
+  s += yaz(ox - 6, oy + 20, '0', { anchor: 'middle', fill: P.ink2 });
+  // işaret çizgileri: sıvı helyum (4 K) ve sıvı azot (77 K)
+  s += cizgi(sx(4), oy, sx(4), 66, MAV, 1.4, '4 4') + yaz(sx(4) - 4, 60, 'sıvı helyum', { fill: MAV });
+  s += cizgi(sx(77), oy, sx(77), 66, '#6b4fa8', 1.4, '4 4') + yaz(sx(77), 60, 'sıvı azot', { fill: '#6b4fa8', anchor: 'middle' });
+  s += yaz(sx(4), oy + 20, '4', { anchor: 'middle', fill: MAV }) + yaz(sx(77), oy + 20, '77', { anchor: 'middle', fill: '#6b4fa8' });
+  // direnç eğrisi: 9 K'in üstünde sıcaklıkla artar, 9 K'de birden sıfıra iner
+  const yR = T_ => 160 - (T_ - 9) * 0.82;
+  let d = `M${f1(sx(9))} ${f1(yR(9))}`; for (let T_ = 12; T_ <= 100; T_ += 4) d += ` L${f1(sx(T_))} ${f1(yR(T_))}`;
+  s += `<path d="${d}" fill="none" stroke="${KIR}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += cizgi(sx(9), yR(9), sx(9), oy - 1.5, KIR, 3) + `<line x1="${ox}" y1="${oy - 1.5}" x2="${f1(sx(9))}" y2="${oy - 1.5}" stroke="${KIR}" stroke-width="3.4" stroke-linecap="round"/>`;
+  s += yaz(sx(9) + 12, 184, 'T_c ≈ 9 K: direnç sıfır', { fill: KIR });
+  return svg(340, 236, s, u, 90);
+});
+
+/* Adım 5: Dünya'dan Ay'daki yansıtıcıya lazer atımı ve dönüşü (ölçekli değil) */
+BFY_FIG_EKLE('sfA55_ay', function (u) {
+  let s = `<rect x="0" y="0" width="340" height="210" rx="14" fill="#1f2a3a"/>`; // koyu zemin bilerek .bg sınıfsız
+  [[120, 30], [210, 22], [250, 170], [150, 186], [24, 30], [320, 190], [180, 56], [96, 172]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="1.4" fill="#c9d3e6"/>`; });
+  s += `<defs><radialGradient id="${u}dn" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#cfe6f7"/><stop offset=".55" stop-color="#3f8fd0"/><stop offset="1" stop-color="#1d4f86"/></radialGradient>` +
+    `<radialGradient id="${u}ay" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#f4f4f1"/><stop offset=".6" stop-color="#b9b8b2"/><stop offset="1" stop-color="#77756f"/></radialGradient></defs>`;
+  // Dünya
+  s += `<circle cx="52" cy="106" r="36" fill="url(#${u}dn)" stroke="#1d4f86" stroke-width="1"/>`;
+  s += `<path d="M30 92 q10 -12 22 -6 q4 10 -6 16 q-12 2 -16 -10Z M54 112 q12 -4 16 6 q-2 10 -12 12 q-8 -6 -4 -18Z" fill="#5f9e5a" opacity=".85"/>`;
+  // Ay ve yansıtıcı
+  s += `<circle cx="298" cy="104" r="24" fill="url(#${u}ay)" stroke="#6f6d66" stroke-width="1"/>`;
+  s += `<circle cx="290" cy="96" r="4" fill="#9a988f"/><circle cx="304" cy="114" r="3" fill="#9a988f"/><circle cx="306" cy="94" r="2" fill="#9a988f"/>`;
+  s += `<rect x="271" y="98" width="6" height="10" fill="#e8c35a" stroke="#8a6414" stroke-width=".8"/>`;
+  // giden atım (az ıraksayan demet) ve dönen atım
+  s += `<polygon points="88,99 271,95 271,104 88,101" fill="#5fe08a" opacity=".9"/>`;
+  s += `<polygon points="271,106 88,107 88,116 271,109" fill="#5fe08a" opacity=".45"/>`;
+  s += arrow(170, 84, 206, 83, { color: '#5fe08a', w: 2, head: 8, headW: 4 }) + arrow(206, 126, 170, 127, { color: '#9fe8b6', w: 2, head: 8, headW: 4 });
+  s += yaz(100, 72, 'giden lazer atımı', { fill: '#e8f5ec', haloColor: '#1f2a3a' });
+  s += yaz(100, 148, 'yansıyan atım', { fill: '#e8f5ec', haloColor: '#1f2a3a' });
+  s += yaz(298, 70, 'yansıtıcı', { fill: '#f3d27a', haloColor: '#1f2a3a', anchor: 'middle' });
+  s += yaz(52, 166, 'Dünya', { anchor: 'middle', fill: '#e8f5ec', haloColor: '#1f2a3a' }) + yaz(298, 152, 'Ay', { anchor: 'middle', fill: '#e8f5ec', haloColor: '#1f2a3a' });
+  s += yaz(326, 198, 'ölçekli değildir', { anchor: 'end', fill: '#aab6c8', haloColor: '#1f2a3a' });
+  return svg(340, 210, s, u, 90);
+});
+
+/* Isınma 2: güneş enerjili bahçe lambası; güneş pili, akü, LED */
+BFY_FIG_EKLE('sfA55_bahce', function (u) {
+  let s = bg(340, 250, '#eaf3fb');
+  // güneş
+  s += `<circle cx="46" cy="44" r="20" fill="#ffd04d" stroke="#e0a000" stroke-width="1.2"/>`;
+  for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; s += cizgi(46 + 26 * Math.cos(a), 44 + 26 * Math.sin(a), 46 + 34 * Math.cos(a), 44 + 34 * Math.sin(a), '#e0a000', 2.4); }
+  s += arrow(78, 56, 116, 72, { color: '#e0a000', w: 2, head: 8, headW: 4, dash: '5 4' });
+  // çimen
+  s += `<rect x="0" y="226" width="340" height="24" fill="#7fb85a"/><path d="M0 226 Q170 218 340 226 L340 232 L0 232Z" fill="#94c96c"/>`;
+  for (let x = 12; x < 330; x += 16) s += `<path d="M${x} 228 l3 -9 l3 9" fill="#5f9e45"/>`;
+  // direk
+  s += `<defs><linearGradient id="${u}dk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3d454c"/><stop offset=".5" stop-color="#7d8892"/><stop offset="1" stop-color="#3d454c"/></linearGradient></defs>`;
+  s += `<rect x="135" y="156" width="10" height="72" fill="url(#${u}dk)"/>`;
+  // akü kutusu
+  s += `<rect x="126" y="140" width="28" height="16" rx="2" fill="#4b5157" stroke="#2a3330" stroke-width="1"/><rect x="131" y="143" width="18" height="10" fill="#e8c35a"/>`;
+  // fener camı ve LED ışığı
+  s += `<defs><radialGradient id="${u}led" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff9e0"/><stop offset=".5" stop-color="#ffe9a3" stop-opacity=".8"/><stop offset="1" stop-color="#ffe9a3" stop-opacity="0"/></radialGradient></defs>`;
+  // gündüz: LED sönük (akşam yanar), ışıma halesi çizilmez
+  s += `<rect x="120" y="94" width="40" height="46" rx="3" fill="#ffffff" fill-opacity=".35" stroke="#5f6b75" stroke-width="1.6"/>`;
+  s += `<rect x="134" y="110" width="12" height="9" rx="2" fill="#fffbe8" stroke="#c9a23a" stroke-width="1"/><path d="M136 119 L136 126 M144 119 L144 126" stroke="#8a9aa6" stroke-width="1.3"/>`;
+  // şapka ve güneş pili
+  s += `<path d="M112 94 L168 94 L160 82 L120 82Z" fill="#3d454c" stroke="#2a3330" stroke-width="1"/>`;
+  s += `<rect x="122" y="74" width="36" height="8" fill="#1d3f72" stroke="#8fb3de" stroke-width="1"/>`;
+  for (let k = 1; k < 4; k++) s += cizgi(122 + k * 9, 74, 122 + k * 9, 82, '#8fb3de', 0.8);
+  // etiketler
+  s += cizgi(160, 77, 214, 66) + yaz(218, 70, 'güneş pili');
+  s += cizgi(148, 114, 214, 112) + yaz(218, 117, 'LED');
+  s += cizgi(154, 148, 214, 158) + yaz(218, 163, 'akü');
+  return svg(340, 250, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -47141,6 +47818,185 @@ const KONU = {
     'silisyum güneş piline aynı güçte mavi (2,6 eV) ve kırmızı (1,9 eV) ışık, ütünün kızılötesi ışınımı; eşik 1,1 eV (kesinlikle)', 'şarj aletinde transformatör çıkışı, dört diyotlu köprü (D₁–D₄) ve R direnci; D₄ çıkarılıyor'
   ],
 
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hastanede, cepte ve yolda kullandığımız teknolojilerin hangi fizik ilkesiyle çalıştığını göreceğiz. Bu konuda hesap yok. Her cihaz için "hangi dalgayı ya da hangi maddeyi kullanıyor, nasıl çalışıyor?" sorusunu soracağız. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Yankıyla görmek',
+        metin: r`Bir mağarada bağırınca sesin duvardan dönmesi biraz zaman alır. Duvar uzaktaysa yankı geç gelir. Bazı cihazlar bu fikirle çalışır.
+
+- Cihaz bir dalga gönderir. Dalga bir engelden yansıyıp geri döner. Yankının dönüş süresi engelin uzaklığını verir.
+- **Ultrason** (tıpta) ve **sonar** (suda) ses dalgası kullanır. Ultrasonun frekansı, insanın duyabileceğinden çok yüksektir.
+- **Radar**, radyo dalgası (mikrodalga) kullanır. Radyo dalgası elektromanyetik bir dalgadır; havada ve boşlukta yol alır.
+- Radyo dalgaları deniz suyunda çok çabuk soğurulur. Bu yüzden su altında uzaklık ölçmek için ses kullanılır.`,
+        kontrol: {
+          soru: 'Aşağıdaki cihazlardan hangisi yankı süresinden uzaklık bulur ve elektromanyetik dalga kullanır?',
+          secenekler: ['Sonar.', 'Ultrason cihazı.', 'Radar.'],
+          dogru: 2,
+          aciklama: 'Üçü de yankıyla çalışır. Sonar ve ultrason ses dalgası kullanır. Radar ise elektromanyetik bir dalga olan radyo dalgası (mikrodalga) kullanır.',
+          yanlisIpucu: 'Ses dalgası elektromanyetik dalga değildir, mekanik bir dalgadır. Hangi cihaz ses değil, radyo dalgası gönderir?'
+        }
+      },
+      {
+        baslik: 'Vücudun içini görmek',
+        metin: r`Doktorlar vücudu açmadan içini görmek için farklı cihazlar kullanır. Her cihaz farklı bir dalga ya da olaydan yararlanır.
+
+- **Röntgen** ve **bilgisayarlı tomografi** X ışını kullanır. Kemik X ışınını çok, yumuşak doku az soğurur. Görüntü bu farktan oluşur.
+- X ışını **iyonlaştırıcıdır**: Atomlardan elektron koparabilir. Bu yüzden gereksiz çekimden kaçınılır.
+- **MR**, güçlü bir mıknatıs ve radyo dalgası kullanır. Vücuttaki hidrojen çekirdeklerinden gelen sinyalle görüntü oluşur. İyonlaştırıcı değildir.
+- **Termal kamera** dalga göndermez. Cisimlerin yaydığı kızılötesi ışınımı algılar.`,
+        kontrol: {
+          soru: 'Aşağıdaki cihazlardan hangisi iyonlaştırıcı ışınım kullanır?',
+          secenekler: ['MR.', 'Bilgisayarlı tomografi.', 'Ultrason cihazı.'],
+          dogru: 1,
+          aciklama: 'Bilgisayarlı tomografi, röntgen gibi X ışını kullanır. X ışını iyonlaştırıcıdır. MR radyo dalgası ve mıknatıs, ultrason ise ses dalgası kullanır; ikisi de iyonlaştırmaz.',
+          yanlisIpucu: 'İyonlaştırıcı ışınım, atomdan elektron koparabilecek kadar enerjili ışınımdır. Cihazlardan hangisi X ışını kullanır?'
+        }
+      },
+      {
+        baslik: 'Yarı iletken: akımın yönünü seçen madde',
+        metin: r`Telefonundaki çipler, odandaki LED lamba ve çatıdaki güneş paneli aynı tür maddeden yapılır: **yarı iletken**.
+
+- Silisyum gibi yarı iletkenlerin iletkenliği, iletkenle yalıtkan arasındadır. Saf silisyuma çok az başka atom eklenerek (katkılama) iletkenliği ayarlanır.
+- **Diyot**, akımı yalnız bir yönde geçirir. Ters yönde neredeyse hiç akım geçmez.
+- **LED**, ışık veren bir diyottur. Akım doğru yönde geçerken ışık verir.
+- **Güneş pili**, ışık enerjisini doğrudan elektrik enerjisine çevirir ve doğru akım üretir.
+- **Transistör**, akımı açıp kapayan küçük bir anahtardır. Bir telefon çipinde milyarlarca transistör vardır.`,
+        kontrol: {
+          soru: 'LED\'li bir el fenerinin pilleri ters takılınca fener yanmıyor. Bunun nedeni hangisidir?',
+          secenekler: ['LED, akımı yalnız bir yönde geçirir.', 'Pillerin enerjisi ters takılınca biter.', 'LED yalnız alternatif akımla yanar.'],
+          dogru: 0,
+          aciklama: 'LED bir diyottur ve akımı yalnız bir yönde geçirir. Piller ters takılınca akım ters yönde geçmeye çalışır ama geçemez. Piller düzeltilince fener yeniden yanar; pillerin enerjisi bitmemiştir.',
+          yanlisIpucu: 'Diyot akımı kaç yönde geçirir? LED de bir diyottur.'
+        }
+      },
+      {
+        baslik: 'Süper iletken: direnci sıfır olan madde',
+        sekil: 'sfA55_direnc',
+        metin: r`Bir telden akım geçince tel ısınır, çünkü telin direnci vardır. Bazı maddeler çok soğutulunca bu direnç tümüyle kaybolur.
+
+- 1911'de Onnes, cıvayı sıvı helyumla yaklaşık 4 K'e (−269 °C) soğuttu. Cıvanın direnci birden sıfıra indi.
+- Direncin birden sıfıra indiği sıcaklığa **kritik sıcaklık** ($T_c$) denir. Bu sıcaklığın altında direnci sıfır olan maddelere **süper iletken** denir.
+- Direnç sıfır olunca akım ısı üretmeden dolanır.
+- Süper iletken, mıknatısın alanını içinden dışlar ve mıknatısı havada tutabilir.
+- Hastanelerdeki MR cihazlarının çoğunda ve büyük parçacık hızlandırıcılarında güçlü mıknatıslar süper iletken bobinlerdir.`,
+        kontrol: {
+          soru: 'Kritik sıcaklığı yaklaşık 9 K olan niyobyum telden akım geçiyor. Tel 20 K\'den 4 K\'e soğutulunca direnci ne olur?',
+          secenekler: ['Biraz azalır ama sıfır olmaz.', 'Sıfır olur.', 'Artar.'],
+          dogru: 1,
+          aciklama: '4 K, telin kritik sıcaklığı olan 9 K\'den düşüktür. Tel süper iletken olur ve direnci sıfıra iner.',
+          yanlisIpucu: 'Kritik sıcaklığın altına inen süper iletkenin direnci ne olur? 4 K, 9 K\'in altında mı?'
+        }
+      },
+      {
+        baslik: 'Lazer: aynı adımla yürüyen fotonlar',
+        sekil: 'sfA55_ay',
+        metin: r`Lamba ışığı her yöne yayılır ve içinde birçok renk vardır. Lazer ışığı ise çok farklıdır.
+
+- Uyarılmış bir atoma uygun enerjili bir foton gelince atom, gelen fotonun **aynısı** olan ikinci bir foton yayar. Buna **uyarılmış ışıma** denir.
+- Atomlar dışarıdan verilen enerjiyle sürekli uyarılır. İki ayna arasında gidip gelen fotonlar bu olayı tekrar tekrar yaşatır ve ışık güçlenir. Aynalardan biri yarı geçirgendir; ışık oradan çıkar.
+- Lazer ışığı **tek renklidir**, dalgaları **eş fazlıdır** ve çok **az ıraksar**.
+- Barkod okuyucular, göz ameliyatları ve fiber optik iletişim lazer kullanır.`,
+        kontrol: {
+          soru: 'Bilim insanları Ay\'a lazer atımları gönderir. Atımlar, Apollo astronotlarının Ay\'a bıraktığı yansıtıcılardan geri döner; bunların ilki 1969\'da bırakıldı. Dönüş süresinden Ay\'ın uzaklığı bulunur. Lazerin hangi özelliği, ışığın bu uzun yolda fazla dağılmadan gitmesini sağlar?',
+          secenekler: ['Ses dalgası olması.', 'Çok sıcak olması.', 'Çok az ıraksaması.'],
+          dogru: 2,
+          aciklama: 'Lazer demeti çok az ıraksar. Yaklaşık 384 000 km yol aldıktan sonra bile Ay yüzeyinde yalnız birkaç kilometrelik bir alana yayılır. Sıradan bir lambanın ışığı ise her yöne dağılır.',
+          yanlisIpucu: 'Lazer ışığı bir elektromanyetik dalgadır, ses değildir. Hangi özellik ışığın yayılıp dağılmasıyla ilgilidir?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Akıllı otomobil',
+        metin: 'Yeni bir otomobilde üç sistem var. Arka tampondaki park sensörü, aracın arkasındaki engele olan uzaklığı ölçer. Yol kenarındaki bir radar, aracın süratini uzaktan ölçer. Termal kameralı gece görüş sistemi, farların aydınlatmadığı yoldaki bir geyiği ekranda gösterir.',
+        adimlar: [
+          {
+            soru: 'Park sensörü engele olan uzaklığı nasıl bulur?',
+            secenekler: ['Engelin yaydığı ısıyı algılayarak.', 'Gönderdiği sesin yankısını dinleyerek.', 'Engelden geçen X ışınını ölçerek.'],
+            dogru: 1,
+            ipucu: 'Bu sensörler duyamadığımız kadar yüksek frekanslı ses gönderir. Ses engelden ne yapar?',
+            aciklama: 'Park sensörü yüksek frekanslı ses gönderir ve engelden dönen yankıyı dinler. Yankı ne kadar çabuk dönerse engel o kadar yakındır.'
+          },
+          {
+            soru: 'Yol kenarındaki radar hangi dalgayı kullanır?',
+            secenekler: ['Ses dalgası.', 'Gama ışını.', 'Radyo dalgası (mikrodalga).'],
+            dogru: 2,
+            ipucu: 'Radar ses mi gönderir, yoksa elektromanyetik bir dalga mı?',
+            aciklama: 'Radar, radyo dalgası (mikrodalga) gönderir. Araçtan yansıyan dalgadaki değişimden aracın süratini bulur.'
+          },
+          {
+            soru: 'Gece görüş sistemi, farların ulaşmadığı geyiği nasıl görür?',
+            secenekler: ['Geyiğin vücudunun yaydığı kızılötesi ışınımı algılar.', 'Geyiğe ses gönderip yankısını dinler.', 'Geyiğe X ışını gönderir.'],
+            dogru: 0,
+            ipucu: 'Sistemde termal kamera var. Termal kamera dalga mı gönderir, yoksa sıcak vücudun yaydığı ışınımı mı algılar?',
+            aciklama: 'Bu sistemdeki termal kamera dalga göndermez; geyiğin sıcak vücudunun yaydığı kızılötesi ışınımı algılar. Bu yüzden karanlıkta da çalışır.'
+          }
+        ],
+        sonuc: 'Bir cihazı tanımak için iki şeye bak: Ses mi, elektromanyetik dalga mı kullanıyor? Dalgayı kendisi mi gönderiyor, yoksa cismin yaydığı ışınımı mı algılıyor?'
+      },
+      {
+        baslik: 'Güneş enerjili bahçe lambası',
+        sekil: 'sfA55_bahce',
+        metin: 'Bahçedeki bir lambanın tepesinde küçük bir güneş pili, içinde şarj edilebilir küçük bir akü ve bir LED var. Gündüz güneş pili aküyü doldurur. Akşam akü LED\'i yakar.',
+        adimlar: [
+          {
+            soru: 'Gündüz güneş pilinde hangi enerji dönüşümü olur?',
+            secenekler: ['Elektrik enerjisi ışık enerjisine dönüşür.', 'Işık enerjisi elektrik enerjisine dönüşür.', 'Isı enerjisi ışık enerjisine dönüşür.'],
+            dogru: 1,
+            ipucu: 'Güneş pili güneşten ne alır, aküye ne verir?',
+            aciklama: 'Güneş pili, üzerine düşen ışığın enerjisini doğrudan elektrik enerjisine çevirir. Bu enerji aküde kimyasal enerji olarak depolanır.'
+          },
+          {
+            soru: 'Güneş pilinin ürettiği akım hangi türdendir?',
+            secenekler: ['Alternatif akım.', 'Doğru akım.', 'Gündüz bir yönde, akşam ters yönde akan akım.'],
+            dogru: 1,
+            ipucu: 'Aküyü doldurmak için yönü hep aynı kalan bir akım gerekir. Güneş pili nasıl bir akım üretir?',
+            aciklama: 'Güneş pili doğru akım üretir; akımın yönü değişmez. Akü de doğru akımla dolar. Evdeki prizlerde ise alternatif akım vardır.'
+          },
+          {
+            soru: 'Akşam LED nasıl ışık verir?',
+            secenekler: ['İnce bir tel ısınıp akkor hâle gelir.', 'İçindeki gaz iyonlaşıp parlar.', 'Yarı iletkende elektronlar boşluklarla birleşirken ışık yayar.'],
+            dogru: 2,
+            ipucu: 'LED bir diyottur, yani yarı iletkenden yapılır. İçinde ısınan bir tel ya da gaz var mı?',
+            aciklama: 'LED\'de akım doğru yönde geçerken elektronlar boşluklarla birleşir ve ışık yayar. Akkor lambadaki gibi kızgın bir tel yoktur; bu yüzden LED aynı ışık için çok daha az enerji harcar.'
+          }
+        ],
+        sonuc: 'Bahçe lambası, yarı iletkenin iki işini birlikte gösterir: Güneş pili ışığı elektriğe, LED elektriği ışığa çevirir. Güneş pili doğru akım üretir, LED de doğru akımla ışık verir.'
+      },
+      {
+        baslik: 'MR cihazının soğuk kalbi',
+        metin: 'Bir MR cihazının güçlü mıknatısı, niyobyum-titanyum alaşımından yapılmış bir bobindir. Bu alaşımın kritik sıcaklığı yaklaşık 9 K\'dir. Bobin, yaklaşık 4 K sıcaklıktaki sıvı helyumun içinde tutulur. Daha ucuz olan sıvı azotun sıcaklığı ise 77 K\'dir.',
+        adimlar: [
+          {
+            soru: 'Bobin neden sıvı azotla değil, sıvı helyumla soğutulur?',
+            secenekler: ['Sıvı azot, bobini kritik sıcaklığın altına indiremez.', 'Sıvı azot, manyetik alanı söndürür.', 'Sıvı helyum, bobinin direncini artırır.'],
+            dogru: 0,
+            ipucu: 'Süper iletken olması için bobin 9 K\'in altına inmelidir. Sıvı azot kaç K\'dir?',
+            aciklama: 'Sıvı azot 77 K\'dir ve bobini 9 K\'in altına soğutamaz. Sıvı helyum ise yaklaşık 4 K\'dir; bobin onun içinde süper iletken olur.'
+          },
+          {
+            soru: 'Bobin süper iletkenken içinden büyük bir akım geçiyor. Bu akım bobinde ne kadar ısı üretir?',
+            secenekler: ['Çok fazla ısı üretir.', 'Isı üretmez.', 'Akımla orantılı az bir ısı üretir.'],
+            dogru: 1,
+            ipucu: 'Akımın tel içinde ısı üretmesinin nedeni telin direncidir. Süper iletkenin direnci kaçtır?',
+            aciklama: 'Süper iletkenin direnci sıfırdır. Akım bobinde ısı üretmeden dolanır. Bu yüzden akımı sürdürmek için bobine sürekli elektrik enerjisi vermek gerekmez.'
+          },
+          {
+            soru: 'Soğutma bozulur ve bobin 9 K\'in üstüne ısınırsa ne olur?',
+            secenekler: ['Bobinin direnci yine sıfır kalır.', 'Bobin daha güçlü bir mıknatıs olur.', 'Bobin direnç kazanır; akımın enerjisi ısıya dönüşür ve helyum hızla kaynar.'],
+            dogru: 2,
+            ipucu: 'Kritik sıcaklığın üstüne çıkan madde süper iletken kalır mı?',
+            aciklama: 'Kritik sıcaklığın üstünde bobin süper iletkenliğini kaybeder ve direnç kazanır. Bobindeki büyük akımın enerjisi ısıya dönüşür, sıvı helyum hızla kaynar. Bu yüzden MR cihazlarının soğutması sürekli denetlenir.'
+          }
+        ],
+        sonuc: 'Süper iletkenin direnci yalnız kritik sıcaklığın altında sıfırdır. Bu yüzden bobin, kritik sıcaklığın altına inebilecek bir sıvıyla soğutulmalıdır.'
+      }
+    ],
+    hazir: 'Yankıyla ve ışınımla görüntülemeyi, yarı iletkenleri, süper iletkenleri ve lazeri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
+
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
     {
@@ -47161,7 +48017,7 @@ const KONU = {
       altSekil: true,
       sekil: 'kA55_dalgalar_genis',
       baslik: 'Görüntüleme cihazları hangi dalgayı kullanır?',
-      metin: r`- **Ses (mekanik dalga):** Ultrason (tıpta megahertz düzeyinde) ve sonar (suda). Elektromanyetik dalgalar deniz suyunda çabuk soğurulur; su altında bu yüzden ses kullanılır.
+      metin: r`- **Ses (mekanik dalga):** Ultrason (tıpta megahertz düzeyinde) ve sonar (suda). Radyo dalgaları ve çoğu elektromanyetik dalga deniz suyunda çabuk soğurulur; su altında bu yüzden ses kullanılır.
 - **Elektromanyetik dalga:** Radar (radyo ve mikrodalga), MR (güçlü manyetik alan ve radyo dalgası), termal kamera (kızılötesi), röntgen ve bilgisayarlı tomografi (X ışını), PET (gama ışını).
 - **İyonlaştırıcı** ışınım kullananlar: röntgen, BT ve PET. MR ve ultrason iyonlaştırmaz; hamilelikte bu yüzden ultrason seçilir.
 - **Pasif cihaz:** Termal kamera dalga göndermez, cisimlerin yaydığı kızılötesini algılar; tam karanlıkta da çalışır.`
@@ -47205,7 +48061,7 @@ const KONU = {
       metin: r`- Bazı maddelerin direnci **kritik sıcaklığın** ($T_c$) altında birden sıfıra iner. İlk gözlem: cıva, yaklaşık $4\ \text{K}$ (Onnes, 1911). Bazı seramikler sıvı azotla ($77\ \text{K}$) soğutulunca süper iletken olur.
 - Direnç sıfır olduğu için akım ısı kaybı olmadan geçer. Süper iletken halkada başlatılan akım, soğutma sürdükçe dolanmayı sürdürür.
 - **Meissner olayı:** Süper iletken, manyetik alanı içinden dışlar; üzerine bırakılan mıknatısı iterek havada tutar.
-- **Kullanım:** MR'ın, parçacık hızlandırıcılarının ve bazı manyetik kaldırmalı (maglev) hızlı trenlerin güçlü mıknatısları süper iletken bobinlerdir. Hızlandırıcıda parçacıkları elektrik alan hızlandırır, mıknatıslar yönlendirir; maglevde manyetik itme treni raydan yükseltir, ray sürtünmesi kalkar.`
+- **Kullanım:** Çoğu MR cihazının, parçacık hızlandırıcılarının ve bazı manyetik kaldırmalı (maglev) hızlı trenlerin güçlü mıknatısları süper iletken bobinlerdir. Hızlandırıcıda parçacıkları elektrik alan hızlandırır, mıknatıslar yönlendirir; maglevde manyetik itme treni raydan yükseltir, ray sürtünmesi kalkar.`
     },
     {
       tur: 'sekilli',
