@@ -20223,6 +20223,116 @@ BFY_FIG_EKLE('kA21_espot', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.2.1 başlangıç şekilleri (sfA21_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f6fb8', KIR = '#d24b3e', MOR = '#6b4fa8', TEL = '#2a3330';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 2.6) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 10, headW: 5 });
+// Gölgeli, hacimli yüklü küre
+function kure(u, x, y, r, isaret, golge) {
+  const c = isaret === '+' ? KIR : MAV, k = r * 0.45;
+  let s = '';
+  if (golge) s += `<ellipse cx="${f1(x + 2)}" cy="${f1(y + r + 5)}" rx="${f1(r * 0.85)}" ry="3.2" fill="#000" opacity=".13"/>`;
+  s += `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="url(#${u}${isaret === '+' ? 'kp' : 'kn'})" stroke="${c}" stroke-width="1.6"/>`;
+  s += `<ellipse cx="${f1(x - r * 0.35)}" cy="${f1(y - r * 0.42)}" rx="${f1(r * 0.3)}" ry="${f1(r * 0.18)}" fill="#fff" opacity=".6"/>`;
+  s += `<line x1="${f1(x - k)}" y1="${f1(y)}" x2="${f1(x + k)}" y2="${f1(y)}" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>`;
+  if (isaret === '+') s += `<line x1="${f1(x)}" y1="${f1(y - k)}" x2="${f1(x)}" y2="${f1(y + k)}" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>`;
+  return s;
+}
+const kdefs = u => `<defs><radialGradient id="${u}kp" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f6b3a8"/><stop offset=".6" stop-color="#d24b3e"/><stop offset="1" stop-color="#8e2a20"/></radialGradient>
+<radialGradient id="${u}kn" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#b6d3f2"/><stop offset=".6" stop-color="#2f6fb8"/><stop offset="1" stop-color="#1b4372"/></radialGradient></defs>`;
+function olcu(x1, x2, y, metin) {
+  let s = `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line x1="${x1}" y1="${y - 6}" x2="${x1}" y2="${y + 6}"/><line x1="${x2}" y1="${y - 6}" x2="${x2}" y2="${y + 6}"/></g>`;
+  return s + yaz((x1 + x2) / 2, y + 20, metin, { anchor: 'middle' });
+}
+
+/* Adım 2: pozitif yükün alanı dışa; negatif yükün yanında K noktası */
+BFY_FIG_EKLE('sfA21_alan', function (u) {
+  let s = kdefs(u) + `<rect class="bg" x="0" y="0" width="340" height="230" rx="14" fill="#f4f7f9"/>`;
+  s += `<line x1="170" y1="16" x2="170" y2="214" stroke="#d3dce3" stroke-width="1.5" stroke-dasharray="5 5"/>`;
+  s += yaz(85, 28, 'pozitif yük', { anchor: 'middle', fill: KIR });
+  s += yaz(255, 28, 'negatif yük', { anchor: 'middle', fill: MAV });
+  const cx = 85, cy = 124;
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4 + Math.PI / 8, c = Math.cos(a), sn = Math.sin(a);
+    s += ok(cx + 24 * c, cy + 24 * sn, cx + 72 * c, cy + 72 * sn, KIR, 2.4);
+  }
+  s += kure(u, cx, cy, 16, '+');
+  const nx = 232, ny = 124;
+  s += kure(u, nx, ny, 16, '-');
+  s += `<circle cx="306" cy="${ny}" r="4.5" fill="${TEL}"/>` + yaz(306, ny - 14, 'K', { anchor: 'middle', size: 16, weight: 800 });
+  s += yaz(255, 206, 'K\'de alan yönü?', { anchor: 'middle', fill: P.ink2 });
+  s += yaz(85, 216, 'alan yükten dışarı', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 230, s, u, 90);
+});
+
+/* Adım 3: doğru üzerinde iki yük ve P noktası */
+BFY_FIG_EKLE('sfA21_potansiyel', function (u) {
+  let s = kdefs(u) + `<rect class="bg" x="0" y="0" width="340" height="160" rx="14" fill="#f4f7f9"/>`;
+  const y = 74, xa = 34, xp = 104, xb = 314;
+  s += `<line x1="14" y1="${y}" x2="326" y2="${y}" stroke="#c3ced6" stroke-width="2"/>`;
+  s += kure(u, xa, y, 15, '+') + kure(u, xb, y, 15, '-');
+  s += `<circle cx="${xp}" cy="${y}" r="5" fill="${TEL}"/>` + yaz(xp, y - 16, 'P', { anchor: 'middle', size: 16, weight: 800 });
+  s += yaz(xa, 34, '+2 μC', { anchor: 'start', fill: KIR, weight: 800, size: 15 });
+  s += yaz(xb, 34, '−3 μC', { anchor: 'end', fill: MAV, weight: 800, size: 15 });
+  s += olcu(xa, xp, 116, '30 cm') + olcu(xp, xb, 116, '90 cm');
+  return svg(340, 160, s, u, 90);
+});
+
+/* Adım 4: eş potansiyel çizgileri, K'den L'ye üç yol */
+BFY_FIG_EKLE('sfA21_yol', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="240" rx="14" fill="#f4f7f9"/>`;
+  const xs = [52, 128, 204, 280], vs = ['100 V', '200 V', '300 V', '400 V'];
+  xs.forEach((x, i) => {
+    s += `<path d="M${x - 14} 44 Q${x + 12} 130 ${x - 14} 216" fill="none" stroke="${MOR}" stroke-width="1.8" stroke-dasharray="6 5"/>`;
+    s += yaz(x - 14, 34, vs[i], { anchor: 'middle', fill: MOR, weight: 800 });
+  });
+  // K: 100 V çizgisinde, L: 400 V çizgisinde
+  const K = [51, 150], L = [278, 112];
+  // yol 1: düz
+  s += `<line x1="${K[0]}" y1="${K[1]}" x2="${L[0]}" y2="${L[1]}" stroke="${P.coral}" stroke-width="2.6"/>`;
+  // yol 2: yukarıdan yay
+  s += `<path d="M${K[0]} ${K[1]} C 110 52, 230 50, ${L[0]} ${L[1]}" fill="none" stroke="${P.green}" stroke-width="2.6"/>`;
+  // yol 3: aşağıdan dolanan uzun yol
+  s += `<path d="M${K[0]} ${K[1]} C 70 230, 170 220, 190 180 S 260 200, ${L[0]} ${L[1]}" fill="none" stroke="${P.sky}" stroke-width="2.6"/>`;
+  const etk = (x, y, n, c) => `<circle cx="${x}" cy="${y}" r="11" fill="#fff" stroke="${c}" stroke-width="2"/>` + yaz(x, y + 5, n, { anchor: 'middle', fill: c, weight: 800, halo: false });
+  s += etk(176, 118, '1', P.coral) + etk(176, 52, '2', P.green) + etk(132, 214, '3', P.sky);
+  s += `<circle cx="${K[0]}" cy="${K[1]}" r="5.5" fill="${TEL}"/><circle cx="${L[0]}" cy="${L[1]}" r="5.5" fill="${TEL}"/>`;
+  s += yaz(K[0] - 8, K[1] - 12, 'K', { anchor: 'end', size: 16, weight: 800 }) + yaz(L[0] + 12, L[1] + 6, 'L', { size: 16, weight: 800 });
+  return svg(340, 240, s, u, 90);
+});
+
+/* Isınma 2: hava rayında yüklü küreli iki araba */
+function araba(u, x, w, y) {
+  let s = `<rect x="${x}" y="${y - 22}" width="${w}" height="22" rx="4" fill="url(#${u}metal)" stroke="#6d777f" stroke-width="1.2"/>`;
+  s += `<path d="M${x + 6} ${y} L${x + w / 2} ${y + 12} L${x + w - 6} ${y}" fill="none" stroke="#6d777f" stroke-width="1.4"/>`;
+  s += `<rect x="${x + w / 2 - 2.5}" y="${y - 62}" width="5" height="40" fill="#d9c9a3" stroke="#9c8a62" stroke-width=".8"/>`;
+  return s;
+}
+BFY_FIG_EKLE('sfA21_ray', function (u) {
+  let s = kdefs(u) + `<rect class="bg" x="0" y="0" width="340" height="210" rx="14" fill="#f4f7f9"/>`;
+  // hava rayı (üçgen kesitli uzun profil) ve ayaklar
+  const ry = 132;
+  s += `<path d="M12 ${ry} L328 ${ry} L328 ${ry + 14} L12 ${ry + 14} Z" fill="url(#${u}metal)" stroke="#6d777f" stroke-width="1.2"/>`;
+  for (let x = 30; x < 326; x += 22) s += `<circle cx="${x}" cy="${ry + 7}" r="1.6" fill="#55606a"/>`;
+  s += `<rect x="30" y="${ry + 14}" width="10" height="30" fill="#7d868d"/><rect x="300" y="${ry + 14}" width="10" height="30" fill="#7d868d"/>`;
+  s += `<rect x="20" y="${ry + 44}" width="30" height="6" rx="2" fill="#55606a"/><rect x="290" y="${ry + 44}" width="30" height="6" rx="2" fill="#55606a"/>`;
+  const ax = 80, bx = 260;
+  s += araba(u, ax - 30, 60, ry) + araba(u, bx - 30, 60, ry);
+  s += kure(u, ax, ry - 74, 13, '+') + kure(u, bx, ry - 74, 13, '+');
+  s += yaz(ax, 34, '+20 nC', { anchor: 'middle', fill: KIR, weight: 800, size: 15 }) + yaz(bx, 34, '+30 nC', { anchor: 'middle', fill: KIR, weight: 800, size: 15 });
+  s += `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="${ax + 18}" y1="${ry - 74}" x2="${bx - 18}" y2="${ry - 74}" stroke-dasharray="4 4"/></g>`;
+  s += yaz(170, ry - 82, '60 cm', { anchor: 'middle' });
+  s += yaz(170, 202, 'hava rayı (sürtünmesiz)', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 210, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -20283,6 +20393,202 @@ const KONU = {
     'SİM: rayda +9 nC ve ±1 nC (40 cm), P noktası 3–90 cm, E–x ve V–x grafikleri', 'SİM: 6 g küre, yatay düzgün alan 0–60 kN/C, ±1 ve ±2 μC, 20 ve 40 cm ip, tan α–E grafiği',
     "simülasyonda işaretleri gizli X (+2q) ve Y (−q) yüklerinin eş potansiyel çizgileri +120, +60, +30, 0, −30 V: işaretler, büyüklük karşılaştırması, 0 V'ta alan (yorumlama eki)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda yüklerin birbirine nasıl kuvvet uyguladığını, çevrelerinde nasıl bir alan oluşturduğunu ve potansiyelin ne demek olduğunu göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Yükler arasındaki kuvvet',
+        metin: r`Kuru bir günde kazağını çıkarırken çıtırtı duyarsın ve saçların kazağa doğru çekilir. Sürtünmeyle yüklenen cisimler birbirine dokunmadan kuvvet uygular.
+
+- Aynı işaretli yükler birbirini iter, zıt işaretli yükler çeker.
+- Kuvvetin büyüklüğünü **Coulomb yasası** verir: $F = k\,\dfrac{q_1 \times q_2}{d^2}$. Havada $k = 9 \times 10^9\ \text{N} \times \text{m}^2/\text{C}^2$'dir.
+- Kuvvet, yüklerin çarpımıyla doğru orantılı, uzaklığın karesiyle ters orantılıdır.
+
+Sürtünmeyle yüklenen küçük cisimlerin yükü genellikle nanocoulomb düzeyindedir: $1\ \text{nC} = 10^{-9}\ \text{C}$. Yükleri $20\ \text{nC}$ olan iki küçük küre $3\ \text{cm}$ arayla duruyorsa:
+- Pay: $9 \times 10^9 \times 2 \times 10^{-8} \times 2 \times 10^{-8} = 36 \times 10^{-7}$.
+- Payda: $(3 \times 10^{-2})^2 = 9 \times 10^{-4}$.
+- Kuvvet: $F = \dfrac{36 \times 10^{-7}}{9 \times 10^{-4}} = 4 \times 10^{-3}\ \text{N}$, yani $4\ \text{mN}$.
+
+Uzaklık $6\ \text{cm}$'ye çıkarsa kuvvet 4'te 1'ine iner ve $1\ \text{mN}$ olur.`,
+        kontrol: {
+          soru: 'İki yüklü küre arasındaki itme kuvveti 12 mN\'dur. Kürelerden birinin yükü 2 katına, aralarındaki uzaklık da 2 katına çıkarılıyor. Yeni kuvvet kaç mN olur?',
+          secenekler: ['6 mN', '12 mN', '48 mN'],
+          dogru: 0,
+          aciklama: r`Yük 2 katına çıkınca kuvvet 2 katına çıkar. Uzaklık 2 katına çıkınca kuvvet 4'te 1'ine iner. Sonuç: $12 \times \dfrac{2}{4} = 6$ mN.`,
+          yanlisIpucu: 'Uzaklık formülde karesiyle yer alır. Uzaklık 2 katına çıkınca kuvvet yarıya değil, 4\'te 1\'ine iner.'
+        }
+      },
+      {
+        baslik: 'Elektrik alan: birim yüke düşen kuvvet',
+        sekil: 'sfA21_alan',
+        metin: r`Yüklü bir cisim çevresindeki bölgeyi değiştirir. Bu bölgeye konan her yük bir kuvvet hisseder. Bu etki bölgesine **elektrik alan** denir.
+
+- Bir noktadaki alan, oraya konan küçük bir deneme yüküne etkiyen kuvvetin bu yüke oranıdır: $E = \dfrac{F}{q}$. Birimi N/C'dir.
+- Noktasal yükün alanı: $E = k\,\dfrac{q}{d^2}$.
+- Alan vektördür. Pozitif yükün alanı yükten **dışarı**, negatif yükün alanı yüke **doğrudur**.
+
+Bir noktaya konan $2\ \text{nC}$'luk deneme yüküne $6 \times 10^{-6}$ N kuvvet etkiyorsa o noktadaki alan $E = \dfrac{6 \times 10^{-6}}{2 \times 10^{-9}} = 3 \times 10^3$ N/C'dir.`,
+        kontrol: {
+          soru: 'Şekildeki negatif yükün sağındaki K noktasında elektrik alan hangi yöndedir?',
+          secenekler: ['Sağa, yükten uzaklaşan yönde.', 'Sola, yüke doğru.', 'Yukarı doğru.'],
+          dogru: 1,
+          aciklama: 'Negatif yükün alanı yüke doğrudur. K yükün sağında olduğu için alan sola, yüke doğru yönelir.',
+          yanlisIpucu: 'Pozitif yükün alanı dışarı, negatif yükünki yüke doğrudur. K noktasından yüke doğru hangi yöne gidilir?'
+        }
+      },
+      {
+        baslik: 'Potansiyel: yönü olmayan bir büyüklük',
+        sekil: 'sfA21_potansiyel',
+        metin: r`Bir noktanın **elektriksel potansiyeli**, o noktaya konan birim pozitif yükün potansiyel enerjisidir. Noktasal yükün potansiyeli $V = k\,\dfrac{q}{d}$ bağıntısıyla bulunur. Birimi volttur (V).
+
+- Potansiyel **skalerdir**, yönü yoktur. Yükün işareti formüle yazılır: Pozitif yük artı, negatif yük eksi potansiyel oluşturur.
+- Birden çok yük varsa potansiyeller işaretleriyle toplanır.
+- Alan uzaklığın karesiyle, potansiyel ise uzaklığın kendisiyle ters orantılıdır.
+
+$+1\ \mu\text{C}$'luk yükün $1\ \text{m}$ uzağında $V = \dfrac{9 \times 10^9 \times 10^{-6}}{1} = 9 \times 10^3$ V, yani 9 kV olur. Yük $-1\ \mu\text{C}$ olsaydı potansiyel $-9$ kV olurdu.`,
+        kontrol: {
+          soru: r`Şekilde P noktası $+2\ \mu\text{C}$'luk yükten 30 cm, $-3\ \mu\text{C}$'luk yükten 90 cm uzaktadır. P noktasındaki toplam potansiyel kaç kV'tur?`,
+          secenekler: ['90 kV', '0', '30 kV'],
+          dogru: 2,
+          aciklama: r`$V_1 = \dfrac{9 \times 10^9 \times 2 \times 10^{-6}}{3 \times 10^{-1}} = 60$ kV ve $V_2 = \dfrac{9 \times 10^9 \times (-3 \times 10^{-6})}{9 \times 10^{-1}} = -30$ kV. Toplam: $60 + (-30) = 30$ kV. Potansiyel skaler olduğu için yönle uğraşmadık.`,
+          yanlisIpucu: 'Negatif yükün potansiyelini eksi işaretiyle yaz, sonra iki potansiyeli topla. Uzaklıkları metreye çevirmeyi unutma.'
+        }
+      },
+      {
+        baslik: 'İş yoldan bağımsızdır',
+        sekil: 'sfA21_yol',
+        metin: r`Bir yükü alanda bir noktadan başka bir noktaya, hızını değiştirmeden götürmek için iş yapmak gerekir. Bu iş yalnız başlangıç ve bitiş noktalarının potansiyeline bağlıdır:
+$W = q \times (V_\text{son} - V_\text{ilk})$.
+
+- İzlenen yolun uzunluğu ve biçimi önemli değildir.
+- Potansiyeli aynı olan noktaları birleştiren çizgilere **eş potansiyel çizgileri** denir. Bu çizgi boyunca yük taşımak iş gerektirmez.
+
+Şekilde $+3\ \mu\text{C}$'luk yük 100 V'luk K noktasından 400 V'luk L noktasına götürülüyor:
+$W = 3 \times 10^{-6} \times (400 - 100) = 9 \times 10^{-4}$ J.`,
+        kontrol: {
+          soru: 'Bu yük K\'den L\'ye 1, 2 ve 3 numaralı yollardan ayrı ayrı götürülüyor. Hangi yolda yapılan iş en büyüktür?',
+          secenekler: ['En uzun yol olan 3\'te.', 'Üçünde de eşittir.', 'En kısa yol olan 1\'de.'],
+          dogru: 1,
+          aciklama: r`İş yalnız $V_L - V_K$ farkına bağlıdır. Üç yolda da $W = 9 \times 10^{-4}$ J'dür.`,
+          yanlisIpucu: 'İş bağıntısında yolun uzunluğu var mı? Yalnız başlangıç ve bitiş potansiyellerine bak.'
+        }
+      },
+      {
+        baslik: 'Düzgün alanda potansiyel farkı',
+        metin: r`Bazı bölgelerde alan her noktada aynı büyüklükte ve aynı yöndedir. Buna **düzgün alan** denir.
+
+- Alan yönünde $d$ kadar gidildikçe potansiyel $E \times d$ kadar azalır: $\Delta V = E \times d$.
+- Alana dik gidilirse potansiyel değişmez. Eş potansiyel çizgileri alana diktir.
+- Yalnız elektriksel kuvvetin etkilediği bir yük, $\Delta V$ potansiyel farkından geçerken $q \times \Delta V$ kadar kinetik enerji kazanır ya da kaybeder.
+
+$E = 500$ N/C'lik düzgün alanda alan yönünde $4\ \text{cm}$ gidilince potansiyel $500 \times 4 \times 10^{-2} = 20$ V azalır.`,
+        kontrol: {
+          soru: 'Aynı alanda K noktasından alan yönünde 4 cm gidilip L\'ye, oradan alana dik 3 cm gidilip M\'ye ulaşılıyor. K ile M arasındaki potansiyel farkı kaç V\'tur?',
+          secenekler: ['25 V', '35 V', '20 V'],
+          dogru: 2,
+          aciklama: 'Yalnız alan doğrultusundaki 4 cm sayılır. Alana dik 3 cm\'lik yolda potansiyel değişmez. Bu yüzden K ile M arasındaki fark, K ile L arasındaki farka eşittir: 20 V.',
+          yanlisIpucu: 'Alana dik giderken potansiyel değişir mi? Yalnız alan yönündeki uzaklığı kullan.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kürenin yanına getirilen yük',
+        metin: r`Bir deney masasında yalıtkan ayak üzerinde büyük bir metal küre duruyor; yükü $+4\ \mu\text{C}$'dur. Kürenin merkezinden 30 cm uzaktaki P noktasına, yükü $-5\ \text{nC}$ olan küçük bir cisim getiriliyor. ($k = 9 \times 10^9\ \text{N} \times \text{m}^2/\text{C}^2$)`,
+        adimlar: [
+          {
+            soru: 'Kürenin P noktasında oluşturduğu elektrik alanın büyüklüğü kaç N/C\'dir?',
+            secenekler: [r`$4 \times 10^5$ N/C`, r`$12 \times 10^4$ N/C`, '40 N/C'],
+            dogru: 0,
+            ipucu: r`$E = k\,\dfrac{q}{d^2}$. Uzaklığı metreye çevir: 30 cm $= 3 \times 10^{-1}$ m, karesi $9 \times 10^{-2}$ m².`,
+            aciklama: r`$E = \dfrac{9 \times 10^9 \times 4 \times 10^{-6}}{9 \times 10^{-2}} = 4 \times 10^5$ N/C. Alan küreden dışarı doğrudur.`
+          },
+          {
+            soru: 'P\'deki cisme etkiyen elektriksel kuvvet kaç N\'dur?',
+            secenekler: [r`$4 \times 10^5$ N`, '20 mN', '2 mN'],
+            dogru: 2,
+            ipucu: r`$F = q \times E$. Yükün büyüklüğünü coulomb cinsinden yaz: $5 \times 10^{-9}$ C.`,
+            aciklama: r`$F = 5 \times 10^{-9} \times 4 \times 10^5 = 2 \times 10^{-3}$ N, yani 2 mN.`
+          },
+          {
+            soru: 'Bu kuvvet hangi yöndedir?',
+            secenekler: ['Küreden uzaklaşan yönde.', 'Küreye doğru.', 'Kuvvet sıfırdır.'],
+            dogru: 1,
+            ipucu: 'Negatif yüke etkiyen kuvvet alanın tersine yöndedir.',
+            aciklama: 'Alan küreden dışarı doğru, cisim ise negatif yüklü. Kuvvet alanın tersine, yani küreye doğrudur. Zıt işaretli yükler birbirini çeker.'
+          },
+          {
+            soru: r`P'ye $-5\ \text{nC}$ yerine $-10\ \text{nC}$'luk bir cisim konsaydı P'deki alan ne olurdu?`,
+            secenekler: ['İki katına çıkardı.', 'Değişmezdi.', 'Yarıya inerdi.'],
+            dogru: 1,
+            ipucu: 'Alanı kim oluşturuyor: küre mi, P\'ye konan cisim mi?',
+            aciklama: r`Alanı küre oluşturur; P'ye konan yük bu alanı değiştirmez. Alan yine $4 \times 10^5$ N/C olur. İki katına çıkan, cisme etkiyen kuvvettir: 4 mN.`
+          }
+        ],
+        sonuc: r`Alan, onu oluşturan yükün bir özelliğidir. Kuvvet ise alana konan yüke de bağlıdır: $F = q \times E$. Negatif yüke etkiyen kuvvet alanın tersine yöndedir.`
+      },
+      {
+        baslik: 'Hava rayında yaklaştırılan arabalar',
+        sekil: 'sfA21_ray',
+        metin: r`Sürtünmesiz bir hava rayında iki küçük araba var. Arabaların üstündeki yalıtkan çubuklara $+20\ \text{nC}$ ve $+30\ \text{nC}$ yüklü küçük küreler takılıdır. Kürelerin arası 60 cm'dir. Arabalardan biri sabit tutuluyor; öbürü yavaşça itilerek küreler arası 30 cm'ye indiriliyor. Bunun için gereken işi bulacağız. ($k = 9 \times 10^9\ \text{N} \times \text{m}^2/\text{C}^2$)`,
+        adimlar: [
+          {
+            soru: 'Küreler 60 cm arayla dururken iki yükün elektriksel potansiyel enerjisi kaç μJ\'dür?',
+            secenekler: ['9 μJ', '15 μJ', '18 μJ'],
+            dogru: 0,
+            ipucu: r`$E_p = k\,\dfrac{q_1 \times q_2}{d}$ ve $d = 6 \times 10^{-1}$ m. Burada uzaklığın karesi alınmaz.`,
+            aciklama: r`$E_p = \dfrac{9 \times 10^9 \times 2 \times 10^{-8} \times 3 \times 10^{-8}}{6 \times 10^{-1}} = 9 \times 10^{-6}$ J, yani 9 μJ. ($1\ \mu\text{J} = 10^{-6}$ J.) İki yük aynı işaretli olduğu için potansiyel enerji pozitiftir.`
+          },
+          {
+            soru: 'Küreler 30 cm arayla dururken potansiyel enerji kaç μJ olur?',
+            secenekler: ['36 μJ', '18 μJ', '9 μJ'],
+            dogru: 1,
+            ipucu: r`$E_p$ uzaklıkla ters orantılıdır; uzaklık yarıya inerse ne olur?`,
+            aciklama: r`Uzaklık yarıya inince potansiyel enerji 2 katına çıkar: $E_p = 18$ μJ. Uzaklığın karesi kuvvet ve alan bağıntısında vardır; potansiyel enerjide yoktur.`
+          },
+          {
+            soru: 'Küreleri yaklaştırmak için arabayı iten kişinin yaptığı iş kaç μJ\'dür?',
+            secenekler: ['27 μJ', '18 μJ', '9 μJ'],
+            dogru: 2,
+            ipucu: 'Arabanın hızı değişmiyor. Yapılan iş, potansiyel enerjideki artışa eşittir.',
+            aciklama: r`$W = 18 - 9 = 9$ μJ. Küreler birbirini ittiği için onları yaklaştırmak iş ister; bu iş sistemde potansiyel enerji olarak depolanır.`
+          }
+        ],
+        sonuc: 'Aynı işaretli yükleri yaklaştırmak iş ister ve potansiyel enerji artar. Araba bırakılırsa küreler birbirini iter ve depolanan enerji kinetik enerjiye dönüşür.'
+      },
+      {
+        baslik: 'Düzgün alanda hızlanan disk',
+        metin: r`Sürtünmesi önemsenmeyen yatay ve yalıtkan bir masa üstünde, şiddeti $10^5$ N/C olan yatay ve düzgün bir elektrik alan var. Kütlesi 1 g, yükü $+50\ \text{nC}$ olan hafif bir disk durgun bırakılıyor ve alan yönünde 40 cm yol alıyor.`,
+        adimlar: [
+          {
+            soru: 'Diskin başladığı nokta ile 40 cm sonraki nokta arasındaki potansiyel farkı kaç V\'tur?',
+            secenekler: [r`$4 \times 10^6$ V`, r`$4 \times 10^4$ V`, r`$4 \times 10^3$ V`],
+            dogru: 1,
+            ipucu: r`$\Delta V = E \times d$ ve $d = 40\ \text{cm} = 4 \times 10^{-1}$ m.`,
+            aciklama: r`$\Delta V = 10^5 \times 4 \times 10^{-1} = 4 \times 10^4$ V, yani 40 000 V.`
+          },
+          {
+            soru: 'Disk bu 40 cm\'de kaç mJ kinetik enerji kazanır?',
+            secenekler: ['2 mJ', '20 mJ', '200 mJ'],
+            dogru: 0,
+            ipucu: r`$E_k = q \times \Delta V$. Yükü coulomb cinsinden yaz.`,
+            aciklama: r`$E_k = 5 \times 10^{-8} \times 4 \times 10^4 = 2 \times 10^{-3}$ J, yani 2 mJ. Aynı sonucu $F = q \times E$ kuvvetiyle iş hesaplayarak da bulursun: $F = 5 \times 10^{-3}$ N ve $F \times d = 5 \times 10^{-3} \times 4 \times 10^{-1} = 2 \times 10^{-3}$ J.`
+          },
+          {
+            soru: 'Diskin 40 cm sonundaki sürati kaç m/s olur?',
+            secenekler: ['4 m/s', r`$\sqrt{2}$ m/s`, '2 m/s'],
+            dogru: 2,
+            ipucu: r`$E_k = \dfrac{1}{2}\, m \times \vartheta^2$ ve $m = 1\ \text{g} = 10^{-3}$ kg.`,
+            aciklama: r`$2 \times 10^{-3} = \dfrac{1}{2} \times 10^{-3} \times \vartheta^2$ olduğundan $\vartheta^2 = 4$ ve $\vartheta = 2$ m/s.`
+          }
+        ],
+        sonuc: r`Düzgün alanda önce $\Delta V = E \times d$, sonra kazanılan kinetik enerji $q \times \Delta V$ bulunur. Kütle yalnız son adımda, sürati hesaplarken işe karışır.`
+      }
+    ],
+    hazir: 'Coulomb kuvvetini, elektrik alanı, potansiyeli, işin yoldan bağımsız olduğunu ve düzgün alanı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -21860,6 +22166,109 @@ BFY_FIG_EKLE('iA22_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 152, oy: 84, s: 0.92 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.2.2 başlangıç şekilleri (sfA22_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', MAV = '#2f6fb8', TEL = '#2a3330', ALAN = '#d9822b';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 2.4) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 10, headW: 5 });
+const tel = pts => `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="${TEL}" stroke-width="2.2" stroke-linejoin="round"/>`;
+// Yatay metal levha (hacimli)
+function levhaY(u, x, y, w, isaret) {
+  let s = `<rect x="${x + 3}" y="${y + 3}" width="${w}" height="10" rx="2" fill="#000" opacity=".12"/>`;
+  s += `<rect x="${x}" y="${y}" width="${w}" height="10" rx="2" fill="url(#${u}metal)" stroke="#6d777f" stroke-width="1.2"/>`;
+  const c = isaret === '+' ? KIR : MAV, yy = isaret === '+' ? y + 22 : y - 8;
+  for (let i = 0; i < 6; i++) s += yaz(x + 16 + i * (w - 32) / 5, yy, isaret === '+' ? '+' : '−', { anchor: 'middle', fill: c, weight: 800, size: 15 });
+  return s;
+}
+function levhaD(u, x, y, h, isaret) {
+  let s = `<rect x="${x + 3}" y="${y + 3}" width="10" height="${h}" rx="2" fill="#000" opacity=".12"/>`;
+  s += `<rect x="${x}" y="${y}" width="10" height="${h}" rx="2" fill="url(#${u}metalV)" stroke="#6d777f" stroke-width="1.2"/>`;
+  const c = isaret === '+' ? KIR : MAV, xx = isaret === '+' ? x + 20 : x - 10;
+  for (let i = 0; i < 5; i++) s += yaz(xx, y + 26 + i * (h - 40) / 4, isaret === '+' ? '+' : '−', { anchor: 'middle', fill: c, weight: 800, size: 15 });
+  return s;
+}
+// Silindir pil (düşey, + ucu üstte)
+function pil(x, y, h) {
+  let s = `<rect x="${x - 15}" y="${y}" width="30" height="${h}" rx="4" fill="#2b2f33"/>`;
+  s += `<rect x="${x - 15}" y="${y}" width="30" height="${h * 0.32}" rx="4" fill="#c9793f"/>`;
+  s += `<rect x="${x - 11}" y="${y + 3}" width="5" height="${h - 6}" rx="2" fill="#fff" opacity=".22"/>`;
+  s += `<rect x="${x - 5}" y="${y - 5}" width="10" height="6" rx="1.5" fill="#9aa4ab" stroke="#55606a" stroke-width=".8"/>`;
+  s += yaz(x, y + 15, '+', { anchor: 'middle', fill: '#fff', weight: 800, halo: false });
+  return s;
+}
+
+/* Adım 1: pile bağlı iki yatay levha, düzgün alan */
+BFY_FIG_EKLE('sfA22_levha', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="230" rx="14" fill="#f4f7f9"/>`;
+  const x0 = 104, w = 190, yU = 56, yA = 166;
+  // teller
+  s += tel([[40, 88], [40, 61], [x0, 61]]) + tel([[40, 152], [40, 171], [x0, 171]]);
+  s += pil(40, 92, 58);
+  s += yaz(62, 126, '6 V', { weight: 800, size: 15 });
+  s += levhaY(u, x0, yU, w, '+') + levhaY(u, x0, yA, w, '−');
+  // alan çizgileri: (+) levhadan (−) levhaya
+  for (let i = 0; i < 5; i++) { const x = x0 + 22 + i * (w - 44) / 4; s += ok(x, yU + 30, x, yA - 22, ALAN, 2.2); }
+  s += yaz(x0 + 22 + (w - 44) / 8, 124, 'E', { anchor: 'middle', fill: ALAN, weight: 800, size: 17, italic: true });
+  // d ölçüsü
+  const xd = 314;
+  s += `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="${xd}" y1="${yU + 10}" x2="${xd}" y2="${yA}"/><line x1="${xd - 6}" y1="${yU + 10}" x2="${xd + 6}" y2="${yU + 10}"/><line x1="${xd - 6}" y1="${yA}" x2="${xd + 6}" y2="${yA}"/></g>`;
+  s += yaz(xd + 9, 122, 'd', { weight: 800, size: 16, italic: true });
+  s += yaz(170, 214, 'Alan levhalar arasında her yerde aynı.', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 230, s, u, 90);
+});
+
+/* Adım 4: düşey levhalar, yukarıdan giren proton (−) levhaya sapar */
+BFY_FIG_EKLE('sfA22_sapma', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="272" rx="14" fill="#f4f7f9"/>`;
+  const xL = 84, xR = 246, y0 = 64, h = 172;
+  for (let i = 0; i < 4; i++) { const y = y0 + 28 + i * 40; s += `<line x1="${xL + 30}" y1="${y}" x2="${xR - 22}" y2="${y}" stroke="${ALAN}" stroke-width="1.4" opacity=".45"/><polygon points="${xR - 18},${y} ${xR - 27},${y - 4} ${xR - 27},${y + 4}" fill="${ALAN}" opacity=".55"/>`; }
+  s += levhaD(u, xL, y0, h, '+') + levhaD(u, xR, y0, h, '−');
+  s += yaz(xL + 5, y0 - 10, '(+) levha', { anchor: 'middle', fill: KIR, weight: 800 });
+  s += yaz(xR + 5, y0 - 10, '(−) levha', { anchor: 'middle', fill: MAV, weight: 800 });
+  // yol: x = 170 + k (y − y0)²
+  const xc = 170, k = 52 / (h * h);
+  let d = `M${xc} 20 L${xc} ${y0}`;
+  for (let y = y0; y <= y0 + h; y += 6) d += ` L${f1(xc + k * (y - y0) ** 2)} ${y}`;
+  s += `<path d="${d}" fill="none" stroke="${KIR}" stroke-width="2.4" stroke-dasharray="6 4"/>`;
+  s += `<circle cx="${xc}" cy="30" r="10" fill="url(#${u}b_copper)" stroke="#7d4a27" stroke-width="1"/>` + yaz(xc, 35, '+', { anchor: 'middle', fill: '#fff', weight: 800, halo: false });
+  s += ok(xc + 22, 22, xc + 22, 56, P.ink, 2.4) + yaz(xc + 30, 46, 'ϑ', { weight: 800, size: 17, italic: true });
+  s += yaz(xc - 16, 34, 'proton', { anchor: 'end', weight: 800 });
+  s += yaz(170, 262, 'Ağırlık önemsenmiyor.', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 272, s, u, 90);
+});
+
+/* Isınma 1: hava temizleyicide yüksek gerilimli levhalar arasından geçen toz */
+BFY_FIG_EKLE('sfA22_toz', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="#f4f7f9"/>`;
+  // cihaz gövdesi (kesit)
+  s += `<rect x="70" y="56" width="256" height="150" rx="12" fill="#e9edf0" stroke="#9aa4ab" stroke-width="1.6"/>`;
+  s += `<rect x="78" y="64" width="240" height="134" rx="8" fill="#fbfcfd" stroke="#c7cfd5" stroke-width="1"/>`;
+  const x0 = 120, w = 160, yU = 92, yA = 160;
+  s += levhaY(u, x0, yU, w, '+') + levhaY(u, x0, yA, w, '−');
+  // hava akışı ve toz taneleri
+  [112, 128, 144].forEach((y, i) => { s += ok(14, y, 62, y, P.sky, 2.2); });
+  s += yaz(38, 98, 'hava', { anchor: 'middle', fill: P.sky, weight: 800 });
+  [[92, 116], [100, 138], [86, 148], [108, 126]].forEach(([x, y]) => s += `<circle cx="${x}" cy="${y}" r="4" fill="#8a6a3c" stroke="#5c4524" stroke-width=".8"/>`);
+  s += yaz(98, 184, 'toz', { anchor: 'middle', fill: '#6b4f2a', weight: 800 });
+  // yüksek gerilim kaynağı
+  s += `<rect x="150" y="12" width="74" height="30" rx="5" fill="#3b4650" stroke="#232a30" stroke-width="1"/>`;
+  s += yaz(187, 33, 'kaynak', { anchor: 'middle', fill: '#fff', weight: 800, halo: false });
+  s += yaz(232, 33, '6000 V', { weight: 800, size: 15 });
+  s += `<polyline points="160,42 160,${yU}" fill="none" stroke="${KIR}" stroke-width="2.2"/>`;
+  s += `<polyline points="214,42 214,50 306,50 306,${yA + 5} ${x0 + w},${yA + 5}" fill="none" stroke="${MAV}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  // d ölçüsü
+  s += `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="292" y1="${yU + 10}" x2="292" y2="${yA}"/><line x1="287" y1="${yU + 10}" x2="297" y2="${yU + 10}"/><line x1="287" y1="${yA}" x2="297" y2="${yA}"/></g>`;
+  s += yaz(284, 140, '2 cm', { anchor: 'end', weight: 800 });
+  s += yaz(198, 232, 'Ağırlık önemsenmiyor.', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 250, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -21913,6 +22322,196 @@ const KONU = {
     'X ve Y düzeneklerinin E–V grafiği (400 V\'ta 10 000 ve 5000 N/C), Y\'nin uzaklığı 8 cm', 'K (0 V), L (90 V), M (30 V) düşey levhalar, 3 cm ve 2 cm: alanların büyüklük ve yönleri',
     'S anahtarıyla ayrılmış sığaçta asılı damla: uzaklık artıyor, sonra anahtar kapanıyor', 'K ve L aynı yolu izliyor, K daha hızlı giriyor: q/m, süre, kuvvet (kesinlikle)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda bir üretece bağlanan iki paralel levhanın arasında ne olduğunu, oraya giren yüklerin nasıl hareket ettiğini ve sığacın yükü nasıl depoladığını göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'İki levha, düzgün bir alan',
+        sekil: 'sfA22_levha',
+        metin: r`Birbirine paralel iki metal levhayı bir pilin kutuplarına bağla. Pilin $(+)$ ucuna bağlı levha pozitif, öbürü negatif yüklenir. Levhaların arasında **düzgün** bir elektrik alan oluşur.
+
+- Alan çizgileri $(+)$ levhadan $(-)$ levhaya doğrudur; levhalara dik ve eşit aralıklıdır.
+- Alanın büyüklüğü levhalar arasındaki her noktada aynıdır: $E = \dfrac{V}{d}$.
+- Burada $V$ levhalar arasındaki potansiyel farkı, $d$ levhalar arasındaki uzaklıktır.
+
+6 V'luk pile bağlı, aralarında 2 mm bulunan levhalar için:
+$E = \dfrac{6}{2 \times 10^{-3}} = 3000$ N/C.`,
+        kontrol: {
+          soru: 'Pil aynı kalıyor, levhalar birbirine yaklaştırılıp aradaki uzaklık 1 mm\'ye indiriliyor. Levhalar arasındaki alan kaç N/C olur?',
+          secenekler: ['1500 N/C', '6000 N/C', '3000 N/C'],
+          dogru: 1,
+          aciklama: r`$E = \dfrac{6}{10^{-3}} = 6000$ N/C. Uzaklık yarıya inince alan 2 katına çıkar.`,
+          yanlisIpucu: r`$E = \dfrac{V}{d}$ bağıntısında $d$ paydadadır. $d$ küçülürse alan ne olur?`
+        }
+      },
+      {
+        baslik: 'Her noktada aynı kuvvet',
+        metin: r`Levhaların arasına konan yüke $F = q \times E$ kuvveti etkir. Alan her noktada aynı olduğu için kuvvet de her noktada aynıdır. Yük levhalardan birine yaklaştı diye kuvvet büyümez.
+
+- Pozitif yüke etkiyen kuvvet alanla **aynı** yöndedir, yani $(-)$ levhaya doğrudur.
+- Negatif yüke (ör. elektron) etkiyen kuvvet alana **zıt** yöndedir, yani $(+)$ levhaya doğrudur.
+
+Alanın 3000 N/C olduğu levhalar arasındaki $2 \times 10^{-9}$ C'luk yüke etkiyen kuvvet:
+$F = 2 \times 10^{-9} \times 3000 = 6 \times 10^{-6}$ N.`,
+        kontrol: {
+          soru: 'Aynı levhaların arasına önce bir proton, sonra bir elektron konuyor. Bu iki parçacığa etkiyen elektriksel kuvvetler için ne söylenir? (Proton ile elektronun yük büyüklükleri eşittir.)',
+          secenekler: ['Eşit büyüklükte ve zıt yönlüdür.', 'Elektronunki daha büyüktür.', 'Aynı yönlüdür.'],
+          dogru: 0,
+          aciklama: r`Kuvvet $F = q \times E$'dir. Yük büyüklükleri ve alan aynı olduğu için kuvvetlerin büyüklüğü eşittir. Proton $(-)$ levhaya, elektron $(+)$ levhaya doğru itilir.`,
+          yanlisIpucu: 'Kuvvetin büyüklüğü yükün büyüklüğüne bağlıdır, kütlesine değil. Yönü ise yükün işaretine bağlıdır.'
+        }
+      },
+      {
+        baslik: 'Durgun bırakılan yük hızlanır',
+        metin: r`$(+)$ levhanın hemen yanında durgun bırakılan bir pozitif yük, sabit kuvvetin etkisiyle $(-)$ levhaya doğru düz bir çizgide **düzgün hızlanır**.
+
+- Yük öbür levhaya vardığında kazandığı kinetik enerji $E_k = q \times V$ olur.
+- Bu enerji yalnız yüke ve levhalar arasındaki potansiyel farkına bağlıdır.
+
+$2 \times 10^{-9}$ C'luk bir yük 6 V'luk pile bağlı levhalar arasında $E_k = 2 \times 10^{-9} \times 6 = 12 \times 10^{-9}$ J kinetik enerji kazanır.`,
+        kontrol: {
+          soru: 'Levhalar yerinde kalıyor, pil yerine gerilimi 2 katı olan bir pil bağlanıyor. Durgun bırakılan yükün öbür levhaya varınca kazandığı kinetik enerji ne olur?',
+          secenekler: ['2 katına çıkar.', '4 katına çıkar.', 'Değişmez.'],
+          dogru: 0,
+          aciklama: r`$E_k = q \times V$ bağıntısında $V$ 2 katına çıkınca kinetik enerji de 2 katına çıkar.`,
+          yanlisIpucu: r`Kinetik enerji $q \times V$'ye eşittir. Burada $V$'nin karesi yok.`
+        }
+      },
+      {
+        baslik: 'Alana dik giren yük sapar',
+        sekil: 'sfA22_sapma',
+        metin: r`Yüklü bir parçacık levhaların arasına levhalara paralel, yani alana dik bir hızla girerse düz gitmez.
+
+- Alana dik doğrultudaki hızı değişmez.
+- Alan doğrultusunda kuvvet yönünde hızlanır.
+- Bu yüzden yolu, yatay atılan bir topunki gibi **parabol** olur.
+
+Şekilde levhalar düşeydir ve proton yukarıdan aşağı doğru giriyor. Protona etkiyen kuvvet alan yönünde, yani $(-)$ levhaya doğrudur. Proton bu yüzden sağa doğru eğrilir. Yüksüz bir parçacık (ör. nötron) ise hiç sapmaz.`,
+        kontrol: {
+          soru: 'Aynı levhaların arasına aynı yerden, aynı hızla bir elektron girseydi hangi yöne sapardı?',
+          secenekler: ['Sağa, $(-)$ levhaya doğru.', 'Hiç sapmazdı.', 'Sola, $(+)$ levhaya doğru.'],
+          dogru: 2,
+          aciklama: 'Elektron negatif yüklüdür; ona etkiyen kuvvet alana zıt yöndedir. Bu yüzden elektron $(+)$ levhaya, yani sola doğru sapar.',
+          yanlisIpucu: 'Negatif yüke etkiyen kuvvet alanın tersine yöndedir. Zıt işaretli yükler birbirini çeker.'
+        }
+      },
+      {
+        baslik: 'Sığaç yük depolar',
+        metin: r`İki levha pilden ayrılsa da yüklerini korur. Yük ve enerji depolayan bu düzeneğe **sığaç** (kondansatör) denir. Telefonların ve bilgisayarların devrelerinde çok sayıda küçük sığaç bulunur.
+
+- **Sığa**, birim gerilim başına depolanan yüktür: $C = \dfrac{q}{V}$. Birimi faraddır (F).
+- Sığa yalnız sığacın yapısına bağlıdır: $C = \varepsilon \times \dfrac{A}{d}$. Levhaların alanı ($A$) büyürse ya da levhalar yaklaşırsa ($d$ küçülürse) sığa artar.
+- Gerilim artırılırsa sığa değişmez; depolanan yük artar.
+
+Sığası 20 μF olan bir sığaç 12 V'a bağlanırsa:
+$q = C \times V = 20 \times 10^{-6} \times 12 = 240 \times 10^{-6}$ C, yani 240 μC yük depolar.`,
+        kontrol: {
+          soru: 'Aynı sığaç 24 V\'a bağlanırsa sığası kaç μF olur?',
+          secenekler: ['10 μF', '40 μF', '20 μF'],
+          dogru: 2,
+          aciklama: r`Sığa yapıya bağlıdır; gerilim değişince değişmez: 20 μF. Değişen yüktür: $20 \times 24 = 480$ μC.`,
+          yanlisIpucu: r`$C = \dfrac{q}{V}$ bir tanımdır. Gerilim 2 katına çıkınca yük de 2 katına çıkar; oran ne olur?`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Hava temizleyicisindeki toz',
+        sekil: 'sfA22_toz',
+        metin: r`Bazı hava temizleme cihazlarında havadaki toz önce elektrikle yüklenir, sonra iki paralel metal levhanın arasından geçirilir. Levhalar arasındaki potansiyel farkı 6000 V, uzaklık 2 cm'dir. İçeri giren toz taneleri negatif yüklüdür. K tanesinin yükü, L tanesinin yükünün 3 katıdır.`,
+        adimlar: [
+          {
+            soru: 'Levhalar arasındaki elektrik alan kaç N/C\'dir?',
+            secenekler: ['3000 N/C', r`$3 \times 10^5$ N/C`, '120 N/C'],
+            dogru: 1,
+            ipucu: r`$E = \dfrac{V}{d}$. Uzaklığı metreye çevir: $2\ \text{cm} = 2 \times 10^{-2}$ m.`,
+            aciklama: r`$E = \dfrac{6000}{2 \times 10^{-2}} = 3 \times 10^5$ N/C.`
+          },
+          {
+            soru: 'K tanesine etkiyen elektriksel kuvvet, L tanesine etkiyen kuvvetin kaç katıdır?',
+            secenekler: ['9 katı.', 'Eşittir.', '3 katı.'],
+            dogru: 2,
+            ipucu: r`$F = q \times E$. İki tane de aynı alandadır; değişen yalnız yüktür.`,
+            aciklama: r`Levhalar arasındaki alan her noktada aynıdır: $E = 3 \times 10^5$ N/C. $F = q \times E$ bağıntısında yük 3 katı olunca kuvvet de 3 katı olur. Bu kuvvetler çok küçüktür ama toz tanelerinin kütlesi de çok küçük olduğu için tozlar kolayca levhaya çekilir.`
+          },
+          {
+            soru: 'Toz taneleri hangi levhaya doğru gider?',
+            secenekler: ['$(+)$ yüklü üst levhaya.', '$(-)$ yüklü alt levhaya.', 'Hiçbirine; düz geçer.'],
+            dogru: 0,
+            ipucu: 'Tozlar negatif yüklüdür. Negatif yüke etkiyen kuvvet alanın tersine yöndedir.',
+            aciklama: 'Alan $(+)$ levhadan $(-)$ levhaya, yani aşağı doğrudur. Negatif toza etkiyen kuvvet yukarı, $(+)$ levhaya doğrudur. Toz levhaya yapışır, hava temizlenmiş olarak çıkar.'
+          }
+        ],
+        sonuc: r`Sıra hep aynıdır: önce $E = \dfrac{V}{d}$, sonra $F = q \times E$, en son yön. Negatif yük $(+)$ levhaya, pozitif yük $(-)$ levhaya gider.`
+      },
+      {
+        baslik: 'Araç ses sisteminin sığacı',
+        metin: r`Güçlü araç ses sistemlerinde, bas seslerde anlık enerji vermesi için büyük bir sığaç kullanılır. Sığası 1 F olan böyle bir sığaç 12 V'a kadar dolduruluyor.`,
+        adimlar: [
+          {
+            soru: 'Sığaçta depolanan yük kaç C\'tur?',
+            secenekler: ['12 C', '144 C', '6 C'],
+            dogru: 0,
+            ipucu: r`$q = C \times V$.`,
+            aciklama: r`$q = 1 \times 12 = 12$ C.`
+          },
+          {
+            soru: 'Sığaçta depolanan enerji kaç J\'dür?',
+            secenekler: ['144 J', '72 J', '12 J'],
+            dogru: 1,
+            ipucu: r`Depolanan enerji $\dfrac{1}{2}\, q \times V$'dir. Yarımı unutma.`,
+            aciklama: r`Enerji $= \dfrac{1}{2} \times 12 \times 12 = 72$ J.`
+          },
+          {
+            soru: 'Sığaç yalnız 6 V\'a kadar dolsaydı depolanan enerji kaç J olurdu?',
+            secenekler: ['36 J', '72 J', '18 J'],
+            dogru: 2,
+            ipucu: 'Gerilim yarıya inince yük de yarıya iner. Enerji bu ikisinin çarpımıyla bulunur.',
+            aciklama: r`$q = 1 \times 6 = 6$ C ve enerji $= \dfrac{1}{2} \times 6 \times 6 = 18$ J. Gerilim yarıya inince enerji 4'te 1'ine iner.`
+          }
+        ],
+        sonuc: r`Sığa sığacın yapısından gelir ve hep 1 F'dır. Gerilim değişince yük gerilimle aynı oranda değişir; enerji ise $\dfrac{1}{2}\, q \times V$ olduğu için daha hızlı değişir.`
+      },
+      {
+        baslik: 'Uzaklaşan levhalar',
+        metin: r`Sığası 6 μF olan bir sığaç 10 V'luk bir üretece bağlı. Levhalar arasındaki uzaklık 2 katına çıkarılacak. Üreteç bağlıyken ve üreteç ayrılmışken ne olduğunu ayrı ayrı inceleyeceğiz.`,
+        adimlar: [
+          {
+            soru: 'Başlangıçta sığacın yükü kaç μC\'tur?',
+            secenekler: ['16 μC', '60 μC', '600 μC'],
+            dogru: 1,
+            ipucu: r`$q = C \times V$; sığayı μF olarak bırakırsan yük μC çıkar.`,
+            aciklama: r`$q = 6 \times 10 = 60$ μC.`
+          },
+          {
+            soru: 'Levhalar arasındaki uzaklık 2 katına çıkınca sığa kaç μF olur?',
+            secenekler: ['3 μF', '12 μF', '6 μF'],
+            dogru: 0,
+            ipucu: r`$C = \varepsilon \times \dfrac{A}{d}$: $d$ paydadadır.`,
+            aciklama: 'Uzaklık 2 katına çıkınca sığa yarıya iner: 3 μF. Bu sonuç üretecin bağlı olup olmamasına bağlı değildir.'
+          },
+          {
+            soru: 'Sığaç üretece bağlıyken uzaklık 2 katına çıkarılırsa yükü kaç μC olur?',
+            secenekler: ['60 μC', '120 μC', '30 μC'],
+            dogru: 2,
+            ipucu: 'Üreteç bağlı kaldıkça sığacın gerilimi üretecinkine eşit kalır: 10 V.',
+            aciklama: r`$q = 3 \times 10 = 30$ μC. Fazla yük üretece geri akar.`
+          },
+          {
+            soru: 'Sığaç önce üreteçten ayrılsaydı, sonra uzaklık 2 katına çıkarılsaydı gerilimi kaç V olurdu?',
+            secenekler: ['5 V', '20 V', '10 V'],
+            dogru: 1,
+            ipucu: 'Ayrılmış sığacın yükü bir yere gidemez; 60 μC olarak kalır.',
+            aciklama: r`$V = \dfrac{q}{C} = \dfrac{60}{3} = 20$ V. Yük sabit, sığa yarıya indiği için gerilim 2 katına çıkar.`
+          }
+        ],
+        sonuc: 'Önce neyin sabit kaldığını bul: Üreteç bağlıysa gerilim, ayrılmışsa yük sabittir. Sığa her iki durumda da yalnız yapıya bağlıdır. Sonra $q = C \\times V$ ile değişeni hesapla.'
+      }
+    ],
+    hazir: 'Levhalar arasındaki düzgün alanı, yüke etkiyen kuvveti, durgun bırakılan ve alana dik giren yükü, sığayı ve üretece bağlı ya da ayrılmış sığacı gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -23591,6 +24190,122 @@ BFY_FIG_EKLE('iA23_tanim', u => sahne(u, I0_ => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 82 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.2.3 başlangıç şekilleri (sfA23_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   Renkler: alan B mavi, akım i kırmızı, kuvvet F mor.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', KIR = '#d24b3e', MOR = '#6b4fa8', TEL = '#2a3330', GRI = '#8a9aa6', BAK = '#c9793f';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 2.6) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.4 });
+function head(x, y, dx, dy, c, hl = 9, hw = 4.6) {
+  const L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, bx = x - ux * hl, by = y - uy * hl;
+  return `<polygon points="${f1(x)},${f1(y)} ${f1(bx - uy * hw)},${f1(by + ux * hw)} ${f1(bx + uy * hw)},${f1(by - ux * hw)}" fill="${c}"/>`;
+}
+const xin = (x, y, r = 6, c = GRI) => { const k = r * 0.62; return `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="#fff" stroke="${c}" stroke-width="1.2"/><path d="M${f1(x - k)} ${f1(y - k)} L${f1(x + k)} ${f1(y + k)} M${f1(x + k)} ${f1(y - k)} L${f1(x - k)} ${f1(y + k)}" stroke="${c}" stroke-width="1.2"/>`; };
+
+/* Adım 1: sayfadan dışa akım taşıyan telin kesiti, çember alan çizgileri */
+BFY_FIG_EKLE('sfA23_tel', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="256" rx="14" fill="#f4f7f9"/>`;
+  const cx = 150, cy = 118;
+  [44, 88].forEach(r => {
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${MAV}" stroke-width="1.8"/>`;
+    s += head(cx - 4, cy - r, -1, 0, MAV) + head(cx + 4, cy + r, 1, 0, MAV);
+    s += head(cx - r, cy + 4, 0, 1, MAV) + head(cx + r, cy - 4, 0, -1, MAV);
+  });
+  // tel kesiti: bakır, ⊙
+  s += `<circle cx="${cx}" cy="${cy}" r="15" fill="url(#${u}b_copper)" stroke="#7d4a27" stroke-width="1.2"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="8" fill="#fff" stroke="${KIR}" stroke-width="1.8"/><circle cx="${cx}" cy="${cy}" r="3" fill="${KIR}"/>`;
+  // K ve L noktaları
+  const K = cx + 44, L = cx + 88;
+  s += `<circle cx="${K}" cy="${cy}" r="4.5" fill="${TEL}"/><circle cx="${L}" cy="${cy}" r="4.5" fill="${TEL}"/>`;
+  s += yaz(K + 8, cy + 20, 'K', { size: 16, weight: 800 }) + yaz(L + 8, cy + 20, 'L', { size: 16, weight: 800 });
+  s += `<g stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="3 3"><line x1="${cx + 16}" y1="${cy}" x2="${K - 5}" y2="${cy}"/><line x1="${K + 5}" y1="${cy}" x2="${L - 5}" y2="${cy}"/></g>`;
+  s += yaz(L + 14, cy - 50, 'B', { size: 17, weight: 800, italic: true, fill: MAV });
+  s += yaz(cx, 236, 'Akım sayfa düzleminden dışa (⊙).', { anchor: 'middle', fill: P.ink2 });
+  s += yaz(cx - 24, cy - 22, 'i', { size: 17, weight: 800, italic: true, fill: KIR, anchor: 'middle' });
+  return svg(340, 256, s, u, 90);
+});
+
+/* Adım 2: bobin; ön sarımlarda akım aşağı, içte alan sağa, sağ uç N */
+BFY_FIG_EKLE('sfA23_bobin', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="240" rx="14" fill="#f4f7f9"/>`;
+  const x0 = 82, x1 = 258, cy = 112, R = 46, n = 9, ex = 9;
+  // dış alan çizgileri (N'den çıkıp S'ye)
+  s += `<path d="M${x1 + 6} ${cy - 10} C ${x1 + 70} ${cy - 40}, ${x1 + 40} ${cy - 104}, 170 ${cy - 104} C ${x0 - 40} ${cy - 104}, ${x0 - 70} ${cy - 40}, ${x0 - 6} ${cy - 10}" fill="none" stroke="${MAV}" stroke-width="1.6" stroke-dasharray="6 4"/>`;
+  s += `<path d="M${x1 + 6} ${cy + 10} C ${x1 + 70} ${cy + 40}, ${x1 + 40} ${cy + 104}, 170 ${cy + 104} C ${x0 - 40} ${cy + 104}, ${x0 - 70} ${cy + 40}, ${x0 - 6} ${cy + 10}" fill="none" stroke="${MAV}" stroke-width="1.6" stroke-dasharray="6 4"/>`;
+  s += head(164, cy - 104, -1, 0, MAV) + head(164, cy + 104, -1, 0, MAV);
+  // boru
+  s += `<rect x="${x0 - 6}" y="${cy - R + 6}" width="${x1 - x0 + 12}" height="${2 * R - 12}" fill="#e8e1d2" stroke="#b8ab8f" stroke-width="1"/>`;
+  // arka yarım sarımlar
+  for (let i = 0; i < n; i++) { const x = x0 + i * (x1 - x0) / (n - 1); s += `<path d="M${x} ${cy - R} A${ex} ${R} 0 0 0 ${x} ${cy + R}" fill="none" stroke="#9a6a44" stroke-width="2" opacity=".55"/>`; }
+  // içteki alan
+  s += ok(x0 + 6, cy, x1 - 6, cy, MAV, 2.8);
+  s += yaz(170, cy - 8, 'B', { anchor: 'middle', size: 17, weight: 800, italic: true, fill: MAV });
+  // ön yarım sarımlar (bakır)
+  for (let i = 0; i < n; i++) { const x = x0 + i * (x1 - x0) / (n - 1); s += `<path d="M${x} ${cy - R} A${ex} ${R} 0 0 1 ${x} ${cy + R}" fill="none" stroke="${BAK}" stroke-width="3.4"/>`; }
+  // ön sarımlarda akım aşağı
+  [x0 + (x1 - x0) / (n - 1) * 2, x0 + (x1 - x0) / (n - 1) * 6].forEach(x => s += head(x + ex + 1, cy + 30, 0, 1, KIR, 11, 5));
+  s += yaz(x0 + (x1 - x0) / (n - 1) * 2 + ex + 1, cy + R + 24, 'i', { anchor: 'middle', size: 17, weight: 800, italic: true, fill: KIR });
+  // uç telleri
+  s += `<polyline points="${x0},${cy + R} ${x0},${cy + R + 34}" fill="none" stroke="${BAK}" stroke-width="2.4"/><polyline points="${x1},${cy + R} ${x1},${cy + R + 34}" fill="none" stroke="${BAK}" stroke-width="2.4"/>`;
+  // kutup etiketleri
+  const et = (x, h, c) => `<circle cx="${x}" cy="${cy}" r="14" fill="${c}"/>` + yaz(x, cy + 6, h, { anchor: 'middle', fill: '#fff', weight: 800, size: 16, halo: false });
+  s += et(x0 - 30, 'S', MAV) + et(x1 + 30, 'N', KIR);
+  s += yaz(170, 232, 'Ön sarımlarda akım aşağı doğru.', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 240, s, u, 90);
+});
+
+/* Adım 3: ⊗ alanda sağa akımlı tel, kuvvet yukarı */
+BFY_FIG_EKLE('sfA23_kuvvet', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="236" rx="14" fill="#f4f7f9"/>`;
+  const x0 = 70, y0 = 40, w = 200, h = 160, cy = 140;
+  s += `<rect x="${x0}" y="${y0}" width="${w}" height="${h}" rx="6" fill="#eaf1f8" stroke="#b9c7d3" stroke-width="1.2" stroke-dasharray="5 3"/>`;
+  for (let x = x0 + 20; x < x0 + w; x += 40) for (let y = y0 + 20; y < y0 + h; y += 40) if (!(Math.abs(y - cy) < 14) && !(x > 150 && x < 190 && y < cy)) s += xin(x, y);
+  s += yaz(x0 + w / 2, y0 - 12, 'B: sayfa düzleminden içe (⊗)', { anchor: 'middle', fill: MAV, weight: 800 });
+  // tel (bakır, hacimli)
+  s += `<rect x="20" y="${cy - 4}" width="300" height="8" rx="4" fill="url(#${u}metal)" stroke="#7d4a27" stroke-width="1"/>`;
+  s += `<rect x="20" y="${cy - 4}" width="300" height="8" rx="4" fill="${BAK}" opacity=".75"/>`;
+  s += `<line x1="22" y1="${cy - 2}" x2="318" y2="${cy - 2}" stroke="#fff" stroke-width="1.4" opacity=".5"/>`;
+  s += ok(16, cy + 24, 60, cy + 24, KIR, 2.6) + yaz(38, cy + 48, 'i', { anchor: 'middle', size: 17, weight: 800, italic: true, fill: KIR });
+  // kuvvet
+  s += ok(170, cy - 8, 170, cy - 78, MOR, 3.2) + yaz(182, cy - 60, 'F', { size: 17, weight: 800, italic: true, fill: MOR });
+  s += yaz(170, 226, 'Kuvvet hem tele hem alana dik.', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 236, s, u, 90);
+});
+
+/* Isınma 3: düşey asılı iki alüminyum folyo şerit, aynı yönde akım */
+BFY_FIG_EKLE('sfA23_folyo', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="260" rx="14" fill="#f4f7f9"/>`;
+  // stand
+  s += `<rect x="30" y="232" width="150" height="10" rx="3" fill="#6d777f"/><rect x="40" y="36" width="10" height="196" fill="url(#${u}metalV)" stroke="#6d777f" stroke-width="1"/>`;
+  s += `<rect x="40" y="32" width="190" height="12" rx="3" fill="url(#${u}wood)" stroke="#8a6a3c" stroke-width="1.1"/>`;
+  const xs = [118, 150], yU = 44, yA = 200;
+  // şeritler (hafif dalgalı folyo)
+  xs.forEach(x => {
+    s += `<path d="M${x - 5} ${yU} C ${x - 3} ${yU + 50}, ${x - 7} ${yA - 60}, ${x - 5} ${yA} L ${x + 5} ${yA} C ${x + 3} ${yA - 60}, ${x + 7} ${yU + 50}, ${x + 5} ${yU} Z" fill="url(#${u}metalV)" stroke="#8e979f" stroke-width="1"/>`;
+    s += `<rect x="${x - 7}" y="${yU - 2}" width="14" height="9" rx="2" fill="#4d565c"/>`;
+  });
+  // üst bağlantı (+) ve alt bağlantı (−)
+  s += `<polyline points="${xs[0]},${yU - 2} ${xs[0]},24 ${xs[1]},24 ${xs[1]},${yU - 2}" fill="none" stroke="${KIR}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s += `<polyline points="${xs[1]},24 290,24 290,150" fill="none" stroke="${KIR}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s += `<polyline points="${xs[0]},${yA} ${xs[0]},214 ${xs[1]},214 ${xs[1]},${yA}" fill="none" stroke="${MAV}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  s += `<polyline points="${xs[1]},214 290,214 290,190" fill="none" stroke="${MAV}" stroke-width="2.2" stroke-linejoin="round"/>`;
+  // güç kaynağı
+  s += `<rect x="252" y="150" width="76" height="40" rx="6" fill="#3b4650" stroke="#232a30" stroke-width="1"/>`;
+  s += yaz(290, 166, 'güç', { anchor: 'middle', fill: '#fff', weight: 800, halo: false }) + yaz(290, 182, 'kaynağı', { anchor: 'middle', fill: '#fff', weight: 800, halo: false });
+  s += yaz(300, 144, '+', { anchor: 'middle', fill: KIR, weight: 800, size: 17 }) + yaz(302, 206, '−', { anchor: 'middle', fill: MAV, weight: 800, size: 17 });
+  // akım okları (aşağı)
+  s += ok(xs[0] - 22, 96, xs[0] - 22, 146, KIR, 2.4) + yaz(xs[0] - 32, 124, 'i', { anchor: 'end', size: 17, weight: 800, italic: true, fill: KIR });
+  s += ok(xs[1] + 22, 96, xs[1] + 22, 146, KIR, 2.4) + yaz(xs[1] + 32, 124, 'i', { size: 17, weight: 800, italic: true, fill: KIR });
+  s += yaz(134, 256, 'folyo şeritler', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 260, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -23653,6 +24368,174 @@ const KONU = {
     '100 sarım, 30 cm, 0,1 A makaranın ekseninden 3 A tel; P telden 2 cm, dik alanlar 40 ve 30 μT', 'akımları bilinmeyen K, L, M paralel telleri, L\'ye bileşke kuvvet sıfır (kesinlikle)',
     'manyetik sensör ilkesi: ⊗ alanda sağa akımlı bakır şerit, X üst ve Y alt kenar, elektronların toplanması ve potansiyel', 'masada sağa akımlı sabit tel, üstünde ortası mil çevresinde dönebilen dik bakır çubuk (üstten görünüş)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda akımın çevresinde oluşan manyetik alanı, bobinin nasıl bir mıknatısa dönüştüğünü ve manyetik alanın akıma ve hareketli yüke nasıl kuvvet uyguladığını göreceğiz. Yönleri sağ elinle bulacaksın; soruları çözerken elini kullanmaktan çekinme. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Akımın çevresindeki alan',
+        sekil: 'sfA23_tel',
+        metin: r`Akım geçen her tel çevresinde bir **manyetik alan** oluşturur. Akım geçen bir telin yanına konan pusulanın iğnesi bu yüzden döner.
+
+- Düz telin alan çizgileri teli saran çemberlerdir.
+- Yönü sağ elle bulunur: Başparmak akım yönünü gösterirken dört parmağın kıvrılma yönü alanın yönüdür.
+- Büyüklüğü: $B = 2K\,\dfrac{i}{d}$ ve $K = 10^{-7}\ \text{T} \times \text{m/A}$. Uzaklık 2 katına çıkınca alan yarıya iner.
+
+Bir elektrikli bisikletin bataryasından motora giden kablodan 10 A doğru akım geçiyor. Kablodan 2 cm uzaktaki K noktasında:
+$B = \dfrac{2 \times 10^{-7} \times 10}{2 \times 10^{-2}} = 10^{-4}$ T, yani 100 μT.
+Bu değer, Dünya'nın manyetik alanının yaklaşık 2 katıdır.`,
+        kontrol: {
+          soru: 'Aynı kablodan 4 cm uzaktaki L noktasında manyetik alan kaç μT olur?',
+          secenekler: ['25 μT', '50 μT', '200 μT'],
+          dogru: 1,
+          aciklama: r`$B = \dfrac{2 \times 10^{-7} \times 10}{4 \times 10^{-2}} = 5 \times 10^{-5}$ T, yani 50 μT. Uzaklık 2 katına çıkınca alan yarıya iner.`,
+          yanlisIpucu: r`Telin alanında $d$ paydadadır ama karesi alınmaz. Uzaklık 2 katına çıkınca alan ne olur?`
+        }
+      },
+      {
+        baslik: 'Bobin bir mıknatıs gibidir',
+        sekil: 'sfA23_bobin',
+        metin: r`Yalıtkan kaplı bir tel bir boruya sık sık sarılırsa **bobin** (akım makarası) elde edilir. Bobinin içinde alan düzgündür ve eksen boyuncadır. Bobin bir çubuk mıknatıs gibi davranır: Bir ucu N, öbür ucu S kutbudur.
+
+- Kutbu sağ elle bul: Dört parmağını sarımlardaki akım yönünde kıvır; başparmağın N kutbunu gösterir.
+- İçteki alan: $B = 4\pi K\,\dfrac{N \times i}{\ell}$. Burada $N$ sarım sayısı, $\ell$ bobinin boyudur.
+
+İçi boş, 40 cm boyunda, 500 sarımlı bir bobinden 2 A akım geçiyor. $\pi = 3$ alınırsa:
+$B = \dfrac{4 \times 3 \times 10^{-7} \times 500 \times 2}{4 \times 10^{-1}} = 3 \times 10^{-3}$ T, yani 3 mT.`,
+        kontrol: {
+          soru: 'Bu bobinin hem sarım sayısı hem boyu 2 katına çıkarılıyor; akım aynı kalıyor. Bobinin içindeki alan kaç mT olur?',
+          secenekler: ['6 mT', '12 mT', '3 mT'],
+          dogru: 2,
+          aciklama: r`Alan $\dfrac{N}{\ell}$ oranına, yani bobinin bir metresine düşen sarım sayısına bağlıdır. Sarım sayısı ve boy birlikte 2 katına çıkınca bu oran değişmez; alan yine 3 mT olur.`,
+          yanlisIpucu: r`Formülde $N$ kesrin payında, $\ell$ paydasındadır. İkisi aynı oranda artarsa kesir ne olur?`
+        }
+      },
+      {
+        baslik: 'Alandaki akımlı tele kuvvet',
+        sekil: 'sfA23_kuvvet',
+        metin: r`Manyetik alanın içindeki bir telden akım geçirilirse tele bir **manyetik kuvvet** etkir. Elektrik motorları bu kuvvetle döner.
+
+- Yönü sağ elle bulunur: Dört parmak alan ($B$) yönünü, başparmak akım ($i$) yönünü gösterirken **avuç içinin baktığı yön** kuvvetin ($F$) yönüdür.
+- Kuvvet hem tele hem alana diktir.
+- Tel alana dikse kuvvet en büyüktür. Tel alana paralelse kuvvet **sıfırdır**: $F = B \times i \times \ell \times \sin\alpha$.
+
+Şekilde alan sayfa düzleminden içe, akım sağa doğrudur. Sağ el kuralı tele etkiyen kuvvetin yukarı doğru olduğunu verir.`,
+        kontrol: {
+          soru: 'Aynı tel, alan çizgilerine paralel olacak biçimde döndürülürse tele etkiyen manyetik kuvvet ne olur?',
+          secenekler: ['En büyük değerini alır.', 'Yönü ters döner.', 'Sıfır olur.'],
+          dogru: 2,
+          aciklama: r`Tel ile alan arasındaki açı $\alpha = 0°$ olur ve $\sin 0° = 0$'dır. Alana paralel tele manyetik kuvvet etkimez.`,
+          yanlisIpucu: r`$F = B \times i \times \ell \times \sin\alpha$ bağıntısında $\alpha$, tel ile alan arasındaki açıdır. Paralelse açı kaç derecedir?`
+        }
+      },
+      {
+        baslik: 'Yüklü parçacık: yön değişir, sürat değişmez',
+        metin: r`Manyetik alanda hareket eden yüklü bir parçacığa da kuvvet etkir. Yön, teldeki gibi bulunur: Başparmak pozitif yükün hızını gösterir. Negatif yükte kuvvet ters yöndedir.
+
+- Kuvvet her an hıza diktir. Bu yüzden parçacığın **sürati değişmez**; yalnız hareket yönü değişir.
+- Alana dik giren parçacık bir **çember yayı** çizer.
+- Hızı alana paralel olan parçacığa kuvvet etkimez; parçacık düz gider.
+
+Sayfa düzleminden içe yönlü bir alana sağa doğru giren bir proton yukarı doğru kuvvet alır ve yukarı kıvrılır. Aynı hızla giren bir elektron ise aşağı kıvrılır.`,
+        kontrol: {
+          soru: 'Düzgün manyetik alanda çember yayı çizen bir protonun kinetik enerjisi için ne söylenir?',
+          secenekler: ['Artar.', 'Değişmez.', 'Azalır.'],
+          dogru: 1,
+          aciklama: 'Manyetik kuvvet hıza dik olduğu için iş yapmaz. Sürat ve kinetik enerji değişmez; değişen yalnız hareket yönüdür.',
+          yanlisIpucu: 'Hıza dik bir kuvvet cismi hızlandırabilir ya da yavaşlatabilir mi? Yalnız yönünü çevirir.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Yan yana iki kalın kablo',
+        metin: r`Bir elektrikli otobüs deposunda şarj ünitesinden araca giden ve araçtan dönen iki uzun, düz kablo yerde yan yana uzanıyor. Kabloların merkezleri arasındaki uzaklık 10 cm'dir. Her birinden 100 A doğru akım geçiyor; akımlar zıt yönlüdür. İki kablonun tam ortasındaki M noktasında alanı bulacağız. ($K = 10^{-7}\ \text{T} \times \text{m/A}$)`,
+        adimlar: [
+          {
+            soru: 'Kablolardan birinin tek başına M noktasında oluşturduğu alan kaç μT\'dir?',
+            secenekler: ['400 μT', '200 μT', '40 μT'],
+            dogru: 0,
+            ipucu: r`M her kablodan 5 cm uzaktadır. $B = 2K\,\dfrac{i}{d}$ ve $d = 5 \times 10^{-2}$ m.`,
+            aciklama: r`$B = \dfrac{2 \times 10^{-7} \times 100}{5 \times 10^{-2}} = 4 \times 10^{-4}$ T, yani 400 μT. Öbür kablonun alanı da aynı büyüklüktedir.`
+          },
+          {
+            soru: 'İki kablonun M noktasındaki alanları için ne söylenir?',
+            secenekler: ['Zıt yönlüdür; birbirini götürür.', 'Aynı yönlüdür; toplanır.', 'Birbirine diktir.'],
+            dogru: 1,
+            ipucu: 'Sağ elini iki kabloya ayrı ayrı uygula. Akımlar zıt yönlü, M ise iki kablonun arasında.',
+            aciklama: r`Kabloları ucundan bakar gibi düşün: Soldakinin akımı sayfa düzleminden dışa ($\odot$), sağdakinin içe ($\otimes$) olsun. Soldaki kablonun alanı M'de yukarı doğrudur. Sağdaki kablonun alanı da M'de yukarı doğrudur. Akımları zıt iki telin arasında alanlar aynı yönlüdür.`
+          },
+          {
+            soru: 'M noktasındaki toplam manyetik alan kaç μT\'dir?',
+            secenekler: ['0', '400 μT', '800 μT'],
+            dogru: 2,
+            ipucu: 'Aynı yönlü iki alanın büyüklükleri toplanır.',
+            aciklama: r`$B_M = 400 + 400 = 800$ μT.`
+          }
+        ],
+        sonuc: 'Zıt akımlı iki telin arasında alanlar toplanır. Tellerden uzaktaki noktalarda ise iki alan zıt yönlü olur ve birbirini büyük ölçüde götürür. Gidiş ve dönüş kablolarının yan yana döşenmesinin bir nedeni budur.'
+      },
+      {
+        baslik: 'Demir bilyeyi içine çeken bobin',
+        metin: r`Bir bilim şenliği standında masada yatay duran plastik bir borunun üstüne bobin sarılmış. Borunun ağzına bırakılan küçük demir bilye bobinin içine doğru yuvarlanıyor. Bobinin boyu 9 cm, sarım sayısı 300, akımı 1 A'dir. ($\pi = 3$, $K = 10^{-7}\ \text{T} \times \text{m/A}$)`,
+        adimlar: [
+          {
+            soru: 'Bilye girmeden önce bobinin içindeki manyetik alan kaç mT\'dir?',
+            secenekler: ['40 μT', '4 mT', '1 mT'],
+            dogru: 1,
+            ipucu: r`$B = 4\pi K\,\dfrac{N \times i}{\ell}$. Bobinin boyunu metreye çevir: $9 \times 10^{-2}$ m.`,
+            aciklama: r`$B = \dfrac{4 \times 3 \times 10^{-7} \times 300 \times 1}{9 \times 10^{-2}} = 4 \times 10^{-3}$ T, yani 4 mT.`
+          },
+          {
+            soru: 'Akım 2 katına çıkarılırsa içteki alan kaç mT olur?',
+            secenekler: ['8 mT', '16 mT', '2 mT'],
+            dogru: 0,
+            ipucu: 'Alan akımla doğru orantılıdır.',
+            aciklama: 'Akım 2 katına çıkınca alan da 2 katına çıkar: 8 mT. Bilye daha güçlü çekilir.'
+          },
+          {
+            soru: 'Akımın yönü ters çevrilirse bilyeye ne olur?',
+            secenekler: ['Bobinden itilir.', 'Hiç etkilenmez.', 'Yine bobine çekilir.'],
+            dogru: 2,
+            ipucu: 'Bir mıknatıs demir parçayı hangi kutbuyla çeker?',
+            aciklama: 'Akım ters dönünce bobinin N ve S kutupları yer değiştirir; alanın büyüklüğü aynı kalır. Demir bilye bobinin alanında mıknatıslanır ve her iki kutba da çekilir.'
+          }
+        ],
+        sonuc: 'Bobinin alanı sarım sayısı ve akımla artar, boyla azalır. Akımın yönü yalnız kutupların yerini değiştirir. Demir, mıknatısın her iki kutbuna da çekilir.'
+      },
+      {
+        baslik: 'Folyo şeritler',
+        sekil: 'sfA23_folyo',
+        metin: r`İki uzun, ince alüminyum folyo şerit, birbirine paralel ve birkaç milimetre arayla bir standa asılıyor. Şeritlerin üst uçları güç kaynağının $(+)$ ucuna, alt uçları $(-)$ ucuna bağlanıyor. Böylece iki şeritten de aşağı doğru, aynı yönde akım geçiyor.`,
+        adimlar: [
+          {
+            soru: 'Şeritler birbirine nasıl bir kuvvet uygular?',
+            secenekler: ['Birbirini iter.', 'Birbirini çeker.', 'Kuvvet uygulamaz.'],
+            dogru: 1,
+            ipucu: 'Her şerit öbürünün manyetik alanı içindedir. Aynı yönde akım taşıyan paralel teller için kural neydi?',
+            aciklama: 'Aynı yönde akım taşıyan paralel teller birbirini çeker. Şeritlerin alt uçları birbirine yaklaşır.'
+          },
+          {
+            soru: 'Soldaki şeritteki akım 2 katına çıkarılırsa hangi şeride daha büyük kuvvet etkir?',
+            secenekler: ['Soldaki şeride.', 'İkisine eşit büyüklükte.', 'Sağdaki şeride.'],
+            dogru: 1,
+            ipucu: 'Şeritlerin birbirine uyguladığı kuvvetler bir etki-tepki çiftidir.',
+            aciklama: 'Etki-tepki ilkesine göre iki şeridin birbirine uyguladığı kuvvetler her zaman eşit büyüklükte ve zıt yönlüdür. Akımlardan biri artınca iki kuvvet birlikte büyür.'
+          },
+          {
+            soru: 'Şeritlerden birindeki akımın yönü ters çevrilirse ne olur?',
+            secenekler: ['Birbirini iterler.', 'Yine birbirini çekerler.', 'Kuvvet sıfır olur.'],
+            dogru: 0,
+            ipucu: 'Akımlar artık zıt yönlü.',
+            aciklama: 'Zıt yönde akım taşıyan paralel teller birbirini iter. Şeritlerin alt uçları birbirinden uzaklaşır.'
+          }
+        ],
+        sonuc: 'Paralel tellerde aynı yönlü akımlar çeker, zıt yönlü akımlar iter. İki tele etkiyen kuvvetler, akımları farklı olsa bile her zaman eşit büyüklüktedir.'
+      }
+    ],
+    hazir: 'Düz telin ve bobinin alanını, sağ el kuralını, akımlı tele ve yüklü parçacığa etkiyen manyetik kuvveti ve paralel tellerin etkileşimini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
