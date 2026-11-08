@@ -4557,20 +4557,74 @@ BFY_FIG_EKLE('sf113_ordek', function (u) {
   let s = zemin(W, H, '#cfe3b8');
   s += `<rect x="8" y="40" width="${W - 16}" height="${H - 48}" rx="34" fill="url(#${u}water)" stroke="#7aa65a" stroke-width="3"/>`;
   [[60, 90], [230, 140], [120, 236], [290, 220]].forEach(([x, y]) => { s += `<path d="M${x - 16} ${y} q8 -5 16 0 t16 0" fill="none" stroke="#fff" stroke-width="1.6" opacity=".45"/>`; });
-  // ördek (yukarıdan), yön: +1 doğu, -1 batı; k ölçek
-  const ordek = (x, y, k, d, govde = '#8a6a48', bas = '#2f7a4f') =>
-    `<ellipse cx="${x + 2}" cy="${y + 3}" rx="${15 * k}" ry="${9 * k}" fill="#000" opacity=".12"/>` +
-    `<ellipse cx="${x}" cy="${y}" rx="${15 * k}" ry="${9 * k}" fill="${govde}" stroke="#4b3826" stroke-width="1"/>` +
-    `<path d="M${x - d * 13 * k} ${y} l${-d * 6 * k} ${-3 * k} l0 ${6 * k} Z" fill="${govde}" stroke="#4b3826" stroke-width=".8"/>` +
-    `<ellipse cx="${x - d * 2 * k}" cy="${y}" rx="${8 * k}" ry="${5 * k}" fill="#fff" opacity=".18"/>` +
-    `<circle cx="${x + d * 14 * k}" cy="${y}" r="${6 * k}" fill="${bas}" stroke="#1f4a33" stroke-width=".8"/>` +
-    `<path d="M${x + d * 19 * k} ${y - 2.4 * k} l${d * 7 * k} ${2.4 * k} l${-d * 7 * k} ${2.4 * k} Z" fill="#e7a93b"/>`;
+  // Kuşlar yukarıdan görünür. d: +1 doğuya, -1 batıya bakar; k: ölçek. Gövde kuyruk ucundan gagaya yaklaşık 47k uzunluktadır.
+  const r1 = v => Math.round(v * 10) / 10;
+  const P2 = (x, y, k, d) => (px, py) => `${r1(x + d * px * k)},${r1(y + py * k)}`;
+  s += `<defs>` +
+    `<radialGradient id="${u}anne" cx="55%" cy="40%" r="70%"><stop offset="0" stop-color="#b08a5e"/><stop offset=".6" stop-color="#8a6a48"/><stop offset="1" stop-color="#5e452c"/></radialGradient>` +
+    `<radialGradient id="${u}yavru" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#f3dc8a"/><stop offset=".6" stop-color="#ddb85a"/><stop offset="1" stop-color="#a8853a"/></radialGradient>` +
+    `<radialGradient id="${u}kugu" cx="50%" cy="38%" r="72%"><stop offset="0" stop-color="#ffffff"/><stop offset=".65" stop-color="#eef0f1"/><stop offset="1" stop-color="#bfc6cc"/></radialGradient>` +
+    `<clipPath id="${u}gol"><rect x="10" y="42" width="${W - 20}" height="${H - 52}" rx="32"/></clipPath>` +
+    `<radialGradient id="${u}bas" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#8a6a4a"/><stop offset="1" stop-color="#4a3622"/></radialGradient>` +
+    `</defs>`;
+  // su izi (kuşun arkasında açılan iki çizgi)
+  const iz = (x, y, k, d) => { const q = P2(x, y, k, d); return `<path d="M${q(-22, -4)} Q${q(-30, -8)} ${q(-38, -12)} M${q(-22, 4)} Q${q(-30, 8)} ${q(-38, 12)}" fill="none" stroke="#e6f4fb" stroke-width="${r1(1.6 * k)}" stroke-linecap="round" opacity=".7" clip-path="url(#${u}gol)"/>`; };
+  // anne ördek: kahverengi benekli gövde, katlanmış kanatlar, mavi kanat lekesi, turuncu gaga
+  const anne = (x, y, k, d) => {
+    const q = P2(x, y, k, d);
+    let g = iz(x, y, k, d) + `<ellipse cx="${r1(x + 2)}" cy="${r1(y + 3.5 * k)}" rx="${r1(19 * k)}" ry="${r1(10 * k)}" fill="#0b3550" opacity=".22"/>`;
+    g += `<path d="M${q(-21, 0)} L${q(-25, -2.6)} L${q(-24, 0)} L${q(-25, 2.6)} Z" fill="#4a3622"/>`;
+    g += `<path d="M${q(-21, 0)} C${q(-17, -5)} ${q(-10, -10)} ${q(-1, -10)} C${q(8, -10)} ${q(13, -6)} ${q(14, 0)} C${q(13, 6)} ${q(8, 10)} ${q(-1, 10)} C${q(-10, 10)} ${q(-17, 5)} ${q(-21, 0)} Z" fill="url(#${u}anne)" stroke="#4b3826" stroke-width="1"/>`;
+    [-1, 1].forEach(sy => {
+      g += `<path d="M${q(-19, sy * 1)} C${q(-12, sy * 8)} ${q(0, sy * 9.5)} ${q(8, sy * 5.5)} C${q(1, sy * 3.6)} ${q(-9, sy * 2)} ${q(-19, sy * 1)} Z" fill="#6e5236" stroke="#4b3826" stroke-width=".7"/>`;
+      g += `<path d="M${q(-6, sy * 4.6)} L${q(1, sy * 5.4)} L${q(0, sy * 3.4)} L${q(-6, sy * 3)} Z" fill="#2f5fa8"/>`;
+      g += `<path d="M${q(-15, sy * 2.2)} L${q(-8, sy * 4.6)} M${q(-12, sy * 1.8)} L${q(-4, sy * 3.6)}" stroke="#4b3826" stroke-width=".6" opacity=".7"/>`;
+    });
+    g += `<path d="M${q(-14, 0)} L${q(6, 0)}" stroke="#4b3826" stroke-width=".7" opacity=".6"/>`;
+    g += `<ellipse cx="${q(13, 0).split(',')[0]}" cy="${y}" rx="${r1(4.6 * k)}" ry="${r1(4 * k)}" fill="#7a5c3e"/>`;
+    g += `<ellipse cx="${q(17.5, 0).split(',')[0]}" cy="${y}" rx="${r1(5.6 * k)}" ry="${r1(5 * k)}" fill="url(#${u}bas)" stroke="#3a2a18" stroke-width=".8"/>`;
+    g += `<path d="M${q(16, -4.4)} L${q(21, -3)} M${q(16, 4.4)} L${q(21, 3)}" stroke="#2b1f12" stroke-width="${r1(1.1 * k)}" stroke-linecap="round"/>`;
+    g += `<path d="M${q(22, -2.4)} C${q(25.5, -2.8)} ${q(28.5, -2)} ${q(29, 0)} C${q(28.5, 2)} ${q(25.5, 2.8)} ${q(22, 2.4)} Z" fill="#e8913a" stroke="#a65a1c" stroke-width=".7"/>`;
+    g += `<ellipse cx="${q(-3, -3).split(',')[0]}" cy="${r1(y - 4.5 * k)}" rx="${r1(6 * k)}" ry="${r1(1.8 * k)}" fill="#fff" opacity=".18"/>`;
+    return g;
+  };
+  // yavru ördek: tüylü, yuvarlak, sarımsı; küçük koyu gaga
+  const yavru = (x, y, k, d) => {
+    const q = P2(x, y, k, d);
+    let g = iz(x, y, k, d) + `<ellipse cx="${r1(x + 1.5)}" cy="${r1(y + 3 * k)}" rx="${r1(16 * k)}" ry="${r1(10 * k)}" fill="#0b3550" opacity=".22"/>`;
+    g += `<path d="M${q(-16, 0)} C${q(-15, -7)} ${q(-8, -10.5)} ${q(0, -10)} C${q(8, -9.5)} ${q(12, -6)} ${q(12, 0)} C${q(12, 6)} ${q(8, 9.5)} ${q(0, 10)} C${q(-8, 10.5)} ${q(-15, 7)} ${q(-16, 0)} Z" fill="url(#${u}yavru)" stroke="#8a6a2a" stroke-width="1"/>`;
+    [-1, 1].forEach(sy => { g += `<path d="M${q(-9, sy * 3)} C${q(-4, sy * 8)} ${q(3, sy * 8)} ${q(6, sy * 5)}" fill="none" stroke="#a8853a" stroke-width="1.2" stroke-linecap="round"/>`; });
+    g += `<path d="M${q(-12, -3)} l${r1(-d * 3 * k)},${r1(-1.5 * k)} M${q(-13, 1)} l${r1(-d * 3.5 * k)},${r1(0.5 * k)} M${q(-12, 4)} l${r1(-d * 3 * k)},${r1(1.6 * k)}" stroke="#c9a24a" stroke-width="1" stroke-linecap="round"/>`;
+    g += `<circle cx="${q(16, 0).split(',')[0]}" cy="${y}" r="${r1(6.4 * k)}" fill="url(#${u}yavru)" stroke="#8a6a2a" stroke-width=".9"/>`;
+    g += `<path d="M${q(14, -5)} L${q(19, -4.2)} M${q(14, 5)} L${q(19, 4.2)}" stroke="#5a4320" stroke-width="${r1(1.2 * k)}" stroke-linecap="round" opacity=".8"/>`;
+    g += `<path d="M${q(21.5, -2)} C${q(24, -2.2)} ${q(26, -1.4)} ${q(26.5, 0)} C${q(26, 1.4)} ${q(24, 2.2)} ${q(21.5, 2)} Z" fill="#5a4a3a"/>`;
+    g += `<ellipse cx="${q(-1, -3).split(',')[0]}" cy="${r1(y - 4 * k)}" rx="${r1(5 * k)}" ry="${r1(1.8 * k)}" fill="#fff" opacity=".35"/>`;
+    return g;
+  };
+  // kuğu: beyaz, dolgun gövde; öne uzanan kıvrık boyun; turuncu gaga ve siyah gaga kökü
+  const kugu = (x, y, k, d) => {
+    const q = P2(x, y, k, d);
+    let g = iz(x, y, k, d) + `<ellipse cx="${r1(x + 2)}" cy="${r1(y + 4 * k)}" rx="${r1(22 * k)}" ry="${r1(11 * k)}" fill="#0b3550" opacity=".22"/>`;
+    g += `<path d="M${q(-22, 0)} C${q(-21, -6)} ${q(-12, -12)} ${q(-1, -12)} C${q(9, -12)} ${q(14, -7)} ${q(14, 0)} C${q(14, 7)} ${q(9, 12)} ${q(-1, 12)} C${q(-12, 12)} ${q(-21, 6)} ${q(-22, 0)} Z" fill="url(#${u}kugu)" stroke="#9aa3ab" stroke-width="1"/>`;
+    [-1, 1].forEach(sy => {
+      g += `<path d="M${q(-20, sy * 1.5)} C${q(-14, sy * 10)} ${q(0, sy * 11.5)} ${q(9, sy * 6.5)} C${q(2, sy * 4.5)} ${q(-8, sy * 3)} ${q(-20, sy * 1.5)} Z" fill="#f4f6f7" stroke="#b5bdc4" stroke-width=".8"/>`;
+      g += `<path d="M${q(-16, sy * 3)} C${q(-10, sy * 6.5)} ${q(-3, sy * 7.5)} ${q(3, sy * 6.5)} M${q(-18, sy * 2.2)} C${q(-12, sy * 4.5)} ${q(-6, sy * 5)} ${q(-1, sy * 4.6)}" fill="none" stroke="#c9d0d6" stroke-width=".8"/>`;
+    });
+    g += `<path d="M${q(-22, 0)} L${q(-26, -2.4)} L${q(-25, 0)} L${q(-26, 2.4)} Z" fill="#e3e7ea" stroke="#9aa3ab" stroke-width=".7"/>`;
+    g += `<path d="M${q(10, 0)} C${q(15, -1)} ${q(16, 3)} ${q(19, 1)}" fill="none" stroke="#9aa3ab" stroke-width="${r1(7.4 * k)}" stroke-linecap="round"/>`;
+    g += `<path d="M${q(10, 0)} C${q(15, -1)} ${q(16, 3)} ${q(19, 1)}" fill="none" stroke="#fbfbf9" stroke-width="${r1(5.8 * k)}" stroke-linecap="round"/>`;
+    g += `<ellipse cx="${q(20, 0.6).split(',')[0]}" cy="${r1(y + 0.6 * k)}" rx="${r1(4.4 * k)}" ry="${r1(3.6 * k)}" fill="#fbfbf9" stroke="#9aa3ab" stroke-width=".8"/>`;
+    g += `<path d="M${q(23.4, -1.3)} L${q(24.6, -1.5)} L${q(24.6, 2.7)} L${q(23.4, 2.5)} Z" fill="#1d2023"/>`;
+    g += `<path d="M${q(24.6, -1.5)} C${q(26.2, -1.5)} ${q(27.6, -0.6)} ${q(27.8, 0.6)} C${q(27.6, 1.8)} ${q(26.2, 2.7)} ${q(24.6, 2.7)} Z" fill="#e8742a" stroke="#a6501c" stroke-width=".6"/>`;
+    g += `<ellipse cx="${q(-3, -4).split(',')[0]}" cy="${r1(y - 5 * k)}" rx="${r1(8 * k)}" ry="${r1(2.2 * k)}" fill="#fff" opacity=".8"/>`;
+    return g;
+  };
   // anne ve yavrular (doğuya, 1 m/s = 50 birim)
-  s += ordek(52, 78, 1.15, 1) + ok(82, 78, 132, 78, C.v) + T(107, 66, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
-  s += ordek(42, 128, 0.8, 1, '#c9a46a', '#a88445') + ok(64, 128, 114, 128, C.v) + T(89, 116, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
-  s += ordek(176, 128, 0.8, 1, '#c9a46a', '#a88445') + ok(198, 128, 248, 128, C.v) + T(223, 116, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
+  s += anne(52, 78, 1.1, 1) + ok(84, 78, 134, 78, C.v) + T(109, 66, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
+  s += yavru(44, 128, 0.8, 1) + ok(66, 128, 116, 128, C.v) + T(91, 116, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
+  s += yavru(178, 128, 0.8, 1) + ok(200, 128, 250, 128, C.v) + T(225, 116, 'ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.v, italic: true });
   // kuğu (batıya)
-  s += ordek(290, 176, 1.3, -1, '#fbfbf7', '#f4f4ee').replace(/#4b3826/g, '#9aa3ab').replace('#1f4a33', '#9aa3ab') + ok(256, 176, 206, 176, C.z) + T(231, 164, '−ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.z, italic: true });
+  s += kugu(290, 176, 1.25, -1) + ok(254, 176, 204, 176, C.z) + T(229, 164, '−ϑ', { size: 18, weight: 800, anchor: 'middle', fill: C.z, italic: true });
   // kayık (doğuya, 3 katı)
   const kx = 52, ky = 224;
   s += `<path d="M${kx - 34} ${ky - 11} H${kx + 18} Q${kx + 38} ${ky} ${kx + 18} ${ky + 11} H${kx - 34} Q${kx - 40} ${ky} ${kx - 34} ${ky - 11} Z" fill="#b5713a" stroke="#6b3f1c" stroke-width="1.4"/>`;
