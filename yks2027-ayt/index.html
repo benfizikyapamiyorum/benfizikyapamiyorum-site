@@ -27040,6 +27040,127 @@ BFY_FIG_EKLE('kA24_akican', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.2.4 başlangıç şekilleri (sfA24_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', MAV = '#2f7fb8', BAK = '#c9793f', MOR = '#6b4fa8', TEL = '#2a3330';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(f1(x), f1(y), s, { size: 14, weight: 700, ...o });
+const lbl = (x, y, s, c, o = {}) => T(f1(x), f1(y), s, { size: 17, weight: 800, fill: c, italic: true, ...o });
+const gr = (u, ad, a, b, yatay) => `<linearGradient id="${u}${ad}" x1="0" y1="0" x2="${yatay ? 1 : 0}" y2="${yatay ? 0 : 1}"><stop offset="0" stop-color="${a}"/><stop offset=".45" stop-color="${b}"/><stop offset="1" stop-color="${a}"/></linearGradient>`;
+
+/* Adım 1: mıknatısın kutupları arasında dik duran çerçeve (önden ve biraz yukarıdan bakış), normal ve α */
+BFY_FIG_EKLE('sfA24_aki', function (u) {
+  let s = `<defs>${gr(u, 'kn', '#a8352b', '#e0705f', true)}${gr(u, 'ks', '#1f5f8e', '#5aa3d6', true)}</defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="222" rx="14" fill="#f4f7f9"/>`;
+  // 3B izdüşüm: x sağa (alan yönü), y yukarı, z bakana doğru; bakış 40° yukarıdan
+  const e = 40 * Math.PI / 180, ce = Math.cos(e), se = Math.sin(e), OX = 170, OY = 116;
+  const P3 = (x, y, z) => [OX + x, OY - (y * ce - z * se)];
+  const pt = p => f1(p[0]) + ',' + f1(p[1]);
+  const poly = (ps, o) => `<polygon points="${ps.map(pt).join(' ')}" ${o}/>`;
+  const kutu = (x0, x1, on, ust, kenar) =>
+    poly([P3(x0, 72, -40), P3(x1, 72, -40), P3(x1, 72, 40), P3(x0, 72, 40)], `fill="${ust}" stroke="${kenar}" stroke-width="1"`) +
+    poly([P3(x0, 72, 40), P3(x1, 72, 40), P3(x1, -72, 40), P3(x0, -72, 40)], `fill="${on}" stroke="${kenar}" stroke-width="1.2"`);
+  s += kutu(-158, -126, `url(#${u}kn)`, '#e8877a', '#6e2a22') + kutu(126, 158, `url(#${u}ks)`, '#7fb8e0', '#173f5e');
+  const nP = P3(-142, -10, 40), sP = P3(142, -10, 40);
+  s += T(f1(nP[0]), f1(nP[1] + 6), 'N', { size: 18, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) + T(f1(sP[0]), f1(sP[1] + 6), 'S', { size: 18, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+  // alan çizgileri (N'den S'ye)
+  const cizgi = (y, z, op) => { const a = P3(-124, y, z), b = P3(124, y, z); return `<line x1="${f1(a[0])}" y1="${f1(a[1])}" x2="${f1(b[0] - 8)}" y2="${f1(b[1])}" stroke="${MAV}" stroke-width="1.7" opacity="${op}"/><polygon points="${f1(b[0])},${f1(b[1])} ${f1(b[0] - 10)},${f1(b[1] - 4.5)} ${f1(b[0] - 10)},${f1(b[1] + 4.5)}" fill="${MAV}" opacity="${op}"/>`; };
+  [-70, -20, 30].forEach(y => { s += cizgi(y, -32, .45); });
+  // çerçeve: düşey eksen çevresinde döndürülmüş; normali yatay, alanla 60°
+  const a = 60 * Math.PI / 180, W = 54, H = 46;
+  const n = [Math.cos(a), 0, -Math.sin(a)], uu = [Math.sin(a), 0, Math.cos(a)];
+  const K = (s1, s2) => P3(s1 * W * uu[0], s2 * H, s1 * W * uu[2]);
+  const A = K(-1, 1), B = K(1, 1), C = K(1, -1), D = K(-1, -1);
+  const kenar = (p, q, arka) => `<line x1="${f1(p[0])}" y1="${f1(p[1])}" x2="${f1(q[0])}" y2="${f1(q[1])}" stroke="#6f3f1d" stroke-width="${arka ? 6 : 7.5}" stroke-linecap="round"/>` +
+    `<line x1="${f1(p[0])}" y1="${f1(p[1])}" x2="${f1(q[0])}" y2="${f1(q[1])}" stroke="${arka ? '#b8743f' : '#e3a066'}" stroke-width="${arka ? 2.6 : 3.2}" stroke-linecap="round"/>`;
+  s += poly([A, B, C, D].map(p => [p[0] + 6, p[1] + 7]), 'fill="#000" opacity=".06"');
+  s += kenar(A, D, true);
+  s += poly([A, B, C, D], 'fill="#e7a46b" opacity=".2"');
+  s += kenar(A, B, false) + kenar(D, C, false) + kenar(B, C, false);
+  [-50, 0, 50].forEach(y => { s += cizgi(y, 32, .85); });
+  // α yayı: yatay düzlemde, alan yönü ile normal arası
+  const c0 = P3(0, 0, 0), R = 46, yay = [];
+  for (let i = 0; i <= 20; i++) { const t = a * i / 20; yay.push(P3(R * Math.cos(t), 0, -R * Math.sin(t))); }
+  const ref = P3(62, 0, 0);
+  s += `<line x1="${f1(c0[0])}" y1="${f1(c0[1])}" x2="${f1(ref[0])}" y2="${f1(ref[1])}" stroke="${MOR}" stroke-width="1.8" stroke-dasharray="4 3"/>`;
+  s += `<polyline points="${yay.map(pt).join(' ')}" fill="none" stroke="${MOR}" stroke-width="2.4"/>`;
+  const al = P3(30 * Math.cos(a / 2.4), 0, -30 * Math.sin(a / 2.4));
+  s += lbl(al[0] + 2, al[1] + 3, 'α', MOR, { anchor: 'middle' });
+  // normal
+  const nt = P3(92 * n[0], 0, 92 * n[2]);
+  s += ok(c0[0], c0[1], nt[0], nt[1], KIR, 3) + lbl(nt[0] + 8, nt[1] + 4, 'n', KIR);
+  s += `<circle cx="${f1(c0[0])}" cy="${f1(c0[1])}" r="3.2" fill="${TEL}"/>`;
+  s += lbl(262, 92, 'B', MAV, { anchor: 'middle' });
+  s += yaz(150, 168, 'çerçeve', { anchor: 'end', weight: 800, fill: '#8a4f25' });
+  return svg(340, 222, s, u, 90);
+});
+
+/* Adım 2: 250 sarımlı bobinin her sarımından geçen akı, Φ–t */
+BFY_FIG_EKLE('sfA24_grafik', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="230" rx="14" fill="#f6f9f7"/>`;
+  const x0 = 52, yb = 186, W = 216, H = 140, tMax = 6, vMax = 8;
+  const sx = t => x0 + t / tMax * W, sy = v => yb - v / vMax * H;
+  // ızgara
+  for (let t = 1; t <= 6; t++) s += `<line x1="${f1(sx(t))}" y1="${yb}" x2="${f1(sx(t))}" y2="${f1(sy(8))}" stroke="#d9e2dc" stroke-width="1"/>`;
+  [4, 8].forEach(v => s += `<line x1="${x0}" y1="${f1(sy(v))}" x2="${f1(sx(6))}" y2="${f1(sy(v))}" stroke="#d9e2dc" stroke-width="1"/>`);
+  // eksenler
+  s += `<line x1="${x0}" y1="${yb}" x2="${x0}" y2="22" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${x0},12 ${x0 - 5},24 ${x0 + 5},24" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${yb}" x2="${f1(sx(6) + 14)}" y2="${yb}" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${f1(sx(6) + 24)},${yb} ${f1(sx(6) + 12)},${yb - 5} ${f1(sx(6) + 12)},${yb + 5}" fill="${P.ink}"/>`;
+  s += yaz(x0 + 10, 20, 'Φ (mWb)', { weight: 800 });
+  s += yaz(f1(sx(6) + 28), yb + 5, 't (s)', { weight: 800 });
+  for (let t = 1; t <= 6; t++) s += `<line x1="${f1(sx(t))}" y1="${yb - 4}" x2="${f1(sx(t))}" y2="${yb + 4}" stroke="${P.ink}" stroke-width="1.3"/>` + yaz(sx(t), yb + 21, String(t), { anchor: 'middle', weight: 600, fill: P.ink2 });
+  [4, 8].forEach(v => s += `<line x1="${x0 - 4}" y1="${f1(sy(v))}" x2="${x0 + 4}" y2="${f1(sy(v))}" stroke="${P.ink}" stroke-width="1.3"/>` + yaz(x0 - 9, sy(v) + 5, String(v), { anchor: 'end', weight: 600, fill: P.ink2 }));
+  s += yaz(x0 - 9, yb + 5, '0', { anchor: 'end', weight: 600, fill: P.ink2 });
+  const pts = [[0, 0], [2, 8], [4, 8], [5, 0], [6, 0]];
+  s += `<polyline points="${pts.map(([t, v]) => f1(sx(t)) + ',' + f1(sy(v))).join(' ')}" fill="none" stroke="${MAV}" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += yaz(sx(3), sy(8) - 10, 'sabit', { anchor: 'middle', weight: 800, fill: MOR });
+  s += yaz(sx(1) + 14, sy(4) + 4, 'artıyor', { weight: 800, fill: MOR });
+  return svg(340, 230, s, u, 90);
+});
+
+/* Adım 3: S kutbu yaklaşan ve uzaklaşan mıknatıs, halkanın yüzü */
+function miknatis(u, x, y, w, h) {
+  // sol yarı N (kırmızı), sağ yarı S (mavi); S kutbu halkaya bakar
+  return `<rect x="${x + 3}" y="${y + h - 1}" width="${w}" height="5" rx="2" fill="#000" opacity=".12"/>` +
+    `<rect x="${x}" y="${y}" width="${w / 2}" height="${h}" rx="3" fill="url(#${u}mn)" stroke="#6e2a22" stroke-width="1"/>` +
+    `<rect x="${x + w / 2}" y="${y}" width="${w / 2}" height="${h}" rx="3" fill="url(#${u}ms)" stroke="#173f5e" stroke-width="1"/>` +
+    T(x + w / 4, y + h / 2 + 5.5, 'N', { size: 16, anchor: 'middle', weight: 800, fill: '#fff', halo: false }) +
+    T(x + 3 * w / 4, y + h / 2 + 5.5, 'S', { size: 16, anchor: 'middle', weight: 800, fill: '#fff', halo: false });
+}
+function halka(cx, cy) {
+  return `<path d="M${cx} ${cy - 38} A12 38 0 0 0 ${cx} ${cy + 38}" fill="none" stroke="#8a4f25" stroke-width="5"/>` +
+    `<path d="M${cx} ${cy - 38} A12 38 0 0 1 ${cx} ${cy + 38}" fill="none" stroke="${BAK}" stroke-width="5.5"/>` +
+    `<path d="M${cx + 3} ${cy - 30} A9 30 0 0 1 ${cx + 3} ${cy + 2}" fill="none" stroke="#f3c79c" stroke-width="1.6" opacity=".9"/>`;
+}
+BFY_FIG_EKLE('sfA24_lenz', function (u) {
+  let s = `<defs>${gr(u, 'mn', '#a8352b', '#e0705f', false)}${gr(u, 'ms', '#1f5f8e', '#5aa3d6', false)}</defs>`;
+  const panel = (y0, bas, sag, yaklas) => {
+    let p = `<rect class="bg" x="0" y="${y0}" width="340" height="124" rx="12" fill="#f4f7f9"/>`;
+    p += yaz(14, y0 + 22, bas, { weight: 800 }) + yaz(326, y0 + 22, sag, { anchor: 'end', fill: P.ink2 });
+    const my = y0 + 52, cy = y0 + 64;
+    p += miknatis(u, 56, my, 104, 24);
+    p += halka(262, cy);
+    // halkanın mıknatısa bakan yüzü
+    p += T(236, cy + 6, yaklas ? 'S' : 'N', { size: 18, anchor: 'middle', weight: 800, fill: yaklas ? MAV : KIR });
+    // hız
+    if (yaklas) p += ok(80, y0 + 100, 140, y0 + 100, TEL, 2.6) + lbl(152, y0 + 106, 'ϑ', TEL);
+    else p += ok(140, y0 + 100, 80, y0 + 100, TEL, 2.6) + lbl(64, y0 + 106, 'ϑ', TEL, { anchor: 'end' });
+    // halkanın mıknatısa kuvveti
+    if (yaklas) p += ok(52, cy, 12, cy, KIR, 3) + yaz(30, cy - 12, 'itme', { anchor: 'middle', weight: 800, fill: KIR });
+    else p += ok(164, cy, 208, cy, KIR, 3) + yaz(186, cy - 12, 'çekme', { anchor: 'middle', weight: 800, fill: KIR });
+    return p;
+  };
+  s += panel(0, 'S kutbu yaklaşıyor', 'akı artıyor', true);
+  s += panel(132, 'S kutbu uzaklaşıyor', 'akı azalıyor', false);
+  return svg(340, 256, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -27100,6 +27221,203 @@ const KONU = {
     'K ve L seri RLC devrelerinin etkin akım–frekans eğrileri, tepe yüksekliği ve f1, f2\'de reaktanslar', 'aynı telden K (2a kare, ϑ), L (a kare, 2ϑ), M (2a × a, ϑ) çerçeveleri ⊗ alana giriyor, akım sıralaması',
     "ampermetreli tel halkanın yakınından geçirilen mıknatıs: Φ–t çan eğrisi (tepe 4 mWb, 2 s), 4–6 s sabit; tepe anında akım sıfır, 1. ve 3. s zıt yönlü (yorumlama eki)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA (başlangıç düzeyi) ---------------- */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu konuda bir mıknatısla bir telin nasıl elektrik ürettiğini, prizdeki akımın neden yön değiştirdiğini ve transformatörün gerilimi nasıl değiştirdiğini göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.`,
+    adimlar: [
+      {
+        baslik: 'Manyetik akı: çerçeveden geçen alan',
+        sekil: 'sfA24_aki',
+        metin: r`Güçlü bir mıknatısın iki kutbu arasında **düzgün** bir manyetik alan vardır: Alan her noktada aynı büyüklükte ve aynı yöndedir. Bu alana dik duran tel bir çerçeve koyalım. Çerçeveden ne kadar alan geçtiğini **manyetik akı** ($\Phi$) anlatır:
+$$\Phi = B \times A \times \cos\alpha$$
+- $B$ alanın şiddetidir (tesla, T). $A$ çerçevenin yüzey alanıdır ($\text{m}^2$).
+- $\alpha$, alan ile çerçevenin **normali** arasındaki açıdır. Normal, çerçeve yüzeyine dik çizilen doğrudur (şekildeki $n$).
+
+Alan 1 T, çerçevenin yüzey alanı 20 cm² olsun ($1\ \text{cm}^2 = 10^{-4}\ \text{m}^2$). Çerçeve alanı tam karşıdan karşılıyorsa $\alpha = 0$ ve $\cos 0 = 1$ olur:
+$\Phi = 1 \times 20 \times 10^{-4} = 2 \times 10^{-3}$ Wb, yani 2 mWb.
+
+Çerçeveyi düzlemi alana paralel olacak kadar çevirirsen $\alpha = 90°$ ve $\cos 90° = 0$ olur; akı sıfırdır.`,
+        kontrol: {
+          soru: r`Aynı çerçeve, normali ile alan arasındaki açı $60°$ olacak biçimde çevriliyor. Çerçeveden geçen akı kaç mWb olur? ($\cos 60° = \dfrac{1}{2}$)`,
+          secenekler: ['2 mWb', '1 mWb', '0'],
+          dogru: 1,
+          aciklama: r`$\Phi = B \times A \times \cos 60° = 2\ \text{mWb} \times \dfrac{1}{2} = 1$ mWb. Çerçeve döndükçe alanı daha eğik karşılar; içinden geçen akı azalır.`,
+          yanlisIpucu: 'Çerçeve alanı tam karşıdan karşılarken akı 2 mWb idi. Bu değeri yeni açının kosinüsüyle çarp.'
+        }
+      },
+      {
+        baslik: 'Akı değişirse emk doğar',
+        sekil: 'sfA24_grafik',
+        metin: r`Bir bobinin uçlarını bir ampermetreye bağlayalım; devrede pil yok. Bobinden geçen akı **değiştiği sürece** bobinde bir gerilim oluşur. Buna **indüksiyon emk'si** ($\varepsilon$) denir. Akı sabitse, ne kadar büyük olursa olsun emk sıfırdır.
+
+Emk'nin büyüklüğünü **Faraday yasası** verir:
+$$\varepsilon = N \times \dfrac{\Delta\Phi}{\Delta t}$$
+$N$ sarım sayısı, $\Delta\Phi$ bir sarımdaki akı değişimi, $\Delta t$ bu değişimin süresidir. Bu yasanın tam hâlinde bir eksi işareti de vardır; o işaret akımın yönünü anlatır. Onu bir sonraki adımda göreceğiz.
+
+Grafik, 250 sarımlı bir bobinin her sarımından geçen akıyı gösteriyor. İlk 2 s'de akı 0'dan 8 mWb'ye çıkıyor:
+$\varepsilon = 250 \times \dfrac{8 \times 10^{-3}}{2} = 1$ V.
+
+2. ile 4. saniye arasında akı değişmiyor; bu aralıkta emk sıfırdır.`,
+        kontrol: {
+          soru: '4. ile 5. saniye arasında bobinde oluşan emk kaç V\'tur?',
+          secenekler: ['0', '1 V', '2 V'],
+          dogru: 2,
+          aciklama: r`Akı 1 s içinde 8 mWb azalıyor: $\varepsilon = 250 \times \dfrac{8 \times 10^{-3}}{1} = 2$ V. Aynı değişim ilk aralıktakinin yarısı kadar sürede olduğu için emk iki katıdır. Grafikte daha dik çizgi, daha büyük emk demektir.`,
+          yanlisIpucu: 'Akının son değeri sıfır ama emk değişime bakar. Bu aralıkta akı kaç mWb değişiyor ve bu kaç saniye sürüyor?'
+        }
+      },
+      {
+        baslik: 'Lenz yasası: akım değişime karşı koyar',
+        sekil: 'sfA24_lenz',
+        metin: r`İndüksiyon akımı hangi yönde dolanır? **Lenz yasası:** İndüksiyon akımı, kendisini oluşturan akı değişimine **karşı koyar**.
+
+Bir çubuk mıknatısın S kutbunu tel bir halkaya yaklaştıralım. Halkadan geçen akı artar. Halkadaki akım, halkanın mıknatısa bakan yüzünü bir **S kutbu** gibi yapar ve mıknatısı iter. Mıknatısı uzaklaştırırsak akı azalır. Bu kez halkanın o yüzü **N kutbu** olur ve mıknatısı çeker.
+
+Kısa yol:
+- Akı artıyorsa akımın oluşturduğu alan dış alana **zıttır**.
+- Akı azalıyorsa akımın oluşturduğu alan dış alanla **aynı yöndedir**.
+
+Halka her durumda hareketi zorlaştırır. Bu yüzden mıknatısı yaklaştırmak ya da uzaklaştırmak için iş yaparsın; bu iş halkada elektrik enerjisine dönüşür.`,
+        kontrol: {
+          soru: r`Sayfa düzleminde duran tel bir halkadan sayfa düzleminden dışa doğru ($\odot$) bir manyetik alan geçiyor. Alanın şiddeti artırılıyor. Sayfaya bakan birine göre halkadaki akım hangi yöndedir?`,
+          secenekler: ['Saat yönünde', 'Saat yönünün tersine', 'Akım oluşmaz'],
+          dogru: 0,
+          aciklama: r`Dışa doğru akı artıyor. Akım buna karşı koymak için halkanın içinde içe doğru ($\otimes$) bir alan oluşturur. Sağ el kuralına göre içe doğru alan oluşturan akım, bakana göre saat yönündedir.`,
+          yanlisIpucu: 'Önce akımın oluşturacağı alanın yönünü bul: Artan dışa doğru alana karşı koymalı. Sonra sağ elinin başparmağını o yöne tut; bükülen parmakların akımın yönünü gösterir.'
+        }
+      },
+      {
+        baslik: 'Alternatif akım: bobin ve sığaç',
+        metin: r`Dinamoda (alternatörde) bir bobin, mıknatısların arasında döner. Bobinden geçen akı sürekli artıp azaldığı için akımın yönü de sürekli değişir. Böyle akıma **alternatif akım** denir. Şebekemizde frekans 50 Hz'dir: Akım saniyede 50 tam salınım yapar, yönü saniyede 100 kez değişir. Prizde ölçülen 220 V **etkin** değerdir; gerilim aslında yaklaşık 311 V'a kadar çıkar.
+
+Alternatif akım devresinde üç eleman farklı davranır:
+- **Direnç:** Karşı koyması frekansa bağlı değildir.
+- **Bobin:** Akımın değişmesine karşı koyar. Frekans arttıkça bu karşı koyma ($X_L$) artar, akım azalır.
+- **Sığaç:** Doğru akımı geçirmez. Frekans arttıkça karşı koyması ($X_C$) azalır, akım artar.
+
+Bir hoparlör kutusunda bas hoparlörüne seri bir bobin, tiz hoparlörüne seri bir sığaç bağlanır. Böylece kalın sesler (düşük frekans) bas hoparlörüne, ince sesler (yüksek frekans) tiz hoparlörüne yönelir.`,
+        kontrol: {
+          soru: 'Bas hoparlörüne seri bağlı bobin hangi seslerin akımını zorlukla geçirir?',
+          secenekler: ['İnce (yüksek frekanslı) seslerin', 'Kalın (düşük frekanslı) seslerin', 'Bütün seslerin eşit ölçüde'],
+          dogru: 0,
+          aciklama: r`Bobinin karşı koyması ($X_L$) frekansla artar. Yüksek frekanslı ince seslerin akımı bobinden zor geçer; bu yüzden bas hoparlörüne çoğunlukla kalın sesler ulaşır.`,
+          yanlisIpucu: r`Bobinin karşı koyması ($X_L$) frekans artınca artar mı, azalır mı? Karşı koyma büyükse akım zor geçer.`
+        }
+      },
+      {
+        baslik: 'Transformatör: gerilimi sarımlar belirler',
+        metin: r`Transformatörde ortak bir demir çekirdeğe iki bobin sarılır. **Primer** bobin ($N_p$ sarım) kaynağa, **sekonder** bobin ($N_s$ sarım) cihaza bağlanır. Primerden geçen alternatif akım çekirdekte sürekli değişen bir akı oluşturur. Bu akı sekonderden de geçer ve orada emk oluşturur.
+
+İdeal transformatörde:
+$$\dfrac{V_p}{V_s} = \dfrac{N_p}{N_s}$$
+- $N_s > N_p$ ise gerilim yükselir (**yükseltici**). $N_s < N_p$ ise gerilim düşer (**düşürücü**).
+- Enerji kendiliğinden artmaz: $V_p \times I_p = V_s \times I_s$. Gerilimi büyük olan tarafın akımı küçüktür.
+- Primer bir pile bağlanırsa akım değişmez, akı sabit kalır; sekonderde gerilim oluşmaz. Yalnız anahtarın açıldığı ve kapandığı anlarda kısa bir gerilim görülür.`,
+        kontrol: {
+          soru: 'Bir mikrodalga fırının içindeki transformatörün primerinde 150, sekonderinde 1500 sarım var. Primer 220 V\'luk şebekeye bağlı. Transformatör ideal ise sekonder gerilimi kaç V olur?',
+          secenekler: ['2200 V', '22 V', '220 V'],
+          dogru: 0,
+          aciklama: r`Sekonderin sarım sayısı primerinkinin $\dfrac{1500}{150} = 10$ katıdır. Gerilim de 10 kat olur: $220 \times 10 = 2200$ V. Bu bir yükseltici transformatördür.`,
+          yanlisIpucu: 'Sarımı çok olan bobinin gerilimi de büyüktür. Sarım oranını bul ve gerilimi o oranda büyüt.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Alandan çekilen bobin',
+        metin: r`Laboratuvarda güçlü bir mıknatısla 1 T'lık düzgün bir manyetik alan oluşturulmuş. 800 sarımlı bir bobinin her sarımının yüzey alanı 50 cm²'dir. Bobin, düzlemi alana dik olacak biçimde alanın içinde duruyor. Bobinin uçları bir ampermetreye bağlı; devrenin toplam direnci 40 Ω'dur. Bobin 1 s içinde alanın tamamen dışına çekiliyor. Bu sürede devreden geçen ortalama akımı bulacağız.`,
+        adimlar: [
+          {
+            soru: 'Başta bobinin her sarımından geçen akı ne kadardır?',
+            secenekler: ['50 Wb', '5 mWb', '4 Wb'],
+            dogru: 1,
+            ipucu: r`$\Phi = B \times A$ ve $50\ \text{cm}^2 = 50 \times 10^{-4}\ \text{m}^2$. Akı tek bir sarım için hesaplanır.`,
+            aciklama: r`$\Phi = 1 \times 50 \times 10^{-4} = 5 \times 10^{-3}$ Wb, yani 5 mWb. Sarım sayısı akıya değil, emk hesabına girer.`
+          },
+          {
+            soru: 'Bobin alanın dışına çıkınca her sarımdaki akı değişiminin büyüklüğü kaç mWb olur?',
+            secenekler: ['10 mWb', '0', '5 mWb'],
+            dogru: 2,
+            ipucu: 'Alanın dışında akı sıfırdır. Değişim, son akıdan ilk akının çıkarılmasıyla bulunur.',
+            aciklama: r`$\Delta\Phi = 0 - 5 = -5$ mWb; büyüklüğü 5 mWb. Alan yön değiştirmediği için değişim 10 mWb değildir.`
+          },
+          {
+            soru: 'Bobinde oluşan ortalama emk kaç V\'tur?',
+            secenekler: ['4 V', '5 mV', '4000 V'],
+            dogru: 0,
+            ipucu: r`$\varepsilon = N \times \dfrac{\Delta\Phi}{\Delta t}$ ve $5\ \text{mWb} = 5 \times 10^{-3}$ Wb. Sarım sayısını unutma.`,
+            aciklama: r`$\varepsilon = 800 \times \dfrac{5 \times 10^{-3}}{1} = 4$ V.`
+          },
+          {
+            soru: 'Devreden geçen ortalama akım ne kadardır?',
+            secenekler: ['10 A', '100 mA', '160 A'],
+            dogru: 1,
+            ipucu: r`$I = \dfrac{\varepsilon}{R}$: emk'yi dirence böl.`,
+            aciklama: r`$I = \dfrac{4}{40} = 0{,}1$ A, yani 100 mA.`
+          }
+        ],
+        sonuc: 'İndüksiyon sorularında sıra hep aynıdır: önce bir sarımdaki akı, sonra akı değişimi, sonra emk, en son akım. Bobini daha hızlı çekseydin aynı değişim daha kısa sürede olurdu; emk ve akım büyürdü.'
+      },
+      {
+        baslik: 'Lehim tabancası',
+        metin: r`Bazı lehim tabancalarının içinde bir transformatör vardır. Primer bobin 220 sarımlıdır ve 220 V'luk şebekeye bağlanır. Sekonder ise kalın bir bakır çubuğun bükülmesiyle oluşan 2 sarımlık bir halkadır. Tabancanın ucu bu halkanın parçasıdır. Uç ısınırken sekonderden 110 A akım geçiyor. Transformatörü ideal kabul edelim.`,
+        adimlar: [
+          {
+            soru: 'Bu transformatör hangi türdendir?',
+            secenekler: ['Yükseltici', 'Düşürücü', 'Gerilimi değiştirmez'],
+            dogru: 1,
+            ipucu: 'Sekonderin sarım sayısı primerinkinden az mı, çok mu?',
+            aciklama: r`$N_s = 2$, $N_p = 220$'den çok küçük. Sekonder gerilimi primerinkinden küçük olur; transformatör düşürücüdür.`
+          },
+          {
+            soru: 'Sekonder gerilimi kaç V\'tur?',
+            secenekler: ['24 200 V', '2 V', '220 V'],
+            dogru: 1,
+            ipucu: r`$\dfrac{V_p}{V_s} = \dfrac{N_p}{N_s} = \dfrac{220}{2} = 110$. Gerilim 110'a bölünür.`,
+            aciklama: r`$V_s = \dfrac{220}{110} = 2$ V. Uçtaki gerilim çok küçüktür; dokunmak elektrik çarpması açısından tehlikeli değildir ama uç çok sıcaktır.`
+          },
+          {
+            soru: 'Primerin şebekeden çektiği akım kaç A\'dir?',
+            secenekler: ['1 A', '110 A', '12 100 A'],
+            dogru: 0,
+            ipucu: r`İdeal transformatörde $V_p \times I_p = V_s \times I_s$. Gerilimi büyük olan primerin akımı küçük olmalı.`,
+            aciklama: r`$220 \times I_p = 2 \times 110$, buradan $I_p = 1$ A. Gerilim 110'da 1'e inerken akım 110 kat büyür.`
+          }
+        ],
+        sonuc: 'Düşürücü transformatör gerilimi azaltır, akımı aynı oranda artırır. Ucu kızdıran ısı bu büyük akımla elde edilir. Enerji yoktan var olmaz: İdeal transformatörde primere verilen güç (220 W), sekonderden alınan güce eşittir.'
+      },
+      {
+        baslik: 'Kondisyon bisikletinin freni',
+        metin: r`Spor salonundaki bazı kondisyon bisikletlerinde pedallar, alüminyumdan yapılmış ağır bir diski (volanı) döndürür. Diskin kenarının iki yanında, ona değmeyen güçlü mıknatıslar vardır. Diskin her parçası dönerken sırayla mıknatısların arasından geçer. Mıknatıslar diske hiç dokunmadığı hâlde pedal çevirmek zorlaşır.`,
+        adimlar: [
+          {
+            soru: 'Diskin bir parçası mıknatısların arasına girerken o parçadan geçen akı nasıl değişir?',
+            secenekler: ['Artar', 'Değişmez', 'Sıfır kalır'],
+            dogru: 0,
+            ipucu: 'Diskin o parçası, alanın olmadığı yerden alanın olduğu yere giriyor.',
+            aciklama: 'Diskin alana giren parçasından geçen akı artar, alandan çıkan parçasından geçen akı azalır. Akı değiştiği için alüminyumun içinde indüksiyon akımları dolanır.'
+          },
+          {
+            soru: 'Bu akımlar yüzünden diske etki eden manyetik kuvvet dönmeyi nasıl etkiler?',
+            secenekler: ['Dönmeyi hızlandırır', 'Dönmeye karşı koyar', 'Dönmeyi etkilemez'],
+            dogru: 1,
+            ipucu: 'Lenz yasası: İndüksiyon akımı, kendisini oluşturan değişime, yani bu hareketin sürmesine karşı koyar.',
+            aciklama: 'İndüksiyon akımları, onları oluşturan hareketi zorlaştırır. Kuvvet dönmeye karşı koyar; disk frenlenir ve pedal ağırlaşır.'
+          },
+          {
+            soru: 'Pedalı daha hızlı çevirirsen fren kuvveti nasıl olur?',
+            secenekler: ['Daha küçük olur', 'Daha büyük olur', 'Değişmez'],
+            dogru: 1,
+            ipucu: 'Disk hızlı dönerse akı daha kısa sürede değişir. Faraday yasasını hatırla.',
+            aciklama: 'Akı daha kısa sürede değiştiği için emk ve indüksiyon akımları büyür. Akım büyüyünce fren kuvveti de büyür.'
+          }
+        ],
+        sonuc: 'Manyetik fren hızlı dönen diski güçlü, yavaş döneni hafif frenler. Disk durursa akı değişmez ve fren kuvveti sıfır olur. Mıknatıslar diske yaklaştırılınca alan güçlenir ve pedal daha da ağırlaşır. Senin yaptığın iş alüminyum diskte ısıya dönüşür.'
+      }
+    ],
+    hazir: 'Manyetik akıyı, Faraday ve Lenz yasalarını, alternatif akımda bobin ile sığacın davranışını ve transformatörü gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -28858,6 +29176,109 @@ BFY_FIG_EKLE('kA31_ef5', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.3.1 başlangıç şekilleri (sfA31_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', MAV = '#2f7fb8', MOR = '#6b4fa8', YES = '#2f8f5b', TEL = '#2a3330';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(f1(x), f1(y), s, { size: 14, weight: 700, ...o });
+const lbl = (x, y, s, c, o = {}) => T(f1(x), f1(y), s, { size: 17, weight: 800, fill: c, italic: true, ...o });
+const damla = (x, y, k = 1) => `<path d="M${f1(x)} ${f1(y - 7 * k)} Q${f1(x + 5 * k)} ${f1(y)} ${f1(x)} ${f1(y + 4 * k)} Q${f1(x - 5 * k)} ${f1(y)} ${f1(x)} ${f1(y - 7 * k)} Z" fill="#5aa9dc" stroke="#1d5a86" stroke-width=".9"/><circle cx="${f1(x - 1.4 * k)}" cy="${f1(y - 1)}" r="${f1(1.3 * k)}" fill="#fff" opacity=".8"/>`;
+
+/* Adım 1 ve 3: dönen ıslak şemsiye (üstten görünüş) */
+BFY_FIG_EKLE('sfA31_semsiye', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="#f4f7f9"/>`;
+  const cx = 140, cy = 130, R = 90, n = 8;
+  s += `<ellipse cx="${cx + 5}" cy="${cy + 8}" rx="${R}" ry="${R}" fill="#000" opacity=".08"/>`;
+  for (let i = 0; i < n; i++) {
+    const a1 = i * 2 * Math.PI / n, a2 = (i + 1) * 2 * Math.PI / n;
+    const x1 = cx + R * Math.cos(a1), y1 = cy - R * Math.sin(a1), x2 = cx + R * Math.cos(a2), y2 = cy - R * Math.sin(a2);
+    s += `<path d="M${cx} ${cy} L${f1(x1)} ${f1(y1)} A${R} ${R} 0 0 0 ${f1(x2)} ${f1(y2)} Z" fill="${i % 2 ? '#2f7f8f' : '#3f9aa9'}" stroke="#1f5560" stroke-width="1"/>`;
+  }
+  // teller
+  for (let i = 0; i < n; i++) { const a = i * 2 * Math.PI / n; s += `<line x1="${cx}" y1="${cy}" x2="${f1(cx + R * Math.cos(a))}" y2="${f1(cy - R * Math.sin(a))}" stroke="#1f5560" stroke-width="1.4" opacity=".7"/>`; }
+  s += `<circle cx="${cx}" cy="${cy}" r="7" fill="#d9dee2" stroke="#4d565c" stroke-width="1.2"/><circle cx="${cx}" cy="${cy}" r="2.6" fill="#4d565c"/>`;
+  // dönme yönü (üstten bakınca saat yönünün tersi)
+  const Rr = R + 16;
+  s += `<path d="M${f1(cx + Rr * Math.cos(1.95))} ${f1(cy - Rr * Math.sin(1.95))} A${Rr} ${Rr} 0 0 1 ${f1(cx + Rr * Math.cos(1.2))} ${f1(cy - Rr * Math.sin(1.2))}" fill="none" stroke="${MOR}" stroke-width="2.4" transform="scale(1)"/>`;
+  { const a = 1.95, x = cx + Rr * Math.cos(a), y = cy - Rr * Math.sin(a), tx = -Math.sin(a), ty = -Math.cos(a); s += `<polygon points="${f1(x + tx * 9)},${f1(y + ty * 9)} ${f1(x - ty * 5)},${f1(y + tx * 5)} ${f1(x + ty * 5)},${f1(y - tx * 5)}" fill="${MOR}"/>`; }
+  s += lbl(cx + Rr * Math.cos(1.2) + 10, cy - Rr * Math.sin(1.2) + 6, 'ω', MOR);
+  // P (kenar) ve R (tel ortası), hız vektörleri yukarı (saat yönünün tersi)
+  const px = cx + R, rx = cx + R / 2;
+  s += damla(px, cy, 1.3) + damla(rx, cy, 1.3);
+  s += ok(px, cy - 9, px, cy - 74, KIR, 3) + lbl(px + 10, cy - 58, 'ϑ_P', KIR);
+  s += ok(rx, cy - 9, rx, cy - 42, KIR, 3) + lbl(rx + 8, cy - 30, 'ϑ_R', KIR);
+  s += yaz(px + 12, cy + 18, 'P', { weight: 800 }) + yaz(rx - 4, cy + 22, 'R', { weight: 800, anchor: 'middle' });
+  // ayrılan damla: en alttaki noktadan teğet doğrultuda (sağa)
+  const bx = cx, by = cy + R;
+  s += `<line x1="${bx}" y1="${by}" x2="${bx + 120}" y2="${by}" stroke="${MAV}" stroke-width="1.8" stroke-dasharray="5 5"/>`;
+  s += damla(bx + 130, by, 1.3) + yaz(bx + 128, by - 12, 'ayrılan damla', { anchor: 'middle', fill: P.ink2 });
+  s += yaz(326, 24, 'üstten görünüş', { anchor: 'end', fill: P.ink2 });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Adım 4: pistin virajında koşan atlet (üstten görünüş) */
+BFY_FIG_EKLE('sfA31_atlet', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="240" rx="14" fill="url(#${u}grass)" opacity=".55"/>`;
+  const ox = 196, oy = 118, r1 = 74, r2 = 108;
+  // tartan pist (sol yarım çember ve düzlükler)
+  s += `<path d="M340 ${oy - r2} L${ox} ${oy - r2} A${r2} ${r2} 0 0 0 ${ox} ${oy + r2} L340 ${oy + r2} L340 ${oy + r1} L${ox} ${oy + r1} A${r1} ${r1} 0 0 1 ${ox} ${oy - r1} L340 ${oy - r1} Z" fill="#c8553d" stroke="#8d3423" stroke-width="1.2"/>`;
+  for (let k = 1; k < 4; k++) { const rr = r1 + k * (r2 - r1) / 4; s += `<path d="M340 ${f1(oy - rr)} L${ox} ${f1(oy - rr)} A${f1(rr)} ${f1(rr)} 0 0 0 ${ox} ${f1(oy + rr)} L340 ${f1(oy + rr)}" fill="none" stroke="#fff" stroke-width="1.2" opacity=".85"/>`; }
+  // iç saha
+  s += `<path d="M340 ${oy - r1} L${ox} ${oy - r1} A${r1} ${r1} 0 0 0 ${ox} ${oy + r1} L340 ${oy + r1} Z" fill="#7fb35f" opacity=".9"/>`;
+  s += `<circle cx="${ox}" cy="${oy}" r="3.5" fill="${TEL}"/>` + yaz(ox + 8, oy + 14, 'O', { weight: 800 });
+  // atlet (üstten): omuzlar ve baş, şeritte
+  const ax = ox - 92, ay = oy;
+  s += `<ellipse cx="${ax}" cy="${ay}" rx="6" ry="11" fill="#2f7fb8" stroke="#1d5a86" stroke-width="1"/><circle cx="${ax}" cy="${ay}" r="5" fill="#6b4a2e" stroke="#3a2614" stroke-width=".8"/>`;
+  // yarıçap
+  s += `<line x1="${ax + 8}" y1="${ay}" x2="${ox - 4}" y2="${ay}" stroke="${TEL}" stroke-width="1.3" stroke-dasharray="4 4"/>`;
+  s += yaz((ax + ox) / 2 + 22, ay - 9, 'r = 36 m', { anchor: 'middle', weight: 800 });
+  // hız (saat yönünün tersine koşu: sol noktada aşağı)
+  s += ok(ax, ay + 14, ax, ay + 76, '#fff', 6.5) + ok(ax, ay + 14, ax, ay + 74, TEL, 3) + lbl(ax - 12, ay + 62, 'ϑ', TEL, { anchor: 'end' });
+  // merkezcil ivme ve sürtünme merkeze doğru
+  s += ok(ax + 10, ay + 22, ax + 62, ay + 22, MOR, 3) + yaz(ax + 66, ay + 46, 'a_m, F_m', { weight: 800, fill: MOR });
+  s += yaz(12, 24, 'üstten görünüş', { fill: '#24391a' });
+  return svg(340, 240, s, u, 90);
+});
+
+/* Isınma 3: salıncak en alt noktada (yandan görünüş) */
+BFY_FIG_EKLE('sfA31_salincak', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="270" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="240" width="340" height="30" fill="url(#${u}soil)"/>`;
+  const px = 150, py = 34, L = 160;
+  // çerçeve (A ayaklar)
+  s += `<line x1="${px - 90}" y1="${py}" x2="${px + 90}" y2="${py}" stroke="#4d565c" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<line x1="${px - 84}" y1="${py}" x2="${px - 120}" y2="240" stroke="#5d656b" stroke-width="6" stroke-linecap="round"/><line x1="${px + 84}" y1="${py}" x2="${px + 120}" y2="240" stroke="#5d656b" stroke-width="6" stroke-linecap="round"/>`;
+  // salınım yayı
+  s += `<path d="M${f1(px - L * Math.sin(0.55))} ${f1(py + L * Math.cos(0.55))} A${L} ${L} 0 0 0 ${f1(px + L * Math.sin(0.55))} ${f1(py + L * Math.cos(0.55))}" fill="none" stroke="${P.ink2}" stroke-width="1.4" stroke-dasharray="5 5"/>`;
+  // zincir
+  for (let y = py + 4; y < py + L - 10; y += 8) s += `<ellipse cx="${px}" cy="${y + 4}" rx="2.2" ry="4.2" fill="none" stroke="#7d868d" stroke-width="1.6"/>`;
+  // oturak ve çocuk
+  const sy = py + L;
+  s += `<rect x="${px - 22}" y="${sy - 4}" width="44" height="8" rx="2.5" fill="url(#${u}wood)" stroke="#8a6a3c" stroke-width="1.1"/>`;
+  s += `<path d="M${px - 12} ${sy - 4} L${px - 10} ${sy - 36} Q${px} ${sy - 44} ${px + 8} ${sy - 36} L${px + 10} ${sy - 4} Z" fill="#e0a43a" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<path d="M${px + 6} ${sy - 4} L${px + 26} ${sy - 4} L${px + 28} ${sy + 18}" stroke="#2f3a4a" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += `<circle cx="${px - 1}" cy="${sy - 52}" r="9" fill="url(#${u}skin)" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<path d="M${px - 3} ${sy - 32} L${px - 3} ${sy - 70}" stroke="#e0a43a" stroke-width="0"/>`;
+  // kuvvetler (cisim merkezinden)
+  const gx = px, gy = sy - 18;
+  // zincir kuvveti oturağın asıldığı yerden yukarı, ağırlık çocuğun ağırlık merkezinden aşağı
+  s += ok(px + 17, sy - 4, px + 17, sy - 84, YES, 3.2) + lbl(px + 26, sy - 66, 'T', YES);
+  s += `<circle cx="${gx - 2}" cy="${gy}" r="3" fill="#46525a"/>` + ok(gx - 2, gy, gx - 2, gy + 62, '#46525a', 3.2) + yaz(gx - 12, gy + 56, 'G = 300 N', { anchor: 'end', weight: 800, fill: '#46525a' });
+  s += ok(gx + 88, gy + 10, gx + 88, gy - 40, MOR, 2.8) + lbl(gx + 98, gy - 18, 'a_m', MOR);
+  s += ok(px + 38, sy + 32, px + 90, sy + 32, KIR, 3) + lbl(px + 96, sy + 38, 'ϑ', KIR);
+  // uzunluk
+  const dx = px - 70;
+  s += `<g stroke="${P.ink2}" stroke-width="1.3"><line x1="${dx}" y1="${py + 4}" x2="${dx}" y2="${sy - 18}"/><line x1="${dx - 5}" y1="${py + 4}" x2="${dx + 5}" y2="${py + 4}"/><line x1="${dx - 5}" y1="${sy - 18}" x2="${dx + 5}" y2="${sy - 18}"/></g>` + yaz(dx + 6, 76, '2 m', { weight: 800 });
+  s += yaz(px - 16, sy - 66, '30 kg', { anchor: 'end', weight: 800 });
+  return svg(340, 270, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -28917,6 +29338,187 @@ const KONU = {
     'tavan vantilatörü 60 cm 300 tur/dk, masa vantilatörü 20 cm 1200 tur/dk, bilgisayar fanı 4 cm 3000 tur/dk (tablo, sıralama)', 'Dünya\'nın dönmesi: ekvatorda yaklaşık 1670 km/h, 60° enleminde enlem çemberi yarıçapı yarı, 835 km/h, ivme dönme eksenine doğru',
     'çizgi izleyen robot: 20 cm çeyrek çember, 30 cm düz, 40 cm yarım çember, 15 cm/s, a–t grafiği seçme', 'lunapark dönen silindiri: r = 2 m, k = 0,8, periyot 2 s ve 3 s, kinetik sürtünme f_k'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA (başlangıç düzeyi) ---------------- */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu konuda çember üzerinde dönen cisimleri inceleyeceğiz: Süratleri sabit olsa bile neden ivmeli olduklarını ve onları çemberde tutan kuvveti göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene. Bu bölümde $\pi = 3$ alıyoruz.`,
+    adimlar: [
+      {
+        baslik: 'Hız teğettir, yönü hep değişir',
+        sekil: 'sfA31_semsiye',
+        metin: r`Yağmurdan ıslanmış bir şemsiyeyi sapından tutup döndür. Kenarındaki su damlaları şemsiyeyle birlikte çember çizer.
+
+- Damla eşit sürelerde eşit yaylar alıyorsa **düzgün çembersel hareket** yapar. Sürati sabittir.
+- Hız vektörü her an çembere **teğettir**, yani yarıçapa diktir. Damla döndükçe hızın yönü sürekli değişir.
+- Hızın yönü değişiyorsa hız değişiyor demektir. Bu yüzden düzgün çembersel hareket **ivmeli** bir harekettir.
+
+Damlayı şemsiyede tutan yapışma yetmeyince damla ayrılır. Ayrıldığı andaki hızıyla, teğet doğrultuda düz bir çizgide gider.`,
+        kontrol: {
+          soru: 'Şemsiyenin kenarından ayrılan bir damla, üstten bakıldığında nasıl bir yol izler?',
+          secenekler: ['Merkezden dışa doğru, yarıçap boyunca gider.', 'Ayrıldığı noktada çembere teğet, düz bir çizgide gider.', 'Çember boyunca dönmeye devam eder.'],
+          dogru: 1,
+          aciklama: 'Damlayı çemberde tutan etki kalkınca damla o anki hızıyla gider. O anki hız çembere teğettir; damla teğet doğrultuda düz bir çizgide ilerler. Dışa doğru iten bir kuvvet yoktur.',
+          yanlisIpucu: 'Damla ayrılırken hızı hangi yöndeydi? Ayrıldıktan sonra yatayda onu döndürecek bir kuvvet kalmaz.'
+        }
+      },
+      {
+        baslik: 'Periyot, frekans ve açısal hız',
+        metin: r`Elektrikli bir kuzu çevirme şişi dakikada 10 tur atıyor.
+
+- Bir tam turun süresine **periyot** ($T$) denir: $T = \dfrac{60}{10} = 6$ s.
+- Bir saniyedeki tur sayısına **frekans** ($f$) denir: $f = \dfrac{1}{T} = \dfrac{1}{6}$ Hz.
+- Bir saniyede taranan açıya **açısal hız** ($\omega$) denir. Bir tam tur $2\pi$ radyandır:
+$$\omega = \dfrac{2\pi}{T} = 2\pi f$$
+Şiş için $\omega = \dfrac{2 \times 3}{6} = 1$ rad/s olur.`,
+        kontrol: {
+          soru: 'Hızlı kızartma ayarında şiş dakikada 20 tur atıyor. Şişin açısal hızı kaç rad/s olur?',
+          secenekler: ['2 rad/s', '20 rad/s', '3 rad/s'],
+          dogru: 0,
+          aciklama: r`$T = \dfrac{60}{20} = 3$ s ve $\omega = \dfrac{2\pi}{T} = \dfrac{6}{3} = 2$ rad/s. Tur sayısı iki katına çıkınca açısal hız da iki katına çıkar.`,
+          yanlisIpucu: r`Önce bir turun süresini (periyodu) bul. Sonra $\omega = \dfrac{2\pi}{T}$ bağıntısını kullan; dakikadaki tur sayısı açısal hız değildir.`
+        }
+      },
+      {
+        baslik: 'Çizgisel hız: eksenden uzaklaştıkça artar',
+        sekil: 'sfA31_semsiye',
+        metin: r`Şemsiyeyi saniyede 2 tur atacak biçimde döndürüyorsun: $\omega = 2\pi f = 2 \times 3 \times 2 = 12$ rad/s. Şemsiyenin her noktası bir turu aynı sürede tamamlar; hepsinin açısal hızı aynıdır.
+
+Ama dıştaki nokta bir turda daha uzun bir çember çizer. Bir saniyede alınan yay uzunluğuna **çizgisel hız** denir:
+$$\vartheta = \omega \times r = \dfrac{2\pi r}{T}$$
+- Kenardaki P damlası eksenden 50 cm uzakta: $\vartheta_P = 12 \times 50 = 600$ cm/s, yani 6 m/s.
+- Şemsiye telinin ortasındaki R damlası 25 cm uzakta: $\vartheta_R = 12 \times 25 = 300$ cm/s, yani 3 m/s.`,
+        kontrol: {
+          soru: 'P ve R damlalarının açısal hızları için ne söylenebilir?',
+          secenekler: ['P\'ninki büyüktür.', 'R\'ninki büyüktür.', 'İkisininki eşittir.'],
+          dogru: 2,
+          aciklama: r`İki damla da bir turu aynı sürede tamamlar; açısal hızları eşittir ($\omega = 12$ rad/s). Farklı olan çizgisel hızdır: P eksenden iki kat uzak olduğu için çizgisel hızı iki kattır.`,
+          yanlisIpucu: 'Açısal hız, bir turun ne kadar sürdüğüne bağlıdır. Şemsiye döndüğünde P ve R bir turu farklı sürelerde mi tamamlar?'
+        }
+      },
+      {
+        baslik: 'Merkezcil ivme ve merkezcil kuvvet',
+        sekil: 'sfA31_atlet',
+        metin: r`Hızın yönünü değiştiren ivme her an çemberin merkezine doğrudur. Buna **merkezcil ivme** denir:
+$$a_m = \dfrac{\vartheta^2}{r} = \omega^2 \times r$$
+Bu ivmeyi oluşturan net kuvvet de merkeze doğrudur; buna **merkezcil kuvvet** denir: $F_m = m \times \dfrac{\vartheta^2}{r}$.
+
+Kütlesi 60 kg olan bir atlet, pistin yarıçapı 36 m olan virajında 6 m/s sabit süratle koşuyor:
+- $a_m = \dfrac{6^2}{36} = 1\ \text{m/s}^2$, merkeze doğru.
+- $F_m = 60 \times 1 = 60$ N. Bu kuvveti pistin ayakkabılara uyguladığı sürtünme kuvveti sağlar.`,
+        kontrol: {
+          soru: 'Aynı atlet aynı virajda 12 m/s süratle koşsaydı merkezcil kuvvet kaç N olurdu?',
+          secenekler: ['120 N', '240 N', '60 N'],
+          dogru: 1,
+          aciklama: r`$F_m = 60 \times \dfrac{12^2}{36} = 60 \times 4 = 240$ N. Sürat 2 katına çıkınca merkezcil kuvvet $2^2 = 4$ katına çıkar.`,
+          yanlisIpucu: r`Merkezcil kuvvet süratle değil, süratin karesiyle orantılıdır. $\dfrac{\vartheta^2}{r}$ bağıntısında 12'nin karesini al.`
+        }
+      },
+      {
+        baslik: 'Merkezcil kuvvet yeni bir kuvvet değildir',
+        metin: r`Merkezcil kuvvet, cisme etki eden gerçek kuvvetlerin merkeze doğru olan bileşkesidir. Serbest cisim diyagramına ayrıca eklenmez. Bu görevi her durumda başka bir kuvvet üstlenir:
+- Virajda koşan atlette pistin **sürtünme kuvveti**,
+- İpin ucunda döndürülen bir anahtarlıkta **ipin gerilme kuvveti**,
+- Dünya çevresinde dolanan bir uyduda **kütle çekim kuvveti**.
+
+"Dönen cismi dışa doğru iten bir kuvvet vardır." düşüncesi yanlıştır. Tutan kuvvet kalkarsa cisim dışa savrulmaz; teğet doğrultuda düz gider.`,
+        kontrol: {
+          soru: 'Bir salata kurutucusunun sepeti düşey bir eksen çevresinde hızla dönüyor. Islak bir marul yaprağı sepetin yan duvarına yaslanmış, sepetle birlikte dönüyor. Yaprağı çemberde tutan merkezcil kuvveti hangi kuvvet sağlar?',
+          secenekler: ['Sepet duvarının yaprağa uyguladığı, eksene doğru tepki kuvveti', 'Yaprağı dışa doğru iten merkezkaç kuvveti', 'Yaprağın ağırlığı'],
+          dogru: 0,
+          aciklama: 'Duvar yaprağı her an eksene doğru, yani çemberin merkezine doğru iter. Merkezcil kuvvet görevini bu tepki kuvveti üstlenir. Ağırlık düşeydir; yatay çemberin merkezine doğru bir bileşeni yoktur. Yapraktaki su damlaları ise duvardaki deliklerden geçerken onları tutan kuvvet kalmaz ve teğet doğrultuda uçup gider.',
+          yanlisIpucu: 'Merkeze doğru olan gerçek bir kuvvet ara. Yaprağa dokunan ve onu eksene doğru iten ne var?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Torna tezgâhındaki çubuk',
+        metin: r`Bir torna tezgâhında yarıçapı 5 cm olan çelik bir çubuk, kendi ekseni çevresinde dakikada 600 tur atıyor. Kesici kalem, çubuğun yüzeyine değerek talaş kaldırıyor. Çubuğun yüzeyindeki bir noktanın çizgisel hızını bulacağız.`,
+        adimlar: [
+          {
+            soru: 'Çubuğun dönme frekansı kaç Hz\'dir?',
+            secenekler: ['600 Hz', '10 Hz', '60 Hz'],
+            dogru: 1,
+            ipucu: 'Frekans bir saniyedeki tur sayısıdır. Dakikadaki tur sayısını 60\'a böl.',
+            aciklama: r`$f = \dfrac{600}{60} = 10$ Hz. Çubuk saniyede 10 tur atar.`
+          },
+          {
+            soru: 'Çubuğun açısal hızı kaç rad/s\'dir?',
+            secenekler: ['10 rad/s', '30 rad/s', '60 rad/s'],
+            dogru: 2,
+            ipucu: r`$\omega = 2\pi f$ ve $\pi = 3$.`,
+            aciklama: r`$\omega = 2 \times 3 \times 10 = 60$ rad/s.`
+          },
+          {
+            soru: 'Çubuğun yüzeyindeki bir noktanın çizgisel hızı kaç m/s\'dir?',
+            secenekler: ['300 m/s', '12 m/s', '3 m/s'],
+            dogru: 2,
+            ipucu: r`$\vartheta = \omega \times r$. Yarıçapı cm olarak kullanırsan sonuç cm/s çıkar; 100 cm/s = 1 m/s.`,
+            aciklama: r`$\vartheta = 60 \times 5 = 300$ cm/s, yani 3 m/s.`
+          }
+        ],
+        sonuc: 'Tornacılar bu hıza kesme hızı der ve her metal için uygun bir değer seçer. Aynı tur sayısında kalın bir çubuğun yüzeyi daha hızlı gider; bu yüzden kalın çubuklar daha düşük tur sayısında işlenir.'
+      },
+      {
+        baslik: 'Kuru ve buzlu virajda hız sınırı',
+        metin: r`Bir şehirdeki düz ve yatay bir virajın yarıçapı 25 m'dir. Kütlesi 1000 kg olan bir otomobil bu virajı dönüyor. Kuru asfaltta yol, lastiklere yana doğru en fazla 9000 N'luk statik sürtünme kuvveti uygulayabiliyor. Yol buz tuttuğunda bu en büyük değer 1000 N'a iniyor. Otomobilin virajı kaymadan dönebileceği en büyük sürati iki durumda karşılaştıracağız.`,
+        adimlar: [
+          {
+            soru: 'Düz ve yatay virajda otomobile merkezcil kuvveti hangi kuvvet sağlar?',
+            secenekler: ['Motorun itme kuvveti', 'Yolun lastiklere uyguladığı statik sürtünme kuvveti', 'Otomobilin ağırlığı'],
+            dogru: 1,
+            ipucu: 'Merkeze doğru, yatay olan bir kuvvet ara. Ağırlık düşeydir; yolun tepki kuvveti onu dengeler.',
+            aciklama: 'Yatayda merkeze doğru tek kuvvet, yolun lastiklere uyguladığı statik sürtünmedir. Lastikler yola göre yana kaymadığı için sürtünme statiktir.'
+          },
+          {
+            soru: 'Kuru yolda otomobilin virajı kaymadan dönebileceği en büyük sürat kaç m/s\'dir?',
+            secenekler: ['15 m/s', '3 m/s', '225 m/s'],
+            dogru: 0,
+            ipucu: r`Sınırda gereken merkezcil kuvvet, sürtünmenin en büyük değerine eşittir: $1000 \times \dfrac{\vartheta^2}{25} = 9000$.`,
+            aciklama: r`$\vartheta^2 = \dfrac{9000 \times 25}{1000} = 225$, buradan $\vartheta = 15$ m/s. Daha hızlı girerse gereken merkezcil kuvvet 9000 N'u aşar; sürtünme yetmez ve otomobil dışa doğru kayar.`
+          },
+          {
+            soru: 'Yol buz tuttuğunda bu en büyük sürat kaç m/s olur?',
+            secenekler: ['15 m/s', '5 m/s', '25 m/s'],
+            dogru: 1,
+            ipucu: r`Aynı bağıntıda sürtünmenin en büyük değerini 1000 N al. Karekökü almayı unutma.`,
+            aciklama: r`$\vartheta^2 = \dfrac{1000 \times 25}{1000} = 25$, buradan $\vartheta = 5$ m/s. Sürtünmenin en büyük değeri 9'da 1'ine indi, en büyük sürat 3'te 1'ine indi.`
+          }
+        ],
+        sonuc: 'Merkezcil kuvvet süratin karesiyle arttığı için sürtünmenin sınırı 9 kat azalınca en büyük sürat yalnız 3 kat azalır. Yine de kuru yolda 15 m/s ile dönebildiği virajda, buzlu yolda 5 m/s\'yi aşarsa kayar. Kışın virajlara yavaş girmenin nedeni budur.'
+      },
+      {
+        baslik: 'Parkta salıncak',
+        sekil: 'sfA31_salincak',
+        metin: r`Kütlesi 30 kg olan bir çocuk salıncakta sallanıyor. Salıncak zincirlerinin uzunluğu 2 m'dir. Çocuk en alt noktadan 4 m/s süratle geçiyor. Bu anda iki zincirin oturağı toplam ne kadar kuvvetle yukarı çektiğini bulacağız. Oturağın kütlesini önemsemiyoruz.`,
+        adimlar: [
+          {
+            soru: 'En alt noktada çocuğun merkezcil ivmesi kaç m/s²\'dir? Yönü nereyedir?',
+            secenekler: ['2 m/s², aşağı', '8 m/s², yukarı', '8 m/s², aşağı'],
+            dogru: 1,
+            ipucu: r`$a_m = \dfrac{\vartheta^2}{r}$. Çemberin merkezi zincirlerin asıldığı noktadır.`,
+            aciklama: r`$a_m = \dfrac{4^2}{2} = 8\ \text{m/s}^2$. Merkez yukarıda, zincirlerin asılma noktasında olduğu için ivme yukarı doğrudur.`
+          },
+          {
+            soru: 'Bu anda çocuğa etki eden net kuvvet kaç N\'dur?',
+            secenekler: ['240 N', '300 N', '540 N'],
+            dogru: 0,
+            ipucu: r`Net kuvvet $F_m = m \times a_m$'dir.`,
+            aciklama: r`$F_m = 30 \times 8 = 240$ N, yukarı doğru. Bu, merkezcil kuvvettir.`
+          },
+          {
+            soru: 'Zincirlerin oturağı yukarı çektiği toplam kuvvet kaç N\'dur?',
+            secenekler: ['240 N', '60 N', '540 N'],
+            dogru: 2,
+            ipucu: r`Çocuğa yukarı doğru zincir kuvveti $T$, aşağı doğru ağırlığı ($300$ N) etki eder. Yukarıyı $+$ al: $T - 300 = 240$.`,
+            aciklama: r`$T - 300 = 240$, buradan $T = 540$ N. Zincirler hem ağırlığı dengeler hem de 240 N'luk merkezcil kuvveti sağlar.`
+          }
+        ],
+        sonuc: 'En alt noktada zincir kuvveti ağırlıktan büyüktür. Salıncakta en altta kendini ağırlaşmış hissetmenin nedeni budur. Merkezcil kuvvet ayrı bir kuvvet olarak eklenmedi; zincir kuvveti ile ağırlığın bileşkesi oldu.'
+      }
+    ],
+    hazir: 'Periyodu, frekansı, açısal ve çizgisel hızı, merkezcil ivmeyi ve merkezcil kuvveti, viraj ile salıncak örneklerini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -30552,6 +31154,104 @@ BFY_FIG_EKLE('iA32_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 86, s: 1.35 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.3.2 başlangıç şekilleri (sfA32_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', MAV = '#2f7fb8', MOR = '#6b4fa8', YES = '#2f8f5b', TEL = '#2a3330';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(f1(x), f1(y), s, { size: 14, weight: 700, ...o });
+const lbl = (x, y, s, c, o = {}) => T(f1(x), f1(y), s, { size: 17, weight: 800, fill: c, italic: true, ...o });
+// merkez (cx, cy), yarıçap R, a1 → a2 (derece, matematik yönü) arasında ok uçlu yay; uç a2'de
+function donus(cx, cy, R, a1, a2, c) {
+  const D = Math.PI / 180, x1 = cx + R * Math.cos(a1 * D), y1 = cy - R * Math.sin(a1 * D), x2 = cx + R * Math.cos(a2 * D), y2 = cy - R * Math.sin(a2 * D);
+  const sw = a2 < a1 ? 1 : 0, buyuk = Math.abs(a2 - a1) > 180 ? 1 : 0;
+  const yon = a2 < a1 ? -1 : 1, tx = -Math.sin(a2 * D) * yon, ty = -Math.cos(a2 * D) * yon;
+  return `<path d="M${f1(x1)} ${f1(y1)} A${R} ${R} 0 ${buyuk} ${sw} ${f1(x2)} ${f1(y2)}" fill="none" stroke="${c}" stroke-width="2.6"/>` +
+    `<polygon points="${f1(x2 + tx * 10)},${f1(y2 + ty * 10)} ${f1(x2 - ty * 5)},${f1(y2 + tx * 5)} ${f1(x2 + ty * 5)},${f1(y2 - tx * 5)}" fill="${c}"/>`;
+}
+
+/* Adım 1: tarlada kaymadan yuvarlanan rulo saman balyası (yandan) */
+BFY_FIG_EKLE('sfA32_balya', function (u) {
+  let s = `<defs><radialGradient id="${u}saman" cx="42%" cy="38%" r="70%"><stop offset="0" stop-color="#f3dc8e"/><stop offset=".7" stop-color="#d9b55a"/><stop offset="1" stop-color="#a9832f"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="230" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="190" width="340" height="40" fill="url(#${u}grass)"/>`;
+  [[20, 205], [70, 214], [150, 204], [230, 216], [300, 206]].forEach(([x, y]) => s += `<path class="bg" d="M${x} ${y} l4 -7 l3 7" stroke="#4d7a37" stroke-width="1.4" fill="none"/>`);
+  const cx = 120, cy = 128, R = 62;
+  s += `<ellipse cx="${cx + 4}" cy="191" rx="${R * 0.8}" ry="5" fill="#000" opacity=".16"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${u}saman)" stroke="#8a6a26" stroke-width="1.6"/>`;
+  // sarmal saman dokusu
+  let d = '';
+  for (let t = 0; t <= 5 * 2 * Math.PI; t += 0.15) { const rr = 6 + t * 1.75; d += (t ? ' L' : 'M') + f1(cx + rr * Math.cos(t)) + ' ' + f1(cy + rr * Math.sin(t)); }
+  s += `<path d="${d}" fill="none" stroke="#a9832f" stroke-width="1.1" opacity=".55"/>`;
+  // yarıçap
+  const a = 135 * Math.PI / 180;
+  s += `<line x1="${cx}" y1="${cy}" x2="${f1(cx + R * Math.cos(a))}" y2="${f1(cy - R * Math.sin(a))}" stroke="${TEL}" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="3.2" fill="${TEL}"/>`;
+  s += yaz(cx - R * 0.72 - 6, cy - R * 0.72 - 10, 'r = 50 cm', { anchor: 'end', weight: 800 });
+  // ϑ ve ω
+  s += ok(cx + 4, cy, cx + R + 74, cy, KIR, 3.2) + lbl(cx + R + 80, cy + 6, 'ϑ', KIR);
+  s += donus(cx, cy, R + 14, 70, 20, MOR) + lbl(cx + (R + 26) * Math.cos(50 * Math.PI / 180) + 6, cy - (R + 26) * Math.sin(50 * Math.PI / 180), 'ω', MOR);
+  // yer izi
+  s += `<line x1="8" y1="191" x2="${cx - 20}" y2="191" stroke="#8a6a26" stroke-width="3" stroke-dasharray="7 5" opacity=".7"/>`;
+  s += yaz(330, 224, 'yere değen nokta kaymaz', { anchor: 'end', fill: '#24391a' });
+  return svg(340, 230, s, u, 90);
+});
+
+/* Adım 2: uzun sırıkla ipte yürüyen cambaz (önden; ip sayfaya dik) */
+BFY_FIG_EKLE('sfA32_cambaz', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="url(#${u}dawn)"/>`;
+  const cx = 170, ay = 214; // ipin (eksenin) görünüşü
+  // sırık (hafif sarkık) ve uç ağırlıkları
+  s += `<path d="M18 112 Q170 88 322 112" fill="none" stroke="#7a5528" stroke-width="5.5" stroke-linecap="round"/>`;
+  s += `<path d="M18 112 Q170 88 322 112" fill="none" stroke="#c99a5c" stroke-width="2" stroke-linecap="round"/>`;
+  [18, 322].forEach(x => s += `<circle cx="${x}" cy="112" r="9" fill="url(#${u}metal)" stroke="#4d565c" stroke-width="1.2"/>`);
+  // cambaz
+  s += `<path d="M${cx - 16} 132 L${cx - 18} 102 Q${cx} 92 ${cx + 18} 102 L${cx + 16} 132 Z" fill="#c8574a" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<path d="M${cx - 16} 104 L${cx - 44} 100 M${cx + 16} 104 L${cx + 44} 100" stroke="#c8574a" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<circle cx="${cx - 46}" cy="99" r="5" fill="url(#${u}skin)" stroke="${TEL}" stroke-width=".8"/><circle cx="${cx + 46}" cy="99" r="5" fill="url(#${u}skin)" stroke="${TEL}" stroke-width=".8"/>`;
+  s += `<circle cx="${cx}" cy="80" r="12" fill="url(#${u}skin)" stroke="${TEL}" stroke-width="1"/><path d="M${cx - 12} 76 Q${cx} 62 ${cx + 12} 76 Z" fill="#3a2a1a"/>`;
+  s += `<path d="M${cx - 8} 132 L${cx - 4} ${ay - 6} M${cx + 8} 132 L${cx + 4} ${ay - 6}" stroke="#2f3a4a" stroke-width="8" stroke-linecap="round"/>`;
+  // ip, sayfaya dik: kesit ve eksen
+  s += `<circle cx="${cx}" cy="${ay}" r="7" fill="#d9c7a0" stroke="#7a5c2e" stroke-width="1.6"/><circle cx="${cx}" cy="${ay}" r="2" fill="#7a5c2e"/>`;
+  s += yaz(cx - 14, ay + 22, 'ip (dönme ekseni)', { anchor: 'end', weight: 800 });
+  // yana yatma (eksen çevresinde dönme)
+  s += donus(cx, ay, 156, 72, 106, MOR) + yaz(cx - 50, 58, 'yana yatma', { anchor: 'end', weight: 800, fill: MOR });
+  // uzaklık ölçüsü: eksenden uç ağırlığına
+  s += `<line x1="${cx + 6}" y1="${ay - 4}" x2="312" y2="118" stroke="${P.ink2}" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+  s += yaz(330, 232, 'kütle eksenden uzakta', { anchor: 'end', fill: P.ink2 });
+  s += yaz(170, 28, 'cambaz ve sırık, önden görünüş', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Isınma 3: direğe tasmayla bağlı koşan köpek (üstten görünüş) */
+BFY_FIG_EKLE('sfA32_kopek', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="url(#${u}grass)" opacity=".6"/>`;
+  const cx = 140, cy = 128, R = 96;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#5f7f4a" stroke-width="10" opacity=".25"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="#3e5a2f" stroke-width="1.4" stroke-dasharray="5 6"/>`;
+  // direk
+  s += `<circle cx="${cx + 2}" cy="${cy + 3}" r="10" fill="#000" opacity=".15"/><circle cx="${cx}" cy="${cy}" r="9" fill="url(#${u}wood)" stroke="#7a5528" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="3" fill="#7a5528"/>`;
+  // köpek (üstten), sağda; burnu yukarı (saat yönünün tersine koşuyor)
+  const dx = cx + R, dy = cy;
+  s += `<line x1="${cx + 8}" y1="${cy}" x2="${dx - 9}" y2="${dy}" stroke="#b03a2e" stroke-width="2.4"/>`;
+  s += `<ellipse cx="${dx}" cy="${dy + 2}" rx="11" ry="20" fill="#b9874f" stroke="#6b4a2a" stroke-width="1.3"/>`;
+  s += `<ellipse cx="${dx}" cy="${dy - 22}" rx="8" ry="9" fill="#c99a5c" stroke="#6b4a2a" stroke-width="1.2"/><ellipse cx="${dx}" cy="${dy - 30}" rx="4" ry="4" fill="#3a2a1a"/>`;
+  s += `<path d="M${dx - 7} ${dy - 24} l-6 3 M${dx + 7} ${dy - 24} l6 3" stroke="#6b4a2a" stroke-width="3" stroke-linecap="round"/>`;
+  s += `<path d="M${dx} ${dy + 21} q2 10 -3 16" stroke="#6b4a2a" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  // hız ve sürtünme
+  s += ok(dx + 22, dy + 10, dx + 22, dy - 58, KIR, 3) + lbl(dx + 30, dy - 40, 'ϑ', KIR);
+  s += yaz(cx + R / 2, cy - 10, 'r = 4 m', { anchor: 'middle', weight: 800 });
+  s += yaz(cx + R / 2, cy + 22, 'tasma', { anchor: 'middle', fill: '#b03a2e', weight: 800 });
+  s += yaz(cx, cy + 32, 'direk', { anchor: 'middle', weight: 800 });
+  s += donus(cx, cy, R + 18, 30, 62, MOR);
+  s += yaz(330, 24, 'üstten görünüş', { anchor: 'end', fill: '#24391a' });
+  return svg(340, 250, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -30612,6 +31312,204 @@ const KONU = {
     'efsane: büyük ve küçük dolu bilye birlikte iner, atomda açısal momentum, kollarını çeken kişinin kinetik enerjisi artar, fotoğrafta tekerleğin üstü bulanık (gerçek), helikopter kuyruk pervanesi (gerçek), tork her zaman hızlandırmaz',
     'SİM: sürtünmesiz döner tablanın rayında iki ağırlık (tanesi 0,25 kg ya da 1 kg), eksene uzaklık 5–30 cm, tabla 0,06 kg m², ağırlıklar 30 cm\'deyken 2 s\'de bir tur'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA (başlangıç düzeyi) ---------------- */
+  baslangic: {
+    giris: r`Fizikten çekiniyorsan doğru yerdesin. Bu konuda yuvarlanan, dönen cisimleri inceleyeceğiz: Bir cismi döndürmenin neden kolay ya da zor olduğunu, açısal momentumu ve onun ne zaman korunduğunu göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene. Bu bölümde $\pi = 3$ alıyoruz.`,
+    adimlar: [
+      {
+        baslik: 'Dönerek öteleme: yuvarlanan balya',
+        sekil: 'sfA32_balya',
+        metin: r`Bir çiftçi, yarıçapı 50 cm olan silindir biçimli bir saman balyasını düz bir tarlada iterek yuvarlıyor. Balya hem ilerliyor (**öteleme**) hem de kendi ekseni çevresinde dönüyor (**dönme**). Bu harekete **dönerek öteleme** denir.
+
+Balya **kaymadan** yuvarlanıyorsa her turda çevresi kadar yol alır:
+$2\pi r = 2 \times 3 \times 50 = 300$ cm, yani 3 m.
+
+Bu yüzden merkezin sürati ile açısal hız birbirine bağlıdır:
+$$\vartheta = \omega \times r$$
+Balya bir turunu 3 s'de atıyorsa $\omega = \dfrac{2\pi}{T} = \dfrac{6}{3} = 2$ rad/s ve $\vartheta = 2 \times 50 = 100$ cm/s, yani 1 m/s olur.`,
+        kontrol: {
+          soru: 'Balya kaymadan 4 tur atınca kaç metre ilerler?',
+          secenekler: ['4 m', '12 m', '2 m'],
+          dogru: 1,
+          aciklama: r`Her turda çevresi kadar, yani 3 m ilerler: $4 \times 3 = 12$ m. 4 m, çevre yerine çapı (1 m) kullanınca; 2 m ise yarıçapı kullanınca çıkar.`,
+          yanlisIpucu: r`Bir turda alınan yol çevredir: $2\pi r$. Yarıçap 50 cm, yani yarım metre.`
+        }
+      },
+      {
+        baslik: 'Eylemsizlik momenti: kütle nerede?',
+        sekil: 'sfA32_cambaz',
+        metin: r`Durgun bir cismi döndürmek ya da dönen bir cismi durdurmak için tork gerekir. Cismin dönmedeki bu değişikliğe gösterdiği dirence **eylemsizlik momenti** ($I$) denir. Ötelemede kütle neyse, dönmede eylemsizlik momenti odur.
+
+Eylemsizlik momenti yalnız kütleye değil, kütlenin dönme eksenine **uzaklığına** da bağlıdır:
+$$I = \sum m \times r^2$$
+Uzaklığın karesi girdiği için eksenden uzaktaki kütle çok daha etkilidir.
+
+İp üstünde yürüyen bir cambaz eline uzun ve ağır bir sırık alır. Sırığın kütlesi gövdesinden uzakta, iki yana dağılmıştır. Böylece cambazın ip boyunca uzanan eksene göre eylemsizlik momenti büyür. Cambaz bir yana yatmaya başlasa bile bu dönme yavaş olur ve dengesini düzeltmek için zaman kazanır.`,
+        kontrol: {
+          soru: 'Cambaz, kütlesi aynı ama boyu yarısı kadar olan bir sırık kullansaydı ip boyunca uzanan eksene göre eylemsizlik momenti nasıl olurdu?',
+          secenekler: ['Daha büyük olurdu.', 'Daha küçük olurdu.', 'Değişmezdi.'],
+          dogru: 1,
+          aciklama: 'Kısa sırıkta aynı kütle eksene daha yakın toplanır. Uzaklık küçüldüğü için eylemsizlik momenti küçülür; cambaz yana daha çabuk yatar.',
+          yanlisIpucu: 'Kütle aynı. Değişen şey, kütlenin eksene olan uzaklığıdır. Uzaklık küçülürse eylemsizlik momenti ne olur?'
+        }
+      },
+      {
+        baslik: 'Açısal momentum',
+        metin: r`Ötelemede momentum $p = m \times \vartheta$'dir. Dönmedeki karşılığı **açısal momentumdur:**
+$$L = I \times \omega$$
+Bir çember üzerinde dolanan küçük bir cisim için bu bağıntı daha basit bir biçim alır:
+$$L = m \times \vartheta \times r$$
+Burada $r$, cismin dönme merkezine uzaklığıdır. Birimi $\text{kg} \times \text{m}^2/\text{s}$'dir.
+
+Bir su parkındaki dairesel akıntı kanalında, kütlesi 30 kg olan bir çocuk simidiyle 1 m/s süratle süzülüyor. Kanalın merkezine uzaklığı 20 m'dir:
+$L = 30 \times 1 \times 20 = 600$ kg × m²/s.
+
+Açısal momentum bir vektördür. Yönünü sağ el kuralı verir: Dört parmağını dönme yönünde kıvırırsan başparmağın açısal momentumun yönünü gösterir.`,
+        kontrol: {
+          soru: 'Aynı çocuk, merkeze 10 m uzaklıktaki iç kanalda 2 m/s süratle süzülseydi kanalın merkezine göre açısal momentumu kaç kg × m²/s olurdu?',
+          secenekler: ['1200 kg × m²/s', '600 kg × m²/s', '300 kg × m²/s'],
+          dogru: 1,
+          aciklama: r`$L = 30 \times 2 \times 10 = 600$ kg × m²/s. Sürat 2 katına çıktı, uzaklık yarıya indi; çarpım değişmedi.`,
+          yanlisIpucu: r`$L = m \times \vartheta \times r$ bağıntısında üç sayıyı da yeni değerleriyle çarp. Yalnız sürate bakma.`
+        }
+      },
+      {
+        baslik: 'Tork açısal momentumu değiştirir',
+        metin: r`Ötelemede kuvvet momentumu değiştirir. Dönmede bu işi **tork** ($\tau$) yapar:
+$$\tau = \dfrac{\Delta L}{\Delta t}$$
+Net tork ne kadar büyükse ve ne kadar uzun süre etki ederse açısal momentum o kadar çok değişir. Net tork sıfırsa açısal momentum değişmez.
+
+Bir yarışma programındaki büyük şans çarkı başta duruyor. Sunucu çarkı 1 s boyunca döndürüyor; bu sürede çarka etki eden ortalama net tork 60 N × m'dir. Çarkın açısal momentumu $0$'dan $60 \times 1 = 60$ kg × m²/s'ye çıkar. Sunucu çarkı bırakınca çarkı yalnız milindeki sürtünme torku yavaşlatır.`,
+        kontrol: {
+          soru: 'Milin sürtünme torku 4 N × m ise çark bırakıldıktan sonra kaç saniyede durur?',
+          secenekler: ['240 s', '15 s', '56 s'],
+          dogru: 1,
+          aciklama: r`Durana kadar açısal momentum 60 kg × m²/s azalır: $\Delta t = \dfrac{\Delta L}{\tau} = \dfrac{60}{4} = 15$ s.`,
+          yanlisIpucu: r`$\tau = \dfrac{\Delta L}{\Delta t}$ bağıntısında süreyi yalnız bırak: açısal momentumdaki değişimi torka böl.`
+        }
+      },
+      {
+        baslik: 'Dış tork yoksa açısal momentum korunur',
+        metin: r`Sürtünmesi önemsenmeyecek kadar az olan bir döner koltukta oturan Ece kollarını ve bacaklarını açmış. Arkadaşı koltuğu döndürüp bırakıyor. Ece kollarını ve bacaklarını gövdesine topladığı anda daha hızlı dönmeye başlıyor.
+
+Sürtünmeyi önemsemezsek koltuğa ve Ece'ye dışarıdan tork etki etmez. Bu yüzden $L = I \times \omega$ sabit kalır:
+- Ece kütlesini eksene yaklaştırınca $I$ küçülür, bu yüzden $\omega$ büyür.
+- Kollarını yeniden açarsa $I$ büyür, $\omega$ küçülür.
+
+Dikkat: Korunan açısal momentumdur, dönme kinetik enerjisi değildir. Ece kollarını çekerken kasları iş yapar; dönme kinetik enerjisi artar.`,
+        kontrol: {
+          soru: 'Bir sistemin açısal momentumu hangi durumda kesinlikle korunur?',
+          secenekler: ['Sisteme etki eden net dış tork sıfırsa', 'Sisteme etki eden net dış kuvvet sıfırsa', 'Sistemin kinetik enerjisi değişmiyorsa'],
+          dogru: 0,
+          aciklama: 'Açısal momentumu yalnız net dış tork değiştirir. Net dış tork sıfırsa açısal momentum korunur. Net kuvvetin sıfır olması yetmez; iki zıt kuvvet bir tork oluşturabilir.',
+          yanlisIpucu: 'Ötelemede momentumu kuvvet değiştirir. Dönmede açısal momentumu hangi büyüklük değiştirir?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kaykayın tekerleği',
+        metin: r`Bir kaykay düz bir yolda 6 m/s sabit süratle gidiyor. Tekerleklerin yarıçapı 3 cm'dir ve tekerlekler yolda kaymadan yuvarlanıyor. Tekerleğin açısal hızını ve tekerlek üzerindeki bazı noktaların yere göre süratini bulacağız.`,
+        adimlar: [
+          {
+            soru: 'Tekerleğin açısal hızı kaç rad/s\'dir?',
+            secenekler: ['2 rad/s', '200 rad/s', '18 rad/s'],
+            dogru: 1,
+            ipucu: r`$\vartheta = \omega \times r$. Birimleri eşitle: $6\ \text{m/s} = 600\ \text{cm/s}$.`,
+            aciklama: r`$\omega = \dfrac{\vartheta}{r} = \dfrac{600\ \text{cm/s}}{3\ \text{cm}} = 200$ rad/s.`
+          },
+          {
+            soru: 'Tekerleğin en üst noktasının yere göre sürati kaç m/s\'dir?',
+            secenekler: ['6 m/s', '0', '12 m/s'],
+            dogru: 2,
+            ipucu: 'En üst noktada merkezin ilerleme hızı ile dönmeden gelen hız aynı yöndedir; ikisi toplanır.',
+            aciklama: r`Merkez ileri doğru 6 m/s ile gider. En üst nokta merkeze göre de ileri doğru $\omega \times r = 6$ m/s ile döner. Yere göre sürati $6 + 6 = 12$ m/s olur.`
+          },
+          {
+            soru: 'Tekerleğin yola değen noktasının yere göre sürati kaç m/s\'dir?',
+            secenekler: ['0', '6 m/s', '12 m/s'],
+            dogru: 0,
+            ipucu: 'Bu noktada ilerleme hızı ileri, dönmeden gelen hız geri doğrudur.',
+            aciklama: r`İleri doğru 6 m/s ile geri doğru 6 m/s birbirini götürür; yere değen nokta o an durgundur. Kaymadan yuvarlanma zaten bu demektir.`
+          }
+        ],
+        sonuc: 'Kaymadan yuvarlanan tekerlekte merkez ϑ ile, en üst nokta 2ϑ ile gider, yere değen nokta o an durur. Hızlı giden bir arabanın fotoğrafında tekerleğin üst kısmının alt kısmından daha bulanık çıkmasının nedeni budur.'
+      },
+      {
+        baslik: 'Havada dönen pizza hamuru',
+        metin: r`Bir pizza ustası, yuvarlak hamuru parmaklarıyla döndürüp havaya atıyor. Hamur havadayken dönerken genişliyor ve inceliyor. Hava direncini önemsemiyoruz.`,
+        adimlar: [
+          {
+            soru: 'Hamur havadayken ona etki eden ağırlığın, hamurun dönme eksenine göre torku nedir?',
+            secenekler: ['Hamuru hızlandıran bir torktur.', 'Sıfırdır.', 'Hamuru yavaşlatan bir torktur.'],
+            dogru: 1,
+            ipucu: 'Ağırlık, hamurun kütle merkezinden etki eder. Dönme ekseni de kütle merkezinden geçer.',
+            aciklama: 'Ağırlığın doğrultusu dönme ekseninden geçtiği için kuvvet kolu sıfırdır; torku sıfırdır. Hamura dış tork etki etmez.'
+          },
+          {
+            soru: 'Hamur genişlerken dönme eksenine göre eylemsizlik momenti nasıl değişir?',
+            secenekler: ['Artar', 'Azalır', 'Değişmez'],
+            dogru: 0,
+            ipucu: 'Kütle aynı kalıyor ama kenarlara doğru yayılıyor. Kütle eksenden uzaklaşırsa ne olur?',
+            aciklama: 'Hamurun kütlesi eksenden uzaklaşıyor. Eylemsizlik momenti artar.'
+          },
+          {
+            soru: 'Hamurun açısal momentumu nasıl değişir?',
+            secenekler: ['Artar', 'Azalır', 'Değişmez'],
+            dogru: 2,
+            ipucu: 'Açısal momentumu yalnız net dış tork değiştirir. İlk adımda dış tork için ne buldun?',
+            aciklama: 'Dış tork sıfır olduğu için açısal momentum korunur; değişmez.'
+          },
+          {
+            soru: 'Hamurun açısal sürati nasıl değişir?',
+            secenekler: ['Artar', 'Azalır', 'Değişmez'],
+            dogru: 1,
+            ipucu: r`$L = I \times \omega$ sabit. $I$ artıyorsa $\omega$ ne yapmalı?`,
+            aciklama: r`$L$ sabitken $I$ artıyor; çarpımın aynı kalması için $\omega$ azalır. Hamur genişledikçe yavaş döner.`
+          }
+        ],
+        sonuc: 'Havadaki hamura dış tork etki etmez; açısal momentumu korunur. Genişleyen hamurun eylemsizlik momenti artar, açısal sürati azalır. Usta hamuru yeniden hızlandırmak için onu eliyle döndürüp tork uygular.'
+      },
+      {
+        baslik: 'Direğe bağlı köpek',
+        sekil: 'sfA32_kopek',
+        metin: r`Bahçedeki bir direğe 4 m uzunluğunda bir tasmayla bağlı olan 20 kg kütleli bir köpek, tasma gergin kalacak biçimde direğin çevresinde koşuyor. Köpeğin sürati 4 s içinde 1 m/s'den 3 m/s'ye düzgün olarak çıkıyor. Köpeği noktasal kabul ediyoruz.`,
+        adimlar: [
+          {
+            soru: 'Başta köpeğin direğe göre açısal momentumu kaç kg × m²/s\'dir?',
+            secenekler: ['80 kg × m²/s', '20 kg × m²/s', '5 kg × m²/s'],
+            dogru: 0,
+            ipucu: r`$L = m \times \vartheta \times r$; $r$ tasmanın uzunluğudur.`,
+            aciklama: r`$L_1 = 20 \times 1 \times 4 = 80$ kg × m²/s.`
+          },
+          {
+            soru: '4 s sonra köpeğin direğe göre açısal momentumu kaç kg × m²/s olur?',
+            secenekler: ['160 kg × m²/s', '240 kg × m²/s', '720 kg × m²/s'],
+            dogru: 1,
+            ipucu: 'Aynı bağıntıda sürati 3 m/s al.',
+            aciklama: r`$L_2 = 20 \times 3 \times 4 = 240$ kg × m²/s.`
+          },
+          {
+            soru: 'Bu sürede köpeğe direğe göre etki eden ortalama net tork kaç N × m\'dir?',
+            secenekler: ['60 N × m', '640 N × m', '40 N × m'],
+            dogru: 2,
+            ipucu: r`$\tau = \dfrac{\Delta L}{\Delta t} = \dfrac{L_2 - L_1}{4}$.`,
+            aciklama: r`$\tau = \dfrac{240 - 80}{4} = 40$ N × m.`
+          },
+          {
+            soru: 'Bu torku hangi kuvvet oluşturur?',
+            secenekler: ['Tasmanın köpeği direğe doğru çeken kuvveti', 'Yerin köpeğin patilerine uyguladığı, koşu yönündeki sürtünme kuvveti', 'Köpeğin ağırlığı'],
+            dogru: 1,
+            ipucu: 'Tasma kuvveti direğe doğrudur; doğrultusu direkten geçer. Torku olan kuvvetin direğe göre bir kuvvet kolu olmalı.',
+            aciklama: r`Tasma kuvveti direkten geçtiği için direğe göre torku sıfırdır. Ağırlık düşeydir. Torku, yerin patilere koşu yönünde uyguladığı sürtünme kuvveti oluşturur: $F = \dfrac{\tau}{r} = \dfrac{40}{4} = 10$ N.`
+          }
+        ],
+        sonuc: 'Tasma köpeği çemberde tutar ama açısal momentumunu değiştiremez; çünkü doğrultusu direkten geçer. Açısal momentumu, koşu yönündeki kuvvetin torku değiştirir. Aynı sonucu ötelemeden de bulabilirsin: Köpeğin sürati her saniye yarım m/s artıyor; $F = 20 \times \dfrac{1}{2} = 10$ N.'
+      }
+    ],
+    hazir: 'Dönerek ötelemeyi, eylemsizlik momentini, açısal momentumu, torkla değişimini ve korunumunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
