@@ -30,7 +30,7 @@ Adres: `https://benfizikyapamiyorum.com/sunum/<slug>.html` (arama motorlarına k
 Yazı boyu, tüm adımlar açıkken slayta sığacak şekilde otomatik küçülür.
 
 ## Ek özellikler
-- `gizli: true` (k.ok, g.v, g.kesik'in 6. argümanı): şekil öğesi, adı bir adımın `vurgu`sunda geçip o adım açılana kadar görünmez.
+- `gizli: true` (k.ok, g.v, g.kesik'in 5. argümanı): şekil öğesi, adı bir adımın `vurgu`sunda geçip o adım açılana kadar görünmez.
   Sorunun cevabı olan oklar (bileşke, diyagram kuvvetleri) böyle çizilir, soru ilk açıldığında cevap görünmez.
 - `cevapVurgu: 'R'`: maddenin son (koyu) cevap kutusu açılınca şekilde vurgulanacak/görünecek öğeler.
 - `k.V('C')`: vektör adının üstüne ok koyar (vektör ile büyüklük karışmasın).
