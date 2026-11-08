@@ -111,10 +111,35 @@ function kare({ x0 = 0, x1 = 6, y0 = 0, y1 = 6, u = 56, pad = 34, eksen = true }
   return { w, h, p, v, kesik, zemin: z };
 }
 
+// Grafik ekseni: const gr = k.grafik({x1:6, y1:40, xt:[0,2,4,6], yt:[0,10,20,30,40], xad:'Δx (m)', yad:'F (N)'})
+// gr.p(x,y) -> [px,py];  gr.cizgi([[0,10],[2,10]], renk, ad, gizli);  gr.alan([[0,0],[0,10],[2,10],[2,0]], renk, ad, gizli)
+function grafik({ x0 = 0, x1, y0 = 0, y1, w = 560, h = 380, pl = 70, pr = 40, pt = 30, pb = 56, xt = [], yt = [], xad = '', yad = '' }) {
+  const p = (x, y) => [pl + (x - x0) / (x1 - x0) * (w - pl - pr), pt + (y1 - y) / (y1 - y0) * (h - pt - pb)];
+  const [ox, oy] = p(x0, 0 >= y0 && 0 <= y1 ? 0 : y0);
+  let z = `<rect x="${pl}" y="${pt}" width="${w - pl - pr}" height="${h - pt - pb}" fill="#fff"/>`;
+  xt.forEach(x => { const [a] = p(x, 0); z += `<line x1="${a}" y1="${pt}" x2="${a}" y2="${h - pb}" stroke="#e6ebe6" stroke-width="1.5"/><text x="${a}" y="${oy + 26}" font-size="19" fill="#6b7d76" text-anchor="middle">${x}</text>`; });
+  yt.forEach(y => { const [, b] = p(0, y); z += `<line x1="${pl}" y1="${b}" x2="${w - pr}" y2="${b}" stroke="#e6ebe6" stroke-width="1.5"/><text x="${pl - 10}" y="${b + 6}" font-size="19" fill="#6b7d76" text-anchor="end">${String(y).replace('-', '−')}</text>`; });
+  z += `<line x1="${pl}" y1="${oy}" x2="${w - pr + 18}" y2="${oy}" stroke="#173430" stroke-width="2.5"/><polygon points="${w - pr + 22},${oy} ${w - pr + 10},${oy - 6} ${w - pr + 10},${oy + 6}" fill="#173430"/>`;
+  z += `<line x1="${pl}" y1="${h - pb}" x2="${pl}" y2="${pt - 18}" stroke="#173430" stroke-width="2.5"/><polygon points="${pl},${pt - 22} ${pl - 6},${pt - 10} ${pl + 6},${pt - 10}" fill="#173430"/>`;
+  z += `<text x="${w - pr + 20}" y="${oy + 26}" font-size="20" font-weight="700" fill="#173430" text-anchor="end">${xad}</text><text x="${pl + 10}" y="${pt - 6}" font-size="20" font-weight="700" fill="#173430">${yad}</text>`;
+  const cizgi = (pts, renk = '#b06a3b', ad = '', gizli = false, kalin = 4.5) =>
+    `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><polyline points="${pts.map(q => p(...q).join(',')).join(' ')}" fill="none" stroke="${renk}" stroke-width="${kalin}" stroke-linejoin="round" stroke-linecap="round"/></g>`;
+  const egri = (f, a, b, renk = '#b06a3b', ad = '', gizli = false) => {
+    const pts = []; for (let i = 0; i <= 60; i++) { const x = a + (b - a) * i / 60; pts.push([x, f(x)]); } return cizgi(pts, renk, ad, gizli);
+  };
+  const alan = (pts, renk = '#e9a774', ad = '', gizli = false, yazi = '') => {
+    const cx = pts.reduce((s, q) => s + q[0], 0) / pts.length, cy = pts.reduce((s, q) => s + q[1], 0) / pts.length;
+    const [tx, ty] = p(cx, cy);
+    return `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><polygon points="${pts.map(q => p(...q).join(',')).join(' ')}" fill="${renk}" fill-opacity=".45" stroke="${renk}" stroke-width="2"/>${yazi ? `<text x="${tx}" y="${ty + 8}" font-size="22" font-weight="800" fill="#173430" text-anchor="middle">${yazi}</text>` : ''}</g>`;
+  };
+  const yazi = (x, y, t, renk = '#173430', ad = '', gizli = false, boy = 20) => { const [a, b] = p(x, y); return `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><text x="${a}" y="${b}" font-size="${boy}" font-weight="700" fill="${renk}" text-anchor="middle">${t}</text></g>`; };
+  return { w, h, p, cizgi, egri, alan, yazi, zemin: z };
+}
+
 // Serbest cisim diyagramı için kutu (cisim). Merkezi [cx,cy].
 const kutu = (cx, cy, s = 70, yazi = '') => `<rect x="${cx - s / 2}" y="${cy - s / 2}" width="${s}" height="${s}" rx="8" fill="#e9a774" stroke="#b06a3b" stroke-width="3"/>${yazi ? `<text x="${cx}" y="${cy + 9}" font-size="26" font-weight="800" fill="#173430" text-anchor="middle">${yazi}</text>` : ''}`;
 
 // vektör adı üstünde ok: k.V('C') ya da k.V('C<sub>x</sub>')
 const V = (t) => `<span class="vk">${t}</span>`;
 
-module.exports = { V, basla, kapak, bolum, konu, soru, kapanis, ok, svg, kare, kutu };
+module.exports = { V, basla, kapak, bolum, konu, soru, kapanis, ok, svg, kare, kutu, grafik };
