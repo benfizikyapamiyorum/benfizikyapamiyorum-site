@@ -20278,6 +20278,126 @@ BFY_FIG_EKLE('iT43_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 92 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfT43_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const zemin = (W, H, r = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${r}"/>`;
+const ok = (x1, y1, x2, y2, c, w = 3.2) => arrow(x1, y1, x2, y2, { color: c, w, head: 11, headW: 6.5 });
+const KIR = '#d24b3e', MAV = '#2f7fb8';
+/* Düşey dalgalı ok (ışıma): (x, y1) → (x, y2) */
+function dalgaD(x, y1, y2, c = KIR, A = 4, n = 3, w = 2.4) {
+  let d = '';
+  for (let i = 0; i <= 40; i++) { const t = i / 40, y = y1 + (y2 - 9 - y1) * t; d += (i ? 'L' : 'M') + (x + A * Math.sin(t * n * Math.PI * 2)).toFixed(1) + ',' + y.toFixed(1); }
+  return `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/><polygon points="${x},${y2} ${x - 5},${y2 - 10} ${x + 5},${y2 - 10}" fill="${c}"/>`;
+}
+
+/* Sauna kesiti: solda soba ve taşlar, sağda iki basamak; ısınan hava yükselir, tavanda yayılır, soğuyan hava iner */
+BFY_FIG_EKLE('sfT43_sauna', function (u) {
+  const W = 340, H = 272;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}tah" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e9c99a"/><stop offset=".5" stop-color="#f3dcb6"/><stop offset="1" stop-color="#ddb886"/></linearGradient>` +
+    `<linearGradient id="${u}bas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98f52"/><stop offset="1" stop-color="#9c6630"/></linearGradient>` +
+    `<linearGradient id="${u}sob" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4b5258"/><stop offset=".5" stop-color="#757d84"/><stop offset="1" stop-color="#3a3f44"/></linearGradient></defs>`;
+  // oda: tahta duvarlar ve zemin
+  s += `<rect x="12" y="16" width="${W - 24}" height="222" rx="6" fill="url(#${u}tah)" stroke="#9c6630" stroke-width="2"/>`;
+  for (let y = 34; y < 236; y += 18) s += `<line x1="14" y1="${y}" x2="${W - 14}" y2="${y}" stroke="#d2a874" stroke-width="1"/>`;
+  s += `<rect x="12" y="236" width="${W - 24}" height="12" rx="3" fill="#8a5a2b"/>`;
+  // soba ve taşlar
+  s += `<ellipse cx="62" cy="238" rx="38" ry="4" fill="#000" opacity=".18"/>`;
+  s += `<rect x="30" y="176" width="64" height="60" rx="5" fill="url(#${u}sob)" stroke="#2b2f33" stroke-width="1.4"/>`;
+  s += `<rect x="40" y="206" width="44" height="14" rx="3" fill="#e2622f" opacity=".85"/><rect x="40" y="206" width="44" height="14" rx="3" fill="none" stroke="#2b2f33" stroke-width="1"/>`;
+  [[40, 172, 10], [56, 168, 11], [73, 171, 10], [87, 174, 8], [48, 160, 9], [66, 158, 10], [80, 162, 8]].forEach(([x, y, r]) => {
+    s += `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.72}" fill="#8f979d" stroke="#5c6368" stroke-width="1"/><ellipse cx="${x - r * 0.3}" cy="${y - r * 0.25}" rx="${r * 0.35}" ry="${r * 0.2}" fill="#fff" opacity=".35"/>`;
+  });
+  // basamaklar: alt (y 196) ve üst (y 128)
+  s += `<rect x="250" y="128" width="${W - 14 - 250}" height="70" fill="#b57a3e"/><rect x="246" y="122" width="${W - 14 - 246}" height="10" rx="2" fill="url(#${u}bas)" stroke="#7a4a1e" stroke-width="1"/>`;
+  s += `<rect x="196" y="196" width="${W - 14 - 196}" height="40" fill="#b57a3e"/><rect x="192" y="190" width="${W - 14 - 192}" height="10" rx="2" fill="url(#${u}bas)" stroke="#7a4a1e" stroke-width="1"/>`;
+  for (let x = 262; x < W - 14; x += 16) s += `<line x1="${x}" y1="132" x2="${x}" y2="190" stroke="#9c6630" stroke-width="1"/>`;
+  for (let x = 208; x < W - 14; x += 16) s += `<line x1="${x}" y1="200" x2="${x}" y2="236" stroke="#9c6630" stroke-width="1"/>`;
+  // sıcak katman (tavana yakın) ve serin katman (zemine yakın)
+  s += `<defs><linearGradient id="${u}kat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d24b3e" stop-opacity=".22"/><stop offset=".45" stop-color="#d24b3e" stop-opacity="0"/><stop offset="1" stop-color="#2f7fb8" stop-opacity=".16"/></linearGradient></defs>`;
+  s += `<rect x="14" y="18" width="${W - 28}" height="218" rx="5" fill="url(#${u}kat)"/>`;
+  // hava dolaşımı: sobadan yukarı, tavan boyunca, aşağı ve zeminden geri
+  s += ok(62, 146, 62, 50, KIR) + `<path d="M62 44 Q62 28 82 28 L128 28 Q150 28 150 48" fill="none" stroke="#8b5fa8" stroke-width="3.2" stroke-linecap="round"/>`;
+  s += ok(150, 48, 150, 222, MAV) + ok(142, 228, 104, 228, MAV);
+  // etiketler
+  s += T(74, 96, 'sıcak', { size: 15, weight: 800, fill: KIR }) + T(74, 114, 'hava', { size: 15, weight: 800, fill: KIR });
+  s += T(160, 138, 'soğuyan', { size: 15, weight: 800, fill: MAV }) + T(160, 156, 'hava', { size: 15, weight: 800, fill: MAV });
+  s += T(288, 108, '80 °C', { size: 15, weight: 800, anchor: 'middle', fill: KIR }) + T(220, 180, '60 °C', { size: 15, weight: 800, anchor: 'middle', fill: '#b5532a' });
+  s += T(62, 266, 'soba', { size: 15, weight: 800, anchor: 'middle', fill: P.ink }) + T(266, 266, 'basamaklar', { size: 15, weight: 800, anchor: 'middle', fill: P.ink });
+  return svg(W, H, s, u, 80);
+});
+
+/* Fırın kesiti: yalnız üst ızgara teli açık; tel kaşarı ışımayla ısıtır, ısınan hava yukarı gider */
+BFY_FIG_EKLE('sfT43_firin', function (u) {
+  const W = 340, H = 256;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}ic" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#454b51"/><stop offset="1" stop-color="#25292d"/></linearGradient>` +
+    `<radialGradient id="${u}par" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffb347" stop-opacity=".55"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>` +
+    `<linearGradient id="${u}ekm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b56a"/><stop offset="1" stop-color="#b5762e"/></linearGradient></defs>`;
+  // gövde, iç boşluk ve kontrol paneli
+  s += `<rect x="12" y="14" width="228" height="226" rx="12" fill="url(#${u}metal)" stroke="#6f7980" stroke-width="1.6"/>`;
+  s += `<rect x="26" y="28" width="200" height="168" rx="6" fill="url(#${u}ic)" stroke="#1d2125" stroke-width="1.4"/>`;
+  s += `<rect x="26" y="206" width="200" height="24" rx="5" fill="#d9dee2" stroke="#9aa3ab" stroke-width="1"/>`;
+  [64, 126, 188].forEach(x => { s += `<circle cx="${x}" cy="218" r="7.5" fill="#4b5258" stroke="#2b2f33" stroke-width="1"/><line x1="${x}" y1="218" x2="${x}" y2="212" stroke="#fff" stroke-width="1.6"/>`; });
+  // kızgın ızgara teli
+  let z = 'M40 66';
+  for (let x = 40, i = 0; x < 212; x += 12, i++) z += ` L${x + 6} ${i % 2 ? 62 : 70} L${x + 12} 66`;
+  s += `<ellipse cx="126" cy="66" rx="98" ry="16" fill="url(#${u}par)"/>`;
+  s += `<path d="${z}" fill="none" stroke="#ff9b3d" stroke-width="7" opacity=".35" stroke-linejoin="round"/><path d="${z}" fill="none" stroke="#ff7a1f" stroke-width="3.4" stroke-linejoin="round"/>`;
+  // ısınan hava telden yukarı
+  [70, 182].forEach(x => { s += arrow(x, 56, x, 34, { color: '#f2a07a', w: 2.6, head: 8, headW: 5 }); });
+  // ışıma okları
+  [62, 126, 190].forEach(x => { s += dalgaD(x, 80, 140, '#ff6b4a'); });
+  // tepsi, ekmek ve kaşar
+  s += `<rect x="36" y="172" width="180" height="6" rx="2" fill="#aeb4b8" stroke="#6f7980" stroke-width="1"/>`;
+  [[44, 86], [138, 86]].forEach(([x, w]) => {
+    s += `<rect x="${x}" y="152" width="${w - 16}" height="20" rx="6" fill="url(#${u}ekm)" stroke="#8a5a2b" stroke-width="1"/>`;
+    s += `<path d="M${x + 2} 154 q${(w - 20) / 4} -9 ${(w - 20) / 2} -4 t${(w - 20) / 2} -1 v6 h${-(w - 20)} Z" fill="#f6c84a" stroke="#c99a1e" stroke-width="1"/>`;
+    s += `<circle cx="${x + 20}" cy="150" r="3" fill="#c97a1e" opacity=".7"/><circle cx="${x + 46}" cy="149" r="2.5" fill="#c97a1e" opacity=".7"/>`;
+  });
+  // etiketler (sağ sütun, kılavuz çizgili)
+  const kil = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${P.ink2}" stroke-width="1.2"/>`;
+  s += kil(206, 40, 246, 40) + T(250, 45, 'sıcak hava', { size: 14, weight: 800, fill: '#c0603a' });
+  s += kil(214, 66, 246, 72) + T(250, 77, 'ızgara teli', { size: 14, weight: 800, fill: P.ink });
+  s += kil(196, 112, 246, 112) + T(250, 117, 'ışıma', { size: 15, weight: 800, fill: KIR });
+  s += kil(206, 152, 246, 150) + T(250, 155, 'kaşar', { size: 14, weight: 800, fill: P.ink });
+  s += kil(216, 176, 246, 186) + T(250, 191, 'tepsi', { size: 14, weight: 800, fill: P.ink });
+  return svg(W, H, s, u, 80);
+});
+
+/* Karavan boyuna kesiti: duvar, tavan ve tabanda köpük katmanı; ısı içeriden dışarıya iletilir */
+BFY_FIG_EKLE('sfT43_karavan', function (u) {
+  const W = 340, H = 262;
+  let s = zemin(W, H, '#dfe9f3');
+  s += `<defs><linearGradient id="${u}gok" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d7fa6"/><stop offset="1" stop-color="#c9d9ea"/></linearGradient>` +
+    `<pattern id="${u}kop" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#f3d46b"/><circle cx="2" cy="2" r="1.3" fill="#d9b23c"/><circle cx="6" cy="6" r="1.3" fill="#d9b23c"/></pattern>` +
+    `<linearGradient id="${u}ici" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe3c4"/><stop offset="1" stop-color="#f3c99a"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="200" rx="14" fill="url(#${u}gok)"/>`;
+  s += `<path d="M0 206 Q90 196 170 204 T340 202 V262 H0 Z" fill="#f7fbff"/><path d="M0 206 Q90 196 170 204 T340 202" fill="none" stroke="#c9d6e2" stroke-width="2"/>`;
+  // karavan dış kabuğu ve köpük katmanı (kesit)
+  const x0 = 40, y0 = 56, x1 = 292, y1 = 184, t = 12;
+  s += `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" rx="22" fill="url(#${u}kop)" stroke="#e9eef2" stroke-width="5"/>`;
+  s += `<rect x="${x0 + t}" y="${y0 + t}" width="${x1 - x0 - 2 * t}" height="${y1 - y0 - 2 * t}" rx="12" fill="url(#${u}ici)" stroke="#b8a07a" stroke-width="1.4"/>`;
+  // çeki demiri, tekerlek, ayak
+  s += `<path d="M${x0} 170 L14 182" stroke="#4b5258" stroke-width="5" stroke-linecap="round"/><circle cx="12" cy="183" r="4" fill="#4b5258"/>`;
+  s += `<ellipse cx="170" cy="206" rx="40" ry="4" fill="#000" opacity=".15"/>`;
+  s += `<circle cx="170" cy="190" r="17" fill="#2b2f33"/><circle cx="170" cy="190" r="8" fill="#aeb4b8"/>`;
+  // içeride ısıtıcı
+  s += `<rect x="70" y="138" width="44" height="30" rx="4" fill="#e9eef2" stroke="#6f7980" stroke-width="1.2"/>`;
+  for (let i = 0; i < 4; i++) s += `<line x1="${76 + i * 10}" y1="144" x2="${76 + i * 10}" y2="162" stroke="#e2622f" stroke-width="2.4"/>`;
+  s += T(92, 132, 'ısıtıcı', { size: 14, weight: 800, anchor: 'middle', fill: P.ink });
+  s += T(176, 112, 'içeride 20 °C', { size: 15, weight: 800, anchor: 'middle', fill: '#a5452c' });
+  // ısı okları: içeriden dışarıya, duvar ve tavan boyunca
+  s += ok(262, 120, 322, 120, KIR) + ok(214, 82, 214, 30, KIR) + ok(132, 82, 132, 30, KIR);
+  s += T(318, 108, 'ısı', { size: 15, weight: 800, anchor: 'end', fill: KIR });
+  s += T(250, 30, 'dışarıda 5 °C', { size: 15, weight: 800, anchor: 'middle', fill: '#fff', haloColor: '#3f5f86' });
+  // köpük etiketi
+  s += T(18, 236, 'Sarı katman: köpük yalıtım.', { size: 14, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -20317,6 +20437,184 @@ const KONU = {
     'SİM: aynı maddeden duvar parçası, A 0,5–2 m², x 5–20 cm, ΔT 5–40 °C; iletim hızı başlangıca göre kat, iletim hızı–kalınlık eğrisi',
     'kart: yalıtım ısı aktarımını durdurmaz, yavaşlatır; kalınlık iki katı → iletim hızı yarı; iletim hızı (W) ile sıcaklık farkı'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.4.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Isının bir yerden başka bir yere hangi yollarla gittiğini ve bu gidişi neyin hızlandırdığını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Isı sıcaktan soğuğa gider: iletim',
+        metin: r`Kışın dışarıda kalmış anahtarlığını avucuna alıp sıkıyorsun. Bir süre sonra anahtar ısınır. Avucunun değmediği ucu da biraz ılır.
+
+Avucun anahtardan daha sıcaktır. Isı her zaman **sıcak olandan soğuk olana** aktarılır. Burada ısı avucundan anahtara geçer. "Soğukluk" diye akan bir şey yoktur.
+
+Anahtar metaldir, yani bir katıdır. Katının tanecikleri yerinden ayrılmaz, bulundukları yerde titreşir. Avucuna değen tanecikler daha hızlı titreşir ve komşularını dürter. Enerji tanecikten taneciğe geçerek anahtarın öbür ucuna ulaşır. Bu yola **iletim** denir. İletimde tanecikler yer değiştirmez.`,
+        kontrol: {
+          soru: 'Anahtar avucunda ısınırken ne olur?',
+          secenekler: ['Isı avucundan anahtara geçer; anahtarın tanecikleri yerinde titreşerek enerjiyi ileri aktarır.', 'Soğukluk anahtardan avucuna geçer; avucun bu yüzden üşür.', 'Avucunun tanecikleri anahtarın içine akar ve öbür uca kadar gider.'],
+          dogru: 0,
+          aciklama: 'Isı sıcak olan avuçtan soğuk olan anahtara aktarılır. Anahtarın içinde tanecikler yerinde titreşir ve enerjiyi komşularına verir. Bu, iletimdir.',
+          yanlisIpucu: 'Isı hangi yönde akar: sıcaktan soğuğa mı, soğuktan sıcağa mı? İletimde tanecikler yer değiştirir mi?'
+        }
+      },
+      {
+        baslik: 'Akışkan ısıyı taşır: konveksiyon',
+        sekil: 'sfT43_sauna',
+        metin: r`Bir saunada sobanın üstündeki taşlar çok ısınır. Ahşap basamaklar iki sıradır. Üst basamakta oturan, alttakinden daha çok terler.
+
+Sobanın çevresindeki hava ısınır ve genleşir. Isınan hava yükselir ve tavanın altında toplanır. Soğuyan hava ise aşağı iner ve zeminden yeniden sobaya gelir. Odada bir hava dolaşımı oluşur.
+
+Burada ısıyı yerinden ayrılan hava taşır. Bir sıvının ya da gazın, yani bir **akışkanın** tanecikleri yer değiştirerek ısıyı taşırsa bu yola **konveksiyon** denir. Katılarda konveksiyon olmaz, çünkü katının tanecikleri yer değiştiremez.`,
+        kontrol: {
+          soru: 'Saunada bir termometre hangi yerde en yüksek değeri gösterir?',
+          secenekler: ['Tavanın hemen altında', 'Zemine yakın, kapının önünde', 'Saunanın her yerinde aynı değeri'],
+          dogru: 0,
+          aciklama: 'Isınan hava yükselir ve tavanın altında toplanır. Bu yüzden en sıcak yer tavana yakın olan yerdir. Üst basamağın daha sıcak olmasının nedeni de budur.',
+          yanlisIpucu: 'Sobanın çevresinde ısınan hava nereye gider? Şekildeki okları izle.'
+        }
+      },
+      {
+        baslik: 'Dokunmadan ısıtan yol: ışıma',
+        sekil: 'sfT43_firin',
+        metin: r`Fırında yalnız üstteki ızgara telini açıyorsun. Tel kızarır ve turuncu bir renk alır. Tepsideki ekmeklerin üstündeki kaşar birkaç dakikada erir ve kızarır.
+
+Telin çevresinde ısınan hava yükselir. Yani sıcak hava telden yukarı gider, aşağıya doğru akmaz. Tel kaşara da değmez. Öyleyse kaşarı bu kadar çabuk ısıtan nedir?
+
+Kızgın tel enerjiyi **elektromanyetik dalgalar** ile her yöne yayar. Bu dalgalar kaşara çarpınca soğurulur ve kaşar ısınır. Bu yola **ışıma** denir. Fırının havası da zamanla ısınır, ama kaşarı bu kadar çabuk kızartan asıl yol ışımadır. Işıma için arada madde gerekmez; ışıma boşlukta da yol alır. Her cisim ışıma yapar, sıcak cisim daha çok yapar.`,
+        kontrol: {
+          soru: 'Kaşarı ısıtan ışımanın olması için tel ile kaşar arasında hava bulunması gerekir mi?',
+          secenekler: ['Hayır; ışıma boşlukta da yol alır.', 'Evet; ışımayı hava taşır.', 'Evet; ışıma tanecikten taneciğe geçer.'],
+          dogru: 0,
+          aciklama: 'Işıma elektromanyetik dalgalarla olur ve maddesel ortam gerektirmez. Güneş\'in enerjisi de Dünya\'ya boşluktan geçerek böyle gelir.',
+          yanlisIpucu: 'Isıyı taşıyan akışkan konveksiyondu, tanecikten taneciğe geçiş iletimdi. Işımada enerji neyle yayılıyordu?'
+        }
+      },
+      {
+        baslik: 'Aynı sıcaklık, farklı his: maddenin cinsi',
+        metin: r`Kış sabahı sınıfa ilk giren sensin. Sıralar bütün gece 12 °C'lik sınıfta kaldı. Sıranın metal ayağına dokununca elin buz gibi olur. Ahşap tablasına dokununca o kadar üşümezsin.
+
+Oysa ayak ve tabla bütün gece aynı odada kaldı. İkisinin sıcaklığı da 12 °C'dir. Elin sıcaklığı ölçmez. Elin, kendisinden **her saniye ne kadar ısı gittiğini** hisseder.
+
+Metal ısıyı çok hızlı iletir. Elinden metale her saniye çok ısı geçer ve elin çabuk soğur. Ahşap ise ısıyı yavaş iletir. Isıyı hızlı ileten maddelere **iletken**, yavaş iletenlere **yalıtkan** denir. Metaller iletkendir. Hava, ahşap, strafor ve yün yalıtkandır.
+
+Birim zamanda iletilen ısıya **ısı iletim hızı** denir. Birimi J/s'dir. Bu birime watt (W) denir.`,
+        kontrol: {
+          soru: 'Yaz öğlesi bahçedeki bir bankın metal kolçağı ve ahşap oturağı saatlerce güneşte kalıyor. İkisinin sıcaklığı da 50 °C oluyor. Hangisi elini daha çok yakar?',
+          secenekler: ['Ahşap oturak', 'Metal kolçak', 'İkisi aynı yakar.'],
+          dogru: 1,
+          aciklama: 'Bu kez bank elinden sıcaktır ve ısı banktan eline geçer. Metal bu ısıyı daha hızlı iletir. Bu yüzden metal kolçak elini daha çok yakar.',
+          yanlisIpucu: 'Sıcaklıklar yine eşit. Isıyı eline daha hızlı ileten madde hangisiydi?'
+        }
+      },
+      {
+        baslik: 'Kalınlık, alan ve sıcaklık farkı',
+        metin: r`Kışın sokak kedileri için strafordan kulübeler yapılır. İçeride kedinin ısıttığı hava, duvarlardan dışarıya iletimle ısı kaybeder. Bu kaybın hızını üç şey değiştirir:
+
+- **Kalınlık:** Duvar kalınlaştıkça ısı daha yavaş geçer. Kalınlık 2 katına çıkarsa iletim hızı yarıya iner.
+- **Yüzey alanı:** Duvarın alanı büyüdükçe ısı daha hızlı kaçar. Alan 2 katına çıkarsa iletim hızı da 2 katına çıkar.
+- **Sıcaklık farkı:** İçerisi ile dışarısı arasındaki sıcaklık farkı ($\Delta T$) büyüdükçe ısı daha hızlı geçer. Fark 2 katına çıkarsa iletim hızı da 2 katına çıkar.
+
+Birinin etkisine bakarken öbürlerini aynı tutarız. Bu yüzden iyi bir kedi kulübesi kalın duvarlı ve küçük olur.`,
+        kontrol: {
+          soru: 'Aynı straforla, aynı kalınlıkta duvarı olan iki kulübe var. Büyük kulübenin duvar alanı küçüğünkinin 3 katıdır. İçerisi ile dışarısı arasındaki sıcaklık farkı ikisinde de aynıdır. Büyük kulübenin duvarlarından iletim hızı, küçüğünkine göre nasıldır?',
+          secenekler: ['3 katıdır.', 'Aynıdır.', '3\'te 1\'idir.'],
+          dogru: 0,
+          aciklama: 'Madde, kalınlık ve sıcaklık farkı aynıdır. Yalnız alan 3 katına çıktığı için iletim hızı da 3 katına çıkar. Tek bir kedi bu kadar kaybı karşılayamaz; kulübe küçük olmalıdır.',
+          yanlisIpucu: 'Yüzey alanı büyüdükçe ısı daha hızlı mı, daha yavaş mı kaçar?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Buzlanmış ön cam',
+        metin: r`Kış sabahı bir otomobilin ön camının dış yüzü ince bir buz tabakasıyla kaplı. Sürücü motoru çalıştırıp kaloriferi açıyor. Fan, ısınan havayı camın iç yüzüne üflüyor. Bir süre sonra buz, cama değen yüzünden başlayarak eriyor.`,
+        adimlar: [
+          {
+            soru: 'Fan sıcak havayı camın iç yüzüne getiriyor. Bu taşımada ısının baskın yolu hangisidir?',
+            secenekler: ['İletim', 'Konveksiyon', 'Işıma'],
+            dogru: 1,
+            ipucu: 'Isıyı bir yerden bir yere taşıyan şey, yer değiştiren hava mı?',
+            aciklama: 'Isınan hava yer değiştirerek ısıyı cama taşır. Akışkanın ısıyı taşıması konveksiyondur. Burada havayı fan iter. Hava kendiliğinden yükselmese de ısıyı yer değiştiren hava taşıdığı için bu yol yine konveksiyondur.'
+          },
+          {
+            soru: 'Isı camın iç yüzünden dış yüzüne hangi yolla geçer?',
+            secenekler: ['Işıma', 'Konveksiyon', 'İletim'],
+            dogru: 2,
+            ipucu: 'Cam bir katıdır. Katının tanecikleri yer değiştirebilir mi?',
+            aciklama: 'Cam katıdır. Tanecikleri yerinde titreşerek enerjiyi iç yüzden dış yüze iletir. Bu, iletimdir.'
+          },
+          {
+            soru: 'Buz neden önce cama değen yüzünden erimeye başlar?',
+            secenekler: ['Isı buza ısınan camdan gelir; buzun cama değen yüzü ısıyı ilk alır.', 'Dışarıdaki soğuk hava buzun üst yüzünü ısıtır.', 'Buzun soğukluğu cama geçer ve buz incelir.'],
+            dogru: 0,
+            ipucu: 'Bu olayda buza göre sıcak olan nedir? Isı buza hangi taraftan ulaşır?',
+            aciklama: 'Isı sıcak olan camdan soğuk olan buza aktarılır. Buzun cama değen yüzü ısıyı ilk alır ve oradan erimeye başlar.'
+          }
+        ],
+        sonuc: 'Tek bir olayda iki yol birlikte çalıştı: Fanın üflediği hava ısıyı cama konveksiyonla taşıdı, cam da ısıyı buza iletimle geçirdi. Isı her adımda sıcaktan soğuğa gitti.'
+      },
+      {
+        baslik: 'Karavanda kış gecesi',
+        sekil: 'sfT43_karavan',
+        metin: r`Bir aile kışın karavanla kamp yapıyor. Karavanın duvarlarında köpükten bir yalıtım katmanı var. Duvarlardaki ince kaplamaları önemsemiyoruz; ısının geçişini köpük katman belirliyor. İçerisi bir ısıtıcıyla 20 °C'de tutuluyor. Akşam dış hava 5 °C iken duvarlardan dışarıya her saniye 600 J ısı iletiliyor.`,
+        adimlar: [
+          {
+            soru: r`İçerinin 20 °C'de kalması için ısıtıcı her saniye ne kadar ısı vermelidir?`,
+            secenekler: ['Duvarlardan her saniye kaçan kadar, yani 600 J', 'Hiç; içerisi zaten sıcak', 'Kaçanın yarısı kadar, yani 300 J'],
+            dogru: 0,
+            ipucu: 'Isıtıcı az ısı verirse içerisi soğur, çok verirse ısınır. Sıcaklığın değişmemesi için ne gerekir?',
+            aciklama: r`Kaçan ısı kadar ısı verilirse içerinin sıcaklığı değişmez. Isıtıcı her saniye 600 J, yani 600 W ısı vermelidir.`
+          },
+          {
+            soru: r`Gece dış hava −10 °C'ye düşüyor. İçerisi yine 20 °C. Duvarlardan ısı iletim hızı kaç watt olur?`,
+            secenekler: ['400', '1200', '600'],
+            dogru: 1,
+            ipucu: r`Önce iki sıcaklık farkını bul: $20 - 5$ ve $20 - (-10)$. Fark kaç katına çıktı?`,
+            aciklama: r`Akşam fark $20 - 5 = 15$ °C, gece $20 - (-10) = 30$ °C olur. Fark 2 katına çıktı. Madde, kalınlık ve alan aynı olduğu için iletim hızı da 2 katına çıkar: 1200 W.`
+          },
+          {
+            soru: r`Aile, köpük katmanı 3 kat kalın olan bir karavana geçiyor. Köpük aynı, duvar alanı aynı. Aynı gece (dışarısı −10 °C, içerisi 20 °C) duvarlardan ısı iletim hızı kaç watt olur?`,
+            secenekler: ['400', '3600', '1200'],
+            dogru: 0,
+            ipucu: 'Kalınlık arttıkça iletim yavaşlar. Kalınlık 3 katına çıkınca iletim hızı ne olur?',
+            aciklama: r`Kalınlık 3 katına çıkınca iletim hızı 3'te 1'ine iner: $1200 \div 3 = 400$ W. Isıtıcı artık daha az ısı verse yeter.`
+          }
+        ],
+        sonuc: 'Sıcaklık farkı 2 katına çıkınca kaçan ısı 2 katına çıktı. Kalınlık 3 katına çıkınca kaçan ısı 3\'te 1\'ine indi. Yalıtım ısı kaybını durdurmaz, yavaşlatır.'
+      },
+      {
+        baslik: 'Yangın tatbikatı',
+        metin: r`Okulda yangın tatbikatı yapılıyor. İtfaiyeci öğrencilere şu kuralları anlatıyor: "Duman varsa eğilerek, gerekirse emekleyerek ilerleyin. Kapalı bir kapıyı açmadan önce kapıyı ve metal kolunu elinizin tersiyle kısaca yoklayın. Sıcaksa açmayın, başka bir çıkış kullanın."`,
+        adimlar: [
+          {
+            soru: 'Yangında sıcak gazlar ve duman odanın neresinde toplanır?',
+            secenekler: ['Zemine yakın yerde', 'Tavanın altında', 'Odanın her yerinde eşit olarak'],
+            dogru: 1,
+            ipucu: 'Saunadaki sıcak havayı hatırla. Isınan gaz yukarı mı gider, aşağı mı?',
+            aciklama: 'Isınan gazlar ve duman yükselir, tavanın altında toplanır. Bu, ısının konveksiyonla taşınmasıdır.'
+          },
+          {
+            soru: 'Neden eğilerek ilerlemek gerekir?',
+            secenekler: ['Zemine yakın hava bir süre daha serin ve az dumanlı kalır.', 'Zemindeki tanecikler ısıyı hiç iletmez.', 'Işıma yalnız yukarı doğru yayılır.'],
+            dogru: 0,
+            ipucu: 'Sıcak gazlar yukarıda toplanıyorsa aşağıda nasıl bir hava kalır?',
+            aciklama: 'Sıcak gaz ve duman yukarıda toplandığı için zemine yakın hava bir süre daha serin ve az dumanlı kalır. Eğilerek ilerleyen kişi bu havayı solur.'
+          },
+          {
+            soru: 'Kapının öbür tarafında ateş varsa bu taraftaki metal kol neden ısınır?',
+            secenekler: ['Kol ısı üretmeye başlar.', 'Isı, metalin içinde tanecikten taneciğe iletilerek kola ulaşır.', 'Kolun soğukluğu ateşe doğru akar.'],
+            dogru: 1,
+            ipucu: 'Kapının iki yanındaki kollar metal bir mil ile birbirine bağlıdır. Metal ısıyı hızlı mı iletir, yavaş mı?',
+            aciklama: 'Kapının iki yanındaki kollar metal bir mil ile birbirine bağlıdır. Metal iyi bir iletkendir. Öbür taraftaki ısı iletimle bu taraftaki kola ulaşır. Kol sıcaksa kapı açılmaz, başka bir çıkış aranır.'
+          }
+        ],
+        sonuc: 'Yangından korunma kuralları da ısı aktarımına dayanır. Sıcak gaz konveksiyonla yukarı çıkar; ısı metal kolda iletimle ilerler.'
+      }
+    ],
+    hazir: r`İletimi, konveksiyonu ve ışımayı gördün. Isının hep sıcaktan soğuğa gittiğini ve iletim hızını maddenin cinsinin, kalınlığın, yüzey alanının ve sıcaklık farkının değiştirdiğini öğrendin. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU (kısa, TYT odaklı) ---------------- */
   not: [
@@ -21548,6 +21846,99 @@ BFY_FIG_EKLE('iT51_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 80 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfT51_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dimV } = window.BFY_FIGLIB;
+const zemin = (W, H, r = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${r}"/>`;
+const KIR = '#d24b3e';
+
+/* Kumsal kesiti: aynı F ile bastırılan sivri uçlu ve düz uçlu iki şemsiye direği */
+BFY_FIG_EKLE('sfT51_semsiye', function (u) {
+  const W = 340, H = 262, ys = 150;
+  let s = zemin(W, H, '#dcecf7');
+  s += `<defs><linearGradient id="${u}kum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1d9a4"/><stop offset="1" stop-color="#d4b06c"/></linearGradient>` +
+    `<linearGradient id="${u}dir" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9aa3ab"/><stop offset=".45" stop-color="#f4f6f8"/><stop offset="1" stop-color="#7d868e"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="${ys}" rx="14" fill="#dcecf7"/>`;
+  s += `<rect x="0" y="${ys}" width="${W}" height="${H - ys}" rx="0" fill="url(#${u}kum)"/><rect x="0" y="${H - 14}" width="${W}" height="14" rx="0" fill="#d4b06c"/>`;
+  for (let i = 0; i < 70; i++) { const x = (i * 53) % W, y = ys + 8 + ((i * 37) % (H - ys - 14)); s += `<circle cx="${x}" cy="${y}" r="1.3" fill="#b8924d" opacity=".55"/>`; }
+  s += `<line x1="0" y1="${ys}" x2="${W}" y2="${ys}" stroke="#c49a52" stroke-width="2"/>`;
+  // direkler: sol sivri uç (derine girer), sağ düz uç (az girer)
+  const direk = (x, yUst, yAlt, sivri) => {
+    let d = `<rect x="${x - 6}" y="${yUst}" width="12" height="${yAlt - yUst - (sivri ? 18 : 0)}" fill="url(#${u}dir)" stroke="#5c6368" stroke-width="1"/>`;
+    for (let y = yUst + 10; y < yAlt - 24; y += 22) d += `<rect x="${x - 6}" y="${y}" width="12" height="9" fill="#2f7fb8" opacity=".85"/>`;
+    if (sivri) d += `<polygon points="${x - 6},${yAlt - 18} ${x + 6},${yAlt - 18} ${x},${yAlt}" fill="url(#${u}dir)" stroke="#5c6368" stroke-width="1"/>`;
+    else d += `<rect x="${x - 6}" y="${yAlt - 3}" width="12" height="3" fill="#5c6368"/>`;
+    return d;
+  };
+  s += `<path d="M84 ${ys} q16 7 32 0" fill="#c49a52" opacity=".6"/>` + direk(100, 62, 214, true);
+  s += `<path d="M226 ${ys} q14 4 28 0" fill="#c49a52" opacity=".6"/>` + direk(240, 62, 158, false);
+  // eşit kuvvetler
+  s += arrow(100, 16, 100, 56, { color: KIR, w: 3.4, head: 11, headW: 6.5 }) + T(88, 42, 'F', { size: 18, weight: 800, anchor: 'end', fill: KIR, italic: true });
+  s += arrow(240, 16, 240, 56, { color: KIR, w: 3.4, head: 11, headW: 6.5 }) + T(228, 42, 'F', { size: 18, weight: 800, anchor: 'end', fill: KIR, italic: true });
+  // etiketler
+  s += T(120, 196, 'sivri uç:', { size: 15, weight: 800, fill: P.ink }) + T(120, 214, 'derine girer', { size: 15, weight: 800, fill: P.ink });
+  s += T(256, 178, 'düz uç:', { size: 15, weight: 800, fill: P.ink }) + T(256, 196, 'az girer', { size: 15, weight: 800, fill: P.ink });
+  s += T(W - 14, 140, 'kum', { size: 15, weight: 800, anchor: 'end', fill: '#8a6a30' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Aynı ağaçtan iki türdeş kütük: K ince, 80 cm; L kalın, 40 cm */
+BFY_FIG_EKLE('sfT51_kutuk', function (u) {
+  const W = 340, H = 256, yz = 214;
+  let s = zemin(W, H);
+  s += `<defs><linearGradient id="${u}kab" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5e3d22"/><stop offset=".4" stop-color="#9a6a3e"/><stop offset=".7" stop-color="#7a5230"/><stop offset="1" stop-color="#4b2f19"/></linearGradient>` +
+    `<radialGradient id="${u}kes" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#f3d9a8"/><stop offset="1" stop-color="#d9b47a"/></radialGradient></defs>`;
+  s += `<rect x="10" y="${yz}" width="${W - 20}" height="22" rx="6" fill="url(#${u}soil)"/><line x1="10" y1="${yz}" x2="${W - 10}" y2="${yz}" stroke="#8a6a48" stroke-width="2"/>`;
+  const kutuk = (x, w, yTop) => {
+    const ry = w * 0.2;
+    let d = `<ellipse cx="${x + w / 2 + 4}" cy="${yz + 2}" rx="${w / 2 + 6}" ry="${ry * 0.7}" fill="#000" opacity=".16"/>`;
+    d += `<path d="M${x} ${yTop} V${yz} A${w / 2} ${ry} 0 0 0 ${x + w} ${yz} V${yTop} Z" fill="url(#${u}kab)" stroke="#3a2412" stroke-width="1.2"/>`;
+    for (let i = 1; i < 4; i++) d += `<path d="M${x + i * w / 4} ${yTop + ry + 6} q${(i % 2 ? 3 : -3)} ${(yz - yTop) / 2} 0 ${yz - yTop - ry - 10}" fill="none" stroke="#3a2412" stroke-width="1" opacity=".45"/>`;
+    d += `<ellipse cx="${x + w / 2}" cy="${yTop}" rx="${w / 2}" ry="${ry}" fill="url(#${u}kes)" stroke="#8a5a2b" stroke-width="1.2"/>`;
+    [0.7, 0.45, 0.2].forEach(k => { d += `<ellipse cx="${x + w / 2}" cy="${yTop}" rx="${w / 2 * k}" ry="${ry * k}" fill="none" stroke="#b8894f" stroke-width="1"/>`; });
+    return d;
+  };
+  s += kutuk(30, 52, 54) + kutuk(166, 100, 134);
+  s += dimV(96, 54, yz, '80 cm', { side: 'right', size: 15 }) + dimV(282, 134, yz, '40 cm', { side: 'right', size: 15 });
+  s += T(56, 30, 'K', { size: 18, weight: 800, anchor: 'middle', fill: P.ink }) + T(216, 108, 'L', { size: 18, weight: 800, anchor: 'middle', fill: P.ink });
+  return svg(W, H, s, u, 80);
+});
+
+/* Elma bahçesinde dört ayaklı merdiven yumuşak toprakta; içte: tahta pabuç */
+BFY_FIG_EKLE('sfT51_merdiven', function (u) {
+  const W = 340, H = 266, yz = 214;
+  let s = zemin(W, H, '#e6f1dc');
+  s += `<defs><linearGradient id="${u}ray" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c98f52"/><stop offset=".5" stop-color="#ecc58f"/><stop offset="1" stop-color="#b57a3e"/></linearGradient>` +
+    `<radialGradient id="${u}elm" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#ff8a7a"/><stop offset="1" stop-color="#b8261c"/></radialGradient></defs>`;
+  // ağaç dalı ve elmalar
+  s += `<path d="M340 30 Q270 36 210 22" stroke="#6b4a2b" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+  [[300, 22], [262, 20], [236, 14], [318, 12]].forEach(([x, y]) => { s += `<ellipse cx="${x}" cy="${y}" rx="16" ry="8" fill="#5f9448" transform="rotate(-20 ${x} ${y})"/>`; });
+  [[282, 46], [246, 40]].forEach(([x, y]) => { s += `<circle cx="${x}" cy="${y}" r="9" fill="url(#${u}elm)"/><line x1="${x}" y1="${y - 9}" x2="${x + 2}" y2="${y - 14}" stroke="#6b4a2b" stroke-width="1.6"/>`; });
+  // yumuşak toprak
+  s += `<rect x="10" y="${yz}" width="${W - 20}" height="${H - yz - 10}" rx="6" fill="url(#${u}soil)"/><line x1="10" y1="${yz}" x2="${W - 10}" y2="${yz}" stroke="#5f9448" stroke-width="3"/>`;
+  // merdiven (yandan): iki çift ayak, ayaklar toprağa gömülü
+  const ray = (x1, y1, x2, y2, w = 9) => { const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), nx = -dy / L * w / 2, ny = dx / L * w / 2; return `<polygon points="${x1 + nx},${y1 + ny} ${x2 + nx},${y2 + ny} ${x2 - nx},${y2 - ny} ${x1 - nx},${y1 - ny}" fill="url(#${u}ray)" stroke="#7a4a1e" stroke-width="1"/>`; };
+  const tx = 140, ty = 46, aL = 64, aR = 216, yA = yz + 10;
+  s += ray(tx + 8, ty, aR + 12, yA - 2, 8) + ray(tx - 6, ty, aL - 8, yA - 2, 8);
+  for (let k = 1; k <= 6; k++) { const f = k / 7, y = ty + (yA - ty) * f; s += `<line x1="${(tx + (aL - tx) * f).toFixed(1)}" y1="${y.toFixed(1)}" x2="${(tx + (aR - tx) * f).toFixed(1)}" y2="${y.toFixed(1)}" stroke="#9c6630" stroke-width="5" stroke-linecap="round"/>`; }
+  s += ray(tx, ty - 4, aL, yA, 10) + ray(tx, ty - 4, aR, yA, 10);
+  s += `<rect x="${tx - 16}" y="${ty - 12}" width="32" height="10" rx="3" fill="#9c6630" stroke="#7a4a1e" stroke-width="1"/>`;
+  // ayak çukurları
+  [aL, aR].forEach(x => { s += `<path d="M${x - 12} ${yz} q12 14 24 0" fill="#7a5a36"/>`; });
+  // sepet
+  s += `<path d="M${tx + 34} 104 h34 l-5 24 h-24 Z" fill="#c9a46a" stroke="#7a5a2b" stroke-width="1.2"/><path d="M${tx + 38} 104 q13 -18 26 0" fill="none" stroke="#7a5a2b" stroke-width="2"/><line x1="${tx + 21}" y1="${(ty + (yA - ty) * 2 / 7).toFixed(1)}" x2="${tx + 40}" y2="104" stroke="#7a5a2b" stroke-width="1.6"/>`;
+  s += `<circle cx="${tx + 45}" cy="106" r="5" fill="url(#${u}elm)"/><circle cx="${tx + 56}" cy="105" r="5" fill="url(#${u}elm)"/>`;
+  // etiketler
+  s += T(aR + 24, 192, 'her ayak', { size: 14, weight: 800, fill: P.ink }) + T(aR + 24, 208, '25 cm²', { size: 14, weight: 800, fill: P.ink });
+  // iç kutu: tahta pabuç
+  s += `<rect x="236" y="76" width="96" height="92" rx="10" fill="#fff" stroke="#9aa3ab" stroke-width="1.4"/>`;
+  s += `<rect x="248" y="136" width="72" height="12" rx="2" fill="url(#${u}wood)" stroke="#8a5a2b" stroke-width="1"/>`;
+  s += ray(284, 96, 284, 136, 10);
+  s += T(284, 92, 'tahta pabuç', { size: 14, weight: 800, anchor: 'middle', fill: P.ink }) + T(284, 164, '100 cm²', { size: 14, weight: 800, anchor: 'middle', fill: P.ink });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -21584,6 +21975,196 @@ const KONU = {
     'SET 3: karayolu kantarı, dingil yük sınırları (Araçların Yüklenmesine İlişkin Yönetmelik, 2012): 10 / 11,5 / 11,5 / 16 / 18 / 21 t; 12 lastik × 0,035 m², 500 kPa; ön 6 t iki lastik, arka 11,5 t dört lastik',
     'simülasyon: 20 × 30 × 40 cm koli süngerde, 2–20 kg, üç yüz, P-F grafiği'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.5.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bir katının bastığı yüzeye ne kadar "bastırdığını" anlatan basınç kavramını kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Aynı kuvvet, farklı iz',
+        sekil: 'sfT51_semsiye',
+        metin: r`Kumsalda aynı kalınlıkta iki şemsiye direği var. Birinin alt ucu sivri, ötekinin alt ucu düz kesilmiş. İkisini de kuma aynı kuvvetle bastırıyorsun. Sivri uçlu direk kuma kolayca girer. Düz uçlu direk ise neredeyse hiç girmez.
+
+İki direğe uyguladığın kuvvet aynıdır. Fark, bu kuvvetin kuma değen yüzeye nasıl dağıldığıdır. Sivri uçta kuvvet çok küçük bir yüzeye toplanır. Düz uçta aynı kuvvet daha geniş bir yüzeye yayılır.
+
+Bir yüzeyin ne kadar zorlandığını yalnız kuvvet söylemez. Kuvvetin hangi alana dağıldığı da önemlidir. Bu ikisini birlikte anlatan niceliğe **basınç** denir.`,
+        kontrol: {
+          soru: 'Kuma bastırılan iki direkte değişen nedir?',
+          secenekler: ['Kuvvet aynıdır; kuvvetin dağıldığı alan farklıdır.', 'Sivri uçlu direğe daha büyük kuvvet uygulanır.', 'Düz uçlu direk daha hafiftir.'],
+          dogru: 0,
+          aciklama: 'İki direğe de aynı kuvvetle bastırıyorsun. Değişen, kuvvetin kuma değen alanıdır. Sivri uçta alan küçük olduğu için kum daha çok zorlanır.',
+          yanlisIpucu: 'Metinde kuvvet için ne söylendi? İki direğin farkı nerede?'
+        }
+      },
+      {
+        baslik: 'Basınç: birim alana düşen kuvvet',
+        metin: r`Ağırlığı 120 N olan bir yer yatağını düz zemine seriyorsun. Yatağın zemine değen alanı 2 m²'dir. Yatağın ağırlığı bu alana eşit dağılır. Her 1 m²'ye 60 N düşer.
+
+Bir yüzeye dik etki eden kuvvetin, o yüzeyin alanına bölümüne **basınç** denir:
+
+$$P = \dfrac{F}{A}$$
+
+- $F$, yüzeye dik kuvvettir. Yatay zemindeki bir cisim için bu kuvvet cismin ağırlığıdır: $F = G$.
+- $A$, kuvvetin etki ettiği alandır.
+- Kuvvet newton (N), alan metrekare (m²) ise basınç **pascal** (Pa) çıkar. $1\ \text{Pa} = 1\ \text{N/m}^2$'dir.
+
+Yatağın zemine basıncı $P = \dfrac{120}{2} = 60$ Pa olur.`,
+        kontrol: {
+          soru: 'Ağırlığı 300 N olan bir halı zemine serilince 6 m²\'lik bir alan kaplıyor. Halının zemine uyguladığı basınç kaç Pa olur?',
+          secenekler: ['50', '1800', '300'],
+          dogru: 0,
+          aciklama: r`$P = \dfrac{F}{A} = \dfrac{300}{6} = 50$ Pa olur.`,
+          yanlisIpucu: 'Basınç bulmak için kuvveti alanla çarpmaz, alana bölersin.'
+        }
+      },
+      {
+        baslik: 'Alan küçülünce basınç büyür',
+        metin: r`Ağırlığı 400 N olan bir çocuk buz pistinde patenleriyle iki ayağı üstünde duruyor. Paten bıçaklarının buza değen toplam alanı 10 cm²'dir. Sonra aynı çocuk buzda bir kızağa oturuyor. Kızağın demirlerinin buza değen toplam alanı 80 cm²'dir. Kızağın ağırlığını önemsemiyoruz.
+
+Alan cm² ile verildiğinde basıncı N/cm² birimiyle yazmak kolaydır:
+
+- Patenle: $P = \dfrac{400}{10} = 40$ N/cm².
+- Kızakla: $P = \dfrac{400}{80} = 5$ N/cm².
+
+Kuvvet aynıdır. Paten bıçaklarının alanı kızağınkinin 8'de 1'idir; basınç 8 katıdır. **Kuvvet değişmezken basınç, alanla ters orantılıdır.** Alan kaç kat küçülürse basınç o kadar kat büyür.`,
+        kontrol: {
+          soru: 'Çocuk patenleriyle bir an tek ayağı üstünde kayıyor. Buza değen bıçak alanı yarıya iniyor. Çocuğun buza uyguladığı basınç kaç N/cm² olur?',
+          secenekler: ['80', '20', '40'],
+          dogru: 0,
+          aciklama: r`Kuvvet yine 400 N, alan 5 cm²'dir. $P = \dfrac{400}{5} = 80$ N/cm² olur. Alan yarıya indi, basınç 2 katına çıktı.`,
+          yanlisIpucu: 'Ağırlık değişmedi. Alan yarıya inince basınç artar mı, azalır mı?'
+        }
+      },
+      {
+        baslik: 'Üst üste konunca kuvvetler toplanır',
+        metin: r`Salonda dört ayaklı bir televizyon ünitesi var. Ünitenin ağırlığı 300 N, her ayağının zemine değen alanı 5 cm²'dir. Dört ayağın toplam alanı $4 \times 5 = 20$ cm² olur.
+
+Ünite tek başınayken zemine basıncı $\dfrac{300}{20} = 15$ N/cm²'dir.
+
+Ünitenin üstüne 100 N ağırlığında bir televizyon konuyor. Televizyon zemine değmez ama ağırlığı ünitenin ayakları üzerinden zemine aktarılır:
+
+- **Kuvvet:** Ağırlıklar toplanır: $300 + 100 = 400$ N.
+- **Alan:** Zemine değen yüzey yine ayakların alanıdır: 20 cm².
+
+Basınç $\dfrac{400}{20} = 20$ N/cm² olur.`,
+        kontrol: {
+          soru: 'Ünitenin rafına 200 N ağırlığında kitaplar da konuyor. Televizyon da üstünde duruyor. Ayakların zemine uyguladığı basınç kaç N/cm² olur?',
+          secenekler: ['30', '20', '10'],
+          dogru: 0,
+          aciklama: r`Toplam kuvvet $300 + 100 + 200 = 600$ N, alan 20 cm²'dir. $P = \dfrac{600}{20} = 30$ N/cm² olur.`,
+          yanlisIpucu: 'Zemine aktarılan kuvvet; ünitenin, televizyonun ve kitapların ağırlıklarının toplamıdır. Alan değişmez.'
+        }
+      },
+      {
+        baslik: 'Türdeş dik cisimde yükseklik belirler',
+        sekil: 'sfT51_kutuk',
+        metin: r`Aynı ağaçtan kesilmiş iki kütük zeminde dik duruyor. Kütükler türdeştir; yani her yerleri aynı maddedendir. K kütüğü ince ve 80 cm uzunluğunda, L kütüğü kalın ve 40 cm uzunluğundadır.
+
+Kalın kütüğün tabanı geniştir ama ağırlığı da fazladır. Taban alanı 2 katına çıkarsa hacim de, ağırlık da 2 katına çıkar. Basınç değişmez. Bu yüzden türdeş ve dik kesitli (prizma, silindir) bir cismin zemine basıncını yalnız **yüksekliği** ($h$) ve maddesinin **yoğunluğu** ($d$) belirler:
+
+$$P = h \times d \times g$$
+
+Böyle bir cisim düşey olarak ikiye kesilirse yükseklik değişmez, basınç da değişmez. Yatay olarak kesilip üst parçası kaldırılırsa yükseklik azalır, basınç da azalır.`,
+        kontrol: {
+          soru: 'K kütüğünün zemine basıncı, L kütüğününkinin kaç katıdır?',
+          secenekler: ['2 katıdır.', 'Yarısıdır.', 'Taban alanları bilinmeden bulunamaz.'],
+          dogru: 0,
+          aciklama: r`İki kütük aynı ağaçtandır; yoğunlukları aynıdır. Basınç yalnız yüksekliğe bağlıdır: $\dfrac{80}{40} = 2$. K'nın basıncı L'ninkinin 2 katıdır.`,
+          yanlisIpucu: 'Türdeş dik bir cisimde basıncı hangi iki nicelik belirliyordu? İki kütükte hangisi farklı?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Elma bahçesinde merdiven',
+        sekil: 'sfT51_merdiven',
+        metin: r`Bahçıvan elma toplamak için dört ayaklı bir merdiveni yumuşak toprağa kuruyor. Merdivenin ağırlığı 100 N, bahçıvanın ağırlığı 700 N'dur. Merdivenin her ayağının toprağa değen alanı 25 cm²'dir. Bahçıvan merdivenin üstündeyken yük dört ayağa eşit dağılıyor.`,
+        adimlar: [
+          {
+            soru: 'Bahçıvan merdivenin üstündeyken ayaklar toprağa toplam ne kadar kuvvet uygular?',
+            secenekler: ['800 N', '700 N', '100 N'],
+            dogru: 0,
+            ipucu: 'Bahçıvanın ağırlığı da merdivenin ayakları üzerinden toprağa aktarılır.',
+            aciklama: r`Kuvvetler toplanır: $100 + 700 = 800$ N.`
+          },
+          {
+            soru: 'Ayakların toprağa uyguladığı basınç kaç N/cm² olur?',
+            secenekler: ['32 N/cm²', '7 N/cm²', '8 N/cm²'],
+            dogru: 2,
+            ipucu: r`Önce dört ayağın toplam alanını bul: $4 \times 25$. Sonra kuvveti bu alana böl.`,
+            aciklama: r`Toplam alan $4 \times 25 = 100$ cm²'dir. $P = \dfrac{800}{100} = 8$ N/cm² olur.`
+          },
+          {
+            soru: 'Ayaklar toprağa batınca bahçıvan her ayağın altına 100 cm²\'lik bir tahta pabuç koyuyor. Pabuçların ağırlığı önemsenmiyor. Basınç kaç N/cm² olur?',
+            secenekler: ['8 N/cm²', '2 N/cm²', '32 N/cm²'],
+            dogru: 1,
+            ipucu: r`Toprağa artık pabuçlar değiyor. Yeni toplam alan $4 \times 100$ olur.`,
+            aciklama: r`Yeni toplam alan $4 \times 100 = 400$ cm²'dir. $P = \dfrac{800}{400} = 2$ N/cm² olur. Alan 4 katına çıktı, basınç 4'te 1'ine indi.`
+          }
+        ],
+        sonuc: 'Ağırlık değişmedi ama alan 4 katına çıkınca basınç 4\'te 1\'ine indi. Yumuşak zeminde batmamak için alan büyütülür.'
+      },
+      {
+        baslik: 'Antik kentte taş sütun',
+        metin: r`Antik bir kentte tek parça bir taş sütun dik duruyor. Sütun türdeş bir silindirdir. Yüksekliği 6 m, taşın yoğunluğu 2500 kg/m³'tür. $g = 10\ \text{m/s}^2$ alınıyor.`,
+        adimlar: [
+          {
+            soru: 'Sütunun taban alanı verilmemiş. Sütunun zemine basıncı yine de bulunabilir mi?',
+            secenekler: ['Hayır; taban alanı bilinmeden basınç bulunamaz.', 'Evet; türdeş dik bir cisimde basınç yalnız yüksekliğe ve yoğunluğa bağlıdır.', 'Hayır; önce sütunun ağırlığı tartılmalıdır.'],
+            dogru: 1,
+            ipucu: 'Kütük örneğini hatırla. Taban alanı büyüyünce ağırlık da aynı oranda büyüyordu.',
+            aciklama: r`Türdeş dik cisimde $P = h \times d \times g$'dir. Taban alanı hem ağırlığı hem alanı aynı oranda değiştirir; basınca etkisi olmaz.`
+          },
+          {
+            soru: 'Sütunun zemine uyguladığı basınç kaç kPa\'dır?',
+            secenekler: ['15', '150', '1500'],
+            dogru: 1,
+            ipucu: r`$P = 6 \times 2500 \times 10$ pascal olur. 1000 Pa, 1 kPa'dır.`,
+            aciklama: r`$P = 6 \times 2500 \times 10 = 150\,000$ Pa olur. Bu, 150 kPa'dır.`
+          },
+          {
+            soru: 'Bir depremde sütunun üstteki 2 m\'lik parçası kırılıp düşüyor. Kalan parçanın zemine basıncı kaç kPa olur?',
+            secenekler: ['50', '150', '100'],
+            dogru: 2,
+            ipucu: 'Kalan sütunun yüksekliği kaç metredir? Yoğunluk değişmedi.',
+            aciklama: r`Kalan yükseklik $6 - 2 = 4$ m'dir. $P = 4 \times 2500 \times 10 = 100\,000$ Pa, yani 100 kPa olur.`
+          }
+        ],
+        sonuc: 'Türdeş dik bir cismin basıncı taban alanına bağlı değildir. Yatay kırılıp kısalan sütunun basıncı, yüksekliğiyle aynı oranda azaldı.'
+      },
+      {
+        baslik: 'Kramponlu ayakkabı',
+        metin: r`Futbolcu Emre'nin ağırlığı 640 N'dur. Emre çimde kramponlu ayakkabılarıyla iki ayağı üstünde duruyor. İki ayakkabının altındaki dişlerin çime değen toplam alanı 32 cm²'dir. Emre spor ayakkabılarıyla dururken ise ayakkabıların yere değen toplam alanı 320 cm²'dir.`,
+        adimlar: [
+          {
+            soru: 'Kramponlu ayakkabılarla Emre\'nin çime uyguladığı basınç kaç N/cm²\'dir?',
+            secenekler: ['2', '20', '640'],
+            dogru: 1,
+            ipucu: r`Kuvvet 640 N, alan 32 cm²'dir. Kuvveti alana böl.`,
+            aciklama: r`$P = \dfrac{640}{32} = 20$ N/cm² olur.`
+          },
+          {
+            soru: 'Kramponla oluşan basınç, spor ayakkabıyla oluşan basıncın kaç katıdır?',
+            secenekler: ['10 katı', '2 katı', 'Eşittir.'],
+            dogru: 0,
+            ipucu: r`Spor ayakkabıyla basınç $\dfrac{640}{320}$ olur. Sonra iki basıncı oranla.`,
+            aciklama: r`Spor ayakkabıyla $P = \dfrac{640}{320} = 2$ N/cm²'dir. $\dfrac{20}{2} = 10$ olur. Alan 10'da 1'i olduğu için basınç 10 katıdır.`
+          },
+          {
+            soru: 'Kramponlar futbolcunun çimde kaymamasına nasıl yardım eder?',
+            secenekler: ['Futbolcunun ağırlığını artırır.', 'Basıncı azaltır ve çimi korur.', 'Dişlerin alanı küçük olduğu için basınç büyüktür; dişler zemine batıp tutunur.'],
+            dogru: 2,
+            ipucu: 'Kramponlar ağırlığı değiştirmez. Küçük alana düşen aynı kuvvet ne yapar?',
+            aciklama: 'Dişlerin alanı küçük olduğu için basınçları büyüktür. Dişler zemine batar ve ayakkabıyı tutar. Futbolcu dönerken ve koşarken kaymaz.'
+          }
+        ],
+        sonuc: 'Aynı ağırlık küçük alana düşünce basınç büyüdü. Bazen basıncı azaltmak (merdiven pabucu), bazen artırmak (krampon) isteriz; ikisinde de alanı değiştiririz.'
+      }
+    ],
+    hazir: r`Basıncın kuvvet ile alana birlikte bağlı olduğunu, $P = \dfrac{F}{A}$ ile hesaplandığını, üst üste konan cisimlerde kuvvetlerin toplandığını ve türdeş dik cisimde basıncı yüksekliğin belirlediğini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -22814,6 +23395,129 @@ BFY_FIG_EKLE('kT52_S3_profil_genis', function (u) {
 });
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfT52_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, arrow, svg, dimV, dashLine } = window.BFY_FIGLIB;
+const zemin = (W, H, r = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${r}"/>`;
+const KIR = '#d24b3e', MAV = '#1f6f9a';
+const yag = u => `<linearGradient id="${u}yag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2c45a"/><stop offset="1" stop-color="#c98a1e"/></linearGradient>`;
+
+/* Şnorkelle yüzen kişi; sağda farklı derinliklerde her yöne etki eden basınç okları (derinlikle büyür) */
+BFY_FIG_EKLE('sfT52_snorkel', function (u) {
+  const W = 340, H = 262, ys = 64;
+  let s = zemin(W, H, '#dcecf7');
+  s += `<defs><linearGradient id="${u}den" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ee"/><stop offset="1" stop-color="#1f6f9a"/></linearGradient>` +
+    `<linearGradient id="${u}giy" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a4a5a"/><stop offset="1" stop-color="#1d2733"/></linearGradient></defs>`;
+  s += `<rect x="0" y="${ys}" width="${W}" height="${H - ys}" rx="14" fill="url(#${u}den)"/><rect x="0" y="${ys}" width="${W}" height="14" fill="url(#${u}den)"/>`;
+  s += `<path d="M0 ${ys} q20 -5 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0" fill="none" stroke="#fff" stroke-width="2" opacity=".8"/>`;
+  // yüzücü (yüzüstü, sağa bakıyor), gövde yüzeyin hemen altında
+  const by = 92;
+  s += `<path d="M22 ${by - 4} l-14 -8 l4 10 l-4 10 l14 -6 Z" fill="#f2c94c" stroke="#b8901f" stroke-width="1"/>`;
+  s += `<path d="M24 ${by - 3} Q60 ${by - 9} 92 ${by - 6} L92 ${by + 4} Q60 ${by + 6} 24 ${by + 4} Z" fill="url(#${u}giy)"/>`;
+  s += `<ellipse cx="124" cy="${by}" rx="36" ry="13" fill="url(#${u}giy)"/>`;
+  s += `<path d="M150 ${by + 2} Q186 ${by + 8} 214 ${by + 2}" fill="none" stroke="url(#${u}skin)" stroke-width="8" stroke-linecap="round"/>`;
+  s += `<circle cx="170" cy="${by - 4}" r="13" fill="url(#${u}skin)" stroke="#b07a55" stroke-width="1"/>`;
+  s += `<rect x="172" y="${by - 6}" width="14" height="12" rx="3" fill="#7cc3e8" stroke="#1d5a86" stroke-width="2"/>`;
+  s += `<path d="M168 ${by + 8} q6 6 12 0 V${ys - 26}" fill="none" stroke="#e7a93b" stroke-width="5" stroke-linecap="round"/>`;
+  s += T(186, ys - 30, 'şnorkel', { size: 14, weight: 800, fill: P.ink });
+  // derinlik ve basınç okları (her yöne)
+  const sx = 280;
+  s += `<line x1="${sx - 52}" y1="${ys}" x2="${sx - 52}" y2="${H - 14}" stroke="#fff" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+  [[ys + 52, 9], [ys + 104, 14], [ys + 156, 19]].forEach(([y, L]) => {
+    s += `<circle cx="${sx}" cy="${y}" r="5" fill="#fff"/>`;
+    s += arrow(sx, y - 7 - L, sx, y - 7, { color: KIR, w: 2.6, head: 8, headW: 4.5 }) + arrow(sx, y + 7 + L, sx, y + 7, { color: KIR, w: 2.6, head: 8, headW: 4.5 });
+    s += arrow(sx - 7 - L, y, sx - 7, y, { color: KIR, w: 2.6, head: 8, headW: 4.5 }) + arrow(sx + 7 + L, y, sx + 7, y, { color: KIR, w: 2.6, head: 8, headW: 4.5 });
+  });
+  s += T(sx - 58, ys + 56, '1 m', { size: 14, weight: 800, anchor: 'end', fill: '#fff', haloColor: MAV }) + T(sx - 58, ys + 108, '2 m', { size: 14, weight: 800, anchor: 'end', fill: '#fff', haloColor: MAV }) + T(sx - 58, ys + 160, '3 m', { size: 14, weight: 800, anchor: 'end', fill: '#fff', haloColor: MAV });
+  s += T(20, 196, 'Derine indikçe', { size: 15, weight: 800, fill: '#fff', haloColor: MAV }) + T(20, 216, 'basınç artar.', { size: 15, weight: 800, fill: '#fff', haloColor: MAV });
+  s += T(W - 10, 22, 'su yüzeyi', { size: 14, weight: 800, anchor: 'end', fill: P.ink });
+  return svg(W, H, s, u, 80);
+});
+
+/* Kuyu kesiti: pompa serbest yüzeyden 9 m aşağıda, tabandan 2 m yukarıda (ölçekli değil) */
+BFY_FIG_EKLE('sfT52_kuyu', function (u) {
+  const W = 340, H = 284, yg = 40, yw = 84, yp = 206, yt = 244, x1 = 120, x2 = 214;
+  let s = zemin(W, H, '#e6f1dc');
+  s += `<defs><pattern id="${u}tas" width="24" height="14" patternUnits="userSpaceOnUse"><rect width="24" height="14" fill="#b8ad99"/><rect x="1" y="1" width="22" height="12" rx="3" fill="#d6ccb8"/></pattern>` + yag(u) + `</defs>`;
+  s += `<rect x="10" y="${yg}" width="${W - 20}" height="${H - yg - 10}" rx="6" fill="url(#${u}soil)"/><rect x="10" y="${yg - 6}" width="${W - 20}" height="8" rx="3" fill="#6fa856"/>`;
+  s += `<rect x="${x1 - 14}" y="${yg - 18}" width="14" height="${yt - yg + 30}" fill="url(#${u}tas)"/><rect x="${x2}" y="${yg - 18}" width="14" height="${yt - yg + 30}" fill="url(#${u}tas)"/>`;
+  s += `<rect x="${x1 - 14}" y="${yt + 10}" width="${x2 - x1 + 28}" height="8" fill="#8a7a62"/>`;
+  s += `<rect x="${x1}" y="${yg}" width="${x2 - x1}" height="${yw - yg}" fill="#2a3a44" opacity=".35"/>`;
+  s += `<rect x="${x1}" y="${yw}" width="${x2 - x1}" height="${yt + 10 - yw}" fill="url(#${u}water)"/>`;
+  s += `<line x1="${x1}" y1="${yw}" x2="${x2}" y2="${yw}" stroke="#e9f6fd" stroke-width="2.4"/>`;
+  // ip, hortum ve pompa
+  const px = 140;
+  s += `<line x1="${px + 10}" y1="${yg - 22}" x2="${px + 10}" y2="${yp - 18}" stroke="#d9c79a" stroke-width="2"/>`;
+  s += `<path d="M${px} ${yg - 22} V${yp - 18}" stroke="#2b2f33" stroke-width="5" fill="none"/>`;
+  s += `<rect x="${px - 10}" y="${yp - 18}" width="26" height="36" rx="7" fill="url(#${u}metalV)" stroke="#4b5258" stroke-width="1.2"/>`;
+  for (let i = 0; i < 3; i++) s += `<line x1="${px - 6}" y1="${yp + 4 + i * 4}" x2="${px + 12}" y2="${yp + 4 + i * 4}" stroke="#4b5258" stroke-width="1.2"/>`;
+  s += `<path d="M${px - 30} ${yg - 22} h60" stroke="#5c4a32" stroke-width="5" stroke-linecap="round"/>`;
+  // ölçüler
+  s += dimV(x1 - 30, yw, yp, '9 m', { side: 'left', size: 15 });
+  s += dimV(x2 + 30, yp, yt + 10, '2 m', { side: 'right', size: 15 });
+  s += dashLine(x2 + 14, yp, x2 + 36, yp, P.ink2, '4 3', 1.2) + dashLine(x1 - 36, yp, x1 - 14, yp, P.ink2, '4 3', 1.2);
+  s += `<line x1="${x2 + 14}" y1="${yw}" x2="${x2 + 44}" y2="${yw - 12}" stroke="${P.ink}" stroke-width="1.2"/>` + T(x2 + 48, yw - 14, 'serbest', { size: 14, weight: 800, fill: P.ink }) + T(x2 + 48, yw + 2, 'yüzey', { size: 14, weight: 800, fill: P.ink });
+  s += T(px + 22, yp - 22, 'pompa', { size: 14, weight: 800, fill: '#fff', haloColor: '#1f5f86' });
+  s += T((x1 + x2) / 2, yt + 34, 'taban', { size: 14, weight: 800, anchor: 'middle', fill: P.ink });
+  return svg(W, H, s, u, 80);
+});
+
+/* Damperli kamyon hidrolik modeli: küçük piston 4 cm², 300 N; büyük piston 400 cm²; pistonlar aynı düzeyde */
+BFY_FIG_EKLE('sfT52_damper', function (u) {
+  const W = 340, H = 262, yP = 112, yb = 214;
+  let s = zemin(W, H);
+  s += `<defs>${yag(u)}<linearGradient id="${u}kas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e98a6f"/><stop offset="1" stop-color="#b64b30"/></linearGradient></defs>`;
+  // yağ: küçük silindir, alt boru, büyük silindir
+  const kx1 = 46, kx2 = 70, bx1 = 168, bx2 = 300;
+  s += `<path d="M${kx1} ${yP} V${yb} H${bx2} V${yP} H${bx1} V${yb - 26} H${kx2} V${yP} Z" fill="url(#${u}yag)"/>`;
+  s += `<path d="M${kx1} ${yP - 40} V${yb} H${bx2} V${yP - 40} M${bx1} ${yP - 40} V${yb - 26} H${kx2} V${yP - 40}" fill="none" stroke="#4b5258" stroke-width="4" stroke-linejoin="round"/>`;
+  // pistonlar
+  s += `<rect x="${kx1 + 2}" y="${yP - 10}" width="${kx2 - kx1 - 4}" height="10" fill="url(#${u}metal)" stroke="#4b5258" stroke-width="1"/><rect x="${(kx1 + kx2) / 2 - 3}" y="${yP - 46}" width="6" height="36" fill="url(#${u}metalV)" stroke="#4b5258" stroke-width=".8"/>`;
+  s += `<rect x="${bx1 + 2}" y="${yP - 12}" width="${bx2 - bx1 - 4}" height="12" fill="url(#${u}metal)" stroke="#4b5258" stroke-width="1"/>`;
+  // büyük pistonun ittiği kasa
+  s += `<rect x="${bx1 + 50}" y="${yP - 46}" width="30" height="34" fill="url(#${u}metalV)" stroke="#4b5258" stroke-width="1"/>`;
+  s += `<path d="M${bx1 - 6} ${yP - 46} L${bx2 + 22} ${yP - 46} L${bx2 + 14} ${yP - 86} L${bx1 + 2} ${yP - 86} Z" fill="url(#${u}kas)" stroke="#7d2f1c" stroke-width="1.4"/>`;
+  s += `<path d="M${bx1 + 14} ${yP - 76} q20 -12 40 0 q14 -14 34 -4 q18 -10 34 2" fill="#a07a50" opacity=".9"/>`;
+  s += T((bx1 + bx2) / 2 + 6, yP - 54, 'kasa', { size: 14, weight: 800, anchor: 'middle', fill: '#fff', haloColor: '#7d2f1c' });
+  // kuvvetler
+  s += arrow((kx1 + kx2) / 2, yP - 94, (kx1 + kx2) / 2, yP - 50, { color: KIR, w: 3.2, head: 10, headW: 6 }) + T((kx1 + kx2) / 2 + 12, yP - 76, 'F₁ = 300 N', { size: 15, weight: 800, fill: KIR });
+  s += arrow(bx1 + 30, yP - 14, bx1 + 30, yP - 40, { color: '#2f8f5b', w: 3.2, head: 10, headW: 6 }) + T(bx1 + 22, yP - 24, 'F₂', { size: 15, weight: 800, anchor: 'end', fill: '#2f8f5b' });
+  // alanlar ve yağ
+  s += T(kx2 + 8, yP + 22, 'A₁ = 4 cm²', { size: 15, weight: 800, fill: P.ink });
+  s += T((bx1 + bx2) / 2, yP + 34, 'A₂ = 400 cm²', { size: 15, weight: 800, anchor: 'middle', fill: P.ink });
+  s += T((kx2 + bx1) / 2 + 20, yb - 6, 'yağ', { size: 15, weight: 800, anchor: 'middle', fill: '#7a4a10' });
+  s += T(W / 2, H - 14, '(Pistonlar aynı düzeyde, şekil ölçekli değil.)', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Yolun altından geçen kanal borusu: batıda yüzey 40 cm yüksek, vana kapalı (yandan kesit) */
+BFY_FIG_EKLE('sfT52_menfez', function (u) {
+  const W = 340, H = 250, yb = 206, yB = 104, yD = 146, yr = 76;
+  let s = zemin(W, H, '#e6f1dc');
+  s += `<defs><linearGradient id="${u}asf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b6168"/><stop offset="1" stop-color="#3a3f44"/></linearGradient></defs>`;
+  // toprak, kanal yatakları ve yol dolgusu
+  s += `<path d="M10 ${yr + 14} H24 L34 ${yb} H118 L128 ${yr} H212 L222 ${yb} H306 L316 ${yr + 14} H330 V${H - 10} H10 Z" fill="url(#${u}soil)"/>`;
+  s += `<rect x="124" y="${yr - 8}" width="92" height="10" rx="2" fill="url(#${u}asf)"/>`;
+  [140, 160, 180, 200].forEach(x => { s += `<line x1="${x}" y1="${yr - 3}" x2="${x + 10}" y2="${yr - 3}" stroke="#f2f2f2" stroke-width="2"/>`; });
+  // sular
+  s += `<path d="M${24 + 10 * (yB - yr - 14) / (yb - yr - 14)} ${yB} H${118 + 10 * (yb - yB) / (yb - yr)} L118 ${yb} H34 Z" fill="url(#${u}water)" opacity=".92"/>`;
+  s += `<path d="M${212 + 10 * (yD - yr) / (yb - yr)} ${yD} H${306 + 10 * (yb - yD) / (yb - yr - 14)} L306 ${yb} H222 Z" fill="url(#${u}water)" opacity=".92"/>`;
+  // boru ve vana
+  s += `<rect x="110" y="${yb - 22}" width="120" height="18" fill="url(#${u}concrete)" stroke="#6f7980" stroke-width="1.2"/>`;
+  s += `<rect x="112" y="${yb - 19}" width="116" height="12" fill="#7cc3e8" opacity=".9"/>`;
+  s += `<rect x="166" y="${yb - 24}" width="8" height="22" fill="#4b5258"/><line x1="170" y1="${yb - 24}" x2="170" y2="${yr - 16}" stroke="#4b5258" stroke-width="3"/>`;
+  s += `<ellipse cx="170" cy="${yr - 18}" rx="12" ry="4" fill="none" stroke="#d24b3e" stroke-width="3"/>`;
+  s += T(186, yr - 18, 'vana', { size: 14, weight: 800, fill: P.ink });
+  // düzey farkı
+  s += dashLine(126, yB, 296, yB, P.ink2, '5 4', 1.4);
+  s += dimV(300, yB, yD, '40 cm', { side: 'left', size: 15 });
+  s += T(76, 176, 'batı', { size: 15, weight: 800, anchor: 'middle', fill: '#fff', haloColor: '#1f5f86' }) + T(264, 182, 'doğu', { size: 15, weight: 800, anchor: 'middle', fill: '#fff', haloColor: '#1f5f86' });
+  s += T(146, yr + 62, 'yol', { size: 15, weight: 800, anchor: 'middle', fill: P.ink });
+  s += T(W / 2, H - 16, 'Şekil yandan kesittir.', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -22850,6 +23554,196 @@ const KONU = {
     'SET 3: köy içme suyu hattı, PE100 SDR-PN tablosu (EN 12201-2): depo su yüzeyi 1186 m, A 1165, B 1112, C 1131, köy musluğu 1158 m; 7,4 bar, 2,8 bar, 63 ve 110 mm boru',
     'simülasyon: hidrolik kaldıraç, küçük piston 5 cm², büyük 50/100/200 cm², 20–300 N, 500 kg görevi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.5.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Sıvıların neden bastırdığını, bu basıncın neye bağlı olduğunu ve sıvı basıncıyla çalışan sistemleri kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Su da ağırlığıyla bastırır',
+        sekil: 'sfT52_snorkel',
+        metin: r`Denizde şnorkelle yüzüyorsun. Şnorkel, ağzından su yüzeyine uzanan kısa bir borudur. Su yüzeyinin hemen altındayken rahat nefes alırsın. Ama göğsün 1 m derine inseydi, uzun bir boruyla bile nefes almak çok zorlaşırdı.
+
+Suyun da ağırlığı vardır. Göğsünün üstündeki su, ağırlığıyla göğsüne bastırır. Derine indikçe üstündeki su artar ve bu baskı büyür. Nefes alırken göğsünü bu baskıya karşı genişletmen gerekir. Şnorkellerin kısa yapılmasının bir nedeni budur.
+
+Durgun bir sıvının içinde **derinlik arttıkça sıvı basıncı artar**. Sıvı basıncı her yöne etki eder: göğsüne önden, sırtına arkadan, kollarına yanlardan da bastırır.`,
+        kontrol: {
+          soru: 'Bir gölde K noktası su yüzeyinden 1 m, L noktası 3 m derindedir. Suyun basıncı hangi noktada daha büyüktür?',
+          secenekler: ['L noktasında', 'K noktasında', 'İkisinde eşittir.'],
+          dogru: 0,
+          aciklama: 'L noktasının üstünde daha çok su vardır. Derinlik arttıkça sıvı basıncı artar; basınç L noktasında büyüktür.',
+          yanlisIpucu: 'Hangi noktanın üstünde daha yüksek bir su sütunu var?'
+        }
+      },
+      {
+        baslik: 'Derinlik yüzeyden ölçülür: P = h × d × g',
+        sekil: 'sfT52_kuyu',
+        metin: r`Bir bahçe kuyusunda su var. Suyu yukarı basan bir pompa, ipiyle suyun içine sarkıtılmış. Pompa, kuyudaki su yüzeyinden 9 m aşağıda, kuyunun tabanından ise 2 m yukarıdadır.
+
+Sıvının açık havaya değen üst yüzeyine **serbest yüzey** denir. Bir noktanın **derinliği** ($h$), o noktanın serbest yüzeyden aşağı doğru düşey uzaklığıdır. Derinlik tabandan ölçülmez. Pompanın derinliği 9 m'dir.
+
+Durgun bir sıvının bir noktada oluşturduğu basınç:
+
+$$P = h \times d \times g$$
+
+- $h$: derinlik (m).
+- $d$: sıvının yoğunluğu (kg/m³). Su için $d = 1000\ \text{kg/m}^3$'tür.
+- $g$: yer çekimi ivmesi, $10\ \text{m/s}^2$.
+
+Bu bağıntı yalnız sıvının oluşturduğu basıncı verir. Serbest yüzeye bastıran açık hava basıncını burada hesaba katmıyoruz.
+
+Pompadaki su basıncı $P = 9 \times 1000 \times 10 = 90\,000$ Pa, yani 90 kPa olur.`,
+        kontrol: {
+          soru: 'Yazın kuyudaki su azalıyor ve su yüzeyi 4 m alçalıyor. Pompa yerinden oynamıyor. Pompadaki su basıncı kaç kPa olur?',
+          secenekler: ['90', '50', '20'],
+          dogru: 1,
+          aciklama: r`Pompanın yeni derinliği $9 - 4 = 5$ m'dir. $P = 5 \times 1000 \times 10 = 50\,000$ Pa, yani 50 kPa olur.`,
+          yanlisIpucu: 'Derinlik serbest yüzeyden ölçülür. Yüzey 4 m alçalınca pompanın üstünde kaç metre su kalır?'
+        }
+      },
+      {
+        baslik: 'Kabın biçimi ve su miktarı önemsiz',
+        metin: r`Bir su bardağında 10 cm yüksekliğinde su var. Olimpik bir yüzme havuzunda da yüzeyden 10 cm derindeki bir noktayı düşün. Havuzda, bardaktakinin milyonlarca katı su var. Peki havuzdaki o noktada basınç daha mı büyüktür?
+
+Hayır. $P = h \times d \times g$ bağıntısında kabın biçimi, genişliği ya da sıvının miktarı yoktur. İki noktada da derinlik 10 cm ve sıvı aynı sudur. Basınçlar eşittir.
+
+Sıvı basıncını yalnız iki şey değiştirir: **derinlik** ve sıvının **yoğunluğu**. Yoğunluğu büyük olan sıvı, aynı derinlikte daha çok bastırır.`,
+        kontrol: {
+          soru: 'Bir bardakta 10 cm, bir sürahide 10 cm, geniş bir kovada 5 cm yüksekliğinde su var. Hangisinin tabanında su basıncı en küçüktür?',
+          secenekler: ['Sürahinin', 'Kovanın', 'Bardağın'],
+          dogru: 1,
+          aciklama: 'Basınç yalnız derinliğe ve yoğunluğa bağlıdır. Sıvı aynı olduğu için derinliği en küçük olan kovanın tabanında basınç en küçüktür. Kovadaki suyun fazla olması basıncı büyütmez.',
+          yanlisIpucu: 'Suyun miktarına değil, yüksekliğine bak.'
+        }
+      },
+      {
+        baslik: 'Bileşik kaplarda yüzeyler aynı düzeyde',
+        metin: r`Şeffaf bir hortumu U biçiminde tutup içine su doldur. Hortumun iki ucunu yukarıda tut. Bir ucu biraz yükseltip öbürünü alçaltsan da iki uçtaki su yüzeyleri hep **aynı yatay düzeyde** kalır.
+
+Üstü açık ve birbirine alttan bağlı kaplara **bileşik kaplar** denir. Bileşik kaplarda tek tür sıvı durgun hâldeyken bütün kollardaki serbest yüzeyler aynı düzeydedir. Kolların biçimi ve genişliği bunu değiştirmez.
+
+Bir koldaki yüzey daha yüksekse alttaki bağlantıda o tarafın basıncı daha büyüktür. Sıvı, basıncın büyük olduğu taraftan küçük olduğu tarafa akar. Akış, yüzeyler aynı düzeye gelince durur.`,
+        kontrol: {
+          soru: 'Hortumun bir ucuna geniş bir huni takılıyor ve içine biraz daha su ekleniyor. Su durgun hâle gelince huni ve öbür uçtaki su yüzeyleri nasıl olur?',
+          secenekler: ['Huni geniş olduğu için huninin yüzeyi daha alçakta kalır.', 'İki yüzey aynı yatay düzeyde olur.', 'Huni geniş olduğu için huninin yüzeyi daha yüksekte kalır.'],
+          dogru: 1,
+          aciklama: 'Kolların biçimi ve genişliği önemli değildir. Tek tür durgun sıvıda bileşik kabın bütün yüzeyleri aynı yatay düzeyde durur.',
+          yanlisIpucu: 'Bileşik kaplarda kolun genişliği yüzeyin düzeyini değiştirir mi?'
+        }
+      },
+      {
+        baslik: 'Sıvı basıncı iletir: Pascal ilkesi',
+        sekil: 'sfT52_damper',
+        metin: r`Kapalı bir kaptaki sıvıya bir yerden ek basınç uygulanırsa bu ek basınç sıvının **her noktasına aynen** iletilir. Buna **Pascal ilkesi** denir.
+
+Damperli kamyonun kasasını bir hidrolik sistem kaldırır. Basit bir modelde, yağ dolu kapalı bir boruyla birbirine bağlı iki piston düşünelim. Pistonlar aynı düzeyde, sürtünmeler önemsiz olsun. Küçük pistonun alanı 4 cm², kasayı iten büyük pistonun alanı 400 cm²'dir. Küçük pistona 300 N kuvvet uygulanıyor.
+
+- Küçük piston yağa $\dfrac{300}{4} = 75$ N/cm² ek basınç uygular.
+- Bu ek basınç büyük pistona aynen iletilir. Büyük piston $75 \times 400 = 30\,000$ N kuvvet uygular.
+
+$$\dfrac{F_1}{A_1} = \dfrac{F_2}{A_2}$$
+
+Alan 100 katı olduğu için kuvvet de 100 katı olur.`,
+        kontrol: {
+          soru: 'Aynı sistemde küçük pistona 600 N kuvvet uygulanırsa büyük piston kaç N kuvvet uygular?',
+          secenekler: ['6', '30 000', '60 000'],
+          dogru: 2,
+          aciklama: r`Ek basınç $\dfrac{600}{4} = 150$ N/cm² olur. Büyük piston $150 \times 400 = 60\,000$ N kuvvet uygular. Küçük pistondaki kuvvet 2 katına çıkınca büyük pistondaki kuvvet de 2 katına çıktı.`,
+          yanlisIpucu: 'Önce küçük pistonun oluşturduğu ek basıncı bul. Sonra bu basıncı büyük pistonun alanıyla çarp.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Teknedeki delik',
+        metin: r`Gölde duran bir balıkçı teknesinin gövdesinde, su yüzeyinin 1 m altında kalan bir yerde küçük bir delik açılıyor. Deliğin alanı 10 cm²'dir. Göl suyunun yoğunluğu 1000 kg/m³, $g = 10\ \text{m/s}^2$ alınıyor. Teknenin içinde de dışında da aynı açık hava olduğu için açık hava basıncını hesaba katmıyoruz.`,
+        adimlar: [
+          {
+            soru: 'Deliğin bulunduğu derinlikte suyun basıncı kaç Pa\'dır?',
+            secenekler: ['1000', '10 000', '100 000'],
+            dogru: 1,
+            ipucu: r`$P = h \times d \times g = 1 \times 1000 \times 10$ olur.`,
+            aciklama: r`$P = 1 \times 1000 \times 10 = 10\,000$ Pa olur.`
+          },
+          {
+            soru: r`$1\ \text{N/cm}^2$, $10\,000$ Pa'dır. Delikteki su basıncı kaç N/cm² eder?`,
+            secenekler: ['1', '10', '100'],
+            dogru: 0,
+            ipucu: r`Bulduğun basınç, $10\,000$ Pa'nın kaç katıdır?`,
+            aciklama: r`$10\,000$ Pa, $1$ N/cm²'dir. Delikteki her 1 cm²'ye 1 N kuvvet düşer.`
+          },
+          {
+            soru: 'Delik, 10 cm²\'lik bir tıkaçla kapatılıyor. Su tıkaca kaç N kuvvet uygular?',
+            secenekler: ['1', '100', '10'],
+            dogru: 2,
+            ipucu: r`Kuvvet, basınç ile alanın çarpımıdır: $F = P \times A$.`,
+            aciklama: r`$F = P \times A = 1 \times 10 = 10$ N olur.`
+          }
+        ],
+        sonuc: 'Su tıkaca 10 N kuvvet uygular. Bu, kütlesi 1 kg olan bir cismin ağırlığı kadardır; tıkaç elle rahatça tutulabilir. Delik daha derinde olsaydı basınç da kuvvet de daha büyük olurdu.'
+      },
+      {
+        baslik: 'Ağzına kadar dolu şişe',
+        metin: r`Cam bir şişe ağzına kadar suyla dolu; içinde hiç hava yok. Şişenin ağzına alanı 2 cm² olan bir tıpa yerleştiriliyor ve tıpaya 60 N kuvvetle bastırılıyor. Şişenin tabanının alanı 40 cm²'dir. Su sıkıştırılamaz kabul ediliyor.`,
+        adimlar: [
+          {
+            soru: 'Tıpa suya kaç N/cm² ek basınç uygular?',
+            secenekler: ['30', '120', '60'],
+            dogru: 0,
+            ipucu: r`Basınç, kuvvetin alana bölümüdür: $\dfrac{60}{2}$.`,
+            aciklama: r`Ek basınç $\dfrac{60}{2} = 30$ N/cm² olur.`
+          },
+          {
+            soru: 'Şişenin tabanında basınç ne kadar artar?',
+            secenekler: ['Hiç artmaz; tıpa tabandan uzaktadır.', '30 N/cm² artar.', '15 N/cm² artar.'],
+            dogru: 1,
+            ipucu: 'Pascal ilkesini hatırla: Kapalı kaptaki sıvıya uygulanan ek basınç nereye iletilir?',
+            aciklama: 'Pascal ilkesine göre ek basınç sıvının her noktasına aynen iletilir. Tabandaki basınç da 30 N/cm² artar.'
+          },
+          {
+            soru: 'Bu ek basınç şişenin tabanına toplam kaç N ek kuvvet uygular?',
+            secenekler: ['1200', '60', '30'],
+            dogru: 0,
+            ipucu: r`$F = P \times A$: ek basıncı taban alanıyla çarp.`,
+            aciklama: r`$F = 30 \times 40 = 1200$ N olur.`
+          }
+        ],
+        sonuc: 'Tıpaya yalnız 60 N uygulandı ama tabana 1200 N ek kuvvet geldi. Tıpaya çok büyük bir kuvvetle bastırılırsa ağzına kadar dolu şişenin dibi bu yüzden kırılabilir.'
+      },
+      {
+        baslik: 'Yolun altından geçen kanal',
+        sekil: 'sfT52_menfez',
+        metin: r`Tarlaları sulayan bir kanal, bir köy yolunun altından geçen bir boruyla yolun öbür yanındaki kanala bağlıdır. Borunun ortasında bir vana var. Vana kapalıyken batıdaki kanalda su yüzeyi, doğudakinden 40 cm yüksektedir. Yolun iki yanındaki kanal bölümleri aynı genişlikte ve aynı uzunluktadır. Kanallara başka su girip çıkmıyor.`,
+        adimlar: [
+          {
+            soru: 'Vana açılınca su hangi yöne akar?',
+            secenekler: ['Doğudan batıya', 'Batıdan doğuya', 'Hiçbir yöne akmaz.'],
+            dogru: 1,
+            ipucu: 'Borunun içinde, su yüzeyi yüksek olan taraftaki basınç mı büyüktür, alçak olan taraftaki mi?',
+            aciklama: 'Batıda su yüzeyi daha yüksektir. Borudaki su, batı tarafından daha büyük bir basınçla itilir. Su batıdan doğuya akar.'
+          },
+          {
+            soru: 'Akış, iki yüzey aynı yatay düzeye gelince durur. Akış durana kadar doğudaki su yüzeyi kaç cm yükselir?',
+            secenekler: ['40', '20', '10'],
+            dogru: 1,
+            ipucu: 'Batıdan giden su doğuya gelir. Kanal bölümleri aynı genişlikte ve aynı uzunlukta olduğu için batı ne kadar alçalırsa doğu o kadar yükselir.',
+            aciklama: 'Batıdaki yüzey 20 cm alçalır, doğudaki yüzey 20 cm yükselir. Aradaki 40 cm\'lik fark kapanır ve yüzeyler aynı düzeye gelince akış durur.'
+          },
+          {
+            soru: 'Bir gün boru çamurla tamamen tıkanıyor. Batıya su verilmeye devam ediliyor. Yüzeyler yine aynı düzeye gelir mi?',
+            secenekler: ['Hayır; kanallar artık alttan bağlı değildir, bileşik kap olmaktan çıkar.', 'Evet; bileşik kaplarda yüzeyler her zaman eşitlenir.', 'Evet; ama yalnız kanallar aynı genişlikteyse.'],
+            dogru: 0,
+            ipucu: 'Bileşik kabın tanımını hatırla. Tıkanan boru kapları birbirine bağlar mı?',
+            aciklama: 'Bileşik kap olmak için kapların alttan birbirine bağlı olması gerekir. Boru tıkanınca su geçemez; iki kanal ayrı kaplar gibi davranır.'
+          }
+        ],
+        sonuc: 'Su, yüzeyi yüksek olan taraftan alçak olana aktı ve yüzeyler eşitlenince durdu. Bunun için kapların alttan açık bir yolla bağlı olması gerekir.'
+      }
+    ],
+    hazir: r`Sıvı basıncının derinlikle arttığını, $P = h \times d \times g$ ile hesaplandığını, kabın biçimine bağlı olmadığını, bileşik kaplarda yüzeylerin eşitlendiğini ve Pascal ilkesini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.`
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
