@@ -29065,6 +29065,117 @@ BFY_FIG_EKLE('iT62_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 78 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfT62_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const INK = P.ink, KR = '#d0342c', GL = '#ffe58a', YS = '#2f8f5b', MV = '#2f7fb8', KO = '#d9573b';
+const zemin = (W, H, c = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${c}"/>`;
+const tel = (pts, c = INK, w = 2.4) => `<polyline points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const dugum = (x, y) => `<circle cx="${x}" cy="${y}" r="3.8" fill="${INK}"/>`;
+const yaz = (x, y, s, o = {}) => T(x, y, s, Object.assign({ size: 15, weight: 800 }, o));
+function yerel(x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L, mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+  return { mx, my, g: (t, h) => [mx + ux * t - uy * h, my + uy * t + ux * h] };
+}
+function direnc(x1, y1, x2, y2) {
+  const e = yerel(x1, y1, x2, y2), Lz = 40, A = 7, n = 8, [ax, ay] = e.g(-Lz / 2, 0), [bx, by] = e.g(Lz / 2, 0);
+  let d = `M${f1(ax)} ${f1(ay)}`;
+  for (let i = 0; i < n; i++) { const [px, py] = e.g(-Lz / 2 + (i + 0.5) * Lz / n, i % 2 ? A : -A); d += ` L${f1(px)} ${f1(py)}`; }
+  d += ` L${f1(bx)} ${f1(by)}`;
+  return tel([[x1, y1], [ax, ay]]) + tel([[bx, by], [x2, y2]]) + `<path d="${d}" fill="none" stroke="${KR}" stroke-width="2.3" stroke-linejoin="round"/>`;
+}
+function lamba(x1, y1, x2, y2, o = {}) {
+  const e = yerel(x1, y1, x2, y2), r = 15, [ax, ay] = e.g(-r, 0), [bx, by] = e.g(r, 0);
+  let d = '';
+  for (let i = 0; i <= 7; i++) { const t = -9 + i * 18 / 7, h = i === 0 || i === 7 ? 0 : (i % 2 ? -4 : 4); const [px, py] = e.g(t, h); d += (i ? ' L' : 'M') + f1(px) + ' ' + f1(py); }
+  const [l1x, l1y] = e.g(-r, 0), [l2x, l2y] = e.g(-9, 0), [r1x, r1y] = e.g(9, 0), [r2x, r2y] = e.g(r, 0);
+  return tel([[x1, y1], [ax, ay]]) + tel([[bx, by], [x2, y2]]) +
+    (o.sonuk ? '' : `<circle cx="${f1(e.mx)}" cy="${f1(e.my)}" r="${r + 9}" fill="${GL}" opacity=".55"/><circle cx="${f1(e.mx)}" cy="${f1(e.my)}" r="${r + 4}" fill="${GL}" opacity=".7"/>`) +
+    `<circle cx="${f1(e.mx)}" cy="${f1(e.my)}" r="${r}" fill="${o.sonuk ? '#e6e9eb' : '#fffbe6'}" stroke="${INK}" stroke-width="2"/>` +
+    tel([[l1x, l1y], [l2x, l2y]], INK, 1.5) + tel([[r1x, r1y], [r2x, r2y]], INK, 1.5) +
+    `<path d="${d}" fill="none" stroke="${o.sonuk ? '#9aa3a8' : KR}" stroke-width="1.8" stroke-linejoin="round"/>`;
+}
+/* üreteç: ilk uçta uzun ince (+), ikinci uçta kısa kalın (−) çizgi */
+function pil(x1, y1, x2, y2, o = {}) {
+  const e = yerel(x1, y1, x2, y2), g = 5, [ax, ay] = e.g(-g, 0), [bx, by] = e.g(g, 0);
+  const l = [e.g(-g, -17), e.g(-g, 17)], k = [e.g(g, -9), e.g(g, 9)];
+  const sp = e.g(-g - 10, o.isaretH || -20), sm = e.g(g + 10, o.isaretH || -20);
+  return tel([[x1, y1], [ax, ay]]) + tel([[bx, by], [x2, y2]]) +
+    `<line x1="${f1(l[0][0])}" y1="${f1(l[0][1])}" x2="${f1(l[1][0])}" y2="${f1(l[1][1])}" stroke="${INK}" stroke-width="2.2"/>` +
+    `<line x1="${f1(k[0][0])}" y1="${f1(k[0][1])}" x2="${f1(k[1][0])}" y2="${f1(k[1][1])}" stroke="${INK}" stroke-width="6"/>` +
+    yaz(sp[0], sp[1] + 5, '+', { size: 16, anchor: 'middle', fill: KR }) + yaz(sm[0], sm[1] + 5, '−', { size: 17, anchor: 'middle' });
+}
+/* akım oku: dolu üçgen */
+function okA(x, y, yon, c = MV) {
+  const v = { r: [1, 0], l: [-1, 0], u: [0, -1], d: [0, 1] }[yon], hl = 10, hw = 6, bx = x - v[0] * hl, by = y - v[1] * hl;
+  return `<polygon points="${f1(x)},${f1(y)} ${f1(bx - v[1] * hw)},${f1(by + v[0] * hw)} ${f1(bx + v[1] * hw)},${f1(by - v[0] * hw)}" fill="${c}"/>`;
+}
+
+/* Adım 2: 12 V, 5 Ω ve 7 Ω seri; aynı akım 1 A, potansiyel farklar 5 V ve 7 V */
+BFY_FIG_EKLE('sfT62_seri', function (u) {
+  const W = 340, H = 252, xl = 44, xr = 296, yt = 84, yb = 200;
+  let s = zemin(W, H);
+  s += tel([[xl, yt], [100, yt]]) + direnc(100, yt, 150, yt) + tel([[150, yt], [190, yt]]) + direnc(190, yt, 240, yt) + tel([[240, yt], [xr, yt], [xr, yb], [182, yb]]);
+  s += pil(158, yb, 182, yb) + tel([[158, yb], [xl, yb], [xl, yt]]);
+  s += yaz(125, yt - 20, '5 Ω', { anchor: 'middle' }) + yaz(215, yt - 20, '7 Ω', { anchor: 'middle' });
+  s += `<rect x="98" y="${yt + 18}" width="54" height="28" rx="8" fill="#e3f2e8"/>` + yaz(125, yt + 38, '5 V', { anchor: 'middle', fill: YS });
+  s += `<rect x="188" y="${yt + 18}" width="54" height="28" rx="8" fill="#e3f2e8"/>` + yaz(215, yt + 38, '7 V', { anchor: 'middle', fill: YS });
+  s += yaz(170, yb + 42, '12 V', { anchor: 'middle' });
+  s += okA(xl, 150, 'u') + yaz(xl - 12, 155, '1 A', { anchor: 'end', fill: MV });
+  s += okA(xr, 136, 'd') + yaz(xr + 12, 141, '1 A', { fill: MV });
+  s += okA(172, yt, 'r');
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 4: 12 V, 4 Ω ve 12 Ω paralel; kol akımları 3 A ve 1 A, ana kol 4 A */
+BFY_FIG_EKLE('sfT62_paralel', function (u) {
+  const W = 340, H = 252, xl = 74, xa = 186, xb = 286, yt = 56, yb = 212;
+  let s = zemin(W, H);
+  s += pil(xl, 118, xl, 150, { isaretH: 22 }) + tel([[xl, 118], [xl, yt], [xb, yt], [xb, 108]]) + tel([[xl, 150], [xl, yb], [xb, yb], [xb, 158]]);
+  s += tel([[xa, yt], [xa, 108]]) + direnc(xa, 108, xa, 158) + tel([[xa, 158], [xa, yb]]) + direnc(xb, 108, xb, 158);
+  s += dugum(xa, yt) + dugum(xa, yb);
+  s += yaz(xl - 26, 140, '12 V', { anchor: 'end' });
+  s += yaz(xa - 16, 139, '4 Ω', { anchor: 'end' }) + yaz(xb - 16, 139, '12 Ω', { anchor: 'end' });
+  s += okA(130, yt, 'r') + yaz(130, yt - 14, '4 A', { anchor: 'middle', fill: MV });
+  s += okA(xa, 86, 'd') + yaz(xa + 12, 91, '3 A', { fill: MV });
+  s += okA(xb, 86, 'd') + yaz(xb + 12, 91, '1 A', { fill: MV });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 5: L1 ve L2 seri; S anahtarı L2'nin uçlarına bağlı ve kapalı: L2 kısa devre, söner */
+BFY_FIG_EKLE('sfT62_kisa', function (u) {
+  const W = 340, H = 256, xl = 44, xr = 296, yt = 112, yb = 214, n1 = 178, n2 = 262;
+  let s = zemin(W, H);
+  s += tel([[xl, yt], [86, yt]]) + lamba(86, yt, 136, yt) + tel([[136, yt], [196, yt]]) + lamba(196, yt, 244, yt, { sonuk: true }) + tel([[244, yt], [xr, yt], [xr, yb], [182, yb]]);
+  s += pil(158, yb, 182, yb) + tel([[158, yb], [xl, yb], [xl, yt]]);
+  s += tel([[n1, yt], [n1, 52], [204, 52]], KO, 2.6) + tel([[236, 52], [n2, 52], [n2, yt]], KO, 2.6);
+  s += `<circle cx="204" cy="52" r="3.6" fill="${KO}"/><circle cx="236" cy="52" r="3.6" fill="${KO}"/>` + tel([[204, 52], [236, 52]], KO, 3);
+  s += dugum(n1, yt) + dugum(n2, yt);
+  s += yaz(220, 36, 'S (kapalı)', { anchor: 'middle', fill: KO });
+  s += okA(196, 52, 'r', KO) + okA(n2, 92, 'd', KO);
+  s += yaz(111, yt + 42, 'L_1', { anchor: 'middle' }) + yaz(220, yt + 42, 'L_2', { anchor: 'middle' });
+  s += yaz(220, yt + 62, 'söner', { anchor: 'middle', fill: '#6f7a80', size: 14 });
+  s += yaz(111, yt + 62, 'parlar', { anchor: 'middle', fill: '#b07d12', size: 14 });
+  s += okA(xl, 170, 'u', MV) + okA(xr, 170, 'd', MV);
+  return svg(W, H, s, u, 80);
+});
+
+/* Isınma 3: 24 V, 3 Ω seri; özdeş iki 18 Ω lamba paralel */
+BFY_FIG_EKLE('sfT62_foto', function (u) {
+  const W = 340, H = 262, xl = 76, xa = 202, xb = 296, yt = 58, yb = 222;
+  let s = zemin(W, H);
+  s += pil(xl, 124, xl, 156, { isaretH: 22 }) + tel([[xl, 124], [xl, yt], [104, yt]]) + direnc(104, yt, 156, yt) + tel([[156, yt], [xb, yt], [xb, 112]]);
+  s += tel([[xl, 156], [xl, yb], [xb, yb], [xb, 164]]);
+  s += tel([[xa, yt], [xa, 112]]) + lamba(xa, 112, xa, 164) + tel([[xa, 164], [xa, yb]]) + lamba(xb, 112, xb, 164);
+  s += dugum(xa, yt) + dugum(xa, yb);
+  s += yaz(xl - 26, 146, '24 V', { anchor: 'end' }) + yaz(130, yt - 18, '3 Ω', { anchor: 'middle' });
+  s += yaz(xa - 30, 143, '18 Ω', { anchor: 'end' }) + yaz(xb - 30, 143, '18 Ω', { anchor: 'end' });
+  s += yaz(xa - 30, 124, 'üst', { anchor: 'end', size: 14, weight: 700, fill: P.ink2 }) + yaz(xb - 30, 124, 'yan', { anchor: 'end', size: 14, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -29102,6 +29213,215 @@ const KONU = {
     'SET 3: üç uçlu kapalı kutu, ohmmetre ölçümleri A-B 45,2, A-C 18,1, C-B 26,8, C-A telli A-B 27,0 Ω; A-B kısa devre 10,8 Ω; 9 V ile V_CB 5,4 V',
     'simülasyon: R1 = 4 Ω ve ayarlı R2 (2–30 Ω), 6 V, seri/paralel seçici, ampermetre ve voltmetre, ana kol akımı-R2 grafiği; 4,5 V görevi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.6.2/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Dirençlerin seri ve paralel bağlanmasını, eşdeğer direnci ve kısa devreyi kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Tek yol: seri bağlama',
+        metin: r`Oyuncak bir dinozorun iki gözünde birer küçük lamba var. Pil, sol göz lambası ve sağ göz lambası tek bir tel yolu üzerinde art arda bağlı.
+
+Elemanlar akımın tek bir yolu olacak biçimde art arda bağlanırsa buna **seri bağlama** denir.
+
+- Akım dallanmaz. Pilden çıkan akım önce bir lambadan, sonra öbüründen geçer.
+- Bu yüzden seri bağlı elemanların hepsinden **aynı akım** geçer.
+- Yol bir yerden koparsa akım her yerde durur.`,
+        kontrol: {
+          soru: 'Dinozorun sol göz lambasının teli kopuyor. Ne olur?',
+          secenekler: ['İki göz de söner.', 'Yalnız sol göz söner.', 'Sağ göz daha parlak yanar.'],
+          dogru: 0,
+          aciklama: 'Seri devrede akımın tek bir yolu vardır. Yol koptuğu için akım iki lambadan da geçemez; iki göz de söner.',
+          yanlisIpucu: 'Akım sağ göze ulaşmak için hangi yoldan geçmek zorunda? O yol hâlâ kapalı mı?'
+        }
+      },
+      {
+        baslik: 'Seride dirençler toplanır',
+        sekil: 'sfT62_seri',
+        metin: r`Bir atölyede 12 V'luk bir aküye 5 Ω ve 7 Ω'luk iki direnç seri bağlanıyor.
+
+Birden çok direncin yerine konduğunda devreden aynı akımı geçiren tek dirence **eşdeğer direnç** denir. Seri bağlı dirençler akıma art arda karşı koyar. Bu yüzden eşdeğer direnç, dirençlerin toplamıdır:
+
+$R_{\text{eş}} = R_1 + R_2 = 5 + 7 = 12\ \Omega$
+
+Akım Ohm yasasıyla bulunur: $I = \dfrac{V}{R_{\text{eş}}} = \dfrac{12}{12} = 1\ \text{A}$.
+
+Her direncin uçlarındaki potansiyel fark $V = I \times R$ ile bulunur: 5 Ω'da 5 V, 7 Ω'da 7 V. Toplamları akünün 12 V'udur. Seri bağlamada potansiyel fark dirençlere **paylaşılır**; büyük dirence büyük pay düşer.`,
+        kontrol: {
+          soru: '18 V\'luk bir üretece 2 Ω ve 4 Ω\'luk dirençler seri bağlanıyor. Devreden geçen akım kaç amperdir?',
+          secenekler: ['3', '9', '6'],
+          dogru: 0,
+          aciklama: r`$R_{\text{eş}} = 2 + 4 = 6\ \Omega$ olur. $I = \dfrac{18}{6} = 3\ \text{A}$ bulunur.`,
+          yanlisIpucu: 'Önce iki direnci topla. Sonra üretecin potansiyel farkını bu toplama böl.'
+        }
+      },
+      {
+        baslik: 'Yan yana yollar: paralel bağlama',
+        metin: r`Akülü bir çocuk arabasının iki farı var. Her farın bir ucu akünün (+) kutbundan gelen tele, öbür ucu (−) kutbuna giden tele bağlı. Yani iki farın uçları **aynı iki noktaya** bağlıdır.
+
+Buna **paralel bağlama** denir.
+
+- Paralel bağlı elemanların uçları arasındaki potansiyel fark **aynıdır**. Akü 12 V ise iki farın uçlarında da 12 V vardır.
+- Akım kollara ayrılır. Her far kendi kolundan akım alır.
+- Bir farın teli koparsa öbür far yanmaya devam eder. Evdeki cihazlar da bu yüzden paralel bağlanır.`,
+        kontrol: {
+          soru: 'Arabanın aküsü 12 V\'tur. Sol farın uçları arasındaki potansiyel fark kaç volttur?',
+          secenekler: ['6', '12', '24'],
+          dogru: 1,
+          aciklama: 'Paralel bağlı elemanların uçları aynı iki noktadadır. Bu yüzden her farın uçlarında akünün 12 V\'u vardır.',
+          yanlisIpucu: 'Seri bağlamada potansiyel fark paylaşılıyordu. Farın iki ucu hangi noktalara bağlı?'
+        }
+      },
+      {
+        baslik: 'Paralelde akım paylaşılır',
+        sekil: 'sfT62_paralel',
+        metin: r`Bir okul laboratuvarında 12 V'luk bir güç kaynağına 4 Ω ve 12 Ω'luk iki direnç paralel bağlanıyor. İkisinin de uçlarında 12 V vardır:
+
+- 4 Ω'luk koldan $\dfrac{12}{4} = 3\ \text{A}$ geçer.
+- 12 Ω'luk koldan $\dfrac{12}{12} = 1\ \text{A}$ geçer.
+
+Ana koldaki akım, kol akımlarının toplamıdır: $I = 3 + 1 = 4\ \text{A}$. Küçük dirençli koldan büyük akım geçer.
+
+Güç kaynağından aynı 4 A'i çeken tek direnç $R_{\text{eş}} = \dfrac{12}{4} = 3\ \Omega$'dur. Bu değer, küçük direnç olan 4 Ω'dan bile küçüktür. Her yeni kol akım için bir yol daha demektir; bu yüzden eşdeğer direnç küçülür. İki paralel direnç için kısa yol: $R_{\text{eş}} = \dfrac{R_1 \times R_2}{R_1 + R_2}$.`,
+        kontrol: {
+          soru: 'Paralel bağlı 10 Ω ve 40 Ω\'luk iki direncin eşdeğer direnci kaç ohmdur?',
+          secenekler: ['50', '25', '8'],
+          dogru: 2,
+          aciklama: r`$R_{\text{eş}} = \dfrac{10 \times 40}{10 + 40} = \dfrac{400}{50} = 8\ \Omega$ olur. Sonuç, küçük direnç olan 10 Ω'dan da küçüktür.`,
+          yanlisIpucu: 'Kısa yolu kullan: İki direncin çarpımını toplamlarına böl. Paralel bağlamada sonuç, en küçük dirençten bile küçük çıkar.'
+        }
+      },
+      {
+        baslik: 'Kısa devre',
+        sekil: 'sfT62_kisa',
+        metin: r`Bir pile $L_1$ ve $L_2$ lambaları seri bağlı. $L_2$'nin iki ucuna bir S anahtarı da bağlı. Anahtar açıkken iki lamba da yanar.
+
+S kapatılınca $L_2$'nin iki ucu, direnci önemsiz bir telle birleşir. İki ucu arasındaki potansiyel fark sıfır olur; $L_2$'den akım geçmez ve $L_2$ **söner**. Buna **kısa devre** denir. Akım, anahtarın üzerinden yoluna devam eder.
+
+Devrede artık yalnız $L_1$'in direnci kalır. Eşdeğer direnç küçüldüğü için akım artar; $L_1$ daha parlak yanar.
+
+Bir pilin iki ucunu doğrudan bir telle birleştirme. Tel çok ısınır, pil zarar görür.`,
+        kontrol: {
+          soru: r`S kapatılınca $L_1$'den geçen akım ne olur?`,
+          secenekler: ['Azalır.', 'Artar.', 'Sıfır olur.'],
+          dogru: 1,
+          aciklama: r`Kısa devre olan $L_2$'den akım geçmez. Devrenin eşdeğer direnci küçülür, akım artar; $L_1$ daha parlak yanar.`,
+          yanlisIpucu: 'Anahtar kapanınca devrede kaç lambanın direnci kaldı? Direnç azalınca akım ne olur?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Tezgâh lambasını kısmak',
+        metin: r`Bir hobi atölyesinde 12 V'luk bir adaptöre 6 Ω'luk bir tezgâh lambası bağlı. Işığı biraz kısmak için lambaya 6 Ω'luk bir direnç seri bağlanıyor. Lambanın direncinin değişmediğini kabul ediyoruz.`,
+        adimlar: [
+          {
+            soru: 'Direnç eklenmeden önce lambadan kaç amper akım geçiyordu?',
+            secenekler: ['2', '6', '72'],
+            dogru: 0,
+            ipucu: r`$I = \dfrac{V}{R}$: 12 V'u 6 Ω'a böl.`,
+            aciklama: r`$I = \dfrac{12}{6} = 2\ \text{A}$ olur.`
+          },
+          {
+            soru: 'Direnç eklenince devrenin eşdeğer direnci kaç ohm olur?',
+            secenekler: ['3', '12', '36'],
+            dogru: 1,
+            ipucu: 'Lamba ve direnç seri bağlı. Seri bağlı dirençler toplanır.',
+            aciklama: r`$R_{\text{eş}} = 6 + 6 = 12\ \Omega$ olur.`
+          },
+          {
+            soru: 'Şimdi devreden kaç amper akım geçer?',
+            secenekler: ['4', '2', '1'],
+            dogru: 2,
+            ipucu: '12 V\'u yeni eşdeğer dirence böl.',
+            aciklama: r`$I = \dfrac{12}{12} = 1\ \text{A}$ olur. Akım yarıya indi.`
+          },
+          {
+            soru: 'Lambanın uçları arasındaki potansiyel fark kaç volt olur?',
+            secenekler: ['6', '12', '1'],
+            dogru: 0,
+            ipucu: r`$V = I \times R$: Lambanın direncini yeni akımla çarp.`,
+            aciklama: r`$V = 1 \times 6 = 6\ \text{V}$ olur. Kalan 6 V, eklenen direncin uçlarındadır.`
+          }
+        ],
+        sonuc: 'Seri bağlanan direnç akımı azalttı. Lambanın uçlarındaki potansiyel fark 12 V\'tan 6 V\'a indi ve lamba daha sönük yandı. Seri bağlamada potansiyel fark elemanlara paylaşılır.'
+      },
+      {
+        baslik: 'Dağ kulübesinde gece',
+        metin: r`Bir dağ kulübesinde güneş paneliyle dolan 24 V'luk bir batarya var. Bataryaya 24 Ω'luk bir okuma lambası ve 12 Ω'luk ısıtmalı bir battaniye paralel bağlı. Her birinin kendi anahtarı var ve şu an ikisi de çalışıyor. Bataryanın iç direnci önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Battaniyenin uçları arasındaki potansiyel fark kaç volttur?',
+            secenekler: ['12', '24', '8'],
+            dogru: 1,
+            ipucu: 'Paralel bağlı elemanların uçları aynı iki noktadadır.',
+            aciklama: 'Battaniye bataryaya paralel bağlı; uçlarında bataryanın 24 V\'u vardır.'
+          },
+          {
+            soru: 'Battaniyeden kaç amper akım geçer?',
+            secenekler: ['2', '1', '3'],
+            dogru: 0,
+            ipucu: 'Battaniyenin potansiyel farkını kendi direncine böl.',
+            aciklama: r`$I = \dfrac{24}{12} = 2\ \text{A}$ olur.`
+          },
+          {
+            soru: 'Bataryadan çekilen ana kol akımı kaç amperdir?',
+            secenekler: ['1', '3', '8'],
+            dogru: 1,
+            ipucu: 'Önce lambanın akımını bul: 24 V\'u 24 Ω\'a böl. Sonra iki kolun akımını topla.',
+            aciklama: r`Lambadan $\dfrac{24}{24} = 1\ \text{A}$ geçer. Ana kol akımı $1 + 2 = 3\ \text{A}$ olur.`
+          },
+          {
+            soru: 'Okuma lambası kapatılırsa battaniyeden geçen akım ne olur?',
+            secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+            dogru: 2,
+            ipucu: 'Lamba kapanınca battaniyenin uçlarındaki potansiyel fark değişir mi?',
+            aciklama: 'Battaniyenin uçlarında yine 24 V vardır; akımı 2 A olarak kalır. Yalnız ana kol akımı 3 A\'den 2 A\'e iner.'
+          }
+        ],
+        sonuc: r`Paralel kollar birbirini etkilemez: Her kolun uçlarında bataryanın 24 V'u vardır. Ana kol akımı, kol akımlarının toplamıdır. Bu devrenin eşdeğer direnci $\dfrac{24}{3} = 8\ \Omega$'dur.`
+      },
+      {
+        baslik: 'Fotoğraf çekiminde iki ışık',
+        sekil: 'sfT62_foto',
+        metin: r`Bir fotoğrafçı ürün çekimi için iki özdeş ışık kuruyor. Her ışığın direnci 18 Ω'dur. Üst ışık ile yan ışık birbirine paralel bağlı. Bu grup, 3 Ω'luk bir dirençle seri olarak 24 V'luk bir güç kaynağına bağlı. Lambaların dirençleri değişmiyor.`,
+        adimlar: [
+          {
+            soru: 'Paralel bağlı iki lambanın eşdeğer direnci kaç ohmdur?',
+            secenekler: ['36', '9', '18'],
+            dogru: 1,
+            ipucu: r`$\dfrac{18 \times 18}{18 + 18}$ işlemini yap. Sonuç 18 Ω'dan küçük olmalı.`,
+            aciklama: r`$\dfrac{324}{36} = 9\ \Omega$ olur. Özdeş iki direnç paralel bağlanınca eşdeğer direnç birinin yarısıdır.`
+          },
+          {
+            soru: 'Devrenin eşdeğer direnci kaç ohmdur?',
+            secenekler: ['12', '39', '21'],
+            dogru: 0,
+            ipucu: 'Işık grubu artık 9 Ω\'luk tek bir direnç gibidir ve 3 Ω ile seri bağlıdır.',
+            aciklama: r`$R_{\text{eş}} = 3 + 9 = 12\ \Omega$ olur.`
+          },
+          {
+            soru: 'Güç kaynağından çekilen akım kaç amperdir?',
+            secenekler: ['8', '1', '2'],
+            dogru: 2,
+            ipucu: '24 V\'u devrenin eşdeğer direncine böl.',
+            aciklama: r`$I = \dfrac{24}{12} = 2\ \text{A}$ olur.`
+          },
+          {
+            soru: '18 Ω\'luk üst ışıktan kaç amper akım geçer?',
+            secenekler: ['1', '2', '18'],
+            dogru: 0,
+            ipucu: r`Işık grubunun uçlarındaki potansiyel fark $2 \times 9$ volttur. Bu potansiyel farkı bir ışığın direncine, 18 Ω'a böl.`,
+            aciklama: r`Grubun uçlarında $2 \times 9 = 18\ \text{V}$ vardır. Üst ışıktan $\dfrac{18}{18} = 1\ \text{A}$ geçer. Işıklar özdeş olduğu için yan ışıktan da 1 A geçer.`
+          }
+        ],
+        sonuc: 'Birleşik devrede önce paralel grubu tek dirence indirdik, sonra seri dirençle topladık. Ana koldaki 2 A, özdeş iki ışığa 1 A ve 1 A olarak eşit paylaşıldı. 24 V\'un 6 V\'u seri dirençte, 18 V\'u ışıklarda kaldı.'
+      }
+    ],
+    hazir: 'Seri ve paralel bağlamayı, eşdeğer direnci, akımın ve potansiyel farkın paylaşılmasını ve kısa devreyi gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -30399,6 +30719,94 @@ BFY_FIG_EKLE('iT63_tanim', u => sahne(u, I => {
 }, { w: 320, h: 168, mm: 110, ox: 160, oy: 80, s: 1.2 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfT63_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const INK = P.ink, KR = '#c0392b', GL = '#ffe58a', KO = '#d9573b', BAK = '#c27a3a';
+const zemin = (W, H, c = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${c}"/>`;
+const tel = (pts, c = INK, w = 2.4) => `<polyline points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const yaz = (x, y, s, o = {}) => T(x, y, s, Object.assign({ size: 15, weight: 800 }, o));
+const dugum = (x, y) => `<circle cx="${x}" cy="${y}" r="3.8" fill="${INK}"/>`;
+/* düşey üreteç: üstte uzun ince (+), altta kısa kalın (−); işaretler solda */
+function pilD(x, y1, y2) {
+  const m = (y1 + y2) / 2;
+  return tel([[x, y1], [x, m - 5]]) + tel([[x, m + 5], [x, y2]]) +
+    `<line x1="${x - 17}" y1="${m - 5}" x2="${x + 17}" y2="${m - 5}" stroke="${INK}" stroke-width="2.2"/><line x1="${x - 9}" y1="${m + 5}" x2="${x + 9}" y2="${m + 5}" stroke="${INK}" stroke-width="6"/>` +
+    yaz(x - 22, m - 6, '+', { size: 16, anchor: 'middle', fill: KR }) + yaz(x - 22, m + 17, '−', { size: 17, anchor: 'middle' });
+}
+/* düşey lamba (yanık) */
+function lambaD(x, y1, y2) {
+  const m = (y1 + y2) / 2, r = 15;
+  let d = '';
+  for (let i = 0; i <= 7; i++) { const t = -9 + i * 18 / 7, h = i === 0 || i === 7 ? 0 : (i % 2 ? -4 : 4); d += (i ? ' L' : 'M') + f1(x + h) + ' ' + f1(m + t); }
+  return tel([[x, y1], [x, m - r]]) + tel([[x, m + r], [x, y2]]) +
+    `<circle cx="${x}" cy="${m}" r="${r + 9}" fill="${GL}" opacity=".55"/><circle cx="${x}" cy="${m}" r="${r + 4}" fill="${GL}" opacity=".7"/>` +
+    `<circle cx="${x}" cy="${m}" r="${r}" fill="#fffbe6" stroke="${INK}" stroke-width="2"/>` + tel([[x, m - r], [x, m - 9]], INK, 1.5) + tel([[x, m + 9], [x, m + r]], INK, 1.5) +
+    `<path d="${d}" fill="none" stroke="${KR}" stroke-width="1.8" stroke-linejoin="round"/>`;
+}
+
+/* Adım 1: otomobil aküsünün içi: altı adet 2 V hücre düz seri, toplam 12 V */
+BFY_FIG_EKLE('sfT63_aku', function (u) {
+  const W = 340, H = 236, cw = 260 / 6;
+  let s = zemin(W, H) + `<defs><linearGradient id="${u}aku" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4b545b"/><stop offset="1" stop-color="#1f2428"/></linearGradient>` +
+    `<linearGradient id="${u}sivi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3f1f6"/><stop offset="1" stop-color="#bcd7e2"/></linearGradient></defs>`;
+  s += `<ellipse cx="172" cy="212" rx="150" ry="8" fill="#000" opacity=".12"/>`;
+  s += `<rect x="28" y="86" width="284" height="122" rx="10" fill="url(#${u}aku)"/>`;
+  s += `<rect x="22" y="72" width="296" height="22" rx="6" fill="#5b646b" stroke="#2a3034" stroke-width="1.2"/><rect x="26" y="75" width="288" height="5" rx="2.5" fill="#fff" opacity=".18"/>`;
+  for (let i = 0; i < 6; i++) {
+    const x = 40 + i * cw;
+    s += `<rect x="${f1(x)}" y="102" width="${f1(cw - 5)}" height="96" rx="4" fill="url(#${u}sivi)" stroke="#0f1215" stroke-width="1.2"/>`;
+    for (let k = 0; k < 5; k++) s += `<rect x="${f1(x + 5 + k * 6.6)}" y="112" width="3.6" height="58" rx="1" fill="${k % 2 ? '#8e979f' : '#7a5a44'}"/>`;
+    s += yaz(x + (cw - 5) / 2, 192, '2 V', { size: 14, anchor: 'middle' });
+    if (i < 5) s += `<path d="M${f1(x + cw - 14)} 108 Q${f1(x + cw - 2.5)} 92 ${f1(x + cw + 9)} 108" fill="none" stroke="${BAK}" stroke-width="4.5" stroke-linecap="round"/>`;
+  }
+  s += `<rect x="40" y="54" width="22" height="18" rx="3" fill="#d24a3a" stroke="#7a2017" stroke-width="1.2"/><rect x="278" y="54" width="22" height="18" rx="3" fill="#2b2f33" stroke="#000" stroke-width="1.2"/>`;
+  s += yaz(51, 46, '+', { size: 20, anchor: 'middle', fill: KR }) + yaz(289, 46, '−', { size: 20, anchor: 'middle' });
+  s += yaz(170, 34, '6 hücre × 2 V = 12 V', { size: 16, anchor: 'middle' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 2: pil yuvasında üç özdeş 3 V pil; ortadaki ters takılmış */
+BFY_FIG_EKLE('sfT63_yuva', function (u) {
+  const W = 340, H = 214;
+  let s = zemin(W, H) + `<defs><linearGradient id="${u}pil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd0ee"/><stop offset=".35" stop-color="#3b8fc8"/><stop offset="1" stop-color="#1d5a86"/></linearGradient>` +
+    `<linearGradient id="${u}uc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6f8"/><stop offset="1" stop-color="#8e979f"/></linearGradient></defs>`;
+  s += `<rect x="52" y="68" width="236" height="62" rx="10" fill="#2d3436"/><rect x="58" y="74" width="224" height="50" rx="7" fill="#3f474b"/>`;
+  s += `<rect x="60" y="84" width="5" height="30" rx="2" fill="url(#${u}uc)"/><rect x="275" y="84" width="5" height="30" rx="2" fill="url(#${u}uc)"/>`;
+  for (let i = 0; i < 3; i++) {
+    const x = 69 + i * 68, ters = i === 1, bx = ters ? x + 6 : x, nx = ters ? x : x + 58;
+    s += `<rect x="${nx}" y="92" width="6" height="14" rx="1.5" fill="url(#${u}uc)"/>`;
+    s += `<rect x="${bx}" y="81" width="58" height="36" rx="5" fill="url(#${u}pil)" stroke="${ters ? KO : '#123c5a'}" stroke-width="${ters ? 3 : 1}"/>`;
+    s += `<rect x="${bx + 3}" y="85" width="52" height="6" rx="3" fill="#fff" opacity=".35"/>`;
+    s += yaz(ters ? bx + 10 : bx + 48, 105, '+', { size: 15, anchor: 'middle', fill: '#fff', halo: false }) + yaz(ters ? bx + 48 : bx + 10, 105, '−', { size: 15, anchor: 'middle', fill: '#fff', halo: false });
+    s += yaz(x + 32, 58, '3 V', { anchor: 'middle' });
+  }
+  s += yaz(69 + 68 + 32, 154, 'ters', { anchor: 'middle', fill: KO });
+  s += yaz(170, 192, '3 − 3 + 3 = 3 V', { size: 16, anchor: 'middle' });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 3: aynı lamba; solda tek 6 V pil, sağda iki özdeş 6 V pil paralel */
+BFY_FIG_EKLE('sfT63_paralel', function (u) {
+  const W = 340, H = 236, yt = 76, yb = 192;
+  let s = zemin(W, H, '#ffffff');
+  s += `<rect class="bg" x="4" y="4" width="148" height="228" rx="12" fill="#f4f7f9"/><rect class="bg" x="160" y="4" width="176" height="228" rx="12" fill="#f4f7f9"/>`;
+  s += yaz(78, 32, 'Tek pil', { anchor: 'middle', fill: P.copper }) + yaz(248, 32, 'İki pil, paralel', { anchor: 'middle', fill: P.copper });
+  // tek pil
+  s += pilD(42, 118, 150) + tel([[42, 118], [42, yt], [124, yt], [124, 110]]) + tel([[42, 150], [42, yb], [124, yb], [124, 156]]) + lambaD(124, 110, 156);
+  s += yaz(66, 140, '6 V');
+  s += yaz(78, 220, 'akım tek pilden', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 });
+  // iki paralel pil
+  s += tel([[192, yt], [306, yt], [306, 110]]) + tel([[192, yb], [306, yb], [306, 156]]) + lambaD(306, 110, 156);
+  [192, 240].forEach(x => { s += tel([[x, yt], [x, 118]]) + pilD(x, 118, 150) + tel([[x, 150], [x, yb]]); });
+  s += dugum(240, yt) + dugum(240, yb);
+  s += yaz(198, 172, '6 V', { size: 14 }) + yaz(246, 172, '6 V', { size: 14 });
+  s += yaz(248, 220, 'her pilden yarısı', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -30437,6 +30845,199 @@ const KONU = {
     'SET 3: otomatik sigorta açma karakteristikleri (IEC/EN 60898-1): B/C/D tipi 1,13 / 1,45 / 3–5 / 5–10 / 10–20 kat; B16 ile 18 A, kısa devre için en çok 2,9 Ω, C16 iddiası',
     'simülasyon: 1–4 özdeş pil (1,5 V, 2500 mAh) seri/paralel, 3 Ω lamba, tükenme süresi-pil sayısı grafiği, 10 saat görevi'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.6.3/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Üreteçlerin seri ve paralel bağlanmasını, ters takılan pilin etkisini ve elektrikten nasıl korunduğumuzu kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Düz seri: potansiyel farklar toplanır',
+        sekil: 'sfT63_aku',
+        metin: r`Bir otomobil aküsünün içinde altı ayrı bölme vardır. Her bölme 2 V'luk bir hücredir. Hücreler, birinin (+) ucu sonrakinin (−) ucuna gelecek biçimde art arda bağlıdır.
+
+Üreteçlerin zıt kutuplarının birbirine bağlandığı bu bağlamaya **düz seri bağlama** denir. Düz seri bağlamada potansiyel farklar **toplanır**:
+
+$V_\text{top} = 2 + 2 + 2 + 2 + 2 + 2 = 12\ \text{V}$
+
+Akünün içindeki sıvı yakıcı bir asittir. Akü hiçbir zaman açılmaz.`,
+        kontrol: {
+          soru: 'Elektrikli bir tekerlekli sandalyede 12 V\'luk iki akü düz seri bağlı. Motora uygulanan toplam potansiyel fark kaç volttur?',
+          secenekler: ['12', '24', '6'],
+          dogru: 1,
+          aciklama: r`Düz seri bağlamada potansiyel farklar toplanır: $12 + 12 = 24\ \text{V}$ olur.`,
+          yanlisIpucu: 'Akülerin zıt kutupları birbirine bağlı. Böyle bağlanan üreteçlerin potansiyel farkları ne olur?'
+        }
+      },
+      {
+        baslik: 'Ters takılan pil',
+        sekil: 'sfT63_yuva',
+        metin: r`Oyuncak bir arabanın pil yuvasına üç özdeş 3 V'luk pil takılıyor. Ortadaki pil yanlışlıkla ters takılıyor. Ters pilin (+) ucu, soldaki pilin (+) ucuna değiyor.
+
+Aynı kutupları birbirine bakacak biçimde seri bağlanan üretece **ters bağlı** üreteç denir. Ters bağlı üreteç öbürlerine karşı koyar; potansiyel farkı **çıkarılır**:
+
+$V_\text{top} = 3 - 3 + 3 = 3\ \text{V}$
+
+Üç pil de düz takılsaydı 9 V olurdu. Ters pil kendi katkısını vermediği gibi düz pillerden birinin katkısını da götürür. Pil takarken yuvadaki (+) ve (−) işaretlerine bak.`,
+        kontrol: {
+          soru: 'Beş özdeş 2 V\'luk hücreden üçü düz, ikisi ters seri bağlanıyor. Toplam potansiyel fark kaç volttur?',
+          secenekler: ['10', '2', '6'],
+          dogru: 1,
+          aciklama: r`Düz olanlar toplanır, ters olanlar çıkarılır: $2 + 2 + 2 - 2 - 2 = 2\ \text{V}$ olur.`,
+          yanlisIpucu: 'Üç düz hücrenin toplamından iki ters hücrenin toplamını çıkar.'
+        }
+      },
+      {
+        baslik: 'Paralel: aynı potansiyel fark, uzun süre',
+        sekil: 'sfT63_paralel',
+        metin: r`Bir lambayı 6 V'luk tek bir pille yakalım. Sonra aynı lambaya özdeş iki 6 V'luk pili **paralel** bağlayalım: İki pilin (+) uçları bir noktada, (−) uçları başka bir noktada birleşir.
+
+- Özdeş pillerin paralel bağlanmasında toplam potansiyel fark **tek bir pilinki kadardır**. Lamba yine 6 V alır; parlaklığı değişmez.
+- Lambanın çektiği akım iki pile **eşit paylaşılır**. Her pilden akımın yarısı çekilir.
+- Her pil daha yavaş boşalır. Lamba yaklaşık **iki kat** uzun süre yanar.
+
+Paralel bağlamada yalnız özdeş piller kullanılır.`,
+        kontrol: {
+          soru: 'Lambaya tek pil yerine özdeş iki pil paralel bağlanıyor. Lambanın parlaklığı ve yanma süresi için hangisi doğrudur?',
+          secenekler: ['Parlaklık iki katına çıkar, süre aynı kalır.', 'Parlaklık aynı kalır, süre yarıya iner.', 'Parlaklık aynı kalır, süre yaklaşık iki katına çıkar.'],
+          dogru: 2,
+          aciklama: 'Potansiyel fark değişmediği için lamba aynı parlaklıkta yanar. Akım iki pile paylaşıldığı için piller yaklaşık iki kat uzun sürede tükenir.',
+          yanlisIpucu: 'Paralel özdeş pillerde toplam potansiyel fark kaç pilinki kadardır? Her pilden çekilen akım ne olur?'
+        }
+      },
+      {
+        baslik: 'Tehlikeyi akım belirler',
+        metin: r`Elektrik çarpmasında vücuda zarar veren, vücuttan geçen **akımdır**. Akım ne kadar büyükse ve ne kadar uzun sürerse zarar o kadar büyük olur. Yaklaşık 30 mA ve üstündeki akımlar çok tehlikelidir.
+
+Vücuttan geçen akımı Ohm yasası belirler: $I = \dfrac{V}{R}$. Vücut direncinin büyük kısmı deriden gelir. Islak deri akıma çok daha az karşı koyar.
+
+Evdeki prizde 230 V vardır. Bu gerilimde, el kuruyken bile elden ele akım yolunun direnci yaklaşık 2300 Ω olabilir:
+
+$I = \dfrac{230}{2300} = \dfrac{1}{10}\ \text{A} = 100\ \text{mA}$
+
+Bu akım, tehlike sınırının çok üstündedir. El ıslaksa direnç daha da küçülür, akım daha da büyür. Prizin içine, fişin metal uçlarına ve açık kabloya hiç dokunma. Islak elle fişe, prize ve elektrikli cihaza dokunma.`,
+        kontrol: {
+          soru: 'Aynı gerilimde, elleri ıslanan birinin vücudundan geçebilecek akım için hangisi doğrudur?',
+          secenekler: ['Değişmez, çünkü gerilim aynıdır.', 'Artar, çünkü vücudun direnci küçülür.', 'Azalır, çünkü ıslak deri direnci artırır.'],
+          dogru: 1,
+          aciklama: r`Islak deri, vücudun direncini küçültür. Gerilim aynıyken direnç küçülürse $I = \dfrac{V}{R}$ büyür.`,
+          yanlisIpucu: r`$I = \dfrac{V}{R}$ bağıntısında $V$ aynı kalıyor. El ıslanınca $R$ ne olur?`
+        }
+      },
+      {
+        baslik: 'Üç koruyucu',
+        metin: r`Evlerde elektriğe karşı üç önemli koruma vardır. Her biri başka bir tehlikeye karşı çalışır.
+
+- **Sigorta:** Hattan izin verilenden büyük akım geçerse devreyi açar. Böylece aşırı ısınan kablonun yangın çıkarmasını önler.
+- **Kaçak akım rölesi:** Faz telinden giden akımla nötr telinden dönen akımı karşılaştırır. Akımın bir kısmı başka bir yoldan, örneğin bir insanın vücudundan toprağa kaçarsa iki akım eşit olmaz. Röle devreyi çok kısa sürede keser.
+- **Topraklama:** Metal gövdeli bir cihazın gövdesini toprağa bağlar. Gövdeye elektrik kaçarsa akım, insanın vücudu yerine bu kolay yoldan toprağa gider. Bu kaçak akım, sigortanın ya da kaçak akım rölesinin devreyi kesmesini de sağlar.
+
+Bu düzeneklerin kurulumu ve onarımı elektrikçinin işidir.`,
+        kontrol: {
+          soru: 'Bir atölyede aynı hatta birçok güçlü makine birlikte çalışıyor ve hattan izin verilenden büyük akım geçiyor. Kablonun aşırı ısınmasını önlemek için devreyi hangisi açar?',
+          secenekler: ['Topraklama', 'Sigorta', 'Kaçak akım rölesi'],
+          dogru: 1,
+          aciklama: 'Sigorta, hattan izin verilenden büyük akım geçince devreyi açar. Burada akım bir yere kaçmıyor, yalnız çok büyük; bu yüzden kaçak akım rölesi devreye girmez.',
+          yanlisIpucu: 'Burada akım bir yere kaçmıyor; yalnız çok büyük. Hangi düzenek akımın büyüklüğüne bakar?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Raftaki okuma lambası',
+        metin: r`Ayşe kitaplığının rafına, 12 V ile normal parlaklıkta yanan bir lamba takıyor. Lambanın direnci 60 Ω kabul ediliyor. Elinde 3 V'luk özdeş piller var. Pillerin iç direnci önemsenmiyor.`,
+        adimlar: [
+          {
+            soru: 'Lambanın normal yanması için kaç pil düz seri bağlanmalıdır?',
+            secenekler: ['3', '4', '12'],
+            dogru: 1,
+            ipucu: '12 V elde etmek için 3 V\'luk pillerden kaç tanesini toplamalısın?',
+            aciklama: r`$4 \times 3 = 12\ \text{V}$ olur. Dört pil düz seri bağlanmalıdır.`
+          },
+          {
+            soru: 'Lamba normal yanarken ondan kaç miliamper akım geçer?',
+            secenekler: ['200', '5', '720'],
+            dogru: 0,
+            ipucu: r`$I = \dfrac{V}{R}$: 12 V'u 60 Ω'a böl. Sonucu miliampere çevir: 1 A = 1000 mA.`,
+            aciklama: r`$I = \dfrac{12}{60} = \dfrac{1}{5}\ \text{A} = 200\ \text{mA}$ olur.`
+          },
+          {
+            soru: 'Ayşe pillerden birini ters takıyor. Lambanın uçlarındaki potansiyel fark kaç volt olur?',
+            secenekler: ['9', '6', '12'],
+            dogru: 1,
+            ipucu: 'Üç düz pil toplanır, ters pilin potansiyel farkı çıkarılır.',
+            aciklama: r`$3 + 3 + 3 - 3 = 6\ \text{V}$ olur.`
+          },
+          {
+            soru: 'Bir pil ters takılıyken lambadan geçen akım, normal akımın ne kadarıdır?',
+            secenekler: ['Dörtte üçü', 'Yarısı', 'Aynısı'],
+            dogru: 1,
+            ipucu: 'Lambanın direnci aynı. Potansiyel fark 12 V\'tan kaç volta indi?',
+            aciklama: 'Potansiyel fark yarıya indiği için akım da yarıya iner: 200 mA\'den 100 mA\'e düşer. Lamba sönük yanar.'
+          }
+        ],
+        sonuc: 'Ters takılan tek pil, toplam potansiyel farkı 3 V değil 6 V azalttı: Hem kendi katkısı gitti hem de bir pilin katkısını götürdü. Pil takarken (+) ve (−) işaretlerine dikkat et.'
+      },
+      {
+        baslik: 'Ormandaki fotokapan',
+        metin: r`Bir biyolog, yaban hayvanlarını görüntülemek için bir ağaca fotokapan bağlıyor. Fotokapan, önünden bir hayvan geçince çalışan bir kameradır. Fotokapan, bir pil paketinden ortalama 60 mA akım çekiyor. Paketin üzerinde 3000 mAh yazıyor. Bu, paketin 300 mA'lik akımı yaklaşık 10 saat, 100 mA'lik akımı yaklaşık 30 saat verebileceğini anlatır. Paketin potansiyel farkı fotokapana uygundur.`,
+        adimlar: [
+          {
+            soru: 'Tek paketle fotokapan yaklaşık kaç saat çalışır?',
+            secenekler: ['5', '50', '500'],
+            dogru: 1,
+            ipucu: 'Süre = kapasite ÷ akım: 3000 mAh\'i 60 mA\'e böl.',
+            aciklama: r`$t = \dfrac{3000}{60} = 50$ saat olur.`
+          },
+          {
+            soru: 'Biyolog aynı paketten üç tanesini paralel bağlıyor. Her paketten kaç mA akım çekilir?',
+            secenekler: ['180', '60', '20'],
+            dogru: 2,
+            ipucu: 'Paralel bağlı özdeş paketler, cihazın çektiği akımı eşit paylaşır.',
+            aciklama: 'Fotokapan yine 60 mA çeker. Bu akım üç pakete eşit paylaşılır: Her paketten 20 mA çekilir.'
+          },
+          {
+            soru: 'Üç paralel paketle fotokapan yaklaşık kaç saat çalışır?',
+            secenekler: ['50', '150', '20'],
+            dogru: 1,
+            ipucu: 'Her paketin kapasitesi 3000 mAh ve her paketten 20 mA çekiliyor.',
+            aciklama: r`$t = \dfrac{3000}{20} = 150$ saat olur. Paket sayısı üç katına çıktı, süre de üç katına çıktı.`
+          }
+        ],
+        sonuc: 'Paralel bağlı özdeş paketler cihaza aynı potansiyel farkı verir ama akımı paylaşır. Her paket daha yavaş boşaldığı için cihaz daha uzun süre çalışır.'
+      },
+      {
+        baslik: 'Çit budarken kesilen kablo',
+        metin: r`Bir bahçıvan elektrikli çit budama makinesiyle çalışırken makinenin bıçağı kendi kablosunu kesiyor. Kesik yerde faz teli açığa çıkıyor ve nemli çimene değiyor. Evin hattında sigortalar ve bir kaçak akım rölesi var.`,
+        adimlar: [
+          {
+            soru: 'Kesik yerden toprağa akım kaçarken faz telinden giden akım ile nötr telinden dönen akım için hangisi doğrudur?',
+            secenekler: ['İkisi eşittir.', 'Giden akım, dönen akımdan büyüktür.', 'Dönen akım, giden akımdan büyüktür.'],
+            dogru: 1,
+            ipucu: 'Giden akımın bir kısmı nötr teline dönmeden toprağa gidiyor.',
+            aciklama: 'Akımın bir kısmı toprağa kaçtığı için nötr telinden daha az akım döner. Giden akım, dönen akımdan büyüktür.'
+          },
+          {
+            soru: 'Bu durumu algılayıp devreyi kesen düzenek hangisidir?',
+            secenekler: ['Kaçak akım rölesi', 'Sigorta', 'Topraklama'],
+            dogru: 0,
+            ipucu: 'Hangi düzenek giden ve dönen akımı karşılaştırıyordu?',
+            aciklama: 'Kaçak akım rölesi, giden ve dönen akım arasındaki farkı algılar ve devreyi keser. Kaçan akım, sigortayı attıracak kadar büyük olmayabilir.'
+          },
+          {
+            soru: 'Röle devreyi kestikten sonra doğru davranış hangisidir?',
+            secenekler: ['Kesik yeri bantlayıp çalışmaya devam etmek.', 'Röleyi hemen kaldırıp işe dönmek.', 'Kesik yere dokunmadan fişi prizden çekmek ve kabloyu bir elektrikçiye yeniletmek.'],
+            dogru: 2,
+            ipucu: 'Kesik kablo onarılmadan yeniden elektrik verilirse aynı tehlike geri gelir.',
+            aciklama: 'Önce fişi prizden çek; kesik yere elle dokunma. Hasarlı kablo bantla güvenli hâle gelmez. Makine, kablosu bir elektrikçi tarafından yenilenene kadar kullanılmaz.'
+          }
+        ],
+        sonuc: 'Kaçak akım rölesi, akımın bir kısmı insan ya da toprak üzerinden kaçtığında devreyi çok kısa sürede keser. Sigorta ise aşırı akıma karşı kabloyu korur. İkisi farklı tehlikelere karşı çalışır. Röle atmasa bile kesik kabloya dokunma: Önce şalteri kapatarak ya da fişi prizden çekerek devreyi kes, sonra bir elektrikçi çağır.'
+      }
+    ],
+    hazir: 'Üreteçlerin düz seri, ters ve paralel bağlanmasını, akımın vücuda etkisini ve üç koruyucuyu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU ---------------- */
   not: [
@@ -31824,6 +32425,106 @@ BFY_FIG_EKLE('iT71_tanim', u => sahne(u, I0_ => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 104 }));
 })();
 
+/* ---------- SIFIRDAN BAŞLA şekilleri (önek sfT71_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
+(function () {
+const { P, T, svg, arrow, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const INK = P.ink, MV = '#2f7fb8', KO = '#d9573b', YS = '#2f8f5b';
+const zemin = (W, H, c = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="${c}"/>`;
+const yaz = (x, y, s, o = {}) => T(x, y, s, Object.assign({ size: 15, weight: 800 }, o));
+const cizgi = (pts, c, w = 3) => `<polyline points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+/* iki uçlu ölçü oku */
+const olcu = (x1, y1, x2, y2, c) => arrow((x1 + x2) / 2, (y1 + y2) / 2, x1, y1, { color: c, w: 2, head: 9, headW: 4.5 }) + arrow((x1 + x2) / 2, (y1 + y2) / 2, x2, y2, { color: c, w: 2, head: 9, headW: 4.5 });
+
+/* Adım 1: ayaklı çerçeveye asılı beşik; K ve L uç konumlar (soluk), O denge konumu */
+BFY_FIG_EKLE('sfT71_besik', function (u) {
+  const W = 340, H = 262, px = 170, py = 40, L = 128, a0 = 24 * Math.PI / 180;
+  let s = zemin(W, H) + `<defs><linearGradient id="${u}bes" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1d8a8"/><stop offset="1" stop-color="#c79a5a"/></linearGradient></defs>`;
+  s += `<rect x="20" y="236" width="300" height="8" rx="4" fill="#d9cfbf"/>`;
+  s += `<path d="M22 236 L44 34 M66 236 L44 34 M318 236 L296 34 M274 236 L296 34" stroke="#8a5a2b" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<rect x="32" y="28" width="276" height="12" rx="5" fill="#a86b35" stroke="#6b3f1c" stroke-width="1.2"/>`;
+  // salınım yolu
+  let yol = 'M';
+  for (let i = 0; i <= 20; i++) { const a = -a0 * 1.1 + i * 2.2 * a0 / 20; yol += `${i ? ' L' : ''}${f1(px + L * Math.sin(a))} ${f1(py + L * Math.cos(a))}`; }
+  s += `<path d="${yol}" fill="none" stroke="#7d8a84" stroke-width="1.8" stroke-dasharray="6 5"/>`;
+  const besik = (a, op) => {
+    const cx = px + L * Math.sin(a), cy = py + L * Math.cos(a), d = -a * 180 / Math.PI;
+    const gx = (x, y) => [cx + (x * Math.cos(-a) - y * Math.sin(-a)), cy + (x * Math.sin(-a) + y * Math.cos(-a))];
+    const [l1x, l1y] = gx(-34, -6), [l2x, l2y] = gx(34, -6);
+    return `<g opacity="${op}"><line x1="${px}" y1="${py}" x2="${f1(l1x)}" y2="${f1(l1y)}" stroke="#6b5a48" stroke-width="2"/><line x1="${px}" y1="${py}" x2="${f1(l2x)}" y2="${f1(l2y)}" stroke="#6b5a48" stroke-width="2"/>` +
+      `<g transform="rotate(${f1(d)} ${f1(cx)} ${f1(cy)})"><path d="M${f1(cx - 38)} ${f1(cy - 8)} H${f1(cx + 38)} Q${f1(cx + 36)} ${f1(cy + 26)} ${f1(cx)} ${f1(cy + 26)} Q${f1(cx - 36)} ${f1(cy + 26)} ${f1(cx - 38)} ${f1(cy - 8)} Z" fill="url(#${u}bes)" stroke="#8a5a2b" stroke-width="1.6"/>` +
+      `<path d="M${f1(cx - 33)} ${f1(cy - 2)} H${f1(cx + 33)}" stroke="#8a5a2b" stroke-width="1" opacity=".6"/><path d="M${f1(cx - 24)} ${f1(cy + 8)} H${f1(cx + 24)}" stroke="#8a5a2b" stroke-width="1" opacity=".6"/>` +
+      `<path d="M${f1(cx - 31)} ${f1(cy - 8)} Q${f1(cx - 10)} ${f1(cy - 20)} ${f1(cx + 28)} ${f1(cy - 8)} Z" fill="#9cc7e6" stroke="#5a8fb5" stroke-width="1"/></g></g>`;
+  };
+  s += besik(-a0, 0.35) + besik(a0, 0.35) + besik(0, 1);
+  s += `<circle cx="${px}" cy="${py}" r="4.5" fill="#3a2a1a"/>`;
+  const ex = L * Math.sin(a0) + 22, ey = py + L * Math.cos(a0) + 50;
+  s += dashLine(px, py + 8, px, py + L - 10, '#7d8a84', '3 4', 1.2);
+  s += yaz(px - ex, ey, 'K', { anchor: 'middle', size: 17 }) + yaz(px + ex, ey, 'L', { anchor: 'middle', size: 17 }) + yaz(px, py + L + 50, 'O', { anchor: 'middle', size: 17 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Adım 4: gergin ipte periyodik dalganın anlık görünümü; 1 kare = 10 cm, λ = 6 kare, genlik 2 kare */
+BFY_FIG_EKLE('sfT71_ip', function (u) {
+  const W = 340, H = 236, c = 20, x0 = 40, y0 = 132, lam = 6 * c, A = 2 * c, xs = x0 + 2 * lam;
+  let s = zemin(W, H, '#f6f9f7');
+  for (let i = 0; i <= 15; i++) s += `<line x1="${x0 - 20 + i * c}" y1="${y0 - 4 * c}" x2="${x0 - 20 + i * c}" y2="${y0 + 3 * c}" stroke="#d3e0d8" stroke-width="1"/>`;
+  for (let j = -4; j <= 3; j++) s += `<line x1="${x0 - 20}" y1="${y0 + j * c}" x2="${x0 + 280}" y2="${y0 + j * c}" stroke="#d3e0d8" stroke-width="1"/>`;
+  s += dashLine(x0, y0, x0 + 280, y0, '#7d8a84', '6 5', 1.6);
+  const pts = [];
+  for (let i = 0; i <= 120; i++) { const x = x0 + i * 2 * lam / 120; pts.push([x, y0 - A * Math.sin(2 * Math.PI * (x - x0) / lam)]); }
+  pts.push([x0 + 280, y0]);
+  s += cizgi(pts, '#b5651d', 3.6);
+  // kazık ve el
+  s += `<rect x="${x0 + 280}" y="${y0 - 34}" width="10" height="70" rx="3" fill="#8a5a2b"/>`;
+  s += `<ellipse cx="${x0 - 6}" cy="${y0}" rx="11" ry="14" fill="#e8b48f" stroke="#a8714e" stroke-width="1.2"/>`;
+  // ölçüler: λ iki tepe arası (tepeler x0 + 1,5c ve x0 + 7,5c), genlik ikinci tepede
+  const t1 = x0 + lam / 4, t2 = t1 + lam;
+  s += dashLine(t1, y0 - A, t1, y0 - A - 26, '#6b4fa8', '3 3', 1.4) + dashLine(t2, y0 - A, t2, y0 - A - 26, '#6b4fa8', '3 3', 1.4);
+  s += olcu(t1, y0 - A - 20, t2, y0 - A - 20, '#6b4fa8') + yaz((t1 + t2) / 2, y0 - A - 30, 'λ', { anchor: 'middle', size: 18, fill: '#6b4fa8', italic: true });
+  const gx = t2 + lam / 2 + 16;
+  s += olcu(gx, y0 + A, gx, y0 + 2, YS) + yaz(gx + 9, y0 + A - 8, 'genlik', { size: 14, fill: YS });
+  s += yaz(t1, y0 - A + 32, 'tepe', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 }) + yaz(t1 + lam / 2, y0 + A + 22, 'çukur', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += yaz(16, 26, '1 kare = 10 cm', { size: 14, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Isınma 2: eski iskelenin 1 m aralıklı kazıkları önünde dalgalar (yandan); tepeler 1. ve 5. kazıkta, λ = 4 m; top 7. kazıkta çukurda */
+BFY_FIG_EKLE('sfT71_kazik', function (u) {
+  const W = 340, H = 236, x0 = 42, k = 32, ys = 128, A = 16, yb = 210;
+  let s = zemin(W, H, '#e8f3fa') + `<defs><linearGradient id="${u}su" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7cc3e8"/><stop offset="1" stop-color="#2a79ad"/></linearGradient>` +
+    `<linearGradient id="${u}kz" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a0703f"/><stop offset=".5" stop-color="#c9935a"/><stop offset="1" stop-color="#7d5128"/></linearGradient></defs>`;
+  const X = m => x0 + m * k, Y = m => ys - A * Math.cos(2 * Math.PI * (m - 1) / 4);
+  for (let m = 0; m <= 8; m++) s += `<rect x="${X(m) - 5}" y="66" width="10" height="${yb - 66}" rx="3" fill="url(#${u}kz)" stroke="#5a3a1c" stroke-width="1"/><ellipse cx="${X(m)}" cy="66" rx="5" ry="2.2" fill="#d9b07c" stroke="#5a3a1c" stroke-width=".8"/>`;
+  let d = `M${X(-0.4)} ${f1(Y(-0.4))}`;
+  for (let i = 1; i <= 100; i++) { const m = -0.4 + i * 8.8 / 100; d += ` L${f1(X(m))} ${f1(Y(m))}`; }
+  s += `<path d="${d} L${f1(X(8.4))} ${yb} L${X(-0.4)} ${yb} Z" fill="url(#${u}su)" opacity=".82"/>`;
+  s += `<path d="${d}" fill="none" stroke="#1d5a86" stroke-width="2.6"/>`;
+  s += `<circle cx="${X(7)}" cy="${f1(Y(7) - 8)}" r="9" fill="#f2c94c" stroke="#b8901f" stroke-width="1.2"/><ellipse cx="${X(7) - 3}" cy="${f1(Y(7) - 11)}" rx="3" ry="2" fill="#fff" opacity=".7"/>`;
+  s += olcu(X(0), 48, X(1), 48, INK) + yaz((X(0) + X(1)) / 2 + 22, 40, '1 m', { size: 14, weight: 700 });
+  s += yaz(X(8), 40, 'kazıklar', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += yaz(X(4), 228, 'Kazıklar arası 1 m.', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 80);
+});
+
+/* Isınma 3: binanın tepesinin uzanım-zaman grafiği; genlik 10 cm, periyot 6 s (tepeler 0, 6, 12, 18 s) */
+BFY_FIG_EKLE('sfT71_bina_yt', function (u) {
+  const W = 340, H = 228, x0 = 52, yo = 116, sx = 12, sy = 6, tMax = 18;
+  let s = zemin(W, H, '#f6f9f7');
+  for (let t = 3; t <= tMax; t += 3) s += `<line x1="${x0 + t * sx}" y1="${yo - 10 * sy}" x2="${x0 + t * sx}" y2="${yo + 10 * sy}" stroke="#dde5df" stroke-width="1"/>`;
+  [-10, 10].forEach(v => { s += dashLine(x0, yo - v * sy, x0 + tMax * sx, yo - v * sy, '#b7c4bc', '4 4', 1.1); });
+  s += arrow(x0, yo + 10 * sy + 16, x0, 22, { color: INK, w: 1.6, head: 9, headW: 4.5 }) + arrow(x0, yo, x0 + tMax * sx + 26, yo, { color: INK, w: 1.6, head: 9, headW: 4.5 });
+  s += yaz(x0 + 8, 30, 'y (cm)', { size: 15 }) + yaz(x0 + tMax * sx + 30, yo + 5, 't (s)', { size: 15 });
+  const pts = [];
+  for (let i = 0; i <= 180; i++) { const t = i * tMax / 180; pts.push([x0 + t * sx, yo - 10 * sy * Math.cos(2 * Math.PI * t / 6)]); }
+  s += cizgi(pts, MV, 3);
+  [[10, '10'], [-10, '−10']].forEach(([v, l]) => { s += `<line x1="${x0 - 4}" y1="${yo - v * sy}" x2="${x0 + 4}" y2="${yo - v * sy}" stroke="${INK}" stroke-width="1.4"/>` + yaz(x0 - 8, yo - v * sy + 5, l, { size: 14, anchor: 'end', weight: 700 }); });
+  for (let t = 3; t <= tMax; t += 3) s += `<line x1="${x0 + t * sx}" y1="${yo - 4}" x2="${x0 + t * sx}" y2="${yo + 4}" stroke="${INK}" stroke-width="1.4"/>` + yaz(x0 + t * sx + (t % 6 ? 0 : 0), yo + 22 + (t % 6 ? 0 : 0), String(t), { size: 14, anchor: 'middle', weight: 700 });
+  s += yaz(x0 - 8, yo + 5, '0', { size: 14, anchor: 'end', weight: 700 });
+  return svg(W, H, s, u, 80);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -31866,6 +32567,195 @@ const KONU = {
     'SET 3: piyano tuşlarının frekansları (ISO 16 akort sesi La4 = 440 Hz, eşit aralıklı akort): La0 27,5, La1 55, Do4 261,6, La5 880, Do8 4186 Hz; La4 periyodu ms, Do8\'in bir oktav üstü havada 4,1 cm, tiz ses daha süratli mi iddiası',
     'simülasyon: 2 m/s süratli ipte kaynağın frekansı (1–4 Hz) ve genliği (2–10 cm); anlık görünüm ve kaynağın y-t grafiği, görev λ = 1,6 m'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ----------------
+     Fizikten çekinen öğrenci için: kısa adımlar (her birinde tek kontrol sorusu), ardından adım adım çözülen ısınma soruları.
+     Sayılar küçük ve tam; sayısal sonuçlar qa/T.7.1/dogrula.py içinde doğrulanır. */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kendini tekrar eden hareketi, periyodu ve frekansı, dalganın neyi taşıdığını, dalga boyunu, genliği ve dalganın süratini kısa adımlarla göreceğiz. Her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Kendini tekrar eden hareket: periyot',
+        sekil: 'sfT71_besik',
+        metin: r`Bir bebek beşiği, ayaklı bir çerçeveye iplerle asılı. Beşik hafifçe itilip bırakılıyor ve bir sağa bir sola gidip geliyor.
+
+İpler düşey dururken beşik **denge konumundadır** (O). Denge konumu çevresinde belirli zaman aralıklarıyla kendini tekrar eden harekete **periyodik hareket** denir.
+
+- Beşik K'den bırakılır, O'dan geçip L'ye varır, yine O'dan geçip K'ye döner. Bu gidip gelişe **bir tam salınım** denir.
+- Bir tam salınımın süresine **periyot** denir. Sembolü $T$, birimi saniyedir.
+
+$N$ tam salınım $t$ sürede yapılıyorsa $T = \dfrac{t}{N}$ olur. Beşik 10 s'de 5 tam salınım yapıyorsa $T = \dfrac{10}{5} = 2$ s'dir.`,
+        kontrol: {
+          soru: 'Beşik 12 s\'de 4 tam salınım yapıyor. Beşiğin periyodu kaç saniyedir?',
+          secenekler: ['3', '48', '8'],
+          dogru: 0,
+          aciklama: r`$T = \dfrac{t}{N} = \dfrac{12}{4} = 3$ s olur.`,
+          yanlisIpucu: 'Toplam süreyi tam salınım sayısına böl.'
+        }
+      },
+      {
+        baslik: 'Frekans: bir saniyede kaç kez?',
+        metin: r`Bir hoparlörden kalın bir ses gelirken hoparlörün zarı saniyede 100 kez ileri geri titreşir. Elini önüne yaklaştırınca bu titreşimi hissedebilirsin.
+
+Bir saniyedeki tam salınım sayısına **frekans** denir. Sembolü $f$, birimi hertzdir (Hz). Bu zarın titreşim frekansı 100 Hz'dir.
+
+$f = \dfrac{N}{t}$
+
+Periyot, bir salınımın kaç saniye sürdüğünü söyler. Frekans, bir saniyede kaç salınım olduğunu söyler. Biri büyürse öbürü küçülür: $T \times f = 1$. Periyodu 2 s olan beşiğin frekansı $\dfrac{1}{2}$ Hz'dir.`,
+        kontrol: {
+          soru: 'Bir yay sarkacı 4 s\'de 20 tam salınım yapıyor. Sarkacın frekansı kaç hertzdir?',
+          secenekler: ['80', '5', r`$\dfrac{1}{5}$`],
+          dogru: 1,
+          aciklama: r`$f = \dfrac{N}{t} = \dfrac{20}{4} = 5$ Hz olur. Sarkaç her saniye 5 tam salınım yapar.`,
+          yanlisIpucu: 'Frekans, bir saniyedeki salınım sayısıdır. Salınım sayısını süreye böl.'
+        }
+      },
+      {
+        baslik: 'Dalga ilerler, ip yerinde kalır',
+        metin: r`Kamp alanında iki kazık arasına uzun bir ip gerilmiş. İpin uzak ucundaki kazığa küçük bir zil bağlı. İpin üzerinde de boyayla bir K noktası işaretlenmiş.
+
+İpin yakın ucunu bir kez hızlıca yukarı kaldırıp indiriyorsun. İpte bir tümsek oluşur ve zile doğru ilerler. Tek bir sarsıntıyla oluşan bu tümseğe **atma** denir.
+
+- Tümsek K'nin altından geçerken K yukarı çıkar ve geri iner. K, zile doğru gitmez.
+- Tümsek uzak uca varınca zil çalar. Elinin verdiği enerji zile ulaşmıştır.
+
+Bir titreşimin ortamda ilerlemesine **dalga** denir. Dalga **enerji taşır**. Ortamın parçaları dalgayla birlikte ilerlemez; bulundukları yerde titreşip yine denge konumlarına döner. Dalgayla taşınan, ipin kendisi değil enerjidir.`,
+        kontrol: {
+          soru: 'Tümsek K noktasının altından geçerken K nasıl hareket eder?',
+          secenekler: ['Tümsekle birlikte zile doğru gider.', 'Yukarı çıkıp geri iner; yerinde kalır.', 'Hiç kıpırdamaz.'],
+          dogru: 1,
+          aciklama: 'İpin parçaları dalgayla birlikte ilerlemez. K yalnız yukarı çıkıp geri iner; tümsek geçip gider, K yerinde kalır.',
+          yanlisIpucu: 'Dalga enerjiyi taşır. İpin parçaları da dalgayla birlikte yolculuk eder mi?'
+        }
+      },
+      {
+        baslik: 'Dalga boyu ve genlik',
+        sekil: 'sfT71_ip',
+        metin: r`Şimdi ipin ucunu düzenli olarak aşağı yukarı sallıyorsun. İpte art arda tepeler ve çukurlar oluşur. Kaynağın düzenli titreşimiyle oluşan bu dalgaya **periyodik dalga** denir. Şekil, ipin bir anlık görünümüdür; 1 kare 10 cm'dir.
+
+- İp sallanmıyorken durduğu düz çizgiye **denge konumu** denir. Şekilde kesikli çizgidir. Denge konumunun üstündeki en yüksek noktalar **tepe**, altındaki en alçak noktalar **çukurdur**.
+- Ardışık iki tepe arasındaki uzaklık **dalga boyudur** ve $\lambda$ ile gösterilir. Şekilde $\lambda = 6$ kare, yani 60 cm'dir.
+- Denge konumu ile tepe arasındaki uzaklık **genliktir**. Şekilde genlik 2 kare, yani 20 cm'dir.
+
+Tepe ile çukur arasındaki düşey uzaklık genliğin iki katıdır.`,
+        kontrol: {
+          soru: 'Gergin bir ip denge konumundayken yerden 100 cm yüksekte. Dalga geçerken ipin bir noktası en çok 130 cm, en az 70 cm yüksekliğe çıkıyor. Dalganın genliği kaç santimetredir?',
+          secenekler: ['60', '30', '130'],
+          dogru: 1,
+          aciklama: r`Genlik, denge konumu ile tepe arasındaki uzaklıktır: $130 - 100 = 30$ cm. Tepe ile çukur arası $130 - 70 = 60$ cm olur; bu, genliğin iki katıdır.`,
+          yanlisIpucu: 'Genliği yerden değil, denge konumundan ölç: Nokta denge konumunun en çok ne kadar üstüne çıkıyor?'
+        }
+      },
+      {
+        baslik: 'Dalganın sürati',
+        metin: r`Kaynak bir tam titreşim yaptığında, yani bir periyotta, dalga bir dalga boyu kadar ilerler. Bu yüzden dalganın sürati şöyle bulunur:
+
+$\vartheta = \dfrac{\lambda}{T} = \lambda \times f$
+
+Önceki ipte dalga boyu 60 cm idi. Elini saniyede 2 kez sallarsan $f = 2$ Hz olur. Dalga her saniye 2 dalga boyu ilerler:
+
+$\vartheta = 60 \times 2 = 120\ \text{cm/s}$
+
+Dalganın frekansını kaynak belirler. Aynı gergin ipte dalganın sürati değişmez; elini daha sık sallarsan frekans artar, dalga boyu kısalır.`,
+        kontrol: {
+          soru: 'Açık denizde dalgaların dalga boyu 15 m, periyodu 3 s\'dir. Dalgaların sürati kaç m/s\'dir?',
+          secenekler: ['45', '18', '5'],
+          dogru: 2,
+          aciklama: r`$\vartheta = \dfrac{\lambda}{T} = \dfrac{15}{3} = 5$ m/s olur.`,
+          yanlisIpucu: 'Dalga bir periyotta bir dalga boyu ilerler. Dalga boyunu periyoda böl.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Limandaki yelkenlinin direği',
+        metin: r`Limanda bağlı bir yelkenli, dalgalarla düzenli olarak sağa sola yatıp kalkıyor. Direğin tepesi bir yandan öbür yana gidip geliyor. Bir gözlemci, direğin 1 dakikada 15 tam salınım yaptığını sayıyor. Direğin dik durduğu konum denge konumudur.`,
+        adimlar: [
+          {
+            soru: 'Direğin salınımının periyodu kaç saniyedir?',
+            secenekler: ['15', '4', r`$\dfrac{1}{4}$`],
+            dogru: 1,
+            ipucu: 'Önce 1 dakikayı saniyeye çevir: 60 s. Sonra süreyi salınım sayısına böl.',
+            aciklama: r`$T = \dfrac{60}{15} = 4$ s olur.`
+          },
+          {
+            soru: 'Direk bir uç konumdan dik konuma kaç saniyede gelir?',
+            secenekler: ['1', '2', '4'],
+            dogru: 0,
+            ipucu: 'Uçtan denge konumuna gitmek, bir tam salınımın dörtte biridir.',
+            aciklama: r`Uçtan dengeye $\dfrac{T}{4} = \dfrac{4}{4} = 1$ s sürer.`
+          },
+          {
+            soru: 'Direk bir uçtan öbür uca kaç saniyede gider?',
+            secenekler: ['4', '1', '2'],
+            dogru: 2,
+            ipucu: 'Uçtan uca gitmek, bir tam salınımın yarısıdır.',
+            aciklama: r`Uçtan uca $\dfrac{T}{2} = \dfrac{4}{2} = 2$ s sürer. Geri dönüşle birlikte bir tam salınım 4 s olur.`
+          }
+        ],
+        sonuc: r`Periyodu bilince hareketin parçalarının süresini bulabilirsin: Uçtan dengeye $\dfrac{T}{4}$, uçtan uca $\dfrac{T}{2}$ sürer. Direğin frekansı $\dfrac{1}{4}$ Hz'dir.`
+      },
+      {
+        baslik: 'İskele kazıklarının önünde',
+        sekil: 'sfT71_kazik',
+        metin: r`Bir kıyıda eski bir iskelenin kazıkları sudan yükseliyor. Kazıklar düz bir sıra boyunca 1 m aralıklı. Düzenli dalgalar kazık sırası boyunca ilerliyor. Şekil, suyun yandan bir anlık görünümüdür. Suda yüzen küçük bir top dalgalarla inip kalkıyor. Bir kazığın yanından 10 s'de 5 dalga tepesi geçiyor.`,
+        adimlar: [
+          {
+            soru: 'Dalgaların dalga boyu kaç metredir?',
+            secenekler: ['2', '4', '8'],
+            dogru: 1,
+            ipucu: 'Ardışık iki tepe arasında kaç kazık aralığı var? Her aralık 1 m\'dir.',
+            aciklama: r`Ardışık iki tepe arasında 4 kazık aralığı vardır: $\lambda = 4 \times 1 = 4$ m olur.`
+          },
+          {
+            soru: 'Dalgaların periyodu kaç saniyedir?',
+            secenekler: ['2', '5', r`$\dfrac{1}{2}$`],
+            dogru: 0,
+            ipucu: 'Art arda iki tepenin aynı kazığın yanından geçmesi arasında bir periyot geçer. 10 s\'yi 5\'e böl.',
+            aciklama: r`$T = \dfrac{10}{5} = 2$ s olur.`
+          },
+          {
+            soru: 'Dalgaların sürati kaç m/s\'dir?',
+            secenekler: ['8', '6', '2'],
+            dogru: 2,
+            ipucu: r`$\vartheta = \dfrac{\lambda}{T}$: Dalga boyunu periyoda böl.`,
+            aciklama: r`$\vartheta = \dfrac{4}{2} = 2$ m/s olur.`
+          }
+        ],
+        sonuc: 'Dalga boyunu anlık görünümden, periyodu bir kazığın yanından geçen tepelerden okuduk. İkisini birleştirince dalganın süratini bulduk. Suda yüzen top ise dalgayla birlikte ilerlemedi; hemen hemen yerinde inip kalktı.'
+      },
+      {
+        baslik: 'Rüzgârda salınan bina',
+        sekil: 'sfT71_bina_yt',
+        metin: r`Fırtınalı bir günde çok yüksek bir gökdelenin en üst katındaki bir sensör, binanın tepesinin yatay hareketini kaydediyor. Şekildeki grafik, tepenin denge konumundan uzaklığını ($y$) zamana göre gösteriyor.`,
+        adimlar: [
+          {
+            soru: 'Salınımın genliği kaç santimetredir?',
+            secenekler: ['20', '10', '5'],
+            dogru: 1,
+            ipucu: r`Genlik, denge konumu ($y = 0$) ile en uç nokta arasındaki uzaklıktır.`,
+            aciklama: r`Grafikte $y$ en çok 10 cm, en az $-10$ cm olur. Genlik 10 cm'dir; 20 cm iki uç arasındaki uzaklıktır.`
+          },
+          {
+            soru: 'Salınımın periyodu kaç saniyedir?',
+            secenekler: ['3', '6', '18'],
+            dogru: 1,
+            ipucu: 'Grafikte art arda iki tepe arasındaki süreye bak.',
+            aciklama: r`Art arda iki tepe 0 s ve 6 s anlarındadır: $T = 6$ s olur. 3 s yalnız tepeden çukura geçen süredir.`
+          },
+          {
+            soru: 'Binanın tepesi 1 dakikada kaç tam salınım yapar?',
+            secenekler: ['10', '6', '360'],
+            dogru: 0,
+            ipucu: '1 dakika 60 s\'dir. 60\'ı periyoda böl.',
+            aciklama: r`$N = \dfrac{60}{6} = 10$ tam salınım olur.`
+          }
+        ],
+        sonuc: 'Uzanım-zaman grafiğinden genliği ve periyodu okuduk. Bu grafik tek bir noktanın zamanla hareketini gösterir. Dalga boyu ise ancak anlık görünümden okunur.'
+      }
+    ],
+    hazir: 'Periyodu, frekansı, dalganın enerji taşıdığını, dalga boyunu, genliği ve dalganın süratini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, TYT odaklı) ---------------- */
   not: [
