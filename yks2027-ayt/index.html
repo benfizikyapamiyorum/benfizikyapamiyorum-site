@@ -14639,6 +14639,117 @@ BFY_FIG_EKLE('kA17_plaka_genis', function (u) {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.7 başlangıç şekilleri (sfA17_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MOR = '#6b4fa8', TEL = '#2a3330';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+
+/* Adım 5: rayda iki oyuncak vagon, çarpışmadan önce ve sonra */
+function ray(y, x1, x2) {
+  let s = '';
+  for (let x = x1 + 6; x < x2; x += 16) s += `<rect x="${x}" y="${y + 1}" width="9" height="6" rx="1" fill="#9c7a4f" stroke="#6e5434" stroke-width=".8"/>`;
+  s += `<rect x="${x1}" y="${y - 2}" width="${x2 - x1}" height="4" rx="1" fill="url(#U_metal)" stroke="#6c777e" stroke-width=".8"/>`;
+  return s;
+}
+function vagon(u, x, y, w, h, renk, koyu, yazi) {
+  // y: tekerlek alt çizgisi (ray üstü)
+  const by = y - 9 - h;
+  let s = `<rect x="${x + 2}" y="${by}" width="${w - 4}" height="${h}" rx="4" fill="${renk}" stroke="${koyu}" stroke-width="1.4"/>`;
+  s += `<rect x="${x + 6}" y="${by + 4}" width="${w - 12}" height="6" rx="3" fill="#fff" opacity=".35"/>`;
+  s += `<rect x="${x - 3}" y="${by + h / 2 - 5}" width="5" height="10" rx="1" fill="#c0392b"/><rect x="${x + w - 2}" y="${by + h / 2 - 5}" width="5" height="10" rx="1" fill="#2c5f9e"/>`;
+  [x + w * 0.25, x + w * 0.75].forEach(cx => s += `<circle cx="${f1(cx)}" cy="${y - 7}" r="7" fill="#2b2f33"/><circle cx="${f1(cx)}" cy="${y - 7}" r="2.6" fill="#9aa4ab"/>`);
+  s += T(f1(x + w / 2), f1(by + h / 2 + 6), yazi, { size: 15, weight: 800, anchor: 'middle', fill: TEL, halo: false });
+  return s;
+}
+BFY_FIG_EKLE('sfA17_vagon', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="#f5f3fa"/>`;
+  const fix = t => t.replace(/U_metal/g, u + 'metal');
+  // önce
+  s += yaz(16, 28, 'Önce', { weight: 800, fill: MOR, size: 15 });
+  let y = 100;
+  s += fix(ray(y, 10, 330));
+  s += vagon(u, 46, y, 70, 40, '#f2c46d', '#a7792b', '2 kg');
+  s += vagon(u, 204, y, 92, 40, '#9fd3c7', '#3d8a78', '4 kg');
+  s += ok(56, 36, 126, 36, P.coral, 3.2) + yaz(136, 41, '3 m/s', { weight: 800, fill: P.coral });
+  s += yaz(250, 36, 'duruyor', { anchor: 'middle', fill: P.ink2 });
+  // ayraç
+  s += `<line x1="16" y1="128" x2="324" y2="128" stroke="#d6d0e4" stroke-width="1.4" stroke-dasharray="5 5"/>`;
+  // sonra
+  s += yaz(16, 154, 'Sonra', { weight: 800, fill: MOR, size: 15 });
+  y = 228;
+  s += fix(ray(y, 10, 330));
+  s += vagon(u, 96, y, 70, 40, '#f2c46d', '#a7792b', '2 kg');
+  s += vagon(u, 168, y, 92, 40, '#9fd3c7', '#3d8a78', '4 kg');
+  s += yaz(178, 166, 'birlikte', { anchor: 'middle', fill: P.ink2 });
+  s += ok(214, 161, 270, 161, P.coral, 3.2) + yaz(280, 166, 'ϑ = ?', { weight: 800, fill: P.coral });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Isınma 1: elektrikli kaykayın net kuvvet-zaman grafiği */
+BFY_FIG_EKLE('sfA17_grafik', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="240" rx="14" fill="#f5f3fa"/>`;
+  const x0 = 62, y0 = 196, W = 216, H = 136;          // eksen başlangıcı, genişlik, yükseklik
+  const sx = t => x0 + t / 5 * W, sy = F => y0 - F / 60 * H;
+  // alanlar
+  s += `<rect x="${f1(sx(0))}" y="${f1(sy(50))}" width="${f1(sx(2) - sx(0))}" height="${f1(y0 - sy(50))}" fill="#3f8a67" opacity=".22"/>`;
+  s += `<polygon points="${f1(sx(2))},${f1(sy(50))} ${f1(sx(4))},${y0} ${f1(sx(2))},${y0}" fill="#e7a93b" opacity=".30"/>`;
+  // ızgara
+  [1, 2, 3, 4].forEach(t => s += `<line x1="${f1(sx(t))}" y1="${y0}" x2="${f1(sx(t))}" y2="${f1(sy(60))}" stroke="#ddd6ea" stroke-width="1"/>`);
+  s += `<line x1="${x0}" y1="${f1(sy(50))}" x2="${f1(sx(2))}" y2="${f1(sy(50))}" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+  // eksenler
+  s += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="40" stroke="${P.ink}" stroke-width="1.8"/><polygon points="${x0},30 ${x0 - 5},41 ${x0 + 5},41" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${y0}" x2="${x0 + W + 10}" y2="${y0}" stroke="${P.ink}" stroke-width="1.8"/><polygon points="${x0 + W + 20},${y0} ${x0 + W + 9},${y0 - 5} ${x0 + W + 9},${y0 + 5}" fill="${P.ink}"/>`;
+  s += yaz(x0 - 8, 36, 'F (N)', { anchor: 'end', weight: 800 });
+  s += yaz(x0 + W + 24, y0 + 5, 't (s)', { weight: 800 });
+  s += yaz(x0 - 8, f1(sy(50) + 5), '50', { anchor: 'end' });
+  s += yaz(x0 - 8, y0 + 5, '0', { anchor: 'end' });
+  [2, 4].forEach(t => s += yaz(f1(sx(t)), y0 + 22, String(t), { anchor: 'middle' }));
+  // grafik çizgisi
+  s += `<polyline points="${f1(sx(0))},${f1(sy(50))} ${f1(sx(2))},${f1(sy(50))} ${f1(sx(4))},${y0} ${f1(sx(5))},${y0}" fill="none" stroke="${P.blue}" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  return svg(340, 240, s, u, 90);
+});
+
+/* Isınma 3: tramboline iniş ve fırlayış */
+function cocuk(cx, ty, kollarYukari) {
+  // ty: başın üst noktası
+  let s = `<circle cx="${cx}" cy="${ty + 11}" r="11" fill="#f1c9a5" stroke="${TEL}" stroke-width="1.1"/>`;
+  s += `<path d="M${cx - 11} ${ty + 8} Q${cx} ${ty - 6} ${cx + 11} ${ty + 8} Q${cx} ${ty + 2} ${cx - 11} ${ty + 8} Z" fill="#6b3f22"/>`;
+  s += `<rect x="${cx - 10}" y="${ty + 24}" width="20" height="30" rx="7" fill="#d24b3e" stroke="${TEL}" stroke-width="1"/>`;
+  const kol = kollarYukari ? [[cx - 9, ty + 28, cx - 20, ty + 4], [cx + 9, ty + 28, cx + 20, ty + 4]] : [[cx - 9, ty + 28, cx - 22, ty + 40], [cx + 9, ty + 28, cx + 22, ty + 40]];
+  kol.forEach(([a, b, c, d]) => s += `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#f1c9a5" stroke-width="6" stroke-linecap="round"/>`);
+  s += `<line x1="${cx - 5}" y1="${ty + 52}" x2="${cx - 7}" y2="${ty + 76}" stroke="#2f4a6b" stroke-width="7" stroke-linecap="round"/><line x1="${cx + 5}" y1="${ty + 52}" x2="${cx + 7}" y2="${ty + 76}" stroke="#2f4a6b" stroke-width="7" stroke-linecap="round"/>`;
+  return s;
+}
+function trambolin(cx, y, rx, cukur) {
+  let s = `<ellipse cx="${cx}" cy="${y + 52}" rx="${rx + 6}" ry="6" fill="#000" opacity=".12"/>`;
+  [cx - rx + 10, cx + rx - 10].forEach(x => s += `<path d="M${x} ${y + 2} L${x - 6} ${y + 50} M${x} ${y + 2} L${x + 6} ${y + 50}" stroke="#4d565c" stroke-width="3" stroke-linecap="round"/>`);
+  s += `<path d="M${cx - rx} ${y} Q${cx} ${y + cukur} ${cx + rx} ${y}" fill="#2b2f33" stroke="#1d2124" stroke-width="1.4"/>`;
+  s += `<path d="M${cx - rx} ${y} Q${cx} ${y - 3} ${cx + rx} ${y}" fill="none" stroke="#2f7fb8" stroke-width="5" stroke-linecap="round"/>`;
+  return s;
+}
+BFY_FIG_EKLE('sfA17_trambolin', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="260" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="226" width="340" height="34" fill="url(#${u}grass)"/>`;
+  s += `<line x1="170" y1="16" x2="170" y2="214" stroke="#c9c2dc" stroke-width="1.4" stroke-dasharray="5 5"/>`;
+  // sol: iniş
+  s += trambolin(86, 176, 66, 10) + cocuk(86, 70, true);
+  s += ok(26, 72, 26, 142, P.coral, 3.4) + yaz(10, 62, '4 m/s', { weight: 800, fill: P.coral });
+  s += yaz(86, 34, 'iniş', { anchor: 'middle', weight: 800, fill: MOR, size: 15 });
+  // sağ: fırlayış
+  s += trambolin(254, 176, 66, 10) + cocuk(254, 70, true);
+  s += ok(314, 142, 314, 72, P.coral, 3.4) + yaz(330, 62, '4 m/s', { anchor: 'end', weight: 800, fill: P.coral });
+  s += yaz(254, 34, 'fırlayış', { anchor: 'middle', weight: 800, fill: MOR, size: 15 });
+  s += yaz(170, 250, '30 kg', { anchor: 'middle', weight: 800 });
+  return svg(340, 260, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -14695,6 +14806,187 @@ const KONU = {
     'kargo deposu makaralı hat: X kolisi duran Y kolisine çarpıp duruyor, kütleler bilinmiyor (kesinlikle)', 'paralel bardan inen 40 kg cimnastikçi, 5 m/s, 0,4 s, minder kuvveti',
     "duvardaki kuvvet plakası: X (0,2 kg, 5 m/s; üçgen 200 N, 10 ms), Y (0,1 kg, 6 m/s; üçgen 120 N, 20 ms), Z (0,25 kg, 4 m/s; yamuk 80 N, 30 ms); duran, aynı süratle dönen, en büyük Δp (yorumlama eki)"
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda hareket eden bir cismi durdurmanın neden bazen kolay, bazen zor olduğunu ve çarpışmalarda neyin değişmeden kaldığını göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Momentum: kütle çarpı hız',
+        metin: r`Havalimanında iki bagaj arabası aynı $2\ \text{m/s}$ hızla sana doğru geliyor. Biri boş, kütlesi 20 kg. Öbürü bavullarla dolu, kütlesi 60 kg. Hangisini durdurmak daha zordur? Dolu olanı.
+
+Bir cismi durdurmanın ne kadar zor olduğunu **momentum** gösterir. Momentum, kütle ile hızın çarpımıdır:
+$p = m \times \vartheta$.
+
+- Boş araba: $p = 20 \times 2 = 40\ \text{kg} \times \text{m/s}$.
+- Dolu araba: $p = 60 \times 2 = 120\ \text{kg} \times \text{m/s}$.
+
+Kütle de hız da momentumu büyütür. Duran bir cismin momentumu sıfırdır.`,
+        kontrol: {
+          soru: 'Bisikletiyle birlikte kütlesi 60 kg olan bir çocuk 5 m/s hızla gidiyor. Momentumunun büyüklüğü kaçtır?',
+          secenekler: ['12 kg × m/s', '300 kg × m/s', '65 kg × m/s'],
+          dogru: 1,
+          aciklama: r`$p = m \times \vartheta = 60 \times 5 = 300\ \text{kg} \times \text{m/s}$.`,
+          yanlisIpucu: 'Momentum için kütle ile hız çarpılır; bölünmez, toplanmaz.'
+        }
+      },
+      {
+        baslik: 'Momentumun yönü vardır',
+        metin: r`Momentum, hız gibi **vektördür**: Büyüklüğü ve yönü vardır. Yönü her zaman hızın yönüdür.
+
+Bir yönü $+$, tersini $-$ seç. Kuzeye 3 m/s ile koşan 50 kg kütleli Ali'nin momentumu $+150\ \text{kg} \times \text{m/s}$ olur. Güneye aynı süratle koşan 50 kg kütleli Zeynep'in momentumu ise $-150\ \text{kg} \times \text{m/s}$ olur. Büyüklükleri eşit ama momentumları eşit değildir, çünkü yönleri zıttır.
+
+Birden çok cismin toplam momentumunu bulurken işaretleriyle topla.`,
+        kontrol: {
+          soru: 'Bir masada 2 kg kütleli bir oyuncak araba kuzeye 3 m/s, 1 kg kütleli başka bir oyuncak araba güneye 4 m/s hızla gidiyor. İki arabanın toplam momentumu nedir?',
+          secenekler: ['10 kg × m/s, kuzeye', '2 kg × m/s, güneye', '2 kg × m/s, kuzeye'],
+          dogru: 2,
+          aciklama: r`Kuzey $+$ olsun: $2 \times 3 + 1 \times (-4) = 6 - 4 = +2\ \text{kg} \times \text{m/s}$. Sonuç artı çıktı; toplam momentum kuzeye doğrudur.`,
+          yanlisIpucu: 'Güneye giden arabanın momentumunu eksi işaretle yaz. Sonra iki momentumu topla.'
+        }
+      },
+      {
+        baslik: 'İtme momentumu değiştirir',
+        metin: r`Sürtünmesiz bir buz pistinde duran 40 kg kütleli bir çocuğu annesi 40 N kuvvetle 2 s boyunca itiyor. Kuvvet ile sürenin çarpımına **itme** denir:
+$I = F \times \Delta t = 40 \times 2 = 80\ \text{N} \times \text{s}$.
+
+İtme, momentumdaki değişime eşittir: $F \times \Delta t = \Delta p$.
+
+Çocuk önce duruyordu; momentumu sıfırdı. İtmeden sonra momentumu $80\ \text{kg} \times \text{m/s}$ olur. Hızı: $\vartheta = \dfrac{80}{40} = 2\ \text{m/s}$.
+
+$1\ \text{N} \times \text{s}$ ile $1\ \text{kg} \times \text{m/s}$ aynı birimdir.`,
+        kontrol: {
+          soru: 'Sürtünmesiz yatay bir rayda duran 2 kg kütleli bir oyuncak araba, 2 N net kuvvetle 3 s boyunca çekiliyor. Arabanın son hızı kaç m/s olur?',
+          secenekler: ['3 m/s', '1 m/s', '6 m/s'],
+          dogru: 0,
+          aciklama: r`İtme $2 \times 3 = 6\ \text{N} \times \text{s}$. Araba duruyordu; son momentumu $6\ \text{kg} \times \text{m/s}$ olur. Hız: $\dfrac{6}{2} = 3\ \text{m/s}$.`,
+          yanlisIpucu: 'Önce itmeyi bul: kuvvet çarpı süre. İtme, son momentuma eşittir. Momentumu kütleye bölersen hızı bulursun.'
+        }
+      },
+      {
+        baslik: 'Süre uzarsa kuvvet küçülür',
+        metin: r`Uzun atlamacı kum havuzuna iner. Aynı hızla beton zemine inseydi canı çok yanardı. Neden?
+
+İki durumda da atlamacı durur. Momentumundaki değişim aynıdır. Ama kumda durmak daha **uzun sürer**. $F \times \Delta t = \Delta p$ bağıntısında $\Delta p$ aynı kalırken $\Delta t$ büyürse $F$ küçülür.
+
+Kumda durma süresi betondakinin 10 katı olsaydı, atlamacıyı durduran ortalama kuvvet de 10 kat küçük olurdu.
+
+Kısacası: Momentum değişimi aynıysa, değişimi uzun sürede yaptırmak cismi daha az zorlar.`,
+        kontrol: {
+          soru: 'Aynı yükseklikten bırakılan özdeş iki yumurtadan halıya düşen kırılmıyor, fayansa düşen kırılıyor. Bunun nedeni nedir?',
+          secenekler: ['Halıda yumurtanın momentum değişimi daha küçüktür.', 'Halıda yumurtanın durma süresi daha uzundur; ona etki eden kuvvet daha küçüktür.', 'Halıya düşen yumurtanın momentumu korunur.'],
+          dogru: 1,
+          aciklama: 'İki yumurta da aynı hızla yere çarpar ve durur; momentum değişimleri eşittir. Halı yumurtayı daha uzun sürede durdurur. Süre uzayınca yumurtaya etki eden ortalama kuvvet küçülür.',
+          yanlisIpucu: 'İki yumurta da aynı hızla çarpıp duruyor. Momentum değişimleri farklı olabilir mi? Değişen ne olabilir?'
+        }
+      },
+      {
+        baslik: 'Toplam momentum korunur',
+        sekil: 'sfA17_vagon',
+        metin: r`Sürtünmesiz bir rayda 2 kg kütleli bir oyuncak vagon 3 m/s hızla, duran 4 kg kütleli bir vagona çarpıyor. Uçlarındaki mıknatıslar yapışıyor; iki vagon birlikte gidiyor.
+
+Çarpışmada vagonlar birbirine kuvvet uygular. Bu kuvvetler eşit büyüklükte ve zıt yönlüdür; biri ne kadar momentum kazanırsa öbürü o kadar kaybeder. Dışarıdan net kuvvet yoksa **toplam momentum değişmez.**
+- Çarpışmadan önce toplam momentum: $2 \times 3 + 4 \times 0 = 6\ \text{kg} \times \text{m/s}$.
+- Çarpışmadan sonra da $6\ \text{kg} \times \text{m/s}$ olmalıdır. Artık iki vagon tek bir cisim gibi: $(2 + 4) \times \vartheta = 6$.`,
+        kontrol: {
+          soru: 'Birbirine yapışan iki vagonun ortak hızı kaç m/s olur?',
+          secenekler: ['3 m/s', '6 m/s', '1 m/s'],
+          dogru: 2,
+          aciklama: r`$6 \times \vartheta = 6$, buradan $\vartheta = 1\ \text{m/s}$. Hız azaldı ama toplam momentum aynı kaldı: önce $2 \times 3 = 6$, sonra $6 \times 1 = 6$.`,
+          yanlisIpucu: 'Çarpışmadan sonra hareket eden kütle artık 2 + 4 = 6 kg. Toplam momentumu bu kütleye böl.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kalkış yapan elektrikli kaykay',
+        sekil: 'sfA17_grafik',
+        metin: r`Deniz elektrikli kaykayıyla düz bir yolda duruyor; ikisinin toplam kütlesi 50 kg. Deniz kumandaya basıp kalkış yapıyor, sonra motoru yavaş yavaş kapatıyor. Grafikte, Deniz ile kaykaya etki eden yatay net kuvvetin zamanla değişimi var.`,
+        adimlar: [
+          {
+            soru: 'İlk 2 s içinde net kuvvetin itmesi kaç N × s\'dir?',
+            secenekler: ['25 N × s', '100 N × s', '50 N × s'],
+            dogru: 1,
+            ipucu: r`Kuvvet 2 s boyunca sabit 50 N. İtme $= F \times \Delta t$; grafikte bu, dikdörtgenin alanıdır.`,
+            aciklama: r`$I = 50 \times 2 = 100\ \text{N} \times \text{s}$. Kuvvet-zaman grafiğinin altındaki alan itmeyi verir.`
+          },
+          {
+            soru: '2. ve 4. saniyeler arasındaki itme kaç N × s\'dir?',
+            secenekler: ['50 N × s', '100 N × s', '0'],
+            dogru: 0,
+            ipucu: 'Bu aralıkta kuvvet 50 N\'dan sıfıra iniyor. Grafiğin altında kalan şekil bir üçgen: taban × yükseklik / 2.',
+            aciklama: r`Üçgenin alanı: $\dfrac{2 \times 50}{2} = 50\ \text{N} \times \text{s}$. Kuvvet azalıyor ama sıfır olana kadar Deniz\'i ve kaykayı hızlandırmaya devam ediyor.`
+          },
+          {
+            soru: '4. saniyenin sonunda Deniz\'in hızı kaç m/s olur?',
+            secenekler: ['2 m/s', '1 m/s', '3 m/s'],
+            dogru: 2,
+            ipucu: r`Toplam itme $100 + 50 = 150\ \text{N} \times \text{s}$. Deniz duruyordu; son momentumu bu itmeye eşittir.`,
+            aciklama: r`$\Delta p = 150\ \text{kg} \times \text{m/s}$, $\vartheta = \dfrac{150}{50} = 3\ \text{m/s}$.`
+          }
+        ],
+        sonuc: 'Kuvvet-zaman grafiğinin altındaki toplam alan itmedir ve momentum değişimine eşittir. Kuvvet azalırken bile itme sürer; hız 2. saniyeden sonra da artmaya devam eder.'
+      },
+      {
+        baslik: 'Buzda top atan patenci',
+        metin: r`Sürtünmesiz bir buz pistinde 50 kg kütleli bir patenci duruyor. Elinde 5 kg kütleli bir sağlık topu var. Patenci topu göğsünden yatay olarak ileri doğru 5 m/s hızla fırlatıyor.`,
+        adimlar: [
+          {
+            soru: 'Top atılmadan önce patenci ile topun toplam momentumu kaçtır?',
+            secenekler: ['0', '25 kg × m/s', '55 kg × m/s'],
+            dogru: 0,
+            ipucu: 'Atıştan önce ikisi de duruyor. Duran cismin momentumu kaçtır?',
+            aciklama: 'İkisi de duruyor; hızları sıfır. Toplam momentum sıfırdır.'
+          },
+          {
+            soru: 'Atıştan hemen sonra topun momentumu kaçtır?',
+            secenekler: ['10 kg × m/s, ileri', '25 kg × m/s, ileri', '250 kg × m/s, ileri'],
+            dogru: 1,
+            ipucu: r`Yalnız topa bak: $p = m \times \vartheta$, topun kütlesi 5 kg.`,
+            aciklama: r`$p = 5 \times 5 = 25\ \text{kg} \times \text{m/s}$, ileri doğru.`
+          },
+          {
+            soru: 'Patencinin hızı ne olur?',
+            secenekler: ['0,5 m/s, geriye', '5 m/s, geriye', '0,5 m/s, ileriye'],
+            dogru: 0,
+            ipucu: r`Toplam momentum sıfır kalmalı. Top $+25$ taşıyorsa patenci $-25\ \text{kg} \times \text{m/s}$ taşımalıdır.`,
+            aciklama: r`$50 \times \vartheta = -25$, buradan $\vartheta = -0{,}5\ \text{m/s}$. Patenci 0,5 m/s hızla geriye kayar.`
+          }
+        ],
+        sonuc: 'Başlangıçta duran bir sistem ikiye ayrılınca parçaların momentumları eşit büyüklükte ve zıt yönlü olur. Kütlesi küçük olan parça daha hızlı gider.'
+      },
+      {
+        baslik: 'Trambolinde sıçrayış',
+        sekil: 'sfA17_trambolin',
+        metin: r`30 kg kütleli bir çocuk tramboline 4 m/s hızla düşey olarak iniyor. File önce gerilip çocuğu durduruyor, sonra onu 4 m/s hızla yukarı fırlatıyor. Yukarı yönü $+$ seçelim.`,
+        adimlar: [
+          {
+            soru: 'Çocuk fileye değdiği anda momentumu nedir?',
+            secenekler: ['120 kg × m/s, yukarı', '120 kg × m/s, aşağı', '34 kg × m/s, aşağı'],
+            dogru: 1,
+            ipucu: 'Momentumun yönü hızın yönüdür. Çocuk o anda aşağı doğru hareket ediyor.',
+            aciklama: r`$p = 30 \times 4 = 120\ \text{kg} \times \text{m/s}$, aşağı doğru. İşaretle: $-120\ \text{kg} \times \text{m/s}$.`
+          },
+          {
+            soru: 'Fileyle temas boyunca çocuğun momentum değişimi nedir?',
+            secenekler: ['0', '120 kg × m/s, yukarı', '240 kg × m/s, yukarı'],
+            dogru: 2,
+            ipucu: r`$\Delta p = p_\text{son} - p_\text{ilk}$. Son momentum $+120$, ilk momentum $-120$.`,
+            aciklama: r`$\Delta p = (+120) - (-120) = +240\ \text{kg} \times \text{m/s}$, yukarı doğru. Sürat aynı kaldı ama yön değişti; momentum değişimi sıfır değildir.`
+          },
+          {
+            soru: 'Çocuk daha gevşek bir trambolinde aynı hızla inip aynı hızla fırlasaydı ne olurdu?',
+            secenekler: ['Momentum değişimi aynı kalır, temas uzar, filenin kuvveti küçülür.', 'Momentum değişimi küçülür, filenin kuvveti büyür.', 'Momentum değişimi ve filenin kuvveti değişmez.'],
+            dogru: 0,
+            ipucu: 'İlk ve son hızlar aynı. Gevşek file çocuğu daha uzun sürede durdurup geri fırlatır.',
+            aciklama: r`İlk ve son hızlar aynı olduğu için $\Delta p$ yine $240\ \text{kg} \times \text{m/s}$'dir. Gevşek filede temas daha uzun sürer; $F \times \Delta t = \Delta p$ olduğundan ortalama kuvvet küçülür.`
+          }
+        ],
+        sonuc: 'Geri sekmede momentum değişimi, büyüklüklerin farkı değil toplamıdır: 120 + 120 = 240 kg × m/s. Süratin aynı kalması, momentumun değişmediği anlamına gelmez.'
+      }
+    ],
+    hazir: 'Momentumu, yönünü, itmeyi, kuvvet-zaman grafiğindeki alanı ve momentumun korunumunu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -16410,6 +16702,119 @@ BFY_FIG_EKLE('iA18_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 132, oy: 70 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.8 başlangıç şekilleri (sfA18_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MOR = '#6b4fa8', TEL = '#2a3330';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+// yatay ölçü çizgisi, yazı ortada üstte
+function olcu(x1, x2, y, s, c = P.ink2) {
+  return `<g stroke="${c}" stroke-width="1.3"><line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"/><line x1="${x1}" y1="${y - 6}" x2="${x1}" y2="${y + 6}"/><line x1="${x2}" y1="${y - 6}" x2="${x2}" y2="${y + 6}"/></g>` +
+    yaz((x1 + x2) / 2, y - 6, s, { anchor: 'middle', fill: TEL, weight: 800 });
+}
+
+/* Adım 1: çocuk parkındaki döner platform (üstten görünüş) */
+BFY_FIG_EKLE('sfA18_platform', function (u) {
+  let s = `<defs><radialGradient id="${u}tabla" cx="45%" cy="40%" r="65%"><stop offset="0" stop-color="#f6e2b8"/><stop offset=".8" stop-color="#e2bd7c"/><stop offset="1" stop-color="#c49a55"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="260" rx="14" fill="url(#${u}grass)" opacity=".55"/>`;
+  const cx = 140, cy = 134, r = 100;
+  s += `<circle cx="${cx + 4}" cy="${cy + 6}" r="${r + 2}" fill="#000" opacity=".14"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${u}tabla)" stroke="#8a6a3c" stroke-width="2"/>`;
+  for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; s += `<line x1="${cx}" y1="${cy}" x2="${f1(cx + r * Math.cos(a))}" y2="${f1(cy + r * Math.sin(a))}" stroke="#b38e55" stroke-width="1.2" opacity=".7"/>`; }
+  s += `<circle cx="${cx}" cy="${cy}" r="${r - 14}" fill="none" stroke="#c0392b" stroke-width="4" opacity=".75"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="11" fill="url(#${u}metal)" stroke="#4d565c" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="3.5" fill="#4d565c"/>`;
+  s += yaz(cx - 18, cy + 30, 'mil', { anchor: 'middle', weight: 800, fill: TEL });
+  // yarıçap ve kuvvet
+  s += `<line x1="${cx}" y1="${cy}" x2="${cx + r}" y2="${cy}" stroke="${TEL}" stroke-width="2" stroke-dasharray="6 4"/>`;
+  s += T(cx + r / 2 + 6, cy - 10, '2 m', { size: 15, weight: 800, anchor: 'middle', fill: TEL });
+  s += `<circle cx="${cx + r}" cy="${cy}" r="4.5" fill="${TEL}"/>`;
+  s += ok(cx + r, cy, cx + r, cy - 86, P.coral, 3.4);
+  s += yaz(cx + r + 10, cy - 60, 'F = 30 N', { weight: 800, fill: P.coral });
+  // dönme yönü (saat yönünün tersi)
+  const R = r + 16, a0 = 150 * Math.PI / 180, a1 = 215 * Math.PI / 180;
+  const p0 = [cx + R * Math.cos(a0), cy - R * Math.sin(a0)], p1 = [cx + R * Math.cos(a1), cy - R * Math.sin(a1)];
+  s += `<path d="M${f1(p0[0])} ${f1(p0[1])} A${R} ${R} 0 0 0 ${f1(p1[0])} ${f1(p1[1])}" fill="none" stroke="${MOR}" stroke-width="3"/>`;
+  s += ok(p1[0] + 2, p1[1] - 4, p1[0] + 9, p1[1] + 6, MOR, 3);
+  s += yaz(cx + r + 10, cy + 74, 'üstten', { fill: P.ink2 }) + yaz(cx + r + 10, cy + 92, 'görünüş', { fill: P.ink2 });
+  return svg(340, 260, s, u, 90);
+});
+
+/* Isınma 2: kule vinci ve karşı ağırlık */
+BFY_FIG_EKLE('sfA18_vinc', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="280" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="252" width="340" height="28" fill="url(#${u}soil)"/>`;
+  const kx = 110, ky = 92, sc = 5, xs = 50, xe = kx + 40 * sc + 16;                       // kule ekseni, kol yüksekliği, px/m
+  // kule (kafes)
+  s += `<rect x="${kx - 12}" y="${ky}" width="24" height="${252 - ky}" fill="none" stroke="#c88a1a" stroke-width="3"/>`;
+  for (let y = ky; y < 248; y += 20) s += `<path d="M${kx - 12} ${y} L${kx + 12} ${y + 20} M${kx + 12} ${y} L${kx - 12} ${y + 20}" stroke="#d9a032" stroke-width="1.6"/>`;
+  s += `<rect x="${kx - 22}" y="246" width="44" height="8" fill="#8d9399" stroke="#5d656b" stroke-width="1"/>`;
+  // kabin ve tepe
+  s += `<rect x="${kx + 12}" y="${ky + 2}" width="18" height="16" rx="2" fill="#f2c46d" stroke="#a7792b" stroke-width="1.2"/><rect x="${kx + 16}" y="${ky + 5}" width="10" height="7" fill="#cfe5f4"/>`;
+  s += `<path d="M${kx - 8} ${ky} L${kx} ${ky - 34} L${kx + 8} ${ky}" fill="none" stroke="#c88a1a" stroke-width="3"/>`;
+  s += `<line x1="${kx}" y1="${ky - 34}" x2="${xs}" y2="${ky - 4}" stroke="#5d656b" stroke-width="1.6"/><line x1="${kx}" y1="${ky - 34}" x2="${xe - 4}" y2="${ky - 4}" stroke="#5d656b" stroke-width="1.6"/>`;
+  // kol (kafes)
+  s += `<rect x="${xs}" y="${ky - 8}" width="${xe - xs}" height="10" fill="none" stroke="#c88a1a" stroke-width="2.4"/>`;
+  for (let x = xs; x < xe - 6; x += 12) s += `<line x1="${x}" y1="${ky + 2}" x2="${x + 12}" y2="${ky - 8}" stroke="#d9a032" stroke-width="1.3"/>`;
+  // karşı ağırlık
+  const cwx = kx - 8 * sc;
+  s += `<rect x="${cwx - 16}" y="${ky + 2}" width="32" height="34" rx="2" fill="url(#${u}concrete)" stroke="#6c777e" stroke-width="1.4"/>`;
+  s += `<line x1="${cwx - 16}" y1="${ky + 19}" x2="${cwx + 16}" y2="${ky + 19}" stroke="#8d9399" stroke-width="1"/>`;
+  s += yaz(kx - 22, ky + 58, '50 000 N', { anchor: 'end', weight: 800 });
+  // araba, halat, yük
+  const ax = kx + 40 * sc;
+  s += `<rect x="${ax - 10}" y="${ky + 2}" width="20" height="8" rx="2" fill="#4d565c"/>`;
+  s += `<line x1="${ax}" y1="${ky + 10}" x2="${ax}" y2="166" stroke="#2b2f33" stroke-width="1.6"/>`;
+  s += `<path d="M${ax} 166 q-5 4 0 9" fill="none" stroke="#2b2f33" stroke-width="2"/>`;
+  s += `<line x1="${ax}" y1="175" x2="${ax - 14}" y2="186" stroke="#2b2f33" stroke-width="1.2"/><line x1="${ax}" y1="175" x2="${ax + 14}" y2="186" stroke="#2b2f33" stroke-width="1.2"/>`;
+  s += `<rect x="${ax - 20}" y="186" width="40" height="28" rx="2" fill="url(#${u}box)" stroke="#8a5a2b" stroke-width="1.3"/>`;
+  s += yaz(ax - 28, 206, 'yük', { anchor: 'end', weight: 800 });
+  s += ok(ax, 214, ax, 248, P.green, 2.6) + yaz(ax + 8, 244, 'G', { weight: 800, fill: P.green, size: 16, italic: true });
+  // ölçüler
+  s += `<line x1="${kx}" y1="${ky - 40}" x2="${kx}" y2="${ky - 8}" stroke="${P.ink2}" stroke-width="1" stroke-dasharray="3 3"/>`;
+  s += olcu(cwx, kx, 34, '8 m') + olcu(kx, ax, 34, '40 m');
+  return svg(340, 280, s, u, 90);
+});
+
+/* Isınma 3: iki zincirle asılı tabela ve saksı */
+function zincir(x, y1, y2) {
+  return `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#6c777e" stroke-width="5" stroke-dasharray="6 3" stroke-linecap="round"/>` +
+    `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#d9dee2" stroke-width="1.6" stroke-dasharray="6 3"/>`;
+}
+BFY_FIG_EKLE('sfA18_tabela', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="260" rx="14" fill="url(#${u}facade)"/>`;
+  // saçak
+  s += `<rect x="20" y="20" width="300" height="12" fill="#8a6a3c" stroke="#5d4a33" stroke-width="1"/>`;
+  for (let x = 28; x < 320; x += 12) s += `<line x1="${x}" y1="20" x2="${x - 8}" y2="12" stroke="#8a6a3c" stroke-width="1.2"/>`;
+  const x1 = 54, x2 = 302, ty = 104, th = 46, m = (x2 - x1) / 4;
+  s += zincir(x1 + 6, 32, ty) + zincir(x2 - 6, 32, ty);
+  // tabela
+  s += `<rect x="${x1 + 3}" y="${ty + 4}" width="${x2 - x1}" height="${th}" rx="5" fill="#000" opacity=".15"/>`;
+  s += `<rect x="${x1}" y="${ty}" width="${x2 - x1}" height="${th}" rx="5" fill="#2f6f8f" stroke="#1d4a60" stroke-width="2"/>`;
+  s += `<rect x="${x1 + 5}" y="${ty + 5}" width="${x2 - x1 - 10}" height="${th - 10}" rx="3" fill="none" stroke="#f2c46d" stroke-width="1.4"/>`;
+  s += T((x1 + x2) / 2, ty + th / 2 + 6, 'ÇİÇEKÇİ', { size: 18, weight: 800, anchor: 'middle', fill: '#fff8e6', halo: false });
+  s += yaz(x1 + 1, ty - 8, 'sol', { anchor: 'end', fill: P.ink2 }) + yaz(x2 - 1, ty - 8, 'sağ', { anchor: 'start', fill: P.ink2 });
+  // saksı
+  const px = x1 + m;
+  s += `<line x1="${px}" y1="${ty + th}" x2="${px}" y2="${ty + th + 18}" stroke="#5d4a33" stroke-width="1.8"/>`;
+  s += `<path d="M${px - 30} ${ty + th + 18} L${px} ${ty + th + 6} L${px + 30} ${ty + th + 18}" fill="none" stroke="#5d4a33" stroke-width="1.4"/>`;
+  s += `<path d="M${px - 24} ${ty + th + 24} Q${px - 10} ${ty + th - 4} ${px} ${ty + th + 18} Q${px + 12} ${ty + th - 6} ${px + 24} ${ty + th + 24} Z" fill="#3f8a67"/>`;
+  s += `<circle cx="${px - 8}" cy="${ty + th + 12}" r="5" fill="#d24b3e"/><circle cx="${px + 10}" cy="${ty + th + 10}" r="5" fill="#e7a93b"/>`;
+  s += `<path d="M${px - 30} ${ty + th + 18} L${px + 30} ${ty + th + 18} L${px + 22} ${ty + th + 54} L${px - 22} ${ty + th + 54} Z" fill="#c8693e" stroke="#8a4526" stroke-width="1.4"/>`;
+  s += `<rect x="${px - 32}" y="${ty + th + 16}" width="64" height="7" rx="2" fill="#b65a33"/>`;
+  s += yaz(px + 38, ty + th + 44, 'saksı, 80 N', { weight: 800 });
+  s += yaz(x2 - 50, ty + th + 22, 'tabela, 200 N', { anchor: 'middle', weight: 800 });
+  // ölçüler
+  s += olcu(x1, px, 236, '1 m') + olcu(px, x2, 236, '3 m');
+  s += `<line x1="${x1}" y1="${ty + th}" x2="${x1}" y2="242" stroke="${P.ink2}" stroke-width="1" stroke-dasharray="3 3"/><line x1="${x2}" y1="${ty + th}" x2="${x2}" y2="242" stroke="${P.ink2}" stroke-width="1" stroke-dasharray="3 3"/>`;
+  return svg(340, 260, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -16476,6 +16881,187 @@ const KONU = {
     'artı biçimli bijon anahtarı, kollar 30 cm, iki elle 150 N: 90 N m, tek elle 300 N, tek elde bileşke sıfır değil (I-II-III)',
     '120 g cetvel 40 cm çizgisinden asılı, X 10 cm çizgisinde, Y ölçüm tablosu (biri hatalı): X = 60 g (tablo)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda bir kuvvetin cismi neden bazen döndürdüğünü, bazen döndüremediğini; bir cismin hem kaymadan hem dönmeden nasıl dengede kaldığını ve kütle merkezinin nerede olduğunu göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Tork: kuvvetin döndürme etkisi',
+        sekil: 'sfA18_platform',
+        metin: r`Çocuk parkında, ortasındaki bir mil çevresinde dönen büyük bir döner platform var. Yarıçapı 2 m. Bir baba platformu kenarından, yarıçapa dik olarak 30 N kuvvetle itiyor; platform dönmeye başlıyor.
+
+Bir kuvvetin döndürme etkisine **tork** denir ve $\tau$ ile gösterilir:
+$\tau = F \times d$.
+
+Burada $d$ **kuvvet koludur**: dönme ekseni ile kuvvetin doğrultusu arasındaki dik uzaklık. Babanın uyguladığı tork:
+$\tau = 30 \times 2 = 60\ \text{N} \times \text{m}$.
+
+Aynı kuvvet eksenden ne kadar uzağa uygulanırsa tork o kadar büyük olur.`,
+        kontrol: {
+          soru: 'Aynı 60 N × m torku, merkezden 1 m uzaktaki bir tutamaktan yarıçapa dik iterek elde etmek için kaç N kuvvet gerekir?',
+          secenekler: ['15 N', '30 N', '60 N'],
+          dogru: 2,
+          aciklama: r`$F \times 1 = 60$, buradan $F = 60$ N. Kuvvet kolu yarıya inince aynı tork için kuvvetin iki katına çıkması gerekir.`,
+          yanlisIpucu: r`$\tau = F \times d$ bağıntısında $\tau = 60\ \text{N} \times \text{m}$ ve $d = 1$ m al. Kuvvet kolu kısalınca kuvvet artmalı mı, azalmalı mı?`
+        }
+      },
+      {
+        baslik: 'Kuvvet kolu: dik uzaklık',
+        metin: r`Kuvvet kolu, eksenden kuvvetin uygulandığı noktaya olan uzaklık değildir; eksenden **kuvvetin doğrultusuna** olan dik uzaklıktır.
+
+- Kuvvet yarıçapa dikse kuvvet kolu yarıçapın kendisidir. Tork en büyük olur.
+- Kuvvet eğik uygulanırsa doğrultusu eksene yaklaşır; kuvvet kolu kısalır, tork küçülür.
+- Kuvvetin doğrultusu eksenden geçerse kuvvet kolu sıfırdır. Kuvvet ne kadar büyük olursa olsun tork sıfırdır.`,
+        kontrol: {
+          soru: 'Baba, döner platformu kenarından tam merkeze doğru 100 N kuvvetle iterse ne olur?',
+          secenekler: ['Platform en hızlı bu durumda dönmeye başlar.', 'Platform dönmez; kuvvetin doğrultusu eksenden geçtiği için tork sıfırdır.', 'Tork 200 N × m olur.'],
+          dogru: 1,
+          aciklama: 'Merkeze doğru itilen kuvvetin doğrultusu milden geçer. Kuvvet kolu sıfırdır; tork da sıfırdır. Platform bu itmeyle dönmeye başlamaz.',
+          yanlisIpucu: 'Kuvvetin doğrultusunu uzat. Bu çizgi dönme ekseninden geçiyorsa kuvvet kolu kaçtır?'
+        }
+      },
+      {
+        baslik: 'Net tork ve dönme yönü',
+        metin: r`Torkun bir yönü vardır: cismi ya saat yönünde ya da saat yönünün tersine döndürmeye çalışır. Saat yönünün tersini $+$, saat yönünü $-$ alalım ve torkları işaretleriyle toplayalım.
+
+Duran döner platformu iki çocuk zıt yönlere, yarıçapa dik olarak itiyor:
+- Ayşe, kenardan (2 m) 30 N ile saat yönünün tersine: $+60\ \text{N} \times \text{m}$.
+- Can, merkezden 1 m uzaktan 50 N ile saat yönüne: $-50\ \text{N} \times \text{m}$.
+
+Net tork $+60 - 50 = +10\ \text{N} \times \text{m}$. Platform saat yönünün tersine dönmeye başlar. Can'ın kuvveti büyük ama kuvvet kolu kısa olduğu için torku küçüktür.`,
+        kontrol: {
+          soru: 'Ayşe aynı şekilde iterken Can, merkezden 1 m uzaktan 80 N ile saat yönüne iterse net tork ne olur?',
+          secenekler: ['140 N × m, saat yönünde', '20 N × m, saat yönünün tersine', '20 N × m, saat yönünde'],
+          dogru: 2,
+          aciklama: r`$+60 + (-80) = -20\ \text{N} \times \text{m}$. Sonuç eksi; net tork 20 N × m, saat yönündedir. Platform saat yönünde dönmeye başlar.`,
+          yanlisIpucu: r`Can'ın torku $-(80 \times 1)$. Ayşe'ninkiyle işaretleriyle topla; büyüklükleri doğrudan toplama.`
+        }
+      },
+      {
+        baslik: 'Denge: iki şart birden',
+        metin: r`Bir cisim dengedeyse ne kayar ne de döner. Bunun için iki şart birlikte sağlanmalıdır:
+- Kuvvetlerin toplamı sıfır: $\Sigma F = 0$.
+- Herhangi bir noktaya göre torkların toplamı sıfır: $\Sigma \tau = 0$.
+
+Bahçede 3 m uzunluğunda bir bank var. Ayakları iki uçta. Bankın kendi ağırlığını önemsemiyoruz. Ortasına 600 N ağırlığında biri oturunca her ayak 300 N taşır: Kuvvetler $300 + 300 = 600$ N ile dengelenir; orta noktaya göre iki ayağın torkları eşit ve zıttır.
+
+Kişi bir uca yaklaşırsa o uçtaki ayak daha çok yük taşır. Ayak kuvvetini bulmak için torkları **öbür ayağa göre** al; o ayağın kuvveti eksenden geçtiği için denkleme girmez.`,
+        kontrol: {
+          soru: 'Aynı kişi bankın sol ucundan 1 m uzağa oturursa sağ ayak kaç N taşır?',
+          secenekler: ['400 N', '200 N', '300 N'],
+          dogru: 1,
+          aciklama: r`Sol ayağa göre torklar: $N_\text{sağ} \times 3 = 600 \times 1$, buradan $N_\text{sağ} = 200$ N. Kuvvet dengesinden sol ayak $600 - 200 = 400$ N taşır. Kişi sola yakın oturduğu için sol ayak daha çok yük alır.`,
+          yanlisIpucu: 'Torkları sol ayağa göre yaz: Kişinin torku 600 × 1, sağ ayağın torku N × 3. Kişiye yakın olan ayak mı daha çok taşır, uzak olan mı?'
+        }
+      },
+      {
+        baslik: 'Kütle merkezi',
+        metin: r`Bir cismi tek bir noktadan destekleyerek dengede tutabiliyorsan, o nokta ağırlığın etki ettiği noktadır. Düzgün yer çekiminde bu nokta **kütle merkezi** ile aynıdır.
+
+90 cm uzunluğunda hafif bir çubuğun iki ucuna eşit kütleli 5 kg'lık diskler takılmış. Kütle merkezi tam ortadadır. Kütleler eşit değilse kütle merkezi ağır olana yaklaşır. Konumu bir uçtan ölçerek bulunur:
+$x_{KM} = \dfrac{m_1 x_1 + m_2 x_2}{m_1 + m_2}$.
+
+Çubuğun kütlesini önemsemediğimiz için yalnız disklerin kütlelerini kullanırız.`,
+        kontrol: {
+          soru: 'Aynı çubuğun bir ucuna 10 kg, öbür ucuna 20 kg disk takılırsa çubuğu tek elle dengede tutmak için nereden tutmak gerekir?',
+          secenekler: ['Çubuğun tam ortasından', '20 kg\'lık diskten 30 cm uzaktan', '10 kg\'lık diskten 30 cm uzaktan'],
+          dogru: 1,
+          aciklama: r`10 kg'lık diski $x = 0$, 20 kg'lık diski $x = 90$ cm'ye koy: $x_{KM} = \dfrac{10 \times 0 + 20 \times 90}{30} = 60$ cm. Bu nokta 20 kg'lık diskten $90 - 60 = 30$ cm uzaktadır. Kontrol: $10 \times 60 = 20 \times 30$; torklar eşit.`,
+          yanlisIpucu: 'Kütle merkezi ağır diske yakın olmalı. Formülde bir diski 0, öbürünü 90 cm noktasına koy.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Bodrum kapağını kaldırmak',
+        metin: r`Yerdeki türdeş ahşap bir bodrum kapağı 120 cm uzunluğunda ve 80 N ağırlığında. Kapak bir kenarındaki menteşe çevresinde dönebiliyor. Elif kapağı menteşenin karşısındaki kenarından düşey yukarı çekerek yerden kaldırmaya başlıyor. Kapağı yerden ayırmaya yetecek en küçük kuvveti bulacağız.`,
+        adimlar: [
+          {
+            soru: 'Kapağın ağırlığı menteşeden kaç cm uzaktan etki eder?',
+            secenekler: ['120 cm', '60 cm', '0'],
+            dogru: 1,
+            ipucu: 'Türdeş bir kapağın ağırlığı tam ortasından etki eder.',
+            aciklama: 'Kapak türdeş; ağırlığı orta noktasından, yani menteşeden 60 cm uzaktan etki eder.'
+          },
+          {
+            soru: 'Elif\'in kapağı yerden ayırması için en az kaç N kuvvet gerekir?',
+            secenekler: ['80 N', '160 N', '40 N'],
+            dogru: 2,
+            ipucu: r`Menteşeye göre torklar eşit olmalı: $F \times 120 = 80 \times 60$. Menteşenin kuvveti eksenden geçer, torka girmez.`,
+            aciklama: r`$F \times 120 = 80 \times 60$, buradan $F = 40$ N. Elif'in kuvvet kolu ağırlığınkinin iki katı olduğu için kuvveti ağırlığın yarısı kadardır.`
+          },
+          {
+            soru: 'Elif kapağı menteşeden 80 cm uzaktaki bir halkadan düşey yukarı çekseydi en az kaç N gerekirdi?',
+            secenekler: ['60 N', '40 N', '30 N'],
+            dogru: 0,
+            ipucu: r`Denklem aynı, yalnız Elif'in kuvvet kolu değişti: $F \times 80 = 80 \times 60$.`,
+            aciklama: r`$F \times 80 = 4800$, buradan $F = 60$ N. Kuvvet kolu kısalınca gereken kuvvet arttı.`
+          }
+        ],
+        sonuc: 'Türdeş cismin ağırlığını orta noktasına koy, torkları menteşeye göre al. Menteşeden uzakta çekmek işi kolaylaştırır.'
+      },
+      {
+        baslik: 'Kule vincinin karşı ağırlığı',
+        sekil: 'sfA18_vinc',
+        metin: r`Bir inşaat kule vincinin yatay kolu kulenin tepesinde duruyor. Kısa kolun ucunda, kule ekseninden 8 m uzakta 50 000 N ağırlığında beton bir karşı ağırlık var. Uzun kolda yükü taşıyan araba ileri geri gidebiliyor. Kolların, yük arabasının ve kancanın ağırlıklarını önemsemiyoruz; yalnız karşı ağırlığı ve yükü hesaba katıyoruz. Vinç, kule eksenine göre torklar dengedeyken güvenle çalışıyor.`,
+        adimlar: [
+          {
+            soru: 'Karşı ağırlığın kule eksenine göre torku kaç N × m\'dir?',
+            secenekler: ['6250 N × m', '400 000 N × m', '50 000 N × m'],
+            dogru: 1,
+            ipucu: r`$\tau = F \times d$: kuvvet 50 000 N, kuvvet kolu 8 m.`,
+            aciklama: r`$\tau = 50\,000 \times 8 = 400\,000\ \text{N} \times \text{m}$.`
+          },
+          {
+            soru: 'Araba kuleden 40 m uzaktayken dengeyi sağlayan yükün ağırlığı kaç N\'dur?',
+            secenekler: ['10 000 N', '50 000 N', '2 000 000 N'],
+            dogru: 0,
+            ipucu: r`Yükün torku karşı ağırlığın torkuna eşit olmalı: $G \times 40 = 400\,000$.`,
+            aciklama: r`$G = \dfrac{400\,000}{40} = 10\,000$ N.`
+          },
+          {
+            soru: 'Araba kuleye yaklaşıp 20 m uzağa gelirse dengeyi sağlayan yük kaç N olur?',
+            secenekler: ['5000 N', '10 000 N', '20 000 N'],
+            dogru: 2,
+            ipucu: 'Tork aynı kalmalı. Kuvvet kolu yarıya inerse kuvvet ne olmalı?',
+            aciklama: r`$G \times 20 = 400\,000$, buradan $G = 20\,000$ N. Kuvvet kolu yarıya inince yük iki katına çıkabilir.`
+          }
+        ],
+        sonuc: 'Aynı tork için kuvvet ile kuvvet kolu ters orantılıdır. Bu yüzden ağır yükler kuleye yakın taşınır, hafif yükler uzağa götürülebilir.'
+      },
+      {
+        baslik: 'İki zincirle asılı tabela',
+        sekil: 'sfA18_tabela',
+        metin: r`Bir dükkânın önünde 4 m uzunluğunda, 200 N ağırlığında türdeş bir tabela, iki ucundan düşey zincirlerle asılı. Tabelanın sol ucundan 1 m uzağa 80 N ağırlığında bir saksı asılıyor. Tabela yatay olarak dengede. Zincirlerin kuvvetlerini bulacağız.`,
+        adimlar: [
+          {
+            soru: 'Sol ucu eksen alalım. Tabelanın ve saksının ağırlıklarının bu eksene göre torklarının toplamı kaç N × m\'dir?',
+            secenekler: ['400 N × m', '480 N × m', '280 N × m'],
+            dogru: 1,
+            ipucu: 'Tabelanın ağırlığı ortasından (sol uçtan 2 m), saksınınki sol uçtan 1 m uzaktan etki eder. İkisi de aynı yönde döndürür.',
+            aciklama: r`$200 \times 2 + 80 \times 1 = 400 + 80 = 480\ \text{N} \times \text{m}$, saat yönünde.`
+          },
+          {
+            soru: 'Sağ zincirin tabelaya uyguladığı kuvvet kaç N\'dur?',
+            secenekler: ['140 N', '480 N', '120 N'],
+            dogru: 2,
+            ipucu: r`Sağ zincirin kuvvet kolu 4 m. Torkların dengesi: $T_\text{sağ} \times 4 = 480$.`,
+            aciklama: r`$T_\text{sağ} = \dfrac{480}{4} = 120$ N. Sol zincir eksenden geçtiği için bu denkleme girmedi.`
+          },
+          {
+            soru: 'Sol zincirin tabelaya uyguladığı kuvvet kaç N\'dur?',
+            secenekler: ['160 N', '120 N', '200 N'],
+            dogru: 0,
+            ipucu: r`Kuvvetlerin toplamı sıfır: $T_\text{sol} + T_\text{sağ} = 200 + 80$.`,
+            aciklama: r`$T_\text{sol} = 280 - 120 = 160$ N. Saksı sola yakın asıldığı için sol zincir daha çok yük taşıyor.`
+          }
+        ],
+        sonuc: 'Denge sorularında önce bilinmeyen bir kuvvetin uygulandığı noktayı eksen seç ve tork denklemini kur. Sonra kuvvetlerin toplamının sıfır olmasından kalan kuvveti bul.'
+      }
+    ],
+    hazir: 'Torku, kuvvet kolunu, net torkun yönünü, denge şartlarını ve kütle merkezini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -18281,6 +18867,121 @@ BFY_FIG_EKLE('iA19_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 150, oy: 92 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.9 başlangıç şekilleri (sfA19_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MOR = '#6b4fa8', TEL = '#2a3330', IP = '#7a5c2e';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+function tavan(u, x1, x2, y) {
+  let s = `<rect x="${x1}" y="${y - 10}" width="${x2 - x1}" height="10" fill="url(#${u}concrete)" stroke="#6c777e" stroke-width="1"/>`;
+  return s;
+}
+function mkr(u, cx, cy, r) {
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${u}metal)" stroke="#4d565c" stroke-width="1.6"/><circle cx="${cx}" cy="${cy}" r="${f1(r * 0.6)}" fill="none" stroke="#9aa4ab" stroke-width="1"/><circle cx="${cx}" cy="${cy}" r="3" fill="#4d565c"/>`;
+}
+function yuk(u, cx, y, w, h, s2) {
+  return `<rect x="${cx - w / 2}" y="${y}" width="${w}" height="${h}" rx="3" fill="url(#${u}box)" stroke="#8a5a2b" stroke-width="1.3"/>` +
+    T(cx, y + h / 2 + 5, s2, { size: 14, weight: 800, anchor: 'middle', fill: '#3d2a14', halo: false });
+}
+
+/* Adım 3: sabit ve hareketli makara */
+BFY_FIG_EKLE('sfA19_makara', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="270" rx="14" fill="#f5f3fa"/>`;
+  s += `<line x1="170" y1="14" x2="170" y2="256" stroke="#d6d0e4" stroke-width="1.4" stroke-dasharray="5 5"/>`;
+  // sabit makara
+  const ax = 84, ay = 62, r = 20;
+  s += tavan(u, 30, 140, 30) + `<line x1="${ax}" y1="30" x2="${ax}" y2="${ay}" stroke="#4d565c" stroke-width="3"/>`;
+  s += mkr(u, ax, ay, r);
+  s += `<path d="M${ax - r} 170 L${ax - r} ${ay} A${r} ${r} 0 0 1 ${ax + r} ${ay} L${ax + r} 196" fill="none" stroke="${IP}" stroke-width="2.2"/>`;
+  s += yuk(u, ax - r, 170, 48, 34, '200 N');
+  s += ok(ax + r, 196, ax + r, 238, P.coral, 3.2) + yaz(ax + r + 8, 232, 'F', { weight: 800, fill: P.coral, size: 16, italic: true });
+  s += yaz(ax, 262, 'sabit makara', { anchor: 'middle', weight: 800, fill: MOR });
+  // hareketli makara
+  const bx = 252, by = 150, r2 = 20;
+  s += tavan(u, 196, 320, 30);
+  s += `<path d="M${bx - r2} 30 L${bx - r2} ${by} A${r2} ${r2} 0 0 0 ${bx + r2} ${by} L${bx + r2} 92" fill="none" stroke="${IP}" stroke-width="2.2"/>`;
+  s += `<circle cx="${bx - r2}" cy="31" r="3" fill="#4d565c"/>`;
+  s += mkr(u, bx, by, r2);
+  s += `<line x1="${bx}" y1="${by}" x2="${bx}" y2="${by + 34}" stroke="#4d565c" stroke-width="3"/>`;
+  s += yuk(u, bx, by + 34, 48, 34, '200 N');
+  s += ok(bx + r2, 92, bx + r2, 50, P.coral, 3.2) + yaz(bx + r2 + 8, 66, 'F', { weight: 800, fill: P.coral, size: 16, italic: true });
+  s += yaz(bx, 262, 'hareketli makara', { anchor: 'middle', weight: 800, fill: MOR });
+  return svg(340, 270, s, u, 90);
+});
+
+/* Isınma 1: tekne römorkunun el vinci (çıkrık) */
+BFY_FIG_EKLE('sfA19_vinc', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="url(#${u}sky)"/>`;
+  const cx = 150, cy = 104, r = 20, R = 100;
+  // direk ve gövde
+  s += `<rect x="${cx - 12}" y="${cy + 14}" width="24" height="${226 - cy - 14}" fill="#5d656b" stroke="#3b4246" stroke-width="1.2"/>`;
+  s += `<rect x="${cx - 40}" y="222" width="80" height="12" rx="2" fill="#8d9399" stroke="#5d656b" stroke-width="1"/>`;
+  s += `<rect x="${cx - 26}" y="${cy - 30}" width="52" height="60" rx="6" fill="url(#${u}metal)" stroke="#4d565c" stroke-width="1.4"/>`;
+  // tambur ve sarılı halat
+  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#c9a36b" stroke="${IP}" stroke-width="1.6"/>`;
+  for (let k = 0; k < 3; k++) s += `<circle cx="${cx}" cy="${cy}" r="${r - 4 - k * 4}" fill="none" stroke="#a88552" stroke-width="1.4"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="4" fill="#3b4246"/>`;
+  // halat: tamburun üstünden sağa, tekneye
+  s += `<line x1="${cx}" y1="${cy - r}" x2="334" y2="${cy - r + 34}" stroke="${IP}" stroke-width="3"/>`;
+  s += yaz(250, cy - r - 2, 'halat, 600 N', { anchor: 'middle', weight: 800, fill: IP });
+  s += yaz(330, cy + 40, 'tekneye', { anchor: 'end', fill: P.ink2 });
+  // kol (sola) ve tutamak
+  s += `<line x1="${cx}" y1="${cy}" x2="${cx - R}" y2="${cy}" stroke="#2f3a4a" stroke-width="7" stroke-linecap="round"/>`;
+  s += `<rect x="${cx - R - 7}" y="${cy - 4}" width="14" height="30" rx="6" fill="#c0392b" stroke="#7d2318" stroke-width="1.2"/>`;
+  s += ok(cx - R, cy + 32, cx - R, cy + 92, P.coral, 3.2) + yaz(cx - R + 10, cy + 84, 'F', { weight: 800, fill: P.coral, size: 16, italic: true });
+  // ölçüler
+  s += `<g stroke="${TEL}" stroke-width="1.3"><line x1="${cx - R}" y1="${cy - 44}" x2="${cx}" y2="${cy - 44}"/><line x1="${cx - R}" y1="${cy - 50}" x2="${cx - R}" y2="${cy - 38}"/><line x1="${cx}" y1="${cy - 50}" x2="${cx}" y2="${cy - 38}"/></g>`;
+  s += yaz(cx - R / 2, cy - 52, 'R = 30 cm', { anchor: 'middle', weight: 800 });
+  s += `<line x1="${cx}" y1="${cy}" x2="${cx + r * 0.71}" y2="${cy + r * 0.71}" stroke="${TEL}" stroke-width="1.6"/>`;
+  s += `<line x1="${cx + 16}" y1="${cy + 16}" x2="${cx + 44}" y2="${cy + 52}" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += yaz(cx + 46, cy + 66, 'r = 6 cm', { weight: 800 });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Isınma 3: tornavidayla boya kutusunun kapağını açmak */
+BFY_FIG_EKLE('sfA19_tornavida', function (u) {
+  let s = `<defs><linearGradient id="${u}teneke" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9aa4ab"/><stop offset=".35" stop-color="#eef1f3"/><stop offset="1" stop-color="#7d868d"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="#f5f3fa"/>`;
+  s += `<rect class="bg" x="0" y="226" width="340" height="24" fill="url(#${u}wood)"/>`;
+  // kutu
+  const x1 = 170, x2 = 312, top = 120;
+  s += `<rect x="${x1}" y="${top}" width="${x2 - x1}" height="${226 - top}" fill="url(#${u}teneke)" stroke="#5d656b" stroke-width="1.4"/>`;
+  s += `<rect x="${x1}" y="${top + 26}" width="${x2 - x1}" height="54" fill="#2f7fb8"/>`;
+  s += T((x1 + x2) / 2, top + 60, 'BOYA', { size: 20, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+  s += `<rect x="${x1 - 2}" y="${top - 4}" width="${x2 - x1 + 4}" height="6" rx="2" fill="#7d868d" stroke="#5d656b" stroke-width="1"/>`;
+  // kapak biraz kalkmış (sol kenarı)
+  s += `<path d="M${x1 + 4} ${top - 12} L${x2 - 2} ${top - 5} L${x2 - 2} ${top - 1} L${x1 + 4} ${top - 7} Z" fill="#c0392b" stroke="#7d2318" stroke-width="1.2"/>`;
+  s += yaz(x2 - 40, top - 16, 'kapak', { anchor: 'middle', weight: 800, fill: '#7d2318' });
+  // tornavida: uç kapağın altında (x1+10, top-7), destek kutu ağzı (x1, top-4)
+  const tx = x1 + 12, tyy = top - 7, fx = x1 - 1, fy = top - 5;
+  const dx = fx - tx, dy = fy - tyy, L0 = Math.hypot(dx, dy);
+  const ux = dx / L0, uy = dy / L0;            // uçtan desteğe doğru birim vektör
+  const k = [-0.92, -0.39];                     // tornavidanın doğrultusu (sol yukarı)
+  const ex = fx + k[0] * 150, ey = fy + k[1] * 150;
+  s += `<line x1="${tx}" y1="${tyy}" x2="${f1(fx + k[0] * 92)}" y2="${f1(fy + k[1] * 92)}" stroke="url(#${u}metal)" stroke-width="6" stroke-linecap="round"/>`;
+  s += `<line x1="${tx}" y1="${tyy}" x2="${f1(fx + k[0] * 92)}" y2="${f1(fy + k[1] * 92)}" stroke="#6c777e" stroke-width="1" />`;
+  s += `<line x1="${f1(fx + k[0] * 88)}" y1="${f1(fy + k[1] * 88)}" x2="${f1(ex)}" y2="${f1(ey)}" stroke="#e7a93b" stroke-width="16" stroke-linecap="round"/>`;
+  s += `<line x1="${f1(fx + k[0] * 96)}" y1="${f1(fy + k[1] * 96)}" x2="${f1(ex + 4)}" y2="${f1(ey + 2)}" stroke="#fff" stroke-width="3" opacity=".35" stroke-linecap="round"/>`;
+  s += `<circle cx="${fx}" cy="${fy}" r="4" fill="${MOR}"/>`;
+  // kuvvet
+  const hx = ex - k[0] * 6, hy = ey - k[1] * 6;
+  // kuvvet tornavidaya dik, aşağı-sola: (k[1], -k[0]) = (-0,39; 0,92)
+  s += ok(hx + k[1] * 10, hy - k[0] * 10, hx + k[1] * 46, hy - k[0] * 46, P.coral, 3.2) + yaz(hx + k[1] * 30 + 12, hy - k[0] * 30 + 10, 'F', { anchor: 'start', weight: 800, fill: P.coral, size: 16, italic: true });
+  // etiketler
+  s += `<line x1="${fx - 2}" y1="${fy + 4}" x2="${fx - 40}" y2="${fy + 50}" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += yaz(fx - 42, fy + 66, 'destek', { anchor: 'middle', weight: 800, fill: MOR });
+  s += `<line x1="${x1 + 8}" y1="${top - 14}" x2="${x1 - 2}" y2="${top - 52}" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += yaz(x1 - 2, top - 58, '1 cm', { anchor: 'middle', weight: 800 });
+  s += yaz(f1(fx + k[0] * 75 + 6), f1(fy + k[1] * 75 - 16), '20 cm', { anchor: 'middle', weight: 800 });
+  return svg(340, 250, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -18360,6 +19061,186 @@ const KONU = {
     'kuyu başında şaduf: kollar 3 m ve 1 m, boş kova 20 N, dolu kova 200 N, karşı ağırlık 330 N',
     'boyacı oturağı ve sabit makara: usta 700 N, oturak 100 N, usta kendini çekiyor'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda kaldıraç, makara, eğik düzlem, çıkrık ve dişli gibi basit makinelerin işimizi nasıl kolaylaştırdığını göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Kuvvetten kazanç, yoldan kayıp',
+        metin: r`400 N ağırlığındaki bir kutuyu 1 m yükseğe kaldırmak için kutuya karşı $400 \times 1 = 400$ J iş yapılır. Bir basit makine bu işi azaltmaz. İşi **daha küçük kuvvetle, daha uzun yolda** yaptırır.
+
+Sürtünmesiz (ideal) bir makinede yapılan iş, yüke aktarılan işe eşittir. Buna **iş prensibi** denir:
+$F \times s = G \times h$.
+
+Kutuyu 100 N kuvvetle kaldıran bir makinede kuvvet $\dfrac{400}{100} = 4$ m yol alır. Yükün ağırlığının uygulanan kuvvete oranına **kuvvet kazancı** denir: $\dfrac{G}{F} = \dfrac{400}{100} = 4$.`,
+        kontrol: {
+          soru: 'Sürtünmesiz bir makineyle 600 N ağırlığındaki bir yük 2 m yükseltiliyor. Uygulanan kuvvet 150 N ise kuvvetin uygulandığı nokta kaç m yol alır?',
+          secenekler: ['4 m', '2 m', '8 m'],
+          dogru: 2,
+          aciklama: r`$150 \times s = 600 \times 2 = 1200$, buradan $s = 8$ m. Kuvvet 4 kat küçük, yol 4 kat uzun.`,
+          yanlisIpucu: r`İş prensibini yaz: $F \times s = G \times h$. Yükün yüksekliğini unutma; yük 2 m yükseliyor.`
+        }
+      },
+      {
+        baslik: 'Kaldıraç',
+        metin: r`Bir çubuğun altına bir destek koyup bir ucuna bastırarak öbür ucundaki yükü kaldırabilirsin. Bu düzeneğe **kaldıraç** denir. Kaldıraç destek çevresinde döner; torklar dengelenince yük kalkmaya başlar:
+$F \times d_F = G \times d_G$.
+
+$d_F$: destekten kuvvete, $d_G$: destekten yüke olan dik uzaklık.
+
+300 N ağırlığında bir beton bloğu sopayla kaldırmak istiyorsun. Blok desteğe 20 cm, elin desteğe 120 cm uzaklıkta. Gereken kuvvet: $F \times 120 = 300 \times 20$, buradan $F = 50$ N. Kuvvet kazancı $\dfrac{300}{50} = 6$'dır.`,
+        kontrol: {
+          soru: 'Elin aynı yerde kalırken desteği bloğa biraz yaklaştırırsan gereken kuvvet nasıl değişir?',
+          secenekler: ['Artar.', 'Azalır.', 'Değişmez.'],
+          dogru: 1,
+          aciklama: r`Destek bloğa yaklaşınca $d_G$ kısalır, $d_F$ uzar. $F = \dfrac{G \times d_G}{d_F}$ olduğundan kuvvet azalır.`,
+          yanlisIpucu: r`$F \times d_F = G \times d_G$. Destek bloğa yaklaşınca $d_G$ ve $d_F$ nasıl değişir?`
+        }
+      },
+      {
+        baslik: 'Sabit ve hareketli makara',
+        sekil: 'sfA19_makara',
+        metin: r`Bir ip, oluklu bir tekerin üstünden geçirilirse **makara** olur.
+
+- **Sabit makara** tavana bağlıdır, yükle birlikte hareket etmez. 200 N'luk yükü kaldırmak için ipi 200 N ile çekersin. Kuvvetten kazanç yoktur; yalnız kuvvetin yönünü değiştirir: Aşağı çekip yukarı kaldırırsın.
+- **Hareketli makara** yükle birlikte yükselir. Yükü iki ip kolu taşır. Makara ağırlıksızsa her kol yükün yarısını taşır: $2F = G$, $F = 100$ N. Bedeli: İpi 2 m çekince yük 1 m yükselir.
+
+Hareketli makaranın ağırlığı da yükle birlikte kaldırılır: $2F = G + G_m$.`,
+        kontrol: {
+          soru: 'Ağırlığı 20 N olan bir hareketli makaraya 380 N\'luk yük asılıyor. Yükü sabit hızla kaldırmak için ipin serbest ucu kaç N ile çekilmelidir?',
+          secenekler: ['190 N', '200 N', '400 N'],
+          dogru: 1,
+          aciklama: r`$2F = G + G_m = 380 + 20 = 400$, buradan $F = 200$ N. Makaranın ağırlığı da iki ip koluna paylaşılır.`,
+          yanlisIpucu: 'Hareketli makara yükle birlikte yükselir; onun ağırlığını da yüke ekle. Sonra iki ip koluna paylaştır.'
+        }
+      },
+      {
+        baslik: 'Eğik düzlem',
+        metin: r`Kamyonetin kasası yerden 1 m yüksekte. 1200 N ağırlığındaki bir motosikleti kasaya düz kaldırmak çok zor. 3 m uzunluğunda bir rampa koyup motosikleti rampa boyunca itersen iş kolaylaşır.
+
+Sürtünme yoksa ve kuvvet rampaya paralelse iş prensibi:
+$F \times L = G \times h$.
+
+$F \times 3 = 1200 \times 1$, buradan $F = 400$ N. Kuvvet 3 kat azaldı; ama motosikleti 1 m yerine 3 m boyunca itiyorsun.`,
+        kontrol: {
+          soru: 'Aynı motosiklet aynı kasaya 4 m uzunluğunda bir rampayla çıkarılırsa sürtünmesiz durumda kaç N kuvvet gerekir?',
+          secenekler: ['300 N', '400 N', '4800 N'],
+          dogru: 0,
+          aciklama: r`$F \times 4 = 1200 \times 1$, buradan $F = 300$ N. Rampa uzadıkça eğim azalır, gereken kuvvet küçülür. Yapılan iş yine $1200$ J'dür.`,
+          yanlisIpucu: r`$F \times L = G \times h$ bağıntısında yükseklik 1 m, rampanın uzunluğu 4 m.`
+        }
+      },
+      {
+        baslik: 'Verim: gerçek makine biraz kaybeder',
+        metin: r`Gerçek makinelerde sürtünme vardır. Uyguladığın işin bir kısmı ısıya dönüşür; yüke aktarılan iş daha azdır. **Verim**, yüke aktarılan işin uyguladığın işe oranıdır:
+$\eta = \dfrac{W_\text{alınan}}{W_\text{verilen}} \times 100$.
+
+Motosikleti 3 m'lik rampadan sürtünme yüzünden 400 N yerine 500 N ile itiyorsun:
+- Verilen iş: $500 \times 3 = 1500$ J.
+- Alınan iş: $1200 \times 1 = 1200$ J.
+- Verim: $\dfrac{1200}{1500} \times 100 = \%80$.
+
+Gerçek bir makinenin verimi her zaman yüzde 100'den küçüktür.`,
+        kontrol: {
+          soru: 'Bir makara düzeneğiyle 300 N ağırlığındaki bir yük 2 m yükseltiliyor. Bu sırada ipi çeken kişi 800 J iş yapıyor. Düzeneğin verimi yüzde kaçtır?',
+          secenekler: ['%25', '%75', '%100'],
+          dogru: 1,
+          aciklama: r`Alınan iş $300 \times 2 = 600$ J. Verim $\dfrac{600}{800} \times 100 = \%75$. Kalan 200 J sürtünmeyle ısıya dönüşmüştür.`,
+          yanlisIpucu: 'Önce yüke aktarılan işi bul: ağırlık çarpı yükseklik. Sonra bunu kişinin yaptığı işe böl.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Tekne römorkunun el vinci',
+        sekil: 'sfA19_vinc',
+        metin: r`Bir tekne, römorkun rampasına el vinciyle çekiliyor. Vinç bir çıkrıktır: Kolun ucu, mil ekseninden 30 cm uzakta; halatın sarıldığı tamburun yarıçapı 6 cm. Tekneyi sabit hızla çekmek için halatta 600 N kuvvet gerekiyor. Sürtünmeyi önemsemiyoruz ve $\pi = 3$ alıyoruz.`,
+        adimlar: [
+          {
+            soru: 'Kolun ucuna dik uygulanan F kuvveti için hangi denklem doğrudur?',
+            secenekler: ['F × 6 = 600 × 30', 'F = 600', 'F × 30 = 600 × 6'],
+            dogru: 2,
+            ipucu: 'Çıkrık bir kaldıraç gibi çalışır: Destek mil eksenidir. Kuvvetin kolu kolun uzunluğu, halatın kolu tamburun yarıçapıdır.',
+            aciklama: r`Mile göre torklar eşit: $F \times R = G \times r$, yani $F \times 30 = 600 \times 6$.`
+          },
+          {
+            soru: 'F kuvveti kaç N\'dur?',
+            secenekler: ['120 N', '3000 N', '600 N'],
+            dogru: 0,
+            ipucu: r`$F = \dfrac{600 \times 6}{30}$.`,
+            aciklama: r`$F = \dfrac{3600}{30} = 120$ N. Kuvvet kazancı $\dfrac{30}{6} = 5$'tir.`
+          },
+          {
+            soru: 'Kol bir tam tur döndürülünce tambura kaç cm halat sarılır?',
+            secenekler: ['180 cm', '36 cm', '18 cm'],
+            dogru: 1,
+            ipucu: r`Tambur bir turda kendi çevresi kadar halat sarar: $2\pi r$.`,
+            aciklama: r`$2 \times 3 \times 6 = 36$ cm. Bu sırada kolun ucu $2 \times 3 \times 30 = 180$ cm yol alır. İş prensibi tutuyor: $120 \times 180 = 600 \times 36$.`
+          }
+        ],
+        sonuc: 'Çıkrıkta kuvvet kazancı, kol uzunluğunun tambur yarıçapına oranıdır. Kuvvetten 5 kat kazanırken yoldan 5 kat kaybedersin.'
+      },
+      {
+        baslik: 'Saat maketindeki dişliler',
+        metin: r`Bir duvar saati maketinde birbirine değen iki düz dişli var. X dişlisi solda, Y dişlisi sağda duruyor. X dişlisinde 40, Y dişlisinde 8 diş bulunuyor. X dişlisi saat yönünde 1 tam tur dönüyor.`,
+        adimlar: [
+          {
+            soru: 'X bir tur dönerken iki dişlinin temas noktasından kaç diş geçer?',
+            secenekler: ['8', '1', '40'],
+            dogru: 2,
+            ipucu: 'X bir tur dönünce kendi dişlerinin hepsi temas noktasından bir kez geçer.',
+            aciklama: 'X\'in 40 dişinin hepsi temas noktasından geçer. Dişler birbirine kilitli olduğu için Y\'nin de 40 dişi geçmek zorundadır.'
+          },
+          {
+            soru: 'Bu sırada Y dişlisi kaç tur döner?',
+            secenekler: ['5 tur', '1 tur', '32 tur'],
+            dogru: 0,
+            ipucu: 'Y\'nin 8 dişi var. 40 diş geçmesi için Y kaç kez tam tur atmalı?',
+            aciklama: r`$\dfrac{40}{8} = 5$ tur. Diş sayısı yarıçapla orantılıdır: $f_X \times r_X = f_Y \times r_Y$.`
+          },
+          {
+            soru: 'Y dişlisi hangi yönde döner?',
+            secenekler: ['Saat yönünde', 'Saat yönünün tersine', 'Dönmez'],
+            dogru: 1,
+            ipucu: 'X saat yönünde dönerken sağ kenarı aşağı iner. Temas noktasında X\'in dişi Y\'nin sol kenarındaki dişi de aşağı iter.',
+            aciklama: 'Birbirine değen iki dişli zıt yönlerde döner. X saat yönünde dönüyorsa Y saat yönünün tersine döner.'
+          }
+        ],
+        sonuc: 'Değen dişlilerde küçük dişli daha çok tur atar ve dişliler zıt yönde döner. Diş sayıları oranı, tur sayılarının ters oranıdır.'
+      },
+      {
+        baslik: 'Tornavidayla boya kutusu açmak',
+        sekil: 'sfA19_tornavida',
+        metin: r`Boya kutusunun kapağını düz bir tornavidayla açıyorsun. Tornavidanın ucu kapağın kenarının altına giriyor; gövdesi kutunun ağzına dayanıyor. Uç ile dayanma noktası arası 1 cm, elin ile dayanma noktası arası 20 cm. Kapağı yerinden oynatmak için tornavidanın ucunun kapağa 100 N kuvvet uygulaması gerekiyor.`,
+        adimlar: [
+          {
+            soru: 'Bu kaldıraçta destek noktası neresidir?',
+            secenekler: ['Tornavidanın ucu', 'Kutunun ağzının kenarı', 'Elinin tuttuğu yer'],
+            dogru: 1,
+            ipucu: 'Tornavida hangi noktanın çevresinde dönüyor? Gövdesi nereye dayanıyor?',
+            aciklama: 'Tornavida, kutunun ağzının kenarına dayanan noktası çevresinde döner. Destek bu noktadır; kuvvet ile yük desteğin iki yanındadır.'
+          },
+          {
+            soru: 'Elinle en az kaç N kuvvet uygulaman gerekir?',
+            secenekler: ['5 N', '100 N', '2000 N'],
+            dogru: 0,
+            ipucu: r`$F \times d_F = G \times d_G$: $F \times 20 = 100 \times 1$.`,
+            aciklama: r`$F = \dfrac{100 \times 1}{20} = 5$ N. Kuvvet kazancı $\dfrac{20}{1} = 20$'dir.`
+          },
+          {
+            soru: 'Tornavidayı dayanma noktasından 10 cm uzaktan tutarsan en az kaç N gerekir?',
+            secenekler: ['5 N', '10 N', '1000 N'],
+            dogru: 1,
+            ipucu: r`Yalnız elinin kolu değişti: $F \times 10 = 100 \times 1$.`,
+            aciklama: r`$F = \dfrac{100}{10} = 10$ N. Kuvvet kolu yarıya inince gereken kuvvet iki katına çıktı.`
+          }
+        ],
+        sonuc: 'Kaldıraçta elinin desteğe uzaklığı, yükün desteğe uzaklığının kaç katıysa kuvvet o kadar küçülür. Uzun bir tornavida kapağı daha kolay açar.'
+      }
+    ],
+    hazir: 'İş prensibini, kuvvet kazancını, kaldıracı, makaraları, eğik düzlemi, verimi, çıkrığı ve dişlileri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
