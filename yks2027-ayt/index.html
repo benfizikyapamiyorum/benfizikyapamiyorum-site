@@ -38957,6 +38957,128 @@ BFY_FIG_EKLE('iA42_tanim', u => sahne(u, I => {
 }, { w: 320, h: 178, mm: 110, ox: 160, oy: 118, s: 0.9 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.4.2 başlangıç şekilleri (sfA42_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   Yön: dalga sağa (+x) giderken E yukarıdayken B bakana doğrudur (E × B, c yönünde);
+   "bakana doğru" eğik izdüşümde sol-aşağı köşegenle çizilir.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f6fb8', KIR = '#d24b3e', TEL = '#2a3330', GRI = '#7e8f9a';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 2.6) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 10, headW: 5 });
+const bg = (w, h, c = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${c}"/>`;
+const olcuH = (x1, x2, y, c = TEL) => `<g stroke="${c}" stroke-width="1.4"><line x1="${f1(x1)}" y1="${y}" x2="${f1(x2)}" y2="${y}"/><line x1="${f1(x1)}" y1="${y - 6}" x2="${f1(x1)}" y2="${y + 6}"/><line x1="${f1(x2)}" y1="${y - 6}" x2="${f1(x2)}" y2="${y + 6}"/></g>`;
+
+/* Adım 1: E ve B birbirine dik, aynı fazda; yayılma sağa */
+BFY_FIG_EKLE('sfA42_dalga', function (u) {
+  let s = bg(340, 230);
+  const x0 = 34, x1 = 286, y0 = 112, A = 56, lam = 126, bx = -0.5, by = 0.62, Bm = 46;
+  const sn = x => Math.sin(2 * Math.PI * (x - x0) / lam);
+  // eksen
+  s += `<line x1="${x0 - 10}" y1="${y0}" x2="${x1 + 4}" y2="${y0}" stroke="${GRI}" stroke-width="1.3"/>`;
+  // B (mavi): eğik düzlemde, bakana doğru = sol-aşağı
+  let dB = '', vB = '';
+  for (let x = x0; x <= x1; x += 2) { const k = sn(x); dB += (x === x0 ? 'M' : ' L') + f1(x + k * Bm * bx) + ' ' + f1(y0 + k * Bm * by); }
+  for (let x = x0 + 9; x < x1; x += 14) { const k = sn(x); vB += `<line x1="${x}" y1="${y0}" x2="${f1(x + k * Bm * bx)}" y2="${f1(y0 + k * Bm * by)}"/>`; }
+  s += `<g stroke="${MAV}" stroke-width="1.1" opacity=".45">${vB}</g><path d="${dB}" fill="none" stroke="${MAV}" stroke-width="2.4"/>`;
+  // E (kırmızı): düşey düzlemde
+  let dE = '', vE = '';
+  for (let x = x0; x <= x1; x += 2) dE += (x === x0 ? 'M' : ' L') + x + ' ' + f1(y0 - A * sn(x));
+  for (let x = x0 + 9; x < x1; x += 14) vE += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${f1(y0 - A * sn(x))}"/>`;
+  s += `<g stroke="${KIR}" stroke-width="1.1" opacity=".45">${vE}</g><path d="${dE}" fill="none" stroke="${KIR}" stroke-width="2.6"/>`;
+  // etiketler: E tepesi x0 + lam/4, B tepesi aynı x'te sol-aşağı
+  const xt = x0 + lam / 4;
+  s += yaz(xt + 10, y0 - A - 4, 'E (elektrik alan)', { fill: KIR, size: 15, weight: 800 });
+  s += yaz(18, 200, 'B (manyetik alan)', { fill: MAV, size: 15, weight: 800 });
+  // yayılma oku
+  s += ok(x1 + 6, y0, 330, y0, TEL, 3) + yaz(318, y0 - 12, 'c', { anchor: 'middle', size: 17, weight: 800, italic: true, fill: TEL });
+  s += yaz(330, 216, 'yayılma yönü →', { anchor: 'end', fill: P.ink2 });
+  return svg(340, 230, s, u, 90);
+});
+
+/* Adım 2: antende salınan elektronlar, çevreye yayılan dalga */
+BFY_FIG_EKLE('sfA42_anten', function (u) {
+  let s = bg(340, 236);
+  const xa = 74, yT = 38, yB = 192, ym = 112;
+  // dalga cepheleri (sağa doğru, gittikçe soluk)
+  s += `<defs><clipPath id="${u}ak"><rect x="0" y="0" width="340" height="${yB}" rx="14"/></clipPath></defs><g clip-path="url(#${u}ak)">`;
+  for (let k = 1; k <= 5; k++) {
+    const r = 26 + k * 28, a = 0.95;
+    s += `<path d="M${f1(xa + r * Math.cos(a))} ${f1(ym - r * Math.sin(a))} A ${r} ${r} 0 0 1 ${f1(xa + r * Math.cos(a))} ${f1(ym + r * Math.sin(a))}" fill="none" stroke="${KIR}" stroke-width="2.2" opacity="${f1(1 - k * 0.12)}"/>`;
+  }
+  s += `</g>`;
+  // zemin ve kaide
+  s += `<rect x="12" y="${yB}" width="316" height="34" rx="6" fill="url(#${u}grass)"/><rect x="${xa - 22}" y="${yB - 10}" width="44" height="12" rx="3" fill="url(#${u}concrete)" stroke="#8d969c" stroke-width="1"/>`;
+  // anten çubuğu
+  s += `<rect x="${xa - 5}" y="${yT}" width="10" height="${yB - 10 - yT}" rx="4" fill="url(#${u}metalV)" stroke="#6d777f" stroke-width="1.1"/><circle cx="${xa}" cy="${yT}" r="6" fill="url(#${u}metal)" stroke="#6d777f" stroke-width="1"/>`;
+  // elektronlar ve salınım okları
+  [70, 112, 154].forEach(y => {
+    s += `<circle cx="${xa}" cy="${y}" r="7" fill="${MAV}" stroke="#1d4f86" stroke-width="1"/>` + T(xa, y + 4.5, '−', { size: 14, weight: 800, fill: '#fff', anchor: 'middle', halo: false });
+    s += ok(xa - 24, y, xa - 24, y - 20, MAV, 2) + ok(xa - 24, y, xa - 24, y + 20, MAV, 2);
+  });
+  s += yaz(xa + 14, 30, 'anten', { fill: TEL });
+  s += yaz(330, ym - 4, 'yayılan', { anchor: 'end', fill: KIR }) + yaz(330, ym + 14, 'dalga', { anchor: 'end', fill: KIR });
+  s += yaz(170, 224, 'elektronlar aşağı yukarı salınır', { anchor: 'middle', fill: '#fff', haloColor: '#4f7d3c' });
+  return svg(340, 236, s, u, 90);
+});
+
+/* Adım 4: spektrum merdiveni, kullanım örnekleriyle */
+BFY_FIG_EKLE('sfA42_spektrum', function (u) {
+  const sat = [
+    ['Gama ışını', 'kanser tedavisi', '#5b3f8f'],
+    ['X ışını', 'röntgen çekimi', '#6f5aa6'],
+    ['Morötesi', 'mikrop öldürme', '#8b6cc4'],
+    ['Görünür ışık', 'görme', null],
+    ['Kızılötesi', 'termal kamera', '#b9573f'],
+    ['Mikrodalga', 'mikrodalga fırın', '#9a6a3f'],
+    ['Radyo dalgası', 'radyo, televizyon', '#7a6a52']
+  ];
+  const H = 40, G = 6, y0 = 40, xL = 48, W = 278;
+  const h = y0 + sat.length * (H + G) + 30;
+  let s = bg(340, h);
+  s += `<defs><linearGradient id="${u}gok" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7b4fc0"/><stop offset=".2" stop-color="#3a6fd0"/><stop offset=".4" stop-color="#2f9a5b"/><stop offset=".6" stop-color="#d8c22f"/><stop offset=".8" stop-color="#e58a2e"/><stop offset="1" stop-color="#d43d32"/></linearGradient></defs>`;
+  sat.forEach((r, i) => {
+    const y = y0 + i * (H + G);
+    s += `<rect x="${xL}" y="${y}" width="${W}" height="${H}" rx="8" fill="${r[2] || `url(#${u}gok)`}" stroke="rgba(0,0,0,.18)" stroke-width="1"/>`;
+    s += `<rect x="${xL + 2}" y="${y + 2}" width="${W - 4}" height="${H / 2 - 2}" rx="6" fill="#fff" opacity=".13"/>`;
+    s += T(xL + 12, y + 26, r[0], { size: 15, weight: 800, fill: '#fff', haloColor: 'rgba(0,0,0,.35)', haloW: 2.4 });
+    s += T(xL + W - 12, y + 26, r[1], { size: 14, weight: 600, fill: '#fff', anchor: 'end', haloColor: 'rgba(0,0,0,.35)', haloW: 2.4 });
+  });
+  const yS = y0 + sat.length * (H + G) - G;
+  s += ok(26, yS, 26, y0, TEL, 3);
+  s += yaz(14, 26, 'frekans ve foton enerjisi artar', { fill: TEL });
+  s += yaz(14, h - 10, 'aşağı doğru dalga boyu artar', { fill: P.ink2 });
+  return svg(340, h, s, u, 90);
+});
+
+/* Isınma 2: kızılötesi ışın cam levhadan geçerken dalga boyu kısalır (870 → 580 nm, oran 3 : 2) */
+BFY_FIG_EKLE('sfA42_cam', function (u) {
+  let s = bg(340, 216);
+  const yM = 108, A = 22, xa = 14, xg1 = 128, xg2 = 218, xb = 316, lH = 60, lC = 40;
+  // cam levha
+  s += `<rect x="${xg1}" y="34" width="${xg2 - xg1}" height="148" rx="4" fill="url(#${u}glass)" stroke="#6f97b0" stroke-width="1.4" opacity=".9"/><rect x="${xg1 + 6}" y="40" width="10" height="136" rx="3" fill="#fff" opacity=".45"/>`;
+  // dalga (faz sürekli)
+  const faz = x => x <= xg1 ? (x - xa) / lH : x <= xg2 ? (xg1 - xa) / lH + (x - xg1) / lC : (xg1 - xa) / lH + (xg2 - xg1) / lC + (x - xg2) / lH;
+  let d = '';
+  for (let x = xa; x <= xb; x += 1.5) d += (x === xa ? 'M' : ' L') + f1(x) + ' ' + f1(yM - A * Math.sin(2 * Math.PI * faz(x)));
+  s += `<path d="${d}" fill="none" stroke="${KIR}" stroke-width="2.6" stroke-dasharray="7 3"/>`;
+  s += ok(xb - 2, yM, 332, yM, KIR, 2.4);
+  // etiketler
+  s += yaz(30, 30, 'hava', { fill: TEL }) + yaz((xg1 + xg2) / 2, 28, 'cam', { anchor: 'middle', fill: '#2f5f7c' }) + yaz(250, 30, 'hava', { fill: TEL });
+  // ölçüler: soldaki tam dalga xa + 0,25 lH tepe → bir sonraki tepe; camda ilk tam tepe aralığı
+  const t1 = xa + lH / 4, tC = xg1 + lC * (Math.ceil(faz(xg1) - 0.25) + 0.25 - faz(xg1));
+  s += `<line x1="${f1(t1)}" y1="${yM - A}" x2="${f1(t1)}" y2="${yM + 52}" stroke="${GRI}" stroke-width="1" stroke-dasharray="3 3"/><line x1="${f1(t1 + lH)}" y1="${yM - A}" x2="${f1(t1 + lH)}" y2="${yM + 52}" stroke="${GRI}" stroke-width="1" stroke-dasharray="3 3"/>`;
+  s += olcuH(t1, t1 + lH, yM + 48) + yaz(t1 + lH / 2, yM + 72, '870 nm', { anchor: 'middle', fill: TEL });
+  s += `<line x1="${f1(tC)}" y1="${yM - A}" x2="${f1(tC)}" y2="${yM + 52}" stroke="${GRI}" stroke-width="1" stroke-dasharray="3 3"/><line x1="${f1(tC + lC)}" y1="${yM - A}" x2="${f1(tC + lC)}" y2="${yM + 52}" stroke="${GRI}" stroke-width="1" stroke-dasharray="3 3"/>`;
+  s += olcuH(tC, tC + lC, yM + 48) + yaz(tC + lC / 2, yM + 72, '?', { anchor: 'middle', fill: TEL, size: 16, weight: 800 });
+  s += yaz(170, 206, 'kızılötesi ışın (gözle görülmez)', { anchor: 'middle', fill: KIR });
+  return svg(340, 216, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -39007,6 +39129,192 @@ const KONU = {
     'teleskoplar: radyo ve görünür yerde, X ve gama uyduda; atmosferin soğurması', 'Herschel prizma deneyi: K mavi, L kırmızı, M kırmızı ötesinde termometre',
     'verici antende elektronun konum–zaman grafiği, T 4 ns, 1,2 m, dönüş noktasında ivme', 'konum belirleme uydusu 21 000 km, 0,07 s, alıcı saati 1 µs geride, 1 ns → 30 cm'
   ],
+
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda ışığın, radyo yayınının ve röntgen ışınlarının aslında aynı türden dalgalar olduğunu göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Boşlukta yol alan dalga',
+        sekil: 'sfA42_dalga',
+        metin: r`Güneş'in ışığı, aradaki boş uzaydan geçerek bize ulaşır. Ses ise boşlukta yol alamaz; titreştireceği bir ortam ister. Işık başka türden bir dalgadır: **elektromanyetik dalga**.
+
+- Bu dalgada titreşen şey madde değildir. **Elektrik alan** ($\vec{E}$) ve **manyetik alan** ($\vec{B}$) titreşir.
+- $\vec{E}$, $\vec{B}$ ve yayılma yönü birbirine diktir. Bu yüzden elektromanyetik dalgalar **enine** dalgadır.
+- Yayılmak için maddesel bir ortama gerek duymazlar. Boşlukta da yol alırlar.
+
+Şekilde dalga sağa doğru ilerliyor. $\vec{E}$ yukarı aşağı titreşiyor; $\vec{B}$ ise ona dik olarak sana doğru ve senden uzağa titreşiyor. İkisi aynı anda en büyük değerine ulaşır.`,
+        kontrol: {
+          soru: 'Ay\'da yan yana duran iki astronot birbirini yalnız telsizle duyabilir. Bunun nedeni nedir?',
+          secenekler: ['Ay\'da ses çok yavaş yayılır; telsizin radyo dalgası ise daha hızlıdır.', 'Ay\'da hava olmadığı için ses yayılamaz; radyo dalgası ise boşlukta da yayılır.', 'Kaskların camı sesi tutar; Ay\'da ses yine de yayılır.'],
+          dogru: 1,
+          aciklama: 'Ses, titreştireceği bir ortam ister; Ay\'da hava yoktur. Telsizin kullandığı radyo dalgası elektromanyetik dalgadır ve boşlukta da yol alır.',
+          yanlisIpucu: 'Ses neyi titreştirerek ilerler? Ay\'da o şey var mı?'
+        }
+      },
+      {
+        baslik: 'Dalgayı ivmeli yük üretir',
+        sekil: 'sfA42_anten',
+        metin: r`Bir radyo istasyonunun anteninde elektronlar aşağı yukarı salınır. Salınan elektronun hızı sürekli değişir; yani elektron **ivmelidir**.
+
+- Elektromanyetik dalgaların kaynağı **ivmeli hareket eden yüklerdir.**
+- Duran bir yük ya da sabit hızla düz giden bir yük dalga yaymaz.
+- Antendeki elektronlar saniyede kaç tam salınım yaparsa yayılan dalganın frekansı da o kadardır.
+
+Şekilde antendeki elektronlar aşağı yukarı salınıyor ve dalga antenin çevresine yayılıyor.`,
+        kontrol: {
+          soru: 'Aşağıdakilerden hangisi elektromanyetik dalga yayar?',
+          secenekler: ['Masada duran yüklü bir tarak.', 'Boşlukta sabit hızla düz giden bir elektron.', 'Antende aşağı yukarı salınan elektronlar.'],
+          dogru: 2,
+          aciklama: 'Dalgayı ivmeli yük yayar. Antendeki elektronlar sürekli hızlanıp yavaşlar ve yön değiştirir; bu yüzden dalga yayarlar. Duran tarağın ve sabit hızla giden elektronun ivmesi yoktur.',
+          yanlisIpucu: 'Hangisinin hızı sürekli değişiyor? Dalgayı yalnız ivmeli yük yayar.'
+        }
+      },
+      {
+        baslik: 'Hepsi aynı hızla gider',
+        metin: r`Boşlukta bütün elektromanyetik dalgalar aynı hızla ilerler: $c = 3 \times 10^8\ \text{m/s}$. Bu, saniyede 300 bin kilometre demektir. Havadaki hız da hemen hemen aynıdır.
+
+- Dalganın hızı, dalga boyu ile frekansın çarpımıdır: $c = \lambda \times f$.
+- Hız sabit olduğu için frekans büyüdükçe dalga boyu küçülür.
+- Frekansın birimi hertzdir (Hz). $1\ \text{MHz} = 10^6\ \text{Hz}$ ve $1\ \text{GHz} = 10^9\ \text{Hz}$'dir.
+
+Frekansı $3 \times 10^8$ Hz olan bir dalganın dalga boyu $\lambda = \dfrac{3 \times 10^8}{3 \times 10^8} = 1$ m'dir. Frekans bunun 10 katı olsaydı dalga boyu 10 cm olurdu.`,
+        kontrol: {
+          soru: 'Bir mağaza kapısının üstündeki hareket algılayıcısı, frekansı 10 GHz olan mikrodalgalar yayıyor. Bu dalgaların dalga boyu nedir?',
+          secenekler: ['3 cm', '30 cm', '3 m'],
+          dogru: 0,
+          aciklama: r`$10\ \text{GHz} = 10^{10}$ Hz. $\lambda = \dfrac{3 \times 10^8}{10^{10}} = 3 \times 10^{-2}$ m, yani 3 cm.`,
+          yanlisIpucu: 'Önce GHz\'i Hz\'e çevir: 1 GHz, 1 milyar Hz\'tir. Sonra ışık hızını frekansa böl.'
+        }
+      },
+      {
+        baslik: 'Spektrum: aynı ailenin üyeleri',
+        sekil: 'sfA42_spektrum',
+        metin: r`Radyo dalgası, mikrodalga, kızılötesi, görünür ışık, morötesi, X ışını ve gama ışını aynı ailedendir; hepsi elektromanyetik dalgadır. Bu sıralamaya **elektromanyetik spektrum** denir.
+
+- Aralarındaki temel fark **frekanstır.** Şekilde aşağıdan yukarıya frekans artar, dalga boyu küçülür.
+- Gözümüzün gördüğü görünür ışık, spektrumun çok dar bir parçasıdır.
+- Kaynakları farklıdır: Radyo dalgaları antenlerden yayılır. Sıcak cisimler kızılötesi yayar. X ışınları, hızlı elektronlar bir hedefe çarpıp aniden yavaşlayınca oluşur. Gama ışınları atom çekirdeğinden çıkar.`,
+        kontrol: {
+          soru: 'Spektrumda görünür ışığın iki yanındaki komşuları hangileridir?',
+          secenekler: ['Mikrodalga ve X ışını.', 'Kızılötesi ve morötesi.', 'Radyo dalgası ve gama ışını.'],
+          dogru: 1,
+          aciklama: 'Görünür ışığın kırmızı ucunun ötesinde kızılötesi, mor ucunun ötesinde morötesi vardır. Adları da buradan gelir.',
+          yanlisIpucu: 'Adlara bak: "kızıl" ve "mor", görünür ışığın iki ucundaki renklerdir.'
+        }
+      },
+      {
+        baslik: 'Frekans büyüdükçe enerji büyür',
+        metin: r`Elektromanyetik dalga, enerjiyi küçük paketler hâlinde taşır. Her pakete **foton** denir. Bir fotonun enerjisi, dalganın frekansı büyüdükçe artar.
+
+- Radyo dalgası fotonlarının enerjisi çok küçüktür; gama fotonlarınınki çok büyüktür.
+- Yüksek frekanslı morötesi ile X ve gama ışınları atomlardan elektron koparabilir. Buna **iyonlaştırma** denir. Bu ışınlar canlı hücrelere zarar verebilir.
+- Mikrodalga fırın, yiyecekteki su moleküllerini titreştirerek ısıtır. Yiyeceği iyonlaştırmaz, radyoaktif yapmaz.
+- Boşlukta hız hepsinde aynıdır. Fotonunun enerjisi büyük olan dalga daha hızlı gitmez.`,
+        kontrol: {
+          soru: 'Kırmızı ışık, mavi ışık ve kızılötesi ışından hangisinin tek bir fotonunun enerjisi en büyüktür?',
+          secenekler: ['Kızılötesi ışın', 'Kırmızı ışık', 'Mavi ışık'],
+          dogru: 2,
+          aciklama: 'Frekans sırası: kızılötesi, kırmızı, mavi. Foton enerjisi frekansla arttığı için en büyük enerji mavi ışığın fotonundadır.',
+          yanlisIpucu: 'Bu üçünü spektrumda frekansa göre sırala. Foton enerjisi frekansla artar.'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Frekansı değişen verici',
+        metin: r`Bir telsiz vericisinin anteninde elektronlar saniyede 50 milyon tam salınım yapıyor. Anten bu salınımla havaya radyo dalgası yayıyor. Havadaki hızı $c = 3 \times 10^8\ \text{m/s}$ al.`,
+        adimlar: [
+          {
+            soru: 'Yayılan dalganın frekansı kaç MHz\'tir?',
+            secenekler: ['25 MHz', '50 MHz', '100 MHz'],
+            dogru: 1,
+            ipucu: 'Dalganın frekansı, antendeki elektronların saniyedeki salınım sayısına eşittir. 1 MHz, saniyede 1 milyon salınımdır.',
+            aciklama: r`Elektronlar saniyede 50 milyon tam salınım yapıyor. Dalganın frekansı da $50\ \text{MHz} = 5 \times 10^7$ Hz olur.`
+          },
+          {
+            soru: 'Bu dalganın dalga boyu kaç metredir?',
+            secenekler: ['12 m', '60 m', '6 m'],
+            dogru: 2,
+            ipucu: r`$\lambda = \dfrac{c}{f}$ ve $f = 5 \times 10^7$ Hz.`,
+            aciklama: r`$\lambda = \dfrac{3 \times 10^8}{5 \times 10^7} = 6$ m.`
+          },
+          {
+            soru: 'Verici başka bir frekansa ayarlanıyor; elektronlar artık saniyede 150 milyon tam salınım yapıyor. Yeni dalga için hangisi doğrudur?',
+            secenekler: ['Dalga boyu 18 m olur; hız değişmez.', 'Dalga boyu 2 m olur; hız 3 katına çıkar.', 'Dalga boyu 2 m olur; hız değişmez.'],
+            dogru: 2,
+            ipucu: 'Havada bütün elektromanyetik dalgaların hızı aynıdır. Hız aynı kalırken frekans 3 katına çıkarsa dalga boyu ne olur?',
+            aciklama: r`Frekans 3 katına çıktı: 150 MHz. Hız yine $3 \times 10^8$ m/s olduğundan $\lambda = \dfrac{3 \times 10^8}{15 \times 10^7} = 2$ m. Dalga boyu 3'te 1'ine indi.`
+          }
+        ],
+        sonuc: 'Dalganın frekansını kaynak belirler. Havada hız değişmediği için frekans kaç katına çıkarsa dalga boyu o kadar küçülür.'
+      },
+      {
+        baslik: 'Camdan geçen kızılötesi ışın',
+        sekil: 'sfA42_cam',
+        metin: r`Bir laboratuvarda kızılötesi bir lazer ışını, kalın bir cam levhadan geçiyor. Işığın havadaki dalga boyu 870 nm'dir ($1\ \text{nm} = 10^{-9}$ m). Bu ışık gözle görülmez. Işığın camdaki hızı, havadaki hızının 3'te 2'si kadardır.`,
+        adimlar: [
+          {
+            soru: 'Işık cama girince frekansı ne olur?',
+            secenekler: ['Azalır.', 'Değişmez.', 'Artar.'],
+            dogru: 1,
+            ipucu: 'Frekansı ışığı üreten kaynak belirler. Cama saniyede giren dalga sayısı ile camın içinde saniyede ilerleyen dalga sayısı farklı olabilir mi?',
+            aciklama: 'Frekansı kaynak belirler. Ortam değişince hız ve dalga boyu değişir; frekans değişmez.'
+          },
+          {
+            soru: 'Işığın camdaki dalga boyu kaç nm\'dir?',
+            secenekler: ['1305 nm', '870 nm', '580 nm'],
+            dogru: 2,
+            ipucu: r`$\vartheta = \lambda \times f$ ve $f$ değişmiyor. Hız 3'te 2'sine inerse dalga boyu ne olur?`,
+            aciklama: r`Frekans aynı kaldığı için dalga boyu hızla aynı oranda küçülür: $870 \times \dfrac{2}{3} = 580$ nm.`
+          },
+          {
+            soru: 'Havada dalga boyu 580 nm olan ışık sarıdır. Camın içindeki bu ışın sarı mıdır?',
+            secenekler: ['Evet, camda dalga boyu 580 nm olduğu için sarıdır.', 'Hayır, frekansı değişmediği için camda da kızılötesidir.', 'Hayır, camın içinde kırmızıya döner.'],
+            dogru: 1,
+            ipucu: 'Işığın spektrumdaki yerini, ortam değişince değişmeyen büyüklük belirler.',
+            aciklama: 'Işığın spektrumdaki yerini frekansı belirler. Frekans değişmediği için ışın camda da kızılötesidir.'
+          },
+          {
+            soru: 'Işın camdan çıkıp yeniden havaya geçince dalga boyu kaç nm olur?',
+            secenekler: ['580 nm', '870 nm', '1305 nm'],
+            dogru: 1,
+            ipucu: 'Havaya dönünce hız eski değerine döner, frekans ise hep aynıdır.',
+            aciklama: 'Hız yine havadaki hız, frekans yine aynı. Bu yüzden dalga boyu yeniden 870 nm olur.'
+          }
+        ],
+        sonuc: 'Ortam değişince hız ve dalga boyu birlikte değişir; frekans değişmez. Işığın spektrumdaki yerini frekansı belirler.'
+      },
+      {
+        baslik: 'Yüzme havuzundaki üç cihaz',
+        metin: 'Bir yüzme havuzunda üç cihaz çalışıyor. Cankurtaranın telsizi radyo dalgası yayar. Havuz kenarındaki ısıtıcı panel kızılötesi ışın yayar. Havuz suyunu mikroplardan arındıran lamba ise morötesi ışın yayar.',
+        adimlar: [
+          {
+            soru: 'Bu üç dalganın frekansları küçükten büyüğe nasıl sıralanır?',
+            secenekler: ['Morötesi, kızılötesi, radyo.', 'Radyo, kızılötesi, morötesi.', 'Kızılötesi, radyo, morötesi.'],
+            dogru: 1,
+            ipucu: 'Spektrumu radyo dalgasından başlayarak say: radyo, mikrodalga, kızılötesi, görünür, morötesi.',
+            aciklama: 'Spektrumda frekans radyodan gamaya doğru artar. Sıra: radyo, kızılötesi, morötesi.'
+          },
+          {
+            soru: 'Bu üç dalganın havadaki hızları için ne söylenebilir?',
+            secenekler: ['Morötesi en hızlıdır.', 'Radyo dalgası en hızlıdır.', 'Üçünün hızı eşittir.'],
+            dogru: 2,
+            ipucu: 'Üçü de elektromanyetik dalgadır. Elektromanyetik dalgaların hızı frekanslarına bağlı mıdır?',
+            aciklama: r`Üçü de elektromanyetik dalgadır ve havada yaklaşık $3 \times 10^8$ m/s ile ilerler. Frekansları farklıdır, hızları aynıdır.`
+          },
+          {
+            soru: 'Lambanın bakımını yapan teknisyen koruyucu gözlük takıyor. Bu üç dalgadan hangisi göze ve deriye en çok zarar verebilir?',
+            secenekler: ['Morötesi ışın.', 'Kızılötesi ışın.', 'Radyo dalgası.'],
+            dogru: 0,
+            ipucu: 'Foton enerjisi frekansla artar. Hangisinin frekansı en büyüktü?',
+            aciklama: 'Morötesinin frekansı en büyüktür; fotonlarının enerjisi de en büyüktür. Enerjisi büyük fotonlar göz ve deri hücrelerine zarar verebilir.'
+          }
+        ],
+        sonuc: 'Spektrum sırasını bilirsen frekansı, dalga boyunu ve foton enerjisini birlikte karşılaştırırsın. Hız ise hepsinde aynıdır.'
+      }
+    ],
+    hazir: 'Elektromanyetik dalganın yapısını, kaynağını, hız, dalga boyu ve frekans ilişkisini, spektrumu ve foton enerjisini gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -40520,6 +40828,102 @@ BFY_FIG_EKLE('iA51_tanim', u => sahne(u, I0_ => {
 }, { w: 320, h: 150, mm: 110, ox: 150, oy: 70 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.5.1 başlangıç şekilleri (sfA51_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f6fb8', KIR = '#d24b3e', TEL = '#2a3330', GRI = '#7e8f9a', ALT = '#d9a520';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 2.4) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 10, headW: 5 });
+const bg = (w, h, c = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${c}"/>`;
+
+/* Adım 1: alfa parçacıkları altın atomlarından geçiyor (yakından, ölçekli değil) */
+BFY_FIG_EKLE('sfA51_levha', function (u) {
+  const W = 340, Hh = 300;
+  let s = bg(W, Hh);
+  const xc = 176, R = 36, ys = [80, 154, 228];
+  s += `<defs><radialGradient id="${u}bulut" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#f5e7b8" stop-opacity=".25"/><stop offset=".8" stop-color="#e9cf7a" stop-opacity=".45"/><stop offset="1" stop-color="#d9b44a" stop-opacity=".6"/></radialGradient><radialGradient id="${u}cek" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#ffe9a6"/><stop offset="1" stop-color="#b8860b"/></radialGradient></defs>`;
+  ys.forEach(y => { s += `<circle cx="${xc}" cy="${y}" r="${R}" fill="url(#${u}bulut)" stroke="#c9a640" stroke-width="1"/><circle cx="${xc}" cy="${y}" r="4" fill="url(#${u}cek)" stroke="#8a6508" stroke-width=".8"/>`; });
+  const KR = '#c0392b';
+  [46, 112, 200, 266].forEach(y => { s += ok(20, y, 318, y, KR, 1.8); });
+  // sapan: çekirdeğin biraz üstünden gelir, yukarı kıvrılır
+  s += `<path d="M20 144 L150 144 Q178 142 206 126 L282 92" fill="none" stroke="${KR}" stroke-width="1.8"/>` + ok(276, 94.7, 300, 84, KR, 1.8);
+  // geri dönen: çekirdeğe doğru gelir, geri döner
+  s += `<path d="M20 154 L162 154 Q171 155 165 160 L64 167" fill="none" stroke="${KR}" stroke-width="1.8"/>` + ok(72, 166.4, 34, 169, KR, 1.8);
+  s += yaz(20, 24, 'alfa parçacıkları →', { fill: KR });
+  s += yaz(250, 24, 'altın atomları', { anchor: 'middle', fill: '#8a6508' });
+  s += `<line x1="${xc + 5}" y1="${ys[2] + 3}" x2="236" y2="${ys[2] + 18}" stroke="${TEL}" stroke-width="1"/>` + yaz(240, ys[2] + 23, 'çekirdek', { fill: TEL });
+  s += yaz(330, 72, 'sapar', { anchor: 'end', fill: KR });
+  s += yaz(36, 190, 'geri döner', { fill: KR });
+  s += yaz(W / 2, Hh - 10, '(çekirdek gerçekte çok daha küçüktür)', { anchor: 'middle', fill: P.ink2 });
+  return svg(W, Hh, s, u, 90);
+});
+
+/* Adım 2: enerji düzeyleri 0, 3, 7, 9 eV, iyonlaşma 12 eV; soğurma ve salma */
+BFY_FIG_EKLE('sfA51_duzey', function (u) {
+  let s = bg(340, 258);
+  const yE = E => 226 - E * 15, x1 = 96, x2 = 252;
+  [0, 3, 7, 9].forEach(E => {
+    s += `<line x1="${x1}" y1="${yE(E)}" x2="${x2}" y2="${yE(E)}" stroke="${TEL}" stroke-width="${E === 0 ? 3 : 2.4}" stroke-linecap="round"/>`;
+    s += yaz(x1 - 10, yE(E) + 5, E + ' eV', { anchor: 'end', fill: TEL });
+  });
+  s += `<line x1="${x1}" y1="${yE(12)}" x2="${x2}" y2="${yE(12)}" stroke="${GRI}" stroke-width="1.8" stroke-dasharray="6 4"/>` + yaz(x1 - 10, yE(12) + 5, '12 eV', { anchor: 'end', fill: GRI });
+  s += yaz(x2 + 8, yE(12) + 5, 'iyonlaşma', { fill: GRI }) + yaz(x2 + 8, yE(0) + 5, 'temel hâl', { fill: TEL });
+  // soğurma 0 → 7 (mavi, yukarı), salma 7 → 0 (kırmızı, aşağı)
+  s += ok(140, yE(0) - 2, 140, yE(7) + 2, MAV, 2.8) + yaz(132, 157, 'soğurur', { anchor: 'end', fill: MAV });
+  s += ok(206, yE(7) + 2, 206, yE(0) - 2, KIR, 2.8);
+  // foton dalgacığı
+  const yf = 142;
+  let d = 'M214 ' + yf;
+  for (let k = 1; k <= 24; k++) d += ` L${214 + k}` + ' ' + f1(yf - 5 * Math.sin(k * 0.8));
+  s += `<path d="${d}" fill="none" stroke="${KIR}" stroke-width="1.8"/>` + ok(236, yf + 2, 248, yf + 2, KIR, 1.8);
+  s += yaz(214, 166, 'yayar', { fill: KIR });
+  return svg(340, 258, s, u, 90);
+});
+
+/* Adım 5: kabaran üzümlü hamur; üzümler arası uzaklıklar 2 katına çıkar */
+BFY_FIG_EKLE('sfA51_kek', function (u) {
+  let s = bg(340, 262);
+  const somun = (cx, yb, w, h) => `<ellipse cx="${cx}" cy="${yb + 3}" rx="${w / 2 + 4}" ry="7" fill="#000" opacity=".12"/><path d="M${cx - w / 2} ${yb} Q${cx - w / 2} ${yb - h} ${cx} ${yb - h} Q${cx + w / 2} ${yb - h} ${cx + w / 2} ${yb} Z" fill="url(#${u}hamur)" stroke="#b4874e" stroke-width="1.2"/>`;
+  const uzum = (x, y, ad) => `<ellipse cx="${x}" cy="${y}" rx="6" ry="5" fill="#5a2d58" stroke="#3a1838" stroke-width=".8"/><ellipse cx="${x - 2}" cy="${y - 2}" rx="2" ry="1.4" fill="#fff" opacity=".45"/>` + yaz(x, y - 10, ad, { anchor: 'middle', fill: TEL, size: 15, weight: 800 });
+  const olc = (xa, xb, y, t) => `<g stroke="${TEL}" stroke-width="1.3"><line x1="${xa}" y1="${y}" x2="${xb}" y2="${y}"/><line x1="${xa}" y1="${y - 5}" x2="${xa}" y2="${y + 5}"/><line x1="${xb}" y1="${y - 5}" x2="${xb}" y2="${y + 5}"/></g>` + yaz((xa + xb) / 2, y + 20, t, { anchor: 'middle', fill: TEL });
+  s += `<defs><linearGradient id="${u}hamur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6dfb2"/><stop offset="1" stop-color="#ddb77a"/></linearGradient></defs>`;
+  // önce: küçük hamur
+  s += yaz(20, 26, 'önce', { fill: P.ink2 });
+  s += somun(110, 96, 140, 52);
+  s += uzum(70, 80, 'A') + uzum(110, 80, 'B') + uzum(150, 80, 'C');
+  s += olc(70, 110, 108, '2 cm') + olc(110, 150, 108, '2 cm');
+  // sonra: kabarmış hamur
+  s += yaz(20, 158, 'sonra', { fill: P.ink2 });
+  s += somun(170, 222, 290, 74);
+  s += uzum(90, 204, 'A') + uzum(170, 204, 'B') + uzum(250, 204, 'C');
+  s += olc(90, 170, 232, '4 cm') + olc(170, 250, 232, '4 cm');
+  return svg(340, 262, s, u, 90);
+});
+
+/* Isınma 2: hidrojen ve sodyum lambalarının salma çizgileri, yıldız ışığındaki koyu çizgiler */
+BFY_FIG_EKLE('sfA51_yildiz', function (u) {
+  let s = bg(340, 250);
+  const x = l => 20 + (l - 400), w = 300, h = 34;
+  const H = [[656, '#e0312a'], [486, '#2bb6c9'], [434, '#3d5ad6'], [410, '#7a3fd0']], Na = [[589, '#ffd21f']];
+  s += `<defs><linearGradient id="${u}gok" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6a2fc0"/><stop offset=".15" stop-color="#3550d8"/><stop offset=".33" stop-color="#22a7c4"/><stop offset=".48" stop-color="#2fa84f"/><stop offset=".6" stop-color="#e3d22c"/><stop offset=".75" stop-color="#ef8a26"/><stop offset="1" stop-color="#c8231d"/></linearGradient></defs>`;
+  const serit = (y, baslik, cizgiler, tur) => {
+    let t = yaz(20, y - 8, baslik, { fill: TEL });
+    t += `<rect x="20" y="${y}" width="${w}" height="${h}" rx="4" fill="${tur === 's' ? '#14161a' : `url(#${u}gok)`}" stroke="#555" stroke-width="1"/>`;
+    cizgiler.forEach(([l, c]) => { t += `<rect x="${f1(x(l) - 2)}" y="${y + 1}" width="4" height="${h - 2}" fill="${tur === 's' ? c : '#111'}"/>`; });
+    return t;
+  };
+  s += serit(36, 'hidrojen lambası', H, 's');
+  s += serit(108, 'sodyum lambası', Na, 's');
+  s += serit(180, 'yıldızdan gelen ışık', H.concat(Na), 'y');
+  s += yaz(20, 238, 'mor', { fill: P.ink2 }) + yaz(320, 238, 'kırmızı', { anchor: 'end', fill: P.ink2 });
+  return svg(340, 250, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -40575,6 +40979,195 @@ const KONU = {
     'düzeyler 0; 1,9; 3,6; 5,7, iyonlaşma 6,8 eV; X, Y, Z inişlerinin dalga boyu sıralaması, ölçekli olmayan oklar', 'Güneş nötrinoları Dünya\'dan geçiyor: güçlü, elektromanyetik ve zayıf kuvvet (I-II-III)',
     '7,0 eV elektronlar, çıkışta 7,0; 4,2; 1,6 eV, düzeyler 2,8 ve 5,4 eV, 2,6 eV foton (kesinlikle)', 'tek atom 1,8 ve 3,3 eV iki foton yayıyor; I, II, III düzey şemalarından hangileri olabilir'
   ],
+
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda atomun içini bilim insanlarının adım adım nasıl keşfettiğini, atomun ışığı nasıl yaydığını ve evrenin nasıl genişlediğini göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Atomun içi neredeyse boştur',
+        sekil: 'sfA51_levha',
+        metin: r`Thomson, atomu içine elektronların gömüldüğü pozitif yüklü bir küre gibi düşünmüştü. Rutherford bu fikri bir deneyle sınadı: Pozitif yüklü alfa parçacıklarını çok ince bir altın levhaya gönderdi.
+
+- Parçacıkların **çoğu** levhadan dümdüz geçti. Demek ki atomun büyük kısmı boştur.
+- **Çok azı** büyük açılarla saptı, hatta geri döndü. Demek ki atomun pozitif yükü ve kütlesinin neredeyse tamamı çok küçük bir **çekirdekte** toplanmıştır.
+- Elektronlar çekirdeğin çevresinde, geniş bir bölgede bulunur.
+
+Bir atom bir futbol stadyumu kadar büyütülse çekirdeği, sahanın ortasındaki bir nohut tanesi kadar kalırdı.`,
+        kontrol: {
+          soru: 'Rutherford deneyinde alfa parçacıklarından çok azının geri dönmesi neyi gösterir?',
+          secenekler: ['Atomun içi tamamen doludur.', 'Pozitif yük ve kütle çok küçük bir çekirdekte toplanmıştır.', 'Elektronlar alfa parçacıklarını geri iter.'],
+          dogru: 1,
+          aciklama: 'Geri dönmek için alfa parçacığının küçük, ağır ve pozitif yüklü bir çekirdeğe neredeyse tam karşıdan yaklaşması gerekir; çekirdek onu iterek geri çevirir. Bu çok seyrek olur; çünkü çekirdek atoma göre çok küçüktür.',
+          yanlisIpucu: 'Parçacıkların çoğu dümdüz geçti. Atom dolu olsaydı böyle olur muydu? Geri dönenler küçük ve ağır bir şeye çarpmış olmalı.'
+        }
+      },
+      {
+        baslik: 'Bohr: elektron basamaklarda durur',
+        sekil: 'sfA51_duzey',
+        metin: r`Merdivende basamakların üstünde durabilirsin, iki basamağın arasında duramazsın. Bohr'a göre atomdaki elektron da yalnız belirli **enerji düzeylerinde** bulunur.
+
+- Elektron bir düzeyde kaldıkça ışık yaymaz.
+- En alttaki düzeye **temel hâl** denir. Atom bir üst düzeye çıkınca **uyarılmış** olur.
+- Üst düzeye çıkarken atom, iki düzey arasındaki farka eşit enerji alır. Alt düzeye inerken bu farka eşit enerjili bir **foton** (ışık paketi) yayar: $E_\text{foton} = E_\text{üst} - E_\text{alt}$.
+
+Şekildeki atomun düzeyleri 0, 3, 7 ve 9 eV'tur (eV, küçük bir enerji birimidir). Atom 0'dan 7 eV düzeyine 7 eV'luk bir foton soğurarak çıkabilir; 7'den 0'a inerken 7 eV'luk foton yayar.`,
+        kontrol: {
+          soru: 'Şekildeki atom 9 eV düzeyinden 3 eV düzeyine iniyor. Yayılan fotonun enerjisi kaç eV\'tur?',
+          secenekler: ['12 eV', '6 eV', '3 eV'],
+          dogru: 1,
+          aciklama: 'Fotonun enerjisi iki düzeyin farkıdır: 9 − 3 = 6 eV.',
+          yanlisIpucu: 'Düzeyleri toplama; büyük düzeyden küçük düzeyi çıkar.'
+        }
+      },
+      {
+        baslik: 'Atomu uyarmanın yolları',
+        metin: r`Bir atomu üst düzeye çıkarmanın birkaç yolu vardır. İkisi en önemlisidir.
+
+- **Fotonla:** Foton ya hep ya hiç kuralına uyar. Enerjisi iki düzeyin farkına **tam eşitse** soğurulur, değilse soğurulmaz. Yalnız iyonlaşma enerjisinden büyük bir foton her zaman soğurulur ve elektronu atomdan koparır.
+- **Elektronla:** Atoma çarpan elektron, enerjisinin yalnız **bir kısmını** verebilir. Enerjisi bir düzey farkına eşit ya da ondan büyükse atomu uyarır, kalan enerjiyle yoluna devam eder.
+- Atomlar birbirleriyle çarpışarak ve ısıyla da uyarılabilir. Alevin içindeki atomlar bu yüzden ışık yayar.
+
+Düzeyleri 0, 3, 7 ve 9 eV olan atoma 4 eV'luk elektron çarparsa elektron 3 eV verip atomu 3 eV düzeyine çıkarabilir. Elektron yoluna 1 eV ile devam eder.`,
+        kontrol: {
+          soru: 'Aynı atom temel hâldedir. Atoma 5 eV\'luk bir foton ve ayrıca 5 eV\'luk bir elektron gönderiliyor. Hangisi atomu uyarabilir?',
+          secenekler: ['Yalnız foton.', 'Yalnız elektron.', 'İkisi de.'],
+          dogru: 1,
+          aciklama: 'Temel hâlden düzey farkları 3, 7 ve 9 eV\'tur; 5 eV bunlardan biri değildir. Bu yüzden foton soğurulmaz. Elektron ise 3 eV verip atomu 3 eV düzeyine çıkarabilir ve 2 eV ile yoluna devam eder.',
+          yanlisIpucu: 'Foton enerjisinin tamamını vermek zorundadır, elektron ise bir kısmını verebilir. 5 eV, temel hâlden bir düzey farkına tam eşit mi?'
+        }
+      },
+      {
+        baslik: 'Çizgi spektrumu: elementin parmak izi',
+        metin: r`Bir lambadaki gazın atomları uyarılınca alt düzeylere inerek ışık yayar. Bu ışık bir prizmadan geçirilirse karanlık zemin üstünde birkaç renkli çizgi görülür. Buna **çizgi spektrumu** denir.
+
+- Her çizgi, bir düzeyden alttaki bir düzeye inişe karşılık gelir.
+- Gazda çok sayıda atom vardır. Her olası iniş bir atomda gerçekleşir. Çizgi sayısını bulmak için bütün inişleri tek tek sayarsın.
+- Her elementin düzeyleri farklıdır. Bu yüzden her elementin çizgileri kendine özgüdür; parmak izi gibi elementi tanıtır.
+
+Düzeyleri 0, 3, 7 ve 9 eV olan gazın atomları 9 eV düzeyine kadar uyarılsın. İnişler: 9'dan 7'ye, 3'e ve 0'a; 7'den 3'e ve 0'a; 3'ten 0'a. Toplam 6 çizgi görülür.`,
+        kontrol: {
+          soru: 'Aynı gazın atomları bu kez en çok 7 eV düzeyine kadar uyarılıyor. Spektrumda kaç farklı çizgi görülür?',
+          secenekler: ['2', '3', '6'],
+          dogru: 1,
+          aciklama: 'Kullanılan düzeyler 0, 3 ve 7 eV\'tur. İnişler: 7\'den 3\'e, 7\'den 0\'a ve 3\'ten 0\'a. Toplam 3 çizgi görülür.',
+          yanlisIpucu: 'Yalnız 0, 3 ve 7 eV düzeyleri işe karışıyor. Bunlar arasındaki bütün aşağı inişleri tek tek yaz.'
+        }
+      },
+      {
+        baslik: 'Genişleyen evren',
+        sekil: 'sfA51_kek',
+        metin: r`Gökbilimciler uzak galaksilerin bizden uzaklaştığını görür. Daha uzaktaki galaksiler daha hızlı uzaklaşır. Bu, evrenin genişlediğini gösterir. **Büyük patlama** teorisine göre evren yaklaşık 14 milyar yıl önce çok sıcak ve yoğun bir başlangıçtan genişleyerek bugünkü hâline geldi.
+
+- Evren genişledikçe soğudu. Önce proton ve nötronlar, ilk dakikalarda hafif çekirdekler, yaklaşık 380 bin yıl sonra nötr atomlar oluştu.
+- O dönemden kalan ışık, genişlemeyle soğumuş olarak bugün her yönden gelir: **kozmik mikrodalga arka plan ışıması**.
+- Genişlemenin bir merkezi yoktur.
+
+Şekildeki üzümlü hamur kabarırken üzümler birbirinden uzaklaşır. A'dan bakınca 2 cm uzaktaki B 4 cm'ye, 4 cm uzaktaki C ise 8 cm'ye gider. Uzaktaki üzüm aynı sürede daha çok yol almıştır. Üzümler büyümez; galaksiler ve atomlar da genişlemeyle büyümez. Benzetmenin bir sınırı var: Hamurun bir kenarı ve ortası vardır, evrenin ise merkezi yoktur. Bu yüzden yalnız üzümler arasındaki uzaklıklara bak.`,
+        kontrol: {
+          soru: 'Hamur kabarırken B üzümünün üstündeki bir karınca öbür üzümleri nasıl görür?',
+          secenekler: ['A ve C ona doğru yaklaşır.', 'A ve C ondan uzaklaşır.', 'B merkezde olduğu için A ve C yerinde durur.'],
+          dogru: 1,
+          aciklama: 'Hamurun her yeri kabarır. B\'den bakınca A da C de uzaklaşır: İkisinin uzaklığı da 2 cm\'den 4 cm\'ye çıkar. Her üzümdeki gözlemci aynı şeyi görür; bu yüzden genişlemenin merkezi yoktur.',
+          yanlisIpucu: 'Şekilde B ile A, B ile C arasındaki uzaklıklar önce ve sonra kaç cm?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Tüpteki gaz ve elektronlar',
+        metin: r`Bir deney tüpündeki gazın atomlarının enerji düzeyleri 0, 5, 7 ve 11 eV'tur. İyonlaşma enerjisi 13 eV'tur. Atomlar temel hâldedir. Tüpe kinetik enerjisi 8 eV olan elektronlar gönderiliyor.`,
+        adimlar: [
+          {
+            soru: 'Elektronlar atomları hangi düzeylere çıkarabilir?',
+            secenekler: ['Yalnız 7 eV düzeyine.', '5 eV ve 7 eV düzeylerine.', 'Bütün düzeylere.'],
+            dogru: 1,
+            ipucu: 'Elektron, enerjisi kadar ya da daha az bir düzey farkını verebilir. 8 eV hangi düzey farklarına yeter?',
+            aciklama: 'Temel hâlden düzey farkları 5, 7 ve 11 eV\'tur. 8 eV, 5 ve 7 eV\'a yeter; 11 eV\'a yetmez.'
+          },
+          {
+            soru: 'Bir atomu 7 eV düzeyine çıkaran elektron yoluna kaç eV kinetik enerjiyle devam eder?',
+            secenekler: ['1 eV', '3 eV', '8 eV'],
+            dogru: 0,
+            ipucu: 'Elektron 7 eV\'u atoma verdi. Kalanı ne kadar?',
+            aciklama: 'Elektron 7 eV verir ve 8 − 7 = 1 eV ile yoluna devam eder.'
+          },
+          {
+            soru: 'Uyarılan atomlar temel hâle dönerken gazın spektrumunda hangi çizgiler görülür?',
+            secenekler: ['2 çizgi: 5 ve 7 eV.', '3 çizgi: 2, 5 ve 7 eV.', '3 çizgi: 1, 5 ve 7 eV.'],
+            dogru: 1,
+            ipucu: 'İşe karışan düzeyler 0, 5 ve 7 eV. Bunlar arasındaki bütün inişleri yaz ve farkları hesapla.',
+            aciklama: 'İnişler: 7\'den 5\'e (2 eV), 7\'den 0\'a (7 eV), 5\'ten 0\'a (5 eV). Üç çizgi görülür.'
+          }
+        ],
+        sonuc: 'Elektron atomu yalnız enerjisinin yettiği düzeylere çıkarabilir. Çizgileri bulmak için işe karışan düzeyler arasındaki bütün inişleri sayarsın.'
+      },
+      {
+        baslik: 'Yıldızın ışığındaki koyu çizgiler',
+        sekil: 'sfA51_yildiz',
+        metin: r`Bir gökbilimci, bir yıldızdan gelen ışığı prizmadan geçiriyor. Renkli şeridin üstünde beş koyu çizgi görüyor. Laboratuvarda hidrojen ve sodyum lambalarının salma çizgilerini de ölçmüş. Üç şerit şekildedir.`,
+        adimlar: [
+          {
+            soru: 'Koyu çizgilerden dördü hidrojen lambasının çizgileriyle aynı yerdedir. Bu ne gösterir?',
+            secenekler: ['Yıldızın dış katmanlarındaki hidrojen bu renkleri soğurmuştur.', 'Yıldızda hidrojen yoktur.', 'Yıldız bize yaklaşmaktadır.'],
+            dogru: 0,
+            ipucu: 'Bir gaz, kendi yaydığı renklerdeki ışığı soğurabilir. Koyu çizgi, o rengin yolda soğurulduğunu gösterir.',
+            aciklama: 'Yıldızın içinden gelen ışık, dış katmanlardaki gazdan geçer. Hidrojen atomları kendi çizgilerinin renklerini soğurur; o renkler eksik kalır ve koyu çizgi olarak görünür.'
+          },
+          {
+            soru: 'Beşinci koyu çizgi hangi elementin varlığını gösterir?',
+            secenekler: ['Hidrojen', 'Hiçbirinin', 'Sodyum'],
+            dogru: 2,
+            ipucu: 'Beşinci koyu çizgiyi sodyum lambasının sarı çizgisiyle karşılaştır.',
+            aciklama: 'Beşinci koyu çizgi sodyumun sarı çizgisiyle aynı yerdedir. Yıldızın dış katmanlarında sodyum da vardır.'
+          },
+          {
+            soru: 'Bir gazın soğurma çizgileri neden kendi salma çizgilerinden bazılarıyla aynı yerdedir?',
+            secenekler: ['Işık gazdan geçerken frekansı değişir.', 'Bütün elementlerin soğurma çizgileri aynıdır.', 'Atom, düzey farkına eşit enerjili fotonu hem yayar hem soğurur.'],
+            dogru: 2,
+            ipucu: 'Atom ışık yayarken de soğururken de aynı düzeyler arasında geçiş yapar.',
+            aciklama: 'Yayılan ve soğurulan fotonların enerjisi aynı düzey farklarına eşittir. Bu yüzden renkleri, yani çizgilerin yeri aynıdır.'
+          }
+        ],
+        sonuc: 'Her elementin çizgileri kendine özgüdür. Gökbilimciler bu yüzden çok uzaktaki yıldızlarda hangi elementlerin bulunduğunu ışıklarından anlar.'
+      },
+      {
+        baslik: 'Helyum çekirdeğinin içi',
+        metin: r`Büyük patlamadan birkaç dakika sonra ilk helyum çekirdekleri oluştu. Bir helyum çekirdeğinde 2 proton ve 2 nötron vardır. Proton iki yukarı ($u$) ve bir aşağı ($d$) kuarktan, nötron bir yukarı ve iki aşağı kuarktan oluşur. $u$ kuarkının yükü $+\tfrac{2}{3}e$, $d$ kuarkınınki $-\tfrac{1}{3}e$'dir.`,
+        adimlar: [
+          {
+            soru: 'Helyum çekirdeğinde toplam kaç kuark vardır?',
+            secenekler: ['4', '6', '12'],
+            dogru: 2,
+            ipucu: 'Çekirdekte 4 parçacık var ve her biri 3 kuarktan oluşuyor.',
+            aciklama: 'Her proton ve her nötron 3 kuarktan oluşur. 4 parçacıkta 4 × 3 = 12 kuark vardır.'
+          },
+          {
+            soru: 'Bu kuarklardan kaç tanesi yukarı ($u$) kuarktır?',
+            secenekler: ['6', '4', '8'],
+            dogru: 0,
+            ipucu: 'Her protonda 2, her nötronda 1 yukarı kuark var.',
+            aciklama: 'İki protonda 2 × 2 = 4, iki nötronda 2 × 1 = 2 yukarı kuark vardır. Toplam 6 tanedir; kalan 6 kuark aşağı kuarktır.'
+          },
+          {
+            soru: 'Kuarkların yüklerini toplayınca helyum çekirdeğinin yükü kaç olur?',
+            secenekler: [r`$+4e$`, r`$+2e$`, '0'],
+            dogru: 1,
+            ipucu: r`6 tane $+\tfrac{2}{3}e$ ve 6 tane $-\tfrac{1}{3}e$ yükü topla.`,
+            aciklama: r`$6 \times \tfrac{2}{3} = 4$ ve $6 \times \tfrac{1}{3} = 2$. Toplam yük $4e - 2e = +2e$ olur. Bu, 2 protonun yüküdür.`
+          },
+          {
+            soru: 'Çekirdekteki iki proton birbirini elektriksel kuvvetle iter. Çekirdeği bir arada tutan kuvvet hangisidir?',
+            secenekler: ['Kütle çekim kuvveti.', 'Güçlü nükleer kuvvet.', 'Elektromanyetik kuvvet.'],
+            dogru: 1,
+            ipucu: 'Dört temel kuvvetin en güçlüsü hangisidir ve menzili ne kadardır?',
+            aciklama: 'Güçlü nükleer kuvvet çok kısa menzilli ama en güçlü kuvvettir. Kuarkları bir arada tutar, proton ve nötronları da çekirdekte bağlar. Taşıyıcısı gluondur.'
+          }
+        ],
+        sonuc: 'Proton ve nötron kuarklardan oluşur; yükler kuarkların yüklerinin toplamıdır. Onları bir arada tutan güçlü nükleer kuvvettir.'
+      }
+    ],
+    hazir: 'Rutherford deneyini, Bohr\'un enerji düzeylerini, uyarılma yollarını, çizgi spektrumunu, genişleyen evreni ve kuarkları gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -42077,6 +42670,106 @@ BFY_FIG_EKLE('iA52_efsane_5', u => EF(u, I => {
 }, { oy: 64 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.5.2 başlangıç şekilleri (sfA52_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14. Çekirdekler temsilîdir, ölçekli değildir.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const KIR = '#d24b3e', TEL = '#2a3330', MAV = '#2f6fb8', GRI = '#7e8f9a';
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const ok = (x1, y1, x2, y2, c, w = 2.6) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 10, headW: 5 });
+const bg = (w, h, c = '#f4f7f9') => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="14" fill="${c}"/>`;
+const gr = u => `<defs><radialGradient id="${u}pr" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#f7b3a6"/><stop offset=".55" stop-color="#d24b3e"/><stop offset="1" stop-color="#8e2a20"/></radialGradient><radialGradient id="${u}nt" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#eef1f3"/><stop offset=".55" stop-color="#a9b4bc"/><stop offset="1" stop-color="#5f6b73"/></radialGradient><radialGradient id="${u}el" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#cfe3fb"/><stop offset=".6" stop-color="#2f6fb8"/><stop offset="1" stop-color="#173f73"/></radialGradient></defs>`;
+const top = (u, x, y, p, r = 9) => `<circle cx="${f1(x)}" cy="${f1(y)}" r="${r}" fill="url(#${u}${p ? 'pr' : 'nt'})" stroke="${p ? '#7a241b' : '#56616a'}" stroke-width=".8"/>` + (p ? T(f1(x), f1(y + 4.5), '+', { size: 13, weight: 800, fill: '#fff', anchor: 'middle', halo: false }) : '');
+// ayçiçeği dizilimi: n top; arkadakiler önce çizilir; tip(i) true → proton
+function kume(u, cx, cy, n, r, tip) {
+  const ps = [];
+  for (let i = 0; i < n; i++) { const a = i * 2.39996, d = r * 1.05 * Math.sqrt(i + 0.5); ps.push([cx + d * Math.cos(a), cy + d * Math.sin(a), tip(i), i]); }
+  ps.sort((a, b) => (a[1] - b[1]) || (a[0] - b[0]));
+  return ps.map(q => top(u, q[0], q[1], q[2], r)).join('');
+}
+const ab = i => i % 2 === 0; // yaklaşık yarı yarıya
+
+/* Adım 1: çekirdek, proton ve nötron */
+BFY_FIG_EKLE('sfA52_cekirdek', function (u) {
+  let s = bg(340, 236) + gr(u);
+  s += `<circle cx="170" cy="104" r="78" fill="#fff" opacity=".55" stroke="#c9d3da" stroke-width="1" stroke-dasharray="4 4"/>`;
+  s += kume(u, 170, 104, 26, 10, ab);
+  s += yaz(170, 20, 'çekirdek (temsilî)', { anchor: 'middle', fill: TEL });
+  s += top(u, 40, 206, true, 10) + yaz(58, 211, 'proton', { fill: TEL });
+  s += top(u, 186, 206, false, 10) + yaz(204, 211, 'nötron', { fill: TEL });
+  return svg(340, 236, s, u, 90);
+});
+
+/* Adım 2: alfa bozunması; çekirdekten 2 proton 2 nötronluk parçacık fırlar */
+BFY_FIG_EKLE('sfA52_alfa', function (u) {
+  let s = bg(340, 230) + gr(u);
+  s += kume(u, 104, 104, 30, 9, ab);
+  // alfa: 2p + 2n
+  const ax = 262, ay = 92;
+  s += `<path d="M184 96 L224 94" stroke="${GRI}" stroke-width="1.6" stroke-dasharray="4 4"/>`;
+  s += top(u, ax - 8, ay - 8, true) + top(u, ax + 8, ay - 8, false) + top(u, ax - 8, ay + 8, false) + top(u, ax + 8, ay + 8, true);
+  s += ok(ax + 24, ay, 330, ay, KIR);
+  s += yaz(ax, ay - 30, 'α parçacığı', { anchor: 'middle', fill: KIR });
+  s += yaz(ax, ay + 42, '2 proton', { anchor: 'middle', fill: TEL }) + yaz(ax, ay + 60, '2 nötron', { anchor: 'middle', fill: TEL });
+  s += yaz(170, 214, 'A 4 azalır, Z 2 azalır', { anchor: 'middle', fill: TEL, size: 15, weight: 800 });
+  return svg(340, 230, s, u, 90);
+});
+
+/* Adım 3: β⁻ bozunması; bir nötron protona dönüşür, elektron fırlar */
+BFY_FIG_EKLE('sfA52_beta', function (u) {
+  let s = bg(340, 240) + gr(u);
+  const vurgu = (x, y) => `<circle cx="${x}" cy="${y}" r="15" fill="none" stroke="#e7a93b" stroke-width="3"/>`;
+  // önce
+  s += yaz(74, 24, 'önce', { anchor: 'middle', fill: P.ink2 });
+  s += kume(u, 74, 104, 14, 9, i => [0, 3, 6, 9, 12].includes(i));
+  // dönüşecek nötron: kümenin dışına yakın, sabit konumda ayrıca çiz
+  s += top(u, 74, 150, false) + vurgu(74, 150) + yaz(74, 184, 'nötron', { anchor: 'middle', fill: TEL });
+  s += ok(130, 104, 186, 104, TEL, 3);
+  // sonra
+  s += yaz(246, 24, 'sonra', { anchor: 'middle', fill: P.ink2 });
+  s += kume(u, 246, 104, 14, 9, i => [0, 3, 6, 9, 12].includes(i));
+  s += top(u, 246, 150, true) + vurgu(246, 150) + yaz(246, 184, 'proton', { anchor: 'middle', fill: KIR });
+  // elektron
+  s += `<circle cx="272" cy="160" r="6" fill="url(#${u}el)" stroke="#173f73" stroke-width=".8"/>` + ok(279, 166, 306, 192, MAV, 2.2);
+  s += yaz(330, 214, 'elektron (β⁻)', { anchor: 'end', fill: MAV });
+  s += yaz(18, 226, 'A değişmez, Z 1 artar', { fill: TEL, size: 15, weight: 800 });
+  return svg(340, 240, s, u, 90);
+});
+
+/* Adım 5: fisyon (üstte) ve füzyon (altta) */
+BFY_FIG_EKLE('sfA52_fisyon', function (u) {
+  let s = bg(340, 336) + gr(u);
+  s += yaz(18, 26, 'fisyon: ağır çekirdek bölünür', { fill: TEL });
+  // gelen nötron
+  s += top(u, 22, 92, false, 6.5) + ok(31, 92, 52, 92, GRI, 2);
+  // sayılar tutarlı: 18 p + 18 n ve gelen 1 n → (10 p + 8 n) + (8 p + 8 n) + 3 n
+  s += kume(u, 98, 92, 36, 6.5, ab);
+  s += ok(152, 92, 176, 92, TEL, 3);
+  s += kume(u, 220, 64, 18, 6.5, i => i % 2 === 0 || i === 17) + kume(u, 222, 124, 16, 6.5, ab);
+  // 3 nötron
+  [[292, 54], [306, 92], [292, 130]].forEach(([x, y]) => { s += ok(258, 92 + (y - 92) * 0.4, x - 9, y, GRI, 1.8) + top(u, x, y, false, 6.5); });
+  s += `<line x1="18" y1="166" x2="322" y2="166" stroke="#c9d3da" stroke-width="1.2"/>`;
+  s += yaz(18, 194, 'füzyon: hafif çekirdekler birleşir', { fill: TEL });
+  // döteryum + trityum
+  s += top(u, 40, 256, true) + top(u, 56, 256, false);
+  s += yaz(48, 296, '²H', { anchor: 'middle', fill: TEL });
+  s += yaz(82, 261, '+', { anchor: 'middle', fill: TEL, size: 18 });
+  s += top(u, 108, 248, true) + top(u, 124, 248, false) + top(u, 116, 264, false);
+  s += yaz(116, 296, '³H', { anchor: 'middle', fill: TEL });
+  s += ok(144, 256, 176, 256, TEL, 3);
+  s += top(u, 202, 248, true) + top(u, 218, 248, false) + top(u, 202, 264, false) + top(u, 218, 264, true);
+  s += yaz(210, 296, '⁴He', { anchor: 'middle', fill: TEL });
+  s += yaz(244, 261, '+', { anchor: 'middle', fill: TEL, size: 18 });
+  s += top(u, 272, 256, false) + ok(282, 256, 310, 256, GRI, 2);
+  s += yaz(272, 296, 'n', { anchor: 'middle', fill: TEL });
+  s += yaz(170, 326, 'İkisinde de enerji açığa çıkar.', { anchor: 'middle', fill: KIR });
+  return svg(340, 336, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -42135,6 +42828,196 @@ const KONU = {
     'A = 236, Z = 92 ile başlayan α-β⁻ serisi: (224, 85), (220, 86), (222, 86) üyelik (olabilir)',
     'hızlandırıcıda X + α → Y + P (proton, nötron ya da gama), Y\'de 2 fazla nötron (kesinlikle)'
   ],
+
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda bazı çekirdeklerin neden kendiliğinden dönüştüğünü, alfa, beta ve gama ışımalarını, fisyonu ve füzyonu göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Çekirdekte iki kuvvet',
+        sekil: 'sfA52_cekirdek',
+        metin: r`Atomun çekirdeğinde protonlar ve nötronlar bulunur. İkisine birden **nükleon** denir.
+
+- Protonlar pozitif yüklüdür ve birbirini elektriksel kuvvetle iter.
+- **Güçlü nükleer kuvvet** bütün nükleonları birbirine çeker. Çok güçlüdür ama yalnız çok kısa uzaklıklarda etkilidir.
+- Bu iki etkinin dengesi uygun değilse çekirdek **kararsızdır**. Kararsız çekirdek hiçbir dış etki olmadan, kendiliğinden ışıma yaparak başka bir çekirdeğe dönüşür. Buna **radyoaktivite** denir.
+
+Bir çekirdek $^{A}_{Z}\text{X}$ biçiminde yazılır. $Z$ proton sayısıdır (atom numarası), $A$ nükleon sayısıdır (kütle numarası). Nötron sayısı $N = A - Z$ olur. Örneğin $^{12}_{6}\text{C}$ çekirdeğinde 6 proton ve 6 nötron vardır. Hafif kararlı çekirdeklerde nötron sayısı proton sayısına yakındır.`,
+        kontrol: {
+          soru: r`Kararlı demir çekirdeği $^{56}_{26}\text{Fe}$ kaç nötron içerir?`,
+          secenekler: ['26', '30', '56'],
+          dogru: 1,
+          aciklama: r`Nötron sayısı kütle numarasından atom numarası çıkarılarak bulunur: $N = 56 - 26 = 30$.`,
+          yanlisIpucu: 'Üstteki sayı nükleon sayısı, alttaki proton sayısıdır. Nötron sayısı için ikisinin farkını al.'
+        }
+      },
+      {
+        baslik: 'Alfa bozunması',
+        sekil: 'sfA52_alfa',
+        metin: r`Bazı ağır çekirdekler, 2 proton ve 2 nötrondan oluşan bir parçacık fırlatarak küçülür. Bu parçacık bir helyum çekirdeğidir; adı **alfa** ($\alpha$) parçacığıdır: $^{4}_{2}\text{He}$.
+
+- Kütle numarası 4, atom numarası 2 azalır.
+- Atom numarası değiştiği için çekirdek başka bir elementin çekirdeğine dönüşür.
+- Tepkimenin iki yanında kütle numaraları toplamı da atom numaraları toplamı da eşittir.
+
+Örnek: $^{230}_{90}\text{Th} \rightarrow {}^{226}_{88}\text{Ra} + {}^{4}_{2}\text{He}$. Kontrol et: $230 = 226 + 4$ ve $90 = 88 + 2$.`,
+        kontrol: {
+          soru: r`Atom numarası 96 olan küriyum-244 çekirdeği alfa bozunması yapıyor. Oluşan çekirdeğin kütle numarası ($A$) ve atom numarası ($Z$) nedir?`,
+          secenekler: ['A = 240, Z = 94', 'A = 240, Z = 96', 'A = 242, Z = 94'],
+          dogru: 0,
+          aciklama: 'Alfa parçacığı 4 nükleon ve 2 proton götürür: A = 244 − 4 = 240 ve Z = 96 − 2 = 94.',
+          yanlisIpucu: 'Alfa parçacığında 2 proton ve 2 nötron var. Kütle numarası kaç, atom numarası kaç azalır?'
+        }
+      },
+      {
+        baslik: 'Beta bozunması',
+        sekil: 'sfA52_beta',
+        metin: r`Nötronu fazla olan bir çekirdekte bir nötron protona dönüşebilir. Bu sırada oluşan bir elektron çekirdekten hızla fırlar. Bu ışımaya **beta eksi** ($\beta^-$) denir.
+
+- Nükleon sayısı değişmez; kütle numarası aynı kalır.
+- Proton sayısı 1 artar, nötron sayısı 1 azalır.
+- Elektron çekirdekte önceden bulunmaz; dönüşüm anında oluşur.
+- Protonu fazla olan çekirdekte ise bir proton nötrona dönüşür ve bir pozitron (artı yüklü elektron) fırlar. Buna **beta artı** ($\beta^+$) denir. Bu kez atom numarası 1 azalır.
+
+Örnek: Tıpta kullanılan $^{32}_{15}\text{P}$ çekirdeği $\beta^-$ bozunmasıyla $^{32}_{16}\text{S}$ çekirdeğine dönüşür.`,
+        kontrol: {
+          soru: r`$^{32}_{15}\text{P}$ çekirdeği $\beta^-$ bozunması yapınca nötron sayısı nasıl değişir?`,
+          secenekler: ['17\'den 16\'ya iner.', '17\'den 18\'e çıkar.', 'Değişmez, 17 kalır.'],
+          dogru: 0,
+          aciklama: r`Önce $N = 32 - 15 = 17$. Bir nötron protona dönüşür: Sonra $N = 32 - 16 = 16$ olur.`,
+          yanlisIpucu: 'Beta eksi bozunmasında hangi parçacık hangisine dönüşüyordu? Nötron sayısı artar mı, azalır mı?'
+        }
+      },
+      {
+        baslik: 'Gama ışıması ve giricilik',
+        metin: r`Alfa ya da beta bozunmasından sonra çekirdek çoğu zaman fazladan enerjiyle, yani **uyarılmış** olarak kalır. Bu durum $^*$ işaretiyle gösterilir. Çekirdek bu enerjiyi yüksek enerjili bir fotonla verir: **gama** ($\gamma$) ışıması.
+
+- Gama ışıması yüksüz bir fotondur. Kütle numarası da atom numarası da değişmez.
+- Üç ışımanın giriciliği farklıdır. Alfayı bir kâğıt ya da deri durdurur. Beta birkaç milimetre alüminyumda durur. Gamayı ancak kalın kurşun ya da beton zayıflatır.
+- Üçü de atomlardan elektron koparabilir ve hücrelere zarar verebilir. Korunmanın üç yolu vardır: kaynağın yakınında az süre kalmak, kaynaktan uzak durmak, araya zırh koymak.
+- Alfanın dışarıdan deride durması onu zararsız yapmaz: Alfa yayan bir madde solunur ya da yutulursa vücudun içinde çok zararlıdır.`,
+        kontrol: {
+          soru: 'Uyarılmış bir çekirdek gama ışıması yapıyor. Kütle numarası (A) ve atom numarası (Z) için hangisi doğrudur?',
+          secenekler: ['A 4, Z 2 azalır.', 'A değişmez, Z 1 artar.', 'İkisi de değişmez.'],
+          dogru: 2,
+          aciklama: 'Gama ışıması bir fotondur; ne nükleon ne de yük götürür. Çekirdek yalnız fazla enerjisini verir.',
+          yanlisIpucu: 'Gama ışımasının yükü ve kütle numarası var mı? Çekirdekten hiç proton ya da nötron çıkıyor mu?'
+        }
+      },
+      {
+        baslik: 'Fisyon ve füzyon',
+        sekil: 'sfA52_fisyon',
+        metin: r`Çekirdekler bölünerek ya da birleşerek de dönüşebilir.
+
+- **Fisyon:** Uranyum-235 gibi ağır bir çekirdek bir nötron yakalayınca iki orta büyüklükte çekirdeğe bölünür. Bu sırada 2 ya da 3 nötron ve büyük enerji açığa çıkar. Nükleer santraller bu enerjiyi kullanır.
+- **Füzyon:** Hafif çekirdekler birleşerek daha ağır bir çekirdek oluşturur. Güneş'in enerjisi füzyondan gelir. Pozitif çekirdeklerin birbirini itmesini yenmek için milyonlarca derece sıcaklık gerekir.
+- İkisinde de kütle numaraları toplamı ve atom numaraları toplamı korunur. Serbest nötronları saymayı unutma.
+
+Şekildeki füzyonda: $2 + 3 = 4 + 1$ ve $1 + 1 = 2 + 0$.`,
+        kontrol: {
+          soru: r`Bir füzyon tepkimesi: $^{2}_{1}\text{H} + {}^{3}_{2}\text{He} \rightarrow {}^{4}_{2}\text{He} + \text{X}$. X nedir?`,
+          secenekler: ['Nötron', 'Elektron', 'Proton'],
+          dogru: 2,
+          aciklama: 'Kütle numarası: 2 + 3 = 4 + 1, yani X\'in kütle numarası 1. Atom numarası: 1 + 2 = 2 + 1, yani X\'in atom numarası 1. Bu bir protondur.',
+          yanlisIpucu: 'Önce kütle numaralarını, sonra atom numaralarını iki yanda eşitle. Atom numarası 1, kütle numarası 1 olan parçacık hangisi?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Kanser tedavisinde lutesyum',
+        metin: r`Bazı kanser tedavilerinde hastaya lutesyum-177 ($^{177}_{71}\text{Lu}$) içeren bir ilaç verilir. İlaç tümör hücrelerinde toplanır. Lutesyum-177 çekirdekleri $\beta^-$ bozunması yapar. Oluşan çekirdeklerin bir kısmı uyarılmıştır ve ardından gama ışıması yapar.`,
+        adimlar: [
+          {
+            soru: r`$\beta^-$ bozunmasıyla oluşan çekirdeğin kütle numarası ve atom numarası nedir?`,
+            secenekler: ['A = 177, Z = 72', 'A = 177, Z = 70', 'A = 173, Z = 69'],
+            dogru: 0,
+            ipucu: r`$\beta^-$ bozunmasında bir nötron protona dönüşür. Kütle numarası değişir mi? Atom numarası ne olur?`,
+            aciklama: 'Kütle numarası aynı kalır: 177. Bir nötron protona dönüştüğü için atom numarası 1 artar: 72. Bu, hafniyum çekirdeğidir.'
+          },
+          {
+            soru: 'Doktorlar ilacın vücutta nerede toplandığını dışarıdaki bir kamerayla görüntülüyor. Vücuttan çıkıp kameraya ulaşan ışıma hangisidir?',
+            secenekler: ['Beta ışıması.', 'Gama ışıması.', 'İkisi de.'],
+            dogru: 1,
+            ipucu: 'Beta birkaç milimetre alüminyumda duruyordu. Hangisinin giriciliği en fazladır?',
+            aciklama: 'Beta parçacıkları dokuda birkaç milimetre içinde durur; enerjilerini yakındaki tümör hücrelerine bırakır. Gama ışıması ise vücuttan çıkıp kameraya ulaşabilir.'
+          },
+          {
+            soru: 'Tedaviden sonraki birkaç gün hastadan, yakınlarıyla arasında biraz mesafe bırakması istenir. Bunun nedeni nedir?',
+            secenekler: ['Gama ışınları çevredeki eşyaları da radyoaktif yapar.', 'Vücuttan çıkan gama ışınlarından, uzakta duran kişiye daha az ulaşır.', 'Beta parçacıkları vücuttan çıkıp metrelerce yol alır.'],
+            dogru: 1,
+            ipucu: 'Korunmanın üç yolunu hatırla: süre, uzaklık, zırh. Vücuttan dışarı hangi ışıma çıkıyordu?',
+            aciklama: 'Vücuttan dışarı çıkabilen ışıma gamadır. Kaynaktan uzaklaştıkça bir kişiye ulaşan gama ışıması azalır. Gama ışınları eşyaları radyoaktif yapmaz. Beta parçacıkları ise vücudun içinde birkaç milimetrede durur.'
+          }
+        ],
+        sonuc: 'Bu tedavide beta ışıması tümörü yakından etkiler. Gama ışıması vücuttan çıkar; ilacın yerini gösterir, yakındakiler için de uzaklığı önemli kılar. Bozunma türünü bilirsen oluşan çekirdeği kütle ve atom numarasıyla bulursun.'
+      },
+      {
+        baslik: 'Reaktördeki bölünme',
+        metin: r`Bir nükleer santralin reaktöründe uranyum-235 çekirdekleri nötron yakalayıp bölünüyor. Bölünmelerden biri:
+$^{1}_{0}\text{n} + {}^{235}_{92}\text{U} \rightarrow {}^{144}_{56}\text{Ba} + {}^{89}_{36}\text{Kr} + 3\ {}^{1}_{0}\text{n}$.`,
+        adimlar: [
+          {
+            soru: 'Tepkimenin sol yanında kütle numaraları toplamı kaçtır?',
+            secenekler: ['235', '236', '237'],
+            dogru: 1,
+            ipucu: 'Gelen nötronu da say: kütle numarası 1.',
+            aciklama: 'Sol yanda 1 + 235 = 236 nükleon vardır.'
+          },
+          {
+            soru: 'Sağ yanda kütle numaraları toplamı kaçtır?',
+            secenekler: ['233', '234', '236'],
+            dogru: 2,
+            ipucu: 'Baryum ve kriptonun kütle numaralarını topla. Çıkan 3 nötronu da say; her birinin kütle numarası 1\'dir.',
+            aciklama: 'Sağ yanda 144 + 89 + 3 = 236 nükleon vardır. Sol yanla aynıdır; kütle numaraları toplamı korunur.'
+          },
+          {
+            soru: 'Atom numaraları toplamı bu tepkimede korunuyor mu?',
+            secenekler: ['Evet: 0 + 92 = 56 + 36 + 0.', 'Hayır: sağ yanda 2 eksik.', 'Hayır: çıkan nötronlar atom numarasını artırır.'],
+            dogru: 0,
+            ipucu: 'Nötronun atom numarası 0\'dır. Baryum ve kriptonun atom numaralarını topla.',
+            aciklama: 'Sol yanda 0 + 92 = 92, sağ yanda 56 + 36 + 0 = 92. Atom numaraları toplamı korunur.'
+          },
+          {
+            soru: 'Her bölünmeden çıkan nötronlar yeni bölünmeler başlatabilir. Reaktörde bölünme sayısının denetimsiz artmasını ne önler?',
+            secenekler: ['Nötronların bir kısmını soğuran kontrol çubukları.', 'Reaktörü saran kalın beton duvar.', 'Uranyum çekirdeklerinin bir süre sonra kendiliğinden bölünmeyi bırakması.'],
+            dogru: 0,
+            ipucu: 'Zincir tepkimesini sürdüren nötronlardır. Bölünmeleri azaltmak için neyi azaltmak gerekir?',
+            aciklama: 'Kontrol çubukları (bor, kadmiyum gibi) nötronların bir kısmını soğurur. Böylece yeni bölünme başlatan nötron sayısı ayarlanır. Beton duvar dışarıyı ışımadan korur; bölünmeleri denetlemez.'
+          }
+        ],
+        sonuc: 'Fisyonda da kütle numaraları ve atom numaraları toplamı korunur. Açığa çıkan nötronların yeni bölünmeler başlatmasına zincir tepkimesi denir; reaktörde kontrol çubukları bu tepkimeyi denetler.'
+      },
+      {
+        baslik: 'Azotun iki kararsız izotopu',
+        metin: r`Havadaki azotun çoğu kararlı $^{14}_{7}\text{N}$ çekirdeğidir; 7 proton ve 7 nötron içerir. Azotun $^{13}_{7}\text{N}$ ve $^{16}_{7}\text{N}$ izotopları ise kararsızdır. Hafif kararlı çekirdeklerde nötron sayısı proton sayısına yakındır.`,
+        adimlar: [
+          {
+            soru: r`$^{13}_{7}\text{N}$ çekirdeğinde hangisi fazladır?`,
+            secenekler: ['Nötron fazladır.', 'Proton fazladır.', 'Sayılar eşittir.'],
+            dogru: 1,
+            ipucu: r`Nötron sayısı $N = A - Z$. 13 − 7 kaç ediyor?`,
+            aciklama: 'Bu çekirdekte 7 proton ve 13 − 7 = 6 nötron vardır. Proton fazladır.'
+          },
+          {
+            soru: r`$^{13}_{7}\text{N}$ hangi bozunmayı yapar ve hangi çekirdek oluşur?`,
+            secenekler: [r`$\beta^-$ yapar; $^{13}_{8}\text{O}$ oluşur.`, r`$\beta^+$ yapar; $^{13}_{6}\text{C}$ oluşur.`, r`$\alpha$ yapar; $^{9}_{5}\text{B}$ oluşur.`],
+            dogru: 1,
+            ipucu: 'Protonu fazla olan çekirdekte bir proton nötrona dönüşür. Bu hangi beta bozunmasıdır?',
+            aciklama: r`Bir proton nötrona dönüşür ve bir pozitron fırlar: $\beta^+$. Atom numarası 1 azalır, kütle numarası aynı kalır: $^{13}_{6}\text{C}$. Bu çekirdekte 6 proton ve 7 nötron vardır; kararlıdır.`
+          },
+          {
+            soru: r`7 proton ve 9 nötron içeren $^{16}_{7}\text{N}$ bozunduğunda hangi çekirdek oluşur?`,
+            secenekler: [r`$^{16}_{6}\text{C}$`, r`$^{12}_{5}\text{B}$`, r`$^{16}_{8}\text{O}$`],
+            dogru: 2,
+            ipucu: 'Bu çekirdekte nötron fazla. Fazla nötronu azaltan bozunma hangisiydi?',
+            aciklama: r`Nötron fazla olduğu için $\beta^-$ bozunması olur: Bir nötron protona dönüşür. Atom numarası 1 artar: $^{16}_{8}\text{O}$. Bu çekirdekte 8 proton ve 8 nötron vardır; kararlıdır.`
+          }
+        ],
+        sonuc: r`Nötronu fazla olan çekirdek $\beta^-$, protonu fazla olan çekirdek $\beta^+$ bozunmasıyla kararlı çekirdeğe yaklaşır. İkisinde de kütle numarası değişmez.`
+      }
+    ],
+    hazir: 'Çekirdeğin yapısını, alfa, beta ve gama ışımalarını, fisyonu ve füzyonu gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
