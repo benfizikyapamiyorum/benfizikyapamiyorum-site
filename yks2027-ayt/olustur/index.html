@@ -2199,6 +2199,100 @@ BFY_FIG_EKLE('kA11_efsane_5', u => {
 
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.1 başlangıç şekilleri (sfA11_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', KIR = '#d24b3e', YES = '#2f8f5b', MOR = '#6b4fa8', TUR = '#d9822b', TEL = '#2a3330';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const kap = (w, h, s, u) => window.BFY_FIGLIB.svg(w, h, s, u, 90);
+
+/* Adım 2: kareli düzlemde eşit ve zıt vektörler */
+BFY_FIG_EKLE('sfA11_esit', function (u) {
+  const a = 32, nx = 9, ny = 6, x0 = 26, y0 = 18;
+  const X = i => x0 + i * a, Y = j => y0 + (ny - j) * a;
+  let s = `<rect class="bg" x="0" y="0" width="340" height="262" rx="14" fill="#f4f7f9"/>`;
+  s += `<rect x="${x0}" y="${y0}" width="${nx * a}" height="${ny * a}" fill="#fff" stroke="#c5d0d8" stroke-width="1.2"/>`;
+  for (let i = 1; i < nx; i++) s += `<line x1="${X(i)}" y1="${y0}" x2="${X(i)}" y2="${y0 + ny * a}" stroke="#d6dee4" stroke-width="1"/>`;
+  for (let j = 1; j < ny; j++) s += `<line x1="${x0}" y1="${Y(j)}" x2="${x0 + nx * a}" y2="${Y(j)}" stroke="#d6dee4" stroke-width="1"/>`;
+  const vek = (p, q, c, ad, lx, ly) => `<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3.6" fill="${c}"/>` + ok(X(p[0]), Y(p[1]), X(q[0]), Y(q[1]), c) +
+    T(lx, ly, ad, { size: 17, weight: 800, fill: c, anchor: 'middle', italic: true });
+  s += vek([1, 1], [4, 2], MAV, 'A', X(2.5) + 4, Y(1.5) + 22);
+  s += vek([5, 4], [8, 5], YES, 'K', X(6.5) - 4, Y(4.5) - 12);
+  s += vek([4, 5], [1, 4], KIR, 'L', X(2.5) - 4, Y(4.5) - 12);
+  s += vek([7, 0], [8, 3], MOR, 'M', X(7.5) + 16, Y(1.5) + 6);
+  s += yaz(170, 246, '1 kare = 1 birim', { anchor: 'middle', fill: P.ink2 });
+  return kap(340, 262, s, u);
+});
+
+/* Adım 3: okuldan pastaneye üç yürüyüş (uç uca ekleme) */
+BFY_FIG_EKLE('sfA11_yuruyus', function (u) {
+  const x0 = 30, bw = 42, yU = 100, yO = 155, yA = 210;
+  let s = `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="#eef2ea"/>`;
+  // sokaklar
+  for (let i = 0; i <= 6; i++) s += `<rect x="${x0 + i * bw - 5}" y="${yU - 5}" width="10" height="${yA - yU + 10}" fill="#d9dcd6"/>`;
+  [yU, yO, yA].forEach(y => s += `<rect x="${x0 - 5}" y="${y - 5}" width="${6 * bw + 10}" height="10" fill="#d9dcd6"/>`);
+  // binalar
+  const renk = ['#e9c9a4', '#cfdbe6', '#e6d3b3', '#d8e3cf', '#ead0c6', '#d3d9e9'];
+  for (let r = 0; r < 2; r++) for (let i = 0; i < 6; i++) {
+    const bx = x0 + i * bw + 8, by = yU + r * (yO - yU) + 8, w = bw - 16, h = yO - yU - 16, c = renk[(i + r * 3) % 6];
+    s += `<rect x="${bx + 2}" y="${by + 3}" width="${w}" height="${h}" rx="2" fill="#000" opacity=".12"/>`;
+    s += `<rect x="${bx}" y="${by}" width="${w}" height="${h}" rx="2" fill="${c}" stroke="#9a9f96" stroke-width=".8"/>`;
+    s += `<rect x="${bx + 3}" y="${by + 3}" width="${w - 6}" height="${h / 2 - 4}" rx="1.5" fill="#fff" opacity=".35"/>`;
+  }
+  const xS = x0 + 6 * bw;
+  s += ok(x0, yA, xS, yA, MAV) + ok(xS, yA, xS, yU, YES) + ok(xS, yU, x0, yU, TUR);
+  s += arrow(x0, yA, x0, yU + 2, { color: KIR, w: 3, head: 11, headW: 5.6, dash: '7 5' });
+  s += `<circle cx="${x0}" cy="${yA}" r="6" fill="#fff" stroke="${TEL}" stroke-width="2"/><circle cx="${x0}" cy="${yU}" r="6" fill="#fff" stroke="${TEL}" stroke-width="2"/>`;
+  s += yaz((x0 + xS) / 2, yA + 26, '6 blok', { anchor: 'middle', fill: MAV, weight: 800 });
+  s += yaz(xS + 9, (yU + yA) / 2 + 5, '2 blok', { fill: YES, weight: 800 });
+  s += yaz((x0 + xS) / 2, yU - 14, '6 blok', { anchor: 'middle', fill: TUR, weight: 800 });
+  s += T(x0 - 14, (yU + yA) / 2 + 6, 'R', { size: 17, weight: 800, fill: KIR, anchor: 'middle', italic: true });
+  s += yaz(x0 - 8, yA + 26, 'Okul', { weight: 800 });
+  s += yaz(x0 - 8, yU - 14, 'Pastane', { weight: 800 });
+  // kuzey oku
+  s += ok(312, 64, 312, 34, TEL, 2) + yaz(312, 26, 'Kuzey', { anchor: 'middle', weight: 800 });
+  return kap(340, 250, s, u);
+});
+
+/* Adım 5: çekçeğin sapına uygulanan kuvvet ve bileşenleri */
+BFY_FIG_EKLE('sfA11_cekcek', function (u) {
+  let s = `<defs><linearGradient id="${u}ckk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8604f"/><stop offset=".55" stop-color="#c63b2c"/><stop offset="1" stop-color="#8e2318"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="240" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="204" width="340" height="36" fill="url(#${u}grass)"/><line x1="0" y1="204" x2="340" y2="204" stroke="#4f7d3b" stroke-width="1.4"/>`;
+  // çekçek
+  s += `<ellipse cx="128" cy="206" rx="78" ry="5" fill="#000" opacity=".16"/>`;
+  s += `<path d="M52 132 L204 132 L196 178 L60 178 Z" fill="url(#${u}ckk)" stroke="#6e1a11" stroke-width="1.4"/>`;
+  s += `<rect x="48" y="126" width="160" height="9" rx="3" fill="#a32a1d" stroke="#6e1a11" stroke-width="1.2"/>`;
+  s += `<rect x="66" y="140" width="6" height="32" rx="3" fill="#fff" opacity=".25"/>`;
+  [86, 172].forEach(cx => {
+    s += `<circle cx="${cx}" cy="186" r="17" fill="#2b2f33" stroke="#15181a" stroke-width="1.2"/><circle cx="${cx}" cy="186" r="9" fill="url(#${u}metal)" stroke="#5d656b" stroke-width="1"/><circle cx="${cx}" cy="186" r="2.6" fill="#3a4045"/>`;
+  });
+  // sap: (200,160) noktasından yatayla 37° yukarı
+  const c = 0.8, sn = 0.6, hx0 = 200, hy0 = 160, L = 72, gx = hx0 + L * c, gy = hy0 - L * sn;
+  s += `<line x1="${hx0}" y1="${hy0}" x2="${f1(gx)}" y2="${f1(gy)}" stroke="#3a4045" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<circle cx="${hx0}" cy="${hy0}" r="4" fill="#3a4045"/>`;
+  s += `<line x1="${f1(gx - 8 * sn)}" y1="${f1(gy - 8 * c)}" x2="${f1(gx + 8 * sn)}" y2="${f1(gy + 8 * c)}" stroke="#1d2124" stroke-width="7" stroke-linecap="round"/>`;
+  // kuvvet ve bileşenler
+  const F = 80, tx = gx + F * c, ty = gy - F * sn;
+  s += `<line x1="${f1(tx)}" y1="${f1(gy)}" x2="${f1(tx)}" y2="${f1(ty)}" stroke="#9aa4ab" stroke-width="1.3" stroke-dasharray="4 4"/>`;
+  s += `<line x1="${f1(gx)}" y1="${f1(ty)}" x2="${f1(tx)}" y2="${f1(ty)}" stroke="#9aa4ab" stroke-width="1.3" stroke-dasharray="4 4"/>`;
+  s += arrow(f1(gx), f1(gy), f1(tx), f1(gy), { color: MAV, w: 2.6, head: 10, headW: 5, dash: '6 4' });
+  s += arrow(f1(gx), f1(gy), f1(gx), f1(ty), { color: YES, w: 2.6, head: 10, headW: 5, dash: '6 4' });
+  s += ok(gx, gy, tx, ty, KIR, 3.2);
+  s += `<path d="M${f1(gx + 26)} ${f1(gy)} A26 26 0 0 0 ${f1(gx + 26 * c)} ${f1(gy - 26 * sn)}" fill="none" stroke="${MOR}" stroke-width="1.6"/>`;
+  s += yaz(gx + 46, gy - 8, '37°', { fill: MOR, weight: 800, anchor: 'middle' });
+  s += yaz(332, ty - 14, 'F = 100 N', { fill: KIR, weight: 800, anchor: 'end' });
+  s += T((gx + tx) / 2, gy + 22, 'F_x', { size: 16, weight: 800, fill: MAV, anchor: 'middle', italic: true });
+  s += T(gx - 8, (gy + ty) / 2 + 2, 'F_y', { size: 16, weight: 800, fill: YES, anchor: 'end', italic: true });
+  return kap(340, 240, s, u);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -2256,6 +2350,186 @@ const KONU = {
     'F1 = F2 = 10 N, F1 doğu, bileşkenin kuzey bileşeni 6 N: R = 2√10 ya da 6√10 N olabilir, 10√2 olamaz',
     'çadır direği tepesinde dengedeki üç yatay halat kuvveti, F3 = 200 N yönü 60° dönüyor: 200 N (eşkenar üçgen)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Kuvvet, hız ve ivme birer vektördür; bu yüzden vektörler AYT fiziğinin ortak dilidir. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Büyüklük yetmez, yön de gerekir',
+        metin: r`Arkadaşın mesaj atıyor: "Kafe, otobüs durağından 200 m uzakta." Durağa 200 m uzaklıkta sayısız nokta var; kafeyi bu bilgiyle bulamazsın. Arkadaşın "200 m kuzeyde" deseydi tek bir nokta kalırdı.
+
+- Yalnız bir sayı ve birimle tam olarak anlatılan niceliklere **skaler** denir: kütle, zaman, sıcaklık, alınan yol.
+- Büyüklüğünün yanında doğrultusu ve yönü de söylenmesi gereken niceliklere **vektörel** denir: yer değiştirme, hız, ivme, kuvvet.
+
+Vektör bir okla çizilir. Okun boyu büyüklüğü, üzerinde durduğu çizgi doğrultuyu, ucu yönü gösterir.`,
+        kontrol: {
+          soru: 'Hangisi vektörel bir niceliktir?',
+          secenekler: ['Kütle', 'Alınan yol', 'Kuvvet'],
+          dogru: 2,
+          aciklama: 'Kuvvetin hangi yöne uygulandığı sonucu değiştirir: Bir kapıyı itmek ile çekmek aynı şey değildir. Kütle ve alınan yol ise yalnız bir sayı ve birimle anlatılır.',
+          yanlisIpucu: 'Kendine sor: "Bunun bir yönü var mı?" Kütlenin ya da yürüdüğün toplam yolun bir yönü yoktur.'
+        }
+      },
+      {
+        baslik: 'Eşit vektör, zıt vektör',
+        sekil: 'sfA11_esit',
+        metin: r`İki vektörü karşılaştırırken iki şeye bakarsın: okun boyu ve okun yönü.
+
+- **Eşit vektörler** aynı büyüklükte ve aynı yöndedir. Yerleri farklı olabilir. Bir vektörü kendine paralel kaydırırsan vektör değişmez.
+- **Zıt vektör** aynı büyüklükte, ama ters yöndedir. $\vec{A}$'nın zıttı $-\vec{A}$ diye yazılır.
+
+Şekilde $\vec{A}$ sağa 3 kare ve yukarı 1 kare gidiyor. $\vec{K}$ de sağa 3, yukarı 1 kare gidiyor; bu yüzden $\vec{K} = \vec{A}$'dır. $\vec{M}$'nin boyu $\vec{A}$'nınkine eşit, ama yönü farklı. Bu yüzden $\vec{M}$, $\vec{A}$'ya eşit değildir.`,
+        kontrol: {
+          soru: r`Şekildeki hangi vektör $-\vec{A}$'dır?`,
+          secenekler: [r`$\vec{K}$`, r`$\vec{L}$`, r`$\vec{M}$`],
+          dogru: 1,
+          aciklama: r`$\vec{L}$ sola 3 kare, aşağı 1 kare gider. Boyu $\vec{A}$ ile aynı, yönü tam tersidir. Bu yüzden $\vec{L} = -\vec{A}$'dır.`,
+          yanlisIpucu: 'Zıt vektör, okun ucunu tam ters yöne çevirince elde edilir. Sağa giden sola, yukarı giden aşağı gitmeli; boy aynı kalmalı.'
+        }
+      },
+      {
+        baslik: 'Uç uca ekle: bileşke',
+        sekil: 'sfA11_yuruyus',
+        metin: r`Okuldan çıkıp pastaneye gidiyorsun. Önce doğuya 6 blok, sonra kuzeye 2 blok, sonra batıya 6 blok yürüyorsun. Her parça bir yer değiştirme vektörüdür.
+
+Vektörleri **uç uca ekleme** yöntemiyle toplarsın:
+- Her yeni okun başlangıcını bir önceki okun ucuna koy. Okların boyunu ve yönünü değiştirme.
+- İlk okun başlangıcından son okun ucuna çizilen ok **bileşke** vektördür ve $\vec{R}$ ile gösterilir.
+
+Şekilde kesikli kırmızı ok bileşkedir. Sen 14 blok yürüdün, ama pastane okulun yalnız 2 blok kuzeyinde.`,
+        kontrol: {
+          soru: 'Pastaneden okula aynı yoldan geri dönersen, gidişin ve dönüşün toplam bileşke yer değiştirmesi kaç blok olur?',
+          secenekler: ['0', '28 blok', '4 blok'],
+          dogru: 0,
+          aciklama: 'Başladığın yere döndüğün için son okun ucu ilk okun başlangıcına değer. Bileşke sıfır olur. Yürüdüğün yol ise 28 bloktur.',
+          yanlisIpucu: 'Bileşke, başladığın yer ile bitirdiğin yer arasındaki oktur. Dönüşün sonunda nerede oluyorsun?'
+        }
+      },
+      {
+        baslik: 'Aradaki açı bileşkeyi değiştirir',
+        metin: r`Ada ve Efe ağır bir kasayı iki iple çekiyor. Ada 60 N, Efe 40 N kuvvet uyguluyor. Kasaya iki ipin birlikte yaptığı etki, iki kuvvetin bileşkesidir. Bu bileşke iplerin arasındaki açıya bağlıdır.
+
+- İkisi aynı yöne çekerse bileşke en büyüktür: $60 + 40 = 100$ N.
+- Zıt yönlere çekerse bileşke en küçüktür: $60 - 40 = 20$ N, Ada'nın çektiği yönde.
+- Arada bir açı varsa bileşke 20 N ile 100 N arasında bir değer alır. Açı büyüdükçe bileşke küçülür.
+
+Açı biliniyorsa büyüklük **kosinüs teoremiyle** bulunur: $R^2 = A^2 + B^2 + 2AB\cos\theta$. Burada $\theta$, başlangıçları aynı noktada olan iki vektör arasındaki açıdır. Kosinüs değeri soruda verilir.`,
+        kontrol: {
+          soru: 'Bu iki ip kuvvetinin bileşkesi hangisi olamaz?',
+          secenekler: ['30 N', '110 N', '100 N'],
+          dogru: 1,
+          aciklama: 'Bileşke 20 N ile 100 N arasındadır. 110 N, iki kuvvetin toplamından büyüktür; hiçbir açıda çıkmaz. 100 N ipler aynı yöndeyken, 30 N ise ipler arasında geniş bir açı varken olur.',
+          yanlisIpucu: 'En büyük değer kuvvetler aynı yöndeyken, en küçük değer zıt yöndeyken olur. Bu iki sınırı bul; dışında kalan şıkkı seç.'
+        }
+      },
+      {
+        baslik: 'Vektörü bileşenlerine ayır',
+        sekil: 'sfA11_cekcek',
+        metin: r`Bir çekçeği (tekerlekli küçük el arabası) sapından tutup çekiyorsun. Sap yatayla $37°$ açı yapıyor ve sapa 100 N kuvvet uyguluyorsun. Bu kuvvetin bir parçası çekçeği ileri götürür, bir parçası onu yukarı doğru kaldırmaya çalışır. Bu iki parçaya kuvvetin **bileşenleri** denir.
+
+Yatayla $\alpha$ açısı yapan bir $\vec{F}$ için:
+- Yatay bileşen: $F_x = F\cos\alpha$.
+- Düşey bileşen: $F_y = F\sin\alpha$.
+
+$\sin 37° = 0{,}6$ ve $\cos 37° = 0{,}8$ ise $F_x = 80$ N ve $F_y = 60$ N olur. Dikkat: $80 + 60$, 100 etmez. Bileşenler birbirine dik olduğu için $\sqrt{80^2 + 60^2} = 100$ N olur.`,
+        kontrol: {
+          soru: r`Sap daha dik tutulur ve yatayla $53°$ açı yapar. Kuvvet yine 100 N ise yatay bileşen kaç N olur? ($\sin 53° = 0{,}8$; $\cos 53° = 0{,}6$)`,
+          secenekler: ['80 N', '100 N', '60 N'],
+          dogru: 2,
+          aciklama: r`$F_x = F\cos 53° = 100 \times 0{,}6 = 60$ N. Sap dikleştikçe kuvvetin ileri götüren parçası azalır, kaldıran parçası artar.`,
+          yanlisIpucu: r`Yatay bileşen kosinüsle bulunur. Bu kez açı $53°$; $\cos 53°$ değerini kullan.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Duvardan seken top',
+        metin: r`Bir squash topu duvara doğru 12 m/s hızla gidiyor ve duvardan 8 m/s hızla geri sekiyor. Duvara doğru yönü $+$ alalım. Topun hızındaki değişimi bulacağız: $\Delta\vec{\vartheta} = \vec{\vartheta}_\text{son} - \vec{\vartheta}_\text{ilk}$. Vektörlerde çıkarma, zıt vektörü eklemektir: $\vec{A} - \vec{B} = \vec{A} + (-\vec{B})$.`,
+        adimlar: [
+          {
+            soru: r`İlk hız $+12$ m/s ise $-\vec{\vartheta}_\text{ilk}$ hangisidir?`,
+            secenekler: [r`$+12$ m/s, duvara doğru`, r`$-12$ m/s, duvardan uzağa`, r`$0$`],
+            dogru: 1,
+            ipucu: 'Zıt vektör aynı büyüklükte ve ters yöndedir. İşareti değiştir.',
+            aciklama: r`$-\vec{\vartheta}_\text{ilk}$, ilk hızın zıttıdır: 12 m/s büyüklüğünde ve duvardan uzağa doğru, yani $-12$ m/s.`
+          },
+          {
+            soru: r`Son hız $-8$ m/s'dir. $\Delta\vartheta = \vartheta_\text{son} + (-\vartheta_\text{ilk})$ kaç m/s olur?`,
+            secenekler: [r`$-20$ m/s`, r`$-4$ m/s`, r`$+20$ m/s`],
+            dogru: 0,
+            ipucu: r`$-8$ ile $-12$'yi topla. İki sayı da eksi, yani ikisi de duvardan uzağa doğru.`,
+            aciklama: r`$\Delta\vartheta = -8 + (-12) = -20$ m/s. Hızdaki değişim 20 m/s büyüklüğünde ve duvardan uzağa doğrudur.`
+          },
+          {
+            soru: 'Topun sürati (hızının büyüklüğü) nasıl değişti?',
+            secenekler: ['4 m/s azaldı.', '20 m/s azaldı.', '20 m/s arttı.'],
+            dogru: 0,
+            ipucu: 'Sürat yönle ilgilenmez: önce 12 m/s, sonra 8 m/s. Aradaki fark ne kadar?',
+            aciklama: 'Sürat 12 m/s\'den 8 m/s\'ye indi; 4 m/s azaldı. Hız vektörü ise 20 m/s değişti, çünkü yönü de tersine döndü.'
+          }
+        ],
+        sonuc: 'Yön değişince hız vektöründeki değişim, süratteki değişimden çok daha büyük olabilir. Vektörlerde çıkarma yaparken çıkarılan vektörü ters çevirip eklemeyi unutma.'
+      },
+      {
+        baslik: 'İskeleye bağlı sandal',
+        metin: r`Bir sandal iskeleye iki halatla bağlı ve kıpırdamadan duruyor. Doğu $+x$, kuzey $+y$ yönüdür. 1. halat sandalı doğuya 20 N ve kuzeye 30 N çekiyor. 2. halat batıya 40 N ve kuzeye 20 N çekiyor. Rüzgâr ve suyun sandala uyguladığı toplam kuvvet ne olmalı ki sandal dengede kalsın?`,
+        adimlar: [
+          {
+            soru: 'İki halat kuvvetinin bileşkesinin x bileşeni kaç N\'dur?',
+            secenekler: [r`$60$ N`, r`$-20$ N`, r`$20$ N`],
+            dogru: 1,
+            ipucu: r`Doğuya olanı artı, batıya olanı eksi yaz: $20 + (-40)$.`,
+            aciklama: r`$R_x = 20 + (-40) = -20$ N. Halatların birlikte çekişi x ekseninde 20 N batıya doğrudur.`
+          },
+          {
+            soru: 'Bileşkenin y bileşeni kaç N\'dur?',
+            secenekler: [r`$50$ N`, r`$10$ N`, r`$-50$ N`],
+            dogru: 0,
+            ipucu: 'İki halat da kuzeye çekiyor. İki bileşen de artıdır.',
+            aciklama: r`$R_y = 30 + 20 = 50$ N.`
+          },
+          {
+            soru: 'Sandal dengede olduğuna göre rüzgâr ve suyun toplam kuvveti hangisidir?',
+            secenekler: ['Batıya 20 N, kuzeye 50 N bileşenli', 'Doğuya 20 N, güneye 50 N bileşenli', 'Doğuya 60 N, güneye 10 N bileşenli'],
+            dogru: 1,
+            ipucu: 'Dengede bütün kuvvetlerin bileşkesi sıfırdır. Eksik kuvvet, halatların bileşkesinin tam zıttı olmalı.',
+            aciklama: r`Halatların bileşkesinin bileşenleri $-20$ N ve $50$ N'dur. Sandalın dengede kalması için öbür kuvvet bunun zıttıdır: bileşenleri $20$ N ve $-50$ N, yani doğuya 20 N ve güneye 50 N.`
+          }
+        ],
+        sonuc: 'Bileşenlerle çalışmak, kuvvet toplamayı iki ayrı sayı toplamasına çevirir. Denge sorularında eksik kuvvet, öbür kuvvetlerin bileşkesinin zıttıdır.'
+      },
+      {
+        baslik: 'Kızağı çeken iki köpek',
+        metin: r`Karlı bir yolda iki köpek bir kızağı iplerle çekiyor. Birinci köpek 50 N, ikinci köpek 30 N kuvvetle çekiyor. İki ip arasındaki açı $60°$'dir. İp kuvvetlerinin bileşkesini bulacağız. ($\cos 60° = \dfrac{1}{2}$)`,
+        adimlar: [
+          {
+            soru: 'Kuvvetler aynı ya da zıt yönde değil. Bileşkenin büyüklüğü hangi bağıntıyla bulunur?',
+            secenekler: [r`$R = A + B$`, r`$R^2 = A^2 + B^2 + 2AB\cos\theta$`, r`$R = A - B$`],
+            dogru: 1,
+            ipucu: 'Toplama yalnız aynı yöndeki, çıkarma yalnız zıt yöndeki kuvvetler için geçerlidir. Arada açı varsa kosinüs teoremi gerekir.',
+            aciklama: r`İki kuvvet arasında açı olduğu için kosinüs teoremi kullanılır. $\theta$, iki ipin aynı noktadan çıkarken aralarında kalan açıdır.`
+          },
+          {
+            soru: r`$2AB\cos\theta$ terimi kaçtır?`,
+            secenekler: [r`$1500$`, r`$3000$`, r`$750$`],
+            dogru: 0,
+            ipucu: r`$2 \times 50 \times 30 = 3000$. Bunu $\cos 60° = \dfrac{1}{2}$ ile çarp.`,
+            aciklama: r`$2 \times 50 \times 30 \times \dfrac{1}{2} = 1500$.`
+          },
+          {
+            soru: 'Bileşke kuvvet kaç N\'dur?',
+            secenekler: [r`$80$ N`, r`$40$ N`, r`$70$ N`],
+            dogru: 2,
+            ipucu: r`$R^2 = 2500 + 900 + 1500$. Toplamı bul. Hangi sayının karesi bu toplamı veriyor?`,
+            aciklama: r`$R^2 = 4900$ ve $R = 70$ N, çünkü $70 \times 70 = 4900$.`
+          }
+        ],
+        sonuc: 'Bileşke 70 N çıktı: 20 N ile 80 N arasında. Açı küçüldükçe bileşke 80 N\'a yaklaşır; açı büyüdükçe 20 N\'a doğru iner. Farklı yönlü kuvvetlerin büyüklükleri doğrudan toplanmaz.'
+      }
+    ],
+    hazir: 'Vektörel niceliği, eşit ve zıt vektörü, uç uca eklemeyi, kosinüs teoremini ve bileşenleri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -3778,6 +4052,136 @@ BFY_FIG_EKLE('iA12_tanim', u => I0.sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 160, oy: 74, s: 0.8 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.2 başlangıç şekilleri (sfA12_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', KIR = '#d24b3e', YES = '#2f8f5b', MOR = '#6b4fa8', TUR = '#d9822b', TEL = '#2a3330';
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+// ayakta duran kişi (yandan): ayak tabanı (x, y), boy ~70
+function kisi(x, y, govde, sac) {
+  let s = `<ellipse cx="${x}" cy="${y + 2}" rx="14" ry="3" fill="#000" opacity=".15"/>`;
+  s += `<path d="M${x - 6} ${y} L${x - 5} ${y - 28} M${x + 6} ${y} L${x + 5} ${y - 28}" stroke="#2f3a4a" stroke-width="6" stroke-linecap="round"/>`;
+  s += `<path d="M${x - 12} ${y - 26} L${x - 11} ${y - 52} Q${x} ${y - 60} ${x + 11} ${y - 52} L${x + 12} ${y - 26} Z" fill="${govde}" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<path d="M${x - 11} ${y - 50} L${x - 15} ${y - 30} M${x + 11} ${y - 50} L${x + 15} ${y - 30}" stroke="${govde}" stroke-width="5" stroke-linecap="round"/>`;
+  s += `<circle cx="${x}" cy="${y - 68}" r="10" fill="#f1c9a5" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<path d="M${x - 10} ${y - 70} Q${x - 9} ${y - 81} ${x} ${y - 80} Q${x + 10} ${y - 80} ${x + 10} ${y - 70} Q${x + 3} ${y - 75} ${x - 10} ${y - 70} Z" fill="${sac}"/>`;
+  return s;
+}
+// pencerede oturan yolcu (baş ve omuz)
+const yolcu = (x, y, govde, sac) => `<path d="M${x - 15} ${y + 30} Q${x - 14} ${y + 12} ${x} ${y + 11} Q${x + 14} ${y + 12} ${x + 15} ${y + 30} Z" fill="${govde}"/>` +
+  `<circle cx="${x}" cy="${y}" r="10" fill="#f1c9a5" stroke="${TEL}" stroke-width=".9"/>` +
+  `<path d="M${x - 10} ${y - 1} Q${x - 10} ${y - 13} ${x} ${y - 12} Q${x + 11} ${y - 12} ${x + 11} ${y + 1} Q${x + 3} ${y - 7} ${x - 10} ${y - 1} Z" fill="${sac}"/>`;
+
+/* Adım 1: trendeki Zeynep ve annesi, perondaki Mert */
+BFY_FIG_EKLE('sfA12_tren', function (u) {
+  let s = `<defs><linearGradient id="${u}vg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3f6f8"/><stop offset=".6" stop-color="#d4dce2"/><stop offset="1" stop-color="#aab6bf"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="194" width="340" height="56" fill="url(#${u}concrete)"/><line x1="0" y1="194" x2="340" y2="194" stroke="#8c8f93" stroke-width="1.6"/>`;
+  s += `<rect x="0" y="194" width="340" height="7" fill="#e8c547" opacity=".85"/>`;
+  // vagon
+  s += `<rect x="-12" y="72" width="262" height="104" rx="14" fill="url(#${u}vg)" stroke="#6d7a84" stroke-width="1.4"/>`;
+  s += `<rect x="-12" y="146" width="262" height="10" fill="#c8402f"/>`;
+  [[14, 'Anne'], [94, ''], [174, '']].forEach(([wx], i) => {
+    s += `<rect x="${wx}" y="88" width="62" height="46" rx="6" fill="url(#${u}glass)" stroke="#5d6a74" stroke-width="1.4"/>`;
+    if (i === 1) s += yolcu(wx + 18, 106, '#c8574a', '#3b2a20') + yolcu(wx + 44, 108, '#3f7fb0', '#7a4a2a');
+    s += `<rect x="${wx}" y="88" width="62" height="46" rx="6" fill="#fff" opacity=".12"/>`;
+    s += `<path d="M${wx + 8} ${88 + 40} L${wx + 30} ${88 + 4}" stroke="#fff" stroke-width="3" opacity=".35"/>`;
+  });
+  s += `<rect x="-12" y="176" width="262" height="10" fill="#4a535a"/>`;
+  [40, 70, 170, 200].forEach(cx => s += `<circle cx="${cx}" cy="186" r="9" fill="#2b2f33"/><circle cx="${cx}" cy="186" r="3" fill="#8e979f"/>`);
+  // hız oku
+  s += ok(70, 50, 190, 50, KIR, 3.2) + yaz(130, 38, 'ϑ = 20 m/s', { anchor: 'middle', fill: KIR, weight: 800 });
+  s += yaz(125, 226, 'Zeynep ve annesi', { anchor: 'middle', weight: 800 });
+  s += `<path d="M125 212 L125 168" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="3 3"/>`;
+  // peron ve Mert
+  s += kisi(296, 222, '#2f8f5b', '#2b1d14');
+  s += yaz(296, 244, 'Mert', { anchor: 'middle', weight: 800 });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Adım 5: rüzgârsız yağmur, yerden ve arabadan */
+BFY_FIG_EKLE('sfA12_yagmur', function (u) {
+  let s = `<defs><linearGradient id="${u}ar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5aa0d4"/><stop offset=".6" stop-color="#2d6fa6"/><stop offset="1" stop-color="#1c4a73"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="#e9eff3"/>`;
+  s += `<rect class="bg" x="0" y="0" width="180" height="250" rx="14" fill="#dfe7ee"/>`;
+  s += `<rect class="bg" x="0" y="214" width="180" height="36" fill="#6f777d"/><line x1="0" y1="214" x2="180" y2="214" stroke="#4d5459" stroke-width="1.4"/>`;
+  s += `<line x1="8" y1="232" x2="172" y2="232" stroke="#f2f2f2" stroke-width="3" stroke-dasharray="16 12"/>`;
+  // düşey damlalar (yere göre)
+  for (let i = 0; i < 9; i++) for (let j = 0; j < 3; j++) {
+    const x = 14 + i * 19 + (j % 2) * 8, y = 34 + j * 30 + (i % 3) * 6;
+    s += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + 13}" stroke="#4f8fc4" stroke-width="2" stroke-linecap="round"/>`;
+  }
+  s += yaz(90, 22, 'Yere göre', { anchor: 'middle', weight: 800 });
+  // otomobil
+  s += `<ellipse cx="88" cy="214" rx="70" ry="4" fill="#000" opacity=".2"/>`;
+  s += `<path d="M18 200 L18 182 Q20 172 34 170 L58 168 L78 150 Q84 146 96 146 L124 146 Q134 146 140 154 L152 168 Q164 170 166 180 L166 200 Z" fill="url(#${u}ar)" stroke="#173a5a" stroke-width="1.3"/>`;
+  s += `<path d="M64 168 L82 152 Q86 150 94 150 L106 150 L106 168 Z" fill="url(#${u}glass)" stroke="#173a5a" stroke-width="1"/>`;
+  s += `<path d="M112 150 L124 150 Q131 150 136 156 L146 168 L112 168 Z" fill="url(#${u}glass)" stroke="#173a5a" stroke-width="1"/>`;
+  // yan camdaki eğik izler (yolcuya göre)
+  [[118, 154], [126, 158], [116, 162]].forEach(([x, y]) => s += `<line x1="${x}" y1="${y}" x2="${x - 9}" y2="${y + 4}" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>`);
+  [50, 136].forEach(cx => s += `<circle cx="${cx}" cy="202" r="13" fill="#23272a"/><circle cx="${cx}" cy="202" r="6" fill="url(#${u}metal)"/>`);
+  s += ok(46, 136, 136, 136, KIR, 3);
+  s += yaz(91, 126, '12 m/s', { anchor: 'middle', fill: KIR, weight: 800 });
+  // yolcuya göre hız üçgeni
+  const k = 9, ox = 292, oy = 72, dy = 5 * k, dx = 12 * k;
+  s += yaz(260, 30, 'Yolcuya göre', { anchor: 'middle', weight: 800 });
+  s += ok(ox, oy, ox, oy + dy, MAV) + ok(ox, oy + dy, ox - dx, oy + dy, TUR) + ok(ox, oy, ox - dx, oy + dy, MOR, 3.2);
+  s += `<circle cx="${ox}" cy="${oy}" r="3.5" fill="${TEL}"/>`;
+  s += yaz(ox + 6, oy + dy / 2 + 5, '5 m/s', { fill: MAV, weight: 800 });
+  s += yaz(ox - dx / 2, oy + dy + 22, '12 m/s', { anchor: 'middle', fill: TUR, weight: 800 });
+  s += yaz(260, 164, 'damla: aşağı', { anchor: 'middle', fill: MAV });
+  s += yaz(260, 186, 'arabanın tersi: geri', { anchor: 'middle', fill: TUR });
+  s += yaz(260, 208, 'sonuç: eğik', { anchor: 'middle', fill: MOR });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Isınma 2: yolcu gemisinin güvertesinde gidişe dik yürüyen Ece (üstten görünüş) */
+BFY_FIG_EKLE('sfA12_gemi', function (u) {
+  let s = `<defs><linearGradient id="${u}gv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7f8f9"/><stop offset=".5" stop-color="#dfe4e8"/><stop offset="1" stop-color="#b9c2c9"/></linearGradient>` +
+    `<linearGradient id="${u}gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b68a"/><stop offset="1" stop-color="#c49a68"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="256" rx="14" fill="url(#${u}water)"/>`;
+  // dümen suyu (gemi doğuya gidiyor, köpük arkada)
+  [[70, 4], [104, 10], [214, 8], [236, 2]].forEach(([y, d]) => s += `<path d="M2 ${y} Q16 ${y - d} 30 ${y}" fill="none" stroke="#e8f5fc" stroke-width="2.4" stroke-linecap="round" opacity=".85"/>`);
+  // gölge ve gövde
+  s += `<path d="M30 84 L232 84 Q318 150 232 216 L30 216 Q22 216 22 208 L22 92 Q22 84 30 84 Z" fill="#000" opacity=".18" transform="translate(4 5)"/>`;
+  s += `<path d="M30 84 L232 84 Q318 150 232 216 L30 216 Q22 216 22 208 L22 92 Q22 84 30 84 Z" fill="url(#${u}gv)" stroke="#59646d" stroke-width="1.6"/>`;
+  // güverte
+  s += `<path d="M36 96 L228 96 Q296 150 228 204 L36 204 Z" fill="url(#${u}gd)" stroke="#8a6a44" stroke-width="1.2"/>`;
+  s += `<clipPath id="${u}gk"><path d="M36 96 L228 96 Q296 150 228 204 L36 204 Z"/></clipPath><g clip-path="url(#${u}gk)">`;
+  for (let y = 110; y < 204; y += 14) s += `<line x1="36" y1="${y}" x2="300" y2="${y}" stroke="#a8825a" stroke-width=".7" opacity=".55"/>`;
+  s += `</g>`;
+  // kaptan köşkü (arkada)
+  s += `<rect x="42" y="112" width="46" height="76" rx="5" fill="#eef1f3" stroke="#6d7880" stroke-width="1.2"/><rect x="46" y="116" width="38" height="68" rx="3" fill="#cfd8de"/>`;
+  s += `<rect x="50" y="120" width="30" height="8" rx="2" fill="url(#${u}glass)"/>`;
+  // korkuluklar
+  s += `<line x1="36" y1="96" x2="228" y2="96" stroke="#4b555c" stroke-width="2.2"/><line x1="36" y1="204" x2="228" y2="204" stroke="#4b555c" stroke-width="2.2"/>`;
+  // Ece (üstten): alt korkuluktan karşı korkuluğa yürüyor
+  const ex = 150, ey = 186;
+  s += `<ellipse cx="${ex}" cy="${ey}" rx="12" ry="7" fill="#c8574a" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<circle cx="${ex}" cy="${ey - 1}" r="6.5" fill="#3b2a20" stroke="${TEL}" stroke-width=".8"/>`;
+  s += yaz(ex + 18, ey + 6, 'Ece', { weight: 800 });
+  s += `<line x1="${ex}" y1="${ey - 12}" x2="${ex}" y2="100" stroke="#6d5236" stroke-width="1.3" stroke-dasharray="3 4"/>`;
+  s += ok(ex, ey - 12, ex, ey - 62, YES, 3.2);
+  s += yaz(ex - 8, ey - 34, '1 m/s', { anchor: 'end', fill: YES, weight: 800, haloColor: '#f3e3cc' });
+  // güverte genişliği
+  const dx = 218;
+  s += `<g stroke="${TEL}" stroke-width="1.4"><line x1="${dx}" y1="99" x2="${dx}" y2="201"/><line x1="${dx - 6}" y1="99" x2="${dx + 6}" y2="99"/><line x1="${dx - 6}" y1="201" x2="${dx + 6}" y2="201"/></g>`;
+  s += yaz(dx + 8, 156, '12 m', { weight: 800, haloColor: '#f3e3cc' });
+  // geminin hızı
+  s += ok(120, 52, 220, 52, TUR, 3.2);
+  s += yaz(170, 40, 'gemi: 4 m/s', { anchor: 'middle', fill: '#fff', weight: 800, haloColor: '#2a79ad' });
+  // yön
+  s += ok(300, 40, 300, 14, '#fff', 2) + yaz(300 + 8, 34, 'K', { fill: '#fff', weight: 800, haloColor: '#2a79ad' });
+  s += yaz(170, 242, 'Üstten görünüş', { anchor: 'middle', fill: '#fff', weight: 800, haloColor: '#2a79ad' });
+  return svg(340, 256, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -3854,6 +4258,181 @@ const KONU = {
     'kuzeye 8 m/s araştırma gemisinin radar ekranı: balıkçı teknesi T1 (6, 8) ve T2 (3, 4) bölme, 1 bölme 600 m, 5 dakika, çarpışma rotası',
     'taşkında 60 m genişliğinde dere, akıntı 2,5 m/s, kano suya göre 2 m/s, K tam karşı, L 60 m, M 150 m, en az kayma 45 m, 53° (olabilir)'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda tek bir soru soracağız: "Kime göre?" Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Hareket kime göre?',
+        sekil: 'sfA12_tren',
+        metin: r`Zeynep ve annesi bir trende yan yana oturuyor. Zeynep annesine bakınca onu hareketsiz görür. Peronda bekleyen Mert ise ikisini trenle birlikte geçip giderken görür. İkisi de haklıdır, çünkü hareket her zaman **bir gözlemciye göre** anlatılır.
+
+- Gözlemcinin kendini hareketsiz kabul ettiği yere **gözlem çerçevesi** denir.
+- Bir cismin bir gözlemciye göre hızına **bağıl hız** denir.
+- Günlük hayatta "hız" dediğimizde çoğu zaman yere göre hızı kastederiz.`,
+        kontrol: {
+          soru: 'Tren 20 m/s hızla giderken Zeynep, yanında oturan annesini hangi hızla hareket ediyor görür?',
+          secenekler: ['20 m/s', 'Sıfır; annesi ona göre durur.', '40 m/s'],
+          dogru: 1,
+          aciklama: 'Zeynep ile annesi aynı trende aynı hızla gidiyor. Aralarındaki uzaklık değişmez; bu yüzden birbirlerine göre hızları sıfırdır. 20 m/s, ikisinin de yere göre hızıdır.',
+          yanlisIpucu: 'Zeynep\'in gözüyle bak: Annesi koltuğunda oturuyor; ondan ne uzaklaşıyor ne de ona yaklaşıyor.'
+        }
+      },
+      {
+        baslik: 'Aynı yönde gidenler',
+        metin: r`Bir koşu pistinde Ali 7 m/s, Can 5 m/s hızla aynı yönde koşuyor. Can kendini hareketsiz kabul ederse Ali'nin her saniye ondan 2 m daha ileri gittiğini görür. Can'a göre Ali'nin hızı 2 m/s'dir.
+
+Bunu genel olarak şöyle yazarız. L'ye göre K'nin hızı:
+$\vec{\vartheta}_{KL} = \vec{\vartheta}_K - \vec{\vartheta}_L$.
+
+Gözlenenin hızından gözlemcinin hızı çıkarılır. Aynı yönde giden araçlar birbirini yavaş görür.`,
+        kontrol: {
+          soru: 'Ali\'ye göre Can\'ın hızı hangisidir?',
+          secenekler: ['2 m/s, koşu yönünde', '2 m/s, koşu yönünün tersine', '12 m/s, koşu yönünde'],
+          dogru: 1,
+          aciklama: r`Bu kez gözlemci Ali'dir: $\vartheta_\text{Can} - \vartheta_\text{Ali} = 5 - 7 = -2$ m/s. Ali, Can'ın her saniye 2 m geride kaldığını görür. Ona göre Can geriye doğru gidiyormuş gibidir.`,
+          yanlisIpucu: 'Gözlemci değişti. Önce gözlenenin (Can) hızını yaz, sonra gözlemcinin (Ali) hızını çıkar. Çıkan işaret yönü söyler.'
+        }
+      },
+      {
+        baslik: 'Zıt yönde gidenler',
+        metin: r`Paralel raylarda iki tramvay birbirine doğru geliyor: K tramvayı doğuya 8 m/s, L tramvayı batıya 6 m/s hızla gidiyor. Doğuyu $+$ alalım: $\vartheta_K = +8$ m/s ve $\vartheta_L = -6$ m/s.
+
+$\vartheta_{KL} = \vartheta_K - \vartheta_L = 8 - (-6) = 14$ m/s.
+
+Eksi bir sayıyı çıkarmak, onu eklemek demektir. Zıt yönde giden araçlar birbirini hızlı görür; hızların büyüklükleri toplanır. Karşıdan gelen tramvay bu yüzden göz açıp kapayıncaya kadar geçip gider.`,
+        kontrol: {
+          soru: 'Bir alışveriş merkezinde yan yana iki cam asansör var. Biri 2 m/s hızla yukarı çıkarken öbürü 1 m/s hızla aşağı iniyor. Birindeki yolcu öbür asansörü hangi büyüklükte hızla hareket ediyor görür?',
+          secenekler: ['1 m/s', '2 m/s', '3 m/s'],
+          dogru: 2,
+          aciklama: r`Yukarıyı $+$ al: $2 - (-1) = 3$ m/s. Zıt yönlü hareketlerde bağıl hızın büyüklüğü, hızların büyüklüklerinin toplamıdır.`,
+          yanlisIpucu: 'Asansörler zıt yönlerde gidiyor. Zıt yönlü hızlarda bağıl hızın büyüklüğü fark mı, toplam mı?'
+        }
+      },
+      {
+        baslik: 'Hareketli ortamın içinde',
+        metin: r`Bir yolcu uçağı yere göre doğuya 200 m/s hızla uçuyor. Hostes, koridorda uçağın burnuna doğru 2 m/s hızla yürüyor. Yerdeki biri hostesi hangi hızla görür?
+
+Hareketli bir ortamın (uçak, gemi, akan su, esen rüzgâr) içindeki bir cismin yere göre hızı iki parçanın toplamıdır:
+$\vec{\vartheta}_\text{yer} = \vec{\vartheta}_\text{ortama göre} + \vec{\vartheta}_\text{ortam}$.
+
+Hostes için $2 + 200 = 202$ m/s, doğuya doğrudur. Hostes uçağın kuyruğuna doğru yürüseydi $200 - 2 = 198$ m/s olurdu.`,
+        kontrol: {
+          soru: 'Bir martı havaya göre 10 m/s hızla kuzeye uçuyor. Rüzgâr güneye doğru 4 m/s hızla esiyor. Martının yere göre hızı hangisidir?',
+          secenekler: ['6 m/s, kuzeye', '14 m/s, kuzeye', '6 m/s, güneye'],
+          dogru: 0,
+          aciklama: r`Kuzeyi $+$ al: $\vartheta_\text{yer} = 10 + (-4) = 6$ m/s. Martı kuzeye uçmaya devam eder, ama rüzgâr onu yavaşlatır.`,
+          yanlisIpucu: 'Martının havaya göre hızına havanın (rüzgârın) kendi hızını ekle. Rüzgâr ters yönde esiyor; işaretine dikkat et.'
+        }
+      },
+      {
+        baslik: 'Dik hızlar: yağmur arabadan nasıl görünür?',
+        sekil: 'sfA12_yagmur',
+        metin: r`Rüzgârsız bir günde yağmur damlaları yere göre düşey olarak 5 m/s hızla düşüyor. Bir otomobil yatay yolda 12 m/s hızla gidiyor. Damla D, araba A olsun. Arabadaki yolcuya göre damlanın hızı:
+$\vec{\vartheta}_{DA} = \vec{\vartheta}_D - \vec{\vartheta}_A$.
+
+Arabanın hızını çıkarmak, ters yöndeki 12 m/s'yi eklemektir. Aşağı doğru 5 m/s ile geriye doğru 12 m/s birbirine diktir. Bileşke Pisagor bağıntısıyla bulunur: $\sqrt{5^2 + 12^2} = 13$ m/s.
+
+Yolcu damlaları eğik, önden arkaya doğru düşüyor görür. Yan camdaki yağmur izlerinin eğik olmasının sebebi budur.`,
+        kontrol: {
+          soru: 'Otomobil hızlanırsa yolcu damlaları nasıl görür?',
+          secenekler: ['Daha dik, düşeye daha yakın düşüyor görür.', 'Daha yatık ve daha hızlı düşüyor görür.', 'Hiçbir değişiklik görmez.'],
+          dogru: 1,
+          aciklama: 'Arabanın hızı arttıkça bağıl hızın yatay parçası büyür. Damlalar daha yatık ve daha hızlı görünür. Damlaların yere göre hızı ise değişmez.',
+          yanlisIpucu: 'Yolcuya göre damla hızının yatay parçası, arabanın hızı kadardır. Bu parça büyüyünce ok hangi yöne yatar?'
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Irmakta motoru duran tekne',
+        metin: r`Bir ırmakta su, kıyıya göre 1 m/s hızla akıyor. Bir motorlu tekne suya göre 5 m/s hızla gidebiliyor. Teknenin kıyıya göre hızını üç durumda bulalım. Akıntının yönünü $+$ al.`,
+        adimlar: [
+          {
+            soru: 'Tekne akıntıyla aynı yönde giderse kıyıya göre hızı kaç m/s olur?',
+            secenekler: ['4 m/s', '6 m/s', '5 m/s'],
+            dogru: 1,
+            ipucu: 'Suya göre hıza suyun kendi hızını ekle: 5 + 1.',
+            aciklama: r`$\vartheta_\text{yer} = 5 + 1 = 6$ m/s. Akıntı tekneyi hızlandırır.`
+          },
+          {
+            soru: 'Tekne akıntıya karşı giderse kıyıya göre hızı hangisi olur?',
+            secenekler: ['4 m/s, akıntıya karşı', '6 m/s, akıntıya karşı', '4 m/s, akıntı yönünde'],
+            dogru: 0,
+            ipucu: r`Teknenin suya göre hızı bu kez $-5$ m/s. Akıntının $+1$ m/s'sini ekle.`,
+            aciklama: r`$\vartheta_\text{yer} = -5 + 1 = -4$ m/s. Tekne akıntıya karşı 4 m/s hızla ilerler.`
+          },
+          {
+            soru: 'Motor bozulup durursa tekne kıyıya göre nasıl hareket eder?',
+            secenekler: ['Olduğu yerde durur.', 'Akıntıyla birlikte 1 m/s hızla sürüklenir.', 'Akıntıya karşı 5 m/s hızla gider.'],
+            dogru: 1,
+            ipucu: 'Motor durunca teknenin suya göre hızı sıfır olur. Geriye yalnız suyun hızı kalır.',
+            aciklama: r`Suya göre hız $0$ olunca $\vartheta_\text{yer} = 0 + 1 = 1$ m/s olur. Tekne suyla birlikte sürüklenir.`
+          }
+        ],
+        sonuc: 'Hareketli ortamda yere göre hız hep iki parçanın toplamıdır: cismin ortama göre hızı ve ortamın kendi hızı. İşaretleri doğru koyarsan aynı kural her durumda çalışır.'
+      },
+      {
+        baslik: 'Gemide karşı korkuluğa yürüyen Ece',
+        sekil: 'sfA12_gemi',
+        metin: r`Bir yolcu gemisi denizde doğuya doğru 4 m/s hızla gidiyor. Güvertenin genişliği 12 m'dir. Ece, güvertenin güney korkuluğundan kuzey korkuluğuna, geminin gidişine dik olarak gemiye göre 1 m/s hızla yürüyor. Ece aynı anda iki hareket yapar: Gemiye göre kuzeye yürür, gemiyle birlikte doğuya taşınır.`,
+        adimlar: [
+          {
+            soru: 'Ece karşı korkuluğa kaç saniyede varır?',
+            secenekler: ['3 s', '12 s', '48 s'],
+            dogru: 1,
+            ipucu: 'Ece\'yi karşı korkuluğa yalnız kendi yürüyüşü yaklaştırır. Geminin hızı onu yana taşır.',
+            aciklama: r`Güverteye dik hız 1 m/s'dir. Süre $t = \dfrac{12}{1} = 12$ s olur.`
+          },
+          {
+            soru: 'Bu sürede gemi Ece\'yi doğuya doğru kaç metre taşır?',
+            secenekler: ['48 m', '12 m', '60 m'],
+            dogru: 0,
+            ipucu: r`Gemi 12 s boyunca 4 m/s hızla gider: $4 \times 12$.`,
+            aciklama: r`$x = 4 \times 12 = 48$ m. Kıyıdan bakan biri, Ece'nin 12 m kuzeye giderken 48 m de doğuya kaydığını görür.`
+          },
+          {
+            soru: 'Gemi daha hızlı gitseydi Ece karşı korkuluğa ne kadar sürede varırdı?',
+            secenekler: ['Daha kısa sürede', 'Daha uzun sürede', 'Yine 12 s\'de'],
+            dogru: 2,
+            ipucu: 'Süreyi belirleyen hız değişti mi?',
+            aciklama: 'Süre yalnız güverteye dik olan yürüme hızına bağlıdır; o hız değişmedi. Ece yine 12 s\'de varır. Yalnız doğuya taşındığı uzaklık artar.'
+          }
+        ],
+        sonuc: 'Dik iki hareket aynı anda olur ama birbirini bozmaz: Yürüyüş Ece\'yi karşıya götürür, gemi onu yana taşır. Akan bir ırmakta burnu karşı kıyıya dik tutulan bir sandal için de aynı düşünce geçerlidir; akıntı süreyi değil, varış noktasını değiştirir.'
+      },
+      {
+        baslik: 'Birbirine doğru koşan iki kardeş',
+        metin: r`Parktaki düz bir yürüyüş yolunun iki ucu arası 240 m'dir. Ela bir uçtan 5 m/s, kardeşi Ege öbür uçtan 3 m/s hızla, aynı anda birbirlerine doğru koşmaya başlıyor. Ne zaman ve nerede karşılaşırlar?`,
+        adimlar: [
+          {
+            soru: 'Ela\'ya göre Ege hangi büyüklükte hızla yaklaşır?',
+            secenekler: ['2 m/s', '8 m/s', '5 m/s'],
+            dogru: 1,
+            ipucu: 'Zıt yönlerde koşuyorlar. Zıt yönlü hızlarda bağıl hızın büyüklüğü toplamdır.',
+            aciklama: r`Ela'nın yönünü $+$ al: $\vartheta_\text{Ege} - \vartheta_\text{Ela} = -3 - 5 = -8$ m/s. Ege, Ela'ya 8 m/s hızla yaklaşır.`
+          },
+          {
+            soru: 'Kaç saniye sonra karşılaşırlar?',
+            secenekler: ['30 s', '48 s', '80 s'],
+            dogru: 0,
+            ipucu: 'Ela kendini duruyor kabul etsin. Ege aradaki 240 m\'yi 8 m/s ile kapatır.',
+            aciklama: r`$t = \dfrac{240}{8} = 30$ s.`
+          },
+          {
+            soru: 'Karşılaştıklarında Ege kaç metre koşmuştur?',
+            secenekler: ['150 m', '120 m', '90 m'],
+            dogru: 2,
+            ipucu: 'Ege yere göre 3 m/s hızla 30 s koşar.',
+            aciklama: r`Ege $3 \times 30 = 90$ m, Ela $5 \times 30 = 150$ m koşar. Toplam 240 m eder.`
+          }
+        ],
+        sonuc: 'Bağıl hız iki hareketi teke indirir: Bir cismi durgun kabul et, öbürü ona bağıl hızla yaklaşsın. Süreyi bulduktan sonra her birinin yolunu kendi yer hızıyla hesapla.'
+      }
+    ],
+    hazir: 'Gözlem çerçevesini, aynı ve zıt yönde bağıl hızı, hareketli ortamı, dik hızları ve iki dik hareketin birbirini bozmadığını gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
@@ -5462,6 +6041,125 @@ BFY_FIG_EKLE('iA13_tanim', u => sahne(u, I => {
 }, { w: 320, h: 150, mm: 110, ox: 150, oy: 78 }));
 })();
 
+/* ============================================================
+   SIFIRDAN BAŞLA (2026-11): A.1.3 başlangıç şekilleri (sfA13_ öneki)
+   Kart genişliğinde (~340 px) çizilir; en küçük yazı 14.
+   ============================================================ */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MOR = '#6b4fa8', TEL = '#2a3330';
+const C = { G: P.green, N: P.blue, T: P.copper, F: P.coral, f: '#7a5c2e' };
+const ok = (x1, y1, x2, y2, c, w = 3) => arrow(f1(x1), f1(y1), f1(x2), f1(y2), { color: c, w, head: 11, headW: 5.6 });
+const yaz = (x, y, s, o = {}) => T(x, y, s, { size: 14, weight: 700, ...o });
+const lbl = (x, y, s, c, o = {}) => T(x, y, s, { size: 17, weight: 800, fill: c, italic: true, ...o });
+
+/* Adım 4: çamaşır makinesi, itme ve statik sürtünme */
+BFY_FIG_EKLE('sfA13_makine', function (u) {
+  let s = `<defs><linearGradient id="${u}bey" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9dee2"/><stop offset=".35" stop-color="#fbfcfd"/><stop offset="1" stop-color="#c3cad0"/></linearGradient>
+  <radialGradient id="${u}cam" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#8fb0c4"/><stop offset=".7" stop-color="#3c5566"/><stop offset="1" stop-color="#1f2d36"/></radialGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="250" rx="14" fill="#f5f3fa"/>`;
+  // fayans zemin
+  s += `<rect class="bg" x="0" y="206" width="196" height="44" fill="#e3e9ee"/><line x1="0" y1="206" x2="196" y2="206" stroke="#8d99a3" stroke-width="1.6"/>`;
+  [30, 74, 118, 162].forEach(x => s += `<line class="bg" x1="${x}" y1="206" x2="${x - 18}" y2="250" stroke="#c4ced6" stroke-width="1.2"/>`);
+  s += `<line class="bg" x1="0" y1="228" x2="196" y2="228" stroke="#c4ced6" stroke-width="1.2"/>`;
+  // makine
+  const x = 62, y = 74, w = 112, h = 128;
+  s += `<ellipse cx="${x + w / 2 + 4}" cy="207" rx="${w * 0.58}" ry="4.5" fill="#000" opacity=".16"/>`;
+  s += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="url(#${u}bey)" stroke="#8a949c" stroke-width="1.3"/>`;
+  s += `<rect x="${x + 4}" y="${y + 4}" width="${w - 8}" height="22" rx="3" fill="#eef1f3" stroke="#a9b2b9" stroke-width="1"/>`;
+  s += `<rect x="${x + 10}" y="${y + 9}" width="30" height="12" rx="2" fill="#cfe4ef" stroke="#7c95a6" stroke-width=".8"/>`;
+  s += `<circle cx="${x + w - 18}" cy="${y + 15}" r="7" fill="#d8dde1" stroke="#7d868d" stroke-width="1.2"/><line x1="${x + w - 18}" y1="${y + 15}" x2="${x + w - 18}" y2="${y + 9}" stroke="#4d565c" stroke-width="1.6"/>`;
+  const cx = x + w / 2, cy = y + 80;
+  s += `<circle cx="${cx}" cy="${cy}" r="36" fill="#c9d0d5" stroke="#7d868d" stroke-width="1.6"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="27" fill="url(#${u}cam)" stroke="#55606a" stroke-width="1.2"/>`;
+  s += `<path d="M${cx - 16} ${cy - 12} Q${cx - 6} ${cy - 22} ${cx + 8} ${cy - 20}" stroke="#fff" stroke-width="3" fill="none" opacity=".5" stroke-linecap="round"/>`;
+  s += `<rect x="${x + 6}" y="${y + h - 2}" width="10" height="6" fill="#4d565c"/><rect x="${x + w - 16}" y="${y + h - 2}" width="10" height="6" fill="#4d565c"/>`;
+  // itme kuvveti
+  s += ok(8, cy, x - 2, cy, C.F, 3.2) + lbl(30, cy - 10, 'F', C.F, { anchor: 'middle' });
+  s += yaz(98, 236, '60 kg', { anchor: 'middle', weight: 800 });
+  // kuvvet şeması
+  const sx = 268, sy = 140, L = 52;
+  s += yaz(sx, 34, 'Kuvvetler', { anchor: 'middle', weight: 800, fill: MOR });
+  s += `<rect x="${sx - 17}" y="${sy - 14}" width="34" height="28" rx="3" fill="#ece7f5" stroke="#8b7cab" stroke-width="1.2"/>`;
+  s += ok(sx, sy, sx, sy - 74, C.N) + ok(sx, sy, sx, sy + 74, C.G) + ok(sx, sy, sx + L + 6, sy, C.F) + ok(sx, sy, sx - L - 6, sy, C.f);
+  s += `<circle cx="${sx}" cy="${sy}" r="4" fill="${P.ink}"/>`;
+  s += lbl(sx + 10, sy - 56, 'N', C.N) + lbl(sx + 10, sy + 66, 'G', C.G);
+  s += lbl(sx + 40, sy - 12, 'F', C.F, { anchor: 'middle' }) + lbl(sx - 40, sy - 12, 'f_s', C.f, { anchor: 'middle' });
+  s += yaz(sx, 236, 'kıpırdamıyor', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 250, s, u, 90);
+});
+
+/* Adım 5: buz üstünde iple bağlı iki kızak */
+function kizak(u, x, w, y) {
+  let s = `<ellipse cx="${x + w / 2}" cy="${y + 20}" rx="${w * 0.55}" ry="4" fill="#000" opacity=".12"/>`;
+  s += `<path d="M${x} ${y + 16} L${x + w - 6} ${y + 16} Q${x + w + 10} ${y + 16} ${x + w + 8} ${y} " fill="none" stroke="#5d656b" stroke-width="3.6" stroke-linecap="round"/>`;
+  [x + 14, x + w - 18].forEach(px => s += `<line x1="${px}" y1="${y + 16}" x2="${px}" y2="${y + 2}" stroke="#5d656b" stroke-width="3"/>`);
+  s += `<rect x="${x + 4}" y="${y - 6}" width="${w - 6}" height="9" rx="2.5" fill="url(#${u}wood)" stroke="#8a6a3c" stroke-width="1.1"/>`;
+  for (let i = 1; i < 5; i++) s += `<line x1="${x + 4 + i * (w - 6) / 5}" y1="${y - 6}" x2="${x + 4 + i * (w - 6) / 5}" y2="${y + 3}" stroke="#a88552" stroke-width=".9"/>`;
+  return s;
+}
+BFY_FIG_EKLE('sfA13_kizak', function (u) {
+  let s = `<defs><linearGradient id="${u}buz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eaf6fc"/><stop offset="1" stop-color="#b9dcef"/></linearGradient></defs>`;
+  s += `<rect class="bg" x="0" y="0" width="340" height="220" rx="14" fill="url(#${u}sky)"/>`;
+  s += `<rect class="bg" x="0" y="150" width="340" height="70" fill="url(#${u}buz)"/><line x1="0" y1="150" x2="340" y2="150" stroke="#8fbcd6" stroke-width="1.4"/>`;
+  [[40, 176], [150, 196], [250, 172], [300, 204]].forEach(([x, y]) => s += `<path d="M${x} ${y} L${x + 30} ${y - 4}" stroke="#fff" stroke-width="2.2" opacity=".8" stroke-linecap="round"/>`);
+  const y = 128;
+  s += kizak(u, 22, 104, y) + kizak(u, 168, 84, y);
+  // arkadaki kızakta oturan çocuk
+  const cx = 70;
+  s += `<path d="M${cx - 18} ${y - 6} L${cx - 16} ${y - 34} Q${cx - 4} ${y - 44} ${cx + 8} ${y - 34} L${cx + 12} ${y - 6} Z" fill="#c8574a" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<path d="M${cx + 6} ${y - 10} L${cx + 34} ${y - 10} L${cx + 40} ${y - 2}" stroke="#2f3a4a" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += `<rect x="${cx - 16}" y="${y - 36}" width="26" height="6" rx="3" fill="#2f8f5b"/>`;
+  s += `<circle cx="${cx - 3}" cy="${y - 50}" r="10" fill="#f1c9a5" stroke="${TEL}" stroke-width="1"/>`;
+  s += `<path d="M${cx - 13} ${y - 52} Q${cx - 12} ${y - 66} ${cx - 3} ${y - 66} Q${cx + 8} ${y - 66} ${cx + 7} ${y - 52} Z" fill="#2f7fb8"/><circle cx="${cx - 3}" cy="${y - 68}" r="3.5" fill="#fff"/>`;
+  // aradaki ip ve çekiş
+  s += `<path d="M132 ${y + 2} Q150 ${y + 5} 168 ${y + 2}" stroke="#7a5c2e" stroke-width="2.4" fill="none"/>`;
+  s += yaz(150, y - 10, 'ip', { anchor: 'middle', weight: 800, fill: '#7a5c2e' });
+  s += `<line x1="258" y1="${y + 2}" x2="270" y2="${y + 2}" stroke="#7a5c2e" stroke-width="2.4"/>`;
+  s += ok(270, y + 2, 332, y + 2, P.coral, 3.2);
+  s += yaz(300, y - 12, 'F = 120 N', { anchor: 'middle', weight: 800, fill: P.coral });
+  s += ok(130, 42, 210, 42, MOR, 2.6) + lbl(220, 48, 'a', MOR);
+  s += yaz(74, 210, '30 kg', { anchor: 'middle', weight: 800 }) + yaz(210, 210, '10 kg', { anchor: 'middle', weight: 800 });
+  s += yaz(74, 190, 'arka kızak', { anchor: 'middle', fill: P.ink2 }) + yaz(210, 190, 'ön kızak', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 220, s, u, 90);
+});
+
+/* Isınma 3: masadaki araba ve makaradan sarkan kum torbası */
+BFY_FIG_EKLE('sfA13_makara', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="270" rx="14" fill="#f5f3fa"/>`;
+  s += `<rect class="bg" x="0" y="256" width="340" height="14" fill="#d8cdb9"/>`;
+  // masa
+  const ty = 118;
+  s += `<rect x="0" y="${ty}" width="252" height="13" fill="url(#${u}wood)" stroke="#8a6a3c" stroke-width="1.2"/>`;
+  s += `<rect x="20" y="${ty + 13}" width="12" height="${256 - ty - 13}" fill="#c9a36b" stroke="#8a6a3c" stroke-width="1"/><rect x="222" y="${ty + 13}" width="12" height="${256 - ty - 13}" fill="#c9a36b" stroke="#8a6a3c" stroke-width="1"/>`;
+  // makara
+  const px = 262, py = 100, r = 13;
+  s += `<path d="M246 ${ty} L${px} ${py} L252 ${ty + 6}" fill="#7d868d" stroke="#4d565c" stroke-width="1.4"/>`;
+  s += `<circle cx="${px}" cy="${py}" r="${r}" fill="url(#${u}metal)" stroke="#4d565c" stroke-width="1.6"/><circle cx="${px}" cy="${py}" r="3" fill="#4d565c"/>`;
+  // araba
+  const ax = 70, aw = 120, ay = ty - 16;
+  s += `<rect x="${ax}" y="${ay - 44}" width="${aw}" height="44" rx="5" fill="url(#${u}box)" stroke="#8a5a2b" stroke-width="1.3"/>`;
+  s += `<rect x="${ax + 6}" y="${ay - 38}" width="${aw - 12}" height="8" rx="3" fill="#fff" opacity=".3"/>`;
+  [ax + 22, ax + aw - 22].forEach(cx => s += `<circle cx="${cx}" cy="${ty - 8}" r="8" fill="#2b2f33"/><circle cx="${cx}" cy="${ty - 8}" r="3" fill="#9aa4ab"/>`);
+  // ip
+  const ipY = py - r;
+  s += `<rect x="${ax + aw}" y="${ipY - 3}" width="6" height="8" rx="1.5" fill="#4d565c"/>`;
+  s += `<line x1="${ax + aw + 6}" y1="${ipY}" x2="${px}" y2="${ipY}" stroke="#7a5c2e" stroke-width="2.2"/>`;
+  s += `<path d="M${px} ${ipY} A${r} ${r} 0 0 1 ${px + r} ${py}" stroke="#7a5c2e" stroke-width="2.2" fill="none"/>`;
+  s += `<line x1="${px + r}" y1="${py}" x2="${px + r}" y2="176" stroke="#7a5c2e" stroke-width="2.2"/>`;
+  // kum torbası
+  const kx = px + r, ky = 176;
+  s += `<path d="M${kx - 6} ${ky} L${kx + 6} ${ky} L${kx + 22} ${ky + 18} Q${kx + 26} ${ky + 54} ${kx} ${ky + 58} Q${kx - 26} ${ky + 54} ${kx - 22} ${ky + 18} Z" fill="url(#${u}sack)" stroke="#8a7346" stroke-width="1.3"/>`;
+  s += `<rect x="${kx - 8}" y="${ky + 4}" width="16" height="5" rx="2" fill="#8a7346"/>`;
+  s += yaz(kx, ky + 40, 'kum', { anchor: 'middle', weight: 800, fill: '#6b5631', size: 14 });
+  s += yaz(ax + aw / 2, ay - 54, 'araba, 8 kg', { anchor: 'middle', weight: 800 });
+  s += yaz(kx + 28, ky + 36, '2 kg', { weight: 800 });
+  s += yaz(120, 30, 'sürtünmesiz masa', { anchor: 'middle', fill: P.ink2 });
+  return svg(340, 270, s, u, 90);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -5518,6 +6216,193 @@ const KONU = {
     'sürtünmesiz masada m ve 2m kütleli cisimlerin masa ve askı yerleri değiştiriliyor: ivme iki katı, gerilme aynı', 'sürtünmesiz rayda 2 kg X ve 3 kg Y arabaları arasında dinamometre, 5 N sola ve 20 N sağa; 11 N',
     'sürtünmesiz tekerlekli 4 kg taşıma platformu ve üstünde 2 kg koli, koli 18 N ile çekiliyor, k_s = 0,5, k = 0,3; 6 ve 1,5 m/s²', '53° rampada 10 kg tahta kasa, makaradan sarkan su dolu kova, k_s = 0,5; 5 ≤ m ≤ 11 kg'
   ],
+
+  /* ---------------- SIFIRDAN BAŞLA ---------------- */
+  baslangic: {
+    giris: 'Fizikten çekiniyorsan doğru yerdesin. Bu konuda bir cismin neden hızlandığını, neden yavaşladığını ve neden hiç kıpırdamadığını göreceğiz. Kısa adımlarla ilerleyeceğiz; her adımın sonunda tek bir küçük soru var. Yanlış seçersen ipucunu oku ve yeniden dene.',
+    adimlar: [
+      {
+        baslik: 'Net kuvvet: hepsinin toplamı',
+        metin: r`Bir cisme aynı anda birden çok kuvvet etki edebilir. Cismin hareketini belirleyen, bu kuvvetlerin vektörel toplamıdır. Buna **net kuvvet** denir ve $F_\text{net}$ ile gösterilir.
+
+Masada duran bir oyuncak arabayı Elif sağa doğru 3 N, kardeşi sola doğru 2 N kuvvetle iple çekiyor. Sağı $+$ alırsak:
+$F_\text{net} = 3 + (-2) = 1$ N, sağa doğru.
+
+Aynı doğrultudaki kuvvetlerde bir yönü $+$, öbür yönü $-$ seç ve işaretleriyle topla.`,
+        kontrol: {
+          soru: 'Bir cisme sağa 30 N, sağa 20 N ve sola 50 N büyüklüğünde üç kuvvet etki ediyor. Net kuvvet kaç N\'dur?',
+          secenekler: ['100 N', '0', '50 N'],
+          dogru: 1,
+          aciklama: 'Sağa doğru toplam 30 + 20 = 50 N, sola doğru 50 N kuvvet var. Bu kuvvetler birbirini dengeler; net kuvvet sıfırdır.',
+          yanlisIpucu: 'Sağa olanları artı, sola olanı eksi yazıp topla. Büyüklükleri doğrudan toplama.'
+        }
+      },
+      {
+        baslik: 'Net kuvvet sıfırsa hız değişmez',
+        metin: r`Net kuvvet sıfırsa cismin hızı değişmez:
+- Duran cisim durmaya devam eder.
+- Hareket eden cisim aynı hızla, düz bir çizgide gitmeye devam eder.
+
+Buna **eylemsizlik** denir; Newton'un birinci yasasıdır. Havalimanında sabit hızla ilerleyen bir bagaj bandının üstündeki bavul buna örnektir: Bavul hareket ediyor ama hızı değişmiyor; ona etki eden net kuvvet sıfırdır.
+
+"Cisim hareket ediyorsa hareket yönünde bir net kuvvet vardır." düşüncesi yanlıştır. Net kuvvet hızı değil, hızdaki değişimi belirler.`,
+        kontrol: {
+          soru: 'Düz bir otoyolda sabit 25 m/s hızla giden bir otomobile etki eden net kuvvet için ne söylenebilir?',
+          secenekler: ['Hareket yönündedir.', 'Sıfırdır.', 'Harekete zıt yöndedir.'],
+          dogru: 1,
+          aciklama: 'Hızın büyüklüğü de yönü de değişmiyor. Hız değişmiyorsa net kuvvet sıfırdır. Yolun tekerleklere uyguladığı ileri doğru kuvvet, hava direnci gibi geriye doğru kuvvetlerle dengelenmiştir.',
+          yanlisIpucu: 'Net kuvvet, hızın değişip değişmediğine bakar. Bu otomobilin hızı değişiyor mu?'
+        }
+      },
+      {
+        baslik: 'Net kuvvet varsa ivme vardır',
+        metin: r`Net kuvvet sıfır değilse cisim **ivmelenir**: Hızı her saniye biraz daha değişir. Newton'un ikinci yasası:
+$F_\text{net} = m \times a$.
+
+- İvme, net kuvvetle aynı yöndedir.
+- Aynı net kuvvet, kütlesi büyük cismi daha az hızlandırır.
+
+Sürtünmesiz bir rayda duran 2 kg ve 6 kg kütleli iki oyuncak vagon ayrı ayrı 12 N net kuvvetle çekiliyor. Hafif vagonun ivmesi $\dfrac{12}{2} = 6\ \text{m/s}^2$, ağır vagonunki $\dfrac{12}{6} = 2\ \text{m/s}^2$ olur.`,
+        kontrol: {
+          soru: 'Sürtünmesiz bir yüzeyde 5 kg kütleli bir kutuya 35 N net kuvvet etki ediyor. Kutunun ivmesi kaç m/s² olur?',
+          secenekler: ['7 m/s²', '175 m/s²', '40 m/s²'],
+          dogru: 0,
+          aciklama: r`$a = \dfrac{F_\text{net}}{m} = \dfrac{35}{5} = 7\ \text{m/s}^2$. Kutunun hızı her saniye 7 m/s artar.`,
+          yanlisIpucu: r`$F_\text{net} = m \times a$ bağıntısında ivmeyi yalnız bırak: net kuvveti kütleye böl.`
+        }
+      },
+      {
+        baslik: 'Sürtünme: önce tutar, sonra frenler',
+        sekil: 'sfA13_makine',
+        metin: r`Fayans zeminde duran 60 kg kütleli bir çamaşır makinesini yatay iterek yerinden oynatmaya çalışıyorsun. Zemin, makineye kaymaya karşı koyan bir **sürtünme kuvveti** uygular. Sürtünme kuvveti, makinenin kaymaya çalıştığı yönün tersinedir.
+
+- Makine kıpırdamıyorsa sürtünme **statik** sürtünmedir ($f_s$). İttiğin kadar karşı koyar: 30 N itersen 30 N, 50 N itersen 50 N.
+- Statik sürtünmenin bir üst sınırı vardır: $k_s \times N$. Bu sınır aşılınca makine kaymaya başlar.
+- Kayarken sürtünme **kinetik** sürtünmedir: $f_k = k \times N$. Büyüklüğü itme kuvvetine bağlı değildir.
+
+Yatay zeminde $N = G = m \times g = 600$ N'dur. $k_s = 0{,}4$ ve $k = 0{,}3$ ise statik sürtünme en fazla 240 N olabilir, kayarken sürtünme 180 N olur.`,
+        kontrol: {
+          soru: 'Makineyi 50 N ile ittiğinde makine kıpırdamıyor. Zeminin makineye uyguladığı sürtünme kuvveti kaç N\'dur?',
+          secenekler: ['240 N', '50 N', '180 N'],
+          dogru: 1,
+          aciklama: 'Makine dengede, net kuvvet sıfır. Statik sürtünme itme kuvvetine eşittir: 50 N. 240 N yalnız bir üst sınırdır; sürtünme ona ancak kaymanın eşiğinde ulaşır. 180 N ise kayarken geçerlidir.',
+          yanlisIpucu: 'Makine kıpırdamıyorsa üzerindeki net kuvvet kaçtır? Sürtünme, itmeni tam olarak dengeleyecek kadar olmalı.'
+        }
+      },
+      {
+        baslik: 'Birbirine bağlı cisimler',
+        sekil: 'sfA13_kizak',
+        metin: r`Buz üstünde arka arkaya iki kızak iple bağlı. Önde 10 kg'lık boş kızak, arkada kardeşinin oturduğu toplam 30 kg'lık kızak var. Öndeki kızağı 120 N ile yatay çekiyorsun. Buzun sürtünmesini önemsemiyoruz.
+
+İp gergin kaldığı sürece iki kızak **aynı ivmeyle** hareket eder. Bu yüzden ikisini tek bir cisim gibi düşünebilirsin:
+- Sistemin kütlesi: $10 + 30 = 40$ kg.
+- Sisteme etki eden dış kuvvet 120 N'dur. Aradaki ipin iki kızağa uyguladığı kuvvetler sistemin içindedir ve birbirini götürür.
+- Sistemin ivmesi: $a = \dfrac{120}{40} = 3\ \text{m/s}^2$.`,
+        kontrol: {
+          soru: 'Aradaki ipin arka kızağa uyguladığı gerilme kuvveti (T) kaç N\'dur?',
+          secenekler: ['120 N', '30 N', '90 N'],
+          dogru: 2,
+          aciklama: r`Arka kızak için $T = m \times a = 30 \times 3 = 90$ N. İp, 120 N'un hepsini değil, arka kızağı $3\ \text{m/s}^2$ ile hızlandıracak kadarını iletir. Kalan $120 - 90 = 30$ N öndeki kızağı hızlandırır: $10 \times 3 = 30$ N.`,
+          yanlisIpucu: r`Yalnız arka kızağa bak: Onu hızlandıran tek yatay kuvvet ip kuvvetidir. $T = m \times a$ bağıntısını arka kızağın kütlesiyle kur.`
+        }
+      }
+    ],
+    isinma: [
+      {
+        baslik: 'Su kaydırağı',
+        metin: r`Bir su parkında 40 kg kütleli bir çocuk, yatayla $30°$ açı yapan düz bir kaydıraktan kayıyor. Islak yüzeyde sürtünme çok küçük; önemsemiyoruz. Çocuğun ivmesini bulacağız. ($\sin 30° = \dfrac{1}{2}$)`,
+        adimlar: [
+          {
+            soru: 'Çocuğun ağırlığı kaç N\'dur?',
+            secenekler: ['40 N', '400 N', '4 N'],
+            dogru: 1,
+            ipucu: r`$G = m \times g$ ve $g = 10\ \text{m/s}^2$.`,
+            aciklama: r`$G = 40 \times 10 = 400$ N.`
+          },
+          {
+            soru: 'Ağırlığın kaydırak boyunca olan bileşeni kaç N\'dur?',
+            secenekler: ['200 N', '400 N', '800 N'],
+            dogru: 0,
+            ipucu: r`Eğik düzlemde ağırlığın eğim boyunca bileşeni $G \times \sin\theta$'dır.`,
+            aciklama: r`$G \times \sin 30° = 400 \times \dfrac{1}{2} = 200$ N. Çocuğu kaydıraktan aşağı çeken kuvvet budur. Ağırlığın öbür bileşeni yüzeye diktir; yüzeyin tepki kuvvetiyle dengelenir.`
+          },
+          {
+            soru: 'Çocuğun ivmesi kaç m/s² olur?',
+            secenekler: ['10 m/s²', '20 m/s²', '5 m/s²'],
+            dogru: 2,
+            ipucu: r`$a = \dfrac{F_\text{net}}{m}$: Net kuvvet 200 N, kütle 40 kg.`,
+            aciklama: r`$a = \dfrac{200}{40} = 5\ \text{m/s}^2$.`
+          }
+        ],
+        sonuc: r`Hesapta kütle sadeleşti: $a = g \times \sin\theta = 10 \times \dfrac{1}{2} = 5\ \text{m/s}^2$. Sürtünme yoksa eğimden kayan her cismin ivmesi yalnız eğim açısına bağlıdır.`
+      },
+      {
+        baslik: 'Zeminde kaydırılan sandık',
+        metin: r`Okulun spor salonunda bir görevli, 25 kg kütleli plastik bir top sandığını cilalı ahşap zeminde 150 N yatay kuvvetle iterek kaydırıyor. Sandık ile zemin arasındaki kinetik sürtünme katsayısı $k = 0{,}2$'dir. Sandığın ivmesini bulacağız.`,
+        adimlar: [
+          {
+            soru: 'Zeminin sandığa uyguladığı tepki kuvveti (N) kaç N\'dur?',
+            secenekler: ['250 N', '25 N', '150 N'],
+            dogru: 0,
+            ipucu: 'Yatay zeminde, düşeyde başka kuvvet yoksa tepki kuvveti ağırlığa eşittir.',
+            aciklama: r`Düşeyde denge var: $N = G = 25 \times 10 = 250$ N.`
+          },
+          {
+            soru: 'Sandık kayarken sürtünme kuvveti kaç N\'dur?',
+            secenekler: ['30 N', '50 N', '150 N'],
+            dogru: 1,
+            ipucu: r`$f_k = k \times N$. Burada itme kuvvetini değil, tepki kuvvetini kullan.`,
+            aciklama: r`$f_k = 0{,}2 \times 250 = 50$ N, itme kuvvetine zıt yönde.`
+          },
+          {
+            soru: 'Sandığa etki eden net kuvvet kaç N\'dur?',
+            secenekler: ['150 N', '200 N', '100 N'],
+            dogru: 2,
+            ipucu: 'İtme ileri, sürtünme geri doğru. Büyükten küçüğü çıkar.',
+            aciklama: r`$F_\text{net} = 150 - 50 = 100$ N, itme yönünde.`
+          },
+          {
+            soru: 'Sandığın ivmesi kaç m/s² olur?',
+            secenekler: ['4 m/s²', '6 m/s²', '2 m/s²'],
+            dogru: 0,
+            ipucu: r`$a = \dfrac{F_\text{net}}{m} = \dfrac{100}{25}$.`,
+            aciklama: r`$a = \dfrac{100}{25} = 4\ \text{m/s}^2$.`
+          }
+        ],
+        sonuc: 'Sürtünmeli sorularda sıra hep aynıdır: önce tepki kuvveti, sonra sürtünme, sonra net kuvvet, en son ivme. İtme kuvvetini doğrudan kütleye bölmek en sık yapılan hatadır.'
+      },
+      {
+        baslik: 'Masadan sarkan kum torbası',
+        sekil: 'sfA13_makara',
+        metin: r`Sürtünmesiz bir masanın üstünde 8 kg kütleli tekerlekli bir araba duruyor. Araba, masanın kenarındaki makaradan geçen bir iple 2 kg kütleli bir kum torbasına bağlı. Sistem serbest bırakılıyor. İp ve makara hafif, makara sürtünmesiz.`,
+        adimlar: [
+          {
+            soru: 'Sistemi harekete geçiren dış kuvvet hangisidir?',
+            secenekler: ['Arabanın ağırlığı, 80 N', 'Kum torbasının ağırlığı, 20 N', 'İpteki gerilme kuvveti'],
+            dogru: 1,
+            ipucu: 'Arabanın ağırlığını masanın tepki kuvveti dengeler. Hareket yönünde dengelenmemiş kalan dış kuvvet hangisi?',
+            aciklama: 'Arabanın ağırlığını masanın tepki kuvveti dengeler. İpteki kuvvetler sistemin içindedir. Sistemi hareket ettiren, kum torbasının 20 N\'luk ağırlığıdır.'
+          },
+          {
+            soru: 'Sistemin ivmesi kaç m/s² olur?',
+            secenekler: ['10 m/s²', '2 m/s²', '6 m/s²'],
+            dogru: 1,
+            ipucu: r`Toplam kütle $8 + 2 = 10$ kg. $a = \dfrac{20}{10}$.`,
+            aciklama: r`İki cisim aynı ivmeyle hareket eder: $a = \dfrac{20}{8 + 2} = 2\ \text{m/s}^2$. Arabanın ağırlığı yatay harekete katılmaz; ağırlıkları birbirinden çıkarmak bu düzenekte yanlıştır.`
+          },
+          {
+            soru: 'İpteki gerilme kuvveti (T) kaç N\'dur?',
+            secenekler: ['20 N', '4 N', '16 N'],
+            dogru: 2,
+            ipucu: 'Yalnız arabaya bak: Onu yatayda hızlandıran tek kuvvet ip kuvvetidir.',
+            aciklama: r`Araba için $T = 8 \times 2 = 16$ N. Torbayla kontrol et: $20 - T = 2 \times 2$, yani $T = 16$ N. Torba aşağı doğru hızlandığı için ip, torbanın ağırlığının tamamını taşımaz.`
+          }
+        ],
+        sonuc: 'Bağlı cisimlerde önce bütün sistemin ivmesini bul, sonra tek bir cisme bakarak ip kuvvetini hesapla. İvmeli bir sistemde ip, sarkan cismin ağırlığını tam taşımaz.'
+      }
+    ],
+    hazir: 'Net kuvveti, eylemsizliği, F = m × a bağıntısını, statik ve kinetik sürtünmeyi, bağlı cisimleri gördün. Şimdi konu notunu okuyabilir ya da ilk soruyu çözebilirsin.'
+  },
 
   /* ---------------- KONU NOTU (kısa, AYT odaklı) ---------------- */
   not: [
