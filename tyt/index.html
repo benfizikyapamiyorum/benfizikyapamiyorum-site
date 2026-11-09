@@ -45649,6 +45649,794 @@ window.BFY_TYT_TEST[TEST.id] = TEST;
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim TYT · TD32 (TYT Fizik Denemesi 32)
+   Şablon: 1. soru T.1/T.2, 2. soru T.2, 3–7. sorular T.3–T.7'den birer. Zorluk 2/3/2 (★/★★/★★★).
+   Gerçek TYT fizik bölümü gibi 7 soru, 10 dakika. Metinler, sayılar ve şekiller özgündür;
+   ÖSYM sorularından yalnızca soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Şekil anahtarları: TD32_ öneki. Soru kimlikleri: TD32_1 … TD32_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ---------- */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', TUR = '#c25b2a';
+
+// 2. soru: limanda K ve L konteyner taşıyıcılarının konum-zaman grafiği
+// K: (0 s, 0 m) → (40 s, 120 m); L: (0 s, 150 m) → (15 s, 60 m), sonra 60 m'de durur
+BFY_FIG_EKLE('TD32_liman', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="330" height="236" rx="10" fill="#f6f9f7"/>`;
+  const x0 = 50, y0 = 196, sx = t => x0 + t * 5.2, sy = v => y0 - v * 0.98;
+  for (let t = 5; t <= 40; t += 5) s += `<line x1="${f1(sx(t))}" y1="${f1(sy(0))}" x2="${f1(sx(t))}" y2="${f1(sy(150))}" stroke="#dde5df" stroke-width="1"/>`;
+  for (let v = 30; v <= 150; v += 30) s += `<line x1="${x0}" y1="${f1(sy(v))}" x2="${f1(sx(40))}" y2="${f1(sy(v))}" stroke="#dde5df" stroke-width="1"/>`;
+  // eksenler
+  s += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${f1(sy(168))}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${x0},${f1(sy(168) - 10)} ${x0 - 4},${f1(sy(168))} ${x0 + 4},${f1(sy(168))}" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${y0}" x2="${f1(sx(44))}" y2="${y0}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${f1(sx(44) + 10)},${y0} ${f1(sx(44))},${y0 - 4} ${f1(sx(44))},${y0 + 4}" fill="${P.ink}"/>`;
+  s += T(x0 + 8, f1(sy(168) - 2), 'x (m)', { size: 12.5, weight: 800 }) + T(f1(sx(44) + 13), y0 + 4.5, 't (s)', { size: 12.5, weight: 800 });
+  for (let t = 5; t <= 40; t += 5) s += `<line x1="${f1(sx(t))}" y1="${y0 - 3}" x2="${f1(sx(t))}" y2="${y0 + 3}" stroke="${P.ink}" stroke-width="1.2"/>` + T(f1(sx(t)), y0 + 16, String(t), { size: 11.5, anchor: 'middle', fill: P.ink2 });
+  for (let v = 30; v <= 150; v += 30) s += `<line x1="${x0 - 3}" y1="${f1(sy(v))}" x2="${x0 + 3}" y2="${f1(sy(v))}" stroke="${P.ink}" stroke-width="1.2"/>` + T(x0 - 7, f1(sy(v) + 4.5), String(v), { size: 11.5, anchor: 'end', fill: P.ink2 });
+  s += T(x0 - 7, y0 + 4.5, '0', { size: 11.5, anchor: 'end', fill: P.ink2 });
+  // doğrular
+  s += `<line x1="${f1(sx(0))}" y1="${f1(sy(0))}" x2="${f1(sx(40))}" y2="${f1(sy(120))}" stroke="${MAV}" stroke-width="2.8" stroke-linecap="round"/>`;
+  s += `<polyline points="${[[0, 150], [15, 60], [40, 60]].map(([t, v]) => f1(sx(t)) + ',' + f1(sy(v))).join(' ')}" fill="none" stroke="${TUR}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+  s += T(f1(sx(40) + 6), f1(sy(120) + 4), 'K', { size: 14, weight: 800, fill: MAV });
+  s += T(f1(sx(40) + 6), f1(sy(60) + 5), 'L', { size: 14, weight: 800, fill: TUR });
+  return svg(330, 236, s, u, 74);
+});
+
+// 6. soru: hamur silindiri, pil ve ampermetre; 1. durum (10 cm, kalın) ve 2. durum (20 cm, ince)
+BFY_FIG_EKLE('TD32_hamur_genis', function (u) {
+  const c = '#24302c', w = 2;
+  const tel = (a, b, c2, d) => `<line x1="${a}" y1="${b}" x2="${c2}" y2="${d}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+  // dikey pil: üstte uzun ince çizgi (+), altta kısa kalın çizgi (−)
+  const pil = (x, y) => `<line x1="${x - 14}" y1="${y - 5}" x2="${x + 14}" y2="${y - 5}" stroke="${c}" stroke-width="2.6"/><line x1="${x - 7}" y1="${y + 5}" x2="${x + 7}" y2="${y + 5}" stroke="${c}" stroke-width="4"/>`;
+  const amp = (x, y) => `<circle cx="${x}" cy="${y}" r="13" fill="#fff" stroke="${c}" stroke-width="${w}"/>` + T(x, y + 5, 'A', { size: 13.5, weight: 800, anchor: 'middle', halo: false });
+  // yatay hamur silindiri: x1–x2 arası, yarı kalınlık h
+  const hamur = (x1, x2, y, h) => {
+    const e = h * 0.42;
+    return `<path d="M ${x1} ${y - h} L ${x2} ${y - h} A ${e} ${h} 0 0 1 ${x2} ${y + h} L ${x1} ${y + h} A ${e} ${h} 0 0 1 ${x1} ${y - h} Z" fill="#e8a24f" stroke="#9a5b1e" stroke-width="1.6"/>` +
+      `<ellipse cx="${x1}" cy="${y}" rx="${e}" ry="${h}" fill="#f2bd78" stroke="#9a5b1e" stroke-width="1.6"/>` +
+      `<line x1="${x1 + 6}" y1="${y - h * 0.45}" x2="${x2 - 4}" y2="${y - h * 0.45}" stroke="#f7d3a2" stroke-width="${Math.max(2, h * 0.35)}" stroke-linecap="round" opacity="0.8"/>`;
+  };
+  const olcu = (x1, x2, y, lab) => `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${P.ink2}" stroke-width="1.2"/>` +
+    `<polygon points="${x1},${y} ${x1 + 7},${y - 3.2} ${x1 + 7},${y + 3.2}" fill="${P.ink2}"/><polygon points="${x2},${y} ${x2 - 7},${y - 3.2} ${x2 - 7},${y + 3.2}" fill="${P.ink2}"/>` +
+    `<line x1="${x1}" y1="${y - 6}" x2="${x1}" y2="${y + 6}" stroke="${P.ink2}" stroke-width="1.2"/><line x1="${x2}" y1="${y - 6}" x2="${x2}" y2="${y + 6}" stroke="${P.ink2}" stroke-width="1.2"/>` +
+    T((x1 + x2) / 2, y + 17, lab, { size: 12, weight: 800, anchor: 'middle' });
+  const panel = (ox, L, h, ad, boy) => {
+    const xP = ox + 22, xR = ox + 250, yT = 40, yH = 150, cx = ox + 136, a = cx - L / 2, b = cx + L / 2;
+    let k = '';
+    k += tel(xP, yT, xR, yT);
+    k += tel(xP, yT, xP, 86) + pil(xP, 96) + tel(xP, 101, xP, yH) + T(xP + 18, 101, '9 V', { size: 12.5, weight: 800 });
+    k += `<rect x="${cx - 16}" y="${yT - 3}" width="32" height="6" fill="#f6f9f7"/>` + amp(cx, yT);
+    k += tel(xR, yT, xR, yH);
+    k += tel(xP, yH, a - 2, yH) + tel(b + 2, yH, xR, yH);
+    k += hamur(a, b, yH, h);
+    k += `<circle cx="${a}" cy="${yH}" r="2.6" fill="${c}"/><circle cx="${b}" cy="${yH}" r="2.6" fill="${c}"/>`;
+    k += olcu(a, b, yH + 30, boy);
+    k += T(cx, 20, ad, { size: 12.5, weight: 800, anchor: 'middle', fill: P.ink2 });
+    return k;
+  };
+  let s = `<rect class="bg" x="0" y="0" width="560" height="226" rx="12" fill="#f6f9f7"/>`;
+  s += panel(8, 100, 15, '1. durum', '10 cm') + panel(286, 200, 10.6, '2. durum', '20 cm');
+  s += `<line x1="280" y1="14" x2="280" y2="206" stroke="#c9d3cc" stroke-width="1.2" stroke-dasharray="5 4"/>`;
+  s += T(552, 220, '(Aynı hamur; ölçekli değildir.)', { size: 10.5, anchor: 'end', weight: 600, fill: P.ink2 });
+  return svg(560, 226, s, u, 150);
+});
+
+// 7. soru: ipteki dalganın 0,5 s arayla iki görünümü, kareli pano (1 kare = 10 cm)
+// λ = 8 kare, genlik 2 kare; kesikli görünüm sürekli görünümün 2 kare sağa kaymış hâli
+BFY_FIG_EKLE('TD32_ip', function (u) {
+  const k = 18, x0 = 21, yM = 98, nx = 16, ny = 8;
+  let s = `<rect class="bg" x="0" y="0" width="330" height="236" rx="10" fill="#f6f9f7"/>`;
+  for (let i = 0; i <= nx; i++) s += `<line x1="${x0 + i * k}" y1="${yM - 4 * k}" x2="${x0 + i * k}" y2="${yM + 4 * k}" stroke="#d3ddd6" stroke-width="1"/>`;
+  for (let j = 0; j <= ny; j++) s += `<line x1="${x0}" y1="${yM - 4 * k + j * k}" x2="${x0 + nx * k}" y2="${yM - 4 * k + j * k}" stroke="#d3ddd6" stroke-width="1"/>`;
+  const egri = kay => { const p = []; for (let i = 0; i <= 320; i++) { const xs = i / 20; p.push(f1(x0 + xs * k) + ',' + f1(yM - 2 * k * Math.sin(2 * Math.PI * (xs - kay) / 8))); } return p.join(' '); };
+  s += `<polyline points="${egri(0)}" fill="none" stroke="${MAV}" stroke-width="2.6" stroke-linejoin="round"/>`;
+  s += `<polyline points="${egri(2)}" fill="none" stroke="${TUR}" stroke-width="2.4" stroke-dasharray="7 5" stroke-linejoin="round"/>`;
+  // yayılma yönü ve açıklamalar
+  s += arrow(x0 + 8 * k - 40, 26, x0 + 8 * k + 40, 26, { color: P.ink2, w: 1.8, head: 8 }) + T(x0 + 8 * k, 16, 'yayılma yönü', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  const yL = yM + 4 * k + 22;
+  s += `<line x1="${x0}" y1="${yL}" x2="${x0 + 30}" y2="${yL}" stroke="${MAV}" stroke-width="2.6"/>` + T(x0 + 36, yL + 4, '1. fotoğraf', { size: 11.5, weight: 700 });
+  s += `<line x1="${x0 + 128}" y1="${yL}" x2="${x0 + 158}" y2="${yL}" stroke="${TUR}" stroke-width="2.4" stroke-dasharray="7 5"/>` + T(x0 + 164, yL + 4, '2. fotoğraf', { size: 11.5, weight: 700 });
+  s += `<rect x="${x0}" y="${yL + 14}" width="${k}" height="${k}" fill="none" stroke="${P.ink2}" stroke-width="1.2"/>` + T(x0 + k + 8, yL + 14 + k / 2 + 4.5, '1 kare = 10 cm', { size: 11.5, weight: 700, fill: P.ink2 });
+  return svg(330, 236, s, u, 74);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'TD32', ad: 'TYT Fizik Denemesi 32', tur: 'deneme', sure: 600,
+  aciklama: 'Kuyumcu atölyesinde fiziğin alt dalları, limanda iki konteyner taşıyıcının konum-zaman grafiği, kökeni Güneş olan kaynaklar, dalış elbisesinde ısı kaybı, buz kurtarmada basınç, hamurdan direnç ve ipteki dalganın iki fotoğrafı.',
+  baglamlar: ['kuyumcu atölyesinde stajyerin olay ve alt dal eşleştirmeleri: potada ısınan altın (termodinamik), lup (optik), altın çekirdeğinin kararlılığı atom fiziği sanılıyor (nükleer fizik)',
+    'limanda paralel şeritlerde konteyner taşıyıcı (straddle carrier) K ve L, x-t: K 0 → 120 m 40 s, L 150 → 60 m 15 s sonra duruyor; t = 20 s yan yana, hızlar eşit değil, ortalama hız 2,25 m/s',
+    'enerji kulübünde Irmak\'ın "kökeni Güneş olan bütün kaynaklar yenilenebilir" genellemesini çürüten örnek: linyit kömürü (tek seçim)',
+    'kışın gölde dalış yapan dalgıç Ozan\'ın neopren elbisesi: bol elbisede konveksiyon, derinde sıkışan köpük ve incelen yalıtım, derindeki su sıcaklığı bilinmiyor (kesinlikle)',
+    'gönüllü itfaiyeci Tuncay\'ın buz kurtarma eğitimi: 80 kg, ayakta 500 cm², yüzükoyun 0,5 m², 20 kg kurtarma kızağı 0,8 m² (sıralama)',
+    'bilim şenliğinde Elif\'in iletken oyun hamuru: 9 V, 10 cm silindir 12 mA, aynı hamur 20 cm ince silindir: 3000 Ω ve 3 mA (iki sütun)',
+    'fizik kulübünde Mert\'in salladığı uzun ip, Duru\'nun 0,5 s arayla iki fotoğrafı, kareli pano, λ 80 cm, 2 kare kayma: olası süratler 0,4 ve 2 m/s (olabilir)'],
+  sorular: [
+    {
+      id: 'TD32_1', konu: 'T.1.1', yks: true, zorluk: 1, cikti: 'FİZ.9.1.2', beceri: 'Olayları fiziğin alt dallarıyla ilişkilendirme', cikmis: { yil: 2018, kalip: 'Olayların fiziğin alt dallarıyla ilişkilendirilmesi (I-II-III)' },
+      metin: r`Bir kuyumcu atölyesinde staj yapan Emre, atölyede gözlediği olayları fiziğin alt dallarıyla şöyle eşleştiriyor:
+
+I. Eritme potasında ısıtılan altının sıcaklığının artması: termodinamik.
+II. Lupun (büyüteç) küçük bir taşın büyütülmüş görüntüsünü oluşturması: optik.
+III. Altın atomlarının çekirdeklerinin kararlı olması, yani zamanla başka bir elementin çekirdeğine dönüşmemesi: atom fiziği.
+
+Emre'nin yaptığı eşleştirmelerden hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Isı alan bir maddenin sıcaklığının artması ısı ve sıcaklık ilişkisidir; bu **termodinamiğin** konusudur. **Doğru.**`,
+        r`II. Lupun büyütülmüş görüntü oluşturması bir ışık olayıdır; bu **optiğin** konusudur. **Doğru.**`,
+        r`III. Çekirdeğin kararlılığı, çekirdeği oluşturan proton ve nötronlarla ilgilidir; bu **nükleer fiziğin** konusudur. Atom fiziği ise atomun elektron yapısını ve enerji düzeylerini inceler. **Yanlış.**`,
+        r`{{S0}} lupun oluşturduğu görüntünün bir ışık olayı olduğunu görmez ve II'yi eler. {{S1}} sıcaklığın artmasını termodinamiğin konusu saymaz ve I'i eler. {{S3}} çekirdek atomun içinde olduğu için çekirdeğin kararlılığını atom fiziğine yazar ve II'yi eler. {{S4}} çekirdekle ilgili olayların nükleer fiziğin konusu olduğunu gözden kaçırır.`
+      ]
+    },
+    {
+      id: 'TD32_2', konu: 'T.2.3', yks: true, zorluk: 2, cikti: 'FİZ.10.1.1', beceri: 'Konum-zaman grafiğini yorumlama', cikmis: { yil: 2018, kalip: 'Konum-zaman grafiğinden iki aracın karşılaşması ve hızları (I-II-III)' },
+      metin: r`Bir limanda konteyner taşıyıcı K ve L araçları, rıhtım boyunca uzanan paralel ve doğrusal iki şeritte hareket ediyor. Araçların konum-zaman grafiği şekilde verilmiştir.
+
+Buna göre,
+
+I. K ile L, $t = 20\ \text{s}$ anında yan yana gelir.
+II. K ile L yan yana geldikleri anda aynı hıza sahiptir.
+III. $0$–$40\ \text{s}$ aralığında L'nin ortalama hızının büyüklüğü, K'nın ortalama hızının büyüklüğünden küçüktür.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'TD32_liman',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`K, $40\ \text{s}$'de $0$'dan $120\ \text{m}$'ye sabit hızla gider: $\vartheta_K = \dfrac{120}{40} = 3\ \text{m/s}$. L, $15\ \text{s}$'de $150\ \text{m}$'den $60\ \text{m}$'ye gelir: $\vartheta_L = \dfrac{60 - 150}{15} = -6\ \text{m/s}$; $15$. saniyeden sonra $60\ \text{m}$'de durur.`,
+        r`I. $t = 20\ \text{s}$'de K'nın konumu $3 \cdot 20 = 60\ \text{m}$'dir; L de o anda $60\ \text{m}$'de durmaktadır. Konumları eşit olduğu için araçlar yan yana gelir. **Doğru.**`,
+        r`II. Yan yana geldikleri anda K'nın hızı $3\ \text{m/s}$, L'nin hızı sıfırdır. Grafiklerin kesişmesi konumların eşit olduğunu gösterir, hızların değil. **Yanlış.**`,
+        r`III. $0$–$40\ \text{s}$ aralığında $\Delta x_K = 120\ \text{m}$, ortalama hızın büyüklüğü $3\ \text{m/s}$'dir. $\Delta x_L = 60 - 150 = -90\ \text{m}$, ortalama hızın büyüklüğü $\dfrac{90}{40} = 2,25\ \text{m/s}$'dir. **Doğru.**`,
+        r`{{S0}} L'nin ortalama hızını yalnızca hareket ettiği $15\ \text{s}$'ye göre ($6\ \text{m/s}$) hesaplar ve III'ü eler. {{S1}} kesişme noktasında hızların da eşit olduğunu sanır, konumları ve ortalama hızları karşılaştırmaz. {{S2}} L'nin durduğu $15$. saniyeyi karşılaşma anı sanır ve I'i eler. {{S3}} grafiklerin kesiştiği anda hızların da eşit olduğunu sanır ve L'nin ortalama hızını $6\ \text{m/s}$ alıp III'ü eler.`
+      ]
+    },
+    {
+      id: 'TD32_3', konu: 'T.3.3', yks: true, zorluk: 1, cikti: 'FİZ.10.2.5', beceri: 'Genellemeyi karşı örnekle sınama',
+      metin: r`Enerji kulübünde Irmak, hazırladığı afişe "Kökeni Güneş olan bütün enerji kaynakları yenilenebilir." genellemesini yazıyor. Kulüp danışmanı öğretmen, bu genellemenin yanlış olduğunu tek bir örnekle göstermesini istiyor.
+
+Irmak'ın genellemesini çürüten örnek aşağıdakilerden hangisidir?`,
+      secenekler: ['Jeotermal enerji', 'Rüzgâr enerjisi', 'Linyit kömürü', 'Uranyum', 'Tarım atıklarından elde edilen biyokütle'],
+      dogru: 2,
+      cozum: [
+        r`Bir genellemeyi çürütmek için genellemenin koşulunu sağlayan (kökeni Güneş olan) ama sonucunu sağlamayan (yenilenemeyen) bir örnek gerekir.`,
+        r`Linyit kömürü gibi fosil yakıtlar, Güneş enerjisini fotosentezle depolamış bitki kalıntılarından milyonlarca yılda oluşmuştur; kökenleri Güneş'tir. Oluşumları çok uzun sürdüğü için insan ömrü ölçeğinde yenilenemezler. Bu örnek genellemeyi çürütür.`,
+        r`{{S1}} rüzgârın kökeninin Güneş olduğunu ve yenilenebildiğini gözden kaçırır; bu örnek genellemeye uyar. {{S0}} jeotermal enerjinin kökeninin Güneş değil yer içindeki ısı olduğunu görmez; bu örnek genellemenin kapsamına girmez. {{S3}} uranyumun yenilenemediğine bakar ama kökeninin Güneş olmadığını görmez; kökeni Güneş olmayan bir kaynak bu genellemeyi çürütemez. {{S4}} biyokütlenin kökeninin Güneş olduğunu ve yenilenebildiğini gözden kaçırır; bu örnek de genellemeye uyar.`
+      ]
+    },
+    {
+      id: 'TD32_4', konu: 'T.4.3', yks: true, zorluk: 3, cikti: 'FİZ.9.4.6', beceri: 'Kesin ve olası çıkarımları ayırma', cikmis: { yil: 2023, kalip: 'Isı aktarım yollarıyla ilgili yargılar (I-II-III, "kesinlikle")' },
+      metin: r`Dalgıç Ozan, kışın soğuk bir gölde dalış yapmak için neopren dalış elbisesi giyiyor. Neopren, içinde çok sayıda küçük ve kapalı gaz kabarcığı bulunan kauçuk bir köpüktür. Elbise vücuda sıkıca oturur; içeri sızan ince su tabakası vücutla ısınır ve bu su, elbise sıkı olduğu için pek yer değiştirmez. Ozan derine indikçe üzerindeki basınç artar, köpükteki gaz kabarcıkları sıkışır ve elbise incelir.
+
+Buna göre,
+
+I. Elbise bol olsaydı, içerideki ılık su dışarıdaki soğuk suyla sürekli yer değiştirir ve vücuttan ısı kaybı artardı.
+II. Ozan derine indikçe, aynı sıcaklık farkında elbisenin ısı iletim hızı artar.
+III. Ozan derine indikçe vücudundan göl suyuna ısı aktarım hızı artar.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`I. Bol elbisede vücutla ısınan su dışarı çıkar, yerine soğuk su gelir. Akışkanın kendisi yer değiştirerek ısıyı taşır (konveksiyon); vücut sürekli yeni gelen soğuk suyu ısıtmak zorunda kalır. **Kesinlikle doğru.**`,
+        r`II. Aynı maddeden bir yalıtkanda alan ve sıcaklık farkı aynıyken kalınlık azalırsa iletimle ısı aktarım hızı artar. Sıkışan elbise inceldiği için **kesinlikle doğru.**`,
+        r`III. Isı kaybının hızı, elbisenin kalınlığına olduğu kadar vücut ile göl suyu arasındaki sıcaklık farkına da bağlıdır. Derindeki suyun sıcaklığı verilmemiştir: Kışın göllerde dipteki su (yaklaşık $4\ {}^{\circ}\text{C}$) yüzeydeki sudan ılık olabilir. Sıcaklık farkı küçülürse ısı kaybının hızı artmayabilir. **Kesin değil.**`,
+        r`{{S0}} incelen elbisenin iletimi kolaylaştırdığını görmez ve II'yi eler. {{S2}} kalınlığın iletim hızına etkisini görmez ve sıcaklık farkı bilinmeden III'ü kesin sayar. {{S3}} bol elbisede suyun yer değiştirmesiyle oluşan konveksiyonu görmez ve III'ü kesin sayar. {{S4}} derindeki suyun sıcaklığını hesaba katmadan III'ü de kesin sayar.`
+      ]
+    },
+    {
+      id: 'TD32_5', konu: 'T.5.1', yks: true, zorluk: 2, cikti: 'FİZ.9.3.1', beceri: 'Ağırlık ve yüzey alanından basınç karşılaştırma', cikmis: { yil: 2021, kalip: 'Yük ve yüzey alanı değişince katı basıncının karşılaştırılması' },
+      metin: r`Gönüllü itfaiyeci Tuncay, donmuş bir gölde buza düşen birini kurtarma eğitimi alıyor. Kütlesi $80\ \text{kg}$ olan Tuncay, buzun üzerinde tablodaki üç farklı biçimde duruyor.
+
+{{tablo}}
+
+Tuncay'ın (M durumunda Tuncay ile kızağın birlikte) buza uyguladığı basınçlar $P_K$, $P_L$ ve $P_M$ arasındaki ilişki nedir? ($g = 10\ \text{m/s}^2$)`,
+      tablo: [['Durum', 'Duruş biçimi', 'Buza değen toplam alan'], ['K', 'Ayakta, iki ayağı üzerinde', '500 cm²'], ['L', 'Buzun üstünde yüzükoyun uzanmış', '0,5 m²'], ['M', '20 kg kütleli plastik kurtarma kızağının üstünde yüzükoyun uzanmış', 'Kızağın tabanı: 0,8 m²']],
+      secenekler: [r`$P_M > P_K = P_L$`, r`$P_L > P_M > P_K$`, r`$P_K > P_M > P_L$`, r`$P_K > P_L > P_M$`, r`$P_K = P_L > P_M$`],
+      dogru: 3,
+      cozum: [
+        r`K ve L'de buza etki eden kuvvet Tuncay'ın ağırlığıdır: $80 \cdot 10 = 800\ \text{N}$. M'de Tuncay ile kızağın toplam kütlesi $100\ \text{kg}$, ağırlığı $1000\ \text{N}$'dur.`,
+        r`Alanları aynı birime çevir: $500\ \text{cm}^2 = 0,05\ \text{m}^2$. $P = \dfrac{F}{A}$: $P_K = \dfrac{800}{0,05} = 16\,000\ \text{Pa}$, $P_L = \dfrac{800}{0,5} = 1600\ \text{Pa}$, $P_M = \dfrac{1000}{0,8} = 1250\ \text{Pa}$.`,
+        r`Sıralama $P_K > P_L > P_M$'dir. Kızak buza etki eden kuvveti artırsa da temas alanını daha çok artırdığı için basınç en küçük M'dedir.`,
+        r`{{S1}} $500\ \text{cm}^2$'yi metrekareye çevirmeden işleme koyar ($\dfrac{800}{500} = 1,6\ \text{Pa}$). {{S2}} kızağın ağırlığını ekler ama temas alanının büyüdüğünü hesaba katmaz ($\dfrac{1000}{0,5} = 2000\ \text{Pa}$). {{S0}} basıncı yalnızca buza etki eden ağırlığa bağlar ve alanları karşılaştırmaz. {{S4}} $500\ \text{cm}^2$'yi $1000$'e bölerek $0,5\ \text{m}^2$ sanır ve K ile L'nin basınçlarını eşit bulur.`
+      ]
+    },
+    {
+      id: 'TD32_6', konu: 'T.6.1', yks: true, zorluk: 2, cikti: 'FİZ.10.3.3', beceri: 'Direncin boy ve kesite bağlılığını Ohm yasasıyla birleştirme', cikmis: { yil: 2021, kalip: 'Koşul değişince iki niceliğin yeni değerleri (iki sütun)' },
+      metin: r`Bilim şenliğine hazırlanan Elif, elektriği ileten oyun hamurundan düzgün bir silindir yapıyor. Silindirin iki ucunu, iç direnci önemsiz $9\ \text{V}$'luk bir pile ve ideal bir ampermetreye şekildeki gibi bağlıyor. Silindirin boyu $10\ \text{cm}$ iken ampermetre $12\ \text{mA}$ gösteriyor. Elif sonra aynı hamuru hiç eksiltmeden yuvarlayarak boyu $20\ \text{cm}$ olan daha ince ve düzgün bir silindir yapıyor ve devreye aynı biçimde bağlıyor.
+
+{{sekil}}
+
+Hamurun Ohm yasasına uyduğu ve sıcaklığının değişmediği kabul edildiğine göre, 2. durumda hamur silindirinin direnci ve ampermetrenin gösterdiği değer nedir?`,
+      sekil: 'TD32_hamur_genis',
+      secenekler: [r`$3000\ \Omega$ ve $3\ \text{mA}$`, r`$1500\ \Omega$ ve $6\ \text{mA}$`, r`$750\ \Omega$ ve $12\ \text{mA}$`, r`$187,5\ \Omega$ ve $48\ \text{mA}$`, r`$3000\ \Omega$ ve $48\ \text{mA}$`],
+      dogru: 0,
+      cozum: [
+        r`1. durumda silindirin direnci $R_1 = \dfrac{V}{I} = \dfrac{9\ \text{V}}{0,012\ \text{A}} = 750\ \Omega$'dur.`,
+        r`Hamur eksilmediği için hacmi (kesit alanı $\times$ boy) değişmez. Boy $2$ katına çıkınca kesit alanı yarıya iner.`,
+        r`Direnç boyla doğru, kesit alanıyla ters orantılıdır. Boyun $2$ katına çıkması direnci $2$ katına, kesitin yarıya inmesi de direnci yeniden $2$ katına çıkarır: $R_2 = 750 \cdot 2 \cdot 2 = 3000\ \Omega$.`,
+        r`Akım: $I_2 = \dfrac{9\ \text{V}}{3000\ \Omega} = 0,003\ \text{A} = 3\ \text{mA}$.`,
+        r`{{S1}} yalnızca boyun $2$ katına çıktığını dikkate alır, kesitin yarıya indiğini unutur ($750 \cdot 2 = 1500\ \Omega$). {{S2}} hamurun maddesi ve miktarı aynı kaldığı için direncin değişmeyeceğini sanır. {{S3}} direnci kesitle doğru, boyla ters orantılı kurar ($\dfrac{750}{4} = 187,5\ \Omega$). {{S4}} direnci doğru bulur ama akımın dirençle doğru orantılı olduğunu sanır ($12 \cdot 4 = 48\ \text{mA}$).`
+      ]
+    },
+    {
+      id: 'TD32_7', konu: 'T.7.1', yks: true, zorluk: 3, cikti: 'FİZ.10.4.2', beceri: 'Dalga görünümünden olası durumları belirleme', cikmis: { yil: 2025, kalip: 'Dalganın periyodu ve süratiyle ilgili olası değerler ("olabilir")' },
+      metin: r`Fizik kulübünde Mert, çok uzun bir ipin bir ucunu sabit bir frekansla aşağı yukarı sallayarak ipte sağa doğru ilerleyen periyodik bir dalga oluşturuyor. Duru, ipin arkasındaki kareli panonun önünden ipin aynı bölümünün $0,5\ \text{s}$ arayla iki fotoğrafını çekiyor. Şekilde 1. fotoğraftaki görünüm sürekli, 2. fotoğraftaki görünüm kesikli çizgiyle gösterilmiştir. Fotoğraflardaki bölüme yansıyan dalga ulaşmamıştır.
+
+Buna göre,
+
+I. Dalganın yayılma sürati $0,4\ \text{m/s}$'dir.
+II. Dalganın periyodu $1\ \text{s}$'dir.
+III. Dalganın yayılma sürati $2\ \text{m/s}$'dir.
+
+yargılarından hangileri doğru olabilir?`,
+      sekil: 'TD32_ip',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`Şekilden dalga boyu $8$ kare, yani $\lambda = 80\ \text{cm}$'dir. Dalga sağa ilerlediği için 2. görünüm, 1. görünümün $2$ kare ($20\ \text{cm}$) sağa kaymış hâlidir.`,
+        r`Ancak dalga $0,5\ \text{s}$'de $20\ \text{cm}$'ye ek olarak tam sayıda dalga boyu daha ilerlemiş de olabilir; fotoğraflar aynı görünür. Olası yer değiştirmeler $20$, $100$, $180\ \text{cm}$, … olur.`,
+        r`Olası süratler $\vartheta = \dfrac{\Delta x}{0,5\ \text{s}}$: $0,4$; $2$; $3,6\ \text{m/s}$, … Olası periyotlar $T = \dfrac{\lambda}{\vartheta}$: $2$; $0,4$; yaklaşık $0,22\ \text{s}$, …`,
+        r`I. $0,4\ \text{m/s}$ ($20\ \text{cm}$ kayma) **olabilir.** III. $2\ \text{m/s}$ ($100\ \text{cm}$, yani bir dalga boyu ve çeyreği kadar kayma) **olabilir.** II. $T = 1\ \text{s}$ olsaydı $0,5\ \text{s}$ yarım periyot olurdu ve görünüm yarım dalga boyu, yani $4$ kare kayardı. **Olamaz.**`,
+        r`{{S0}} iki fotoğraf arasında dalganın bir dalga boyundan fazla ilerlemiş olabileceğini düşünmez ve III'ü eler. {{S1}} $2$ karelik kaymayı yarım dalga boyu sanır ve $0,5\ \text{s}$'yi yarım periyot kabul eder. {{S2}} en küçük kayma olan $20\ \text{cm}$'nin de olası olduğunu görmez ve I'i eler. {{S3}} $0,5\ \text{s}$'yi yarım periyot sanarak II'yi kabul eder ve III'teki daha büyük kaymayı düşünmez.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim TYT, TD33 (TYT Fizik Denemesi 33)
+   Şablon: 1. soru T.1/T.2, 2. soru T.2, 3–7. sorular T.3–T.7'den birer. Zorluk 2/3/2 (★/★★/★★★).
+   Gerçek TYT fizik bölümü gibi 7 soru, 10 dakika. Metinler, sayılar ve şekiller özgündür;
+   ÖSYM sorularından yalnızca soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Şekil anahtarları: TD33_ öneki. Soru kimlikleri: TD33_1 … TD33_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ---------- */
+if (window.BFY_FIGLIB) {
+const { P, T, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', KR = '#d0342c', INK = P.ink;
+
+// Grafik ekseni (ϑ-t): sıfır çizgisi yatay eksen, okun ucunda eksen adları
+function grafik(o) {
+  const { x0, yB, W, H, tMax, vMin, vMax } = o;
+  const sx = t => x0 + t / tMax * W, sy = v => yB - (v - vMin) / (vMax - vMin) * H, zy = sy(0);
+  let s = '';
+  (o.gridT || []).forEach(t => { s += `<line x1="${f1(sx(t))}" y1="${f1(yB)}" x2="${f1(sx(t))}" y2="${f1(yB - H)}" stroke="#dde5df" stroke-width="1"/>`; });
+  (o.gridV || []).forEach(v => { s += `<line x1="${x0}" y1="${f1(sy(v))}" x2="${f1(x0 + W)}" y2="${f1(sy(v))}" stroke="#dde5df" stroke-width="1"/>`; });
+  const top = yB - H - 14, right = x0 + W + 12;
+  s += `<line x1="${x0}" y1="${yB}" x2="${x0}" y2="${top + 4}" stroke="${INK}" stroke-width="1.5"/><polygon points="${x0},${top - 6} ${x0 - 4},${top + 4} ${x0 + 4},${top + 4}" fill="${INK}"/>`;
+  s += `<line x1="${x0}" y1="${f1(zy)}" x2="${right - 2}" y2="${f1(zy)}" stroke="${INK}" stroke-width="1.5"/><polygon points="${right + 8},${f1(zy)} ${right - 2},${f1(zy - 4)} ${right - 2},${f1(zy + 4)}" fill="${INK}"/>`;
+  s += T(x0 + 8, top + 2, o.yLabel, { size: 12.5, weight: 800 });
+  s += T(right + 11, zy + 4.5, o.tLabel, { size: 12.5, weight: 800 });
+  (o.tTicks || []).forEach(([t, l, ust]) => { s += `<line x1="${f1(sx(t))}" y1="${f1(zy - 3)}" x2="${f1(sx(t))}" y2="${f1(zy + 3)}" stroke="${INK}" stroke-width="1.2"/>` + T(sx(t), ust ? zy - 7 : zy + 16, l, { size: 12, anchor: 'middle', fill: P.ink2 }); });
+  (o.vTicks || []).forEach(([v, l]) => { s += `<line x1="${x0 - 3}" y1="${f1(sy(v))}" x2="${x0 + 3}" y2="${f1(sy(v))}" stroke="${INK}" stroke-width="1.2"/>` + T(x0 - 7, sy(v) + 4.5, l, { size: 12, anchor: 'end', fill: P.ink2 }); });
+  s += T(x0 - 7, zy + 4.5, '0', { size: 11.5, anchor: 'end', fill: P.ink2 });
+  return { s, sx, sy, zy };
+}
+const cizgi = (pts, G, c, w = 2.8) => `<polyline points="${pts.map(([t, v]) => f1(G.sx(t)) + ',' + f1(G.sy(v))).join(' ')}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+// 2. soru: pist hazırlama aracının (ratrak) hız-zaman grafiği
+BFY_FIG_EKLE('TD33_ratrak', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="214" rx="10" fill="#f6f9f7"/>`;
+  const G = grafik({ x0: 50, yB: 192, W: 222, H: 164, tMax: 30, vMin: -3, vMax: 5, yLabel: 'ϑ (m/s)', tLabel: 't (s)',
+    gridT: [4, 8, 12, 16, 20, 24, 28], gridV: [-2, -1, 1, 2, 3, 4], tTicks: [[8, '8', false], [20, '20', false], [28, '28', true]], vTicks: [[4, '4'], [-2, '−2']] });
+  s += G.s;
+  s += cizgi([[0, 0], [8, 4], [20, 4], [24, 0], [28, -2]], G, MAV);
+  s += `<line x1="${f1(G.sx(24))}" y1="${f1(G.zy - 3)}" x2="${f1(G.sx(24))}" y2="${f1(G.zy + 3)}" stroke="${INK}" stroke-width="1.2"/>` + T(G.sx(24) - 6, G.zy + 16, '24', { size: 12, anchor: 'middle', fill: P.ink2 });
+  s += dashLine(f1(G.sx(0)), f1(G.sy(4)), f1(G.sx(8)), f1(G.sy(4)), '#9aa9a0', '3 3', 1.1);
+  s += dashLine(f1(G.sx(8)), f1(G.sy(4)), f1(G.sx(8)), f1(G.zy), '#9aa9a0', '3 3', 1.1) + dashLine(f1(G.sx(20)), f1(G.sy(4)), f1(G.sx(20)), f1(G.zy), '#9aa9a0', '3 3', 1.1);
+  s += dashLine(f1(G.sx(0)), f1(G.sy(-2)), f1(G.sx(28)), f1(G.sy(-2)), '#9aa9a0', '3 3', 1.1) + dashLine(f1(G.sx(28)), f1(G.zy), f1(G.sx(28)), f1(G.sy(-2)), '#9aa9a0', '3 3', 1.1);
+  return svg(320, 214, s, u, 72);
+});
+
+// 5. soru: boya tankı, ilk durum ve boya eklendikten sonra (kesit)
+BFY_FIG_EKLE('TD33_tank', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="232" rx="10" fill="#f6f9f7"/>`;
+  const k = 1.15, yT = 190; // 1 cm = 1,15 birim; taban y = 190
+  const tank = (x0, hBoya, baslik) => {
+    const w = 104, hT = 140 * k, yUst = yT - hT, yBoya = yT - hBoya * k, yMus = yT - 20 * k;
+    let t = '';
+    t += `<rect x="${x0}" y="${f1(yBoya)}" width="${w}" height="${f1(yT - yBoya)}" fill="#d9844a" opacity="0.88"/>`;
+    t += `<line x1="${x0}" y1="${f1(yBoya)}" x2="${x0 + w}" y2="${f1(yBoya)}" stroke="#a24f1c" stroke-width="1.8"/>`;
+    t += `<path d="M ${x0} ${f1(yUst)} L ${x0} ${yT} L ${x0 + w} ${yT} L ${x0 + w} ${f1(yUst)}" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linejoin="round"/>`;
+    // musluk (sağ duvarda, kapalı)
+    t += `<rect x="${x0 + w}" y="${f1(yMus - 4)}" width="18" height="8" fill="#9aa3a8" stroke="${INK}" stroke-width="1.3"/>`;
+    t += `<rect x="${x0 + w + 7}" y="${f1(yMus - 13)}" width="5" height="9" fill="#5f6a70"/>`;
+    t += `<path d="M ${x0 + w + 18} ${f1(yMus - 4)} l 4 0 l 0 12" fill="none" stroke="${INK}" stroke-width="1.3"/>`;
+    // ölçüler: boya yüksekliği tankın içinde, sol duvara yakın
+    const xd = x0 + 12;
+    t += `<line x1="${xd}" y1="${f1(yBoya)}" x2="${xd}" y2="${yT}" stroke="#ffffff" stroke-width="1.2"/>`;
+    t += `<line x1="${xd - 4}" y1="${f1(yBoya)}" x2="${xd + 4}" y2="${f1(yBoya)}" stroke="#ffffff" stroke-width="1.2"/>`;
+    t += T(xd + 6, (yBoya + yT) / 2 - 8, hBoya + ' cm', { size: 11.5, weight: 800, fill: '#ffffff', halo: false });
+    // musluğun tabandan yüksekliği (tankın içinde, sağ duvara yakın)
+    const xm = x0 + w - 14;
+    t += `<line x1="${xm}" y1="${f1(yMus)}" x2="${xm}" y2="${yT}" stroke="#ffffff" stroke-width="1.2"/>`;
+    t += `<line x1="${xm - 4}" y1="${f1(yMus)}" x2="${xm + 4}" y2="${f1(yMus)}" stroke="#ffffff" stroke-width="1.2"/>`;
+    t += T(xm - 5, yT - 6, '20 cm', { size: 11, anchor: 'end', weight: 800, fill: '#ffffff', halo: false });
+    t += T(x0 + w / 2, 216, baslik, { size: 12, anchor: 'middle', weight: 800, fill: P.ink2 });
+    return t;
+  };
+  s += tank(40, 80, 'İlk durum') + tank(186, 120, 'Boya eklendikten sonra');
+  s += T(312, 16, '(Kesit, ölçekli değildir.)', { size: 10.5, anchor: 'end', weight: 600, fill: P.ink2 });
+  return svg(320, 232, s, u, 70);
+});
+
+// 6. soru: R1 seri; R2 (ampermetreli kol) ile R3 (S anahtarlı kol) paralel; voltmetre R1'in uçlarında
+const tel = (pts, w = 2) => `<polyline points="${pts.map(p => f1(p[0]) + ',' + f1(p[1])).join(' ')}" fill="none" stroke="${INK}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const dugum = (x, y) => `<circle cx="${x}" cy="${y}" r="3.2" fill="${INK}"/>`;
+function direncY(x1, x2, y) { // yatay direnç
+  const L = 34, A = 6, n = 8, m = (x1 + x2) / 2, a = m - L / 2;
+  let d = `M${f1(a)} ${y}`;
+  for (let i = 0; i < n; i++) d += ` L${f1(a + (i + 0.5) * L / n)} ${f1(y + (i % 2 ? A : -A))}`;
+  d += ` L${f1(a + L)} ${y}`;
+  return tel([[x1, y], [a, y]]) + tel([[a + L, y], [x2, y]]) + `<path d="${d}" fill="none" stroke="${KR}" stroke-width="1.9" stroke-linejoin="round"/>`;
+}
+function direncD(x, y1, y2) { // dikey direnç
+  const L = 34, A = 6, n = 8, m = (y1 + y2) / 2, a = m - L / 2;
+  let d = `M${x} ${f1(a)}`;
+  for (let i = 0; i < n; i++) d += ` L${f1(x + (i % 2 ? A : -A))} ${f1(a + (i + 0.5) * L / n)}`;
+  d += ` L${x} ${f1(a + L)}`;
+  return tel([[x, y1], [x, a]]) + tel([[x, a + L], [x, y2]]) + `<path d="${d}" fill="none" stroke="${KR}" stroke-width="1.9" stroke-linejoin="round"/>`;
+}
+const olcer = (x, y, h) => `<circle cx="${x}" cy="${y}" r="11.5" fill="#fff" stroke="${INK}" stroke-width="1.8"/>` + T(x, y + 4.6, h, { size: 12.5, anchor: 'middle', weight: 800, halo: false });
+BFY_FIG_EKLE('TD33_devre', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="236" rx="12" fill="#f7f9f8"/>`;
+  const xB = 40, yT = 76, yA = 210, xN = 186, xR = 276;
+  // üreteç (sol kol, dikey): üstte uzun ince (+), altta kısa kalın (−)
+  const yp = 143;
+  s += tel([[xB, yT], [xB, yp - 4.5]]) + tel([[xB, yp + 4.5], [xB, yA]]);
+  s += `<line x1="${xB - 14}" y1="${yp - 4.5}" x2="${xB + 14}" y2="${yp - 4.5}" stroke="${INK}" stroke-width="2"/><line x1="${xB - 7.5}" y1="${yp + 4.5}" x2="${xB + 7.5}" y2="${yp + 4.5}" stroke="${INK}" stroke-width="5"/>`;
+  s += T(xB + 22, yp - 8, '+', { size: 13, anchor: 'middle', weight: 800 }) + T(xB + 22, yp + 15, '−', { size: 14, anchor: 'middle', weight: 800 });
+  s += T(xB - 18, yp + 4.5, '12 V', { size: 12.5, anchor: 'end', weight: 800 });
+  // üst tel ve R1
+  s += tel([[xB, yT], [74, yT]]) + direncY(74, 136, yT) + tel([[136, yT], [xR, yT]]);
+  s += T(105, yT + 24, 'R₁ = 2 Ω', { size: 12, anchor: 'middle', weight: 700 });
+  // voltmetre R1'in uçlarında
+  s += dugum(74, yT) + dugum(136, yT) + tel([[74, yT], [74, 34], [93.5, 34]]) + olcer(105, 34, 'V') + tel([[116.5, 34], [136, 34], [136, yT]]);
+  // R2 kolu (ampermetreli)
+  s += dugum(xN, yT) + direncD(xN, yT, 138) + tel([[xN, 138], [xN, 162.5]]) + olcer(xN, 174, 'A') + tel([[xN, 185.5], [xN, yA]]);
+  s += T(xN + 12, 112, 'R₂ = 6 Ω', { size: 12, weight: 700 });
+  // R3 kolu (S anahtarlı, açık)
+  s += tel([[xR, yT], [xR, 96]]);
+  s += `<circle cx="${xR}" cy="96" r="2.8" fill="${INK}"/><circle cx="${xR}" cy="122" r="2.8" fill="${INK}"/>` + tel([[xR, 96], [xR + 13, 119]], 2.2);
+  s += T(xR - 10, 113, 'S', { size: 13, anchor: 'end', weight: 800 });
+  s += direncD(xR, 122, 186) + tel([[xR, 186], [xR, yA]]);
+  s += T(xR - 12, 158, 'R₃ = 3 Ω', { size: 12, anchor: 'end', weight: 700 });
+  // alt tel
+  s += tel([[xB, yA], [xR, yA]]) + dugum(xN, yA);
+  return svg(320, 236, s, u, 72);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'TD33', ad: 'TYT Fizik Denemesi 33', tur: 'deneme', sure: 600,
+  aciklama: 'Sondaj raporundaki niceliklerin türü, ratrağın hız-zaman grafiği, süzülen model uçakların mekanik enerjisi, fırından çıkan çömlek ve kasenin iç enerjisi, boya tankında basınç, anahtarlı devrede ölçüm aletleri ve sığ suya ilerleyen göl dalgaları.',
+  baglamlar: ['jeotermal sondaj ekibinde mühendis Aslı\'nın günlük raporu: kuyu dibindeki su 96 °C, matkap ucunu aşağı iten kuvvet 80 kN, çıkarılan sondaj çamuru 12 m³ (temel/türetilmiş ve skaler/vektörel, tablo şıklı)',
+    'kayak merkezinde pist hazırlama aracı (ratrak) düz alanda ϑ-t: 0 → 4 m/s (8 s), 4 m/s (20. s\'ye kadar), 4 → 0 (24. s), 0 → −2 m/s (28. s); ivme oranı, geri giderken hızlanma, 68 m',
+    'model uçak kulübünde Cem: motoru kapalı süzülen K (3,0 kg, 35 m, 10 m/s), L (3,5 kg, 40 m, 8 m/s), M (4,0 kg, 25 m, 14 m/s) uçuş kayıtları; mekanik enerji sıralaması E_L > E_M > E_K',
+    'çömlek atölyesinde Selin: fırından aynı anda çıkan aynı kilden 3,2 kg çömlek ve 0,4 kg kase, 150 °C; ortalama hareket enerjisi, iç enerji, "ısıya sahip olma" yanılgısı (kesinlikle)',
+    'boya atölyesinde dikdörtgenler prizması tank: boya 80 → 120 cm, yan duvarda tabandan 20 cm yukarıda kapalı musluk; musluktaki basınç 5/3, taban basınç kuvveti 3/2 katı (iki sütun)',
+    'elektronik kulübünde Defne: 12 V, R1 = 2 Ω seri, R2 = 6 Ω (ampermetreli kol) ile S anahtarlı R3 = 3 Ω paralel, voltmetre R1\'in uçlarında; S kapanınca voltmetre 3 → 6 V, ampermetre 1,5 → 1 A, R3\'ten 2 A',
+    'doğa fotoğrafçısı Ece göl kıyısındaki tahta iskeleden rüzgâr dalgalarını çekiyor: derinde 1 Hz, 1,6 m; sığ bölgede olası dalga boyu, periyot ve sürat (olabilir)'],
+  sorular: [
+    {
+      id: 'TD33_1', konu: 'T.1.2', yks: true, zorluk: 1, cikti: 'FİZ.9.2.1', beceri: 'Niceliklerin türünü belirleme', cikmis: { yil: 2020, kalip: 'Günlük bir metindeki niceliklerin türü (tablo şıklı)' },
+      metin: r`Jeotermal enerji için kuyu açan bir sondaj ekibinde çalışan mühendis Aslı, günlük raporuna şu üç ölçümü yazıyor.
+
+K: Kuyunun dibindeki suyun sıcaklığı $96\ {}^{\circ}\text{C}$'dir.
+
+L: Sondaj borusu, matkap ucunu düşey doğrultuda aşağı doğru $80\ \text{kN}$'luk kuvvetle itmektedir.
+
+M: Gün boyunca kuyudan çıkarılan sondaj çamurunun hacmi $12\ \text{m}^3$'tür.
+
+Aslı'nın raporundaki K, L ve M niceliklerinin türleri aşağıdakilerin hangisinde doğru verilmiştir?`,
+      secenekler: ['K: türetilmiş, skaler; L: türetilmiş, vektörel; M: türetilmiş, skaler', 'K: temel, skaler; L: türetilmiş, vektörel; M: temel, skaler', 'K: temel, skaler; L: türetilmiş, vektörel; M: türetilmiş, skaler', 'K: temel, skaler; L: temel, vektörel; M: türetilmiş, skaler', 'K: temel, skaler; L: türetilmiş, skaler; M: türetilmiş, skaler'],
+      dogru: 2,
+      cozum: [
+        r`K. Sıcaklık, SI'daki yedi temel nicelikten biridir (birimi kelvin). Yönü yoktur; sayı ve birimle tam tanımlanır. **Temel, skaler.**`,
+        r`L. Kuvvet, kütle, uzunluk ve zamandan türetilir ($1\ \text{N} = 1\ \text{kg} \cdot \text{m/s}^2$). "Aşağı doğru" bilgisi olmadan tam tanımlanamaz. **Türetilmiş, vektörel.**`,
+        r`M. Hacim, uzunluğun üç kez çarpılmasıyla türetilir ($\text{m}^3$). Yönü yoktur. **Türetilmiş, skaler.**`,
+        r`{{S1}} hacmi temel nicelik sanır; hacim uzunluktan türetilir. {{S0}} sıcaklığı türetilmiş nicelik sanır; sıcaklık yedi temel nicelikten biridir. {{S3}} kuvveti temel nicelik sanır; kuvvetin birimi kilogram, metre ve saniyeden türetilir. {{S4}} kuvvetin yönünü hesaba katmaz; matkap ucunu aşağı doğru iten kuvvet vektörel bir niceliktir.`
+      ]
+    },
+    {
+      id: 'TD33_2', konu: 'T.2.4', yks: true, zorluk: 3, cikti: 'FİZ.10.1.3', beceri: 'Hız-zaman grafiğinden ivme ve konum yorumlama', cikmis: { yil: 2023, kalip: 'Hız-zaman grafiğinde ivme, hızlanma-yavaşlama ve yer değiştirme (I-II-III)' },
+      metin: r`Bir kayak merkezinde pistleri düzleyen pist hazırlama aracı (ratrak), düz ve yatay bir alanda doğrusal bir yol boyunca hareket ediyor. Araç $t = 0$ anında durgun hâlden harekete başlıyor. Aracın hız-zaman grafiği şekildeki gibidir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Aracın $0$–$8\ \text{s}$ aralığındaki ivmesinin büyüklüğü, $20$–$24\ \text{s}$ aralığındakinin yarısıdır.
+II. Araç $24$–$28\ \text{s}$ aralığında yavaşlamaktadır.
+III. Araç $28$. saniyede, harekete başladığı noktanın $68\ \text{m}$ ilerisindedir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'TD33_ratrak',
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. İvme, grafiğin eğimidir. $0$–$8\ \text{s}$: $\dfrac{4 - 0}{8} = 0,5\ \text{m/s}^2$. $20$–$24\ \text{s}$: $\dfrac{0 - 4}{4} = -1\ \text{m/s}^2$, büyüklüğü $1\ \text{m/s}^2$. $0,5$, $1$'in yarısıdır. **Doğru.**`,
+        r`II. $24$–$28\ \text{s}$ aralığında hız $0$'dan $-2\ \text{m/s}$'ye gider; hızın büyüklüğü (sürat) artar. İvme ile hız aynı (negatif) yöndedir; araç ters yönde **hızlanmaktadır.** **Yanlış.**`,
+        r`III. Yer değiştirme, grafik ile zaman ekseni arasındaki alandır (eksenin altı negatif). $0$–$8$: $\dfrac{8 \cdot 4}{2} = 16\ \text{m}$; $8$–$20$: $12 \cdot 4 = 48\ \text{m}$; $20$–$24$: $\dfrac{4 \cdot 4}{2} = 8\ \text{m}$; $24$–$28$: $-\dfrac{4 \cdot 2}{2} = -4\ \text{m}$. Toplam $16 + 48 + 8 - 4 = 68\ \text{m}$. **Doğru.**`,
+        r`{{S0}} eksenin altındaki alanı da ileri yönde toplar ($76\ \text{m}$ bulur) ve III'ü eler. {{S1}} iki aralıkta hız değişiminin büyüklüğü aynı ($4\ \text{m/s}$) olduğu için ivmelerin eşit olduğunu sanır; oysa süreler farklıdır. {{S2}} negatif ivmeyi her durumda yavaşlama sanır ve geri giderken alınan yolu da ileri yönde toplar. {{S4}} negatif ivmeyi her durumda yavaşlama sanır; hızın büyüklüğü arttığı için araç hızlanmaktadır.`
+      ]
+    },
+    {
+      id: 'TD33_3', konu: 'T.3.2', yks: true, zorluk: 2, cikti: 'FİZ.10.2.4', beceri: 'Tablodan mekanik enerji hesaplayıp sıralama', cikmis: { yil: 2021, kalip: 'Tablo verisinden enerji sıralaması' },
+      metin: r`Bir model uçak kulübünde Cem, motorları kapatılmış ve süzülerek alçalan üç model uçağın uçuş kayıt cihazlarındaki verileri inceliyor. Aynı anda kaydedilen değerler tabloda verilmiştir.
+
+{{tablo}}
+
+Model uçakların bu andaki mekanik enerjileri $E_K$, $E_L$ ve $E_M$ arasındaki ilişki nedir? (Potansiyel enerjiler yere göredir; $g = 10\ \text{m/s}^2$.)`,
+      tablo: [['Model uçak', 'Kütle', 'Yerden yükseklik', 'Sürat'], ['K', '3,0 kg', '35 m', '10 m/s'], ['L', '3,5 kg', '40 m', '8 m/s'], ['M', '4,0 kg', '25 m', '14 m/s']],
+      secenekler: [r`$E_M > E_L > E_K$`, r`$E_L > E_K > E_M$`, r`$E_M > E_K > E_L$`, r`$E_L > E_M > E_K$`, r`$E_K = E_L = E_M$`],
+      dogru: 3,
+      cozum: [
+        r`Mekanik enerji, potansiyel ve kinetik enerjinin toplamıdır: $E = m \cdot g \cdot h + \dfrac{1}{2} \cdot m \cdot \vartheta^2$.`,
+        r`$E_K = 3 \cdot 10 \cdot 35 + \dfrac{1}{2} \cdot 3 \cdot 10^2 = 1050 + 150 = 1200\ \text{J}$.`,
+        r`$E_L = 3,5 \cdot 10 \cdot 40 + \dfrac{1}{2} \cdot 3,5 \cdot 8^2 = 1400 + 112 = 1512\ \text{J}$.`,
+        r`$E_M = 4 \cdot 10 \cdot 25 + \dfrac{1}{2} \cdot 4 \cdot 14^2 = 1000 + 392 = 1392\ \text{J}$. Sıralama: $E_L > E_M > E_K$.`,
+        r`{{S1}} yalnızca potansiyel enerjileri ($1050$, $1400$, $1000\ \text{J}$) karşılaştırır, kinetik enerjiyi unutur. {{S2}} yalnızca kinetik enerjileri ($150$, $112$, $392\ \text{J}$) karşılaştırır. {{S0}} kinetik enerjide $\dfrac{1}{2}$ çarpanını unutur ve $1350$, $1624$, $1784\ \text{J}$ bulur. {{S4}} motorsuz süzülen uçakların mekanik enerjisinin korunduğunu duyunca farklı uçakların enerjilerini eşit sanır; korunum her uçak için ayrı ayrı (sürtünmesiz durumda) geçerlidir.`
+      ]
+    },
+    {
+      id: 'TD33_4', konu: 'T.4.1', yks: true, zorluk: 2, cikti: 'FİZ.9.4.1', beceri: 'Sıcaklık, iç enerji ve ısı kavramlarını ayırt etme', cikmis: { yil: 2026, kalip: 'Sıcaklık, iç enerji ve ısı hakkında kesin yargılar ("kesinlikle")' },
+      metin: r`Bir çömlek atölyesinde Selin, pişirme fırınından aynı anda iki parça çıkarıyor: aynı kilden yapılmış $3,2\ \text{kg}$ kütleli büyük bir çömlek (K) ve $0,4\ \text{kg}$ kütleli küçük bir kase (L). Fırından çıktıkları anda ikisinin de sıcaklığı $150\ {}^{\circ}\text{C}$'dir.
+
+Buna göre bu anda,
+
+I. K ve L'yi oluşturan taneciklerin ortalama hareket enerjileri eşittir.
+II. K'nin iç enerjisi L'ninkinden büyüktür.
+III. K, L'den daha fazla ısıya sahiptir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Sıcaklık, taneciklerin ortalama hareket (kinetik) enerjisinin göstergesidir. Sıcaklıklar eşit olduğu için ortalama hareket enerjileri de eşittir. **Kesinlikle doğru.**`,
+        r`II. İç enerji, maddeyi oluşturan bütün taneciklerin enerjilerinin toplamıdır. K ve L aynı maddeden ve aynı sıcaklıktadır; K'deki madde (tanecik) miktarı L'dekinin $8$ katı olduğu için iç enerjisi daha büyüktür. **Kesinlikle doğru.**`,
+        r`III. Isı, sıcaklık farkından dolayı aktarılan enerjidir; bir cisim ısıya sahip olmaz, ısı içermez. Cismin sahip olduğu enerji iç enerjidir. **Yanlış.**`,
+        r`{{S0}} sıcaklıkları eşit olan cisimlerin iç enerjilerinin de eşit olduğunu sanır; iç enerji madde miktarına da bağlıdır. {{S1}} ortalama hareket enerjisinin kütle büyüdükçe arttığını sanır; ortalama değer yalnız sıcaklığa bağlıdır. {{S3}} cisimlerin ısı depoladığını sanır ve III'ü seçer; aynı maddeden ve aynı sıcaklıkta olan iki cisimden madde miktarı fazla olanın iç enerjisinin büyük olduğunu da görmez. {{S4}} ısıyı cismin içinde depolanan bir enerji sanır; cisimde depolanan enerji iç enerjidir.`
+      ]
+    },
+    {
+      id: 'TD33_5', konu: 'T.5.2', yks: true, zorluk: 1, cikti: 'FİZ.9.3.2', beceri: 'Derinlik değişince basınç ve basınç kuvvetini karşılaştırma', cikmis: { yil: 2020, kalip: 'Sıvı eklenince bir noktadaki basınç ve taban kuvvetinin değişimi (iki sütun)' },
+      metin: r`Bir boya atölyesindeki dikdörtgenler prizması biçimli tankta $80\ \text{cm}$ yüksekliğinde boya vardır. Tankın yan duvarında, tabandan $20\ \text{cm}$ yukarıda kapalı bir boşaltma musluğu bulunur. Tanka aynı boyadan eklenince boyanın yüksekliği $120\ \text{cm}$ oluyor.
+
+{{sekil}}
+
+Boya eklendikten sonra musluğun hizasında, tankın iç duvarında boyanın oluşturduğu basınç ve boyanın tankın tabanına uyguladığı basınç kuvveti, ilk durumdakinin kaç katı olur?`,
+      sekil: 'TD33_tank',
+      secenekler: [r`Basınç $\dfrac{5}{3}$ katı, basınç kuvveti değişmez`, r`Basınç $\dfrac{3}{2}$ katı, basınç kuvveti $\dfrac{3}{2}$ katı`, r`Basınç $\dfrac{5}{3}$ katı, basınç kuvveti $\dfrac{5}{3}$ katı`, r`Basınç değişmez, basınç kuvveti $\dfrac{3}{2}$ katı`, r`Basınç $\dfrac{5}{3}$ katı, basınç kuvveti $\dfrac{3}{2}$ katı`],
+      dogru: 4,
+      cozum: [
+        r`Sıvı basıncı, noktanın sıvının serbest yüzeyinden olan derinliğine bağlıdır: $P = h \cdot d \cdot g$. Musluğun derinliği önce $80 - 20 = 60\ \text{cm}$, sonra $120 - 20 = 100\ \text{cm}$'dir. Basınç $\dfrac{100}{60} = \dfrac{5}{3}$ katına çıkar.`,
+        r`Taban basıncı boya yüksekliğiyle $\dfrac{120}{80} = \dfrac{3}{2}$ katına çıkar. Taban alanı değişmediği için basınç kuvveti ($F = P \cdot A$) de $\dfrac{3}{2}$ katına çıkar.`,
+        r`{{S1}} musluğun derinliğini serbest yüzeyden değil, boyanın toplam yüksekliğiyle ölçer. {{S2}} taban için de musluğun derinlik oranını kullanır. {{S3}} musluğun tabandan yüksekliği değişmediği için basıncın da değişmediğini sanır; basınç serbest yüzeyden ölçülen derinliğe bağlıdır. {{S0}} taban alanı değişmediği için basınç kuvvetinin değişmediğini sanır; oysa taban basıncı artmıştır.`
+      ]
+    },
+    {
+      id: 'TD33_6', konu: 'T.6.2', yks: true, zorluk: 3, cikti: 'FİZ.10.3.4', beceri: 'Anahtar kapanınca ölçüm aletlerinin değişimini yorumlama', cikmis: { yil: 2023, kalip: 'Anahtar kapatılınca ampermetre ve voltmetre okumalarının değişimi (I-II-III)' },
+      metin: r`Elektronik kulübündeki Defne, iç direnci önemsenmeyen $12\ \text{V}$'luk bir üreteç, dirençleri $R_1 = 2\ \Omega$, $R_2 = 6\ \Omega$ ve $R_3 = 3\ \Omega$ olan üç direnç, ideal bir ampermetre, ideal bir voltmetre ve S anahtarıyla şekildeki devreyi kuruyor. Başlangıçta S anahtarı açıktır.
+
+{{sekil}}
+
+Defne S anahtarını kapattığında,
+
+I. Voltmetrenin gösterdiği değer iki katına çıkar.
+II. Ampermetrenin gösterdiği değer artar.
+III. $R_3$ direncinden $2\ \text{A}$ akım geçer.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'TD33_devre',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`S açıkken $R_3$'ten akım geçmez; $R_1$ ile $R_2$ seridir. Eşdeğer direnç $2 + 6 = 8\ \Omega$, üreteç akımı $\dfrac{12}{8} = 1,5\ \text{A}$. Voltmetre $V_1 = 1,5 \cdot 2 = 3\ \text{V}$, ampermetre $1,5\ \text{A}$ gösterir.`,
+        r`S kapanınca $R_2$ ile $R_3$ paralel olur: $\dfrac{6 \cdot 3}{6 + 3} = 2\ \Omega$. Eşdeğer direnç $2 + 2 = 4\ \Omega$, üreteç akımı $\dfrac{12}{4} = 3\ \text{A}$. Voltmetre $V_1 = 3 \cdot 2 = 6\ \text{V}$. Paralel kısmın gerilimi $12 - 6 = 6\ \text{V}$; ampermetre $\dfrac{6}{6} = 1\ \text{A}$ gösterir.`,
+        r`I. Voltmetre $3\ \text{V}$'tan $6\ \text{V}$'a çıkar. **Doğru.**`,
+        r`II. Ampermetre $1,5\ \text{A}$'den $1\ \text{A}$'e iner. **Yanlış.**`,
+        r`III. $R_3$'ün uçlarında da paralel kısmın gerilimi ($6\ \text{V}$) vardır; akımı $\dfrac{6}{3} = 2\ \text{A}$'dir. (Kontrol: $1 + 2 = 3\ \text{A}$, ana kol akımı.) **Doğru.**`,
+        r`{{S0}} I'i doğru bulur ama $R_3$'e üretecin bütün gerilimi ($12\ \text{V}$) uygulandığını sanıp $4\ \text{A}$ bulur ve III'ü eler. {{S1}} yeni kol eklenince her kolun akımının arttığını sanır; üreteç gerilimi sabit olduğu için $R_1$'in geriliminin de değişmediğini düşünür ve $R_3$ için $12\ \text{V}$ kullanır. {{S2}} paralel kısmın gerilimini doğru bulup $R_3$'ün akımını hesaplar ama voltmetrenin üreteç gerilimini ölçtüğünü sanarak değerinin değişmediğini düşünür. {{S3}} ana kol akımı artınca $R_2$'nin kolundaki akımın da arttığını sanır ve $R_3$'e $12\ \text{V}$ uygulandığını düşünüp $4\ \text{A}$ bulur.`
+      ]
+    },
+    {
+      id: 'TD33_7', konu: 'T.7.3', yks: true, zorluk: 2, cikti: 'FİZ.10.4.5', beceri: 'Derinden sığa geçen su dalgasında olası değerleri belirleme', cikmis: { yil: 2022, kalip: 'Sığ suya geçen su dalgasında dalga boyu, frekans ve sürat ("olabilir")' },
+      metin: r`Doğa fotoğrafçısı Ece, rüzgârlı bir günde bir gölün kıyısındaki tahta iskeleden su dalgalarını videoya çekiyor. Görüntüleri inceleyen Ece, iskelenin ucundaki derin suda dalgaların frekansını $1\ \text{Hz}$, dalga boyunu $1,6\ \text{m}$ buluyor. Dalgalar daha sonra kıyıya yakın sığ bölgeye ilerliyor.
+
+Buna göre sığ bölgede,
+
+I. Dalga boyu $1,2\ \text{m}$ olabilir.
+II. Dalgaların periyodu $0,8\ \text{s}$ olabilir.
+III. Dalgaların yayılma sürati $2\ \text{m/s}$ olabilir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`Derin sudaki sürat: $\vartheta = \lambda \cdot f = 1,6 \cdot 1 = 1,6\ \text{m/s}$. Frekans dalga kaynağına bağlıdır; dalga sığ bölgeye geçince değişmez. Sığ suda dalgaların sürati azalır.`,
+        r`I. Frekans $1\ \text{Hz}$ kalır, sürat $1,6\ \text{m/s}$'den küçük olur; dalga boyu da $1,6\ \text{m}$'den küçük olur. $1,2\ \text{m}$ (sürat $1,2\ \text{m/s}$) **olabilir.**`,
+        r`II. Frekans değişmediği için periyot $\dfrac{1}{f} = 1\ \text{s}$ olarak kalır. $0,8\ \text{s}$ **olamaz.**`,
+        r`III. Sığ suda sürat $1,6\ \text{m/s}$'den küçük olmalıdır. $2\ \text{m/s}$ **olamaz.**`,
+        r`{{S1}} sığ suda periyodun kısaldığını sanır; dalga boyunun ve süratin değişmediğini düşünerek I ve III'ü eler. {{S2}} kıyıya yaklaştıkça dalgaların sıklaştığını görüp frekansın arttığını (periyodun kısaldığını) sanır; dalga boyunun kısalabileceğini ve sığ suda süratin azaldığını ise doğru bilir, bu yüzden III'ü eler. {{S3}} sığ suda dalga boyu kısalırken süratin arttığını sanır; frekans sabitken dalga boyu ile sürat birlikte azalır. {{S4}} sığ bölgeye geçince dalganın bütün niceliklerinin değişebileceğini sanır; frekans kaynağa bağlıdır.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
+   BFY — Ben Fizik Yapabilirim TYT, TD34 (TYT Fizik Denemesi 34)
+   Şablon: 1. soru T.1/T.2, 2. soru T.2, 3–7. sorular T.3–T.7'den birer. Zorluk 2/3/2 (★/★★/★★★).
+   Gerçek TYT fizik bölümü gibi 7 soru, 10 dakika. Metinler, sayılar ve şekiller özgündür;
+   ÖSYM sorularından yalnızca soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Şekil anahtarları: TD34_ öneki. Soru kimlikleri: TD34_1 … TD34_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dimV } = window.BFY_FIGLIB;
+const INK = '#24302c';
+
+// 2. soru: kareli sahne planı (üstten görünüş), figürlerin yer değiştirme vektörleri K, L, M; 1 kare = 0,5 m
+BFY_FIG_EKLE('TD34_dans', function (u) {
+  const k = 20, x0 = 20, y0 = 34, nx = 14, ny = 7;
+  let s = `<rect class="bg" x="0" y="0" width="320" height="240" rx="10" fill="#f8f5ee"/>`;
+  s += `<rect class="bg" x="${x0}" y="${y0}" width="${nx * k}" height="${ny * k}" fill="#f6ead6"/>`;
+  for (let i = 0; i <= nx; i++) s += `<line x1="${x0 + i * k}" y1="${y0}" x2="${x0 + i * k}" y2="${y0 + ny * k}" stroke="#d6c8b0" stroke-width="1"/>`;
+  for (let j = 0; j <= ny; j++) s += `<line x1="${x0}" y1="${y0 + j * k}" x2="${x0 + nx * k}" y2="${y0 + j * k}" stroke="#d6c8b0" stroke-width="1"/>`;
+  s += `<rect x="${x0}" y="${y0}" width="${nx * k}" height="${ny * k}" fill="none" stroke="#a8916c" stroke-width="1.6"/>`;
+  const p = (a, b) => [x0 + a * k, y0 + b * k];
+  const cK = '#2f7fb8', cL = '#3f8a67', cM = '#c25b2a';
+  // M: 8 kare sola; K: 4 kare sağa; L: 3 kare sahnenin arkasına (planda yukarı)
+  let A = p(12, 2), B = p(4, 2);
+  s += arrow(A[0], A[1], B[0], B[1], { color: cM, w: 3, head: 11, headW: 6 }) + T((A[0] + B[0]) / 2, A[1] - 8, 'M', { size: 14, weight: 800, fill: cM, anchor: 'middle' });
+  A = p(1, 5); B = p(5, 5);
+  s += arrow(A[0], A[1], B[0], B[1], { color: cK, w: 3, head: 11, headW: 6 }) + T((A[0] + B[0]) / 2, A[1] - 8, 'K', { size: 14, weight: 800, fill: cK, anchor: 'middle' });
+  A = p(9, 6); B = p(9, 3);
+  s += arrow(A[0], A[1], B[0], B[1], { color: cL, w: 3, head: 11, headW: 6 }) + T(A[0] + 9, (A[1] + B[1]) / 2 + 5, 'L', { size: 14, weight: 800, fill: cL });
+  s += T(160, 24, 'sahnenin arkası', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' });
+  s += T(160, y0 + ny * k + 16, 'sahnenin önü (seyirci tarafı)', { size: 11, weight: 700, fill: P.ink2, anchor: 'middle' });
+  s += `<rect x="${x0}" y="208" width="${k}" height="${k}" fill="none" stroke="${P.ink2}" stroke-width="1.2"/>` + T(x0 + k + 8, 222, '1 kare = 0,5 m', { size: 12, weight: 700, fill: P.ink2 });
+  s += T(300, 222, '(Üstten görünüş)', { size: 10.5, weight: 600, fill: P.ink2, anchor: 'end' });
+  return svg(320, 240, s, u, 72);
+});
+
+// 6. soru: K paketi (5 hücre seri) ve L paketi (ikişerli paralel 5 grup, seri)
+BFY_FIG_EKLE('TD34_paket', function (u) {
+  const tel = (a, b, c2, d) => `<line x1="${a}" y1="${b}" x2="${c2}" y2="${d}" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>`;
+  // yatay devrede hücre: uzun ince levha (+) solda, kısa kalın levha (−) sağda
+  const hucre = (cx, y) => `<line x1="${cx - 4}" y1="${y - 12}" x2="${cx - 4}" y2="${y + 12}" stroke="${INK}" stroke-width="2.2"/><line x1="${cx + 4}" y1="${y - 6}" x2="${cx + 4}" y2="${y + 6}" stroke="${INK}" stroke-width="4.4"/>`;
+  const uc = (x, y) => `<circle cx="${x}" cy="${y}" r="4" fill="#fff" stroke="${INK}" stroke-width="1.8"/>`;
+  const nokta = (x, y) => `<circle cx="${x}" cy="${y}" r="3" fill="${INK}"/>`;
+  const xs = [70, 124, 178, 232, 286], xA = 36, xB = 322, g = 16;
+  let s = `<rect class="bg" x="0" y="0" width="340" height="226" rx="10" fill="#f7f9f8"/>`;
+  // K paketi
+  const yK = 58;
+  s += T(14, 24, 'K paketi', { size: 13, weight: 800 });
+  s += tel(xA + 4, yK, xs[0] - 4, yK);
+  xs.forEach((cx, i) => { s += hucre(cx, yK) + tel(cx + 4, yK, i < 4 ? xs[i + 1] - 4 : xB - 4, yK); });
+  s += uc(xA, yK) + uc(xB, yK) + T(xA, yK - 12, '+', { size: 14, weight: 800, anchor: 'middle' }) + T(xB, yK - 12, '−', { size: 15, weight: 800, anchor: 'middle' });
+  // L paketi
+  const y1 = 136, y2 = 178, ym = 157;
+  s += T(14, 106, 'L paketi', { size: 13, weight: 800 });
+  xs.forEach((cx, i) => {
+    const xl = cx - g, xr = cx + g;
+    s += tel(xl, y1, xl, y2) + tel(xr, y1, xr, y2);
+    s += tel(xl, y1, cx - 4, y1) + hucre(cx, y1) + tel(cx + 4, y1, xr, y1);
+    s += tel(xl, y2, cx - 4, y2) + hucre(cx, y2) + tel(cx + 4, y2, xr, y2);
+    s += nokta(xl, ym) + nokta(xr, ym);
+    if (i < 4) s += tel(xr, ym, xs[i + 1] - g, ym);
+  });
+  s += tel(xA + 4, ym, xs[0] - g, ym) + tel(xs[4] + g, ym, xB - 4, ym);
+  s += uc(xA, ym) + uc(xB, ym) + T(xA, ym - 12, '+', { size: 14, weight: 800, anchor: 'middle' }) + T(xB, ym - 12, '−', { size: 15, weight: 800, anchor: 'middle' });
+  s += T(326, 214, '(Hücreler özdeştir.)', { size: 10.5, weight: 600, fill: P.ink2, anchor: 'end' });
+  return svg(340, 226, s, u, 74);
+});
+
+// 7. soru: otel lobisinde tavana asılı K, L, M avizeleri; sarkaç boyları ℓ, 2ℓ, 3ℓ
+BFY_FIG_EKLE('TD34_avize', function (u) {
+  const yC = 32, l = 50;
+  let s = `<rect class="bg" x="0" y="0" width="320" height="256" rx="10" fill="#f6f8f9"/>`;
+  // tavan
+  s += `<rect x="14" y="${yC - 12}" width="292" height="12" fill="#e4dfd4"/><line x1="14" y1="${yC}" x2="306" y2="${yC}" stroke="${INK}" stroke-width="2"/>`;
+  for (let x = 20; x < 306; x += 12) s += `<line x1="${x}" y1="${yC - 12}" x2="${x + 8}" y2="${yC - 2}" stroke="#a79f8f" stroke-width="1"/>`;
+  const avize = (x, n, ad, c) => {
+    const yc = yC + n * l; // gövde ortası
+    const q = v => (v * c).toFixed(1);
+    let a = '';
+    a += `<rect x="${x - 6}" y="${yC}" width="12" height="5" rx="1.5" fill="#b8924a" stroke="#7a5d2a" stroke-width="1"/>`;
+    a += `<line x1="${x}" y1="${yC + 5}" x2="${x}" y2="${yc - 9 * c}" stroke="#7a5d2a" stroke-width="2" stroke-dasharray="3 2"/>`;
+    // kollar ve ampuller
+    a += `<path d="M ${x - 19 * c} ${yc - 6 * c} Q ${x - 10 * c} ${yc + 6 * c} ${x} ${yc + c} Q ${x + 10 * c} ${yc + 6 * c} ${x + 19 * c} ${yc - 6 * c}" fill="none" stroke="#9c7a3c" stroke-width="2.2"/>`;
+    a += `<circle cx="${x}" cy="${yc}" r="${q(9)}" fill="#d9b25c" stroke="#7a5d2a" stroke-width="1.4"/>`;
+    [-19, 19].forEach(dx => { a += `<circle cx="${x + dx * c}" cy="${yc - 11 * c}" r="${q(4.6)}" fill="#fff4c8" stroke="#b08a3a" stroke-width="1.2"/>`; });
+    a += `<path d="M ${x} ${yc + 9 * c} q ${q(-4)} ${q(7)} 0 ${q(12)} q ${q(4)} ${q(-5)} 0 ${q(-12)} Z" fill="#cfe6f3" stroke="#6f9bb5" stroke-width="1"/>`;
+    a += T(x, yc + 40, ad, { size: 14, weight: 800, anchor: 'middle' });
+    a += dimV(x - 36, yC, yc, n === 1 ? 'ℓ' : n + 'ℓ', { size: 13 });
+    return a;
+  };
+  s += avize(72, 1, 'K', 1.2) + avize(168, 2, 'L', 0.85) + avize(264, 3, 'M', 1);
+  return svg(320, 256, s, u, 70);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'TD34', ad: 'TYT Fizik Denemesi 34', tur: 'deneme', sure: 600,
+  aciklama: 'Rüzgâr tünelinde kanada etkiyen kuvvet, halk oyunlarında figürlerin yer değiştirmesi, lastik sürüklemede güç, su banyosunda eriyen naftalin, havuzda yüzen kova ve oyuncak figür, batarya paketlerinde hücrelerin bağlanması ve depremde sallanan avizeler.',
+  baglamlar: ['rüzgâr tünelinde model uçak kanadı: havanın kanada uyguladığı kuvvetin bileşenleri, kaldırma 24 N ve sürükleme 7 N, büyüklük 25 N (sayısal)',
+    'halk oyunları ekibinde Ece ve Zeynep: kareli sahne planında K (4 kare sağa), L (3 kare arkaya), M (8 kare sola) figürleri, 1 kare = 0,5 m; K-L-M ve M-K-L sırası, aynı varış noktası, 2,5 m, en büyük uzaklık 2,5 m ve 4 m',
+    'beden eğitimi dersinde kamyon lastiği sürükleme: K 180 N 25 m 18 s, L 240 N 15 m 15 s, M 150 N 20 m 10 s; ip kuvvetinin gücü P_M > P_K > P_L (sıralama)',
+    'fen laboratuvarında Kaan: 95 °C su banyosunda saf naftalin (22 °C, erime 80 °C); tamamı katı 60 °C, katı-sıvı 88 °C, tamamı sıvı 92 °C (olabilir)',
+    'şişme çocuk havuzunda yüzen plastik oyuncak kova ve içindeki oyuncak figür; figür suya bırakılıyor, batıp batmayacağı bilinmiyor: kovanın batan hacmi, su seviyesi, toplam kaldırma kuvveti (kesinlikle)',
+    'bahçıvan Nermin Hanım\'ın şarjlı yaprak üfleme makinesi: 3,6 V lityum iyon hücreler, K paketi 5 seri, L paketi ikişerli paralel 5 grup seri; gerilim aynı, süre 2 katı (iki sütun)',
+    'depremde otel lobisinde sarkaç boyları ℓ, 2ℓ, 3ℓ olan K, L, M avizeleri; yalnız L büyük genlikle sallanıyor: rezonans, boy ve frekans, kütle ve genlik-periyot yanılgıları (tek seçim)'],
+  sorular: [
+    {
+      id: 'TD34_1', konu: 'T.1.3', yks: true, zorluk: 1, cikti: 'FİZ.9.2.4', beceri: 'Dik bileşenlerden vektörün büyüklüğünü bulma', cikmis: { yil: 2025, kalip: 'Bileşenleri verilen kuvvetin büyüklüğü (sayısal)' },
+      metin: r`Mühendislik öğrencisi Zehra, rüzgâr tünelinde bir model uçak kanadını inceliyor. Tünelin ölçüm düzeneği, havanın kanada uyguladığı kuvveti birbirine dik iki bileşen hâlinde gösteriyor: düşey doğrultuda yukarı yönde $24\ \text{N}$ (kaldırma) ve hava akışıyla aynı yönde, yatay doğrultuda $7\ \text{N}$ (sürükleme).
+
+Havanın model kanada uyguladığı kuvvetin büyüklüğü kaç newtondur?`,
+      secenekler: [r`$7$`, r`$17$`, r`$24$`, r`$25$`, r`$31$`],
+      dogru: 3,
+      cozum: [
+        r`Kaldırma ve sürükleme, havanın kanada uyguladığı tek bir kuvvetin birbirine dik iki bileşenidir. Kuvvetin kendisi bu iki bileşenin vektörel toplamıdır.`,
+        r`Dik bileşenlerden büyüklük: $F = \sqrt{24^2 + 7^2} = \sqrt{576 + 49} = \sqrt{625} = 25\ \text{N}$.`,
+        r`{{S4}} bileşenlerin büyüklüklerini sayılar gibi toplar ($24 + 7 = 31$). {{S1}} bileşenleri zıt yönlü sanıp farkını alır ($24 - 7 = 17$). {{S2}} yalnız düşey bileşeni (kaldırmayı) kuvvetin tamamı sanır. {{S0}} yalnız yatay bileşeni (sürüklemeyi) kuvvetin tamamı sanır.`
+      ]
+    },
+    {
+      id: 'TD34_2', konu: 'T.2.2', yks: true, zorluk: 2, cikti: 'FİZ.9.2.6', beceri: 'Yer değiştirmenin yoldan bağımsızlığını yorumlama', cikmis: { yil: 2026, kalip: 'Farklı yollardan aynı noktaya varanların yer değiştirmesi (I-II-III)' },
+      metin: r`Bir halk oyunları ekibinde Ece ile Zeynep, sahnede aynı O noktasından başlayarak üç figürlük bir dizi sergiliyor. Her figürde dansçı düz bir çizgi boyunca ilerliyor. Figürlerdeki yer değiştirmeler, kareli sahne planında K, L ve M vektörleriyle gösterilmiştir. Ece figürleri K, L, M sırasıyla; Zeynep ise M, K, L sırasıyla yapıyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. İki dansçı diziyi sahnenin aynı noktasında bitirir.
+II. Dizinin sonunda dansçıların her biri O noktasından $2,5\ \text{m}$ uzaktadır.
+III. Dizi boyunca Ece'nin O noktasından en büyük uzaklığı, Zeynep'inkine eşittir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'TD34_dans',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`1 kare $= 0,5\ \text{m}$. Sağa ve sahnenin arkasına doğru yönleri (+) alalım: $\vec K = (4, 0)$, $\vec L = (0, 3)$, $\vec M = (-8, 0)$ kare.`,
+        r`I. Toplam yer değiştirme, vektörlerin toplanma sırasına bağlı değildir: $\vec K + \vec L + \vec M = \vec M + \vec K + \vec L = (-4, 3)$ kare. İki dansçı da O'nun 4 kare soluna ve 3 kare arkasına varır. **Doğru.**`,
+        r`II. Yer değiştirmenin büyüklüğü $\sqrt{4^2 + 3^2} = 5$ kare, yani $5 \times 0,5 = 2,5\ \text{m}$'dir. **Doğru.**`,
+        r`III. Ece'nin figür sonlarındaki konumları $(4, 0)$, $(4, 3)$ ve $(-4, 3)$'tür; O'ya en büyük uzaklığı 5 kare ($2,5\ \text{m}$) olur. Zeynep ilk figürde $(-8, 0)$ konumuna gider ve O'dan 8 kare ($4\ \text{m}$) uzaklaşır. Ara konumlar figürlerin sırasına bağlıdır. **Yanlış.**`,
+        r`{{S0}} II'de yer değiştirmenin büyüklüğünü hesaplamaz; dansçıların aldığı yolu ($15$ kare, yani $7,5\ \text{m}$) yer değiştirmeyle karıştırır. {{S1}} figürlerin sırası değişince varış noktasının da değişeceğini sanır ve I'i dışarıda bırakır. {{S3}} sıranın hiçbir şeyi değiştirmediğini sanıp III'ü doğru bulur ve II'de yer değiştirmenin büyüklüğü yerine yolu alır. {{S4}} varış noktası aynı olduğu için dansçıların dizi boyunca O'dan aynı uzaklıklara gittiğini sanır; oysa Zeynep ilk figürde O'dan $4\ \text{m}$ uzaklaşır.`
+      ]
+    },
+    {
+      id: 'TD34_3', konu: 'T.3.1', yks: true, zorluk: 1, cikti: 'FİZ.10.2.2', beceri: 'Tablodan iş ve güç hesaplayıp sıralama', cikmis: { yil: 2021, kalip: 'Tablodaki verilerden sıralama (güç)' },
+      metin: r`Beden eğitimi dersinde K, L ve M öğrencileri, çim sahada birer kamyon lastiğini, lastiğe bağlı ipi yere paralel tutarak doğrusal bir yol boyunca çekiyor. Lastikler farklı büyüklüktedir. İpe takılı kuvvet ölçer, ipin lastiğe hareket yönünde uyguladığı kuvveti gösteriyor; bu kuvvet her denemede sabit kalıyor. Ölçümler tabloda verilmiştir.
+
+{{tablo}}
+
+İpin lastiğe uyguladığı kuvvetin K, L ve M denemelerindeki güçleri $P_K$, $P_L$ ve $P_M$ arasındaki ilişki nedir?`,
+      tablo: [['Öğrenci', 'Kuvvet', 'Alınan yol', 'Süre'], ['K', '180 N', '25 m', '18 s'], ['L', '240 N', '15 m', '15 s'], ['M', '150 N', '20 m', '10 s']],
+      secenekler: [r`$P_M > P_K > P_L$`, r`$P_K > P_L > P_M$`, r`$P_L > P_K > P_M$`, r`$P_M > P_L > P_K$`, r`$P_K > P_M > P_L$`],
+      dogru: 0,
+      cozum: [
+        r`Kuvvet hareket yönünde ve sabit olduğu için iş $W = F \times \Delta x$: $W_K = 180 \times 25 = 4500\ \text{J}$, $W_L = 240 \times 15 = 3600\ \text{J}$, $W_M = 150 \times 20 = 3000\ \text{J}$.`,
+        r`Güç $P = \dfrac{W}{t}$: $P_K = \dfrac{4500}{18} = 250\ \text{W}$, $P_L = \dfrac{3600}{15} = 240\ \text{W}$, $P_M = \dfrac{3000}{10} = 300\ \text{W}$. Sıralama: $P_M > P_K > P_L$.`,
+        r`{{S1}} gücü değil, yapılan işi sıralar ($4500 > 3600 > 3000\ \text{J}$). {{S2}} gücü yalnız kuvvete bağlı sanır ve en büyük kuvveti uygulayanı en güçlü sayar. {{S3}} işi hesaba katmadan yalnız süreye bakar; süresi kısa olanın gücünü büyük sayar. {{S4}} gücü yalnız alınan yola bağlı sanır.`
+      ]
+    },
+    {
+      id: 'TD34_4', konu: 'T.4.2', yks: true, zorluk: 3, cikti: 'FİZ.9.4.3', beceri: 'Hâl değişimi sırasında sıcaklığın sabitliğinden olası durumları belirleme',
+      metin: r`Fen laboratuvarında Kaan, saf naftalin parçalarıyla doldurduğu bir deney tüpünü, sıcaklığı $95\ {}^{\circ}\text{C}$'de sabit tutulan bir su banyosuna yerleştiriyor. Naftalinin başlangıç sıcaklığı $22\ {}^{\circ}\text{C}$, erime sıcaklığı $80\ {}^{\circ}\text{C}$'dir. Deney normal basınçta yapılıyor ve tüpteki naftalinin sıcaklığı her an her noktasında aynı kabul ediliyor.
+
+Tüp banyoya konduktan bir süre sonraki bir anda tüpteki naftalinle ilgili,
+
+I. Tamamı katıdır ve sıcaklığı $60\ {}^{\circ}\text{C}$'dir.
+II. Bir kısmı katı, bir kısmı sıvıdır ve sıcaklığı $88\ {}^{\circ}\text{C}$'dir.
+III. Tamamı sıvıdır ve sıcaklığı $92\ {}^{\circ}\text{C}$'dir.
+
+durumlarından hangileri olabilir?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Banyo tüpe ısı verir. Naftalin önce katı hâlde $22\ {}^{\circ}\text{C}$'den $80\ {}^{\circ}\text{C}$'ye ısınır, sonra $80\ {}^{\circ}\text{C}$'de erir; tamamı eriyince sıvı hâlde ısınmayı sürdürür. Sıcaklığı banyonun sıcaklığına yaklaşır ama $95\ {}^{\circ}\text{C}$'yi geçemez.`,
+        r`I. Henüz erime sıcaklığına ulaşmamış katı naftalinin sıcaklığı $60\ {}^{\circ}\text{C}$ olabilir. **Olabilir.**`,
+        r`II. Saf bir madde erirken katı ve sıvı hâller bir arada bulunur ve sıcaklık erime sıcaklığında ($80\ {}^{\circ}\text{C}$) sabit kalır. Katı ve sıvı bir aradayken sıcaklık $88\ {}^{\circ}\text{C}$ **olamaz.**`,
+        r`III. Tamamı eridikten sonra sıvı naftalin $80\ {}^{\circ}\text{C}$ ile $95\ {}^{\circ}\text{C}$ arasında ısınır; $92\ {}^{\circ}\text{C}$ **olabilir.**`,
+        r`{{S0}} sıvı naftalinin erime sıcaklığının üstüne çıkabileceğini görmez ve III'ü dışarıda bırakır. {{S1}} banyoya konan katının bir süre sonra mutlaka erimiş olacağını sanır; katının erime sıcaklığına ulaşmadan önceki ısınma evresini atlar. {{S2}} erime sırasında sıcaklığın da yükselmeye devam ettiğini sanarak II'yi kabul eder ve sıvının erime sıcaklığının üstüne ısınabileceğini görmeyip III'ü dışarıda bırakır. {{S4}} erime sırasında sıcaklığın yükseldiğini sanır ve katının önce erime sıcaklığına kadar ısındığını gözden kaçırıp I'i dışarıda bırakır.`
+      ]
+    },
+    {
+      id: 'TD34_5', konu: 'T.5.4', yks: true, zorluk: 3, cikti: 'FİZ.9.3.5', beceri: 'Yüzen ve batan cisimlerde kesin ve olası çıkarımları ayırma', cikmis: { yil: 2018, kalip: 'Kaldırma kuvveti ve batan hacimden kesin çıkan yargılar ("kesinlikle")' },
+      metin: r`Efe, bahçedeki şişme çocuk havuzunda yüzen plastik bir oyuncak kovanın içine küçük bir oyuncak figür koymuştur. Kova, figürle birlikte yüzmektedir. Efe daha sonra figürü kovadan alıp yavaşça havuzdaki suya bırakıyor; figürün suda yüzüp yüzmeyeceğini bilmiyor. Boş kova yüzmeye devam ediyor ve havuzdan su taşmıyor.
+
+Figürün kovada olduğu duruma göre, figür suya bırakıldıktan sonra,
+
+I. Kovanın suya batan hacmi azalır.
+II. Havuzdaki su seviyesi yükselmez.
+III. Kovaya ve figüre etki eden kaldırma kuvvetlerinin toplamı azalır.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Figür kovadayken kova ile figür birlikte yüzer; ikisine etki eden toplam kaldırma kuvveti toplam ağırlıklarına eşittir: $F_{top} = G_{kova} + G_{figür}$.`,
+        r`I. Boş kova yine yüzdüğü için ona etki eden kaldırma kuvveti yalnız kendi ağırlığına eşittir; kovaya etki eden kuvvet $G_{figür}$ kadar azalır. $F_k = V_b \times d_s \times g$ olduğundan kovanın batan hacmi azalır. **Kesinlikle doğru.**`,
+        r`Figür yüzer ya da askıda kalırsa ona etki eden kaldırma kuvveti ağırlığına eşittir; toplam kaldırma kuvveti ve sudaki toplam batan hacim değişmez, su seviyesi aynı kalır. Figür batarsa ona etki eden kaldırma kuvveti ağırlığından küçüktür; toplam kaldırma kuvveti ve toplam batan hacim azalır, su seviyesi alçalır.`,
+        r`II. Her iki durumda da su seviyesi yükselmez. **Kesinlikle doğru.** III. Toplam kaldırma kuvveti figür batarsa azalır, yüzer ya da askıda kalırsa değişmez. **Kesin değil.**`,
+        r`{{S0}} figür suya girdiği için su seviyesinin yükselebileceğini sanır ve II'yi dışarıda bırakır. {{S1}} kova hâlâ yüzdüğü için batan hacminin değişmediğini sanır ve I'i dışarıda bırakır. {{S3}} figürün mutlaka batacağını varsayıp III'ü kesin sayar ve II'yi dışarıda bırakır; oysa figür yüzerse toplam kaldırma kuvveti değişmez, su seviyesi hiçbir durumda yükselmez. {{S4}} figürün batacağını varsayarak olası bir durumu kesin sayar.`
+      ]
+    },
+    {
+      id: 'TD34_6', konu: 'T.6.3', yks: true, zorluk: 2, cikti: 'FİZ.10.3.5', beceri: 'Seri ve paralel bağlı hücrelerde gerilim ve kullanım süresi', cikmis: { yil: 2021, kalip: 'Üreteçlerin bağlanmasında gerilim ve kullanım süresi (iki sütun)' },
+      metin: r`Bahçıvan Nermin Hanım'ın şarjlı yaprak üfleme makinesi için K ve L adlı iki batarya paketi vardır. Paketlerin içinde, her birinin gerilimi $3,6\ \text{V}$ olan özdeş lityum iyon pil hücreleri bulunur. K paketinde 5 hücre seri bağlıdır. L paketinde 10 hücre vardır; hücreler ikişerli gruplar hâlinde paralel bağlanmış, bu 5 grup da birbirine seri bağlanmıştır. Hücrelerin iç dirençleri önemsizdir ve makinenin motoru aynı ayarda, aynı gerilimde hep aynı akımı çeker.
+
+{{sekil}}
+
+Makine aynı ayarda çalıştırıldığına göre, L paketi takıldığında motorun uçları arasındaki gerilim ve paket tükenene kadar makinenin çalışabildiği süre, K paketi takıldığındakine göre nasıl olur?`,
+      sekil: 'TD34_paket',
+      secenekler: ['Gerilim 2 katı, süre aynı', 'Gerilim 2 katı, süre 2 katı', 'Gerilim aynı, süre 2 katı', 'Gerilim aynı, süre aynı', 'Gerilim 2 katı, süre yarısı'],
+      dogru: 2,
+      cozum: [
+        r`Seri bağlı hücrelerin gerilimleri toplanır; paralel bağlı özdeş hücrelerin gerilimi tek bir hücreninkine eşittir.`,
+        r`K: $5 \times 3,6 = 18\ \text{V}$. L: her paralel grubun gerilimi $3,6\ \text{V}$'tur; 5 grup seri olduğundan toplam $5 \times 3,6 = 18\ \text{V}$. Gerilim **aynıdır.**`,
+        r`Gerilim aynı olduğu için motor iki pakette de aynı $I$ akımını çeker. K'da bu akım her hücreden geçer. L'de her gruptaki iki hücre akımı paylaşır; her hücreden $\dfrac{I}{2}$ geçer. Özdeş hücreler aynı yük miktarını verebildiğinden L'nin hücreleri **2 kat** uzun sürede tükenir.`,
+        r`{{S0}} hücre sayısı iki katına çıktığı için gerilimin de iki katına çıktığını sanır; paralel bağlı hücrelerin gerilimlerinin toplanmadığını görmez. {{S1}} hem gerilimi hem süreyi hücre sayısıyla orantılı sanır; paralel bağlamanın gerilimi artırmadığını atlar. {{S3}} paralel bağlı hücrelerin motorun akımını paylaştığını görmez. {{S4}} 10 hücrenin hepsinin seri bağlı olduğunu düşünür; gerilim iki katına çıkınca akımın artacağını ve sürenin kısalacağını sanır.`
+      ]
+    },
+    {
+      id: 'TD34_7', konu: 'T.7.4', yks: true, zorluk: 2, cikti: 'FİZ.10.4.6', beceri: 'Rezonans koşulunu bir gözleme uygulama',
+      metin: r`Orta büyüklükte bir deprem sırasında bir otel lobisinde, tavana zincirlerle asılı K, L ve M avizeleri sallanıyor. Avizelerin sarkaç boyları (tavandaki asılma noktasından avize gövdesinin ortasına kadar olan uzunluklar) şekilde verilmiştir; avizelerin kütleleri birbirinden farklıdır. Güvenlik kamerası kayıtlarında L avizesinin, K ve M'den çok daha büyük genlikle sallandığı görülüyor.
+
+{{sekil}}
+
+Avizeler basit sarkaç gibi düşünüldüğüne göre bu gözlemle ilgili aşağıdaki yorumlardan hangisi doğrudur?`,
+      sekil: 'TD34_avize',
+      secenekler: ['Deprem sırasında tavanın titreşim frekansı, L avizesinin doğal frekansına yakındır.', 'K avizesinin doğal frekansı, L avizesinin doğal frekansından küçüktür.', 'Avizelerin kütleleri eşit olsaydı üçü de aynı genlikle sallanırdı.', 'L avizesinin sallanma periyodu, genliği en büyük olduğu için K ve M avizelerininkinden büyüktür.', 'Deprem daha büyük olsaydı en büyük genlikle mutlaka M avizesi sallanırdı.'],
+      dogru: 0,
+      cozum: [
+        r`Basit sarkacın doğal frekansı boyuna bağlıdır, kütlesine bağlı değildir. Boy uzadıkça periyot büyür, frekans küçülür: $f_K > f_L > f_M$.`,
+        r`Bir cisme dışarıdan etki eden titreşimin frekansı cismin doğal frekansına eşit ya da yakın olduğunda rezonans oluşur ve cisim büyük genlikle titreşir. Avizeleri titreştiren, tavanın deprem sırasındaki titreşimidir. Yalnız L'nin büyük genlikle sallanması, tavanın titreşim frekansının L'nin doğal frekansına yakın olduğunu gösterir.`,
+        r`{{S1}} boyu kısa olan sarkacın frekansının da küçük olduğunu sanır; kısa sarkacın periyodu küçük, frekansı büyüktür. {{S2}} genlik farkını kütle farkına bağlar; basit sarkacın doğal frekansı kütleye değil boya bağlıdır, kütleler eşit olsa da boyları farklı avizelerden yine yalnız L rezonansa girer. {{S3}} periyodun genliğe bağlı olduğunu sanır; L'nin boyu M'ninkinden kısa olduğu için L'nin periyodu M'ninkinden küçüktür. {{S4}} daha büyük depremde uzun sarkacın daha çok sallanacağını sanır; rezonans, depremin büyüklüğüne değil titreşim frekansının doğal frekansa yakınlığına bağlıdır.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim TYT · TU1 (1. Ünite Taraması: Fizik Bilimi, Nicelikler ve Vektörler)
    14 soru, 20 dakika; yalnız T.1.1, T.1.2, T.1.3. Zorluk 4/6/4 (★/★★/★★★). Ücretsiz vitrin.
    Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
