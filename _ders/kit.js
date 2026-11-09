@@ -4,7 +4,7 @@
 
 const esc = s => String(s);
 // sayılar ve birimler satır sonunda bölünmesin: 3 600 000 J, 2 kW, 5 h
-const ns = (t) => t == null ? t : String(t).replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u00a0').replace(/(\d) (?=(?:kWh|kW|MJ|kN|kg|TL|W|J|N|m|s|h)(?![A-Za-zçğıöşüÇĞİÖŞÜ]))/g, '$1\u00a0').replace(/ ([×=+−\/·]) /g, '\u00a0$1 ').replace(/([=·×]) ([^\s<]{1,6})(?=[\s.,;:)]|$)/g, '$1\u00a0$2');           // içerik bilerek HTML olarak yazılır (<sub>, <b>, SVG...)
+const ns = (t) => t == null ? t : String(t).replace(/(\d) (?=\d{3}(?!\d))/g, '$1\u00a0').replace(/(\d) (?=(?:kWh|kW|MJ|kN|kg|TL|W|J|N|m|s|h)(?![A-Za-zçğıöşüÇĞİÖŞÜ]))/g, '$1\u00a0').replace(/(\d) (?=birim)/g, '$1\u00a0').replace(/ ([×=+−\/·]) /g, '\u00a0$1 ').replace(/([=·×]) ([^\s<]{1,6})(?=[\s.,;:)]|$)/g, '$1\u00a0$2');           // içerik bilerek HTML olarak yazılır (<sub>, <b>, SVG...)
 const P = (t) => t ? `<p>${ns(t)}</p>` : '';
 
 let SORU_NO = 0, DERS_ADI = '';
