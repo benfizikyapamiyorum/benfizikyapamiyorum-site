@@ -74,13 +74,13 @@ function kapanis({ baslik = 'Bir sonraki derste görüşürüz.', vurgu = 'Abone
 }
 
 // Vektör/ok çizimi için küçük SVG yardımcıları (şekiller elle de yazılabilir)
-function ok({ x1, y1, x2, y2, renk = '#244f40', kalin = 5, ad = '', etiket = '', ex = 0, ey = 0, gizli = false }) {
+function ok({ x1, y1, x2, y2, renk = '#244f40', kalin = 7, ad = '', etiket = '', ex = 0, ey = 0, gizli = false }) {
   etiket = String(etiket).replace(/<sub>(.*?)<\/sub>/g, '<tspan font-size="0.68em" dy="0.32em">$1</tspan><tspan dy="-0.32em"> </tspan>');
   const id = 'u' + Math.random().toString(36).slice(2, 8);
-  const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, h = 16, w = 8;
+  const L = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / L, uy = (y2 - y1) / L, h = Math.max(16, kalin * 3.1), w = Math.max(8, kalin * 1.55);
   const bx = x2 - ux * h, by = y2 - uy * h;
   const tri = `${x2},${y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`;
-  const lbl = etiket ? `<text x="${x2 + ex}" y="${y2 + ey}" font-size="26" font-weight="800" fill="${renk}" text-anchor="middle">${etiket}</text>` : '';
+  const lbl = etiket ? `<text x="${x2 + ex}" y="${y2 + ey}" font-size="31" font-weight="800" fill="${renk}" text-anchor="middle" paint-order="stroke" stroke="#fffdf8" stroke-width="6" stroke-linejoin="round">${etiket}</text>` : '';
   return `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${renk}" stroke-width="${kalin}" stroke-linecap="round"/><polygon points="${tri}" fill="${renk}"/>${lbl}</g>`;
 }
 const svg = (w, h, ic) => `<svg class="vsvg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" font-family="Plus Jakarta Sans,sans-serif">${ic}</svg>`;
@@ -99,14 +99,14 @@ function kare({ x0 = 0, x1 = 6, y0 = 0, y1 = 6, u = 56, pad = 34, eksen = true }
     z += `<line x1="${ax}" y1="${h - pad}" x2="${ax}" y2="${pad - 14}" stroke="#6b7d76" stroke-width="2.5"/><text x="${ax + 10}" y="${pad - 4}" font-size="22" fill="#6b7d76" font-weight="700">y</text>`;
   }
   // kareli düzlemde vektör: g.v({ad, from:[x,y], to:[x,y], renk, etiket, ex, ey})
-  const v = ({ ad = '', from, to, renk = '#244f40', etiket = '', ex = 0, ey = 0, kalin = 5, gizli = false }) => {
+  const v = ({ ad = '', from, to, renk = '#244f40', etiket = '', ex = 0, ey = 0, kalin = 7, gizli = false }) => {
     const [x1p, y1p] = p(...from), [x2p, y2p] = p(...to);
     return ok({ x1: x1p, y1: y1p, x2: x2p, y2: y2p, ad, renk, etiket, ex, ey, kalin, gizli });
   };
   // kesikli yardımcı çizgi
   const kesik = (a, b, renk = '#6b7d76', ad = '', gizli = false) => {
     const [x1p, y1p] = p(...a), [x2p, y2p] = p(...b);
-    return `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><line x1="${x1p}" y1="${y1p}" x2="${x2p}" y2="${y2p}" stroke="${renk}" stroke-width="2.5" stroke-dasharray="8 7"/></g>`;
+    return `<g class="vek${gizli ? ' gizli' : ''}" data-ad="${ad}"><line x1="${x1p}" y1="${y1p}" x2="${x2p}" y2="${y2p}" stroke="${renk}" stroke-width="3.5" stroke-dasharray="10 8"/></g>`;
   };
   return { w, h, p, v, kesik, zemin: z };
 }
