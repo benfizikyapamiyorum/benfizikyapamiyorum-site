@@ -1,5 +1,6 @@
 // Hoca Kiti DENEME yükleyici: /hoca-kiti/t<S>/<dosya> kabuğundan çağrılır.
 (function () {
+  var VERI = 'https://benfizikyapamiyorum.github.io/hoca-kiti-veri'; // şifreli dosyalar ayrı depoda (site 1 GB sınırı)
   var MAG = {"9":"https://www.shopier.com/47806607","10":"https://www.shopier.com/47980342","11":"https://www.shopier.com/51257681"}, FIY = { 9: '1.299', 10: '1.699', 11: '1.999' };
   var m = location.pathname.match(/\/hoca-kiti\/t(9|10|11)\/(.*)$/);
   var css = 'font:17px/1.6 Inter,system-ui,sans-serif;max-width:600px;margin:60px auto;padding:0 20px;color:#1a2233';
@@ -19,13 +20,13 @@
   function anahtar(k) { return crypto.subtle.importKey('raw', b64u(k), 'AES-GCM', false, ['decrypt']); }
   function coz(url, k) { return fetch(url, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error('ag'); return r.arrayBuffer(); }).then(function (b) { return anahtar(k).then(function (key) { return crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(b, 0, 12) }, key, new Uint8Array(b, 12)); }); }); }
   sayfa('<p style="color:#5B6573">Deneme açılıyor…</p>');
-  coz('/hoca-kiti/e' + S + '/m.bin', L.a).then(function (mb) {
+  coz(VERI + '/e' + S + '/m.bin', L.a).then(function (mb) {
     var d = JSON.parse(new TextDecoder().decode(mb)).dosyalar[AD];
     if (!d) { kilit(/\.pdf$/i.test(AD) ? 'Cevaplı öğretmen PDF\'leri tam kitte.' : 'Bu sayfa tam kitte.'); return; }
     if (d[2] === -1) { kilit(/YAZILI/i.test(AD) ? 'Yazılılar tam kitte.' : 'Bu sayfa tam kitte.'); return; }
     var k = d[2] > 0 ? (L.k || {})[d[2]] : L.a;
     if (!k) { kilit('Hafta ' + d[2] + ' tam kitte.'); return; }
-    return coz('/hoca-kiti/e' + S + '/' + d[0] + '.bin', k).then(function (buf) {
+    return coz(VERI + '/e' + S + '/' + d[0] + '.bin', k).then(function (buf) {
       if (/\.pdf$/i.test(AD)) {
         var u = URL.createObjectURL(new Blob([buf], { type: 'application/pdf' }));
         sayfa('<h2 style="color:#1B2F5E">' + AD.replace(/_/g, ' ').replace(/\.pdf$/, '') + '</h2><p>Deneme sürümünde öğrenci nüshası damgalıdır.</p><a style="' + btn + 'background:#1B2F5E;color:#fff" href="' + u + '" target="_blank" rel="noopener">PDF\'i aç</a>' + al);

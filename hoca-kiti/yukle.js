@@ -1,5 +1,6 @@
 // Hoca Kiti yükleyici: /hoca-kiti/k<S>/<dosya> kabuğundan çağrılır; lisanslı cihazda şifreli sayfayı çözüp açar.
 (function () {
+  var VERI = 'https://benfizikyapamiyorum.github.io/hoca-kiti-veri'; // şifreli dosyalar ayrı depoda (site 1 GB sınırı)
   var IPTAL = [];
   var m = location.pathname.match(/\/hoca-kiti\/k(9|10|11)\/(.*)$/);
   function mesaj(h) { document.body.innerHTML = '<div style="font:17px/1.6 system-ui,sans-serif;max-width:560px;margin:60px auto;padding:0 20px;color:#1a2233">' + h + '</div>'; }
@@ -20,12 +21,12 @@
   }
   crypto.subtle.importKey('raw', b64u(L.a), 'AES-GCM', false, ['decrypt']).then(function (k) {
     anahtar = k;
-    return coz('/hoca-kiti/d' + S + '/m.bin');
+    return coz(VERI + '/d' + S + '/m.bin');
   }).then(function (mb) {
     var man = JSON.parse(new TextDecoder().decode(mb));
     var d = man.dosyalar[AD];
     if (!d) { mesaj('<h2>Sayfa bulunamadı</h2><p><a href="/hoca-kiti/k' + S + '/">Kitin ana sayfasına dön →</a></p>'); return; }
-    return coz('/hoca-kiti/d' + S + '/' + d[0] + '.bin').then(function (hb) {
+    return coz(VERI + '/d' + S + '/' + d[0] + '.bin').then(function (hb) {
       var html = new TextDecoder().decode(hb);
       // PDF bağlantıları: şifreli PDF görüntüleyiciye yönlendir.
       var ek = '<script>(function(){var S=' + JSON.stringify(S) + ';document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(!a)return;var h=a.getAttribute("href");if(!h||!/\\.pdf(\\?|#|$)/i.test(h))return;var u=new URL(h,location.href);var f=decodeURIComponent(u.pathname.split("/").pop());e.preventDefault();var hedef="/hoca-kiti/pdf.html?s="+S+"&f="+encodeURIComponent(f);if(a.target==="_blank")window.open(hedef,"_blank");else location.href=hedef;},true);})();<\/script>';

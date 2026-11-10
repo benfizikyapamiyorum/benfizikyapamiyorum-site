@@ -16,6 +16,7 @@ p{color:var(--muted);line-height:1.6}
 <p><a id="geri" href="#">← Kite dön</a></p>
 </div>
 <script>
+var VERI = 'https://benfizikyapamiyorum.github.io/hoca-kiti-veri'; // şifreli dosyalar ayrı depoda (site 1 GB sınırı)
 (function(){
   var q=new URLSearchParams(location.search),S=q.get('s'),F=q.get('f')||'';
   var $=function(i){return document.getElementById(i)};
@@ -29,10 +30,10 @@ p{color:var(--muted);line-height:1.6}
   function b64u(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return Uint8Array.from(atob(t),function(c){return c.charCodeAt(0)});}
   var k;
   function coz(u){return fetch(u,{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error('ag');return r.arrayBuffer()}).then(function(b){return crypto.subtle.decrypt({name:'AES-GCM',iv:new Uint8Array(b,0,12)},k,new Uint8Array(b,12))});}
-  crypto.subtle.importKey('raw',b64u(L.a),'AES-GCM',false,['decrypt']).then(function(x){k=x;return coz('/hoca-kiti/d'+S+'/m.bin')})
+  crypto.subtle.importKey('raw',b64u(L.a),'AES-GCM',false,['decrypt']).then(function(x){k=x;return coz(VERI+'/d'+S+'/m.bin')})
   .then(function(mb){var d=JSON.parse(new TextDecoder().decode(mb)).dosyalar[F];if(!d)throw new Error('yok');
     $('durum').textContent='PDF indiriliyor ('+String(Math.round(d[1]/1048576*10)/10).replace('.',',')+'\u00a0MB)…';
-    return coz('/hoca-kiti/d'+S+'/'+d[0]+'.bin')})
+    return coz(VERI+'/d'+S+'/'+d[0]+'.bin')})
   .then(function(pb){var url=URL.createObjectURL(new Blob([pb],{type:'application/pdf'}));
     $('ac').href=url;$('indir').href=url;$('indir').download=F;
     $('durum').textContent='PDF hazır. Açabilir ya da cihazınıza indirebilirsiniz.';$('dugme').className='';})
