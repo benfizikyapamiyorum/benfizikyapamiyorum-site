@@ -130661,6 +130661,1892 @@ BFY_SIM['11.3.8'] = [
 </script>
 <script>
 /* ============================================================
+   BFY — Yapabilirim 9 · Aylık deneme AY9_11 (9. Sınıf Kasım Denemesi, 2026–2027)
+   Kapsam: Hafta 1–11 (Z Kitap 36 haftalık planı).
+     Takvim: ders yılı 7 Eylül 2026 Pazartesi başladı; 1. ara tatil 9–13 Kasım 2026.
+     Hafta 1 = 7–11 Eylül … Hafta 8 = 26–30 Ekim, Hafta 9 = 2–6 Kasım, (ara tatil),
+     Hafta 10 = 16–20 Kasım, Hafta 11 = 23–27 Kasım; Hafta 12 (temel kuvvetler) 30 Kasım'da başlar,
+     bu yüzden Kasım denemesine girmez.
+     Hafta 1 açılış; Hafta 2–5 Ünite 1 (9.1.1, 9.1.2); Hafta 6–7 nicelikler (9.2.1);
+     Hafta 8 aynı doğrultudaki vektörler (9.2.2); Hafta 9–11 vektör toplama ve bileşenler (9.2.3).
+   Dağılım: 9.1.1 × 2, 9.1.2 × 3, 9.2.1 × 6 (birikimli, %55); 9.2.2 × 3, 9.2.3 × 6 (Ekim sonu–Kasım, %45).
+   20 soru, 40 dakika; zorluk 6 ★ / 9 ★★ / 5 ★★★. Trigonometri yok; bileşke en çok iki vektör; kareli düzlem ve
+   dik kartezyen koordinat sistemi. Metinler, sayılar ve şekiller özgündür.
+   Şekil anahtarları: AY9_11_ öneki. Soru kimlikleri: AY9_11_1 … AY9_11_20.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B, kareli düzlem) ---------- */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+
+// kareli zemin: (x0, y0) sol üst köşe, nx × ny kare, kare kenarı s
+const izgara = (x0, y0, nx, ny, s, c) => {
+  const renk = c || '#cfdcd5';
+  let g = '';
+  for (let i = 0; i <= nx; i++) g += `<line x1="${x0 + i * s}" y1="${y0}" x2="${x0 + i * s}" y2="${y0 + ny * s}" stroke="${renk}" stroke-width="1"/>`;
+  for (let j = 0; j <= ny; j++) g += `<line x1="${x0}" y1="${y0 + j * s}" x2="${x0 + nx * s}" y2="${y0 + j * s}" stroke="${renk}" stroke-width="1"/>`;
+  return g;
+};
+// kare koordinatından (i sağa, j yukarı) piksele
+const nokta = (x0, y0, ny, s) => (i, j) => [x0 + i * s, y0 + (ny - j) * s];
+// vektör adı: harf ve üstünde küçük ok (alt simge olabilir)
+const vad = (x, y, ad, o) => {
+  const opt = o || {}, size = opt.size || 15, c = opt.fill || P.ink, w = opt.w || 10;
+  const yo = y - size + 1;
+  return T(x, y, ad, { size, weight: 800, anchor: 'middle', fill: c, italic: true }) +
+    `<line x1="${x - w / 2 - 1}" y1="${yo}" x2="${x + w / 2 + 1}" y2="${yo}" stroke="${c}" stroke-width="1.4"/>` +
+    `<polygon points="${x + w / 2 + 4},${yo} ${x + w / 2 - 0.5},${yo - 2.6} ${x + w / 2 - 0.5},${yo + 2.6}" fill="${c}"/>`;
+};
+// pusula: kuzey (yukarı) ve doğu (sağa)
+const pusula = (x, y) => arrow(x, y, x, y - 30, { color: P.ink2, w: 1.8, head: 7, headW: 4 }) + arrow(x, y, x + 30, y, { color: P.ink2, w: 1.8, head: 7, headW: 4 }) +
+  T(x, y - 36, 'Kuzey (+y)', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(x + 30, y + 18, 'Doğu (+x)', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+
+// 7. soru: yapılandırılmış grid (3 × 3 nicelik kartı)
+BFY_FIG_EKLE('AY9_11_grid_genis', function (u) {
+  const ad = ['Kütle', 'Hız', 'Enerji', 'Sıcaklık', 'Ağırlık', 'Hacim', 'İvme', 'Elektrik akımı', 'Basınç'];
+  const W = 170, H = 40, G = 8, x0 = 8, y0 = 8;
+  let s = `<rect class="bg" x="0" y="0" width="542" height="160" rx="12" fill="#f6f9f7"/>`;
+  ad.forEach((a, k) => {
+    const x = x0 + (k % 3) * (W + G), y = y0 + Math.floor(k / 3) * (H + G) + 4;
+    s += `<rect x="${x}" y="${y}" width="${W}" height="${H}" rx="8" fill="#ffffff" stroke="#8fae9f" stroke-width="1.4"/>`;
+    s += `<circle cx="${x + 20}" cy="${y + H / 2}" r="11" fill="${P.green}"/>` + T(x + 20, y + H / 2 + 4.6, String(k + 1), { size: 13, weight: 800, anchor: 'middle', fill: '#ffffff', halo: false });
+    s += T(x + 40, y + H / 2 + 5, a, { size: 15, weight: 700 });
+  });
+  return svg(542, 160, s, u, 140);
+});
+
+// 12. soru: kareli kâğıtta K vektörü ve beş vektör
+BFY_FIG_EKLE('AY9_11_vektorler', function (u) {
+  const x0 = 20, y0 = 14, nx = 14, ny = 8, s = 20, p = nokta(x0, y0, ny, s);
+  let g = `<rect class="bg" x="0" y="0" width="320" height="198" rx="12" fill="#f8faf9"/>` + `<rect x="${x0}" y="${y0}" width="${nx * s}" height="${ny * s}" fill="#ffffff"/>` + izgara(x0, y0, nx, ny, s);
+  // [başlangıç i, j, bitiş i, j, ad, etiket x, y (kare)]
+  const V = [
+    [1, 1, 3, 2, 'K', 1.55, 2.25],
+    [1, 4, 5, 6, 'M', 2.55, 5.75],
+    [10, 7, 6, 5, 'R', 8.45, 6.75],
+    [13, 4, 11, 3, 'N', 12.45, 4.2],
+    [12, 2, 8, 1, 'L', 10.2, 2.35],
+    [7, 4, 5, 0, 'P', 6.75, 2.0]
+  ];
+  V.forEach(([a, b, c, d, ad, li, lj]) => {
+    const [X1, Y1] = p(a, b), [X2, Y2] = p(c, d);
+    const renk = ad === 'K' ? P.coral : P.sky;
+    g += `<circle cx="${X1}" cy="${Y1}" r="2.6" fill="${renk}"/>` + arrow(X1, Y1, X2, Y2, { color: renk, w: 2.6, head: 9, headW: 5 });
+    const [lx, ly] = p(li, lj);
+    g += vad(lx, ly + 5, ad, { fill: renk });
+  });
+  g += T(300, 192, '1 kare kenarı = 1 birim', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(320, 198, g, u, 76);
+});
+
+// 15. soru: köşe direğinin tepesi (kuşbakışı), iki telin kuvvetleri (12 ve 5 kare)
+BFY_FIG_EKLE('AY9_11_direk', function (u) {
+  const x0 = 12, y0 = 26, nx = 14, ny = 7, s = 17, p = nokta(x0, y0, ny, s);
+  let g = `<rect class="bg" x="0" y="0" width="340" height="196" rx="12" fill="#f6f9f7"/>` + `<rect x="${x0}" y="${y0}" width="${nx * s}" height="${ny * s}" fill="#ffffff"/>` + izgara(x0, y0, nx, ny, s);
+  const [Ox, Oy] = p(1, 1), [Ax, Ay] = p(13, 1), [Bx, By] = p(1, 6);
+  // teller (ince, gri): direkten doğuya ve kuzeye uzanır
+  g += `<line x1="${Ox}" y1="${Oy}" x2="${x0 + nx * s + 14}" y2="${Oy}" stroke="#5b6670" stroke-width="1.6"/>`;
+  g += `<line x1="${Ox}" y1="${Oy}" x2="${Ox}" y2="${y0 - 14}" stroke="#5b6670" stroke-width="1.6"/>`;
+  g += T(x0 + nx * s + 14, Oy - 8, 'tel', { size: 11, weight: 700, anchor: 'end', fill: '#5b6670' }) + T(Ox + 8, y0 - 4, 'tel', { size: 11, weight: 700, fill: '#5b6670' });
+  // kuvvet okları
+  g += arrow(Ox, Oy, Ax, Ay, { color: P.coral, w: 3.2, head: 11, headW: 6 }) + arrow(Ox, Oy, Bx, By, { color: P.coral, w: 3.2, head: 11, headW: 6 });
+  // direğin tepesi (üstten görünüş)
+  g += `<circle cx="${Ox}" cy="${Oy}" r="8" fill="url(#${u}wood)" stroke="#7a5a2e" stroke-width="1.6"/><circle cx="${Ox}" cy="${Oy}" r="3" fill="#7a5a2e"/>`;
+  g += vad((Ox + Ax) / 2, Oy + 24, 'F_1', { fill: P.coral, w: 14 }) + vad(Ox + 20, (Oy + By) / 2 + 6, 'F_2', { fill: P.coral, w: 14 });
+  g += T(Ox + 4, Oy + 28, 'direk', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // pusula (dar): kuzey yukarı, doğu sağa
+  const cx = 290, cy = 108;
+  g += arrow(cx, cy, cx, cy - 30, { color: P.ink2, w: 1.8, head: 7, headW: 4 }) + arrow(cx, cy, cx + 30, cy, { color: P.ink2, w: 1.8, head: 7, headW: 4 });
+  g += T(cx, cy - 36, 'Kuzey', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 }) + T(cx + 22, cy + 18, 'Doğu', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  g += T(16, 188, 'Kuşbakışı görünüş', { size: 11, weight: 700, fill: P.ink2 });
+  return svg(340, 196, g, u, 80);
+});
+
+// 16. soru: O noktasındaki arabaya iki kuvvet ve aday noktalar
+BFY_FIG_EKLE('AY9_11_halka', function (u) {
+  const x0 = 18, y0 = 14, nx = 11, ny = 8, s = 24, p = nokta(x0, y0, ny, s);
+  let g = `<rect class="bg" x="0" y="0" width="304" height="230" rx="12" fill="#f8faf9"/>` + `<rect x="${x0}" y="${y0}" width="${nx * s}" height="${ny * s}" fill="#ffffff"/>` + izgara(x0, y0, nx, ny, s);
+  const [Ox, Oy] = p(5, 4), [Ax, Ay] = p(8, 5), [Bx, By] = p(6, 6);
+  g += arrow(Ox, Oy, Ax, Ay, { color: P.coral, w: 2.8, head: 10, headW: 5.5 }) + arrow(Ox, Oy, Bx, By, { color: P.sky, w: 2.8, head: 10, headW: 5.5 });
+  g += `<circle cx="${Ox}" cy="${Oy}" r="5" fill="#ffffff" stroke="${P.ink}" stroke-width="2"/>` + T(Ox - 9, Oy + 17, 'O', { size: 13, weight: 800, anchor: 'middle' });
+  g += vad(p(6.75, 5.3)[0], p(6.75, 5.3)[1] + 4, 'F_1', { fill: P.coral, w: 14 }) + vad(p(4.75, 5.55)[0], p(4.75, 5.55)[1] + 4, 'F_2', { fill: P.sky, w: 14 });
+  // aday noktalar
+  [['K', 9, 7], ['L', 7, 3], ['M', 3, 5], ['N', 1, 1], ['P', 10, 6]].forEach(([ad, i, j]) => {
+    const [X, Y] = p(i, j);
+    g += `<circle cx="${X}" cy="${Y}" r="3.8" fill="${P.ink}"/>` + T(X + 8, Y - 6, ad, { size: 13, weight: 800 });
+  });
+  g += T(286, 224, '1 kare kenarı = 1 N', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(304, 230, g, u, 74);
+});
+
+// 17. soru: yola devrilen ağaç gövdesi (kuşbakışı) ve dört olası halat kuvveti
+BFY_FIG_EKLE('AY9_11_cekici', function (u) {
+  const x0 = 14, y0 = 22, nx = 10, ny = 8, s = 22, p = nokta(x0, y0, ny, s);
+  let g = `<rect class="bg" x="0" y="0" width="330" height="236" rx="12" fill="#f6f9f7"/>` + `<rect x="${x0}" y="${y0}" width="${nx * s}" height="${ny * s}" fill="#ffffff"/>` + izgara(x0, y0, nx, ny, s);
+  const [Ox, Oy] = p(5, 4);
+  // ağaç gövdesi (üstten): kuzey-güney uzanan kütük
+  g += `<g transform="translate(${Ox},${Oy})"><rect x="-6" y="-22" width="12" height="40" rx="5" fill="#a9784a" stroke="#5f3f22" stroke-width="1.3"/><line x1="-2" y1="-17" x2="-2" y2="12" stroke="#7a5230" stroke-width="1"/></g>`;
+  // [bitiş i, j, ad, etiket i, j]
+  [[9, 7, 'K', 6.55, 6.35], [6, 1, 'L', 4.6, 2.0], [8, 1, 'M', 7.25, 2.95], [1, 7, 'N', 3.45, 6.35]].forEach(([i, j, ad, li, lj]) => {
+    const [X, Y] = p(i, j);
+    g += arrow(Ox, Oy, X, Y, { color: P.coral, w: 2.8, head: 10, headW: 5.5 });
+    const [lx, ly] = p(li, lj);
+    g += vad(lx, ly + 6, ad, { fill: P.coral });
+  });
+  g += `<circle cx="${Ox}" cy="${Oy}" r="3.2" fill="#5f3f22"/>`;
+  g += T(Ox, y0 + ny * s + 16, 'ağaç gövdesi', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  g += pusula(268, 70);
+  g += T(282, 130, '1 kare kenarı', { size: 12, weight: 700, anchor: 'middle', fill: P.ink }) + T(282, 147, '= 5 kN', { size: 12, weight: 700, anchor: 'middle', fill: P.ink });
+  g += T(250, 228, 'Kuşbakışı görünüş', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(330, 236, g, u, 78);
+});
+
+// 20. soru: müzenin kareli kat planı, G → H → Ç
+BFY_FIG_EKLE('AY9_11_muze', function (u) {
+  const x0 = 26, y0 = 22, nx = 6, ny = 8, s = 24, p = nokta(x0, y0, ny, s);
+  let g = `<rect class="bg" x="0" y="0" width="320" height="250" rx="12" fill="#f6f9f7"/>` + `<rect x="${x0}" y="${y0}" width="${nx * s}" height="${ny * s}" fill="#fbf7ef"/>` + izgara(x0, y0, nx, ny, s, '#ddd3c2');
+  // dış duvarlar (girişte ve çıkışta kapı boşluğu)
+  const duvar = (a, b, c, d) => `<line x1="${a}" y1="${b}" x2="${c}" y2="${d}" stroke="#6b4f3a" stroke-width="5" stroke-linecap="square"/>`;
+  const L = x0, R = x0 + nx * s, Tp = y0, B = y0 + ny * s;
+  g += duvar(L, Tp, L, B) + duvar(R, Tp, R, B);
+  g += duvar(L, B, x0 + 0.4 * s, B) + duvar(x0 + 1.6 * s, B, R, B);      // altta giriş kapısı
+  g += duvar(L, Tp, x0 + 0.4 * s, Tp) + duvar(x0 + 1.6 * s, Tp, R, Tp);  // üstte çıkış kapısı
+  const [Gx, Gy] = p(1, 1), [Hx, Hy] = p(5, 4), [Cx, Cy] = p(1, 7);
+  g += arrow(Gx, Gy, Hx, Hy, { color: P.coral, w: 2.4, head: 9, headW: 5, dash: '6 4' }) + arrow(Hx, Hy, Cx, Cy, { color: P.coral, w: 2.4, head: 9, headW: 5, dash: '6 4' });
+  // heykel kaidesi
+  g += `<rect x="${Hx - 9}" y="${Hy - 9}" width="18" height="18" rx="2" fill="url(#${u}marble)" stroke="#8a8378" stroke-width="1.2"/><circle cx="${Hx}" cy="${Hy}" r="5" fill="#b9b2a6"/>`;
+  [[Gx, Gy, 'G', 15, 14], [Cx, Cy, 'Ç', 15, -6]].forEach(([X, Y, ad, dx, dy]) => { g += `<circle cx="${X}" cy="${Y}" r="4.5" fill="${P.ink}"/>` + T(X + dx, Y + dy, ad, { size: 14, weight: 800, anchor: 'middle' }); });
+  g += T(Hx, Hy - 15, 'H', { size: 14, weight: 800, anchor: 'middle' });
+  g += pusula(222, 80);
+  g += T(206, 150, 'G: giriş', { size: 12, weight: 700 }) + T(206, 168, 'H: heykel', { size: 12, weight: 700 }) + T(206, 186, 'Ç: çıkış', { size: 12, weight: 700 });
+  g += T(206, 214, '1 kare kenarı = 3 m', { size: 12, weight: 700, fill: P.ink2 });
+  return svg(320, 250, g, u, 76);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'AY9_11', tur: 'aylik', sinif: 9, ay: 11, yil: '2026-2027', ad: '9. Sınıf Kasım Denemesi', sure: 2400,
+  kapsam: 'Hafta 1–11: fizik bilimi ve alt dalları, fizik bilimine yön verenler ve kariyer, temel ve türetilmiş nicelikler, skaler ve vektörel nicelikler, aynı doğrultudaki vektörler, vektörlerin toplanması ve bileşenlere ayırma.',
+  aciklama: 'Kitapların fizikle ilişkili disiplinleri, deniz fenerinde alt dallar, UME\'de kalibrasyon, bilim insanlarının çalışma biçimleri, İbnülheysem\'in görme kuramı, akıllı arı kovanı, yapılandırılmış grid, birim çözümleme, paraşütçünün kaydı, koliler ve dolap, ekran parlaklığı, −2K vektörü, yol kenarındaki hız ölçüm cihazı, tekne çekek rampası, köşe direği, paralelkenar yöntemi, devrilen ağacın çekilmesinde konum seçimi, yelkenli rotası, sualtı robotu ve müze planı.',
+  baglamlar: [
+    'halk kütüphanesinde "Fizik ve Komşuları" rafı: ksilofon çubukları, ressamın soluk mavi dağları (ışığın havada saçılması), uzay aracının gezegen çekiminden yararlanması, kol kemiği ve kaslarının kaldıraç gibi çalışması (disiplin eşleştirme)',
+    'deniz feneri bakım ekibi: dev merceğin ışık demeti (optik), ksenon lambanın iyonlaşan gazı (plazma), soğuk camda buğulanma (termodinamik; optik değil)',
+    'kariyer gününde TÜBİTAK UME fizikçisi: termometre, kuyumcu terazisi, kronometre, kumpas kalibrasyonu; yıldız uzaklığı ölçümü bu iş değil',
+    'Hazini, Faraday, Maxwell, Einstein çalışma biçimleri tablosu: deney grubu ve kuram grubu (düşünce deneyi tuzağı, iki sütun)',
+    'İbnülheysem Kitâbü\'l-Menâzır: Öklid ve Batlamyus\'un gözden ışın çıkar görüşü, parlak ışıkta gözün acıması, Latince çeviri (kesinlikle)',
+    'akıllı arı kovanı sensörleri: 42 kg, 308 K, 230 Hz kanat çırpma, 15 L bal, 120 mA; temel nicelik sayısı 3',
+    'yapılandırılmış grid 3 × 3: hem türetilmiş hem vektörel olanlar hız, ağırlık, ivme (enerji, basınç, akım tuzakları)',
+    'elektrikli tekerlekli sandalye 240 W ve 2 m/s: W ÷ (m/s) birimi kuvvet birimi (birim çözümleme)',
+    'paraşütçü Kaan\'ın atlayış kaydı: 4000 m, 200 km/h sürat, aşağı 5 m/s iniş hızı, doğuya 300 m sürüklenme, 12 °C',
+    'taşınma şirketi: 12 kg + 8 kg koli (skaler toplam kesin) ve dolaba aynı doğrultuda 300 N ile 200 N (500 N ya da 100 N)',
+    'telefon ekranı en yüksek parlaklık 1500 cd/m² (lüminans): türetilmiş, ışık şiddeti ve uzunluk; birimden vektörellik çıkmaz (kesinlikle)',
+    'kareli kâğıtta K = (2, 1) ve −2K; tuzaklar 2K, −K, (−4, −1), (−2, −4)',
+    'yol kenarındaki hız ölçüm cihazı: traktör +40, minibüs −40, otomobil −80, bisikletli +20 km/h; zıt vektör, −4 katı, işaretsiz 1/4 tuzağı',
+    'tekne çekek yerinde rampa: vinç 1200 N yukarı, Murat 300 N iter ya da tutar; bileşke 1500 N ya da 900 N, hep vinç yönünde (olabilir)',
+    'sokak köşesindeki elektrik direğine dik iki tel: 12 ve 5 kare, 1 kare = 100 N, bileşke 1300 N',
+    'oyuncak arabaya iki lastik ip: F1 = (3, 1), F2 = (1, 2) kare; paralelkenarın köşesi K = (4, 3); F1 − F2, F2 − F1, −R, bileşen karıştırma tuzakları',
+    'yola devrilen ağaç gövdesi, dört olası iş makinesi konumu: K (4, 3), L (1, −3), M (3, −3), N (−4, 3) kare, 1 kare = 5 kN; tam doğu ve en büyük bileşke K ve M (35 kN); tam kuzey, tam batı, en büyük ama yönü yanlış tuzakları',
+    'yelkenlinin iki doğrusal rota parçası: ilki 8 km, başlangıç-bitiş arası 17 km; ikinci parça 9–25 km, dik durumda 15 km (kesinlikle)',
+    'sualtı robotu (ROV) iki itici, üç ayar K, L, M bileşen tablosu: bileşkeler 50, 100, 70 N; büyüklükleri toplama tuzağı (sıralama)',
+    'müze mobil rehberi kareli kat planı: G (1, 1) → H (5, 4) → Ç (1, 7), 1 kare = 3 m; H→Ç bileşenleri (−12 m, +9 m), G→Ç 18 m, yol 30 m tuzağı (iki sütun)'
+  ],
+  sorular: [
+    /* ---------------- 9.1.1 Fizik bilimi ve alt dalları ---------------- */
+    {
+      id: 'AY9_11_1', konu: '9.1.1', zorluk: 1, tur: 'cs', cikti: 'FİZ.9.1.1', beceri: 'Fiziğin diğer disiplinlerle ilişkisini belirleme',
+      metin: r`Bir halk kütüphanesi "Fizik ve Komşuları" adlı rafına dört kitap koymuştur. Kitapların arka kapaklarındaki tanıtım cümleleri tabloda verilmiştir.
+
+{{tablo}}
+
+Her kitabın, fizik bilimi ile hangi disiplin arasındaki ilişkiyi anlattığı aşağıdakilerin hangisinde doğru verilmiştir?`,
+      tablo: [['Kitap', 'Arka kapaktaki tanıtım'],
+        ['K', 'Ksilofonun kısa tahta çubuklarının neden uzun çubuklardan daha ince ses verdiğini anlatıyor.'],
+        ['L', 'Ressamların uzaktaki dağları neden daha soluk ve mavimsi boyadığını, ışığın havada saçılmasıyla açıklıyor.'],
+        ['M', 'Bir uzay aracının Mars\'a giderken Güneş\'in ve gezegenlerin çekim etkisinden nasıl yararlandığını anlatıyor.'],
+        ['N', 'Kol kemiklerimizin ve kaslarımızın bir kaldıraç gibi çalışarak yük kaldırmamızı nasıl sağladığını anlatıyor.']],
+      secenekler: [
+        'K: müzik, L: görsel sanatlar, M: astronomi ve uzay bilimleri, N: biyoloji',
+        'K: müzik, L: astronomi ve uzay bilimleri, M: astronomi ve uzay bilimleri, N: biyoloji',
+        'K: biyoloji, L: görsel sanatlar, M: astronomi ve uzay bilimleri, N: biyoloji',
+        'K: müzik, L: kimya, M: astronomi ve uzay bilimleri, N: biyoloji',
+        'K: müzik, L: biyoloji, M: astronomi ve uzay bilimleri, N: biyoloji'
+      ],
+      dogru: 0,
+      cozum: [
+        r`K. Çubuğun boyu ile çıkan sesin inceliği arasındaki ilişki, bir çalgının nasıl ses verdiğinin fiziğidir: **müzik**.`,
+        r`L. Uzaktaki dağların soluk ve mavimsi görünmesi ışığın havada saçılmasından kaynaklanır; ressam bu bilgiyi resimde derinlik duygusu vermek için kullanır: **görsel sanatlar**.`,
+        r`M. Uzay aracının yolculuğunda Güneş'in ve gezegenlerin çekim etkisinden yararlanılması: **astronomi ve uzay bilimleri**. N. Kemik ve kasların kaldıraç gibi çalışması, canlı vücudundaki kuvvet ilişkisidir: **biyoloji**.`,
+        r`{{S1}} L'deki dağları ve renkli gökyüzünü görünce astronomiyi seçer; oysa kitap bir ressamın boyama tercihini açıklamaktadır. {{S2}} K'deki sesi kulakta duyma olayı sanıp biyolojiye bağlar; kitap, çubuğun boyu ile ses arasındaki çalgı fiziğini anlatır. {{S3}} L'de ressamın boyalarını düşünüp kimyayı seçer; kitap boyanın yapısını değil ışığın havada saçılmasını anlatır. {{S4}} L'deki görmeyi gözle ilişkilendirip biyolojiye bağlar; ışığın saçılmasını resme taşıyan disiplin görsel sanatlardır.`
+      ]
+    },
+    {
+      id: 'AY9_11_2', konu: '9.1.1', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.1.2', beceri: 'Olayları fiziğin alt dallarıyla ilişkilendirerek etiketleme',
+      metin: r`Bir deniz fenerinin bakımını yapan ekip, fenerle ilgili üç konuyu fiziğin birer alt dalıyla eşleştiriyor.
+
+I. Fenerin dev merceğinin, lambadan çıkan ışığı dar bir demet hâlinde ufka göndermesi: optik
+II. Lambanın içindeki ksenon gazının, elektrik boşalmasıyla iyonlaşarak parlak ışık yayması: yüksek enerji ve plazma fiziği
+III. Kış gecelerinde fener odasının soğuk camlarında su buharının yoğuşarak camı buğulandırması: optik
+
+Ekibin yaptığı eşleştirmelerden hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Merceğin ışığı kırarak dar bir demet hâline getirmesi bir ışık olayıdır: **optik**. Eşleştirme doğrudur.`,
+        r`II. İçindeki gazın iyonlaşarak ışık yaydığı ksenon ve neon lambalar, maddenin plazma hâliyle ilgilidir: **yüksek enerji ve plazma fiziği**. Eşleştirme doğrudur.`,
+        r`III. Buğulanma, su buharının soğuk camda yoğuşmasıdır. Bu bir hâl değişimidir ve **termodinamiğin** konusudur. Olayın camda görülmesi onu optiğin konusu yapmaz. Eşleştirme yanlıştır.`,
+        r`{{S0}} lambanın ışık yaymasını yalnız optiğe bağladığı için II'yi dışarıda bırakır; gazın iyonlaşması plazma fiziğinin konusudur. {{S1}} buğulanmayı camla ilgili olduğu için optik sanır ve doğru olan I ile II'yi dışarıda bırakır. {{S3}} camdaki buğuyu optiğe bağlar ve II'deki plazma eşleştirmesini görmez. {{S4}} III'ü de doğru sayar; yoğuşma bir hâl değişimidir, termodinamiğin konusudur.`
+      ]
+    },
+    /* ---------------- 9.1.2 Fizik bilimine yön verenler ve kariyer ---------------- */
+    {
+      id: 'AY9_11_3', konu: '9.1.2', zorluk: 1, tur: 'cs', cikti: 'FİZ.9.1.4', beceri: 'Kurumdaki fizikle ilişkili meslek hakkında çıkarım yapma',
+      metin: r`Okulun kariyer gününe gelen bir fizikçi, TÜBİTAK Ulusal Metroloji Enstitüsünde (UME) çalıştığını söylüyor ve işini şöyle anlatıyor: "Ülkede yapılan ölçümlerin güvenilir olması için ölçüm cihazlarını, değeri kesin olarak bilinen ulusal ölçü standartlarıyla karşılaştırıyoruz. Cihazın ne kadar saptığını belirleyip raporluyoruz."
+
+Bu anlatıma göre aşağıdakilerden hangisi, UME'deki bu fizikçinin yaptığı türden bir iş **değildir**?`,
+      secenekler: [
+        r`Bir hastaneden gelen dijital termometrenin, sıcaklığı kesin bilinen bir sıvı banyosunda ne kadar saptığını belirlemek`,
+        r`Bir kuyumcu terazisini, kütlesi kesin bilinen standart kütlelerle sınamak`,
+        r`Yeni keşfedilen bir yıldızın Dünya'ya uzaklığını teleskopla gözleyerek hesaplamak`,
+        r`Bir fabrikanın kumpaslarının ölçtüğü uzunlukları, uzunluğu kesin bilinen standart bloklarla karşılaştırmak`,
+        r`Bir atletizm pistindeki elektronik kronometrenin ölçtüğü süreleri atom saatiyle karşılaştırmak`
+      ],
+      dogru: 2,
+      cozum: [
+        r`Fizikçinin anlattığı iş, bir ölçüm cihazını değeri kesin bilinen bir standartla karşılaştırıp cihazın sapmasını bulmaktır (kalibrasyon).`,
+        r`Termometre, terazi, kronometre ve kumpas örneklerinin her birinde bir cihaz, sıcaklık, kütle, zaman ya da uzunluk standardıyla karşılaştırılmaktadır. Yıldızın uzaklığını gözlemle hesaplamak ise doğadaki bir niceliği ilk kez ölçmektir; bir cihazı standartla karşılaştırmak değildir. Bu iş gözlemevlerinde çalışan astronomların işidir.`,
+        r`{{S0}} termometrenin bir hastaneye ait olduğunu görüp işi hastanenin sanır; oysa cihaz, sıcaklığı bilinen bir banyoyla karşılaştırılmaktadır. {{S1}} kuyumcu terazisini fizikle ilgisiz bir ticaret aracı sanır; standart kütlelerle sınama tam olarak anlatılan iştir. {{S4}} kronometreyi spor hakemlerinin işi sanır; ölçülen süreleri atom saatiyle karşılaştırmak zaman ölçümünün kalibrasyonudur. {{S3}} uzunluk ölçümünü fabrikanın kendi işi sanır; kumpası standart bloklarla karşılaştırmak anlatılan işin aynısıdır.`
+      ]
+    },
+    {
+      id: 'AY9_11_4', konu: '9.1.2', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.1.3', beceri: 'Bilim insanlarının çalışma biçimlerini metinden çıkarıp gruplandırma',
+      metin: r`Fizik öğretmeni Nur Hanım, dört bilim insanının çalışma biçimini tabloda özetliyor.
+
+{{tablo}}
+
+Nur Hanım, bilim insanlarını iki gruba ayırmak istiyor. **Deney grubu:** gözlem, deney ya da ölçümle kendisi veri toplayanlar. **Kuram grubu:** kendisi veri toplamadan düşünce ve matematikle kuram kuranlar.
+
+Tablodaki bilgilere göre gruplar aşağıdakilerin hangisinde doğru verilmiştir?`,
+      tablo: [['Bilim insanı', 'Çalışmasından bir kesit'],
+        ['Hazini', 'Maddelerin yoğunluklarını, geliştirdiği hassas bir teraziyle tartarak ölçtü; bulduğu değerler bugünkü ölçümlere çok yakındır.'],
+        ['Michael Faraday', 'Matematik eğitimi almamıştı; kendi olanaklarıyla çok sayıda deney yaptı ve sonuçlarını denklemlere dökmeden açıkladı.'],
+        ['James Maxwell', 'Faraday\'ın deneylerle ortaya koyduğu sonuçları matematiksel denklemlerle ifade etti.'],
+        ['Albert Einstein', 'Hızlanan bir asansörün içindeki kişinin neler gözleyeceğini hayal ederek "düşünce deneyleri" kurdu; vardığı sonuçları denklemlere çevirdi.']],
+      secenekler: [
+        'Deney grubu: Hazini ve Faraday; kuram grubu: Maxwell ve Einstein',
+        'Deney grubu: Hazini, Faraday ve Einstein; kuram grubu: Maxwell',
+        'Deney grubu: Hazini; kuram grubu: Faraday, Maxwell ve Einstein',
+        'Deney grubu: Faraday ve Maxwell; kuram grubu: Hazini ve Einstein',
+        'Deney grubu: Hazini ve Maxwell; kuram grubu: Faraday ve Einstein'
+      ],
+      dogru: 0,
+      cozum: [
+        r`Hazini terazilerle tartarak, Faraday kendi deneyleriyle veri toplamıştır: ikisi **deney grubundadır**.`,
+        r`Maxwell, Faraday'ın topladığı sonuçları matematikle ifade etmiştir; kendisi veri toplamamıştır. Einstein'ın "düşünce deneyi" gerçek bir düzenekte yapılmaz, yalnız hayal edilip akıl yürütülür; sonuçları denklemlere çevrilir. İkisi **kuram grubundadır**.`,
+        r`{{S1}} "düşünce deneyi" adındaki "deney" sözcüğüne bakıp Einstein'ı deney grubuna koyar; oysa bu deneyde ölçüm yapılmaz, yalnız akıl yürütülür. {{S2}} Faraday'ın sonuçlarını denklemsiz açıklamasını kuram kurmak sanır; Faraday verisini kendi deneyleriyle toplamıştır. {{S3}} Maxwell'in Faraday'ın deney sonuçlarıyla çalıştığını görüp onu deneyci sanır, Hazini'nin ölçümlerini de gözden kaçırır. {{S4}} Hazini ile Maxwell'i, Faraday ile Einstein'ı yer değiştirmiştir; tablodaki "tartarak ölçtü" ve "deney yaptı" ifadeleri veri toplamayı gösterir.`
+      ]
+    },
+    {
+      id: 'AY9_11_5', konu: '9.1.2', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.1.3', beceri: 'Bilim insanının deneyimine dayalı çıkarımları değerlendirme',
+      metin: r`İbnülheysem, yaklaşık bin yıl önce yazdığı Kitâbü'l-Menâzır (Optik Kitabı) adlı eserinde, Öklid ve Batlamyus gibi ünlü bilginlerin de savunduğu "gözden çıkan ışınlarla görürüz" görüşünü ele aldı. Bu görüşü gözlem ve deneylerle sorguladı; örneğin çok parlak bir ışık kaynağına bakınca gözün acımasını, ışığın dışarıdan göze geldiğinin bir işareti olarak yorumladı. Görmenin, cisimlerden gelen ışığın göze ulaşmasıyla gerçekleştiğini savundu. Eser sonraki yüzyıllarda Latinceye çevrildi ve Avrupa'da optik üzerine çalışan bilim insanlarınca kaynak olarak kullanıldı.
+
+Bu metne göre,
+
+I. İbnülheysem, bir görüşün ünlü bilginlerce savunulmasını o görüşün doğruluğu için yeterli saymamıştır.
+II. İbnülheysem'in görme hakkındaki görüşü, kendi döneminde bütün bilginlerce hemen kabul edilmiştir.
+III. İbnülheysem'in çalışmaları, yaşadığı bölgenin dışındaki bilim insanlarını da etkilemiştir.
+
+yargılarından hangileri kesinlikle söylenebilir?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. İbnülheysem, Öklid ve Batlamyus'un savunduğu görüşü olduğu gibi kabul etmemiş, gözlem ve deneylerle sorgulamıştır. **Kesinlikle söylenebilir.**`,
+        r`II. Metin, görüşün kendi döneminde nasıl karşılandığı hakkında bilgi vermez. Eserin sonraki yüzyıllarda çevrilip kullanılması, döneminde herkesçe hemen kabul edildiğini göstermez. **Söylenemez.**`,
+        r`III. Eser Latinceye çevrilmiş ve Avrupa'daki bilim insanlarınca kaynak olarak kullanılmıştır. **Kesinlikle söylenebilir.**`,
+        r`{{S0}} III'teki etkinin, metindeki Latince çeviri ve Avrupa'da kaynak olarak kullanılma bilgisinden çıktığını görmez. {{S1}} I'i atlar; ünlü bilginlerin görüşünü sorgulamak, bir görüşü yalnız savunanların ününe bakarak kabul etmemek demektir. {{S2}} II'yi metinde olmayan bir bilgiyle doğru sayar ve III'teki etkiyi atlar. {{S4}} II'yi de kesin sayar; metin, görüşün döneminde nasıl karşılandığını söylemez.`
+      ]
+    },
+    /* ---------------- 9.2.1 Nicelikler ---------------- */
+    {
+      id: 'AY9_11_6', konu: '9.2.1', zorluk: 1, tur: 'cs', cikti: 'FİZ.9.2.1', beceri: 'Birimlerinden temel ve türetilmiş nicelikleri ayırt etme',
+      metin: r`Arıcı Hatice Hanım, kovanına bir izleme cihazı yerleştiriyor. Cihazın bir günlük kaydında ölçülen nicelikler ve değerleri tabloda verilmiştir.
+
+{{tablo}}
+
+Tabloda ölçülen niceliklerden kaç tanesi temel niceliktir?`,
+      tablo: [['Ölçülen nicelik', 'Kayıt'], ['Kovanın kütlesi', '42 kg'], ['Kovanın içindeki sıcaklık', '308 K'], ['Arıların kanat çırpma frekansı', '230 Hz'], ['Kovandaki balın hacmi', '15 L'], ['Cihazın pilinden çekilen akım', '120 mA']],
+      secenekler: ['1', '2', '3', '4', '5'],
+      dogru: 2,
+      cozum: [
+        r`Temel nicelikler: kütle (kg), sıcaklık (K) ve elektrik akımı (mA, amperin binde biridir). Bu üç nicelik başka niceliklerden türetilmez.`,
+        r`Frekansın birimi hertz, $1\ \text{Hz} = 1\ \text{1/s}$'dir; zamandan türetilir. Hacmin birimi litre, $1\ \text{L} = 1\ \text{dm}^3$'tür; uzunluktan türetilir. Bu ikisi türetilmiş niceliktir. Temel nicelik sayısı $3$'tür.`,
+        r`{{S0}} yalnız kütleyi temel sayar; kelvinin sıcaklığın, miliamperin akımın birimi olduğunu görmez. {{S1}} elektrik akımını türetilmiş sanar ve iki temel nicelik bulur. {{S3}} hertz biriminde bölme işareti görmediği için frekansı da temel sayar; oysa $1\ \text{Hz} = 1\ \text{1/s}$'dir. {{S4}} tek sembolle yazılan her birimi temel sanar; litre ve hertz türetilmiş birimlerdir.`
+      ]
+    },
+    {
+      id: 'AY9_11_7', konu: '9.2.1', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.2.2', beceri: 'Nicelikleri iki ölçüte göre birlikte sınıflandırma',
+      metin: r`Fizik dersinde öğrencilere numaralı dokuz kutudan oluşan bir yapılandırılmış grid veriliyor.
+
+{{sekil}}
+
+Kutulardaki niceliklerden hem türetilmiş hem de vektörel olanların numaraları hangi seçenekte birlikte verilmiştir?`,
+      sekil: 'AY9_11_grid_genis',
+      secenekler: [r`2, 5 ve 7`, r`2, 7 ve 9`, r`2, 3, 5 ve 7`, r`2 ve 7`, r`2, 5, 7 ve 8`],
+      dogru: 0,
+      cozum: [
+        r`Temel nicelikler kütle (1), sıcaklık (4) ve elektrik akımıdır (8); bunlar elenir. Geriye kalan hız, enerji, ağırlık, hacim, ivme ve basınç türetilmiştir.`,
+        r`Bunlardan yönüyle birlikte verilmesi gerekenler hız (2), ağırlık (5, bir kuvvettir) ve ivmedir (7). Enerji, hacim ve basınç yön gerektirmez; skalerdir. Cevap 2, 5 ve 7'dir.`,
+        r`{{S1}} basıncı kuvvetle ilişkili olduğu için vektörel sanır ve ağırlığın bir kuvvet olduğunu gözden kaçırır. {{S2}} enerjiyi de vektörel sanır; enerji yalnız sayı ve birimle ifade edilir. {{S3}} ağırlığı kütle ile karıştırıp skaler sayar; ağırlık yönü aşağı doğru olan bir kuvvettir. {{S4}} devrede akımın bir yönü olduğu için onu vektörel sanar ve türetilmiş nicelikler arasına koyar; oysa akım SI'daki yedi temel nicelikten biridir ve bu ölçütle baştan elenir.`
+      ]
+    },
+    {
+      id: 'AY9_11_8', konu: '9.2.1', zorluk: 3, tur: 'cs', cikti: 'FİZ.9.2.1', beceri: 'Birim çözümlemesiyle türetilmiş niceliği tanıma',
+      metin: r`Bir elektrikli tekerlekli sandalyenin kullanım kılavuzunda motor gücü $240\ \text{W}$, en yüksek sürati $2\ \text{m/s}$ olarak verilmiştir. Ali, güç değerini sürat değerine bölüyor ve sonucun birimini SI'daki temel birimlerle yazıp sadeleştiriyor. Güç, birim zamanda aktarılan enerjidir; $1\ \text{W} = 1\ \text{J/s}$'dir.
+
+Ali'nin bulduğu birim, aşağıdaki niceliklerden hangisinin SI'daki birimiyle aynıdır?`,
+      secenekler: [
+        r`Kütle`,
+        r`Enerji`,
+        r`İvme`,
+        r`Basınç`,
+        r`Kuvvet`
+      ],
+      dogru: 4,
+      cozum: [
+        r`Enerjinin SI birimi $\text{J} = \text{kg} \times \text{m}^2/\text{s}^2$'dir. Gücün birimi bunun saniyeye bölümüdür: $\text{W} = \text{kg} \times \text{m}^2/\text{s}^3$.`,
+        r`Sürate bölmek, $\text{m/s}$ ile bölmektir: $\dfrac{\text{kg} \times \text{m}^2/\text{s}^3}{\text{m/s}} = \text{kg} \times \text{m}/\text{s}^2$. Bu, newtonun ($\text{N}$) temel birimlerle yazılışıdır; yani **kuvvet** biriminin aynısıdır.`,
+        r`{{S1}} güç ile süre çarpılınca enerji bulunduğunu hatırlar ve sürati süre gibi kullanır; oysa bölünen nicelik sürattir ve sonuç $\text{kg} \times \text{m/s}^2$ çıkar. {{S2}} sadeleştirmede kilogramı yok sayar ve $\text{m/s}^2$ bulur. {{S3}} metrenin üssünü yanlış sadeleştirip $\text{kg}/(\text{m} \times \text{s}^2)$ bulur. {{S0}} uzunluk ve zaman birimlerinin tümüyle birbirini götürdüğünü sanır; $\text{m}^2/\text{s}^3$ ile $\text{m/s}$'nin bölümü $\text{m/s}^2$'dir, birimsiz değildir.`
+      ]
+    },
+    {
+      id: 'AY9_11_9', konu: '9.2.1', zorluk: 1, tur: 'cs', cikti: 'FİZ.9.2.2', beceri: 'Metindeki nicelikleri skaler ve vektörel olarak ayırma',
+      metin: r`Paraşütçü Kaan'ın bir atlayışının kaydında şu bilgiler yer alıyor:
+- Uçaktan $4000\ \text{m}$ yükseklikte atladı.
+- Paraşüt açılmadan önce sürati yaklaşık $200\ \text{km/h}$'e ulaştı.
+- Paraşüt açıldıktan sonra düşey doğrultuda aşağı yönde $5\ \text{m/s}$ hızla indi.
+- Rüzgâr, iniş boyunca onu atladığı noktanın $300\ \text{m}$ doğusuna sürükledi.
+- İndiği yerde hava sıcaklığı $12\ {}^{\circ}\text{C}$ idi.
+
+Kayıtta geçen niceliklerden hangi ikisi vektöreldir?`,
+      secenekler: [
+        r`İniş hızı ile rüzgârın sürüklemesinin oluşturduğu 300 m doğu yönlü yer değiştirme`,
+        r`Paraşüt açılmadan önceki sürat ile iniş hızı`,
+        r`Atlama yüksekliği ile iniş hızı`,
+        r`Atlama yüksekliği ile hava sıcaklığı`,
+        r`Paraşüt açılmadan önceki sürat ile 300 m doğu yönlü yer değiştirme`
+      ],
+      dogru: 0,
+      cozum: [
+        r`Vektörel nicelikler, sayı ve birimin yanında yön de gerektirir. İniş hızı "düşey doğrultuda aşağı yönde $5\ \text{m/s}$" diye yönüyle verilmiştir. Sürüklenme de "$300\ \text{m}$ doğusuna" diye yönüyle verilmiş bir yer değiştirmedir.`,
+        r`Sürat yalnız büyüklüktür; yükseklik bir uzunluk, sıcaklık bir sayı ve birimle ifade edilir. Bunlar skalerdir.`,
+        r`{{S1}} sürat ile hızı aynı nicelik sanır; $200\ \text{km/h}$ sürat yön içermez, skalerdir. {{S2}} yükseklik "yukarıda" bir yeri anlattığı için onu vektörel sanır; atlama yüksekliği bir uzunluktur ve yalnız sayı ile birimle verilmiştir. {{S3}} yön gerektirmeyen iki skaler niceliği seçer. {{S4}} süratin de hız gibi vektörel olduğunu sanır.`
+      ]
+    },
+    {
+      id: 'AY9_11_10', konu: '9.2.1', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.2.2', beceri: 'Skaler ve vektörel niceliklerin toplanmasındaki farkı yorumlama',
+      metin: r`Bir taşınma şirketinde Ayten, kütleleri $12\ \text{kg}$ ve $8\ \text{kg}$ olan iki koliyi aynı el arabasına yüklüyor. Aynı sırada iki çalışan, yerdeki ağır bir dolaba yatay ve aynı doğrultu üzerinde $300\ \text{N}$ ve $200\ \text{N}$ büyüklüğünde kuvvetler uyguluyor. Kuvvetlerin yönleri kaydedilmemiştir.
+
+Arabadaki kolilerin toplam kütlesi ile dolaba uygulanan iki kuvvetin bileşkesinin büyüklüğü için aşağıdakilerden hangisi kesinlikle doğrudur?`,
+      secenekler: [
+        r`Toplam kütle 20 kg; bileşke 500 N`,
+        r`Toplam kütle 20 kg ya da 4 kg; bileşke 500 N ya da 100 N`,
+        r`Toplam kütle 20 kg; bileşke 500 N ya da 100 N`,
+        r`Toplam kütle 20 kg; bileşke 100 N`,
+        r`Toplam kütle 20 kg ya da 4 kg; bileşke 500 N`
+      ],
+      dogru: 2,
+      cozum: [
+        r`Kütle skalerdir; yön bilgisi gerekmez ve kütleler doğrudan toplanır: $12 + 8 = 20\ \text{kg}$. Bu değer kesindir.`,
+        r`Kuvvet vektöreldir. Aynı doğrultudaki iki kuvvet aynı yöndeyse bileşke $300 + 200 = 500\ \text{N}$, zıt yöndeyse $300 - 200 = 100\ \text{N}$ olur. Yönler bilinmediği için kesin olan yalnız "500 N ya da 100 N" dur.`,
+        r`{{S0}} kuvvetleri de kütleler gibi doğrudan toplar ve yönlerin zıt olabileceğini hesaba katmaz. {{S1}} kütlelerin de yöne bağlı olarak çıkarılabileceğini sanır; skaler nicelikler yön içermez. {{S3}} iki çalışanın dolabı mutlaka zıt yönlerde zorladığını varsayar; yönler kaydedilmemiştir. {{S4}} hem kütleleri yöne bağlı sanır hem de kuvvetlerin zıt yönlü olabileceğini görmez.`
+      ]
+    },
+    {
+      id: 'AY9_11_11', konu: '9.2.1', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.2.1', beceri: 'Birimden yapılabilecek çıkarımın sınırını belirleme',
+      metin: r`Bir telefonun teknik özellikler sayfasında ekranın en yüksek parlaklığı $1500\ \text{cd/m}^2$ olarak verilmiştir. Bu değer, ekranın ne kadar parlak göründüğünü anlatan **lüminans** niceliğine aittir. Burak bu niceliği daha önce hiç duymamıştır.
+
+Burak, yalnız lüminansın SI'daki birimine bakarak
+
+I. Lüminans türetilmiş bir niceliktir.
+II. Lüminansın türetilmesinde ışık şiddeti ve uzunluk temel nicelikleri kullanılmıştır.
+III. Lüminans vektörel bir niceliktir.
+
+yargılarından hangilerine kesinlikle ulaşabilir?`,
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Birim $\text{cd/m}^2$'dir. Kandela ($\text{cd}$) ışık şiddetinin, metre ($\text{m}$) uzunluğun SI birimidir; $\text{m}^2$ alanın birimidir. Birim, iki temel niceliğin birimlerinin bölümüyle oluşturulmuştur.`,
+        r`I. Birden çok temel nicelikten oluştuğu için lüminans türetilmiştir. **Kesin.** II. Birimde kandela ve metre bulunduğu için ışık şiddeti ve uzunluk kullanılmıştır. **Kesin.**`,
+        r`III. Bir niceliğin birimi, yönünün olup olmadığını göstermez: sürat ile hızın birimi aynıdır ($\text{m/s}$), ama biri skaler, öteki vektöreldir. Yalnız birime bakarak III'e ulaşılamaz.`,
+        r`{{S0}} birimdeki kandela ve metreyi görüp hangi temel niceliklerin kullanıldığını okuyabileceğini fark etmez. {{S2}} II'yi atlar ve birimin vektörellik hakkında bilgi verdiğini sanır. {{S3}} I'i atlar; birden çok temel nicelikten oluşan birim türetilmiş bir niceliği gösterir. {{S4}} birimin yön bilgisi de taşıdığını sanır; aynı birimle hem skaler hem vektörel nicelik ifade edilebilir.`
+      ]
+    },
+    /* ---------------- 9.2.2 Vektörlerin özellikleri (aynı doğrultu, eşit, zıt, katlı) ---------------- */
+    {
+      id: 'AY9_11_12', konu: '9.2.2', zorluk: 1, tur: 'cs', cikti: 'FİZ.9.2.3', beceri: 'Gerçek sayıyla çarpılmış vektörü kareli düzlemde bulma',
+      metin: r`Fizik kulübünde Defne, kenar uzunlukları 1 birim olan kareli kâğıda $\vec{K}$ vektörünü ve harflerle adlandırdığı beş vektör daha çiziyor.
+
+{{sekil}}
+
+Defne'nin çizdiği vektörlerden hangisi $-2\vec{K}$ vektörüne eşittir?`,
+      sekil: 'AY9_11_vektorler',
+      secenekler: ['L', 'M', 'N', 'P', 'R'],
+      dogru: 4,
+      cozum: [
+        r`$\vec{K}$ vektörü 2 birim sağa, 1 birim yukarı gider. $-2\vec{K}$ vektörünün büyüklüğü $\vec{K}$'nin 2 katı, yönü zıttır: 4 birim sola, 2 birim aşağı.`,
+        r`Kareler sayıldığında 4 birim sola ve 2 birim aşağı giden vektör $\vec{R}$'dir. Vektörün kâğıttaki yeri önemli değildir; büyüklüğü ve yönü aynı olan vektörler eşittir.`,
+        r`{{S0}} 4 birim sola giden vektörü seçer ama düşeyde yalnız 1 birim indiğini görmez; bu vektör $-2\vec{K}$ ile aynı yönde değildir. {{S1}} 2 ile çarpar ama eksi işaretinin yönü ters çevirdiğini unutur; bu vektör $2\vec{K}$'dir. {{S2}} yönü ters çevirir ama 2 ile çarpmayı unutur; bu vektör $-\vec{K}$'dir. {{S3}} büyüklüğü $-2\vec{K}$ ile aynı olan vektörü seçer; ancak bu vektör 2 birim sola, 4 birim aşağı gittiği için yönü farklıdır.`
+      ]
+    },
+    {
+      id: 'AY9_11_13', konu: '9.2.2', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.2.3', beceri: 'Kaydedilen verilerden eşit, zıt ve katlı vektörleri değerlendirme',
+      metin: r`Doğu–batı doğrultusunda uzanan düz ve çift yönlü bir yolun kenarındaki hız ölçüm cihazı, önünden geçen araçların hızlarını kaydediyor. Cihaz, doğuya giden araçların hızlarını $+$, batıya gidenlerinkini $-$ işaretiyle yazıyor.
+
+{{tablo}}
+
+Buna göre,
+
+I. Minibüsün hızı, traktörün hızının zıt vektörüdür.
+II. Otomobilin hızı, bisikletlinin hızının $-4$ katıdır.
+III. Bisikletlinin hızı, otomobilin hızının $\dfrac{1}{4}$ katıdır.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Araç', 'Cihazın kaydettiği hız'], ['Traktör', '+40 km/h'], ['Minibüs', '−40 km/h'], ['Otomobil', '−80 km/h'], ['Bisikletli', '+20 km/h']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. $+40\ \text{km/h}$ ile $-40\ \text{km/h}$ eşit büyüklükte, aynı doğrultuda ve zıt yönlüdür; minibüsün hızı traktörün hızının zıt vektörüdür. Vektörlerin farklı araçlara ait olması bu ilişkiyi değiştirmez. **Doğru.**`,
+        r`II. $-4 \times (+20\ \text{km/h}) = -80\ \text{km/h}$. Otomobilin hızı, bisikletlinin hızının $-4$ katıdır. **Doğru.**`,
+        r`III. $\dfrac{1}{4} \times (-80\ \text{km/h}) = -20\ \text{km/h}$ olurdu; oysa bisikletlinin hızı $+20\ \text{km/h}$'tir. Büyüklükler oranı $\dfrac{1}{4}$ olsa da yönler zıttır; bisikletlinin hızı otomobilin hızının $-\dfrac{1}{4}$ katıdır. **Yanlış.**`,
+        r`{{S0}} $-80$ ile $+20$ arasındaki ilişkide eksi işaretli katsayıyı kabul etmez ve II'yi eler. {{S1}} I'i eler; farklı araçların hızlarının birbirinin zıt vektörü olamayacağını sanır, oysa eşit büyüklükte ve zıt yönlü iki hız birbirinin zıt vektörüdür. {{S2}} yalnız büyüklükleri karşılaştırarak III'ü doğru sayar ($20$, $80$'in dörtte biridir); işaretlere bakmadığı için I ve II'deki zıt yön ilişkilerini de göremez. {{S4}} III'te katsayının işaretini unutur; zıt yönlü bir vektör pozitif bir katla elde edilemez.`
+      ]
+    },
+    {
+      id: 'AY9_11_14', konu: '9.2.2', zorluk: 3, tur: 'cs', cikti: 'FİZ.9.2.3', beceri: 'Aynı doğrultudaki vektörlerin bileşkesinde olası durumları değerlendirme',
+      metin: r`Bir tekne çekek yerinde tekne, taşıyıcı arabasıyla birlikte kıyıdan suya inen eğik bir rampada duruyor. Rampanın üst ucundaki vinç, halatla tekneyi rampa boyunca yukarı doğru $1200\ \text{N}$ büyüklüğünde kuvvetle çekiyor. Teknenin yanındaki Murat da tekneye yine rampa doğrultusunda $300\ \text{N}$ büyüklüğünde kuvvet uyguluyor; gerektiğinde tekneyi yukarı doğru itiyor, gerektiğinde aşağı doğru çekerek tutuyor.
+
+Yalnız vincin ve Murat'ın uyguladığı kuvvetler dikkate alındığında, bu iki kuvvetin bileşkesiyle ilgili
+
+I. Büyüklüğü $900\ \text{N}$ olabilir.
+II. Murat'ın uyguladığı kuvvetle aynı yönde olabilir.
+III. Vincin uyguladığı kuvvetle zıt yönde olabilir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`İki kuvvet de rampa doğrultusundadır. Murat yukarı iterse bileşke $1200 + 300 = 1500\ \text{N}$, aşağı çekerse $1200 - 300 = 900\ \text{N}$ olur. İki durumda da bileşke yukarı yöndedir, çünkü vincin kuvveti daha büyüktür.`,
+        r`I. Murat aşağı çektiğinde bileşke $900\ \text{N}$ olur. **Olabilir.**`,
+        r`II. Murat yukarı ittiğinde onun kuvveti de bileşke de yukarı yöndedir. **Olabilir.**`,
+        r`III. $1200\ \text{N}$'luk kuvvet $300\ \text{N}$'luk kuvvetten büyük olduğu için bileşke her durumda vincin kuvvetiyle aynı yöndedir. **Olamaz.**`,
+        r`{{S0}} Murat'ın tekneyi yalnız tuttuğunu düşünür, onun yukarı ittiği durumu hesaba katmaz ve II'yi eler. {{S1}} iki büyüklüğün farkının da bileşke olabileceğini görmez ve I'i eler. {{S3}} Murat aşağı çektiğinde bileşkenin de aşağı döneceğini sanır; büyük kuvvet yukarı yönlü olduğu için bileşke yukarıda kalır ve II'deki durumu da gözden kaçırır. {{S4}} III'ü de olası sayar; daha küçük olan $300\ \text{N}$'luk kuvvet bileşkenin yönünü değiştiremez.`
+      ]
+    },
+    /* ---------------- 9.2.3 Vektörlerin toplanması ve bileşenler ---------------- */
+    {
+      id: 'AY9_11_15', konu: '9.2.3', zorluk: 1, tur: 'cs', cikti: 'FİZ.9.2.4', beceri: 'Kareli düzlemde ölçekle bileşke büyüklüğünü bulma',
+      metin: r`Bir sokağın köşesindeki elektrik direğinin tepesine iki tel bağlıdır. Teller yere paraleldir; biri doğuya, öteki kuzeye doğru uzanmaktadır. Şekilde tellerin direğe uyguladığı $\vec{F}_1$ ve $\vec{F}_2$ kuvvetleri kuşbakışı kareli zeminde gösterilmiştir.
+
+{{sekil}}
+
+Her karenin kenarı $100\ \text{N}$'luk kuvveti gösterdiğine göre tellerin direğe uyguladığı kuvvetlerin bileşkesinin büyüklüğü kaç N'dur?`,
+      sekil: 'AY9_11_direk',
+      secenekler: [r`$13\ \text{N}$`, r`$700\ \text{N}$`, r`$1300\ \text{N}$`, r`$1700\ \text{N}$`, r`$16900\ \text{N}$`],
+      dogru: 2,
+      cozum: [
+        r`Şekilde $\vec{F}_1$ 12 kare doğuya, $\vec{F}_2$ 5 kare kuzeye yöneliktir. Kuvvetler birbirine diktir.`,
+        r`Uç uca eklemede bileşke, kenarları 12 ve 5 kare olan dik üçgenin hipotenüsüdür: $\sqrt{12^2 + 5^2} = \sqrt{169} = 13$ kare. Ölçekle: $13 \times 100 = 1300\ \text{N}$.`,
+        r`{{S0}} bileşkenin kare sayısını ($13$) bulur ama ölçekle çarpmayı unutur ve kareyi newton sanır. {{S1}} büyüklüklerin farkını alır ($12 - 5 = 7$ kare, $700\ \text{N}$); bu ancak kuvvetler zıt yönlü olsaydı geçerliydi. {{S3}} büyüklükleri doğrudan toplar ($17$ kare, $1700\ \text{N}$); bu ancak kuvvetler aynı yönlü olsaydı geçerliydi. {{S4}} $12^2 + 5^2 = 169$'un karekökünü almayı unutur ($169 \times 100 = 16900\ \text{N}$).`
+      ]
+    },
+    {
+      id: 'AY9_11_16', konu: '9.2.3', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.2.4', beceri: 'Paralelkenar yöntemiyle bileşkeyi kareli düzlemde bulma',
+      metin: r`Fizik kulübünde Ece, bir oyuncak arabaya bağlı iki lastik ipin arabaya uyguladığı $\vec{F}_1$ ve $\vec{F}_2$ kuvvetlerini O noktasından başlayarak kuşbakışı kareli kâğıda çiziyor. Ece, iki kuvvetin bileşkesini paralelkenar yöntemiyle bulacaktır.
+
+{{sekil}}
+
+Ece doğru çizim yaparsa bileşke kuvvetin ucu şekildeki noktalardan hangisinde olur?`,
+      sekil: 'AY9_11_halka',
+      secenekler: ['K', 'L', 'M', 'N', 'P'],
+      dogru: 0,
+      cozum: [
+        r`Paralelkenar yönteminde $\vec{F}_1$'in ucundan $\vec{F}_2$'ye, $\vec{F}_2$'nin ucundan $\vec{F}_1$'e paralel çizgiler çizilir; kesiştikleri köşe bileşkenin ucudur. Bileşke, O noktasından bu köşeye çizilir.`,
+        r`$\vec{F}_1$: 3 kare sağa, 1 kare yukarı; $\vec{F}_2$: 1 kare sağa, 2 kare yukarı. Dördüncü köşe O'dan $3 + 1 = 4$ kare sağda, $1 + 2 = 3$ kare yukarıdadır: K noktası.`,
+        r`{{S1}} iki vektörün farkını ($\vec{F}_1 - \vec{F}_2$: 2 kare sağa, 1 kare aşağı) bulur; paralelkenarın öbür köşegeni bileşke değildir. {{S2}} $\vec{F}_2 - \vec{F}_1$'i (2 kare sola, 1 kare yukarı) bulur. {{S3}} bileşkeyi doğru büyüklükte ama ters yönde çizer (4 kare sola, 3 kare aşağı). {{S4}} $\vec{F}_2$'yi taşırken bileşenlerinin yerini karıştırır (2 kare sağa, 1 kare yukarı) ve 5 kare sağa, 2 kare yukarıdaki noktayı bulur.`
+      ]
+    },
+    {
+      id: 'AY9_11_17', konu: '9.2.3', zorluk: 3, tur: 'cs', cikti: 'FİZ.9.2.4', beceri: 'Bileşenlerle yön koşulunu sağlayan vektör çiftini seçme',
+      metin: r`Fırtınada yola devrilen büyük bir ağaç gövdesi, iki iş makinesine bağlı halatlarla yoldan çekilecektir. İş makineleri dört farklı yere konumlanabilmektedir. Şekilde, her konumdaki iş makinesinin halatla gövdeye uygulayacağı kuvvet kuşbakışı kareli zeminde $\vec{K}$, $\vec{L}$, $\vec{M}$ ve $\vec{N}$ vektörleriyle gösterilmiştir. Her karenin kenarı $5\ \text{kN}$'luk kuvveti gösterir.
+
+{{sekil}}
+
+Ekip bu konumlardan yalnız ikisini kullanacaktır. Yalnız halatların uyguladığı kuvvetler dikkate alındığında bileşkenin tam doğu yönünde olması, bu koşulu sağlayan çiftler arasında da bileşkenin en büyük olması isteniyor. Buna göre hangi iki konum seçilmelidir?`,
+      sekil: 'AY9_11_cekici',
+      secenekler: [r`K ve L`, r`K ve M`, r`K ve N`, r`L ve M`, r`L ve N`],
+      dogru: 1,
+      cozum: [
+        r`Şekilden bileşenler (kare, $+x$ doğu, $+y$ kuzey): $\vec{K}$ $(4, 3)$, $\vec{L}$ $(1, -3)$, $\vec{M}$ $(3, -3)$, $\vec{N}$ $(-4, 3)$.`,
+        r`Bileşkenin tam doğuya yönelmesi için iki kuvvetin $y$ bileşenlerinin toplamı sıfır, $x$ bileşenlerinin toplamı pozitif olmalıdır. $y$ bileşenleri toplamı sıfır olan çiftler: K ve L, K ve M, L ve N, M ve N.`,
+        r`Bu çiftlerin $x$ bileşenleri toplamı: K ve L için $4 + 1 = 5$ kare, K ve M için $4 + 3 = 7$ kare (doğuya); L ve N için $1 - 4 = -3$ kare, M ve N için $3 - 4 = -1$ kare (batıya).`,
+        r`Koşulu sağlayan iki çiftten bileşkesi büyük olan K ve M'dir: $7 \times 5 = 35\ \text{kN}$, tam doğu yönünde.`,
+        r`{{S0}} tam doğuya yönelen ilk çifti bulup durur; K ve L'nin bileşkesi $5 \times 5 = 25\ \text{kN}$ olup K ve M'ninkinden küçüktür. {{S2}} $x$ bileşenlerini sıfırlayan çifti seçer; K ve N'nin bileşkesi $(0, 6)$ kare olup tam kuzeye yönelir. {{S3}} yön koşulunu atlayıp bileşkesi en büyük çifti seçer; L ve M'nin bileşkesi $(4, -6)$ kare olup güneydoğuya yönelir. {{S4}} yalnız $y$ bileşenlerinin sıfırlandığına bakar; L ve N'nin bileşkesi $(-3, 0)$ kare olup tam batıya yönelir.`
+      ]
+    },
+    {
+      id: 'AY9_11_18', konu: '9.2.3', zorluk: 2, tur: 'cs', cikti: 'FİZ.9.2.4', beceri: 'İki vektörün bileşkesinin alabileceği değerlerden genelleme yapma',
+      metin: r`Bir yelkenli, iki doğrusal rota parçası boyunca ilerleyerek bir koydan başka bir koya gidiyor. Seyir defterine göre birinci rota parçasındaki yer değiştirmenin büyüklüğü $8\ \text{km}$'dir. Konum cihazı, başlangıç noktası ile varış noktası arasındaki doğrusal uzaklığı $17\ \text{km}$ olarak gösteriyor. İkinci rota parçasının yönü ve uzunluğu deftere yazılmamıştır.
+
+Buna göre ikinci rota parçasındaki yer değiştirmeyle ilgili aşağıdakilerden hangisi kesinlikle doğrudur?`,
+      secenekler: [
+        r`Büyüklüğü $9\ \text{km}$ ile $25\ \text{km}$ arasındadır (uçlar dâhil).`,
+        r`Büyüklüğü $9\ \text{km}$'dir.`,
+        r`Büyüklüğü $25\ \text{km}$'dir.`,
+        r`Büyüklüğü $15\ \text{km}$'dir.`,
+        r`Büyüklüğü $8\ \text{km}$ ile $17\ \text{km}$ arasındadır.`
+      ],
+      dogru: 0,
+      cozum: [
+        r`Toplam yer değiştirme iki parçanın bileşkesidir; büyüklüğü $17\ \text{km}$'dir. İki vektörün bileşkesinin büyüklüğü, büyüklükleri farkından küçük, toplamından büyük olamaz.`,
+        r`İkinci parçanın büyüklüğü $B$ olsun. $B + 8 \geq 17$ olmalıdır, yani $B \geq 9\ \text{km}$. Ayrıca $B - 8 \leq 17$ olmalıdır, yani $B \leq 25\ \text{km}$. Bu aralıktaki her değer, iki parça arasındaki açı uygun seçilerek elde edilebilir.`,
+        r`Yön bilinmediği için tek bir değer kesin değildir; kesin olan $9\ \text{km} \leq B \leq 25\ \text{km}$'dir.`,
+        r`{{S3}} iki parçanın birbirine dik olduğunu varsayar ($8^2 + 15^2 = 17^2$); $15\ \text{km}$ yalnız dik durumda geçerlidir ve yön bilinmemektedir. {{S1}} iki parçanın aynı yönde olduğunu varsayıp $17 - 8$ işlemini yapar; bu, olası değerlerden yalnız biridir. {{S2}} iki parçanın zıt yönde olduğunu varsayıp $17 + 8$ işlemini yapar; bu da yalnız bir olasılıktır. {{S4}} ikinci parçanın verilen iki uzunluk ($8$ ve $17\ \text{km}$) arasında kalması gerektiğini sanır; oysa ikinci parça $8\ \text{km}$'ye inemez ($17 - 8 = 9$) ve $25\ \text{km}$'ye kadar çıkabilir.`
+      ]
+    },
+    {
+      id: 'AY9_11_19', konu: '9.2.3', zorluk: 3, tur: 'cs', cikti: 'FİZ.9.2.4', beceri: 'Bileşenler tablosundan bileşkeleri hesaplayıp sıralama',
+      metin: r`Bir sualtı robotunun iki itici pervanesi robota yatay düzlemde kuvvet uygular. Mühendis Elif, üç farklı ayarda iticilerin uyguladığı kuvvetlerin bileşenlerini tabloya kaydediyor ($+x$ doğu, $+y$ kuzey yönüdür).
+
+{{tablo}}
+
+Her ayarda iki iticinin robota uyguladığı kuvvetlerin bileşkesinin büyüklüğü sırasıyla $R_K$, $R_L$ ve $R_M$ olduğuna göre bunlar arasındaki ilişki nedir?`,
+      tablo: [['Ayar', '1. itici, x', '1. itici, y', '2. itici, x', '2. itici, y'], ['K', '40 N', '10 N', '−10 N', '30 N'], ['L', '20 N', '50 N', '40 N', '30 N'], ['M', '70 N', '−20 N', '−70 N', '90 N']],
+      secenekler: [
+        r`$R_M > R_L > R_K$`,
+        r`$R_L > R_M > R_K$`,
+        r`$R_L > R_K = R_M$`,
+        r`$R_L > R_K > R_M$`,
+        r`$R_M > R_K > R_L$`
+      ],
+      dogru: 1,
+      cozum: [
+        r`Bileşenler ayrı ayrı toplanır. K: $R_x = 40 - 10 = 30\ \text{N}$, $R_y = 10 + 30 = 40\ \text{N}$; $R_K = \sqrt{30^2 + 40^2} = 50\ \text{N}$.`,
+        r`L: $R_x = 20 + 40 = 60\ \text{N}$, $R_y = 50 + 30 = 80\ \text{N}$; $R_L = \sqrt{60^2 + 80^2} = 100\ \text{N}$. M: $R_x = 70 - 70 = 0$, $R_y = -20 + 90 = 70\ \text{N}$; $R_M = 70\ \text{N}$.`,
+        r`Sıralama: $R_L > R_M > R_K$.`,
+        r`{{S0}} her iticinin kuvvet büyüklüğünü bulup bunları toplar; M'de iticiler doğu-batı doğrultusunda birbirine zıt çektiği için bileşke küçülür. {{S2}} bileşke bileşenlerinin büyüklüklerini toplar ($30 + 40 = 70$, $60 + 80 = 140$, $0 + 70 = 70$); bileşkenin büyüklüğü bileşenlerin toplamı değildir. {{S3}} yalnız $x$ bileşenlerine bakar ve M'deki $70\ \text{N}$'luk kuzey bileşenini görmez. {{S4}} bileşenleri toplamak yerine birinci iticininkinden ikincininkini çıkarır.`
+      ]
+    },
+    {
+      id: 'AY9_11_20', konu: '9.2.3', zorluk: 3, tur: 'cs', cikti: 'FİZ.9.2.4', beceri: 'Uç uca ekleme ve bileşenlerle yer değiştirme vektörlerini çözümleme',
+      metin: r`Bir müzenin mobil rehber uygulaması, ziyaretçinin konumunu kareli kat planında gösteriyor. Selin, girişteki G noktasından heykelin önündeki H noktasına, oradan da çıkıştaki Ç noktasına doğrusal yollarla yürüyor.
+
+{{sekil}}
+
+Planda her karenin kenarı $3\ \text{m}$'dir; $+x$ doğu, $+y$ kuzey yönüdür. Selin'in H noktasından Ç noktasına yer değiştirmesinin bileşenleri ile G noktasından Ç noktasına toplam yer değiştirmesinin büyüklüğü hangi seçenekte birlikte doğru verilmiştir?`,
+      sekil: 'AY9_11_muze',
+      secenekler: [
+        r`$x$: $-9\ \text{m}$, $y$: $+12\ \text{m}$; toplam: $18\ \text{m}$`,
+        r`$x$: $+12\ \text{m}$, $y$: $-9\ \text{m}$; toplam: $18\ \text{m}$`,
+        r`$x$: $-12\ \text{m}$, $y$: $+9\ \text{m}$; toplam: $30\ \text{m}$`,
+        r`$x$: $-4\ \text{m}$, $y$: $+3\ \text{m}$; toplam: $6\ \text{m}$`,
+        r`$x$: $-12\ \text{m}$, $y$: $+9\ \text{m}$; toplam: $18\ \text{m}$`
+      ],
+      dogru: 4,
+      cozum: [
+        r`Planda H, G'nin 4 kare doğusunda ve 3 kare kuzeyindedir. Ç ise H'nin 4 kare batısında ve 3 kare kuzeyindedir. H'den Ç'ye bileşenler: $x = -4 \times 3 = -12\ \text{m}$, $y = +3 \times 3 = +9\ \text{m}$.`,
+        r`Uç uca eklemede toplam yer değiştirme G'den Ç'ye çizilen oktur: $x = 4 - 4 = 0$, $y = 3 + 3 = 6$ kare. Büyüklüğü $6 \times 3 = 18\ \text{m}$'dir.`,
+        r`{{S1}} H'den Ç'ye değil Ç'den H'ye bakar ve iki bileşenin işaretini ters bulur. {{S2}} iki parçanın uzunluklarını ($15\ \text{m} + 15\ \text{m}$) toplar; bu yürünen yoldur, yer değiştirmenin büyüklüğü değildir. {{S3}} kare sayılarını metre sanır ve ölçekle çarpmayı unutur. {{S0}} doğu ve kuzey bileşenlerinin yerini karıştırır; Ç, H'nin 4 kare batısında ve 3 kare kuzeyindedir.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+// Kapsam: Hafta 1–11 (2026–2027 takvimi: okul 7 Eylül 2026 Pazartesi başladı; 9–13 Kasım 2026 birinci dönem ara tatili).
+//   Hafta 1 (7–11 Eyl) … Hafta 9 (2–6 Kas) ara tatilden önce; Hafta 10 (16–20 Kas) ve Hafta 11 (23–27 Kas) ara tatilden sonra.
+//   Hafta 12 (Enerji Biçimleri) 30 Kasım'da başladığı için Kasım denemesine girmez.
+//   Hafta 1–2 ve 7: sabit hızlı hareket, grafikler, karşılaşma (FİZ.10.1.1) · Hafta 3–4: ivme ve hız değişimi (FİZ.10.1.2)
+//   Hafta 5–6: yatay doğrultuda sabit ivmeli hareket grafikleri ve modelleri (FİZ.10.1.3)
+//   Hafta 8–9: kuvvet-yer değiştirme grafiği ile iş (FİZ.10.2.1) · Hafta 10–11: iş, enerji ve güç; güç hesabı, kWh, hipotez sınama (FİZ.10.2.2)
+//   Soru dağılımı: 1–4 → 10.1.1, 5–8 → 10.1.2, 9–12 → 10.1.3 (birikimli, %60); 13–16 → 10.2.1, 17–20 → 10.2.2 (Ekim sonu–Kasım, %40).
+//   Zorluk 6 ★ / 9 ★★ / 5 ★★★. Şekil anahtarları AY10_11_ önekli. Metinler, sayılar ve şekiller özgündür.
+(function () {
+const r = String.raw;
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST['AY10_11'] = {
+  id: 'AY10_11', tur: 'aylik', sinif: 10, ay: 11, yil: '2026-2027', ad: '10. Sınıf Kasım Denemesi', sure: 2400,
+  kapsam: 'Hafta 1–11: sabit hızlı hareket ve karşılaşma (FİZ.10.1.1), ivme ve hız değişimi (FİZ.10.1.2), yatay doğrultuda sabit ivmeli hareket grafikleri ve modelleri (FİZ.10.1.3), kuvvet-yer değiştirme grafiği ile iş (FİZ.10.2.1), iş, enerji ve güç ilişkisi ve kWh (FİZ.10.2.2)',
+  aciklama: 'Şerit boyama aracının konum-zaman grafiği, depodaki transpaletin hız-zaman grafiği, dron kaydında üç aracın sürati, iki uçtan kazılan tünelde karşılaşma, hız ölçüm cihazının işaretli kayıtları, banliyö treninin hız kaydı, yönü bilinmeyen deney arabasının ivmesi, ambulansın hız göstergesi, fotokopi makinesinin tarama ünitesinde grafik dönüşümü, servis aracının hız kaydı, simülasyonda oyuncak arabanın ivme-zaman grafiği, trafik ışıkları arasında otomobil, teleskide işin işareti, sprint kızağında net iş, shuffleboard diskinde iş ve sürtünme, paspas ile ileri-geri iş, yük arabasını çeken atın gücü, ekmek makinesinin aylık enerjisi, güç hipotezini sınayan deney tasarımı ve kaldırma makinelerinde iş ve güç.',
+  baglamlar: [
+    'yol bakım ekibinin şerit çizgisi boyama aracı: x-t grafiği 2 km → 5 km, 36 dk; 14. kilometreye varış 144 dk (birim ve başlangıç konumu tuzağı)',
+    'kargo deposunda elektrikli transpalet: ϑ-t −1 m/s 30 s, bekleme 20 s, +2 m/s 20 s; x0 = +30 m; yol 70 m, konum +40 m (iki sütun)',
+    'yol güvenliği araştırmasında sabit dron videosu: kamyonet K 20 m/s, karşı yönde otomobil L −24 m/s, görüntüye 10. s giren motosiklet M 27 m/s (sürat sıralaması)',
+    'iki uçtan kazılan 1200 m tünel: tünel açma makineleri K 18 m/gün, L 12 m/gün, K 20. günden sonra 10 gün bakım; 46. gün, batıdan 648 m (iki sütun)',
+    'trafik güvenliği projesinde yol kenarı hız ölçüm cihazı: yaklaşan araç eksi işaretli, −20 → −8 m/s; yaklaşırken yavaşlama, ivme cihazdan uzaklaşma yönünde',
+    'istasyona yaklaşan banliyö treninin kayıt cihazı 4 s arayla 16, 12, 8, 4, 0 m/s: yalnız ortalama ivme kesin; ara anlarda hızlanma ve yer değiştirme kesin değil (kesinlikle)',
+    'deney rayında tek uçta yaylı tampon, yalnız sürat ölçen tekerlek sensörü: 60 → 20 cm/s, 2 s; ortalama ivme 20 ya da 40 cm/s² olabilir, 30 olamaz (olabilir)',
+    'ambulansın araç içi kamerasındaki hız göstergesi: 0, 24, 40, 60, 90, 90 km/h düzensiz aralıklar; en büyük ortalama ivme (4–6) s',
+    'fotokopi makinesinin tarama ünitesi: sabit hız, yön değiştirme, ters yönde sabit hız; ϑ-t grafiğinden beş aday x-t grafiği (K–P) arasından seçim',
+    'üniversite kampüsünde elektrikli servis aracı ϑ-t 2 → 6 m/s, 4 s: ivme ve yer değiştirme kesin, konum belirsiz (kesinlikle)',
+    'fizik simülasyonunda oyuncak araba: ϑ0 = −8 m/s, a-t +2 m/s² 8 s sonra 0 (3 s); (0–11) s yolu 56 m',
+    'kırmızı ışıktan kalkan otomobil: 6 s sabit ivmeyle 36 m, sonra sabit hız; 300 m ötedeki ikinci ışığa 28. s (ortalama hız ≠ son hız tuzağı)',
+    'kayak merkezinde teleski: çekme, ağırlık, tepki, sürtünme kuvvetlerinin işinin işareti (eşleştirme)',
+    'atletizmde sprint kızağı: kuvvet ölçer F-x (320 N, 320 → 200 N, 200 N; 40 m) ve 240 N sürtünme; net iş 800 J',
+    'shuffleboard diski sopayla 1 s itilip bırakılıyor: ϑ-t 0 → 2 → 0 m/s, 10 s; itme işi = sürtünme işi, kuvvet 10 katı',
+    'okul koridorunda paspas: sap boyunca 30 N, bileşenler 24 N ve 18 N, 2 m ileri-geri × 10; toplam iş 960 J (yer değiştirme sıfırken iş sıfır değil)',
+    'çiftlikte yük arabasını sabit süratle çeken at: 360 N, 2 dk, 240 m; güç 720 W (sabit süratte atın işi sıfır değil)',
+    'ekmek yapma makinesi programı: yoğurma 120 W 30 dk, mayalanma 40 W 60 dk, pişirme 400 W 60 dk; ayda 20 program, 10 kWh',
+    'Deniz\'in güç hipotezi: motorla sabit süratle çekilen kutu, beş deneme (kuvvet, yer değiştirme, süre); kontrol değişkeni süre, uygun çift 1 ve 3',
+    'apartman yönetimi, çatıya panel taşıyan üç firmanın kaldırma makinesi: K 600 N 12 m 24 s, L 800 N 18 m 36 s, M 900 N 12 m süre yok (kesinlikle)'
+  ],
+  sorular: [
+    {
+      id: 'AY10_11_1', konu: '10.1.1', cikti: 'FİZ.10.1.1', zorluk: 1, tur: 'cs', beceri: 'Konum-zaman grafiğinden hızı bulma ve modeli kullanma',
+      metin: r`Bir yol bakım ekibinin şerit çizgisi boyama aracı, düz bir yolda sabit hızla ilerleyerek yolun orta çizgisini çekiyor. Aracın konumu, yolun başlangıcındaki sıfır kilometre noktasına göre kilometre cinsinden ölçülüyor. Araç çalışmaya başladığı andan itibaren ilk $36$ dakikadaki konum-zaman grafiği şekilde verilmiştir.
+
+{{sekil}}
+
+Araç aynı hızla durmadan çalışmayı sürdürürse yolun $14$. kilometresine çalışmaya başladıktan kaç dakika sonra ulaşır?`,
+      sekil: 'AY10_11_serit',
+      secenekler: [r`$108$`, r`$124$`, r`$144$`, r`$160$`, r`$168$`],
+      dogru: 2,
+      cozum: [
+        r`Grafikte araç $t = 0$ anında $2$. kilometrede, $36$. dakikada $5$. kilometrededir. $36$ dakikada $\Delta x = 5 - 2 = 3\ \text{km}$ yer değiştirdiği için her kilometreyi $\dfrac{36}{3} = 12$ dakikada alır.`,
+        r`Araç çalışmaya $2$. kilometreden başladığı için $14$. kilometreye kadar $14 - 2 = 12\ \text{km}$ yol alması gerekir. Geçen süre $12 \times 12 = 144$ dakikadır.`,
+        r`{{S0}} süreyi $36$. dakikadaki konumdan başlatır ve yalnız kalan süreyi bulur: $(14 - 5) \times 12 = 108$ dakika. {{S4}} aracın sıfır kilometre noktasından başladığını sanır: $14 \times 12 = 168$ dakika. {{S3}} hızı $5\ \text{km/h}$ bulup süreyi $\dfrac{12}{5} = 2,4$ saat hesaplar ama $2,4$ saati $2$ saat $40$ dakika diye okur. {{S1}} aynı $2,4$ saati $2$ saat $4$ dakika diye okur; oysa $0,4$ saat $24$ dakikadır.`
+      ]
+    },
+    {
+      id: 'AY10_11_2', konu: '10.1.1', cikti: 'FİZ.10.1.1', zorluk: 2, tur: 'cs', beceri: 'Hız-zaman grafiğinden yol, yer değiştirme ve konum bulma',
+      metin: r`Bir kargo deposunda Murat, elektrikli transpaletle düz bir koridor boyunca hareket ediyor. Yükleme rampasına doğru yön (+) alınmıştır ve transpalet $t = 0$ anında $x = +30\ \text{m}$ konumundadır. Murat bir paleti $30\ \text{s}$ boyunca rampadan uzaklaşarak rafa götürüyor, $20\ \text{s}$ bekleyip paleti bırakıyor ve sonra boş transpaletle rampaya doğru ilerliyor. Transpaletin hız-zaman grafiği şekildeki gibidir.
+
+{{sekil}}
+
+Buna göre transpaletin $(0\text{–}70)\ \text{s}$ aralığında aldığı yol ve $70$. saniyedeki konumu aşağıdakilerin hangisinde birlikte doğru verilmiştir?`,
+      sekil: 'AY10_11_transpalet',
+      secenekler: [r`Yol $10\ \text{m}$; konum $+40\ \text{m}$`, r`Yol $70\ \text{m}$; konum $+10\ \text{m}$`, r`Yol $70\ \text{m}$; konum $+40\ \text{m}$`, r`Yol $70\ \text{m}$; konum $+100\ \text{m}$`, r`Yol $90\ \text{m}$; konum $+20\ \text{m}$`],
+      dogru: 2,
+      cozum: [
+        r`Her aralıktaki yer değiştirme $\Delta x = \vartheta \times \Delta t$ ile bulunur. $(0\text{–}30)\ \text{s}$: $(-1) \times 30 = -30\ \text{m}$. $(30\text{–}50)\ \text{s}$: transpalet durduğu için $0$. $(50\text{–}70)\ \text{s}$: $(+2) \times 20 = +40\ \text{m}$.`,
+        r`Alınan yol yönden bağımsızdır: $30 + 0 + 40 = 70\ \text{m}$. Toplam yer değiştirme $-30 + 40 = +10\ \text{m}$ olduğundan son konum $x = +30 + 10 = +40\ \text{m}$ olur.`,
+        r`{{S1}} yer değiştirmeyi ($+10\ \text{m}$) konum sanır ve başlangıç konumunu eklemez. {{S0}} alınan yolu yer değiştirmenin büyüklüğü ($10\ \text{m}$) sanır. {{S4}} bekleme aralığında transpaletin $-1\ \text{m/s}$ ile gitmeyi sürdürdüğünü düşünür: yer değiştirme $-50 + 40 = -10\ \text{m}$, konum $+20\ \text{m}$, yol $90\ \text{m}$ çıkar. {{S3}} ilk bölümdeki hızın işaretini görmez ve iki bölümü de $+$ yönde sayar: $30 + 30 + 40 = 100\ \text{m}$.`
+      ]
+    },
+    {
+      id: 'AY10_11_3', konu: '10.1.1', cikti: 'FİZ.10.1.1', zorluk: 2, tur: 'cs', beceri: 'Birden fazla hareketlinin konum-zaman grafiklerini karşılaştırma',
+      metin: r`Bir yol güvenliği araştırmasında, düz ve uzun bir yol kesiminin üstünde sabit duran bir dronla video çekiliyor. Videodan, sabit hızla hareket eden kamyonet K, otomobil L ve motosiklet M'nin yol kenarındaki bir direğe göre konumları ölçülüyor. Motosiklet görüntüye $10$. saniyede giriyor. Araçların konum-zaman grafikleri şekilde verilmiştir.
+
+{{sekil}}
+
+Buna göre araçların süratleri $\vartheta_K$, $\vartheta_L$ ve $\vartheta_M$ arasındaki ilişki nedir?`,
+      sekil: 'AY10_11_dron',
+      secenekler: [r`$\vartheta_M > \vartheta_K > \vartheta_L$`, r`$\vartheta_L > \vartheta_K > \vartheta_M$`, r`$\vartheta_L > \vartheta_M > \vartheta_K$`, r`$\vartheta_M > \vartheta_L > \vartheta_K$`, r`$\vartheta_K > \vartheta_M > \vartheta_L$`],
+      dogru: 3,
+      cozum: [
+        r`Sürat, yer değiştirmenin büyüklüğünün geçen süreye oranıdır; her araç için kendi hareket süresi kullanılır.`,
+        r`K: $\dfrac{600 - 0}{30} = 20\ \text{m/s}$. L: $\dfrac{120 - 840}{30} = -24\ \text{m/s}$, sürati $24\ \text{m/s}$. M: görüntüde $(10\text{–}30)\ \text{s}$ arasında $20\ \text{s}$ kalır; $\dfrac{840 - 300}{20} = 27\ \text{m/s}$.`,
+        r`Sıralama: $\vartheta_M > \vartheta_L > \vartheta_K$.`,
+        r`{{S0}} hızları işaretiyle karşılaştırır ($-24 < 20$) ya da araçların son konumlarını sıralar; sürat yönden bağımsızdır. {{S1}} yalnız yer değiştirmelerin büyüklüklerini ($720$, $600$, $540\ \text{m}$) sıralar ve M'nin daha kısa sürede hareket ettiğini hesaba katmaz. {{S2}} araçların ilk konumlarını sıralar; konum, hız hakkında bilgi vermez. {{S4}} M'nin süresini $30\ \text{s}$ alır ($\dfrac{540}{30} = 18\ \text{m/s}$) ve L'nin hızını işaretiyle karşılaştırır.`
+      ]
+    },
+    {
+      id: 'AY10_11_4', konu: '10.1.1', cikti: 'FİZ.10.1.1', zorluk: 3, tur: 'cs', beceri: 'Karşılaşma problemini aşamalara ayırarak modelleme',
+      metin: r`Bir dağın altından geçecek $1200\ \text{m}$ uzunluğundaki düz ve yatay bir tünel, iki ucundan aynı gün kazılmaya başlanıyor. Batı girişindeki tünel açma makinesi K günde $18\ \text{m}$, doğu girişindeki makine L ise günde $12\ \text{m}$ ilerliyor. K, $20$. günün sonunda bakım için $10$ gün duruyor, sonra aynı hızla kazıya devam ediyor. L hiç durmuyor. (Makinelerin kazı sürerken sabit hızla ilerlediğini kabul ediniz.)
+
+{{sekil}}
+
+Buna göre makineler kaçıncı günün sonunda karşılaşır ve karşılaşma noktası batı girişinden kaç metre uzaktadır?`,
+      sekil: 'AY10_11_tunel',
+      secenekler: [r`$40$. gün; $720\ \text{m}$`, r`$46$. gün; $552\ \text{m}$`, r`$46$. gün; $648\ \text{m}$`, r`$46$. gün; $828\ \text{m}$`, r`$50$. gün; $720\ \text{m}$`],
+      dogru: 2,
+      cozum: [
+        r`$20$. günün sonunda K $20 \times 18 = 360\ \text{m}$, L $20 \times 12 = 240\ \text{m}$ kazmıştır; kazılmamış kısım $1200 - 600 = 600\ \text{m}$'dir.`,
+        r`K'nın durduğu $10$ günde yalnız L ilerler: $10 \times 12 = 120\ \text{m}$. Kalan kısım $600 - 120 = 480\ \text{m}$ olur.`,
+        r`$30$. günden sonra iki makine birlikte günde $18 + 12 = 30\ \text{m}$ ilerler; kalan $480\ \text{m}$ $\dfrac{480}{30} = 16$ günde biter. Karşılaşma $30 + 16 = 46$. günün sonundadır.`,
+        r`K toplam $20 + 16 = 36$ gün kazmıştır: $36 \times 18 = 648\ \text{m}$. Karşılaşma noktası batı girişinden $648\ \text{m}$ uzaktadır. (Denetim: L $46 \times 12 = 552\ \text{m}$ kazmıştır; $648 + 552 = 1200\ \text{m}$.)`,
+        r`{{S0}} bakım duruşunu yok sayar: $\dfrac{1200}{30} = 40$ gün ve $40 \times 18 = 720\ \text{m}$. {{S4}} bakım süresince L'nin de durduğunu sanır ve $40$ güne $10$ gün ekler. {{S1}} doğru günü bulur ama uzaklığı L'nin kazdığı uzunlukla, yani doğu girişinden verir. {{S3}} K'nın $46$ günün hepsinde çalıştığını sanır: $46 \times 18 = 828\ \text{m}$; bu durumda iki makinenin kazdığı uzunluklar toplamı tünelden uzun olurdu.`
+      ]
+    },
+    {
+      id: 'AY10_11_5', konu: '10.1.2', cikti: 'FİZ.10.1.2', zorluk: 1, tur: 'cs', beceri: 'İşaretli hız verisinden hız değişimini ve ivmenin yönünü yorumlama',
+      metin: r`Elif, trafik güvenliği projesi için düz bir yolun kenarına bir hız ölçüm cihazı yerleştiriyor. Cihaz, kendisine yaklaşan araçların hızını eksi $(-)$, kendisinden uzaklaşan araçların hızını artı $(+)$ işaretle kaydediyor. Bir otomobil için cihazın $1\ \text{s}$ arayla aldığı kayıtlar tabloda verilmiştir.
+
+{{tablo}}
+
+Buna göre otomobilin bu kayıtlar boyunca hareketiyle ilgili aşağıdakilerden hangisi doğrudur?`,
+      tablo: [['Zaman (s)', '0', '1', '2', '3'], ['Hız (m/s)', '−20', '−16', '−12', '−8']],
+      secenekler: [
+        r`Cihaza yaklaşırken hızlanmaktadır; ivmesi cihazdan uzaklaşma yönündedir.`,
+        r`Cihaza yaklaşırken yavaşlamaktadır; ivmesi cihaza doğrudur.`,
+        r`Cihazdan uzaklaşırken yavaşlamaktadır; ivmesi cihaza doğrudur.`,
+        r`Cihaza yaklaşırken hızlanmaktadır; ivmesi cihaza doğrudur.`,
+        r`Cihaza yaklaşırken yavaşlamaktadır; ivmesi cihazdan uzaklaşma yönündedir.`
+      ],
+      dogru: 4,
+      cozum: [
+        r`Bütün kayıtlar eksi işaretlidir; otomobil cihaza yaklaşmaktadır. Hızın büyüklüğü (sürat) $20 \to 16 \to 12 \to 8\ \text{m/s}$ biçiminde azaldığı için otomobil yavaşlamaktadır.`,
+        r`İvme $a = \dfrac{\Delta \vartheta}{\Delta t} = \dfrac{-16 - (-20)}{1} = +4\ \text{m/s}^2$'dir. Artı işaret, ivmenin cihazdan uzaklaşma yönünde olduğunu gösterir. Hız ile ivme zıt yönlü olduğu için araç yavaşlar.`,
+        r`{{S0}} $-20$'den $-8$'e giden değerlerin büyüdüğünü görüp aracın hızlandığını sanır; oysa hızın büyüklüğü azalmaktadır. {{S1}} yavaşlamayı doğru bulur ama ivmeyi hareket yönünde sanır. {{S2}} eksi işareti uzaklaşma olarak okur. {{S3}} değerlerin büyümesini hızlanma sayar ve ivmeyi de hareket yönünde düşünür.`
+      ]
+    },
+    {
+      id: 'AY10_11_6', konu: '10.1.2', cikti: 'FİZ.10.1.2', zorluk: 2, tur: 'cs', beceri: 'Örneklenmiş veriden kesin ve kesin olmayan çıkarımı ayırma',
+      metin: r`Bir banliyö treni düz ve yatay bir hatta istasyona yaklaşıyor. Trenin sürüş kayıt cihazından alınan hız değerleri tabloda verilmiştir. Tabloda yalnız bu anlardaki kayıtlar bulunmaktadır; aradaki anlarda hızın nasıl değiştiği bilinmemektedir.
+
+{{tablo}}
+
+Buna göre,
+
+I. Trenin $(0\text{–}16)\ \text{s}$ aralığındaki ortalama ivmesi $-1\ \text{m/s}^2$'dir.
+II. Tren $(0\text{–}16)\ \text{s}$ aralığında hiç hızlanmamıştır.
+III. Tren $(0\text{–}16)\ \text{s}$ aralığında $128\ \text{m}$ yer değiştirmiştir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Zaman (s)', '0', '4', '8', '12', '16'], ['Hız (m/s)', '16', '12', '8', '4', '0']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 0,
+      cozum: [
+        r`I. Ortalama ivme yalnız ilk ve son kayda bağlıdır: $a_{ort} = \dfrac{0 - 16}{16 - 0} = -1\ \text{m/s}^2$. **Kesinlikle doğru.**`,
+        r`II. Kayıtlar $4\ \text{s}$ arayla alınmıştır. Her kayıtta hız bir öncekinden küçüktür, ama iki kayıt arasında hızın kısa bir süre artıp yeniden azalması bu verilerle dışlanamaz. **Kesin değil.**`,
+        r`III. $128\ \text{m}$, hızın kayıtlar arasında da düzgün azaldığı (sabit ivme) varsayılarak bulunur: $\dfrac{16 + 0}{2} \times 16 = 128\ \text{m}$. Aradaki anların hızları bilinmediği için yer değiştirme bu tablodan kesin olarak bulunamaz. **Kesin değil.**`,
+        r`{{S1}} ortalama ivmenin iki kayıttan kesin olarak hesaplanabildiğini görmez ve ara anlar için eşit aralıklı azalmayı kanıt sayar. {{S2}} her kayıtta hızın azalmasından aradaki anlarda da hiç artmadığı sonucunu çıkarır. {{S3}} hızın kayıtlar arasında düzgün azaldığını varsayıp yer değiştirmeyi kesin sanır. {{S4}} ara anlara ilişkin varsayımları veri sanır; tablo yalnız kaydın alındığı anları bildirir.`
+      ]
+    },
+    {
+      id: 'AY10_11_7', konu: '10.1.2', cikti: 'FİZ.10.1.2', zorluk: 3, tur: 'cs', beceri: 'Hızın vektörel niteliğini ortalama ivme hesabında kullanma',
+      metin: r`Sena, fizik laboratuvarında yatay ve düz bir rayda hareket eden bir deney arabasını inceliyor. Rayın yalnız sağ ucunda yaylı bir tampon vardır; araba tampona çarparsa geri döner. Arabanın tekerleğine takılı sensör, arabanın süratini ölçer ama hareketin yönünü kaydetmez. Sensör $t = 0$ anında $60\ \text{cm/s}$, $t = 2\ \text{s}$ anında $20\ \text{cm/s}$ göstermiştir. Sena bu sürede arabanın tampona çarpıp çarpmadığını görmemiştir.
+
+{{sekil}}
+
+Buna göre arabanın $(0\text{–}2)\ \text{s}$ aralığındaki ortalama ivmesinin büyüklüğü ile ilgili,
+
+I. $20\ \text{cm/s}^2$ olabilir.
+II. $40\ \text{cm/s}^2$ olabilir.
+III. $30\ \text{cm/s}^2$ olabilir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'AY10_11_ray',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Hareket tek doğrultudadır; ilk hız $+60\ \text{cm/s}$ alınırsa son hız ya $+20$ ya da $-20\ \text{cm/s}$ olabilir. Tampon yalnız bir uçta olduğundan araba en çok bir kez yön değiştirebilir.`,
+        r`I. Araba tampona ulaşmadıysa (ya da tampondan uzaklaşıyorsa) hız aynı yönde kalır: $a = \dfrac{20 - 60}{2} = -20\ \text{cm/s}^2$, büyüklüğü $20\ \text{cm/s}^2$. **Olabilir.**`,
+        r`II. Araba tampona çarpıp döndüyse $a = \dfrac{-20 - 60}{2} = -40\ \text{cm/s}^2$, büyüklüğü $40\ \text{cm/s}^2$. **Olabilir.**`,
+        r`III. Tek doğrultuda son hız yalnız $+20$ ya da $-20\ \text{cm/s}$ olabildiği için hız değişiminin büyüklüğü $40$ ya da $80\ \text{cm/s}$'dir; ortalama ivmenin büyüklüğü $30\ \text{cm/s}^2$ olamaz.`,
+        r`{{S0}} sürat azaldığı için arabanın hep aynı yönde gittiğini varsayar ve geri dönme olasılığını görmez. {{S1}} sürat azalmasını yön değişimi sanır ve aynı yönde yavaşlama olasılığını dışarıda bırakır. {{S2}} yalnız iki uç değerin ortalamasını alır; ivme büyüklüklerinin ortalaması bir olasılık değildir. {{S4}} $20$ ile $40$ arasındaki her değerin olabileceğini sanır; tek doğrultulu harekette hız yalnız iki değer alabilir.`
+      ]
+    },
+    {
+      id: 'AY10_11_8', konu: '10.1.2', cikti: 'FİZ.10.1.2', zorluk: 1, tur: 'cs', beceri: 'Düzensiz aralıklı veride ortalama ivmeleri karşılaştırma',
+      metin: r`Bir ambulans, hastane çıkışında durgun hâlden harekete geçip düz bir yolda hep aynı yönde ilerliyor. Ambulansın araç içi kamerasının kaydındaki hız göstergesinden okunan değerler tabloda verilmiştir.
+
+{{tablo}}
+
+Ambulansın ortalama ivmesinin büyüklüğü tablodaki ardışık zaman aralıklarından hangisinde en büyüktür?`,
+      tablo: [['Zaman (s)', '0', '4', '6', '10', '16', '20'], ['Hız (km/h)', '0', '24', '40', '60', '90', '90']],
+      secenekler: [r`$(0\text{–}4)\ \text{s}$`, r`$(4\text{–}6)\ \text{s}$`, r`$(6\text{–}10)\ \text{s}$`, r`$(10\text{–}16)\ \text{s}$`, r`$(16\text{–}20)\ \text{s}$`],
+      dogru: 1,
+      cozum: [
+        r`Ortalama ivme, hız değişiminin geçen süreye oranıdır. Hızların hepsi aynı birimde (km/h) olduğu için karşılaştırma birim çevirmeden yapılabilir.`,
+        r`$(0\text{–}4)$: $\dfrac{24}{4} = 6$; $(4\text{–}6)$: $\dfrac{16}{2} = 8$; $(6\text{–}10)$: $\dfrac{20}{4} = 5$; $(10\text{–}16)$: $\dfrac{30}{6} = 5$; $(16\text{–}20)$: $\dfrac{0}{4} = 0$ (km/h her saniyede). En büyük değer $(4\text{–}6)\ \text{s}$ aralığındadır.`,
+        r`{{S3}} en büyük hız değişimini ($30\ \text{km/h}$) en büyük ivme sanır ve süreyi hesaba katmaz. {{S4}} hızın en büyük olduğu aralığı seçer; bu aralıkta hız değişmediği için ivme sıfırdır. {{S0}} aracın durgun hâlden kalkışında ivmenin en büyük olduğunu varsayar ve oranları hesaplamaz. {{S2}} hız değişimini süreye bölerken $(6\text{–}10)$ aralığının süresini $2\ \text{s}$ okur.`
+      ]
+    },
+    {
+      id: 'AY10_11_9', konu: '10.1.3', cikti: 'FİZ.10.1.3', zorluk: 2, tur: 'cs', beceri: 'Hız-zaman grafiğini konum-zaman grafiğine dönüştürme',
+      metin: r`Bir fotokopi makinesinde camın altındaki tarama ünitesi, yatay bir ray boyunca hareket ediyor. Ünite belgeyi bir süre sabit hızla tarıyor; tarama bitince düzgün yavaşlayıp ters yönde düzgün hızlanıyor ve ardından ters yönde sabit hızla ilerliyor. Tarama ünitesinin hız-zaman grafiği ve konum-zaman grafiği için önerilen K, L, M, N, P grafikleri şekilde verilmiştir. Ünite $t = 0$ anında $x = 0$ konumundadır.
+
+{{sekil}}
+
+Buna göre tarama ünitesinin konum-zaman grafiği hangisidir?`,
+      sekil: 'AY10_11_tarama_genis',
+      secenekler: [r`K`, r`L`, r`M`, r`N`, r`P`],
+      dogru: 4,
+      cozum: [
+        r`$\vartheta$-$t$ grafiğinin altındaki alan yer değiştirmeyi verir. $\vartheta \times t = X$ dersek $(0\text{–}t)$ aralığında ünite sabit hızla $X$ kadar gider; $x$-$t$ grafiği eğimi sabit bir doğrudur.`,
+        r`$(t\text{–}2t)$ aralığında hız $\vartheta$'den sıfıra düşer: ünite $\dfrac{X}{2}$ daha gider ve $2t$ anında durur. Burada $x$-$t$ grafiğinin eğimi giderek azalır ve $2t$ anında sıfır olur; konum en büyük değerine ($1,5X$) ulaşır. $(2t\text{–}3t)$ aralığında ünite ters yönde hızlanarak $\dfrac{X}{2}$ geri gelir; $3t$ anında $x = X$ olur.`,
+        r`$(3t\text{–}4t)$ aralığında hız $-\vartheta$'dir; ünite $X$ kadar geri gider ve $4t$ anında $x = 0$ konumuna döner. Bu özelliklerin hepsini taşıyan grafik P'dir.`,
+        r`{{S0}} hızın değiştiği $(t\text{–}3t)$ aralığını ünitenin durduğu aralık sanır. {{S1}} ünitenin $\vartheta$-$t$ grafiğinin kırıldığı $3t$ anında yön değiştirdiğini sanır; oysa hız $2t$ anında sıfırdır ve yön orada değişir. {{S2}} yavaşlayan bölümde konumun azaldığını düşünür ve eğrinin bükülme yönünü ters çizer. {{S3}} son aralıktaki yer değiştirmeyi $-X$ yerine daha küçük alır; ünite $4t$ anında başladığı noktaya döner.`
+      ]
+    },
+    {
+      id: 'AY10_11_10', konu: '10.1.3', cikti: 'FİZ.10.1.3', zorluk: 1, tur: 'cs', beceri: 'Hız-zaman grafiğinden eğim ve alanı yorumlama',
+      metin: r`Bir üniversite kampüsündeki elektrikli servis aracı, düz ve yatay bir yolda ilerliyor. Aracın bilgisayarı yalnız hızı kaydetmektedir. Bu kayıttan çizilen hız-zaman grafiği şekilde verilmiştir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Aracın ivmesi $1\ \text{m/s}^2$'dir.
+II. Aracın $4$. saniyedeki konumu $x = 16\ \text{m}$'dir.
+III. Aracın $(0\text{–}4)\ \text{s}$ aralığındaki yer değiştirmesi $16\ \text{m}$'dir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      sekil: 'AY10_11_servis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Grafiğin eğimi ivmeyi verir: $a = \dfrac{6 - 2}{4 - 0} = 1\ \text{m/s}^2$. **Kesinlikle doğru.**`,
+        r`III. Grafiğin altında kalan alan yer değiştirmeyi verir: $\Delta x = \dfrac{(2 + 6)}{2} \times 4 = 16\ \text{m}$. **Kesinlikle doğru.**`,
+        r`II. Konum, başlangıç konumuna bağlıdır: $x = x_0 + \Delta x$. Hız kaydı $x_0$ hakkında bilgi vermediği için $4$. saniyedeki konum bilinemez; $x = 16\ \text{m}$ ancak araç $x_0 = 0$'dan başlamışsa doğrudur. **Kesin değil.**`,
+        r`{{S0}} grafiğin altındaki alanın yer değiştirmeyi kesin olarak verdiğini görmez. {{S1}} alanla bulunan $16\ \text{m}$'yi konum sanır; eğimin ivmeyi, alanın yer değiştirmeyi verdiğini de kullanmaz. {{S2}} eğimden ivmenin kesin olarak bulunabildiğini görmez. {{S3}} alanla bulunan değeri yer değiştirme yerine konum olarak yorumlar; başlangıç konumu bilinmeden konum bulunamaz.`
+      ]
+    },
+    {
+      id: 'AY10_11_11', konu: '10.1.3', cikti: 'FİZ.10.1.3', zorluk: 3, tur: 'cs', beceri: 'İvme-zaman grafiğinden hız ve konum değişimine ulaşma',
+      metin: r`Fizik dersinde kullanılan bir simülasyonda, yatay bir pistte hareket eden bir oyuncak arabanın başlangıç hızı $-8\ \text{m/s}$ olarak ayarlanıyor ve araba $t = 0$ anında harekete bırakılıyor. Arabanın ivme-zaman grafiği şekildeki gibidir.
+
+{{sekil}}
+
+Buna göre arabanın $(0\text{–}11)\ \text{s}$ aralığında aldığı yol kaç metredir?`,
+      sekil: 'AY10_11_vagon',
+      secenekler: [r`$24\ \text{m}$`, r`$32\ \text{m}$`, r`$40\ \text{m}$`, r`$56\ \text{m}$`, r`$88\ \text{m}$`],
+      dogru: 3,
+      cozum: [
+        r`$(0\text{–}8)\ \text{s}$ aralığında $\vartheta = \vartheta_0 + a \times t = -8 + 2 \times t$ olur. Hız $t = 4\ \text{s}$ anında sıfırdır (araba yön değiştirir), $t = 8\ \text{s}$ anında $+8\ \text{m/s}$'dir. $(8\text{–}11)\ \text{s}$ aralığında ivme sıfır olduğu için hız $+8\ \text{m/s}$'de sabit kalır.`,
+        r`$(0\text{–}4)\ \text{s}$: $\Delta x_1 = \dfrac{(-8 + 0)}{2} \times 4 = -16\ \text{m}$. $(4\text{–}8)\ \text{s}$: $\Delta x_2 = \dfrac{(0 + 8)}{2} \times 4 = +16\ \text{m}$. $(8\text{–}11)\ \text{s}$: $\Delta x_3 = 8 \times 3 = +24\ \text{m}$.`,
+        r`Alınan yol yön değişiminden etkilenmez: $16 + 16 + 24 = 56\ \text{m}$. (Yer değiştirme ise $-16 + 16 + 24 = +24\ \text{m}$'dir.)`,
+        r`{{S0}} yer değiştirmeyi ($+24\ \text{m}$) alınan yol sanır. {{S1}} yalnız ivmeli bölümün yolunu ($32\ \text{m}$) hesaplar; ivme sıfır olunca arabanın durduğunu sanır. {{S2}} $(0\text{–}8)\ \text{s}$ aralığında araba başladığı noktaya döndüğü için o aralığın yolunu yalnız $16\ \text{m}$ sayar. {{S4}} hızın büyüklüğünü baştan sona $8\ \text{m/s}$ alır: $8 \times 11 = 88\ \text{m}$.`
+      ]
+    },
+    {
+      id: 'AY10_11_12', konu: '10.1.3', cikti: 'FİZ.10.1.3', zorluk: 2, tur: 'cs', beceri: 'Sabit ivmeli ve sabit hızlı bölümleri matematiksel modelle birleştirme',
+      metin: r`Kırmızı ışıkta bekleyen bir otomobil, ışık yeşile döndüğü anda durgun hâlden sabit ivmeyle harekete başlıyor. Otomobil $6$. saniyenin sonunda ışıktan $36\ \text{m}$ uzaklaştığında hızlanmayı bırakıyor ve o andaki hızıyla sabit hızlı harekete geçiyor. Aynı düz yoldaki bir sonraki trafik ışığı, birinci ışıktan $300\ \text{m}$ uzaktadır.
+
+Buna göre otomobil ikinci ışığa, birinci ışık yeşile döndükten kaç saniye sonra ulaşır?`,
+      secenekler: [r`$22\ \text{s}$`, r`$28\ \text{s}$`, r`$31\ \text{s}$`, r`$50\ \text{s}$`, r`$56\ \text{s}$`],
+      dogru: 1,
+      cozum: [
+        r`Durgun hâlden hızlanan otomobil için $x = \dfrac{1}{2} \times a \times t^2$: $36 = \dfrac{1}{2} \times a \times 6^2$, buradan $a = 2\ \text{m/s}^2$ bulunur. $6$. saniyedeki hız $\vartheta = a \times t = 2 \times 6 = 12\ \text{m/s}$ olur.`,
+        r`Kalan yol $300 - 36 = 264\ \text{m}$; bu yol $12\ \text{m/s}$ ile $\dfrac{264}{12} = 22\ \text{s}$'de alınır. Toplam süre $6 + 22 = 28\ \text{s}$'dir.`,
+        r`{{S3}} ilk $6\ \text{s}$'deki ortalama hızı ($\dfrac{36}{6} = 6\ \text{m/s}$) son hız sanar: $6 + \dfrac{264}{6} = 50\ \text{s}$. {{S4}} hem ortalama hızı son hız sanır hem de ilk $36\ \text{m}$'yi düşmez: $6 + \dfrac{300}{6} = 56\ \text{s}$. {{S0}} sabit hızlı bölümün süresini bulur ama hızlanma süresini eklemez. {{S2}} hızlanma süresini ekler ama sabit hızlı bölümde $36\ \text{m}$'yi düşmeden $300\ \text{m}$ alır: $6 + 25 = 31\ \text{s}$.`
+      ]
+    },
+    {
+      id: 'AY10_11_13', konu: '10.2.1', cikti: 'FİZ.10.2.1', zorluk: 1, tur: 'cs', beceri: 'Kuvvet ile yer değiştirme arasındaki yöne göre işin işaretini belirleme',
+      metin: r`Bir kayak merkezinde teleski, kayakları karla temas eden bir kayakçıyı eğimli pist boyunca yukarı doğru sabit süratle çekiyor. Kayakçıya teleskinin çekme kuvveti (pist boyunca, yukarı doğru), kayakçının ağırlığı, karın yüzeye dik tepki kuvveti ve kayaklar ile kar arasındaki sürtünme kuvveti etki ediyor.
+
+Kayakçı pist boyunca $100\ \text{m}$ yukarı çekildiğinde bu kuvvetlerin kayakçı üzerinde yaptığı işlerin işaretleri aşağıdakilerin hangisinde doğru eşleştirilmiştir?`,
+      secenekler: [
+        r`Çekme: pozitif; ağırlık: sıfır; tepki: sıfır; sürtünme: negatif`,
+        r`Çekme: pozitif; ağırlık: negatif; tepki: pozitif; sürtünme: negatif`,
+        r`Çekme: sıfır; ağırlık: sıfır; tepki: sıfır; sürtünme: sıfır`,
+        r`Çekme: pozitif; ağırlık: negatif; tepki: sıfır; sürtünme: negatif`,
+        r`Çekme: pozitif; ağırlık: negatif; tepki: negatif; sürtünme: negatif`
+      ],
+      dogru: 3,
+      cozum: [
+        r`Bir kuvvetin işi, kuvvetin yer değiştirme doğrultusundaki bileşenine bağlıdır: bileşen yer değiştirmeyle aynı yöndeyse iş pozitif, zıt yöndeyse negatif, kuvvet yer değiştirmeye dikse sıfırdır.`,
+        r`Çekme kuvveti pist boyunca yukarı, yer değiştirme de yukarı: **pozitif.** Ağırlık düşey aşağıdır; kayakçı yükseldiği için ağırlığın pist boyunca bileşeni harekete zıttır: **negatif.** Tepki kuvveti yüzeye diktir: **sıfır.** Sürtünme harekete zıt yöndedir: **negatif.**`,
+        r`{{S0}} ağırlığın düşey, hareketin de pist boyunca olduğunu görüp ağırlığın işini sıfır sanır; oysa hareket yukarı doğru bir bileşen taşır. {{S1}} tepki kuvvetinin kayakçıyı yukarı ittiği için pozitif iş yaptığını sanır; tepki kuvveti yer değiştirmeye diktir. {{S2}} sürat sabit olduğu için hiçbir kuvvetin iş yapmadığını sanır; sabit süratte sıfır olan yalnız net iştir. {{S4}} çekme kuvveti dışındaki her kuvvetin negatif iş yaptığını düşünür.`
+      ]
+    },
+    {
+      id: 'AY10_11_14', konu: '10.2.1', cikti: 'FİZ.10.2.1', zorluk: 2, tur: 'cs', beceri: 'Kuvvet-yer değiştirme grafiğinde pozitif ve negatif alanlardan net işi bulma',
+      metin: r`Bir atletizm antrenmanında sporcu, beline bağlı halatla yüklü bir kızağı yapay çim pistte çekiyor. Halata takılı kuvvet ölçerin kaydından, sporcunun kızağa uyguladığı yatay $\vec{F_1}$ kuvvetinin kızağın konumuna bağlı grafiği çiziliyor. Kızağa hareketi boyunca $240\ \text{N}$ büyüklüğünde sabit sürtünme kuvveti ($\vec{F_2}$) etki ediyor; bu kuvvet de grafikte gösterilmiştir. Kızak $x = 0$'da durgun hâlden harekete başlıyor.
+
+{{sekil}}
+
+Buna göre kızağın $x = 40\ \text{m}$'deki enerjisi, başlangıçtaki enerjisinden kaç J fazladır?`,
+      sekil: 'AY10_11_kizak',
+      secenekler: [r`$800\ \text{J}$`, r`$2000\ \text{J}$`, r`$3200\ \text{J}$`, r`$10\,400\ \text{J}$`, r`$20\,000\ \text{J}$`],
+      dogru: 0,
+      cozum: [
+        r`$F_1$'in işi grafiğin altındaki alandır: $(0\text{–}10)\ \text{m}$: $320 \times 10 = 3200\ \text{J}$; $(10\text{–}30)\ \text{m}$ yamuk: $\dfrac{(320 + 200)}{2} \times 20 = 5200\ \text{J}$; $(30\text{–}40)\ \text{m}$: $200 \times 10 = 2000\ \text{J}$. Toplam $W_1 = 10\,400\ \text{J}$.`,
+        r`Sürtünme kuvveti harekete zıt olduğu için yatay eksenin altında kalır: $W_2 = -240 \times 40 = -9600\ \text{J}$.`,
+        r`Net iş kızağın enerjisindeki değişime eşittir: $W_{net} = 10\,400 - 9600 = 800\ \text{J}$.`,
+        r`{{S1}} eğik bölümü $320\ \text{N}$'lik dikdörtgen sayar: $3200 + 6400 + 2000 - 9600 = 2000\ \text{J}$. {{S2}} en büyük kuvvetin $40\ \text{m}$ boyunca etkidiğini sanır: $320 \times 40 - 9600 = 3200\ \text{J}$. {{S3}} sürtünmenin işini hesaba katmaz. {{S4}} sürtünmenin işini pozitif alıp ekler.`
+      ]
+    },
+    {
+      id: 'AY10_11_15', konu: '10.2.1', cikti: 'FİZ.10.2.1', zorluk: 3, tur: 'cs', beceri: 'Hareket grafiğini iş ile ilişkilendirerek genelleme yapma',
+      metin: r`Shuffleboard oyununda Mert, yatay ve düz oyun alanında duran bir diski uzun sopasıyla iterek hızlandırıyor ve $t = 1\ \text{s}$ anında bırakıyor. Disk bundan sonra kayarak yavaşlıyor ve duruyor. Diskin hız-zaman grafiği şekilde verilmiştir. Mert'in hareket yönünde uyguladığı kuvvet ve zeminin diske uyguladığı sürtünme kuvveti sabittir.
+
+{{sekil}}
+
+Buna göre,
+
+I. Mert'in diske yaptığı iş, sürtünme kuvvetinin $(0\text{–}10)\ \text{s}$ aralığında diske yaptığı işin büyüklüğüne eşittir.
+II. Mert'in uyguladığı kuvvetin büyüklüğü, sürtünme kuvvetinin büyüklüğünün $10$ katıdır.
+III. $(0\text{–}1)\ \text{s}$ aralığında disk üzerinde yapılan net iş, Mert'in diske yaptığı işe eşittir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'AY10_11_disk',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Grafiğin altındaki alanlardan: itme süresince $\Delta x_1 = \dfrac{2 \times 1}{2} = 1\ \text{m}$, kayma süresince $\Delta x_2 = \dfrac{2 \times 9}{2} = 9\ \text{m}$; toplam $10\ \text{m}$.`,
+        r`I. Disk durgun hâlden başlayıp yine durduğu için enerjisindeki değişim sıfırdır; net iş sıfırdır: $W_{Mert} - f \times 10 = 0$. Mert'in işi, sürtünmenin işinin büyüklüğüne eşittir. **Doğru.**`,
+        r`II. Mert'in kuvveti yalnız $1\ \text{m}$ boyunca etkir: $F \times 1 = f \times 10$, buradan $F = 10f$. **Doğru.**`,
+        r`III. İtme süresince sürtünme de etkidir: $W_{net} = F \times 1 - f \times 1 = 9f$; Mert'in işi ise $10f$'dir. **Yanlış.**`,
+        r`{{S0}} Mert'in işinin $F \times 1$, sürtünmenin işinin $f \times 10$ olduğunu kurup kuvvet oranını hesaplamaz. {{S1}} disk başladığı gibi durduğu için net işin sıfır olduğunu görmez. {{S3}} itme süresince sürtünmenin de iş yaptığını unutur ve kuvveti yalnız kayma yoluna göre ($9$ kat) bulduğu için II'yi eler. {{S4}} III'te itme sırasında sürtünmenin negatif işini hesaba katmaz.`
+      ]
+    },
+    {
+      id: 'AY10_11_16', konu: '10.2.1', cikti: 'FİZ.10.2.1', zorluk: 2, tur: 'cs', beceri: 'Kuvvetin yer değiştirme doğrultusundaki bileşeniyle iş hesaplama',
+      metin: r`Okul koridorunu silen temizlik görevlisi Hatice Hanım, paspası sapı boyunca $30\ \text{N}$ büyüklüğünde bir kuvvetle iterek $2\ \text{m}$ ileri götürüyor, sonra yine sapı boyunca $30\ \text{N}$'lık bir kuvvetle çekerek $2\ \text{m}$ geri getiriyor. İki durumda da kuvvetin yere paralel bileşeni $24\ \text{N}$, yere dik bileşeni $18\ \text{N}$'dur. Hatice Hanım bu ileri-geri hareketi $10$ kez yapıyor.
+
+{{sekil}}
+
+Buna göre Hatice Hanım'ın paspasa uyguladığı kuvvetin $10$ ileri-geri hareket boyunca yaptığı toplam iş kaç J'dür?`,
+      sekil: 'AY10_11_paspas_genis',
+      secenekler: [r`$0\ \text{J}$`, r`$480\ \text{J}$`, r`$720\ \text{J}$`, r`$960\ \text{J}$`, r`$1200\ \text{J}$`],
+      dogru: 3,
+      cozum: [
+        r`İşi yalnız yer değiştirme doğrultusundaki bileşen yapar; yere dik $18\ \text{N}$'lık bileşen yer değiştirmeye dik olduğu için iş yapmaz.`,
+        r`İterken paralel bileşen ileri, paspas da ileri gider: $W = 24 \times 2 = +48\ \text{J}$. Çekerken paralel bileşen geri, paspas da geri gider: yine $W = +48\ \text{J}$. Kuvvet her iki durumda da hareket yönünde olduğu için iş iki yönde de pozitiftir.`,
+        r`Bir ileri-geri hareket $96\ \text{J}$, $10$ ileri-geri hareket $96 \times 10 = 960\ \text{J}$ eder.`,
+        r`{{S0}} paspas başladığı yere döndüğü için toplam yer değiştirmeyi sıfır, işi de sıfır sanır; oysa kuvvet de yön değiştirmiştir ve her bölümde hareket yönündedir. {{S1}} yalnız iterken iş yapıldığını sanır: $24 \times 2 \times 10 = 480\ \text{J}$. {{S2}} yere dik bileşeni kullanır: $18 \times 4 \times 10 = 720\ \text{J}$. {{S4}} kuvvetin tamamını kullanır: $30 \times 4 \times 10 = 1200\ \text{J}$.`
+      ]
+    },
+    {
+      id: 'AY10_11_17', konu: '10.2.2', cikti: 'FİZ.10.2.2', zorluk: 1, tur: 'cs', beceri: 'Kuvvet, yer değiştirme ve süreden güç hesaplama',
+      metin: r`Bir çiftlikte bir at, yüklü bir yük arabasını düz ve yatay bir toprak yolda sabit süratle çekiyor. Atın koşum takımıyla arabaya uyguladığı kuvvet yatay ve hareket yönündedir; büyüklüğü $360\ \text{N}$'dur. Araba $2$ dakikada $240\ \text{m}$ yol alıyor.
+
+Buna göre atın uyguladığı kuvvetin arabaya aktardığı güç kaç W'tır?`,
+      secenekler: [r`$0$`, r`$3$`, r`$180$`, r`$720$`, r`$43\,200$`],
+      dogru: 3,
+      cozum: [
+        r`Araba sabit süratle gittiği için arabaya etki eden net kuvvetin işi sıfırdır; ama atın kuvveti hareket yönünde olduğu için pozitif iş yapar (yoldaki dirençler ise aynı büyüklükte negatif iş yapar).`,
+        r`Atın kuvvetinin işi $W = F \times \Delta x = 360 \times 240 = 86\,400\ \text{J}$'dür. Süre $t = 2 \times 60 = 120\ \text{s}$ olduğundan güç $P = \dfrac{W}{t} = \dfrac{86\,400}{120} = 720\ \text{W}$ olur.`,
+        r`{{S0}} sürat sabit olduğu için atın da iş yapmadığını sanır; sıfır olan yalnız net iştir. {{S1}} kuvveti süreye böler: $\dfrac{360}{120} = 3$. {{S2}} kuvveti hıza böler: arabanın hızı $\dfrac{240}{120} = 2\ \text{m/s}$, $\dfrac{360}{2} = 180$. {{S4}} süreyi saniyeye çevirmeden dakika ile böler: $\dfrac{86\,400}{2} = 43\,200$.`
+      ]
+    },
+    {
+      id: 'AY10_11_18', konu: '10.2.2', cikti: 'FİZ.10.2.2', zorluk: 2, tur: 'cs', beceri: 'Güç ve süreden aylık enerji tüketimini kWh cinsinden hesaplama',
+      metin: r`Bir ailenin ekmek yapma makinesindeki bir program üç evreden oluşuyor. Evrelerdeki ortalama güçler ve süreler tabloda verilmiştir.
+
+{{tablo}}
+
+Aile bu programı ayda $20$ kez kullanıyor. Buna göre makinenin bu program için bir ayda harcadığı elektrik enerjisi kaç kWh'tir?`,
+      tablo: [['Evre', 'Ortalama güç (W)', 'Süre (dk)'], ['Yoğurma', '120', '30'], ['Mayalanma', '40', '60'], ['Pişirme', '400', '60']],
+      secenekler: [r`$8$`, r`$10$`, r`$20$`, r`$28$`, r`$600$`],
+      dogru: 1,
+      cozum: [
+        r`Her evrede enerji $E = P \times t$ ile bulunur (süre saat cinsinden): yoğurma $120 \times \dfrac{30}{60} = 60\ \text{Wh}$, mayalanma $40 \times 1 = 40\ \text{Wh}$, pişirme $400 \times 1 = 400\ \text{Wh}$.`,
+        r`Bir program $60 + 40 + 400 = 500\ \text{Wh}$ harcar. Ayda $20$ program $20 \times 500 = 10\,000\ \text{Wh} = 10\ \text{kWh}$ eder.`,
+        r`{{S0}} yalnız pişirme evresini hesaba katar: $400 \times 20 = 8000\ \text{Wh}$, yani $8\ \text{kWh}$. {{S2}} en büyük gücü programın tamamına uygular: $400 \times \dfrac{150}{60} = 1000\ \text{Wh}$, ayda $20\ \text{kWh}$. {{S3}} güçleri toplayıp toplam süreyle çarpar: $560 \times \dfrac{150}{60} = 1400\ \text{Wh}$, ayda $28\ \text{kWh}$. {{S4}} dakikayı saate çevirmez: bir program için $120 \times 30 + 40 \times 60 + 400 \times 60 = 30\,000$ "Wh" bulur ve ayda $600\ \text{kWh}$ yazar.`
+      ]
+    },
+    {
+      id: 'AY10_11_19', konu: '10.2.2', cikti: 'FİZ.10.2.2', zorluk: 2, tur: 'cs', beceri: 'Hipotezi sınamak için uygun karşılaştırmayı seçme (kontrol değişkeni)',
+      metin: r`Deniz, "Süre aynı kaldığında bir düzeneğin gücü, yaptığı işle doğru orantılıdır." hipotezini sınamak istiyor. Bunun için küçük bir elektrik motoruyla, masa üzerindeki bir kutuyu ipe bağlayıp sabit süratle çekiyor. İpe takılı kuvvet ölçerin gösterdiği kuvveti, kutunun yer değiştirmesini ve süreyi ölçüyor. Beş denemenin sonuçları tabloda verilmiştir.
+
+{{tablo}}
+
+Deniz'in hipotezini sınamak için tablodaki denemelerden hangi ikisini karşılaştırması uygundur?`,
+      tablo: [['Deneme', 'Kuvvet (N)', 'Yer değiştirme (m)', 'Süre (s)'], ['1', '4', '2', '8'], ['2', '8', '2', '16'], ['3', '8', '2', '8'], ['4', '4', '4', '16'], ['5', '6', '2', '12']],
+      secenekler: [r`1 ve 2`, r`1 ve 3`, r`1 ve 4`, r`2 ve 4`, r`3 ve 5`],
+      dogru: 1,
+      cozum: [
+        r`Hipotezi sınamak için süre sabit tutulmalı (kontrol değişkeni), yapılan iş değişmelidir. İşler $W = F \times \Delta x$: $1$: $8\ \text{J}$, $2$: $16\ \text{J}$, $3$: $16\ \text{J}$, $4$: $16\ \text{J}$, $5$: $12\ \text{J}$.`,
+        r`Süresi eşit olan çiftler $1$ ile $3$ ($8\ \text{s}$) ve $2$ ile $4$ ($16\ \text{s}$)'tür. $2$ ile $4$'te işler de eşit olduğundan işin etkisi görülemez. Uygun çift $1$ ile $3$'tür: iş $8 \to 16\ \text{J}$ iki katına çıkarken güç $1 \to 2\ \text{W}$ iki katına çıkar.`,
+        r`{{S0}} ve {{S2}} denemelerinde süre de değiştiği için gücün değişimi yalnız işe bağlanamaz. {{S3}} denemelerinde süre aynıdır ama iş de aynı olduğundan hipotez sınanamaz. {{S4}} denemelerinde süreler farklıdır ($8$ ve $12\ \text{s}$).`
+      ]
+    },
+    {
+      id: 'AY10_11_20', konu: '10.2.2', cikti: 'FİZ.10.2.2', zorluk: 3, tur: 'cs', beceri: 'Eksik veriyle iş ve güç hakkında kesin çıkarım yapma',
+      metin: r`Bir apartman yönetimi, çatıya güneş paneli taşımak için üç firmanın kaldırma makinelerini karşılaştırıyor. Makineler yükü düşey doğrultuda sabit süratle kaldırıyor. Firmaların verdiği bilgiler tabloda verilmiştir; M firması bir seferin süresini belirtmemiştir. Güç, yük üzerinde yapılan işin süreye oranı olarak hesaplanacaktır.
+
+{{tablo}}
+
+Buna göre,
+
+I. M'nin gücü, K'nın gücünden büyüktür.
+II. L'nin bir seferde yük üzerinde yaptığı iş, K'nınkinin $2$ katıdır.
+III. M, L ile eşit güçte çalışsaydı bir seferini L'den daha kısa sürede tamamlardı.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      tablo: [['Firma', 'Bir seferde kaldırılan yükün ağırlığı (N)', 'Kaldırma yüksekliği (m)', 'Bir seferin süresi (s)'], ['K', '600', '12', '24'], ['L', '800', '18', '36'], ['M', '900', '12', 'belirtilmemiş']],
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`Yük sabit süratle kaldırıldığı için makinenin uyguladığı kuvvet yükün ağırlığına eşittir ve iş $W = F \times \Delta h$ olur. K: $600 \times 12 = 7200\ \text{J}$; L: $800 \times 18 = 14\,400\ \text{J}$; M: $900 \times 12 = 10\,800\ \text{J}$.`,
+        r`I. M'nin işi K'nınkinden büyüktür ama süresi bilinmediği için gücü bulunamaz; M işini çok uzun sürede yapıyorsa gücü K'nınkinden ($\dfrac{7200}{24} = 300\ \text{W}$) küçük olabilir. **Kesin değil.**`,
+        r`II. $\dfrac{14\,400}{7200} = 2$. **Kesinlikle doğru.**`,
+        r`III. L'nin gücü $\dfrac{14\,400}{36} = 400\ \text{W}$'tır. M bu güçle $\dfrac{10\,800}{400} = 27\ \text{s}$'de bitirir; $27 < 36$. Eşit güçte daha az iş yapan daha kısa sürede bitirir. **Kesinlikle doğru.**`,
+        r`{{S0}} en ağır yükü kaldıran M'yi en güçlü sayar ve işleri hesaplamaz; güç süreye de bağlıdır. {{S1}} eşit güçte daha az iş yapan makinenin işini daha kısa sürede bitireceğini görmez. {{S2}} M'nin süresi bilinmediği hâlde gücünü K'nınkinden büyük sayar ve III'teki eşit güç karşılaştırmasını yapmaz. {{S3}} M'nin gücünü yükünün ağırlığına bakarak büyük sayar; II'de de yalnız ağırlıkları ($800$ ve $600\ \text{N}$) karşılaştırıp yüksekliklerin farklı olduğunu hesaba katmaz.`
+      ]
+    }
+  ]
+};
+
+/* ---------- Şekiller ---------- */
+if (window.BFY_FIGLIB) {
+const { P, T, svg, arrow, dashLine } = window.BFY_FIGLIB;
+const INK = P.ink, IZ = '#dde5e0', MAVI = '#2f7fb8', BAKIR = '#b5622e', YESIL = '#2f7d5b';
+// Eksen takımı: düşey eksen adı okun ucunda (sağında), yatay eksen adı okun ucunda (yanında).
+const eksen = (L, top, bot, y0, R, yl, xl) =>
+  `<line x1="${L}" y1="${bot}" x2="${L}" y2="${top + 8}" stroke="${INK}" stroke-width="1.5"/>` +
+  `<polygon points="${L},${top} ${L - 4.2},${top + 10} ${L + 4.2},${top + 10}" fill="${INK}"/>` +
+  `<line x1="${L}" y1="${y0}" x2="${R - 8}" y2="${y0}" stroke="${INK}" stroke-width="1.5"/>` +
+  `<polygon points="${R},${y0} ${R - 10},${y0 - 4.2} ${R - 10},${y0 + 4.2}" fill="${INK}"/>` +
+  T(L + 8, top + 7, yl, { size: 13, weight: 700 }) + T(R + 5, y0 + 4.5, xl, { size: 13, weight: 700 });
+const tikX = (x, y0, lab, yukari) => `<line x1="${x}" y1="${y0 - 3.5}" x2="${x}" y2="${y0 + 3.5}" stroke="${INK}" stroke-width="1.2"/>` +
+  T(x, yukari ? y0 - 8 : y0 + 17, lab, { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
+const tikY = (L, y, lab) => `<line x1="${L - 3.5}" y1="${y}" x2="${L + 3.5}" y2="${y}" stroke="${INK}" stroke-width="1.2"/>` +
+  T(L - 7, y + 4.3, lab, { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+const kesik = (x1, y1, x2, y2) => dashLine(x1, y1, x2, y2, '#8a9a94', '4 3', 1.1);
+const cizgi = (pts, c, w) => `<polyline points="${pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')}" fill="none" stroke="${c}" stroke-width="${w || 2.8}" stroke-linejoin="round" stroke-linecap="round"/>`;
+const izgara = (L, R, top, bot, xs, ys) => xs.map(x => `<line x1="${x}" y1="${top}" x2="${x}" y2="${bot}" stroke="${IZ}" stroke-width="1"/>`).join('') +
+  ys.map(y => `<line x1="${L}" y1="${y}" x2="${R}" y2="${y}" stroke="${IZ}" stroke-width="1"/>`).join('');
+const panel = (w, h) => `<rect class="bg" x="0" y="0" width="${w}" height="${h}" rx="12" fill="#f6f9f7"/>`;
+
+// 1. soru: şerit boyama aracının x-t grafiği (km, dk)
+BFY_FIG_EKLE('AY10_11_serit', function (u) {
+  const L = 52, y0 = 206, X = t => L + t * 4.6, Y = v => y0 - v * 30;
+  let s = panel(330, 236);
+  s += izgara(L, X(48), Y(6), y0, [12, 24, 36, 48].map(X), [1, 2, 3, 4, 5, 6].map(Y));
+  s += eksen(L, 18, y0, y0, 292, 'x (km)', 't (dk)');
+  [12, 24, 36].forEach(t => { s += tikX(X(t), y0, String(t)); });
+  [1, 2, 3, 4, 5].forEach(v => { s += tikY(L, Y(v), String(v)); });
+  s += tikX(L, y0, '0') ;
+  s += kesik(X(36), Y(5), X(36), y0);
+  s += cizgi([[X(0), Y(2)], [X(36), Y(5)]], MAVI, 3);
+  s += `<circle cx="${X(0)}" cy="${Y(2)}" r="3.6" fill="${MAVI}"/><circle cx="${X(36)}" cy="${Y(5)}" r="3.6" fill="${MAVI}"/>`;
+  return svg(330, 236, s, u, 72);
+});
+
+// 2. soru: transpaletin ϑ-t grafiği
+BFY_FIG_EKLE('AY10_11_transpalet', function (u) {
+  const L = 50, X = t => L + t * 3.3, y0 = 132, Y = v => y0 - v * 40;
+  let s = panel(340, 210);
+  s += izgara(L, X(75), Y(2.5), Y(-1.5), [10, 20, 30, 40, 50, 60, 70].map(X), [-1, 1, 2].map(Y));
+  s += eksen(L, 14, Y(-1.7), y0, 300, 'ϑ (m/s)', 't (s)');
+  s += tikX(X(30), y0, '30', true) + tikX(X(50), y0, '50') + tikX(X(70), y0, '70');
+  s += tikY(L, Y(2), '+2') + tikY(L, Y(-1), '−1');
+  s += kesik(L, Y(2), X(50), Y(2)) + kesik(X(30), Y(-1), X(30), y0) + kesik(X(50), y0, X(50), Y(2)) + kesik(X(70), Y(2), X(70), y0);
+  s += cizgi([[X(0), Y(-1)], [X(30), Y(-1)]], MAVI, 3.2) + cizgi([[X(30), y0], [X(50), y0]], MAVI, 3.2) + cizgi([[X(50), Y(2)], [X(70), Y(2)]], MAVI, 3.2);
+  return svg(340, 210, s, u, 74);
+});
+
+// 3. soru: dron kaydında üç aracın x-t grafikleri
+BFY_FIG_EKLE('AY10_11_dron', function (u) {
+  const L = 54, y0 = 214, X = t => L + t * 7.4, Y = v => y0 - v * 0.2;
+  let s = panel(340, 244);
+  s += izgara(L, X(32), Y(960), y0, [10, 20, 30].map(X), []);
+  s += eksen(L, 14, y0, y0, 302, 'x (m)', 't (s)');
+  [10, 20, 30].forEach(t => { s += tikX(X(t), y0, String(t)); });
+  [120, 300, 600, 840].forEach(v => { s += tikY(L, Y(v), String(v)); });
+  s += kesik(L, Y(840), X(30), Y(840)) + kesik(L, Y(600), X(30), Y(600)) + kesik(L, Y(300), X(10), Y(300)) + kesik(L, Y(120), X(30), Y(120));
+  s += cizgi([[X(0), Y(0)], [X(30), Y(600)]], YESIL) + cizgi([[X(0), Y(840)], [X(30), Y(120)]], BAKIR) + cizgi([[X(10), Y(300)], [X(30), Y(840)]], MAVI);
+  s += T(X(30) + 8, Y(600) + 5, 'K', { size: 14, weight: 800, fill: YESIL }) + T(X(30) + 8, Y(120) + 5, 'L', { size: 14, weight: 800, fill: BAKIR }) + T(X(30) + 8, Y(840) + 5, 'M', { size: 14, weight: 800, fill: MAVI });
+  return svg(340, 244, s, u, 74);
+});
+
+// 4. soru: iki uçtan kazılan tünel (kesit)
+BFY_FIG_EKLE('AY10_11_tunel', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="206" rx="12" fill="url(#${u}sky)"/>`;
+  s += `<defs><linearGradient id="${u}dag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb58a"/><stop offset=".55" stop-color="#8a7a5c"/><stop offset="1" stop-color="#6f604a"/></linearGradient></defs>`;
+  s += `<path d="M 6 150 L 36 150 C 70 120 92 70 128 54 C 150 44 160 30 182 28 C 204 26 214 46 236 58 C 268 76 286 118 304 150 L 334 150 L 334 178 L 6 178 Z" fill="url(#${u}dag)" stroke="#5c5040" stroke-width="1.2"/>`;
+  s += `<path d="M 160 33 L 176 29 L 190 30 L 200 38 L 186 37 L 172 40 Z" fill="#f4f7f8" opacity=".9"/>`;
+  s += `<rect x="6" y="150" width="328" height="28" fill="url(#${u}soil)"/><line x1="6" y1="150" x2="36" y2="150" stroke="#5c5040" stroke-width="1.2"/><line x1="304" y1="150" x2="334" y2="150" stroke="#5c5040" stroke-width="1.2"/>`;
+  // tünel ekseni (kazılacak güzergâh, kesikli)
+  s += dashLine(52, 138, 288, 138, '#f2ead8', '6 5', 1.6);
+  // portallar
+  s += `<path d="M 36 150 L 36 128 Q 46 120 56 128 L 56 150 Z" fill="#3b342b"/><path d="M 284 150 L 284 128 Q 294 120 304 128 L 304 150 Z" fill="#3b342b"/>`;
+  // makineler: silindir gövde + kesici kafa
+  const tbm = (x, yon) => {
+    const g = `<rect x="${yon > 0 ? x - 26 : x}" y="128" width="26" height="20" rx="3" fill="url(#${u}metal)" stroke="#5d6770" stroke-width="1"/>`;
+    const kafa = `<ellipse cx="${x}" cy="138" rx="4.5" ry="11" fill="#e7a93b" stroke="#9a6a1c" stroke-width="1.1"/>`;
+    return g + kafa;
+  };
+  s += tbm(64, 1) + tbm(276, -1);
+  s += arrow(72, 112, 100, 112, { color: P.coral, w: 2.4, head: 8 }) + arrow(268, 112, 240, 112, { color: P.coral, w: 2.4, head: 8 });
+  s += T(56, 106, 'K', { size: 14, weight: 800, anchor: 'middle' }) + T(284, 106, 'L', { size: 14, weight: 800, anchor: 'middle' });
+  s += T(20, 196, 'Batı girişi', { size: 12, weight: 700 }) + T(320, 196, 'Doğu girişi', { size: 12, weight: 700, anchor: 'end' });
+  // ölçü çizgisi
+  s += `<g stroke="${P.ink2}" stroke-width="1.2"><line x1="46" y1="166" x2="294" y2="166"/><line x1="46" y1="160" x2="46" y2="172"/><line x1="294" y1="160" x2="294" y2="172"/></g>`;
+  s += T(170, 170, '1200 m', { size: 12.5, weight: 800, anchor: 'middle', haloColor: '#d7c4a3' });
+  return svg(340, 206, s, u, 74);
+});
+
+// 7. soru: deney rayı, tekerlek sensörlü araba, sağ uçta yaylı tampon
+BFY_FIG_EKLE('AY10_11_ray', function (u) {
+  let s = panel(340, 150);
+  s += `<rect x="8" y="112" width="324" height="14" rx="3" fill="url(#${u}wood)" stroke="#b08a50" stroke-width="1"/>`;
+  s += `<rect x="18" y="101" width="296" height="11" rx="2" fill="url(#${u}metal)" stroke="#7d868e" stroke-width="1"/>`;
+  s += `<line x1="22" y1="106" x2="310" y2="106" stroke="#7d868e" stroke-width="0.8"/>`;
+  // tampon tutucu ve yay
+  s += `<rect x="306" y="66" width="14" height="46" rx="2" fill="#5d6770"/>`;
+  let yay = 'M 306 84'; for (let i = 0; i < 8; i++) yay += ` L ${302 - i * 3.6} ${i % 2 ? 76 : 92}`; yay += ' L 272 84';
+  s += `<path d="${yay}" fill="none" stroke="#3d4650" stroke-width="1.8" stroke-linejoin="round"/>`;
+  s += `<rect x="266" y="72" width="6" height="24" rx="1.5" fill="#c9793f" stroke="#7d4a27" stroke-width="1"/>`;
+  // araba
+  s += `<rect x="112" y="72" width="76" height="22" rx="4" fill="#3b8fc8" stroke="#1d5a86" stroke-width="1.2"/>`;
+  s += `<rect x="120" y="76" width="60" height="7" rx="2" fill="#bfe2f8" opacity=".7"/>`;
+  [128, 172].forEach(x => { s += `<circle cx="${x}" cy="96" r="6" fill="#2a2f33"/><circle cx="${x}" cy="96" r="2.4" fill="#c9cdd0"/>`; });
+  // sensör (arka tekerleğe takılı küçük kutu)
+  s += `<rect x="118" y="86" width="11" height="8" rx="1.5" fill="#e7a93b" stroke="#9a6a1c" stroke-width="1"/>`;
+  s += `<line x1="122" y1="85" x2="98" y2="46" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += T(96, 40, 'tekerlek sensörü', { size: 12, weight: 700, anchor: 'middle' });
+  s += `<line x1="288" y1="70" x2="276" y2="46" stroke="${P.ink2}" stroke-width="1"/>`;
+  s += T(270, 40, 'yaylı tampon', { size: 12, weight: 700, anchor: 'middle' });
+  return svg(340, 150, s, u, 74);
+});
+
+// 9. soru: tarama ünitesinin ϑ-t grafiği ve aday x-t grafikleri (K, L, M, N, P)
+BFY_FIG_EKLE('AY10_11_tarama_genis', function (u) {
+  const W = 186, H = 172;
+  let s = `<rect class="bg" x="0" y="0" width="560" height="${2 * H + 12}" rx="12" fill="#f6f9f7"/>`;
+  const ut = 30; // bir t aralığı (px)
+  const kutu = (ox, oy, ad, renk) => `<rect x="${ox + 4}" y="${oy + 4}" width="${W - 8}" height="${H - 8}" rx="9" fill="#fff" stroke="#d6e0da" stroke-width="1"/>` +
+    T(ox + W - 14, oy + 26, ad, { size: 15, weight: 800, anchor: 'end', fill: renk || BAKIR });
+  const xt = (ox, oy, f, ad) => {
+    const L = ox + 30, y0 = oy + 132, X = tt => L + tt * ut, Y = v => y0 - v * 44;
+    let g = kutu(ox, oy, ad);
+    g += eksen(L, oy + 16, y0 + 8, y0, L + 4 * ut + 22, 'x', 't');
+    ['t', '2t', '3t', '4t'].forEach((lab, i) => { g += tikX(X(i + 1), y0, lab); g += dashLine(X(i + 1), y0, X(i + 1), Y(1.75), '#e3e9e5', '3 3', 1); });
+    const pts = []; for (let i = 0; i <= 80; i++) { const tt = 4 * i / 80; pts.push([X(tt), Y(f(tt))]); }
+    g += cizgi(pts, MAVI, 2.6);
+    return g;
+  };
+  // ϑ-t paneli
+  { const ox = 0, oy = 0, L = ox + 34, y0 = oy + 92, X = tt => L + tt * ut, Y = v => y0 - v * 46;
+    s += kutu(ox, oy, 'ϑ-t', YESIL);
+    s += eksen(L, oy + 16, oy + H - 14, y0, L + 4 * ut + 22, 'ϑ', 't');
+    s += tikY(L, Y(1), 'ϑ') + tikY(L, Y(-1), '−ϑ');
+    s += tikX(X(1), y0, 't') + tikX(X(3), y0, '3t') + tikX(X(4), y0, '4t', true);
+    s += `<line x1="${X(2)}" y1="${y0 - 3.5}" x2="${X(2)}" y2="${y0 + 3.5}" stroke="${INK}" stroke-width="1.2"/>` + T(X(2) - 4, y0 + 15, '2t', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+    s += kesik(L, Y(1), X(1), Y(1)) + kesik(L, Y(-1), X(3), Y(-1)) + kesik(X(4), y0, X(4), Y(-1));
+    s += cizgi([[X(0), Y(1)], [X(1), Y(1)], [X(3), Y(-1)], [X(4), Y(-1)]], YESIL, 2.8); }
+  const dogru = tt => tt <= 1 ? tt : tt <= 3 ? 1 + (tt - 1) - (tt - 1) * (tt - 1) / 2 : 1 - (tt - 3);
+  const dur = tt => tt <= 1 ? tt : tt <= 3 ? 1 : 1 - (tt - 3);
+  const tepe3 = tt => tt <= 1 ? tt : tt <= 3 ? 1 + (tt - 1) - (tt - 1) * (tt - 1) / 4 : 2 - (tt - 3);
+  const ters = tt => tt <= 1 ? tt : tt <= 3 ? 1 - (tt - 1) + (tt - 1) * (tt - 1) / 2 : 1 - (tt - 3);
+  const yarim = tt => tt <= 3 ? dogru(tt) : 1 - (tt - 3) / 2;
+  s += xt(187, 0, dur, 'K') + xt(374, 0, tepe3, 'L');
+  s += xt(0, H + 12, ters, 'M') + xt(187, H + 12, yarim, 'N') + xt(374, H + 12, dogru, 'P');
+  return svg(560, 2 * H + 12, s, u, 160);
+});
+
+// 10. soru: servis aracının ϑ-t grafiği
+BFY_FIG_EKLE('AY10_11_servis', function (u) {
+  const L = 48, y0 = 196, X = t => L + t * 44, Y = v => y0 - v * 24;
+  let s = panel(320, 226);
+  s += izgara(L, X(5), Y(7), y0, [1, 2, 3, 4, 5].map(X), [1, 2, 3, 4, 5, 6, 7].map(Y));
+  s += eksen(L, 14, y0, y0, 280, 'ϑ (m/s)', 't (s)');
+  s += tikX(X(4), y0, '4') + tikX(L, y0, '0');
+  s += tikY(L, Y(2), '2') + tikY(L, Y(6), '6');
+  s += kesik(L, Y(6), X(4), Y(6)) + kesik(X(4), Y(6), X(4), y0);
+  s += cizgi([[X(0), Y(2)], [X(4), Y(6)]], MAVI, 3);
+  return svg(320, 226, s, u, 70);
+});
+
+// 11. soru: simülasyondaki oyuncak arabanın a-t grafiği
+BFY_FIG_EKLE('AY10_11_vagon', function (u) {
+  const L = 52, y0 = 150, X = t => L + t * 18, Y = v => y0 - v * 40;
+  let s = panel(330, 186);
+  s += izgara(L, X(12), Y(3), y0, [2, 4, 6, 8, 10, 12].map(X), [1, 2, 3].map(Y));
+  s += eksen(L, 14, y0 + 16, y0, 296, 'a (m/s²)', 't (s)');
+  s += tikX(X(8), y0, '8') + tikX(X(11), y0, '11') + tikX(L, y0, '0');
+  s += tikY(L, Y(2), '+2');
+  s += kesik(X(8), Y(2), X(8), y0);
+  s += cizgi([[X(0), Y(2)], [X(8), Y(2)]], MAVI, 3.2) + cizgi([[X(8), y0], [X(11), y0]], MAVI, 3.2);
+  return svg(330, 186, s, u, 72);
+});
+
+// 14. soru: sprint kızağı F-x grafiği (sporcu kuvveti F1, sürtünme F2)
+BFY_FIG_EKLE('AY10_11_kizak', function (u) {
+  const L = 56, X = x => L + x * 5.6, y0 = 142, Y = v => y0 - v * 0.34;
+  let s = panel(340, 250);
+  s += izgara(L, X(44), Y(360), Y(-300), [10, 20, 30, 40].map(X), [-200, -100, 100, 200, 300].map(Y));
+  s += eksen(L, 12, Y(-300), y0, 300, 'F (N)', 'x (m)');
+  [10, 30, 40].forEach(x => { s += tikX(X(x), y0, String(x)); });
+  s += tikY(L, Y(320), '320') + tikY(L, Y(200), '200') + tikY(L, Y(-240), '−240');
+  s += kesik(L, Y(320), X(10), Y(320)) + kesik(L, Y(200), X(30), Y(200)) + kesik(X(10), Y(320), X(10), y0) + kesik(X(30), Y(200), X(30), y0) + kesik(X(40), Y(200), X(40), y0);
+  s += cizgi([[X(0), Y(320)], [X(10), Y(320)], [X(30), Y(200)], [X(40), Y(200)]], MAVI, 3);
+  s += cizgi([[X(0), Y(-240)], [X(40), Y(-240)]], BAKIR, 3);
+  s += T(X(20), Y(320) - 8, 'F_1 (sporcu)', { size: 12.5, weight: 800, fill: MAVI, anchor: 'middle' });
+  s += T(X(20), Y(-240) + 20, 'F_2 (sürtünme)', { size: 12.5, weight: 800, fill: BAKIR, anchor: 'middle' });
+  return svg(340, 250, s, u, 74);
+});
+
+// 15. soru: shuffleboard diskinin ϑ-t grafiği
+BFY_FIG_EKLE('AY10_11_disk', function (u) {
+  const L = 48, y0 = 166, X = t => L + t * 20.5, Y = v => y0 - v * 56;
+  let s = panel(330, 196);
+  s += izgara(L, X(11), Y(2.5), y0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(X), [0.5, 1, 1.5, 2, 2.5].map(Y));
+  s += eksen(L, 14, y0, y0, 288, 'ϑ (m/s)', 't (s)');
+  s += tikX(X(1), y0, '1') + tikX(X(10), y0, '10') + tikX(L, y0, '0');
+  s += tikY(L, Y(2), '2');
+  s += kesik(L, Y(2), X(1), Y(2)) + kesik(X(1), Y(2), X(1), y0);
+  s += cizgi([[X(0), Y(0)], [X(1), Y(2)], [X(10), Y(0)]], MAVI, 3);
+  return svg(330, 196, s, u, 72);
+});
+
+// 16. soru: paspas; iterken ve çekerken sap boyunca kuvvet ve bileşenleri
+BFY_FIG_EKLE('AY10_11_paspas_genis', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="560" height="214" rx="12" fill="#f6f9f7"/>`;
+  const sahne = (ox, cek) => {
+    let g = `<rect x="${ox + 8}" y="8" width="264" height="198" rx="10" fill="#fff" stroke="#d6e0da" stroke-width="1"/>`;
+    // zemin (karo)
+    g += `<rect x="${ox + 14}" y="168" width="252" height="30" fill="#e9e4da"/>`;
+    for (let i = 0; i < 7; i++) g += `<line x1="${ox + 14 + i * 42}" y1="168" x2="${ox + 14 + i * 42}" y2="198" stroke="#d3cbbb" stroke-width="1"/>`;
+    g += `<line x1="${ox + 14}" y1="168" x2="${ox + 266}" y2="168" stroke="#a89f8e" stroke-width="1.4"/>`;
+    // paspas başlığı ve saçakları
+    const hx = ox + 168, hy = 160;
+    g += `<rect x="${hx - 34}" y="${hy - 6}" width="68" height="9" rx="2" fill="#6f8fa8" stroke="#4a6378" stroke-width="1"/>`;
+    for (let i = 0; i < 12; i++) g += `<line x1="${hx - 32 + i * 5.8}" y1="${hy + 3}" x2="${hx - 33 + i * 5.8}" y2="168" stroke="#c7cfd6" stroke-width="2.2" stroke-linecap="round"/>`;
+    // sap: başlıktan sola-yukarı (yatay 4, düşey 3)
+    const sx = hx - 128, sy = hy - 6 - 96;
+    g += `<line x1="${hx}" y1="${hy - 6}" x2="${sx}" y2="${sy}" stroke="#c9a06a" stroke-width="5" stroke-linecap="round"/><line x1="${hx}" y1="${hy - 6}" x2="${sx}" y2="${sy}" stroke="#e8c896" stroke-width="2" stroke-linecap="round"/>`;
+    // kuvvet ve bileşenleri (sapın üst tarafında, sapa paralel ok; bileşen üçgeni saptan uzak yanda)
+    const Y_ = '#7a8a84';
+    if (cek) {
+      const ax = hx + 2, ay = hy - 58, bx = ax - 64, by = ay - 48;
+      g += arrow(ax, ay, ax, by, { color: YESIL, w: 2.2, head: 8, dash: '5 3' }) + arrow(ax, by, bx, by, { color: YESIL, w: 2.2, head: 8, dash: '5 3' });
+      g += arrow(ax, ay, bx, by, { color: P.coral, w: 3, head: 10 });
+      g += T(ax + 8, ay - 20, '18 N', { size: 12.5, weight: 800, fill: YESIL });
+      g += T(ax - 32, by - 8, '24 N', { size: 12.5, weight: 800, fill: YESIL, anchor: 'middle' });
+      g += T(ax - 40, ay - 8, '30 N', { size: 12.5, weight: 800, fill: P.coral, anchor: 'end' });
+    } else {
+      const ax = hx - 78, ay = hy - 92, bx = ax + 64, by = ay + 48;
+      g += arrow(ax, ay, bx, ay, { color: YESIL, w: 2.2, head: 8, dash: '5 3' }) + arrow(bx, ay, bx, by, { color: YESIL, w: 2.2, head: 8, dash: '5 3' });
+      g += arrow(ax, ay, bx, by, { color: P.coral, w: 3, head: 10 });
+      g += T(ax + 32, ay - 8, '24 N', { size: 12.5, weight: 800, fill: YESIL, anchor: 'middle' });
+      g += T(bx + 8, ay + 28, '18 N', { size: 12.5, weight: 800, fill: YESIL });
+      g += T(ax - 6, ay - 2, '30 N', { size: 12.5, weight: 800, fill: P.coral, anchor: 'end' });
+    }
+    // hareket yönü
+    g += cek ? arrow(ox + 250, 30, ox + 196, 30, { color: MAVI, w: 2.4, head: 9 }) : arrow(ox + 196, 30, ox + 250, 30, { color: MAVI, w: 2.4, head: 9 });
+    g += T(ox + 223, 50, cek ? '2 m geri' : '2 m ileri', { size: 12, weight: 700, fill: MAVI, anchor: 'middle' });
+    g += T(ox + 24, 30, cek ? 'Çekerken' : 'İterken', { size: 14, weight: 800 });
+    return g;
+  };
+  s += sahne(0, false) + sahne(280, true);
+  return svg(560, 214, s, u, 150);
+});
+}
+})();
+
+</script>
+<script>
+// Kapsam: Hafta 1–11 (Z Kitap 36 haftalık planı), Ünite 1 Kuvvet ve Hareket: 11.1.1 serbest düşme (Hafta 2–3), 11.1.2 iki boyutta sabit ivmeli hareket (Hafta 4), 11.1.3 Newton'ın hareket yasaları ve serbest cisim diyagramı (Hafta 5–7), 11.1.4 sürtünme kuvveti (Hafta 8–9), 11.1.5 limit hız (Hafta 10), 11.1.6 düzgün çembersel hareket: yörünge ve hız (Hafta 11, FİZ.11.1.9; hesap yok).
+/* ============================================================
+   BFY — Yapabilirim 11 · Aylık deneme AY11_11 (11. Sınıf Kasım Denemesi, 2026–2027)
+   Takvim: ders yılı 7 Eylül 2026 Pazartesi başladı; 1. ara tatil 9–13 Kasım 2026.
+     Hafta 1 = 7–11 Eylül … Hafta 8 = 26–30 Ekim, Hafta 9 = 2–6 Kasım, (ara tatil),
+     Hafta 10 = 16–20 Kasım, Hafta 11 = 23–27 Kasım. Hafta 12 (düzgün çembersel hareketin
+     matematiksel modeli, FİZ.11.1.10) 30 Kasım'da başlar; bu yüzden denemeye girmez:
+     çembersel hareket soruları yalnız yörünge, hız vektörü ve ivmenin yönü düzeyindedir (hesap yok,
+     "merkezcil" adı ve büyüklük bağıntıları yok).
+   Dağılım: 11.1.1 × 3, 11.1.2 × 4, 11.1.3 × 5 (birikimli, %60); 11.1.4 × 4, 11.1.5 × 2, 11.1.6 × 2
+   (Hafta 8–11, Ekim sonu–Kasım, %40). 20 soru, 40 dakika; zorluk 6 ★ / 9 ★★ / 5 ★★★.
+   Kapsam sınırları: g = 10 m/s²; hava direnci yalnız limit hız sorularında; limit hızda yalnız
+   F_d = k·A·ϑ² modeline dayalı oran ve yorum; farklı ivmeli sistem hesabı yok; "yatay atış/eğik atış"
+   adları yok. Metinler, sayılar ve şekiller özgündür.
+   Şekil anahtarları: AY11_11_ öneki. Soru kimlikleri: AY11_11_1 … AY11_11_20.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller ---------- */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, dimV, svg, dashLine } = window.BFY_FIGLIB;
+
+// 4. soru: duran biçerdöverin boşaltma borusundan yatay çıkan buğday taneleri, yanında bekleyen römork
+BFY_FIG_EKLE('AY11_11_bicerdover', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="330" height="270" rx="12" fill="url(#${u}sky)"/>`;
+  // zemin (tarla)
+  s += `<rect x="0" y="236" width="330" height="34" fill="url(#${u}soil)"/>`;
+  s += `<line x1="0" y1="236" x2="330" y2="236" stroke="#8c7356" stroke-width="1.4"/>`;
+  // biçerdöver gövdesi, kabin, tekerlekler
+  s += `<rect x="18" y="128" width="102" height="78" rx="6" fill="#d8a531" stroke="#8a6414" stroke-width="1.6"/>`;
+  s += `<rect x="24" y="96" width="44" height="34" rx="4" fill="#cfe3ee" stroke="#8a6414" stroke-width="1.6"/>`;
+  s += `<rect x="70" y="112" width="40" height="18" rx="3" fill="#c79422" stroke="#8a6414" stroke-width="1.2"/>`;
+  s += `<circle cx="46" cy="210" r="25" fill="#3b4148" stroke="#24292e" stroke-width="2"/><circle cx="46" cy="210" r="9" fill="#9aa3ab"/>`;
+  s += `<circle cx="104" cy="218" r="17" fill="#3b4148" stroke="#24292e" stroke-width="2"/><circle cx="104" cy="218" r="6" fill="#9aa3ab"/>`;
+  // boşaltma borusu: gövdeden yukarı çıkıp yatay ağızla biter (ağız: x = 170, y = 60)
+  s += `<path d="M96 116 L140 64 L170 64" fill="none" stroke="#8a6414" stroke-width="11" stroke-linejoin="round"/>`;
+  s += `<path d="M96 116 L140 64 L170 64" fill="none" stroke="#d8a531" stroke-width="7" stroke-linejoin="round"/>`;
+  // römork: taban üst yüzü y = 206, yan duvarlar y = 176'ya kadar
+  s += `<rect x="182" y="206" width="138" height="8" fill="#7d8a93" stroke="#4e5a63" stroke-width="1.2"/>`;
+  s += `<path d="M182 206 L182 176 M320 206 L320 176" stroke="#4e5a63" stroke-width="3"/>`;
+  s += `<circle cx="226" cy="224" r="12" fill="#3b4148" stroke="#24292e" stroke-width="2"/><circle cx="282" cy="224" r="12" fill="#3b4148" stroke="#24292e" stroke-width="2"/>`;
+  // tane akışı: ağızdan yatay teğetle başlayan parabol, tabana (260, 206) düşer
+  const yol = 'M170 64 Q215 64 260 206';
+  s += `<path d="${yol}" fill="none" stroke="#e2b84a" stroke-width="7" stroke-linecap="round" opacity=".85"/>`;
+  s += `<path d="${yol}" fill="none" stroke="#fff3c4" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 5"/>`;
+  s += `<path d="M246 206 Q260 194 274 206 Z" fill="#e2b84a" stroke="#b8902a" stroke-width="1"/>`;
+  // yükseklik: ağız düzeyinden römork tabanına
+  s += dashLine(176, 60, 312, 60) + dashLine(274, 206, 312, 206);
+  s += dimV(306, 60, 206, '5 m', { side: 'left' });
+  // yatay uzaklık: ağzın tam altındaki noktadan tanelerin düştüğü noktaya (römorkun altında)
+  s += dashLine(170, 70, 170, 256) + dashLine(260, 214, 260, 256);
+  s += `<g stroke="${P.ink}" stroke-width="1.4"><line x1="170" y1="250" x2="260" y2="250"/><line x1="170" y1="244" x2="170" y2="256"/><line x1="260" y1="244" x2="260" y2="256"/></g>`;
+  s += T(215, 266, '4 m', { size: 13, weight: 800, anchor: 'middle' });
+  return svg(330, 272, s, u, 70);
+});
+
+// 7. soru: atlama tepesi; O'dan yatay ayrılış, 37° eğimli iniş pisti, P iniş noktası
+BFY_FIG_EKLE('AY11_11_kayak', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="250" rx="12" fill="url(#${u}sky)"/>`;
+  // kar örtüsü: kalkış masası (yatay) + 37° eğimli pist
+  s += `<path d="M0 50 L50 50 L290 230 L320 230 L320 250 L0 250 Z" fill="#f2f7fb" stroke="#9fb8c9" stroke-width="1.6"/>`;
+  s += `<path d="M50 50 L290 230" stroke="#6f8fa6" stroke-width="2.2"/>`;
+  // 37° açısı: eğimin alt ucunda, yatay ile eğim arasında
+  s += dashLine(196, 230, 290, 230, P.ink2, '5 4', 1.3);
+  const R = 46, ax = 290 - R, ay = 230, bx = 290 - R * 0.8, by = 230 - R * 0.6;
+  s += `<path d="M${ax} ${ay} A${R} ${R} 0 0 1 ${bx.toFixed(1)} ${by.toFixed(1)}" fill="none" stroke="${P.ink}" stroke-width="1.4"/>`;
+  s += T(224, 224, '37°', { size: 13, weight: 800, anchor: 'end' });
+  // yörünge (yatay teğetli parabol), O'dan P'ye
+  s += `<path d="M50 50 Q138 50 226 182" fill="none" stroke="${P.coral}" stroke-width="2" stroke-dasharray="6 4"/>`;
+  // kayakçı (basit siluet) O noktasında
+  s += `<line x1="28" y1="47" x2="64" y2="47" stroke="#24302c" stroke-width="2.4" stroke-linecap="round"/>`;
+  s += `<path d="M44 46 L48 34 L56 26" stroke="#c25b2a" stroke-width="4" stroke-linecap="round" fill="none"/><circle cx="58" cy="21" r="4.5" fill="#24302c"/>`;
+  // hız oku
+  s += arrow(70, 30, 120, 30, { color: P.blue, w: 2.6, head: 9 });
+  s += T(126, 35, '20 m/s', { size: 13, weight: 800, fill: P.blue });
+  s += T(22, 66, 'O', { size: 14, weight: 800, anchor: 'middle' });
+  s += `<circle cx="226" cy="182" r="3.6" fill="${P.ink}"/>` + T(236, 172, 'P', { size: 14, weight: 800 });
+  return svg(320, 250, s, u, 66);
+});
+
+// 8. soru: uçak pistte doğuya giderken katlanır masadaki bardak; su yüzeyi doğu tarafında yüksek
+BFY_FIG_EKLE('AY11_11_bardak', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="300" height="210" rx="12" fill="#f6f9f7"/>`;
+  // masa
+  s += `<rect x="40" y="160" width="220" height="10" rx="3" fill="#b8c0c7" stroke="#7e878f" stroke-width="1"/>`;
+  s += `<rect x="70" y="170" width="160" height="6" fill="#d9dee2"/>`;
+  // su (sağ duvarda y = 100, sol duvarda y = 122)
+  const xs = y => 110 + 8 * (y - 70) / 90, xd = y => 190 - 8 * (y - 70) / 90;
+  s += `<polygon points="${xs(122).toFixed(1)},122 ${xd(100).toFixed(1)},100 ${xd(159).toFixed(1)},159 ${xs(159).toFixed(1)},159" fill="url(#${u}water)" opacity=".85"/>`;
+  // bardak
+  s += `<polygon points="110,70 190,70 182,160 118,160" fill="url(#${u}glass)" fill-opacity=".25" stroke="#4b6d82" stroke-width="2" stroke-linejoin="round"/>`;
+  // hareket yönü
+  s += arrow(96, 36, 204, 36, { color: P.coral, w: 2.6, head: 10 });
+  s += T(150, 26, 'Uçağın hareket yönü', { size: 12.5, weight: 800, anchor: 'middle', fill: P.coral });
+  s += T(88, 40, 'Batı', { size: 12.5, weight: 700, anchor: 'end', fill: P.ink2 }) + T(212, 40, 'Doğu', { size: 12.5, weight: 700, fill: P.ink2 });
+  return svg(300, 210, s, u, 62);
+});
+
+// 10. soru: eğik çizim masasında duran kalem kutusu ve ona etki eden üç kuvvet
+BFY_FIG_EKLE('AY11_11_masa', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="236" rx="12" fill="#f6f9f7"/>`;
+  // zemin
+  s += `<line x1="16" y1="218" x2="304" y2="218" stroke="${P.ink2}" stroke-width="1.6"/>`;
+  // masa ayakları
+  s += `<g stroke="#7e5a2e" stroke-width="5" stroke-linecap="round"><line x1="70" y1="166" x2="70" y2="216"/><line x1="250" y1="106" x2="250" y2="216"/></g>`;
+  // eğik masa tablası: (40,170) → (280,90)
+  s += `<polygon points="40,170 280,90 283,98 43,178" fill="url(#${u}wood)" stroke="#8a6a3c" stroke-width="1.4" stroke-linejoin="round"/>`;
+  // kalem kutusu (tablaya oturan dikdörtgen)
+  const L = Math.hypot(240, 80), ux = 240 / L, uy = -80 / L, nx = -80 / L * 1, ny = -240 / L; // u: tabla boyunca yukarı, n: tablaya dik dışa
+  const px = 160, py = 130, h = 22, w = 50;
+  const cx = px + nx * h / 2, cy = py + ny * h / 2;
+  const nokta = (a, b) => `${(cx + ux * a + nx * b).toFixed(1)},${(cy + uy * a + ny * b).toFixed(1)}`;
+  s += `<polygon points="${nokta(-w / 2, -h / 2)} ${nokta(w / 2, -h / 2)} ${nokta(w / 2, h / 2)} ${nokta(-w / 2, h / 2)}" fill="#7fb2d6" stroke="#2f5f80" stroke-width="1.6" stroke-linejoin="round"/>`;
+  // kuvvetler (kutunun ortasından)
+  const ok = (dx, dy, k) => arrow(cx, cy, cx + dx * k, cy + dy * k, { color: P.coral, w: 2.6, head: 9 });
+  s += ok(0, 1, 62) + ok(nx, ny, 60) + ok(ux, uy, 44);
+  s += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2.6" fill="${P.ink}"/>`;
+  s += T(cx + 10, cy + 60, '1', { size: 14, weight: 800, fill: P.coral });
+  s += T(cx + nx * 60 - 8, cy + ny * 60 + 4, '2', { size: 14, weight: 800, fill: P.coral, anchor: 'end' });
+  s += T(cx + ux * 44 + 6, cy + uy * 44 - 6, '3', { size: 14, weight: 800, fill: P.coral });
+  return svg(320, 236, s, u, 66);
+});
+
+// 11. soru: vinç kancasına 1. halatla bağlı K yükü, K'ye 2. halatla bağlı L yükü; yanında ϑ–t grafiği
+BFY_FIG_EKLE('AY11_11_vinc_genis', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="560" height="250" rx="12" fill="#f6f9f7"/>`;
+  // kanca bloğu
+  s += `<rect x="96" y="10" width="28" height="22" rx="4" fill="url(#${u}metal)" stroke="#5e666d" stroke-width="1.2"/>`;
+  s += `<path d="M110 32 L110 40 Q110 48 104 48" fill="none" stroke="#5e666d" stroke-width="3"/>`;
+  // 1. halat
+  s += `<line x1="110" y1="40" x2="110" y2="78" stroke="#24302c" stroke-width="2.2"/>`;
+  s += T(118, 64, '1. halat', { size: 12.5, weight: 700, fill: P.ink2 });
+  // K yükü (sandık)
+  s += `<rect x="70" y="78" width="80" height="50" rx="3" fill="url(#${u}box)" stroke="#7d5a2a" stroke-width="1.6"/>`;
+  s += `<path d="M70 103 L150 103 M110 78 L110 128" stroke="#9c7440" stroke-width="1"/>`;
+  s += T(158, 100, 'K', { size: 15, weight: 800 }) + T(158, 118, '200 kg', { size: 12.5, weight: 700 });
+  // 2. halat
+  s += `<line x1="110" y1="128" x2="110" y2="166" stroke="#24302c" stroke-width="2.2"/>`;
+  s += T(118, 152, '2. halat', { size: 12.5, weight: 700, fill: P.ink2 });
+  // L yükü (torba)
+  s += `<path d="M88 168 Q110 160 132 168 L138 214 Q110 222 82 214 Z" fill="url(#${u}sack)" stroke="#8a7346" stroke-width="1.6"/>`;
+  s += T(146, 188, 'L', { size: 15, weight: 800 }) + T(146, 206, '100 kg', { size: 12.5, weight: 700 });
+  // yukarı yön
+  s += arrow(40, 150, 40, 100, { color: P.ink2, w: 2, head: 8 }) + T(40, 168, '+', { size: 15, weight: 800, anchor: 'middle', fill: P.ink2 });
+  // grafik
+  const ox = 300, oy = 208, sx = t => ox + t * 20, sy = v => oy - v * 50;
+  s += `<rect class="bg" x="244" y="12" width="304" height="228" rx="10" fill="#ffffff" opacity=".7"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="40" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},32 ${ox - 4},42 ${ox + 4},42" fill="${P.ink}"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="518" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="526,${oy} 516,${oy - 4} 516,${oy + 4}" fill="${P.ink}"/>`;
+  s += T(ox - 8, 40, 'ϑ (m/s)', { size: 13, weight: 700, anchor: 'end' });
+  s += T(530, oy + 5, 't (s)', { size: 13, weight: 700 });
+  s += dashLine(ox, sy(2), sx(2), sy(2)) + dashLine(sx(2), sy(2), sx(2), oy) + dashLine(sx(8), sy(2), sx(8), oy);
+  s += `<polyline points="${sx(0)},${sy(0)} ${sx(2)},${sy(2)} ${sx(8)},${sy(2)} ${sx(10)},${sy(0)}" fill="none" stroke="${P.blue}" stroke-width="2.8" stroke-linejoin="round"/>`;
+  s += T(ox - 8, sy(2) + 4.5, '2', { size: 13, weight: 700, anchor: 'end' });
+  s += T(ox - 6, oy + 18, '0', { size: 13, weight: 700, anchor: 'end' });
+  s += T(sx(2), oy + 18, '2', { size: 13, weight: 700, anchor: 'middle' }) + T(sx(8), oy + 18, '8', { size: 13, weight: 700, anchor: 'middle' }) + T(sx(10), oy + 18, '10', { size: 13, weight: 700, anchor: 'middle' });
+  return svg(560, 250, s, u, 150);
+});
+
+// 15. soru: 37° eğimli kayalık şevde kayan kaya bloğu
+BFY_FIG_EKLE('AY11_11_sev', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="224" rx="12" fill="url(#${u}sky)"/>`;
+  s += `<polygon points="40,200 280,20 312,20 312,200" fill="url(#${u}soil)" stroke="#8c7356" stroke-width="1.6" stroke-linejoin="round"/>`;
+  s += `<path d="M150 150 L200 160 M210 100 L260 112 M250 60 L296 70 M120 186 L180 192" stroke="#a88d6b" stroke-width="1.2" fill="none"/>`;
+  s += `<line x1="8" y1="200" x2="312" y2="200" stroke="${P.ink2}" stroke-width="1.6"/>`;
+  // blok
+  const ux = 0.8, uy = -0.6, nx = -0.6, ny = -0.8, px = 168, py = 104, w = 48, h = 30;
+  const cx = px + nx * h / 2, cy = py + ny * h / 2;
+  const q = (a, b) => `${(cx + ux * a + nx * b).toFixed(1)},${(cy + uy * a + ny * b).toFixed(1)}`;
+  s += `<polygon points="${q(-w / 2, -h / 2)} ${q(w / 2, -h / 2)} ${q(w / 2 - 4, h / 2)} ${q(-w / 2 + 6, h / 2 - 2)}" fill="url(#${u}stone)" stroke="#6f6656" stroke-width="1.6" stroke-linejoin="round"/>`;
+  // hareket yönü oku (eğim boyunca aşağı), bloğun üstünde
+  const ax = cx + nx * 34, ay = cy + ny * 34;
+  s += arrow(ax + ux * 22, ay + uy * 22, ax - ux * 22, ay - uy * 22, { color: P.coral, w: 2.4, head: 9 });
+  // açı
+  const R = 46;
+  s += `<path d="M${40 + R} 200 A${R} ${R} 0 0 0 ${(40 + R * 0.8).toFixed(1)} ${(200 - R * 0.6).toFixed(1)}" fill="none" stroke="${P.ink}" stroke-width="1.4"/>`;
+  s += T(92, 192, '37°', { size: 13, weight: 800 });
+  return svg(320, 224, s, u, 64);
+});
+
+// 19. soru: disk atıcının son turu (yukarıdan görünüm), disk P noktasında; 1–5 doğrultuları
+BFY_FIG_EKLE('AY11_11_disk', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="310" height="262" rx="12" fill="#f6f9f7"/>`;
+  const cx = 128, cy = 136, R = 84;
+  s += `<circle cx="${cx}" cy="${cy}" r="18" fill="#e6e1d6" stroke="#b9ad97" stroke-width="1.4"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${P.ink2}" stroke-width="1.4" stroke-dasharray="6 5"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="3" fill="${P.ink}"/>` + T(cx - 24, cy + 5, 'O', { size: 13, weight: 800, anchor: 'end' });
+  // dönme yönü (yukarıdan bakınca saatin tersi): sol alt yayda ok
+  const Rd = R + 14, a1 = 195, a2 = 245, n = 16;
+  let d = '';
+  for (let i = 0; i <= n; i++) { const a = (a1 + (a2 - a1) * i / n) * Math.PI / 180; d += (i ? 'L' : 'M') + (cx + Rd * Math.cos(a)).toFixed(1) + ' ' + (cy - Rd * Math.sin(a)).toFixed(1); }
+  s += `<path d="${d}" fill="none" stroke="${P.green}" stroke-width="2.4"/>`;
+  { const a = a2 * Math.PI / 180, ex = cx + Rd * Math.cos(a), ey = cy - Rd * Math.sin(a), tx = -Math.sin(a), ty = -Math.cos(a);
+    s += `<polygon points="${(ex + tx * 9).toFixed(1)},${(ey + ty * 9).toFixed(1)} ${(ex - ty * 5).toFixed(1)},${(ey + tx * 5).toFixed(1)} ${(ex + ty * 5).toFixed(1)},${(ey - tx * 5).toFixed(1)}" fill="${P.green}"/>`; }
+  s += T(98, 252, 'dönme yönü', { size: 12, weight: 700, fill: P.green });
+  // P noktasında disk
+  const Px = cx + R, Py = cy;
+  // doğrultular: 1 eğik (sağ üst), 2 dışa, 3 merkeze, 4 teğet (ters, aşağı), 5 teğet (dönme yönünde, yukarı)
+  const L = 54, c = '#2f5f80';
+  const ok = (dx, dy) => arrow(Px, Py, Px + dx * L, Py + dy * L, { color: c, w: 2.2, head: 8 });
+  const k = Math.SQRT1_2;
+  s += ok(k, -k) + ok(1, 0) + ok(0, -1) + ok(-1, 0) + ok(0, 1);
+  s += T(Px + k * L + 6, Py - k * L - 2, '1', { size: 14, weight: 800, fill: c });
+  s += T(Px + L + 8, Py + 5, '2', { size: 14, weight: 800, fill: c });
+  s += T(Px, Py - L - 8, '5', { size: 14, weight: 800, fill: c, anchor: 'middle' });
+  s += T(Px - L + 6, Py - 12, '3', { size: 14, weight: 800, fill: c, anchor: 'middle' });
+  s += T(Px, Py + L + 18, '4', { size: 14, weight: 800, fill: c, anchor: 'middle' });
+  s += `<circle cx="${Px}" cy="${Py}" r="8" fill="#c9cfd4" stroke="#4b5560" stroke-width="1.6"/><circle cx="${Px}" cy="${Py}" r="2.6" fill="#4b5560"/>`;
+  s += T(Px + 12, Py + 22, 'P', { size: 14, weight: 800 });
+  s += T(14, 22, 'Yukarıdan görünüm', { size: 12, weight: 700, fill: P.ink2 });
+  return svg(310, 262, s, u, 64);
+});
+
+// 20. soru: rüzgâr türbini (önden görünüm); kanat ucundaki işaretin K konumu ve yarım tur sonraki L konumu
+BFY_FIG_EKLE('AY11_11_turbin', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="300" height="270" rx="12" fill="url(#${u}sky)"/>`;
+  const cx = 150, cy = 118, R = 88;
+  // zemin ve kule (kanat ucunun en alt noktasının altında biter)
+  s += `<rect x="0" y="250" width="300" height="20" fill="url(#${u}grass)"/>`;
+  s += `<polygon points="145,${cy} 155,${cy} 160,250 140,250" fill="#eef1f3" stroke="#9aa5ad" stroke-width="1.4"/>`;
+  // kanat ucunun yörüngesi
+  s += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${P.ink2}" stroke-width="1.2" stroke-dasharray="5 5"/>`;
+  // kanatlar: 90°, 210°, 330° (uçları yörüngede)
+  const kanat = a => {
+    const t = a * Math.PI / 180, ux = Math.cos(t), uy = -Math.sin(t), nx = -uy, ny = ux;
+    const p = (r, w) => `${(cx + ux * r + nx * w).toFixed(1)},${(cy + uy * r + ny * w).toFixed(1)}`;
+    return `<polygon points="${p(10, -6)} ${p(30, -9)} ${p(R - 4, -3)} ${p(R, 0)} ${p(R - 4, 2)} ${p(10, 5)}" fill="#f7f9fa" stroke="#8d989f" stroke-width="1.3" stroke-linejoin="round"/>`;
+  };
+  s += kanat(90) + kanat(210) + kanat(330);
+  s += `<circle cx="${cx}" cy="${cy}" r="10" fill="#dfe4e7" stroke="#8d989f" stroke-width="1.4"/>`;
+  // K: üstteki kanadın ucundaki işaret; L: yarım tur sonraki konumu (kesikli)
+  s += `<circle cx="${cx}" cy="${cy - R}" r="5" fill="${P.coral}" stroke="#8a2f1c" stroke-width="1.2"/>`;
+  s += `<circle cx="${cx}" cy="${cy + R}" r="5" fill="none" stroke="${P.coral}" stroke-width="1.6" stroke-dasharray="3 2"/>`;
+  s += T(cx + 12, cy - R - 2, 'K', { size: 14, weight: 800 }) + T(cx + 14, cy + R + 6, 'L', { size: 14, weight: 800 });
+  // dönme yönü oku (sol üst yayda, saatin tersi)
+  const Rd = R + 16, a1 = 140, a2 = 185, n = 14;
+  let d = '';
+  for (let i = 0; i <= n; i++) { const a = (a1 + (a2 - a1) * i / n) * Math.PI / 180; d += (i ? 'L' : 'M') + (cx + Rd * Math.cos(a)).toFixed(1) + ' ' + (cy - Rd * Math.sin(a)).toFixed(1); }
+  s += `<path d="${d}" fill="none" stroke="${P.green}" stroke-width="2.4"/>`;
+  { const a = a2 * Math.PI / 180, ex = cx + Rd * Math.cos(a), ey = cy - Rd * Math.sin(a), tx = -Math.sin(a), ty = -Math.cos(a);
+    s += `<polygon points="${(ex + tx * 9).toFixed(1)},${(ey + ty * 9).toFixed(1)} ${(ex - ty * 5).toFixed(1)},${(ey + tx * 5).toFixed(1)} ${(ex + ty * 5).toFixed(1)},${(ey - tx * 5).toFixed(1)}" fill="${P.green}"/>`; }
+  s += T(288, 22, 'Önden görünüm', { size: 12, weight: 700, fill: P.ink2, anchor: 'end' });
+  return svg(300, 270, s, u, 62);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'AY11_11', tur: 'aylik', sinif: 11, ay: 11, yil: '2026-2027', ad: '11. Sınıf Kasım Denemesi', sure: 2400,
+  kapsam: 'Hafta 1–11: serbest düşme, iki boyutta sabit ivmeli hareket, Newton\'ın hareket yasaları ve serbest cisim diyagramı, statik ve kinetik sürtünme ile sürtünmenin matematiksel modeli, limit hız, düzgün çembersel harekette yörünge ve hız vektörü.',
+  aciklama: 'Saçaktan kopan buz sarkıtı, gayzer, biçerdöverin boşaltma borusu, kurtarma ekibinin halat atma tüfeği, kayakla atlama, uçakta bardaktaki su, vinçle kaldırılan iki yük, çorapla parkede kayma, itilen bir çamaşır makinesi, paraşütlü oyuncak tasarımı, limit süratle inen paraşütçü, disk atma ve rüzgâr türbini üzerinden Ünite 1\'in Kasım sonuna kadar işlenen bölümü.',
+  baglamlar: [
+    'saçaktan durgun hâlden kopan buz sarkıtı: t ve 2t anlarında sürat ve toplam yol (iki sütun)',
+    'İzlanda\'da bir gayzerden düşey yukarı püsküren su kütlesi, 20 m tepe yüksekliği, 3 s sonra 15 m (I-II-III)',
+    '"hareket dedektifi" ipucu kartı: düşey atılan top 1 s sonra 5 m/s, atılma hızı (olabilir)',
+    'duran biçerdöverin boşaltma borusundan yatay çıkan buğday taneleri: römork tabanına 5 m, 4 m, çıkış sürati ve çarpmadaki yatay bileşen',
+    'nehir kurtarma tatbikatında halat atma tüfeği: 50 m/s, 37°, tepe sürati, uçuş süresi, tepe yüksekliği (eşleştirme)',
+    'karlı tepe zirvesinden aynı anda fırlatılan iki kar topu aynı anda iniyor (kesinlikle)',
+    'kayakla atlama: O\'dan yatay 20 m/s, 37° eğimli iniş pisti, eğim boyunca 75 m',
+    'pistte doğuya giden uçakta katlanır masadaki bardak, su yüzeyi hareket yönü tarafında yükselmiş (tek seçim)',
+    'laboratuvar arabası deney tablosu: kütle–ivme ilişkisi için kontrol değişkenli deneme seçimi ve ivme oranı',
+    'eğik çizim masasında duran kalem kutusu: serbest cisim diyagramındaki üç kuvvetin etki–tepki eşleri',
+    'vinçle kaldırılan, halatla birbirine bağlı K (200 kg) ve L (100 kg) yükleri, ϑ–t grafiği, iki halat kuvveti',
+    'test pistinde boş (1500 kg, 10 s) ve yüklü (12 s) aracın 0 → 20 m/s hızlanması, yükün kütlesi',
+    'köy evinde 40 kg odun sandığı, 150 N itme, k_s = 0,5 ve k_k = 0,3, duran sandıkta sürtünme',
+    'çorapla parkede kayan çocuk: 4 m/s, 4 m, k_k = 0,2; 2 m/s ile 1 m (iki sütun)',
+    'yol yarmasında 37° eğimli kayalık şevde kayan kaya bloğu, k_k = 0,5, ivme 2 m/s²',
+    'taşınmada kayan çamaşır makinesini iten Kaan: terlik statik sürtünmesi yetmiyor, çanta ve mobilya kaydırma pedi (I-II-III)',
+    'oyuncak firmasında paraşütlü asker tasarımı: K 80 g, 16 dm², 3 m/s; L 60 g, 2 m/s için kanopi alanı 27 dm²',
+    'limit süratle inen paraşütçü (85 kg) ve kanopi (5 kg): kanopideki direnç, askı iplerinin kuvveti, açılıştan sonraki yavaşlamada ip kuvveti (kesinlikle)',
+    'disk atıcının son turunda P noktasında bırakılan diskin doğrultusu (yukarıdan görünüm)',
+    'rüzgâr türbini kanat ucundaki işaret (önden görünüm): yarım tur arayla sürat, hız ve ivme'
+  ],
+  sorular: [
+    {
+      id: 'AY11_11_1', konu: '11.1.1', cikti: 'FİZ.11.1.1', zorluk: 1, tur: 'cs', beceri: 'Serbest düşmede sürat ve yolun zamanla değişimini genelleme',
+      metin: r`Bir kış sabahı, bir binanın saçağından kopan buz sarkıtı durgun hâlden düşmeye başlıyor. Sarkıtın kopmasından $t$ süre sonraki sürati $\vartheta$, bu sürede aldığı yol $h$'dir. Sarkıt, kopmasından $2t$ süre sonra henüz yere ulaşmamıştır.
+
+Hava direnci önemsenmediğine göre sarkıtın kopmasından $2t$ süre sonraki sürati ve kopmasından o ana kadar aldığı toplam yol hangi seçenekte doğru verilmiştir?`,
+      secenekler: [r`Sürat: $2\vartheta$; yol: $2h$`, r`Sürat: $2\vartheta$; yol: $3h$`, r`Sürat: $2\vartheta$; yol: $4h$`, r`Sürat: $4\vartheta$; yol: $2h$`, r`Sürat: $4\vartheta$; yol: $4h$`],
+      dogru: 2,
+      cozum: [
+        r`Serbest düşmede sürat süreyle doğru orantılı artar: $\vartheta = g \times t$. Süre $2t$ olunca sürat $2\vartheta$ olur.`,
+        r`Alınan yol sürenin karesiyle orantılıdır: $h = \dfrac{1}{2} \times g \times t^2$. Süre 2 katına çıkınca toplam yol $2^2 = 4$ katına çıkar ve $4h$ olur.`,
+        r`{{S0}} yolun da sürat gibi süreyle doğru orantılı arttığını sanır. {{S1}} yalnız ikinci $t$ aralığında alınan yolu ($4h - h = 3h$) toplam yol sanır. {{S3}} iki bağıntıyı yer değiştirir: süratin sürenin karesiyle, yolun süreyle orantılı olduğunu düşünür. {{S4}} süratin de yol gibi sürenin karesiyle arttığını sanır.`
+      ]
+    },
+    {
+      id: 'AY11_11_2', konu: '11.1.1', cikti: 'FİZ.11.1.2', zorluk: 2, tur: 'cs', beceri: 'Yukarı fırlatılan cisimde simetri ve konum hesabı',
+      metin: r`İzlanda'daki bir gayzer, birkaç dakikada bir sıcak suyu düşey doğrultuda yukarı püskürtüyor. Melis, bir püskürmede gayzer ağzından çıkan bir su kütlesinin ağız düzeyinden en çok $20\ \text{m}$ yükseldiğini ölçüyor. Su kütlesini tek bir cisim gibi düşününüz; hava direnci önemsenmez.
+
+Buna göre,
+
+I. Su kütlesi gayzer ağzından $20\ \text{m/s}$ süratle çıkmıştır.
+II. Su kütlesinin en yüksek noktadaki ivmesi sıfırdır.
+III. Su kütlesi, ağızdan çıktıktan $3\ \text{s}$ sonra ağız düzeyinin $15\ \text{m}$ yukarısındadır.
+
+yargılarından hangileri doğrudur? ($g = 10\ \text{m/s}^2$)`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`En yüksek noktadan ağız düzeyine iniş, durgun hâlden $20\ \text{m}$ serbest düşüş gibidir: $20 = \dfrac{1}{2} \times 10 \times t^2$, $t = 2\ \text{s}$. Çıkış süresi de $2\ \text{s}$'dir; bu sürede sürat $g \times t = 20\ \text{m/s}$ azalarak sıfır olmuştur. Çıkış sürati $20\ \text{m/s}$'dir. I **doğru.**`,
+        r`II. Su kütlesine yalnız yer çekimi etki eder; ivmesi her an $g$'dir ve aşağı yönlüdür. En yüksek noktada sıfır olan hızdır, ivme değildir. **Yanlış.**`,
+        r`III. Yukarı yön pozitif: $y = \vartheta_0 \times t - \dfrac{1}{2} \times g \times t^2 = 20 \times 3 - 5 \times 9 = 15\ \text{m}$. Su kütlesi bu anda inmektedir. **Doğru.**`,
+        r`{{S0}} III'te inişteki konumu hesaplamaz ya da ağız düzeyine dönüşün $3\ \text{s}$'de olduğunu sanır. {{S1}} en yüksek noktada hız sıfır olduğu için ivmenin de sıfır olduğunu sanır; I ve III'ü hesaplamaz. {{S2}} I'i eler; oysa III'teki $15\ \text{m}$ sonucu ancak $20\ \text{m/s}$ çıkış süratiyle elde edilir. {{S3}} en yüksek noktada hızla birlikte ivmenin de sıfırlandığını sanır ve III'ü hesaplamaz.`
+      ]
+    },
+    {
+      id: 'AY11_11_3', konu: '11.1.1', cikti: 'FİZ.11.1.2', zorluk: 3, tur: 'cs', beceri: 'Hız vektörünün yönünü dikkate alarak olası durumları belirleme',
+      metin: r`Bilim şenliğindeki "hareket dedektifi" etkinliğinde Elif'in eline şu ipucu kartı veriliyor:
+
+"Bir top düşey doğrultuda atılmıştır. Atıldıktan $1\ \text{s}$ sonra sürati $5\ \text{m/s}$'dir. Top bu süre içinde yere çarpmamıştır. Topun yukarı mı aşağı mı atıldığı bilinmiyor."
+
+Hava direnci önemsenmediğine göre topun atılma hızı ile ilgili,
+
+I. $5\ \text{m/s}$, yukarı yönde
+II. $15\ \text{m/s}$, yukarı yönde
+III. $5\ \text{m/s}$, aşağı yönde
+
+ifadelerinden hangileri olabilir? ($g = 10\ \text{m/s}^2$)`,
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Yukarı yönü pozitif alalım. Top atıldıktan sonra yalnız yer çekimi etkisindedir: $\vartheta = \vartheta_0 - g \times t = \vartheta_0 - 10$. Süratin $5\ \text{m/s}$ olması için $1\ \text{s}$ sonraki hız ya $+5\ \text{m/s}$ ya da $-5\ \text{m/s}$ olmalıdır.`,
+        r`$\vartheta = +5\ \text{m/s}$ ise $\vartheta_0 = 15\ \text{m/s}$ (yukarı); top hâlâ yükselmektedir. II **olabilir.**`,
+        r`$\vartheta = -5\ \text{m/s}$ ise $\vartheta_0 = 5\ \text{m/s}$ (yukarı); top tepe noktasını geçmiş, inmektedir. I **olabilir.**`,
+        r`III. Top $5\ \text{m/s}$ ile aşağı atılsaydı $1\ \text{s}$ sonra hızı $-5 - 10 = -15\ \text{m/s}$ olurdu; sürati $15\ \text{m/s}$ olurdu. **Olamaz.**`,
+        r`{{S0}} yalnız tepe noktasını geçip inen top durumunu düşünür; $1\ \text{s}$ sonra hâlâ yükselen topu ($15\ \text{m/s}$ ile atılmış) gözden kaçırır. {{S2}} hâlâ yükselen topu gözden kaçırır ve aşağı atılan topun da yavaşlayacağını sanır; oysa aşağı atılan top hızlanır. {{S3}} tepe noktasını geçip inen topu gözden kaçırır ve hızın yönünü hesaba katmadan aşağı atılan topun yavaşladığını sanır. {{S4}} aşağı atılan topun hızlandığını görmez; III'te sürat $15\ \text{m/s}$'ye çıkar.`
+      ]
+    },
+    {
+      id: 'AY11_11_4', konu: '11.1.2', cikti: 'FİZ.11.1.3', zorluk: 1, tur: 'cs', beceri: 'Bileşenlerden hareket süresi ve yatay hızı bulma',
+      metin: r`Hasatta duran bir biçerdöver, deposundaki buğdayı yanında bekleyen römorka boşaltıyor. Buğday taneleri boşaltma borusunun ağzından yatay doğrultuda çıkıyor. Boru ağzı römorkun tabanından $5\ \text{m}$ yukarıdadır; taneler römorkun tabanına, boru ağzının tam altındaki noktadan yatayda $4\ \text{m}$ uzakta düşüyor.
+
+Tanelerin borudan çıkış sürati $\vartheta_0$, römorkun tabanına çarptıkları andaki hızlarının yatay bileşeni $\vartheta_x$ olduğuna göre bunlar kaç m/s'dir? (Hava direnci önemsenmez; $g = 10\ \text{m/s}^2$.)`,
+      sekil: 'AY11_11_bicerdover',
+      secenekler: [r`$\vartheta_0 = 4$; $\vartheta_x = 0$`, r`$\vartheta_0 = 4$; $\vartheta_x = 4$`, r`$\vartheta_0 = 4$; $\vartheta_x = 10$`, r`$\vartheta_0 = 4$; $\vartheta_x = 14$`, r`$\vartheta_0 = 8$; $\vartheta_x = 8$`],
+      dogru: 1,
+      cozum: [
+        r`Düşey doğrultuda taneler durgun hâlden düşer gibi hareket eder: $5 = \dfrac{1}{2} \times 10 \times t^2$, $t = 1\ \text{s}$.`,
+        r`Yatay doğrultuda hız sabittir: $\vartheta_0 = \dfrac{4}{1} = 4\ \text{m/s}$. Hızın yatay bileşeni düşüş boyunca değişmez: $\vartheta_x = 4\ \text{m/s}$.`,
+        r`{{S0}} yatay hızın düşerken sönümlendiğini sanır; hava direnci yokken yatay doğrultuda kuvvet ve ivme yoktur. {{S2}} çarpma anındaki düşey bileşeni ($10 \times 1 = 10\ \text{m/s}$) yatay bileşen sanır. {{S3}} yatay bileşenin düşerken düşey bileşen kadar arttığını sanır ($4 + 10$); oysa iki bileşen birbirinden bağımsızdır. {{S4}} yatay yer değiştirmeyi de $x = \dfrac{1}{2} \times \vartheta_0 \times t$ biçiminde yazar ($4 = \dfrac{1}{2} \times \vartheta_0 \times 1$); yatayda hız sabit olduğu için $x = \vartheta_0 \times t$'dir.`
+      ]
+    },
+    {
+      id: 'AY11_11_5', konu: '11.1.2', cikti: 'FİZ.11.1.3', zorluk: 2, tur: 'cs', beceri: 'Hız bileşenlerinden hareketin niceliklerini eşleştirme',
+      metin: r`Bir nehir kurtarma tatbikatında ekip, karşı kıyıya halat ulaştırmak için halat atma tüfeği kullanıyor. Tüfek, ucuna ince bir halat bağlı mermiyi yatayla $37°$ açı yapacak şekilde $50\ \text{m/s}$ süratle fırlatıyor. Mermi, fırlatıldığı düzeyle aynı yükseklikteki karşı kıyıya düşüyor.
+
+Merminin en yüksek noktadaki sürati (P), havada kalma süresi (R) ve fırlatıldığı düzeye göre çıkabildiği en büyük yükseklik (S) hangi seçenekte doğru verilmiştir? (Hava direnci ve halatın etkisi önemsenmez; $\sin 37° = 0,6$; $\cos 37° = 0,8$; $g = 10\ \text{m/s}^2$.)`,
+      secenekler: [r`P: $40\ \text{m/s}$; R: $6\ \text{s}$; S: $45\ \text{m}$`, r`P: $0\ \text{m/s}$; R: $6\ \text{s}$; S: $45\ \text{m}$`, r`P: $30\ \text{m/s}$; R: $8\ \text{s}$; S: $80\ \text{m}$`, r`P: $40\ \text{m/s}$; R: $3\ \text{s}$; S: $45\ \text{m}$`, r`P: $40\ \text{m/s}$; R: $6\ \text{s}$; S: $90\ \text{m}$`],
+      dogru: 0,
+      cozum: [
+        r`İlk hızın bileşenleri: $\vartheta_{0x} = 50 \times 0,8 = 40\ \text{m/s}$, $\vartheta_{0y} = 50 \times 0,6 = 30\ \text{m/s}$.`,
+        r`P: En yüksek noktada hızın düşey bileşeni sıfırdır, yatay bileşen değişmez. Sürat $40\ \text{m/s}$'dir.`,
+        r`R: Çıkış süresi $\dfrac{30}{10} = 3\ \text{s}$; aynı düzeye iniş de $3\ \text{s}$ sürer. Havada kalma süresi $6\ \text{s}$'dir.`,
+        r`S: $h = \dfrac{1}{2} \times g \times t_{\text{çıkış}}^2 = 5 \times 3^2 = 45\ \text{m}$.`,
+        r`{{S1}} en yüksek noktada merminin bir an durduğunu sanır; durduğu düşey bileşendir. {{S2}} sinüs ve kosinüsü karıştırır: $\vartheta_{0x} = 30$, $\vartheta_{0y} = 40\ \text{m/s}$ alır ve süreyi $8\ \text{s}$, yüksekliği $80\ \text{m}$ bulur. {{S3}} yalnız çıkış süresini havada kalma süresi sanır. {{S4}} yüksekliği $\vartheta_{0y} \times t = 30 \times 3$ ile bulur; hızın düzgün azaldığını hesaba katmaz.`
+      ]
+    },
+    {
+      id: 'AY11_11_6', konu: '11.1.2', cikti: 'FİZ.11.1.3', zorluk: 2, tur: 'cs', beceri: 'Bileşenlerin bağımsızlığından kesin çıkarım yapma',
+      metin: r`Karlı bir tepenin düz zirvesinde yan yana duran Ece ve Mert, ellerindeki kar toplarını aynı yükseklikten ve aynı anda, farklı doğrultularda fırlatıyor. İki top da tepenin eteğindeki yatay düzlüğe aynı anda düşüyor.
+
+Hava direnci önemsenmediğine göre,
+
+I. Topların ilk hızlarının düşey bileşenleri eşittir.
+II. Topların fırlatılma süratleri eşittir.
+III. Topların düzlüğe çarptıkları andaki hızlarının düşey bileşenleri eşittir.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Düşey doğrultudaki hareket yatay bileşenden bağımsızdır: yukarı yön pozitif olmak üzere $y = \vartheta_{0y} \times t - \dfrac{1}{2} \times g \times t^2$. İki top aynı yükseklikten aynı anda çıkıp aynı düzlüğe aynı anda indiğine göre aynı sürede aynı düşey yer değiştirmeyi yapmıştır.`,
+        r`I. Düşey yer değiştirme ve süre aynıysa $\vartheta_{0y}$ de aynı olmak zorundadır. **Kesinlikle doğru.**`,
+        r`II. İnme süresi yatay bileşene bağlı değildir. Yatay bileşenleri farklı olan iki top aynı anda inebilir; o zaman süratleri farklıdır. **Kesin değil.**`,
+        r`III. $\vartheta_y = \vartheta_{0y} - g \times t$; $\vartheta_{0y}$ ve $t$ aynı olduğu için düşey bileşenler eşittir. **Kesinlikle doğru.**`,
+        r`{{S0}} çarpma anındaki düşey bileşenin de ilk düşey bileşen ve süreyle belirlendiğini görmez. {{S1}} çarpma anındaki eşitliği görür ama aynı sürede aynı düşüşün ancak aynı ilk düşey bileşenle olabileceğini görmez. {{S3}} aynı anda inmenin aynı süratle fırlatmayı gerektirdiğini sanır ve I'i atlar. {{S4}} inme süresinin yatay bileşenden bağımsız olduğunu görmez ve süratlerin de eşit olmak zorunda olduğunu sanır.`
+      ]
+    },
+    {
+      id: 'AY11_11_7', konu: '11.1.2', cikti: 'FİZ.11.1.3', zorluk: 3, tur: 'cs', beceri: 'Bileşenleri eğim koşuluyla birleştirerek konum bulma',
+      metin: r`Kayakla atlama yapan Kerem, şekildeki atlama tepesinde O noktasından yatay doğrultuda $20\ \text{m/s}$ süratle ayrılıyor ve yatayla $37°$ açı yapan iniş pistine P noktasında iniyor. Pist O noktasından başlamaktadır.
+
+Kerem'i noktasal bir cisim gibi düşünüp hava direncini önemsemezsek O ile P arasındaki uzaklık kaç metredir? ($\sin 37° = 0,6$; $\cos 37° = 0,8$; $g = 10\ \text{m/s}^2$; şekil ölçekli değildir.)`,
+      sekil: 'AY11_11_kayak',
+      secenekler: [r`$45$`, r`$60$`, r`$75$`, r`$100$`, r`$105$`],
+      dogru: 2,
+      cozum: [
+        r`O'dan $t$ süre sonra yatay yer değiştirme $x = 20 \times t$, düşey düşüş $y = \dfrac{1}{2} \times 10 \times t^2 = 5t^2$'dir.`,
+        r`P pist üzerinde olduğundan $\dfrac{y}{x} = \tan 37° = \dfrac{0,6}{0,8} = \dfrac{3}{4}$ olmalıdır: $\dfrac{5t^2}{20t} = \dfrac{3}{4}$, $t = 3\ \text{s}$.`,
+        r`$x = 20 \times 3 = 60\ \text{m}$, $y = 5 \times 9 = 45\ \text{m}$. Eğim boyunca uzaklık $OP = \dfrac{x}{\cos 37°} = \dfrac{60}{0,8} = 75\ \text{m}$ (ya da $\sqrt{60^2 + 45^2} = 75\ \text{m}$).`,
+        r`{{S0}} düşey düşüşü ($45\ \text{m}$) eğim boyunca uzaklık sanır. {{S1}} yatay yer değiştirmeyi ($60\ \text{m}$) eğim boyunca uzaklık sanır. {{S3}} eğim boyunca uzaklığı bulurken $\cos 37°$ yerine $\cos 53° = 0,6$ kullanır ($60 \div 0,6$). {{S4}} yatay ve düşey yer değiştirmeleri vektörel değil sayı olarak toplar ($60 + 45$).`
+      ]
+    },
+    {
+      id: 'AY11_11_8', konu: '11.1.3', cikti: 'FİZ.11.1.4', zorluk: 1, tur: 'cs', beceri: 'Eylemsizlik gözleminden ivmenin yönünü çıkarma',
+      metin: r`Bir uçak pistte doğuya doğru ilerlerken yolcu Nehir, katlanır masasındaki bardakta suyun şekildeki gibi durduğunu görüyor: su yüzeyi bardağın doğu tarafında yükselmiş ve bir süre bu biçimde bardağa göre hareketsiz kalmış.
+
+Buna göre bu sırada aşağıdakilerden hangisi doğrudur?`,
+      sekil: 'AY11_11_bardak',
+      secenekler: [r`Uçak doğuya giderken yavaşlamaktadır.`, r`Uçak doğuya giderken hızlanmaktadır.`, r`Uçak doğuya doğru sabit hızla ilerlemektedir.`, r`Bardaktaki suya etki eden kuvvetlerin bileşkesi doğu yönündedir.`, r`Su bardağa göre hareketsiz olduğundan suya etki eden kuvvetlerin bileşkesi sıfırdır.`],
+      dogru: 0,
+      cozum: [
+        r`Su, bardakla birlikte doğuya doğru giderken hızını korumaya eğilimlidir (eylemsizlik). Bardak yavaşladığında su, bardağa göre ileri yani doğu tarafına yığılır ve yüzey doğuda yükselir.`,
+        r`Su bardağa göre hareketsiz kaldığına göre bardakla aynı ivmeye sahiptir; bu ivme batı yönündedir. Uçak doğuya giderken ivmesi batıya doğru ise uçak yavaşlamaktadır.`,
+        r`{{S2}} sabit hızda su yüzeyinin yatay kalacağını görmez. {{S1}} suyun öne yığılmasını hızlanmayla karıştırır; hızlanan bardakta su geriye, batı tarafına yığılırdı. {{S3}} bileşke kuvvetin suyun yığıldığı yöne olduğunu sanır; bileşke kuvvet ivmeyle aynı yöndedir, yani batıya doğrudur. {{S4}} bardağa göre hareketsizliği yere göre hareketsizlik sanır; su bardakla birlikte yavaşladığı için ivmelidir ve bileşke kuvvet sıfır olamaz.`
+      ]
+    },
+    {
+      id: 'AY11_11_9', konu: '11.1.3', cikti: 'FİZ.11.1.4', zorluk: 2, tur: 'cs', beceri: 'Deney tasarımında kontrol değişkeni belirleme ve sonucu öngörme',
+      metin: r`Mina, bileşke kuvvet sabitken ivmenin kütleye nasıl bağlı olduğunu araştırmak istiyor. Laboratuvar arabasını ucuna kuvvetölçer bağlı bir iple yatay olarak çekerek tablodaki denemeleri planlıyor. Düz rayda sürtünme önemsenmeyecek kadar küçüktür; halı kaplı yolda ise önemli bir sürtünme vardır.
+
+{{tablo}}
+
+Mina hangi iki denemeyi karşılaştırmalıdır ve bu iki denemede ölçülmesi beklenen ivmelerin oranı (ilk denemenin ivmesi / ikinci denemenin ivmesi) kaçtır?`,
+      tablo: [['Deneme', 'Araba ve yükünün kütlesi', 'İpteki kuvvet', 'Arabanın yolu'], ['K', '1 kg', '4 N', 'Düz ray'], ['L', '2 kg', '4 N', 'Halı kaplı'], ['M', '2 kg', '8 N', 'Düz ray'], ['N', '4 kg', '8 N', 'Halı kaplı'], ['P', '4 kg', '4 N', 'Düz ray']],
+      secenekler: [r`K ile L; oran 2`, r`L ile M; oran 2`, r`K ile P; oran 1`, r`M ile N; oran 2`, r`K ile P; oran 4`],
+      dogru: 4,
+      cozum: [
+        r`Kütlenin etkisini görmek için kütle dışındaki her şey (bileşke kuvvet) aynı tutulmalıdır. İpteki kuvvet aynı ve yol sürtünmesiz olmalıdır ki bileşke kuvvet ipteki kuvvete eşit olsun. Bu koşulu yalnız K ($1\ \text{kg}$) ile P ($4\ \text{kg}$) sağlar: ikisinde de $4\ \text{N}$ ve düz ray.`,
+        r`$a = \dfrac{F_\text{net}}{m}$: $a_K = \dfrac{4}{1} = 4\ \text{m/s}^2$, $a_P = \dfrac{4}{4} = 1\ \text{m/s}^2$. Oran $\dfrac{a_K}{a_P} = 4$.`,
+        r`{{S0}} K ile L'de yolun da değiştiğini görmez; L'de sürtünme bileşke kuvveti küçültür. {{S2}} doğru denemeleri seçer ama ipteki kuvvet aynı olduğu için ivmelerin de aynı olacağını sanır. {{S3}} M ile N'de kütle ve kuvvetin birlikte iki katına çıkmasını kütle etkisi sanır; üstelik N halı kaplı yoldadır. {{S1}} kütleleri aynı olan L ile M'yi seçer; bu iki denemede kuvvet ve yol değişir, kütle değişmez.`
+      ]
+    },
+    {
+      id: 'AY11_11_10', konu: '11.1.3', cikti: 'FİZ.11.1.5', zorluk: 2, tur: 'cs', beceri: 'Serbest cisim diyagramındaki kuvvetlerin etki–tepki eşlerini bulma',
+      metin: r`Mimar Selin'in yatayla eğik duran çizim masasının üzerinde bir kalem kutusu kaymadan durmaktadır. Şekilde kalem kutusuna etki eden kuvvetler 1, 2 ve 3 ile gösterilmiştir.
+
+Aşağıda bazı kuvvetler verilmiştir:
+
+K: Kalem kutusunun Dünya'yı çektiği kuvvet
+L: Kalem kutusunun masa yüzeyine dik olarak bastırdığı kuvvet
+M: Kalem kutusunun masa yüzeyine, yüzey boyunca aşağı doğru uyguladığı sürtünme kuvveti
+N: Zeminin masanın ayaklarına uyguladığı kuvvet
+
+1, 2 ve 3 kuvvetlerinin etki–tepki eşleri hangi seçenekte doğru verilmiştir?`,
+      sekil: 'AY11_11_masa',
+      secenekler: [r`1 ile L; 2 ile K; 3 ile M`, r`1 ile K; 2 ile L; 3 ile N`, r`1 ile K; 2 ile L; 3 ile M`, r`1 ile N; 2 ile L; 3 ile M`, r`1 ile K; 2 ile M; 3 ile L`],
+      dogru: 2,
+      cozum: [
+        r`1 düşey aşağı yönlü ağırlıktır: Dünya'nın kutuyu çekmesi. Eşi, kutunun Dünya'yı aynı büyüklükte yukarı çekmesidir: K.`,
+        r`2 yüzeye dik olan tepki kuvvetidir: masanın kutuyu yüzeye dik itmesi. Eşi, kutunun masaya yüzeye dik bastırmasıdır: L.`,
+        r`3 yüzey boyunca yukarı yönlü statik sürtünme kuvvetidir: masanın kutuya uyguladığı sürtünme. Eşi, kutunun masaya yüzey boyunca aşağı doğru uyguladığı sürtünmedir: M. Etki–tepki eşleri hep farklı cisimlere etki eder ve aynı türden kuvvettir.`,
+        r`{{S0}} ağırlık ile tepki kuvvetini birbirinin eşi sanır; bu iki kuvvet aynı cisme (kutuya) etki eder ve türleri farklıdır. {{S1}} sürtünmenin eşini masa–zemin etkileşiminde arar; N kutuyla ilgili değildir. {{S3}} ağırlığın eşini zeminin masaya uyguladığı kuvvet sanır; ağırlığın eşi Dünya'ya etki eder. {{S4}} tepki kuvvetinin eşini sürtünme, sürtünmenin eşini dik bastırma sanır; eşler aynı türden kuvvettir.`
+      ]
+    },
+    {
+      id: 'AY11_11_11', konu: '11.1.3', cikti: 'FİZ.11.1.5', zorluk: 3, tur: 'cs', beceri: 'Grafikten ivme okuyup bağlı cisimlerde serbest cisim diyagramıyla hesap',
+      metin: r`Bir inşaatta vinç, kancasına 1. halatla bağlı K yükünü ve K'nin altına 2. halatla bağlı L yükünü düşey doğrultuda kaldırıyor. Yüklerin hız–zaman grafiği şekildeki gibidir (yukarı yön pozitif). Halatların kütleleri önemsenmez.
+
+{{sekil}}
+
+Buna göre $t = 1\ \text{s}$ anında 1. halatın K'ye uyguladığı kuvvet ve $t = 9\ \text{s}$ anında 2. halatın L'ye uyguladığı kuvvet kaç newtondur? ($g = 10\ \text{m/s}^2$; hava direnci önemsenmez.)`,
+      sekil: 'AY11_11_vinc_genis',
+      secenekler: [r`$2200$ ve $900$`, r`$3000$ ve $900$`, r`$3000$ ve $1000$`, r`$3300$ ve $900$`, r`$3300$ ve $1000$`],
+      dogru: 3,
+      cozum: [
+        r`Grafiğin eğimi ivmeyi verir: $0$–$2\ \text{s}$ arasında $a = \dfrac{2}{2} = 1\ \text{m/s}^2$ (yukarı), $8$–$10\ \text{s}$ arasında $a = \dfrac{0 - 2}{2} = -1\ \text{m/s}^2$ (aşağı yönlü ivme, yük yavaşlayarak yükselir).`,
+        r`$t = 1\ \text{s}$: 1. halat iki yükü birlikte taşır. K + L için serbest cisim diyagramı: $T_1 - (m_K + m_L) \times g = (m_K + m_L) \times a$, $T_1 = 300 \times (10 + 1) = 3300\ \text{N}$.`,
+        r`$t = 9\ \text{s}$: L için: $T_2 - m_L \times g = m_L \times a$, $T_2 = 100 \times (10 - 1) = 900\ \text{N}$. Yük yükselirken de ivme aşağı yönlü olduğu için halat ağırlıktan küçük kuvvet uygular.`,
+        r`{{S0}} 1. halatın yalnız K'yi taşıdığını sanır ($200 \times 11$). {{S1}} $t = 1\ \text{s}$'de ivmeyi hesaba katmaz ve 1. halatın kuvvetini toplam ağırlığa eşit alır. {{S2}} ivmeyi hiç hesaba katmaz; iki halat kuvvetini de ağırlıklara eşit alır. {{S4}} $t = 9\ \text{s}$'de yük hâlâ yükseldiği için ivmesiz olduğunu sanır ve $T_2$'yi L'nin ağırlığına eşit alır.`
+      ]
+    },
+    {
+      id: 'AY11_11_12', konu: '11.1.3', cikti: 'FİZ.11.1.4', zorluk: 2, tur: 'cs', beceri: 'Tablodan oran kurarak kütle bulma',
+      metin: r`Bir otomobil fabrikasının test pistinde Aslı, aynı aracı önce boş, sonra bagajına ve koltuklarına yük konmuş olarak düz ve yatay yolda durgun hâlden $20\ \text{m/s}$ hıza çıkarıyor. İki denemede de araca etki eden bileşke kuvvetin aynı ve sabit kaldığı kabul ediliyor.
+
+{{tablo}}
+
+Buna göre araca konan yükün kütlesi kaç kilogramdır?`,
+      tablo: [['Deneme', 'Aracın toplam kütlesi', '0 → 20 m/s süresi'], ['Boş', '1500 kg', '10 s'], ['Yüklü', '?', '12 s']],
+      secenekler: [r`$250$`, r`$300$`, r`$1250$`, r`$1800$`, r`$3000$`],
+      dogru: 1,
+      cozum: [
+        r`Boş araç: $a = \dfrac{20}{10} = 2\ \text{m/s}^2$; bileşke kuvvet $F = 1500 \times 2 = 3000\ \text{N}$.`,
+        r`Bileşke kuvvet aynıyken $m \times a$ sabittir; ivme hızlanma süresiyle ters orantılı olduğundan kütle süreyle doğru orantılıdır: $m_\text{yüklü} = 1500 \times \dfrac{12}{10} = 1800\ \text{kg}$.`,
+        r`Yükün kütlesi $1800 - 1500 = 300\ \text{kg}$'dır.`,
+        r`{{S0}} kütleyi süreyle ters orantılı alır ($1500 \times \dfrac{10}{12} = 1250\ \text{kg}$) ve farkı yük sanır. {{S2}} kütleyi süreyle ters orantılı alıp toplam kütleyi bulur. {{S3}} yüklü aracın toplam kütlesini yükün kütlesi sanır. {{S4}} bileşke kuvvetin newton cinsinden değerini kütle sanır.`
+      ]
+    },
+    {
+      id: 'AY11_11_13', konu: '11.1.4', cikti: 'FİZ.11.1.6', zorluk: 1, tur: 'cs', beceri: 'Statik sürtünmenin uygulanan kuvvete eşit olduğunu fark etme',
+      metin: r`Bir köy evinde Ömer, ahşap zeminde duran $40\ \text{kg}$ kütleli dolu odun sandığını yatay doğrultuda $150\ \text{N}$'luk kuvvetle itiyor ama sandık kımıldamıyor. Sandık ile zemin arasındaki statik sürtünme katsayısı $0,5$, kinetik sürtünme katsayısı $0,3$'tür.
+
+Ömer iterken sandığa etki eden sürtünme kuvvetinin büyüklüğü kaç newtondur? ($g = 10\ \text{m/s}^2$)`,
+      secenekler: [r`$0$`, r`$120$`, r`$150$`, r`$200$`, r`$400$`],
+      dogru: 2,
+      cozum: [
+        r`Statik sürtünmenin alabileceği en büyük değer $f_{s,\text{max}} = k_s \times N = 0,5 \times 400 = 200\ \text{N}$'dur. $150\ \text{N} < 200\ \text{N}$ olduğu için sandık kaymaz.`,
+        r`Sandık durduğuna göre yatayda bileşke kuvvet sıfırdır; statik sürtünme kuvveti itme kuvvetine eşittir: $f_s = 150\ \text{N}$.`,
+        r`{{S0}} duran cisme sürtünme kuvveti etki etmediğini sanır; oysa sürtünme olmasa sandık kayardı. {{S1}} sandık kaymadığı hâlde kinetik sürtünme bağıntısını kullanır ($0,3 \times 400$). {{S3}} statik sürtünmenin her zaman en büyük değerinde olduğunu sanır. {{S4}} sürtünme kuvvetini zeminin tepki kuvvetine ($400\ \text{N}$) eşit sanır.`
+      ]
+    },
+    {
+      id: 'AY11_11_14', konu: '11.1.4', cikti: 'FİZ.11.1.7', zorluk: 2, tur: 'cs', beceri: 'Kinematik veriden sürtünme katsayısı bulma ve modeli genelleme',
+      metin: r`$30\ \text{kg}$ kütleli Can, parke döşeli koridorda koşup çoraplarıyla kaymaya başlıyor. Kaymaya $4\ \text{m/s}$ süratle başlayan Can, düz bir çizgide $4\ \text{m}$ kayarak duruyor. Can kayarken yalnız sürtünme kuvvetinin onu yavaşlattığını kabul edelim.
+
+Çoraplar ile parke arasındaki kinetik sürtünme katsayısı ($k_k$) kaçtır ve Can aynı parkede kaymaya $2\ \text{m/s}$ süratle başlasaydı duruncaya kadar kaç metre kayardı? ($g = 10\ \text{m/s}^2$)`,
+      secenekler: [r`$k_k = 0,2$; $1\ \text{m}$`, r`$k_k = 0,2$; $2\ \text{m}$`, r`$k_k = 0,4$; $1\ \text{m}$`, r`$k_k = 0,4$; $2\ \text{m}$`, r`$k_k = 2$; $1\ \text{m}$`],
+      dogru: 0,
+      cozum: [
+        r`Sabit yavaşlama ile durma: $\vartheta_0^2 = 2 \times a \times x$, $16 = 2 \times a \times 4$, $a = 2\ \text{m/s}^2$.`,
+        r`Bileşke kuvvet kinetik sürtünmedir: $k_k \times m \times g = m \times a$, $k_k = \dfrac{a}{g} = \dfrac{2}{10} = 0,2$. Kütle sadeleşir; $30\ \text{kg}$ bilgisi sonucu etkilemez.`,
+        r`Yavaşlama aynı kaldığı için kayma yolu ilk süratin karesiyle orantılıdır: sürat yarıya inince yol $\dfrac{1}{4}$'üne iner, $4 \times \dfrac{1}{4} = 1\ \text{m}$.`,
+        r`{{S1}} kayma yolunun ilk süratle doğru orantılı olduğunu sanır. {{S2}} ivmeyi $\vartheta_0^2 = a \times x$ ile bulur (2 çarpanını unutur) ve $4\ \text{m/s}^2$ elde eder. {{S3}} hem 2 çarpanını unutur hem de yolu süratle doğru orantılı alır. {{S4}} sürtünme katsayısını ivmeye eşit sanır; ivmeyi $g$'ye bölmeyi unutur.`
+      ]
+    },
+    {
+      id: 'AY11_11_15', konu: '11.1.4', cikti: 'FİZ.11.1.7', zorluk: 2, tur: 'cs', beceri: 'Eğik düzlemde kuvvetleri bileşenlerine ayırıp ivme bulma',
+      metin: r`Bir dağ yolu yarmasında, yatayla $37°$ açı yapan kayalık şevden kopan bir kaya bloğu, şev yüzeyi boyunca kayarak aşağı iniyor. Blok ile şev yüzeyi arasındaki kinetik sürtünme katsayısı $0,5$'tir.
+
+Blok kayarken ivmesinin büyüklüğü kaç $\text{m/s}^2$'dir? ($\sin 37° = 0,6$; $\cos 37° = 0,8$; $g = 10\ \text{m/s}^2$; hava direnci önemsenmez.)`,
+      sekil: 'AY11_11_sev',
+      secenekler: [r`$2$`, r`$4$`, r`$5$`, r`$6$`, r`$8$`],
+      dogru: 0,
+      cozum: [
+        r`Ağırlığın eğim boyunca aşağı bileşeni $m \times g \times \sin 37° = 6m$, yüzeye dik bileşeni $m \times g \times \cos 37° = 8m$'dir (newton cinsinden). Yüzeye dik doğrultuda denge vardır: $N = 8m$.`,
+        r`Kinetik sürtünme eğim boyunca yukarı yönlüdür: $f_k = 0,5 \times 8m = 4m$.`,
+        r`Eğim boyunca: $m \times a = 6m - 4m$, $a = 2\ \text{m/s}^2$.`,
+        r`{{S1}} sürtünmenin tek başına bloğa kazandıracağı ivmeyi ($0,5 \times 10 \times 0,8 = 4$) bloğun ivmesi sanır. {{S2}} sinüs ve kosinüsü karıştırır: $10 \times (0,8 - 0,5 \times 0,6) = 5$. {{S3}} sürtünmeyi hesaba katmaz; yalnız $g \times \sin 37° = 6$ bulur. {{S4}} hem sürtünmeyi unutur hem de eğim boyunca bileşen yerine yüzeye dik bileşeni ($g \times \cos 37° = 8$) alır.`
+      ]
+    },
+    {
+      id: 'AY11_11_16', konu: '11.1.4', cikti: 'FİZ.11.1.7', zorluk: 3, tur: 'cs', beceri: 'Etki–tepki ile sürtünme modelini birleştirerek koşul değerlendirme',
+      metin: r`Taşınma gününde $60\ \text{kg}$ kütleli Kaan, $80\ \text{kg}$ kütleli çamaşır makinesini mutfak zemininde yatay doğrultuda iterek sabit hızla kaydırmak istiyor. Kardeşi makineyi kaydırmaya başlatıyor; ama Kaan kayan makineyi iterken ayakları kayıyor ve onu sabit hızla itemiyor. Makine ile zemin arasındaki kinetik sürtünme katsayısı $0,4$; Kaan'ın terlikleri ile zemin arasındaki statik sürtünme katsayısı $0,5$'tir.
+
+I. Kaan'ın sırtına $10\ \text{kg}$ kütleli bir çanta takması
+II. Kaan'ın makineye daha büyük bir kuvvet uygulaması
+III. Makinenin ayaklarının altına, zeminle kinetik sürtünme katsayısı $0,2$ olan mobilya kaydırma pedleri yerleştirilmesi
+
+Yukarıdaki değişikliklerden hangileri, tek başına yapıldığında Kaan'ın ayakları kaymadan makineyi sabit hızla itebilmesini sağlar? ($g = 10\ \text{m/s}^2$)`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 4,
+      cozum: [
+        r`Makineyi sabit hızla itmek için itme kuvveti kinetik sürtünmeye eşit olmalıdır: $F = 0,4 \times 800 = 320\ \text{N}$. Etki–tepki yasasına göre makine de Kaan'ı $320\ \text{N}$ ile geriye iter.`,
+        r`Kaan'ın kaymaması için zeminin terliklere uyguladığı statik sürtünme bu $320\ \text{N}$'u karşılamalıdır. Şu an en büyük değer $0,5 \times 600 = 300\ \text{N} < 320\ \text{N}$; bu yüzden ayakları kayar.`,
+        r`I. Çantayla zeminin Kaan'a uyguladığı tepki kuvveti $700\ \text{N}$ olur: $0,5 \times 700 = 350\ \text{N} \geq 320\ \text{N}$. **Sağlar.**`,
+        r`II. Daha büyük itme, makinenin Kaan'ı daha büyük kuvvetle geri itmesi demektir; ayaklara gereken sürtünme artar. Üstelik makine sabit hızla değil hızlanarak gider. **Sağlamaz.**`,
+        r`III. Pedlerle gereken itme $0,2 \times 800 = 160\ \text{N} \leq 300\ \text{N}$ olur. **Sağlar.**`,
+        r`{{S0}} makinenin daha kolay kaymasının Kaan'a gereken sürtünmeyi de azalttığını görmez. {{S1}} etki–tepki eşitliğini görmez; daha büyük itmenin sorunu çözeceğini sanır, oysa makinenin Kaan'a uyguladığı tepki de büyür. {{S2}} Kaan'ın ağırlığının artmasının terliklerdeki en büyük statik sürtünmeyi artırdığını görmez. {{S3}} daha büyük itmenin işe yarayacağını sanır ve III'ü atlar.`
+      ]
+    },
+    {
+      id: 'AY11_11_17', konu: '11.1.5', cikti: 'FİZ.11.1.8', zorluk: 2, tur: 'cs', beceri: 'Limit hız modelinde kütle ve süratin birlikte etkisinden tasarım değeri bulma',
+      metin: r`Bir oyuncak firmasında çalışan Ceren, paraşütlü oyuncak askerlerin yeni modelini tasarlıyor. Satıştaki K modelinin paraşütüyle birlikte kütlesi $80\ \text{g}$, tam açılan kanopisinin kesit alanı $16\ \text{dm}^2$'dir; K, yüksek bir balkondan bırakıldığında $3\ \text{m/s}$ limit süratle iniyor. Paraşütüyle birlikte kütlesi $60\ \text{g}$ olan yeni L modelinin, aynı kumaştan ve aynı biçimde bir paraşütle $2\ \text{m/s}$ limit süratle inmesi isteniyor. Hava direnci kuvveti $F_d = k \times A \times \vartheta^2$ modeline uyar ve $k$ iki paraşütte aynıdır.
+
+Buna göre L modelinin kanopisinin kesit alanı kaç $\text{dm}^2$ olmalıdır?`,
+      secenekler: [r`$12$`, r`$18$`, r`$24$`, r`$27$`, r`$36$`],
+      dogru: 3,
+      cozum: [
+        r`Limit süratte direnç kuvveti ağırlığa eşittir: $k \times A \times \vartheta^2 = m \times g$, buradan $A = \dfrac{m \times g}{k \times \vartheta^2}$. $k$ ve $g$ aynı olduğundan kesit alanı $\dfrac{m}{\vartheta^2}$ ile orantılıdır.`,
+        r`$\dfrac{A_L}{A_K} = \dfrac{m_L}{m_K} \times \left(\dfrac{\vartheta_K}{\vartheta_L}\right)^2 = \dfrac{60}{80} \times \left(\dfrac{3}{2}\right)^2 = \dfrac{3}{4} \times \dfrac{9}{4} = \dfrac{27}{16}$.`,
+        r`$A_L = 16 \times \dfrac{27}{16} = 27\ \text{dm}^2$.`,
+        r`{{S0}} süratin değişeceğini hesaba katmaz; alanı yalnız kütle oranıyla küçültür ($16 \times \dfrac{3}{4}$). {{S1}} limit süratin karesini almayı unutur ($16 \times \dfrac{3}{4} \times \dfrac{3}{2}$). {{S2}} hem kütlenin azaldığını hem de karenin gerektiğini gözden kaçırır ($16 \times \dfrac{3}{2}$). {{S4}} L'nin kütlesinin K'ninkinden küçük olduğunu hesaba katmaz ($16 \times \dfrac{9}{4}$).`
+      ]
+    },
+    {
+      id: 'AY11_11_18', konu: '11.1.5', cikti: 'FİZ.11.1.8', zorluk: 3, tur: 'cs', beceri: 'Limit süratteki kuvvet dengesini serbest cisim diyagramıyla yorumlama',
+      metin: r`Bir paraşütçü, paraşütü açık olarak düşey doğrultuda limit süratle iniyor. Paraşütçünün donanımıyla birlikte kütlesi $85\ \text{kg}$, kanopinin ve askı iplerinin toplam kütlesi $5\ \text{kg}$'dır. Hava direncinin yalnız kanopiye etki ettiğini, paraşütçünün gövdesine etki eden direncin önemsenmeyecek kadar küçük olduğunu kabul ediniz.
+
+Buna göre,
+
+I. Paraşütçü limit süratle inerken kanopiye etki eden hava direnci kuvveti $900\ \text{N}$'dur.
+II. Paraşütçü limit süratle inerken askı iplerinin paraşütçüye uyguladığı toplam kuvvet $850\ \text{N}$'dur.
+III. Paraşüt açıldıktan hemen sonra paraşütçü aşağı inerken yavaşladığı sırada, askı iplerinin paraşütçüye uyguladığı toplam kuvvet $850\ \text{N}$'dan küçüktür.
+
+yargılarından hangileri kesinlikle doğrudur? ($g = 10\ \text{m/s}^2$)`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Limit süratte paraşütçü ile paraşütün oluşturduğu sistemin ivmesi sıfırdır; bileşke kuvvet sıfırdır. Sisteme dışarıdan etki eden kuvvetler toplam ağırlık ($90 \times 10 = 900\ \text{N}$, aşağı) ile kanopiye etki eden hava direncidir (yukarı). Direnç $900\ \text{N}$'dur. **Kesinlikle doğru.**`,
+        r`II. Yalnız paraşütçünün serbest cisim diyagramında ağırlığı ($850\ \text{N}$, aşağı) ile askı iplerinin kuvveti (yukarı) vardır. İvme sıfır olduğundan ip kuvveti $850\ \text{N}$'dur. **Kesinlikle doğru.**`,
+        r`III. Aşağı inen paraşütçü yavaşlıyorsa ivmesi yukarı yönlüdür; bileşke kuvvet de yukarı yönlü olmalıdır. Bu yüzden ip kuvveti ağırlıktan büyüktür, $850\ \text{N}$'dan küçük olamaz. **Yanlış.**`,
+        r`{{S0}} paraşütçünün serbest cisim diyagramını ayrı çizmez; iplerin de toplam ağırlığı ($900\ \text{N}$) taşıdığını sanır. {{S1}} limit süratte direncin yalnız paraşütçünün ağırlığını dengelediğini sanır ve kanopinin ağırlığını unutur. {{S2}} yavaşlayan paraşütçünün ipleri daha az gerdiğini sanır ve limit süratteki dengeyi kullanmaz. {{S4}} aşağı inerken yavaşlayan cismin ivmesinin yukarı yönlü olduğunu görmez ve II'deki ip kuvvetini toplam ağırlıkla karıştırır.`
+      ]
+    },
+    {
+      id: 'AY11_11_19', konu: '11.1.6', cikti: 'FİZ.11.1.9', zorluk: 1, tur: 'cs', beceri: 'Bağ kopunca cismin teğet doğrultusunda gittiğini çıkarma',
+      metin: r`Disk atıcı Buse, son turunda diski O noktası çevresinde, şekildeki yörüngede sabit süratle döndürüyor ve disk P noktasındayken diski bırakıyor.
+
+Yukarıdan bakıldığında diskin bırakıldıktan hemen sonraki hareket doğrultusu şekilde numaralanan oklardan hangisidir?`,
+      sekil: 'AY11_11_disk',
+      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
+      dogru: 4,
+      cozum: [
+        r`Düzgün çembersel harekette hız vektörü cismin bulunduğu noktada yörüngeye teğettir ve yarıçap vektörüne diktir. Bırakılma anında diski merkeze doğru çeken etki ortadan kalkar; disk o andaki hızıyla, teğet doğrultusunda gider.`,
+        r`Dönme yukarıdan bakınca saatin tersi yöndedir; P noktasında dönme yönündeki teğet 5 numaralı oktur.`,
+        r`{{S0}} diskin hem teğet boyunca ilerleyip hem dışa kaçtığını sanır. {{S1}} diskin merkezden dışarı doğru fırlatıldığını sanır; dışa iten bir kuvvet yoktur. {{S2}} merkeze bakan yönü hız sanır; merkeze doğru olan ivmedir. {{S3}} teğet doğrultuyu seçer ama dönme yönünü ters alır.`
+      ]
+    },
+    {
+      id: 'AY11_11_20', konu: '11.1.6', cikti: 'FİZ.11.1.9', zorluk: 1, tur: 'cs', beceri: 'Düzgün çembersel harekette sürat, hız ve ivmeyi karşılaştırma',
+      metin: r`Bir rüzgâr santralindeki türbinin kanatları, sabit rüzgârda yatay bir mil çevresinde sabit süratle dönüyor. Kanatlardan birinin ucundaki kırmızı işaret, şekildeki K konumundan yarım tur sonra L konumuna geliyor.
+
+İşaretin K ve L konumlarındaki sürati, hızı ve ivmesi karşılaştırıldığında hangisi doğrudur?`,
+      sekil: 'AY11_11_turbin',
+      secenekler: [r`Sürat: aynı; hız: aynı; ivme: ikisinde de sıfır`, r`Sürat: aynı; hız: zıt yönlü; ivme: ikisinde de sıfır`, r`Sürat: aynı; hız: zıt yönlü; ivme: aynı`, r`Sürat: aynı; hız: birbirine dik; ivme: birbirine dik`, r`Sürat: aynı; hız: zıt yönlü; ivme: zıt yönlü`],
+      dogru: 4,
+      cozum: [
+        r`Sürat sabittir; iki konumda aynıdır.`,
+        r`Hız her an yörüngeye teğettir. K ve L çemberin karşılıklı noktalarıdır; bu noktalardaki teğetler paraleldir ve dönme yönü düşünülünce hızlar zıt yönlüdür.`,
+        r`Hızın yönü sürekli değiştiği için işaret ivmelidir ve ivme her an merkeze doğrudur. K'de merkeze bakan yön L'de merkeze bakan yönün tersidir; ivmeler zıt yönlüdür.`,
+        r`{{S0}} sabit süratin sabit hız demek olduğunu sanır. {{S1}} hızın yön değiştirdiğini görür ama süratin sabit olmasından ivmenin sıfır olduğunu çıkarır. {{S2}} ivmenin büyüklüğü değişmediği için ivmenin kendisinin de sabit olduğunu sanır. {{S3}} yarım turu çeyrek tur gibi düşünür.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY etkileşimli içerik türleri: eşleştir, sınıfla, sırala (soru ya da not içi mini oyun)
    ve kavram kartları. Oluşturucu (PDF), dijital uygulama ve QA araçları bu yardımcıları ortak kullanır.
    Veri biçimi için bkz. KILAVUZ9.md "Etkileşimli içerik türleri".
@@ -131541,9 +133427,18 @@ function icindekilerBlok(ks, notVar, soruVar) {
    şık sırası form koduna bağlı olarak karışır (sayısal, harf ve I-II-III seçenekleri motor kuralıyla sabit kalır). */
 const TYT_UCRETSIZ = UR.ucretsiz;
 const tytTestler = () => window.BFY_TYT_TEST || {};
-const tytTestListe = () => Object.keys(tytTestler()).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
-const tytTestAcik = id => TYT_UCRETSIZ.includes(id) || S.seviye > 0;
-const dnSecili = () => S.denemeler.filter(id => tytTestler()[id] && tytTestAcik(id)).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
+/* Aylık denemeler (Yapabilirim 9/10/11 oluşturucusu): window.BFY_TYT_TEST içinde tur: 'aylik', sinif: 9|10|11 (src/aylik/AY<S>_<ay>.js).
+   Aynı kitapçık düzeniyle basılır: seçili sınıfın denemeleri listelenir, yalnız o sınıfın lisansıyla basılır, kapak yok.
+   Şık sırası uygulamayla aynıdır (A kitapçığı: soru kimliğine bağlı karıştırma). Okul adı alanı boş kalabilir. */
+const AY_AD = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const aySira = t => (String(t.yil || '').slice(0, 4) || '0') + String(((+t.ay || 0) + 3) % 12).padStart(2, '0');
+const aylikMod = () => !window.BFYTYT;
+const dnMod = () => S.tur === 'deneme' && (S.sinif >= 20 || (aylikMod() && tytTestListe().length > 0));
+// Kitapçıktaki deneme etiketi: TYT'de kimlik (TD01), aylıkta "Kasım denemesi"
+const dnEt = t => (t.tur === 'aylik' ? (AY_AD[t.ay] || '') + ' denemesi' : t.id);
+const tytTestListe = () => { const T = tytTestler(); return aylikMod() ? Object.keys(T).filter(id => T[id].tur === 'aylik' && T[id].sinif === S.sinif).sort((a, b) => aySira(T[a]).localeCompare(aySira(T[b])) || a.localeCompare(b, 'tr', { numeric: true })) : Object.keys(T).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true })); };
+const tytTestAcik = id => (aylikMod() ? S.seviye > 0 : TYT_UCRETSIZ.includes(id) || S.seviye > 0);
+const dnSecili = () => { const L = tytTestListe(); return S.denemeler.filter(id => tytTestler()[id] && tytTestAcik(id) && L.includes(id)).sort((a, b) => L.indexOf(a) - L.indexOf(b)); };
 function dnFormlar() { return S.mod === 'ogretmen' && S.ab && S.seviye >= 2 ? ['A', 'B'] : ['A']; }
 function dnHazirla(t, harf) {
   const qs = t.sorular.map(q => ({ ...q, tur: 'cs' }));
@@ -131585,6 +133480,13 @@ function dnDagilim(ts) {
   return `<h3>Soruların ünitelere dağılımı</h3><div class="dk-dag">${sin.uniteler.map(u => `<div><span class="dd-ad">${u.no}. ${esc(u.ad)}</span><span class="dd-cb"><i style="width:${Math.round(100 * (say[u.no] || 0) / en)}%"></i></span><b>${say[u.no] || 0}</b></div>`).join('')}</div>`;
 }
 function dnBasBlok(t, harf, ab) {
+  if (t.tur === 'aylik') return `<div class="blk dn-bas dn-aylik">
+    <div class="db-ust"><span class="db-marka">YAPABİLİRİM ${t.sinif} · FİZİK</span><span class="db-kod">${esc((AY_AD[t.ay] || '').toLocaleUpperCase('tr-TR'))} ${esc(String(t.yil || ''))}${ab ? ` <b>${harf} KİTAPÇIĞI</b>` : ''}</span></div>
+    <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${t.sinif}. Sınıf Fizik – Türkiye Yüzyılı Maarif Modeli${t.kapsam ? ' – ' + esc(t.kapsam) : ''}</div></div>
+      <div class="db-sure"><b>${dnSure(t)}</b><span>dakika</span></div></div>
+    <table class="db-tab"><tr><th>Adı Soyadı</th><td class="db-genis">${S.mod === 'ogrenci' && S.ad.trim() ? esc(S.ad.trim()) : ''}</td><th>Sınıfı / No</th><td class="db-orta-h"></td><th>D</th><td class="db-k"></td><th>Y</th><td class="db-k"></td><th>Net</th><td class="db-k"></td></tr><tr><th>Okul</th><td class="db-genis" colspan="9">${esc(S.okul.trim())}</td></tr></table>
+    <div class="db-yon"><span>Bu testte <b>${t.sorular.length} soru</b> vardır. Her sorunun tek doğru cevabı vardır. Net = D − Y ÷ 4.</span><span class="db-saat">Başlama <i></i> Bitiş <i></i></span></div>
+  </div>`;
   return `<div class="blk dn-bas">
     <div class="db-ust"><span class="db-marka">${UR.ad.toLocaleUpperCase('tr-TR')}</span><span class="db-kod">${esc(t.id)}${ab ? ` <b>${harf} KİTAPÇIĞI</b>` : ''}</span></div>
     <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${dnTarama(t) ? 'Ünite taraması' : (UR.sinav === 'AYT' ? 'Alan Yeterlilik Testi – Fen Bilimleri: Fizik' : 'Temel Yeterlilik Testi – Fen Bilimleri: Fizik')}${S.mod === 'ogretmen' && S.okul.trim() ? ' – ' + esc(S.okul.trim()) : ''}</div></div>
@@ -131613,8 +133515,9 @@ function dnSoruHTML(q, no, tam) {
 }
 // Optik cevap şeridi: her soru için A–E yuvarlakları
 function dnOptikBlok(t, n) {
-  return `<div class="blk dn-son"><div class="ds-yazi">${esc(t.id)} bitti. Cevaplarınızı kontrol ediniz.</div>${S.dn.optik ? `<div class="ds-optik"><span class="ds-et">Cevaplarım</span><div class="ds-izg">${Array.from({ length: n }, (_, i) => `<div class="ds-s"><i>${i + 1}</i>${HARF.map(h => `<span>${h}</span>`).join('')}</div>`).join('')}</div></div>` : ''}</div>`;
+  return `<div class="blk dn-son"><div class="ds-yazi">${esc(t.tur === 'aylik' ? 'Deneme' : t.id)} bitti. Cevaplarınızı kontrol ediniz.</div>${S.dn.optik ? `<div class="ds-optik"><span class="ds-et">Cevaplarım</span><div class="ds-izg">${Array.from({ length: n }, (_, i) => `<div class="ds-s"><i>${i + 1}</i>${HARF.map(h => `<span>${h}</span>`).join('')}</div>`).join('')}</div></div>` : ''}</div>`;
 }
+const x0Aylik = L => L.length > 0 && L[0].t.tur === 'aylik';
 function dnAnahtarBloklari(ids, formlar) {
   const T = tytTestler(), B = [];
   B.push(`<div class="blk bolum"><span class="bn cz">ANAHTAR</span><h2>Cevap anahtarı</h2><span class="bc">${dnSayiYazi(ids)}${formlar.length > 1 ? ', A ve B kitapçığı' : ''}</span></div>`);
@@ -131626,7 +133529,7 @@ function dnAnahtarBloklari(ids, formlar) {
       if (Object.keys(gr).length > 1) B.push(`<div class="blk da-gr">${L.every(x => dnTarama(x.t)) ? 'Ünite taramaları' : L.every(x => !dnTarama(x.t)) ? 'Denemeler' : n + ' soruluk kitapçıklar'}</div>`);
       for (let i = 0; i < L.length; i += 12) {
         const p = L.slice(i, i + 12);
-        B.push(`<div class="blk dn-an">${formlar.length > 1 ? `<div class="da-f">${harf} kitapçığı</div>` : ''}<table class="da-tab"><thead><tr><th>Kod</th>${Array.from({ length: +n }, (_, j) => `<th>${j + 1}</th>`).join('')}</tr></thead><tbody>${p.map(x => `<tr><td class="da-id">${esc(x.t.id)}</td>${x.qs.map(q => `<td><b>${dogruHarf(q)}</b><small>${esc(String(q.konu || '').replace(/^[TYA]\./, ''))}</small></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+        B.push(`<div class="blk dn-an">${formlar.length > 1 ? `<div class="da-f">${harf} kitapçığı</div>` : ''}<table class="da-tab"><thead><tr><th>${x0Aylik(L) ? 'Deneme' : 'Kod'}</th>${Array.from({ length: +n }, (_, j) => `<th>${j + 1}</th>`).join('')}</tr></thead><tbody>${p.map(x => `<tr><td class="da-id">${esc(dnEt(x.t))}</td>${x.qs.map(q => `<td><b>${dogruHarf(q)}</b><small>${esc(String(q.konu || '').replace(/^[TYA]\./, ''))}</small></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
       }
     });
   });
@@ -131643,17 +133546,18 @@ function denemeOgeleri() {
   const T = tytTestler(), ids = dnSecili(), O = [];
   const kir = () => O.push({ tip: 'kir' }), tam = html => O.push({ tip: 'tam', html });
   if (!ids.length) {
+    if (aylikMod()) { tam(`<div class="blk dn-bos"><b>${tytTestListe().length ? (S.seviye > 0 ? 'Soldaki listeden bir aylık deneme seç.' : `Aylık denemeler ${sinifAd(S.sinif)} lisansıyla yazdırılır.`) : 'Aylık denemeler yakında burada.'}</b></div>`); return O; }
     tam(`<div class="blk dn-bos"><b>${tytTestListe().length ? 'Soldaki listeden en az bir deneme ya da tarama seç.' : 'Denemeler yakında burada.'}</b>${S.denemeler.some(id => T[id] && !tytTestAcik(id)) ? `<p>Seçtiğin deneme TYT lisansıyla yazdırılır. Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} açık.</p>` : ''}</div>`);
     return O;
   }
   const harfler = dnFormlar(), ab = harfler.length > 1;
   const formlar = harfler.map(h => ({ harf: h, testler: ids.map(id => ({ t: T[id], qs: dnHazirla(T[id], h) })) }));
-  const kapak = S.dn.kapak == null ? ids.length > 1 : S.dn.kapak;
+  const kapak = aylikMod() ? false : S.dn.kapak == null ? ids.length > 1 : S.dn.kapak;
   if (kapak) { O.push({ tip: 'tam', html: dnKapakBlok(ids), yedek: dnKapakBlok(ids, true) }); kir(); }
   formlar.forEach(({ harf, testler }) => testler.forEach(({ t, qs }) => {
     if (O.length && O[O.length - 1].tip !== 'kir') kir();
     tam(dnBasBlok(t, harf, ab));
-    const bas = `<div class="blk dn-surekli"><span>${esc(t.id)} – ${esc(t.ad)}${ab ? ` – ${harf} kitapçığı` : ''}</span><span>devam</span></div>`;
+    const bas = `<div class="blk dn-surekli"><span>${t.tur === 'aylik' ? '' : esc(t.id) + ' – '}${esc(t.ad)}${ab ? ` – ${harf} kitapçığı` : ''}</span><span>devam</span></div>`;
     qs.forEach((q, i) => {
       const genis = /_genis$/.test(q.sekil || '') || ['grafikSec', 'grafikler'].includes(q.sekil);
       O.push(genis ? { tip: 'tam', html: dnSoruHTML(q, i + 1, true), bas } : { tip: 'kol', html: dnSoruHTML(q, i + 1, false), bas });
@@ -131664,9 +133568,9 @@ function denemeOgeleri() {
   if (S.dn.cozum) {
     kir();
     tam(`<div class="blk bolum"><span class="bn cz">ÇÖZÜMLER</span><h2>Adım adım çözümler</h2><span class="bc">${ab ? 'A kitapçığı sırasıyla' : dnSayiYazi(ids)}</span></div>`);
-    formlar[0].testler.forEach(({ t, qs }) => { tam(`<div class="blk cz-konu"><b>${esc(t.id)}</b> ${esc(t.ad)}</div>`); qs.forEach((q, i) => tam(dnCozumBlok(q, i + 1))); });
+    formlar[0].testler.forEach(({ t, qs }) => { tam(`<div class="blk cz-konu">${t.tur === 'aylik' ? '' : `<b>${esc(t.id)}</b> `}${esc(t.ad)}</div>`); qs.forEach((q, i) => tam(dnCozumBlok(q, i + 1))); });
   }
-  if (S.seviye === 0) tam(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} yazdırılabilir. Bütün denemeler, ünite taramaları ve öğretmen modu (A-B kitapçık) için TYT lisansı al: ${CFG.site}</div>`);
+  if (S.seviye === 0 && !aylikMod()) tam(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} yazdırılabilir. Bütün denemeler, ünite taramaları ve öğretmen modu (A-B kitapçık) için TYT lisansı al: ${CFG.site}</div>`);
   return O;
 }
 const DN_GAP = 28, DN_KOL = (688 - DN_GAP) / 2;
@@ -131745,9 +133649,9 @@ function denemeCiz() {
 }
 function denemeYerlestir() {
   const ids = dnSecili(), sayfalar = denemeSayfala(denemeOgeleri()), n = sayfalar.length;
-  const ad = ids.length ? dnAralik(ids) : 'Deneme';
+  const ay = aylikMod(), ad = ay ? ids.map(id => tytTestler()[id].ad).join(', ') || 'Aylık deneme' : ids.length ? dnAralik(ids) : 'Deneme';
   $('#sayfalar').innerHTML = sayfalar.map((s, i) => `<section class="sheet"><div class="sheet-ic tema-${S.tema} ${S.mod} dn-kitap">${s}</div>
-    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : UR.ad}</span><span>${UR.sinav} Fizik – ${esc(ad)}${S.seviye >= 1 && dnFormlar().length > 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
+    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : ay ? 'Yapabilirim ' + S.sinif + ' – Ben Fizik Yapamıyorum' : UR.ad}</span><span>${ay ? '' : UR.sinav + ' Fizik – '}${esc(ad)}${S.seviye >= 1 && dnFormlar().length > 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
   $('#bilgi').textContent = `${n} sayfa – ${dnSayiYazi(ids) || 'seçim yok'}${dnFormlar().length > 1 ? ' – ' + formKodu() : ''}`;
   $('#formkod').textContent = formKodu();
   olcekle();
@@ -131807,7 +133711,7 @@ function sayfala(bloklar) {
 }
 function ciz() {
   sinifUygula();
-  if (S.sinif >= 20 && S.tur === 'deneme') { denemeCiz(); return; }
+  if (dnMod()) { denemeCiz(); return; }
   // Karşılıklı sayfaya sığmayan (sayfa çevirmeli) set kalmasın diye birkaç yerleşimi dene
   S._duzen = null;
   let sayfalar = sayfala(belgeBloklari());
@@ -131871,7 +133775,7 @@ function arayuz() {
   // Etkileşimli soru seçeneği yalnız seçili konularda bu türden soru varsa görünür.
   if ($('#etkTik')) { $('#etkTik').style.display = secKonular().some(k => k.sorular.some(ETK.etkMi)) ? '' : 'none'; $('#t_etk').checked = S.turler.etk !== false; }
   $('#ab').checked = S.ab;
-  if (window.BFYTYT) tytArayuz(); else listeArayuz();
+  if (window.BFYTYT) tytArayuz(); else { listeArayuz(); aylikArayuz(); }
 }
 // 9/10/11: uygulamadan gelen soru listesi varken konu, paket ve soru seçimi gizlenir; çözüm seçimi açık kalır.
 function listeArayuz() {
@@ -131879,6 +133783,35 @@ function listeArayuz() {
   if (lg) { lg.hidden = !lm; if (lm) $('#listeBilgi').textContent = `${S.liste.baslik}: ${S.liste.ids.length} soru. Sorular ve şıklar uygulamadaki sırasıyla basılır.`; }
   ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = lm; });
   const ab = $('#ab'); if (ab && ab.closest('label')) ab.closest('label').hidden = lm;
+}
+// 9/10/11: seçili sınıfın aylık denemesi varsa "Ne yazdıracaksın?" grubu görünür; deneme kipinde konu, paket, soru ve çözüm grupları gizlenir.
+function aylikArayuz() {
+  const L = tytTestListe(), var_ = L.length > 0;
+  if (!var_ && S.tur === 'deneme') S.tur = 'konu';
+  const dn = var_ && S.tur === 'deneme';
+  if (dn && S.liste) listeBirak();
+  const goster = (id, ok) => { const el = document.getElementById(id); if (el) el.hidden = !ok; };
+  goster('tytTurGrp', var_ && !S.liste);
+  document.querySelectorAll('#tytTurGrp [data-v="tur=deneme"]').forEach(b => { b.textContent = 'Aylık deneme'; });
+  document.querySelectorAll('#tytTurGrp [data-v="tur=konu"]').forEach(b => { b.textContent = 'Konu kâğıdı'; b.classList.toggle('on', S.tur !== 'deneme'); });
+  document.querySelectorAll('#tytTurGrp [data-v="tur=deneme"]').forEach(b => b.classList.toggle('on', S.tur === 'deneme'));
+  if (!dn) { goster('dnGrp', false); goster('dnAyarGrp', false); const hc = $('#hocaCozum'); if (hc) hc.hidden = false; if (!S.liste) ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => goster(id, true)); goster('cozumGrp', true); return; }
+  ['konuGrp', 'paketGrp', 'soruGrp', 'cozumGrp', 'listeGrp', 'hocaCozum'].forEach(id => goster(id, false));
+  goster('dnGrp', true); goster('dnAyarGrp', true);
+  if (S._aySinif !== S.sinif) { S._aySinif = S.sinif; S.denemeler = L.filter(tytTestAcik).slice(-1); }
+  const T = tytTestler();
+  const dg = $('#dnGrp h3'); if (dg) dg.textContent = 'Aylık denemeler';
+  $('#dnHizli').innerHTML = '';
+  $('#dnListe').innerHTML = `<div class="dn-et">${sinifAd(S.sinif)} (20 soru, 40 dk)</div><div class="dn-izg">${L.map(id => { const ac = tytTestAcik(id); return `<label class="dn-t ${ac ? '' : 'kilitli'}" title="${esc(T[id].ad)}"><input type="checkbox" value="${id}" ${S.denemeler.includes(id) ? 'checked' : ''} ${ac ? '' : 'disabled'}><span>${esc(AY_AD[T[id].ay] || id)}</span>${ac ? '' : '<small>🔒</small>'}</label>`; }).join('')}</div>`
+    + (S.seviye === 0 ? `<p class="ipucu">Aylık denemeler ${sinifAd(S.sinif)} lisansıyla yazdırılır.</p>` : '<p class="ipucu">Şık sırası uygulamadakiyle aynıdır. Öğrenci kâğıdı için cevap anahtarını kapat; öğretmen kopyası için çözümleri aç.</p>');
+  const kp = $('#dn_kapak'); if (kp && kp.closest('label')) kp.closest('label').style.display = 'none'; // aylık kitapçıkta kapak yok
+  if ($('#dn_optik')) $('#dn_optik').checked = S.dn.optik; if ($('#dn_anahtar')) $('#dn_anahtar').checked = S.anahtar !== false; if ($('#dn_cozum')) $('#dn_cozum').checked = !!S.dn.cozum;
+  const ip = document.querySelector('#dnAyarGrp .ipucu'); if (ip) ip.textContent = 'İki sütunlu sınav kâğıdı: okul, ad-soyad, süre ve net kutusu. Okul adını öğretmen seçeneklerinden yazabilir ya da boş bırakabilirsin.';
+}
+function aylikBaglan() {
+  const dl = $('#dnListe'); if (dl) dl.addEventListener('change', () => { S.denemeler = [...document.querySelectorAll('#dnListe input:checked')].map(i => i.value); yenile(); });
+  const tik = (id, f) => { const el = document.getElementById(id); if (el) el.addEventListener('change', () => { f(el.checked); yenile(); }); };
+  tik('dn_optik', v => { S.dn.optik = v; }); tik('dn_anahtar', v => { S.anahtar = v; }); tik('dn_cozum', v => { S.dn.cozum = v; });
 }
 function listeBirak() {
   if (!S.liste) return;
@@ -131976,7 +133909,7 @@ function baglan() {
   $('#konular').addEventListener('change', e => {
     if (S.sinif >= 20) { tytKonuDegisti(e.target); return; }
     S.konular = [...document.querySelectorAll('#konular input:checked')].map(i => i.value); if (!S.konular.length) { const k = ilkKonu(S.sinif); S.konular = [k ? k.id : '11.1.1']; } yenile(); });
-  if (window.BFYTYT) tytBaglan();
+  if (window.BFYTYT) tytBaglan(); else aylikBaglan();
   ['not', 'efsane', 'deney', 'sorular', 'skor'].forEach(p => { const el = $('#p_' + p); if (el) el.addEventListener('change', () => { S.parca[p] = el.checked; yenile(); }); });
   $('#t_cs').addEventListener('change', e => { S.turler.cs = e.target.checked; if (!S.turler.cs && !S.turler.acik) S.turler.acik = true; yenile(); });
   $('#t_acik').addEventListener('change', e => { S.turler.acik = e.target.checked; if (!S.turler.cs && !S.turler.acik) S.turler.cs = true; yenile(); });
@@ -132053,6 +133986,14 @@ function derinBaglanti9(hp) {
   const sn = +hp.get('sinif'), P = S.parca;
   const sinifaGec = no => { if (!sinifGorunur(no) || !ilkKonu(no)) return false; if (no !== S.sinif) sinifSec(no); sinifUygula(); return true; };
   const uniteAyarla = () => { const kk = katKonu(S.konular[0]); if (kk && kk.u) S.unite = kk.u.no; };
+  // Aylık deneme: #sinif=9&aylik=AY9_11[&cozum=1][&anahtar=0] (sınav kâğıdı; anahtar=0 cevap anahtarı olmadan; cozum=1 çözümlü)
+  if (hp.get('aylik')) {
+    const T = tytTestler(), id = hp.get('aylik').trim().toUpperCase(), t = T[id];
+    if (!t || t.tur !== 'aylik' || !sinifaGec(t.sinif)) return;
+    S.liste = null; S.tur = 'deneme'; S._aySinif = S.sinif; S.denemeler = [id];
+    S.dn.cozum = hp.get('cozum') === '1'; S.anahtar = hp.get('anahtar') !== '0'; S.ab = false;
+    return;
+  }
   if (hp.get('sorular')) {
     const H = soruHaritasi(), ids = [...new Set(hp.get('sorular').split(',').map(x => x.trim()).filter(id => H[id]))];
     if (!ids.length) return;
@@ -132097,8 +134038,8 @@ async function yazdir() {
   try { await document.fonts.ready; } catch (e) { }
   const ks = secKonular();
   const eski = document.title;
-  const dn = S.sinif >= 20 && S.tur === 'deneme';
-  const ad = S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
+  const dn = dnMod();
+  const ad = dn && aylikMod() ? 'Aylik_' + dnSecili().map(id => AY_AD[tytTestler()[id].ay] || id).join('_').replace(/ı/g, 'i').replace(/İ/g, 'I').replace(/ş/g, 's').replace(/Ş/g, 'S').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c') + (S.dn.cozum ? '_Cozumlu' : S.anahtar === false ? '' : '_Anahtarli') : S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
   document.title = `BFY_${S.sinif >= 20 ? UR.dosya : S.sinif}_${ad.replace(/\s+/g, '_').replace(/[:+]/g, '')}_${S.mod === 'ogretmen' ? 'Ogretmen' : 'Ogrenci'}_${formKodu()}`;
   window.print();
   setTimeout(() => { document.title = eski; }, 1500);
@@ -132113,7 +134054,7 @@ window.BFY_NOTGEN = { S, yenile,
 window.BFY_ORTAK = { cikmisEtiket, sinifAd, sinifAdB, baskaUrunMesaji, cozumluHazirla, vitrinListesi, tex, inline, md, tabloHTML, tabloBaslikli, esc, rng, shuffle, seceneklerKaristir, lisansCoz, lisansYukle, lisansEkle, lisansVar, sinifSeviye, lisansAdi, sinifGorunur, LIS, LISLER, SEV_AD, LISANS_HATA, store, CFG, XP, ZAD, HARF };
 async function basla() {
   if (!document.getElementById('siniflar')) return; // oluşturucu arayüzü yoksa (dijital sayfa) başlatma
-  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
+  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular|aylik)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
   const r = await lisansYukle();
   // Bu derlemede S.sinif (11) yoksa (TYT) katalogdaki ilk görünür sınıfa geç.
   if (!sinifGorunur(S.sinif)) { const g = window.BFY_KATALOG.find(x => sinifGorunur(x.no) && ilkKonu(x.no)); if (g) sinifSec(g.no); }

@@ -26,6 +26,7 @@ textarea{width:100%;min-height:74px;border:1.5px solid var(--line);border-radius
 .mesaj.ok{color:var(--ok)}.mesaj.hata{color:var(--hata)}
 .dip{margin-top:28px;color:var(--muted);font-size:13px;line-height:1.6}
 .dip a{color:var(--navy2)}
+.kart .yeni-say{flex:none;margin-left:auto;align-self:center;background:var(--acc);color:#fff;font-weight:700;font-size:13px;border-radius:999px;padding:5px 11px;white-space:nowrap}
 </style></head><body><div class="w">
 <div class="marka">Ben Fizik Yapamıyorum</div>
 <h1>Hoca Kiti</h1>
@@ -40,6 +41,7 @@ textarea{width:100%;min-height:74px;border:1.5px solid var(--line);border-radius
 </div>
 <div class="dip">Güncellemeler ücretsizdir: kitte yapılan her düzeltme ve ekleme, aynı linkle açtığınızda kendiliğinden görünür. Kitin içeriği internet bağlantısıyla açılır.<br>Lisans kişiye özeldir, paylaşılan lisanslar iptal edilir. Sorun yaşarsanız <a href="https://wa.me/905425549386">WhatsApp</a> ya da <a href="mailto:cerkeztimur@gmail.com">e-posta</a> ile yazın.<br><a href="/">benfizikyapamiyorum.com</a></div>
 </div>
+<script src="/hoca-kiti/yenilikler.js"></script>
 <script>
 (function(){
   var PUB=[{"kty":"EC","crv":"P-256","x":"_TaTTBflkNhET_aI5hsfW9UGRrxkG8CSUZ6NuZht-TQ","y":"qBWA-eJwvUagRLMiCF_HbuHx-L_uPfA1FRcHd0hwDUU"},{"kty":"EC","crv":"P-256","x":"vmG6TPdeE0BDMUH0-KXeZpGziz15ZXnV4HluaZ1R8a4","y":"nAUayVW3k26LUy5pjX9EcNgqKx0-jNVwF9F1qx6-H0g"}], IPTAL=[];
@@ -66,9 +68,11 @@ textarea{width:100%;min-height:74px;border:1.5px solid var(--line);border-radius
     }catch(e){return {hata:'Lisans doğrulandı ama kit açılamadı. İnternet bağlantınızı kontrol edip yeniden deneyin.'};}
     return {s:S,no:p[3],ad:p.slice(4).join('|').trim(),j:m[1]+'.'+m[2],a:m[3]};
   }
+  // "Yeni" rozeti: hocakiti/yenilikler.js satırlarından bu cihazda görülmemiş ve 60 günden yeni olanlar (kit menüsündeki şeritle aynı kural)
+  function yeniSay(s){try{var G=((JSON.parse(localStorage.getItem('bfy_hk_yeni')||'{}')||{})[s])||[];return (window.BFY_HK_YENI||[]).filter(function(x){return x&&x.id&&(x.siniflar||[]).map(String).indexOf(s)>=0&&G.indexOf(x.id)<0&&(Date.now()-new Date(x.tarih+'T00:00:00'))<60*864e5;}).length;}catch(e){return 0;}}
   function ciz(){
     var o=oku(),h='',ss=['9','10','11'].filter(function(s){return o[s]&&o[s].a&&IPTAL.indexOf(o[s].no)<0});
-    ss.forEach(function(s){h+='<a class="kart" href="/hoca-kiti/k'+s+'/"><div class="rozet">'+s+'</div><div><b>'+s+'. Sınıf Hoca Kiti</b><span>'+(o[s].ad?esc(o[s].ad)+' adına lisanslı. ':'')+'36 hafta, yazılılar ve PDF\'ler.</span></div></a>';});
+    ss.forEach(function(s){var n=yeniSay(s);h+='<a class="kart" href="/hoca-kiti/k'+s+'/"><div class="rozet">'+s+'</div><div><b>'+s+'. Sınıf Hoca Kiti</b><span>'+(o[s].ad?esc(o[s].ad)+' adına lisanslı. ':'')+'36 hafta, yazılılar, aylık denemeler ve PDF\'ler.</span></div>'+(n?'<span class="yeni-say">'+n+' yeni</span>':'')+'</a>';});
     $('kartlar').innerHTML=h;
     if(ss.length){$('alt').textContent='Kitlerinizden birini seçin.';$('girisBaslik').textContent='Başka bir sınıfın lisansını ekleyin';}
   }
