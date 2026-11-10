@@ -1274,6 +1274,16 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
 .sf-bag small{display:block;font-weight:600;font-size:13px;color:#4b6059;margin-top:1px}
 .sf-bag-ik{flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--green);color:#fffef4;font-size:18px}
 @media (max-width:420px){.sf-nok{gap:5px}.sf-nok button{width:30px;height:30px;font-size:12px;border-radius:9px}.sf-ayr{width:6px}}
+
+/* Timur Hoca soruyor kartı */
+.anket-kart .ak-p{margin:2px 0 10px;font-size:13.5px;line-height:1.5;color:var(--ui-muted,inherit)}
+.anket-kart .gp-istek{display:flex;flex-wrap:wrap;gap:6px}
+.anket-kart .gp-istek button{font:inherit;font-size:13.5px;padding:8px 12px;border-radius:999px;border:1.5px solid var(--ui-line);background:var(--ui-card);color:var(--ui-text);cursor:pointer}
+.anket-kart .gp-istek button[aria-checked="true"]{background:#244f40;border-color:#244f40;color:#fff}
+.anket-kart .ak-et{display:block;font-size:13.5px;font-weight:600;margin:12px 0 6px}
+.anket-kart textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px 12px;border:1.5px solid var(--ui-line);border-radius:10px;background:var(--ui-card);color:var(--ui-text);resize:vertical;min-height:72px}
+.anket-kart .gp-hata{color:#b3261e;font-size:13px;min-height:16px;margin-top:4px}
+.anket-kart .yk-alt{flex-wrap:nowrap}.anket-kart .yk-alt .btn{flex:1 1 0;width:auto;margin:0}.anket-kart .yk-alt .btn.cizgi{flex:0 0 auto}
 </style>
 </head>
 <body class="dj">
@@ -135114,6 +135124,41 @@ function yeniKart() {
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-rehber]')) { rehberAc(aktifLisans()); return; } const yk = e.target.closest('[data-yeni-kapat]'); if (!yk) return; K.ayar[yk.dataset.yeniKapat || 'yeni1'] = 1; if (yk.dataset.yeniKapat === 'yeni3') K.ayar.yeni1 = 1; kaydet(); const s = e.target.closest('.yeni-kart'); if (s) s.remove(); });
 
+// Timur Hoca'nın sorusu (10 Kasım 2026): "Soruları çözebiliyor musun?" Lisanslı Yapabilirim 9/10/11 öğrencisine ana ekranda bir kez çıkar.
+// Cevap mevcut geri bildirim sunucusuna konu "anket" ile gider. Cevaplayınca K.ayar.anket1 kapanır; "Sonra" 3 gün gizler.
+const ANKET_SEC = ['Rahat çözüyorum', 'Bazılarında takılıyorum', 'Çoğunu çözemiyorum'];
+function anketKart(sn) {
+  if (TYT || !GERI || sinifSeviye(sn) !== 1 || !LISLER[sn] || K.ayar.anket1 || (K.ayar.anket1Sonra || 0) > Date.now()) return '';
+  return `<section class="yeni-kart anket-kart" aria-label="Timur Hoca soruyor"><div class="yk-ust"><span class="yk-rozet">Soru</span><b>Timur Hoca soruyor: Soruları çözebiliyor musun?</b></div>
+<p class="ak-p">Cevabını ben okuyorum. Kitaba ekleyeceğim soruları, çözümleri ve videoları buna göre seçeceğim.</p>
+<div class="gp-istek ak-sec" role="radiogroup" aria-label="Soruları çözebiliyor musun?">${ANKET_SEC.map(t => `<button type="button" role="radio" aria-checked="false" data-gp-istek="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+<label class="ak-et" for="akMesaj">Nerede zorlanıyorsun? Bana yaz (isteğe bağlı).</label><textarea id="akMesaj" maxlength="1000" rows="3" placeholder="Örnek: Grafik sorularında hangi bilgiyi okuyacağımı bulamıyorum."></textarea>
+<div class="gp-hata" id="akHata" role="alert"></div>
+<div class="yk-alt"><button type="button" class="btn ana ince" data-anket-gonder>Gönder</button><button type="button" class="btn cizgi ince" data-anket-sonra>Sonra</button></div></section>`;
+}
+async function anketGonder(btn) {
+  const sn = secSinif(), L = LISLER[sn]; if (!L) return;
+  const kart = btn.closest('.anket-kart'), sec = kart.querySelector('[data-gp-istek][aria-checked="true"]'), istek = sec ? sec.dataset.gpIstek : '', mesaj = $('#akMesaj').value.trim();
+  if (!istek && mesaj.length < 3) { $('#akHata').textContent = 'Bir seçenek seç ya da kısaca yaz.'; return; }
+  const k = { jeton: L.jeton, tur: 'konu', konu: 'anket', yer: 'Soruları çözebiliyor musun?', istek, mesaj, urun: 'yap' + sn, surum: (window.BFY_SURUM || '') };
+  btn.disabled = true; btn.textContent = 'Gönderiliyor…';
+  const bitir = m => { K.ayar.anket1 = 1; kaydet(); kart.remove(); tost(m); };
+  try {
+    if (navigator.onLine === false) throw Object.assign(new Error('çevrimdışı'), { kalici: false });
+    await geriYolla(k); bitir('Gönderildi. Teşekkürler, okuyacağım.');
+  } catch (e) {
+    if (e.kalici) { $('#akHata').textContent = e.message; btn.disabled = false; btn.textContent = 'Gönder'; return; }
+    const kq = geriKuyruk(); kq.push(k); store.set(GERI_KUYRUK, JSON.stringify(kq.slice(-20)));
+    bitir('İnternet yok. Cevabın kaydedildi, bağlantı gelince gönderilecek.');
+  }
+}
+document.addEventListener('input', e => { if (e.target.id === 'akMesaj') { const h = $('#akHata'); if (h) h.textContent = ''; } });
+document.addEventListener('click', e => {
+  if (e.target.closest('.anket-kart [data-gp-istek]')) { const h = $('#akHata'); if (h) h.textContent = ''; }
+  const g = e.target.closest('[data-anket-gonder]'); if (g && !g.disabled) { anketGonder(g); return; }
+  if (e.target.closest('[data-anket-sonra]')) { K.ayar.anket1Sonra = Date.now() + 3 * 864e5; kaydet(); const s = e.target.closest('.anket-kart'); if (s) s.remove(); }
+});
+
 function anaEkran() {
   const sn = secSinif(), L = LISLER[sn];
   ust({ baslik: sn === U.sinif ? U.ad : 'Yapabilirim ' + sn, alt: 'Fizik yapamıyorum demeyi bırak.' }); navAktif('konular');
@@ -135122,6 +135167,7 @@ function anaEkran() {
     <div class="hero-istat"><div><b>${K.xp}</b><span>XP</span></div><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen()}</b><span>çözülen soru</span></div><div><b>${genelUnvan()}</b><span>unvan</span></div></div></section>`;
   if (son) { const sk = BANK[son.id]; h += `<a class="devam" href="#/soru/${son.id}/${son.idx}"><div><small>Kaldığın yerden devam et</small><b>${esc(sk.ad)}, ${son.idx + 1}. soru</b></div><span class="ok">→</span></a>`; }
   h += yeniKart();
+  h += anketKart(sn);
   h += kilitBant(`Ücretsiz sürüm: her konuda 4 soru açık. ${SA(sn)} lisansınla bütün sorular ve çözümler açılır.`, sn);
   if (TYT) h += tytAnaKart();
   if (GUNLUK && (gunlukKur(gunKod()), TT['G' + gunKod()])) h += gunlukKart();
