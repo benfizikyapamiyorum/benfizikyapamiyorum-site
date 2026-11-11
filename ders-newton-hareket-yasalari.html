@@ -126,6 +126,28 @@ body.ciz { -webkit-user-select: none; user-select: none; -webkit-touch-callout: 
 .arac .renk { width: 44px; padding: 0; } .arac .renk i { display: block; width: 22px; height: 22px; border-radius: 50%; margin: 0 auto; }
 .arac .ayr { width: 1.5px; align-self: stretch; background: var(--line); margin: 0 2px; flex: none; }
 .arac .yer2 { font-weight: 700; font-size: 14px; color: var(--muted); min-width: 44px; text-align: center; flex: none; }
+.bolum { position: relative; }
+img.yazi-baski { position: absolute; left: 0; top: 0; height: auto; display: none; pointer-events: none; z-index: 5; }
+.baski-ust { display: none; }
+.sure2 { display: none; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sure2 b { color: var(--ink); } .sure2 .asim { color: var(--bad); }
+body.sure .sure2 { display: inline-flex; }
+body.sure .ust small { display: none; }
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]) { color-scheme: light; --bg: #ffffff; --card: #ffffff; --ink: #1c2b26; --muted: #5d6e66; --line: #dbe3dd; --green: #244f40; --green-ink: #fffef4; --copper: #b5673a; --soft: #eef5f0; --warn: #fff4e6; --good: #1d6b43; --bad: #b3261e; }
+  html, body, html.fs, body.fs { background: #ffffff !important; overflow: visible !important; height: auto !important; }
+  .ust, nav.serit, .alt, .arac, .serit2, #kalemKat { display: none !important; }
+  .wrap, body.fs .wrap { position: static !important; transform: none !important; display: block !important; width: auto !important; height: auto !important; max-width: none !important; min-height: 0 !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; background: #ffffff !important; zoom: var(--bz, 0.9); }
+  section.bolum { display: block !important; break-after: page; width: var(--bwid, auto); min-height: var(--bh, 0); border-color: transparent !important; margin: 0 !important; overflow: hidden !important; }
+  body.fs section.bolum { height: var(--bh, auto); padding: 14px 18px !important; }
+  section.bolum.baski-yok { display: none !important; }
+  section.bolum > .ic { grid-template-columns: var(--bc, minmax(0, 1fr) minmax(0, 1.25fr)) !important; width: var(--p-w, auto) !important; transform: var(--p-tr, none) !important; --gmax: var(--p-gmax, 9999px) !important; }
+  section.bolum .bos { height: var(--p-bos, auto) !important; min-height: var(--p-bosmin, 360px) !important; }
+  img.yazi-baski { display: block; }
+  .baski-ust { display: block; position: absolute; right: 14px; top: 3px; font-size: 11px; font-weight: 700; color: #5d6e66; z-index: 6; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
 /* Sunum (tam ekran) modu: ders 16:9 sahnede, sığdırılır, kaydırma yok. Kontroller sahnenin dışındaki şeritte kalır. */
 html.fs, body.fs { background: #0b1210; overflow: hidden; height: 100%; }
 body.fs .wrap { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100vw, 177.78vh); height: min(56.25vw, 100vh); max-width: none; min-height: 0; margin: 0;
@@ -150,6 +172,7 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
   <div class="ust">
     <a class="marka" href="index.html">ben fizik yapamıyorum</a>
     <small>11. Sınıf | Kuvvet ve Hareket | Newton'ın Hareket Yasaları</small>
+    <span class="sure2" id="sure2">Toplam <b id="sTop">0:00</b><span>Bu bölüm <b id="sBol">0:00</b> / <i id="sHed" style="font-style:normal">0:00</i></span><span class="sonraki" id="sSon"></span></span>
   </div>
   <nav class="serit" id="serit" aria-label="Ders bölümleri"></nav>
 
@@ -460,6 +483,9 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
   <span class="ayr"></span>
   <button id="kCiz" class="cizd" aria-pressed="false" title="Açıkken parmak ve fare de yazar. Apple Pencil her zaman yazar.">✎ Parmakla yaz</button>
   <button id="tam">⛶ Tam ekran</button>
+  <span class="ayr"></span>
+  <button id="kKaydet" title="Bu modda yazdığın bölümleri yazılarınla birlikte PDF olarak kaydet">⤓ PDF</button>
+  <button id="sureAc" aria-pressed="false" aria-label="Çekim süresi" title="Çekim süresi: toplam süre, bu bölümün süresi ve sıradaki bölüm">⏱</button>
 </div>
 <script>
 (function () {
@@ -486,6 +512,7 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     var s2 = $("serit2"), c = s2.querySelector('[aria-current="true"]'); if (c) s2.scrollLeft = Math.max(0, c.offsetLeft - (s2.clientWidth - c.offsetWidth) / 2);
     window.scrollTo(0, 0);
     sigdir(); if (window.__kalemCiz) window.__kalemCiz();
+    if (window.__sureBolum) window.__sureBolum();
   }
   function seritTik(e) { var b = e.target.closest("button[data-i]"); if (b) git(+b.getAttribute("data-i")); }
   $("serit").addEventListener("click", seritTik); $("serit2").addEventListener("click", seritTik);
@@ -548,6 +575,22 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     function degisti() { if (!acik() && FS && ac) mod(false); else { lb(); sigdir(); } }
     document.addEventListener("fullscreenchange", degisti); document.addEventListener("webkitfullscreenchange", degisti);
     window.addEventListener("resize", function () { lb(); if (FS) sigdirSonra(); });
+  })();
+
+  /* ---------- çekim süresi: toplam, bu bölüm / hedef, sıradaki bölüm ---------- */
+  (function () {
+    var HEDEF = [90, 120, 120, 180, 180, 150, 150, 150, 60], bas = 0, bolBas = 0, sayac = null;
+    function ms(sn) { sn = Math.max(0, Math.floor(sn)); return Math.floor(sn / 60) + ":" + ("0" + sn % 60).slice(-2); }
+    function yaz() {
+      var simdi = Date.now(), b = (simdi - bolBas) / 1000, h = HEDEF[akt] || 120;
+      $("sTop").textContent = ms((simdi - bas) / 1000); $("sBol").textContent = ms(b); $("sBol").className = b > h ? "asim" : ""; $("sHed").textContent = ms(h);
+      $("sSon").textContent = akt < B.length - 1 ? "→ " + B[akt + 1].getAttribute("data-ad") : "son bölüm";
+    }
+    window.__sureBolum = function () { bolBas = Date.now(); if (document.body.classList.contains("sure")) yaz(); };
+    $("sureAc").addEventListener("click", function () {
+      var v = !document.body.classList.contains("sure"); document.body.classList.toggle("sure", v); this.setAttribute("aria-pressed", String(v));
+      clearInterval(sayac); if (v) { bas = bolBas = Date.now(); yaz(); sayac = setInterval(yaz, 1000); }
+    });
   })();
 
   /* ---------- kalem: Apple Pencil her zaman yazar; "Parmakla yaz" açıkken parmak ve fare de yazar ---------- */
@@ -645,6 +688,43 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     $("kSilgi").addEventListener("click", function () { silgi = !silgi; this.setAttribute("aria-pressed", String(silgi)); });
     $("kGeri").addEventListener("click", function () { liste().pop(); hepsi(); });
     $("kTemiz").addEventListener("click", function () { CIZ[anahtar()] = []; hepsi(); });
+    /* yazdıklarını kaydet: içinde bulunulan modda (normal ya da tam ekran) yazı olan her bölüm, yazısıyla birlikte bir PDF sayfası olur */
+    function cizG(g, c) {
+      g.globalCompositeOperation = c.sil ? "destination-out" : "source-over"; g.strokeStyle = c.r; g.fillStyle = c.r; g.lineWidth = c.w; g.lineCap = "round"; g.lineJoin = "round";
+      var p = c.p; if (p.length === 2) { g.beginPath(); g.arc(p[0], p[1], c.w / 2, 0, 7); g.fill(); return; }
+      g.beginPath(); g.moveTo(p[0], p[1]);
+      for (var i = 2; i < p.length - 2; i += 2) g.quadraticCurveTo(p[i], p[i + 1], (p[i] + p[i + 2]) / 2, (p[i + 1] + p[i + 3]) / 2);
+      g.lineTo(p[p.length - 2], p[p.length - 1]); g.stroke();
+    }
+    var OZ = ["--bwid", "--bh", "--bc", "--p-w", "--p-tr", "--p-bos", "--p-bosmin", "--p-gmax"];
+    function kaydet() {
+      var mod = FS ? "f" : "n", onceki = akt, yazili = [], dugme = $("kKaydet"), ilkW = 0;
+      B.forEach(function (b, i) { if (CIZ[i + mod] && CIZ[i + mod].length) yazili.push(i); });
+      [].forEach.call(document.querySelectorAll("img.yazi-baski, .baski-ust"), function (e) { e.parentNode.removeChild(e); });
+      B.forEach(function (b) { OZ.forEach(function (o) { b.style.removeProperty(o); }); b.classList.remove("baski-yok"); });
+      if (!yazili.length) { dugme.textContent = "Önce bir şey yaz"; setTimeout(function () { dugme.textContent = "⤓ PDF"; }, 1800); return; }
+      window.scrollTo(0, 0);
+      yazili.forEach(function (i) {
+        git(i);
+        var b = B[i], ic = b._ic, bos = b._bos, r = b.getBoundingClientRect(), c = document.createElement("canvas"), g = c.getContext("2d"), o = 2;
+        if (!ilkW) ilkW = r.width;
+        c.width = Math.round(r.width * o); c.height = Math.round(r.height * o);
+        g.setTransform(o, 0, 0, o, -(r.left + window.scrollX) * o, -(r.top + window.scrollY) * o);
+        CIZ[i + mod].forEach(function (z) { cizG(g, z); });
+        var im = new Image(); im.className = "yazi-baski"; im.alt = ""; im.style.width = r.width + "px"; im.src = c.toDataURL("image/png"); b.appendChild(im);
+        var et = document.createElement("div"); et.className = "baski-ust"; et.textContent = "Newton'ın Hareket Yasaları | benfizikyapamiyorum.com"; b.appendChild(et);
+        b.style.setProperty("--bwid", r.width + "px"); b.style.setProperty("--bh", Math.ceil(r.height) + "px"); b.style.setProperty("--bc", getComputedStyle(ic).gridTemplateColumns);
+        if (FS) {
+          b.style.setProperty("--p-w", ic.style.width || "auto"); b.style.setProperty("--p-tr", ic.style.transform || "none");
+          b.style.setProperty("--p-bos", bos.style.height || "auto"); b.style.setProperty("--p-bosmin", "0px"); b.style.setProperty("--p-gmax", ic.style.getPropertyValue("--gmax") || "9999px");
+        }
+      });
+      B.forEach(function (b, i) { b.classList.toggle("baski-yok", yazili.indexOf(i) < 0); });
+      git(onceki);
+      document.documentElement.style.setProperty("--bz", (1062 / ilkW).toFixed(4));
+      setTimeout(function () { window.print(); }, 200);
+    }
+    $("kKaydet").addEventListener("click", kaydet);
     $("kCiz").addEventListener("click", function () { cizAcik = !cizAcik; document.body.classList.toggle("ciz", cizAcik); this.setAttribute("aria-pressed", String(cizAcik)); });
     var bekle = false;
     window.addEventListener("scroll", function () { if (bekle) return; bekle = true; requestAnimationFrame(function () { bekle = false; hepsi(); }); }, { passive: true });
