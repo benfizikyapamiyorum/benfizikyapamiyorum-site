@@ -109,6 +109,19 @@ ol.adim li b.no { color: var(--copper); font-size: .72em; letter-spacing: .1em; 
 .acklm i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
 .ikili { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin: 10px 0; }
 .ikili svg { display: block; width: 100%; max-width: 520px; height: auto; margin: 4px auto 8px; }
+.bos { grid-column: 1 / -1; min-height: 360px; border: 1.5px dashed var(--line); border-radius: 14px; padding: 8px 12px; color: var(--muted); font-size: .72em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  background-color: #fdfefd; background-image: linear-gradient(#e6ece8 1px, transparent 1px), linear-gradient(90deg, #e6ece8 1px, transparent 1px); background-size: 28px 28px; }
+body { position: relative; }
+#kalemKat { position: absolute; left: 0; top: 0; z-index: 40; pointer-events: none; touch-action: none; background: transparent; border-radius: 0; }
+body.kalem #kalemKat { pointer-events: auto; cursor: crosshair; }
+body.kalem .wrap { padding-bottom: 96px; }
+.kbar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 50; display: none; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 16px);
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 8px 10px; box-shadow: 0 8px 28px rgba(0,0,0,.18); }
+body.kalem .kbar { display: flex; }
+.kbar button { font: inherit; font-size: 15px; font-weight: 700; min-height: 44px; min-width: 44px; padding: 6px 12px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
+.kbar button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
+.kbar .renk { width: 44px; padding: 0; } .kbar .renk i { display: block; width: 22px; height: 22px; border-radius: 50%; margin: 0 auto; }
+.kbar .ayr { width: 1.5px; align-self: stretch; background: var(--line); margin: 0 2px; }
 .son a { display: inline-block; background: var(--copper); color: #fff; font-weight: 800; text-decoration: none; padding: 12px 18px; border-radius: 12px; margin: 4px 8px 4px 0; }
 .son a.ikinci { background: var(--green); color: var(--green-ink); }
 svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
@@ -119,7 +132,7 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
   <div class="ust">
     <a class="marka" href="index.html">ben fizik yapamıyorum</a>
     <small>11. Sınıf | Kuvvet ve Hareket | Newton'ın Hareket Yasaları</small>
-    <button class="btn tam" id="tam" type="button">Tam ekran</button>
+    <span style="display:flex;gap:8px"><button class="btn tam" id="kalemAc" type="button">Kalem</button><button class="btn tam" id="tam" type="button">Tam ekran</button></span>
   </div>
   <nav class="serit" id="serit" aria-label="Ders bölümleri"></nav>
 
@@ -414,6 +427,22 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
   <div class="alt"><button class="btn" id="geri">← Geri</button><span class="yer" id="yer"></span><button class="btn ana" id="ileri">İleri →</button></div>
 </div>
 
+<canvas id="kalemKat" aria-hidden="true"></canvas>
+<div class="kbar" id="kbar" role="toolbar" aria-label="Kalem araçları">
+  <button class="renk" data-renk="#14202e" aria-label="Siyah kalem" aria-pressed="true"><i style="background:#14202e"></i></button>
+  <button class="renk" data-renk="#d92d20" aria-label="Kırmızı kalem" aria-pressed="false"><i style="background:#d92d20"></i></button>
+  <button class="renk" data-renk="#1d4ed8" aria-label="Mavi kalem" aria-pressed="false"><i style="background:#1d4ed8"></i></button>
+  <button class="renk" data-renk="#15803d" aria-label="Yeşil kalem" aria-pressed="false"><i style="background:#15803d"></i></button>
+  <span class="ayr"></span>
+  <button id="kKalin" aria-pressed="false">Kalın</button>
+  <button id="kSilgi" aria-pressed="false">Silgi</button>
+  <button id="kGeri">Geri al</button>
+  <button id="kTemiz">Sayfayı temizle</button>
+  <span class="ayr"></span>
+  <button id="kOnceki" aria-label="Önceki bölüm">←</button>
+  <button id="kSonraki" aria-label="Sonraki bölüm">→</button>
+  <button id="kKapat">Kalemi kapat</button>
+</div>
 <script>
 (function () {
   function $(id) { return document.getElementById(id); }
@@ -423,6 +452,7 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
 
   /* ---------- bölüm gezinme ---------- */
   var B = [].slice.call(document.querySelectorAll("section.bolum")), akt = 0;
+  B.forEach(function (b) { var d = document.createElement("div"); d.className = "bos"; d.textContent = "Çözüm alanı"; b.appendChild(d); });
   function git(i) {
     akt = Math.max(0, Math.min(B.length - 1, i));
     B.forEach(function (s, k) { s.classList.toggle("acik", k === akt); });
@@ -430,6 +460,7 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     $("yer").textContent = (akt + 1) + " / " + B.length;
     $("geri").disabled = akt === 0; $("ileri").disabled = akt === B.length - 1;
     window.scrollTo(0, 0);
+    if (window.__kalemCiz) window.__kalemCiz();
   }
   $("serit").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) git(+b.getAttribute("data-i")); });
   $("geri").addEventListener("click", function () { git(akt - 1); });
@@ -448,6 +479,60 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     function yaz() { b.textContent = acik() ? "Tam ekrandan çık" : "Tam ekran"; }
     b.addEventListener("click", function () { try { var r = acik() ? kapat.call(document) : ac.call(kok); if (r && r.catch) r.catch(function () {}); } catch (e) {} });
     document.addEventListener("fullscreenchange", yaz); document.addEventListener("webkitfullscreenchange", yaz);
+  })();
+
+  /* ---------- kalem: her bölümün çizimi ayrı tutulur ---------- */
+  (function () {
+    var kat = $("kalemKat"), kx = kat.getContext("2d"), dpr = 1, CIZ = {}, renk = "#14202e", kalin = false, silgi = false, suan = null, kalemGoruldu = false, kay = null;
+    function liste() { return CIZ[akt] || (CIZ[akt] = []); }
+    function boyut() {
+      var w = document.documentElement.scrollWidth, h = Math.max(document.body.scrollHeight, window.innerHeight);
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      if (kat.width !== Math.round(w * dpr) || kat.height !== Math.round(h * dpr)) { kat.width = Math.round(w * dpr); kat.height = Math.round(h * dpr); kat.style.width = w + "px"; kat.style.height = h + "px"; }
+      kx.setTransform(dpr, 0, 0, dpr, 0, 0); ciz();
+    }
+    function cizgi(c) {
+      kx.globalCompositeOperation = c.sil ? "destination-out" : "source-over";
+      kx.strokeStyle = c.r; kx.fillStyle = c.r; kx.lineWidth = c.w; kx.lineCap = "round"; kx.lineJoin = "round";
+      var p = c.p; if (p.length === 2) { kx.beginPath(); kx.arc(p[0], p[1], c.w / 2, 0, 7); kx.fill(); return; }
+      kx.beginPath(); kx.moveTo(p[0], p[1]);
+      for (var i = 2; i < p.length - 2; i += 2) kx.quadraticCurveTo(p[i], p[i + 1], (p[i] + p[i + 2]) / 2, (p[i + 1] + p[i + 3]) / 2);
+      kx.lineTo(p[p.length - 2], p[p.length - 1]); kx.stroke();
+    }
+    function ciz() { kx.save(); kx.setTransform(1, 0, 0, 1, 0, 0); kx.clearRect(0, 0, kat.width, kat.height); kx.restore(); liste().forEach(cizgi); kx.globalCompositeOperation = "source-over"; }
+    window.__kalemCiz = function () { setTimeout(boyut, 0); };
+    function ac(v) { document.body.classList.toggle("kalem", v); $("kalemAc").textContent = v ? "Kalemi kapat" : "Kalem"; if (v) boyut(); }
+    $("kalemAc").addEventListener("click", function () { ac(!document.body.classList.contains("kalem")); });
+    $("kKapat").addEventListener("click", function () { ac(false); });
+    $("kbar").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-renk]"); if (!b) return;
+      renk = b.getAttribute("data-renk"); silgi = false; $("kSilgi").setAttribute("aria-pressed", "false");
+      [].forEach.call(document.querySelectorAll("[data-renk]"), function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+    });
+    $("kKalin").addEventListener("click", function () { kalin = !kalin; this.setAttribute("aria-pressed", String(kalin)); });
+    $("kSilgi").addEventListener("click", function () { silgi = !silgi; this.setAttribute("aria-pressed", String(silgi)); });
+    $("kGeri").addEventListener("click", function () { liste().pop(); ciz(); });
+    $("kTemiz").addEventListener("click", function () { CIZ[akt] = []; ciz(); });
+    $("kOnceki").addEventListener("click", function () { git(akt - 1); });
+    $("kSonraki").addEventListener("click", function () { git(akt + 1); });
+    kat.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "pen") kalemGoruldu = true;
+      /* kalem kullanılıyorsa parmak sayfayı kaydırır, çizmez */
+      if (e.pointerType === "touch" && kalemGoruldu) { kay = { id: e.pointerId, y: e.clientY }; return; }
+      try { kat.setPointerCapture(e.pointerId); } catch (x) {}
+      suan = { r: renk, w: silgi ? 34 : kalin ? 7 : 3.5, sil: silgi, p: [e.pageX, e.pageY], id: e.pointerId }; liste().push(suan); cizgi(suan); e.preventDefault();
+    });
+    kat.addEventListener("pointermove", function (e) {
+      if (kay && e.pointerId === kay.id) { window.scrollBy(0, kay.y - e.clientY); kay.y = e.clientY; return; }
+      if (!suan || e.pointerId !== suan.id) return;
+      var es = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; if (!es.length) es = [e];
+      es.forEach(function (q) { suan.p.push(q.pageX, q.pageY); });
+      ciz(); e.preventDefault();
+    });
+    function bitir(e) { if (kay && e.pointerId === kay.id) kay = null; if (suan && e.pointerId === suan.id) suan = null; }
+    kat.addEventListener("pointerup", bitir); kat.addEventListener("pointercancel", bitir);
+    window.addEventListener("resize", boyut);
+    if (window.ResizeObserver) new ResizeObserver(function () { if (document.body.classList.contains("kalem")) boyut(); }).observe(document.querySelector(".wrap"));
   })();
 
   /* ---------- aç-göster ve sorular ---------- */
