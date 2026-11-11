@@ -48,9 +48,10 @@ nav.serit { display: flex; flex-wrap: wrap; gap: 6px; }
 nav.serit button { font: inherit; font-size: .74em; font-weight: 700; padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
 nav.serit button[aria-current="true"] { background: var(--green); border-color: var(--green); color: var(--green-ink); }
 section.bolum { display: none; background: var(--card); border: 1.5px solid var(--line); border-radius: 20px; padding: clamp(16px, 2vw, 30px); flex: 1; }
-section.bolum.acik { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(16px, 2vw, 32px); align-items: start; }
-section.bolum.tek.acik { grid-template-columns: 1fr; }
-@media (max-width: 900px) { section.bolum.acik { grid-template-columns: 1fr; } }
+section.bolum.acik { display: block; }
+section.bolum > .ic { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(16px, 2vw, 32px); align-items: start; transform-origin: 0 0; }
+section.bolum.tek > .ic { grid-template-columns: 1fr; }
+@media (max-width: 900px) { body:not(.fs) section.bolum > .ic { grid-template-columns: 1fr; } }
 .ck { display: inline-block; background: var(--soft); color: var(--green); border: 1px solid var(--line); border-radius: 6px; padding: 0 7px; letter-spacing: .02em; margin-left: 6px; }
 .etk { font-size: .68em; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--copper); }
 h1 { font-family: var(--display); font-weight: 600; font-size: 1.9em; line-height: 1.12; margin: 4px 0 10px; text-wrap: balance; }
@@ -111,17 +112,34 @@ ol.adim li b.no { color: var(--copper); font-size: .72em; letter-spacing: .1em; 
 .ikili svg { display: block; width: 100%; max-width: 520px; height: auto; margin: 4px auto 8px; }
 .bos { grid-column: 1 / -1; min-height: 360px; border: 1.5px dashed var(--line); border-radius: 14px; padding: 8px 12px; color: var(--muted); font-size: .72em; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
   background-color: #fdfefd; background-image: linear-gradient(#e6ece8 1px, transparent 1px), linear-gradient(90deg, #e6ece8 1px, transparent 1px); background-size: 28px 28px; }
-body { position: relative; }
-#kalemKat { position: absolute; left: 0; top: 0; z-index: 40; pointer-events: none; touch-action: none; background: transparent; border-radius: 0; }
-body.kalem #kalemKat { pointer-events: auto; cursor: crosshair; }
-body.kalem .wrap { padding-bottom: 96px; }
-.kbar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 50; display: none; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: calc(100vw - 16px);
-  background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 8px 10px; box-shadow: 0 8px 28px rgba(0,0,0,.18); }
-body.kalem .kbar { display: flex; }
-.kbar button { font: inherit; font-size: 15px; font-weight: 700; min-height: 44px; min-width: 44px; padding: 6px 12px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
-.kbar button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
-.kbar .renk { width: 44px; padding: 0; } .kbar .renk i { display: block; width: 22px; height: 22px; border-radius: 50%; margin: 0 auto; }
-.kbar .ayr { width: 1.5px; align-self: stretch; background: var(--line); margin: 0 2px; }
+/* Kalem ve tam ekran: tüm kontroller tek araç çubuğunda */
+#kalemKat { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; z-index: 40; pointer-events: none; touch-action: none; background: transparent; border-radius: 0; }
+body.ciz #kalemKat { pointer-events: auto; cursor: crosshair; }
+body.ciz { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.wrap { padding-bottom: 96px; }
+.arac { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 60; display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; max-width: calc(100vw - 12px); overflow-x: auto;
+  background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 6px 8px; box-shadow: 0 8px 28px rgba(0,0,0,.18); -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.arac button { font: inherit; font-size: 15px; font-weight: 700; min-height: 44px; min-width: 44px; padding: 6px 11px; border-radius: 11px; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; white-space: nowrap; flex: none; }
+.arac button[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
+.arac button.cizd[aria-pressed="true"] { background: var(--copper); border-color: var(--copper); color: #fff; box-shadow: none; }
+.arac button:disabled { opacity: .35; }
+.arac .renk { width: 44px; padding: 0; } .arac .renk i { display: block; width: 22px; height: 22px; border-radius: 50%; margin: 0 auto; }
+.arac .ayr { width: 1.5px; align-self: stretch; background: var(--line); margin: 0 2px; flex: none; }
+.arac .yer2 { font-weight: 700; font-size: 14px; color: var(--muted); min-width: 44px; text-align: center; flex: none; }
+/* Sunum (tam ekran) modu: ders 16:9 sahnede, sığdırılır, kaydırma yok. Kontroller sahnenin dışındaki şeritte kalır. */
+html.fs, body.fs { background: #0b1210; overflow: hidden; height: 100%; }
+body.fs .wrap { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100vw, 177.78vh); height: min(56.25vw, 100vh); max-width: none; min-height: 0; margin: 0;
+  padding: 10px 16px 12px; gap: 8px; overflow: hidden; overflow: clip; background: var(--bg); }
+body.fs .wrap > nav.serit, body.fs .wrap > .alt { display: none; }
+body.fs section.bolum.acik { min-height: 0; overflow: hidden; overflow: clip; padding: 14px 18px; }
+body.fs .arac { bottom: max(6px, calc(var(--lb, 0px) / 2 - 29px)); }
+body.fs .serit2 { display: flex; }
+body.fs .ic .sahne > svg, body.fs .ic svg.ks, body.fs .ikili svg { width: 100%; height: auto; max-height: var(--gmax, 9999px); }
+body.fs .ic canvas { width: 100%; height: auto; max-height: var(--gmax, 9999px); object-fit: contain; }
+.serit2 { display: none; position: fixed; left: 50%; transform: translateX(-50%); top: max(4px, calc(var(--lb, 0px) / 2 - 18px)); z-index: 60; gap: 5px; flex-wrap: nowrap; overflow-x: auto; max-width: calc(100vw - 12px); }
+.serit2 button { font: inherit; font-size: 13px; font-weight: 700; padding: 6px 10px; min-height: 36px; border-radius: 999px; border: 1.5px solid #2f3d37; background: #16211d; color: #dfe8e2; cursor: pointer; white-space: nowrap; flex: none; }
+.serit2 button[aria-current="true"] { background: #e9efe9; color: #10201a; border-color: #e9efe9; }
+body.fs.dar .serit2 { display: none; }
 .son a { display: inline-block; background: var(--copper); color: #fff; font-weight: 800; text-decoration: none; padding: 12px 18px; border-radius: 12px; margin: 4px 8px 4px 0; }
 .son a.ikinci { background: var(--green); color: var(--green-ink); }
 svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
@@ -132,7 +150,6 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
   <div class="ust">
     <a class="marka" href="index.html">ben fizik yapamıyorum</a>
     <small>11. Sınıf | Kuvvet ve Hareket | Newton'ın Hareket Yasaları</small>
-    <span style="display:flex;gap:8px"><button class="btn tam" id="kalemAc" type="button">Kalem</button><button class="btn tam" id="tam" type="button">Tam ekran</button></span>
   </div>
   <nav class="serit" id="serit" aria-label="Ders bölümleri"></nav>
 
@@ -428,20 +445,21 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
 </div>
 
 <canvas id="kalemKat" aria-hidden="true"></canvas>
-<div class="kbar" id="kbar" role="toolbar" aria-label="Kalem araçları">
+<nav class="serit2" id="serit2" aria-label="Bölümler"></nav>
+<div class="arac" id="arac" role="toolbar" aria-label="Kalem ve sunum araçları">
+  <button id="aGeri" aria-label="Önceki bölüm">‹</button><span class="yer2" id="yer2"></span><button id="aIleri" aria-label="Sonraki bölüm">›</button>
+  <span class="ayr"></span>
   <button class="renk" data-renk="#14202e" aria-label="Siyah kalem" aria-pressed="true"><i style="background:#14202e"></i></button>
   <button class="renk" data-renk="#d92d20" aria-label="Kırmızı kalem" aria-pressed="false"><i style="background:#d92d20"></i></button>
   <button class="renk" data-renk="#1d4ed8" aria-label="Mavi kalem" aria-pressed="false"><i style="background:#1d4ed8"></i></button>
   <button class="renk" data-renk="#15803d" aria-label="Yeşil kalem" aria-pressed="false"><i style="background:#15803d"></i></button>
-  <span class="ayr"></span>
   <button id="kKalin" aria-pressed="false">Kalın</button>
   <button id="kSilgi" aria-pressed="false">Silgi</button>
   <button id="kGeri">Geri al</button>
-  <button id="kTemiz">Sayfayı temizle</button>
+  <button id="kTemiz">Temizle</button>
   <span class="ayr"></span>
-  <button id="kOnceki" aria-label="Önceki bölüm">←</button>
-  <button id="kSonraki" aria-label="Sonraki bölüm">→</button>
-  <button id="kKapat">Kalemi kapat</button>
+  <button id="kCiz" class="cizd" aria-pressed="false" title="Açıkken parmak ve fare de yazar. Apple Pencil her zaman yazar.">✎ Parmakla yaz</button>
+  <button id="tam">⛶ Tam ekran</button>
 </div>
 <script>
 (function () {
@@ -451,88 +469,181 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
   var azalt = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ---------- bölüm gezinme ---------- */
-  var B = [].slice.call(document.querySelectorAll("section.bolum")), akt = 0;
-  B.forEach(function (b) { var d = document.createElement("div"); d.className = "bos"; d.textContent = "Çözüm alanı"; b.appendChild(d); });
+  var B = [].slice.call(document.querySelectorAll("section.bolum")), akt = 0, FS = false;
+  B.forEach(function (b) {
+    var ic = document.createElement("div"); ic.className = "ic";
+    while (b.firstChild) ic.appendChild(b.firstChild);
+    var d = document.createElement("div"); d.className = "bos"; d.textContent = "Çözüm alanı"; ic.appendChild(d);
+    b.appendChild(ic); b._ic = ic; b._bos = d;
+  });
+  function seritYaz(id) { $(id).innerHTML = B.map(function (s, k) { return '<button data-i="' + k + '" aria-current="' + (k === akt) + '">' + (k + 1) + ". " + s.getAttribute("data-ad") + "</button>"; }).join(""); }
   function git(i) {
     akt = Math.max(0, Math.min(B.length - 1, i));
     B.forEach(function (s, k) { s.classList.toggle("acik", k === akt); });
-    $("serit").innerHTML = B.map(function (s, k) { return '<button data-i="' + k + '" aria-current="' + (k === akt) + '">' + (k + 1) + ". " + s.getAttribute("data-ad") + "</button>"; }).join("");
-    $("yer").textContent = (akt + 1) + " / " + B.length;
-    $("geri").disabled = akt === 0; $("ileri").disabled = akt === B.length - 1;
+    seritYaz("serit"); seritYaz("serit2");
+    $("yer").textContent = $("yer2").textContent = (akt + 1) + " / " + B.length;
+    $("geri").disabled = $("aGeri").disabled = akt === 0; $("ileri").disabled = $("aIleri").disabled = akt === B.length - 1;
+    var s2 = $("serit2"), c = s2.querySelector('[aria-current="true"]'); if (c) s2.scrollLeft = Math.max(0, c.offsetLeft - (s2.clientWidth - c.offsetWidth) / 2);
     window.scrollTo(0, 0);
-    if (window.__kalemCiz) window.__kalemCiz();
+    sigdir(); if (window.__kalemCiz) window.__kalemCiz();
   }
-  $("serit").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) git(+b.getAttribute("data-i")); });
+  function seritTik(e) { var b = e.target.closest("button[data-i]"); if (b) git(+b.getAttribute("data-i")); }
+  $("serit").addEventListener("click", seritTik); $("serit2").addEventListener("click", seritTik);
   $("geri").addEventListener("click", function () { git(akt - 1); });
   $("ileri").addEventListener("click", function () { git(akt + 1); });
+  $("aGeri").addEventListener("click", function () { git(akt - 1); });
+  $("aIleri").addEventListener("click", function () { git(akt + 1); });
   document.addEventListener("keydown", function (e) {
     if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
     if (e.key === "ArrowRight" || e.key === "PageDown") git(akt + 1);
     if (e.key === "ArrowLeft" || e.key === "PageUp") git(akt - 1);
   });
 
+  /* ---------- sunum modu: bölüm 16:9 sahneye kaydırmadan sığar, boş kalan yer çözüm alanı olur ---------- */
+  var MINBOS = 130, sigBekle = 0;
+  function sigdir() {
+    B.forEach(function (s, k) { if (k !== akt || !FS) { s._ic.style.width = ""; s._ic.style.transform = ""; s._bos.style.height = ""; s._bos.style.minHeight = ""; } });
+    if (!FS) return;
+    var s = B[akt], ic = s._ic, bos = s._bos, cs = getComputedStyle(s);
+    var W = s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var H = s.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    if (W < 50 || H < 50) return;
+    bos.style.minHeight = "0px"; bos.style.height = MINBOS + "px"; ic.style.setProperty("--gmax", Math.round(H * 0.56) + "px");
+    var z = 1;
+    for (var k = 0; k < 8; k++) {
+      ic.style.width = (W / z) + "px"; ic.style.transform = z < 1 ? "scale(" + z + ")" : "";
+      var nz = Math.min(1, H / ic.offsetHeight);
+      if (Math.abs(nz - z) < 0.004) { z = Math.min(z, nz); break; }
+      z = nz;
+    }
+    ic.style.width = (W / z) + "px"; ic.style.transform = z < 1 ? "scale(" + z + ")" : "";
+    var bosH = bos.offsetHeight, fazla = H / z - ic.offsetHeight;
+    bos.style.height = Math.max(MINBOS, bosH + fazla - 1) + "px";
+    s.scrollTop = 0; s.parentNode.scrollTop = 0; window.scrollTo(0, 0);
+  }
+  function sigdirSonra() { clearTimeout(sigBekle); sigBekle = setTimeout(function () { sigdir(); if (window.__kalemCiz) window.__kalemCiz(); }, 420); }
+  document.addEventListener("click", function (e) { if (FS && !e.target.closest(".arac,.serit2")) sigdirSonra(); }, true);
+  document.addEventListener("input", function () { if (FS) sigdirSonra(); });
+
   /* ---------- tam ekran (tablet ve bilgisayar) ---------- */
   (function () {
     var kok = document.documentElement, ac = kok.requestFullscreen || kok.webkitRequestFullscreen, kapat = document.exitFullscreen || document.webkitExitFullscreen, b = $("tam");
-    if (!ac) { b.style.display = "none"; return; }
     function acik() { return document.fullscreenElement || document.webkitFullscreenElement; }
-    function yaz() { b.textContent = acik() ? "Tam ekrandan çık" : "Tam ekran"; }
-    b.addEventListener("click", function () { try { var r = acik() ? kapat.call(document) : ac.call(kok); if (r && r.catch) r.catch(function () {}); } catch (e) {} });
-    document.addEventListener("fullscreenchange", yaz); document.addEventListener("webkitfullscreenchange", yaz);
+    function lb() {
+      var h = Math.min(window.innerWidth * 9 / 16, window.innerHeight), l = (window.innerHeight - h) / 2;
+      document.documentElement.style.setProperty("--lb", l + "px");
+      document.body.classList.toggle("dar", l < 46);
+    }
+    function mod(v) {
+      FS = v; document.documentElement.classList.toggle("fs", v); document.body.classList.toggle("fs", v);
+      b.textContent = v ? "Tam ekrandan çık" : "⛶ Tam ekran"; b.setAttribute("aria-pressed", String(v));
+      lb(); window.scrollTo(0, 0); sigdir(); if (window.__kalemCiz) window.__kalemCiz();
+      setTimeout(function () { lb(); sigdir(); if (window.__kalemCiz) window.__kalemCiz(); }, 350);
+    }
+    b.addEventListener("click", function () {
+      if (FS) { mod(false); try { if (acik()) { var r = kapat.call(document); if (r && r.catch) r.catch(function () {}); } } catch (e) {} return; }
+      mod(true);
+      try { if (ac && !acik()) { var r2 = ac.call(kok); if (r2 && r2.catch) r2.catch(function () {}); } } catch (e) {}
+    });
+    function degisti() { if (!acik() && FS && ac) mod(false); else { lb(); sigdir(); } }
+    document.addEventListener("fullscreenchange", degisti); document.addEventListener("webkitfullscreenchange", degisti);
+    window.addEventListener("resize", function () { lb(); if (FS) sigdirSonra(); });
   })();
 
-  /* ---------- kalem: her bölümün çizimi ayrı tutulur ---------- */
+  /* ---------- kalem: Apple Pencil her zaman yazar; "Parmakla yaz" açıkken parmak ve fare de yazar ---------- */
   (function () {
-    var kat = $("kalemKat"), kx = kat.getContext("2d"), dpr = 1, CIZ = {}, renk = "#14202e", kalin = false, silgi = false, suan = null, kalemGoruldu = false, kay = null;
-    function liste() { return CIZ[akt] || (CIZ[akt] = []); }
+    var kat = $("kalemKat"), kx = kat.getContext("2d"), dpr = 1, CIZ = {}, renk = "#14202e", kalin = false, silgi = false, ciziyor = {}, stylusVar = false, cizAcik = false;
+    function anahtar() { return akt + (FS ? "f" : "n"); }
+    function liste() { var k = anahtar(); return CIZ[k] || (CIZ[k] = []); }
     function boyut() {
-      var w = document.documentElement.scrollWidth, h = Math.max(document.body.scrollHeight, window.innerHeight);
+      var w = window.innerWidth, h = window.innerHeight;
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      if (kat.width !== Math.round(w * dpr) || kat.height !== Math.round(h * dpr)) { kat.width = Math.round(w * dpr); kat.height = Math.round(h * dpr); kat.style.width = w + "px"; kat.style.height = h + "px"; }
-      kx.setTransform(dpr, 0, 0, dpr, 0, 0); ciz();
+      if (kat.width !== Math.round(w * dpr) || kat.height !== Math.round(h * dpr)) { kat.width = Math.round(w * dpr); kat.height = Math.round(h * dpr); }
+      hepsi();
     }
-    function cizgi(c) {
+    function hazirla(c) {
+      kx.setTransform(dpr, 0, 0, dpr, -window.scrollX * dpr, -window.scrollY * dpr);
       kx.globalCompositeOperation = c.sil ? "destination-out" : "source-over";
       kx.strokeStyle = c.r; kx.fillStyle = c.r; kx.lineWidth = c.w; kx.lineCap = "round"; kx.lineJoin = "round";
-      var p = c.p; if (p.length === 2) { kx.beginPath(); kx.arc(p[0], p[1], c.w / 2, 0, 7); kx.fill(); return; }
-      kx.beginPath(); kx.moveTo(p[0], p[1]);
+    }
+    function nokta(c, x, y) { hazirla(c); kx.beginPath(); kx.arc(x, y, c.w / 2, 0, 7); kx.fill(); }
+    function cizgi(c) {
+      var p = c.p; if (p.length === 2) { nokta(c, p[0], p[1]); return; }
+      hazirla(c); kx.beginPath(); kx.moveTo(p[0], p[1]);
       for (var i = 2; i < p.length - 2; i += 2) kx.quadraticCurveTo(p[i], p[i + 1], (p[i] + p[i + 2]) / 2, (p[i + 1] + p[i + 3]) / 2);
       kx.lineTo(p[p.length - 2], p[p.length - 1]); kx.stroke();
     }
-    function ciz() { kx.save(); kx.setTransform(1, 0, 0, 1, 0, 0); kx.clearRect(0, 0, kat.width, kat.height); kx.restore(); liste().forEach(cizgi); kx.globalCompositeOperation = "source-over"; }
-    window.__kalemCiz = function () { setTimeout(boyut, 0); };
-    function ac(v) { document.body.classList.toggle("kalem", v); $("kalemAc").textContent = v ? "Kalemi kapat" : "Kalem"; if (v) boyut(); }
-    $("kalemAc").addEventListener("click", function () { ac(!document.body.classList.contains("kalem")); });
-    $("kKapat").addEventListener("click", function () { ac(false); });
-    $("kbar").addEventListener("click", function (e) {
+    /* yalnız yeni parçayı çiz: uzun çizgide gecikme olmaz */
+    function parca(c) {
+      var p = c.p, n = p.length; if (n < 4) { cizgi(c); return; }
+      hazirla(c); kx.beginPath();
+      if (n === 4) { kx.moveTo(p[0], p[1]); kx.lineTo((p[0] + p[2]) / 2, (p[1] + p[3]) / 2); }
+      else { kx.moveTo((p[n - 6] + p[n - 4]) / 2, (p[n - 5] + p[n - 3]) / 2); kx.quadraticCurveTo(p[n - 4], p[n - 3], (p[n - 4] + p[n - 2]) / 2, (p[n - 3] + p[n - 1]) / 2); }
+      kx.stroke();
+    }
+    function hepsi() { kx.setTransform(1, 0, 0, 1, 0, 0); kx.globalCompositeOperation = "source-over"; kx.clearRect(0, 0, kat.width, kat.height); liste().forEach(cizgi); kx.globalCompositeOperation = "source-over"; }
+    window.__kalemCiz = function () { requestAnimationFrame(boyut); };
+    function basla(id, x, y) { var c = { r: renk, w: silgi ? 34 : kalin ? 7 : 3.5, sil: silgi, p: [x + window.scrollX, y + window.scrollY], t: Date.now(), x0: x, y0: y, m: 0 }; ciziyor[id] = c; liste().push(c); nokta(c, c.p[0], c.p[1]); return c; }
+    function ekle(id, x, y) { var c = ciziyor[id]; if (!c) return; c.p.push(x + window.scrollX, y + window.scrollY); c.m = Math.max(c.m, Math.abs(x - c.x0) + Math.abs(y - c.y0)); parca(c); }
+    function bitir(id, x, y, tikla) {
+      var c = ciziyor[id]; if (!c) return; delete ciziyor[id];
+      if (c.p.length > 4) { c.p.push(c.p[c.p.length - 2], c.p[c.p.length - 1]); }
+      /* kalemle kısa dokunuş = tıklama (düğmelere kalemle de basılabilsin) */
+      if (tikla && c.m < 10 && Date.now() - c.t < 350) {
+        var L = liste(), i = L.indexOf(c); if (i > -1) L.splice(i, 1); hepsi();
+        var el = document.elementFromPoint(x, y); if (el && !el.closest("#kalemKat")) { var h = el.closest("button,a,input,label,select,[data-ac]") || el; if (h.focus) h.focus(); h.click(); }
+      } else hepsi();
+    }
+    /* Apple Pencil: dokunma olaylarıyla, sayfa kaymadan ve her vuruş tek seferde */
+    function kalemDokunus(t) { return t.touchType === "stylus"; }
+    function aracUstu(t) { var el = t.target && t.target.closest ? t.target : null; return el && el.closest(".arac,.serit2"); }
+    document.addEventListener("touchstart", function (e) {
+      var ok = false;
+      [].forEach.call(e.changedTouches, function (t) { if (kalemDokunus(t) && !aracUstu(t)) { stylusVar = true; ok = true; basla("t" + t.identifier, t.clientX, t.clientY); } });
+      if (ok) e.preventDefault();
+    }, { passive: false, capture: true });
+    document.addEventListener("touchmove", function (e) {
+      var ok = false;
+      [].forEach.call(e.changedTouches, function (t) { if (ciziyor["t" + t.identifier]) { ok = true; ekle("t" + t.identifier, t.clientX, t.clientY); } });
+      if (ok) e.preventDefault();
+    }, { passive: false, capture: true });
+    function dokunusBitti(e) {
+      var ok = false;
+      [].forEach.call(e.changedTouches, function (t) { if (ciziyor["t" + t.identifier]) { ok = true; bitir("t" + t.identifier, t.clientX, t.clientY, e.type === "touchend"); } });
+      if (ok && e.cancelable) e.preventDefault();
+    }
+    document.addEventListener("touchend", dokunusBitti, { passive: false, capture: true });
+    document.addEventListener("touchcancel", dokunusBitti, { passive: false, capture: true });
+    /* parmak, fare ya da başka kalem: "Parmakla yaz" açıkken katman olaylarıyla */
+    kat.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "pen" && stylusVar) return;
+      try { kat.setPointerCapture(e.pointerId); } catch (x) {}
+      basla("p" + e.pointerId, e.clientX, e.clientY); e.preventDefault();
+    });
+    kat.addEventListener("pointermove", function (e) {
+      if (!ciziyor["p" + e.pointerId]) return;
+      var es = e.getCoalescedEvents ? e.getCoalescedEvents() : []; if (!es.length) es = [e];
+      es.forEach(function (q) { ekle("p" + e.pointerId, q.clientX, q.clientY); }); e.preventDefault();
+    });
+    function pBitti(e) { bitir("p" + e.pointerId, e.clientX, e.clientY, false); }
+    kat.addEventListener("pointerup", pBitti); kat.addEventListener("pointercancel", pBitti);
+    kat.addEventListener("touchstart", function (e) { if (cizAcik) e.preventDefault(); }, { passive: false });
+    kat.addEventListener("touchmove", function (e) { if (cizAcik) e.preventDefault(); }, { passive: false });
+    /* araç çubuğu */
+    $("arac").addEventListener("click", function (e) {
       var b = e.target.closest("[data-renk]"); if (!b) return;
       renk = b.getAttribute("data-renk"); silgi = false; $("kSilgi").setAttribute("aria-pressed", "false");
       [].forEach.call(document.querySelectorAll("[data-renk]"), function (x) { x.setAttribute("aria-pressed", String(x === b)); });
     });
     $("kKalin").addEventListener("click", function () { kalin = !kalin; this.setAttribute("aria-pressed", String(kalin)); });
     $("kSilgi").addEventListener("click", function () { silgi = !silgi; this.setAttribute("aria-pressed", String(silgi)); });
-    $("kGeri").addEventListener("click", function () { liste().pop(); ciz(); });
-    $("kTemiz").addEventListener("click", function () { CIZ[akt] = []; ciz(); });
-    $("kOnceki").addEventListener("click", function () { git(akt - 1); });
-    $("kSonraki").addEventListener("click", function () { git(akt + 1); });
-    kat.addEventListener("pointerdown", function (e) {
-      if (e.pointerType === "pen") kalemGoruldu = true;
-      /* kalem kullanılıyorsa parmak sayfayı kaydırır, çizmez */
-      if (e.pointerType === "touch" && kalemGoruldu) { kay = { id: e.pointerId, y: e.clientY }; return; }
-      try { kat.setPointerCapture(e.pointerId); } catch (x) {}
-      suan = { r: renk, w: silgi ? 34 : kalin ? 7 : 3.5, sil: silgi, p: [e.pageX, e.pageY], id: e.pointerId }; liste().push(suan); cizgi(suan); e.preventDefault();
-    });
-    kat.addEventListener("pointermove", function (e) {
-      if (kay && e.pointerId === kay.id) { window.scrollBy(0, kay.y - e.clientY); kay.y = e.clientY; return; }
-      if (!suan || e.pointerId !== suan.id) return;
-      var es = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; if (!es.length) es = [e];
-      es.forEach(function (q) { suan.p.push(q.pageX, q.pageY); });
-      ciz(); e.preventDefault();
-    });
-    function bitir(e) { if (kay && e.pointerId === kay.id) kay = null; if (suan && e.pointerId === suan.id) suan = null; }
-    kat.addEventListener("pointerup", bitir); kat.addEventListener("pointercancel", bitir);
+    $("kGeri").addEventListener("click", function () { liste().pop(); hepsi(); });
+    $("kTemiz").addEventListener("click", function () { CIZ[anahtar()] = []; hepsi(); });
+    $("kCiz").addEventListener("click", function () { cizAcik = !cizAcik; document.body.classList.toggle("ciz", cizAcik); this.setAttribute("aria-pressed", String(cizAcik)); });
+    var bekle = false;
+    window.addEventListener("scroll", function () { if (bekle) return; bekle = true; requestAnimationFrame(function () { bekle = false; hepsi(); }); }, { passive: true });
     window.addEventListener("resize", boyut);
-    if (window.ResizeObserver) new ResizeObserver(function () { if (document.body.classList.contains("kalem")) boyut(); }).observe(document.querySelector(".wrap"));
+    boyut();
   })();
 
   /* ---------- aç-göster ve sorular ---------- */
