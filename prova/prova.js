@@ -2,7 +2,9 @@
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const LS={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
-  const SURE=40*60, SET='y1';
+  /* Önizleme: /prova/?onizleme=y2 adresi 2. yazılı sorularını açar; sıralamaya ve sayaçlara hiçbir şey yazmaz. */
+  const ONIZ=new URLSearchParams(location.search).get('onizleme')==='y2';
+  const SURE=40*60, SET=ONIZ?'y2':'y1', YZ=ONIZ?2:1, DOSYA=ONIZ?'/prova/yazili-2.json':'/prova/yazili-1.json';
   const ILLER=['Adana','Adıyaman','Afyonkarahisar','Ağrı','Aksaray','Amasya','Ankara','Antalya','Ardahan','Artvin','Aydın','Balıkesir','Bartın','Batman','Bayburt','Bilecik','Bingöl','Bitlis','Bolu','Burdur','Bursa','Çanakkale','Çankırı','Çorum','Denizli','Diyarbakır','Düzce','Edirne','Elazığ','Erzincan','Erzurum','Eskişehir','Gaziantep','Giresun','Gümüşhane','Hakkâri','Hatay','Iğdır','Isparta','İstanbul','İzmir','Kahramanmaraş','Karabük','Karaman','Kars','Kastamonu','Kayseri','Kilis','Kırıkkale','Kırklareli','Kırşehir','Kocaeli','Konya','Kütahya','Malatya','Manisa','Mardin','Mersin','Muğla','Muş','Nevşehir','Niğde','Ordu','Osmaniye','Rize','Sakarya','Samsun','Şanlıurfa','Siirt','Sinop','Sivas','Şırnak','Tekirdağ','Tokat','Trabzon','Tunceli','Uşak','Van','Yalova','Yozgat','Zonguldak','Yurt dışı'];
   const AYLAR=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   const URUN={
@@ -25,12 +27,12 @@
 
   /* --- dönem: 1. yazılı sıralaması, bitiş tarihine kadar sıfırlanmaz --- */
   const DONEM='2026-27-D1Y1', BITIS=new Date('2026-11-22T23:59:59+03:00'), BITIS_Y='22 Kasım';
-  const ACIK=Date.now()<=BITIS.getTime();
-  $('pvHafta').textContent=ACIK?'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI · '+BITIS_Y.toLocaleUpperCase('tr-TR')+'’A KADAR':'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI KAPANDI';
+  const ACIK=!ONIZ&&Date.now()<=BITIS.getTime();
+  $('pvHafta').textContent=ONIZ?'ÖNİZLEME · 2. YAZILI PROVASI · SONUÇLAR KAYDEDİLMEZ':ACIK?'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI · '+BITIS_Y.toLocaleUpperCase('tr-TR')+'’A KADAR':'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI KAPANDI';
 
   /* --- firebase --- */
   let DB=null;
-  try{ firebase.initializeApp({apiKey:"AIzaSyAeX9tk4zgoa5c5y2pVH3V4r9ip2mrlMvg",authDomain:"benfizikyapamiyorum-oyun.firebaseapp.com",projectId:"benfizikyapamiyorum-oyun",storageBucket:"benfizikyapamiyorum-oyun.firebasestorage.app",messagingSenderId:"942775741325",appId:"1:942775741325:web:85dca63d6a17e2822cebc4"}); DB=firebase.firestore(); }catch(e){ DB=null; }
+  if(!ONIZ) try{ firebase.initializeApp({apiKey:"AIzaSyAeX9tk4zgoa5c5y2pVH3V4r9ip2mrlMvg",authDomain:"benfizikyapamiyorum-oyun.firebaseapp.com",projectId:"benfizikyapamiyorum-oyun",storageBucket:"benfizikyapamiyorum-oyun.firebasestorage.app",messagingSenderId:"942775741325",appId:"1:942775741325:web:85dca63d6a17e2822cebc4"}); DB=firebase.firestore(); }catch(e){ DB=null; }
   const kayitRef=s=>DB.collection('prova_sonuclar').doc(DONEM+'-'+s+'-'+SET).collection('kayitlar');
   const dagRef=s=>DB.collection('prova_dagilim').doc(DONEM+'-'+s+'-'+SET);
   const ilkKey=s=>'prova_'+DONEM+'_'+s+'_'+SET;
@@ -39,7 +41,7 @@
   $('pvIl').innerHTML='<option value="">Seç</option>'+ILLER.map(i=>`<option>${esc(i)}</option>`).join('');
   const prof=LS.get('prova_profil'); if(prof){ $('pvAd').value=prof.ad||''; $('pvIl').value=prof.il||''; if(prof.sinif){ const r=document.querySelector(`input[name=sinif][value="${prof.sinif}"]`); if(r) r.checked=true; } }
   let BANK=null;
-  const bankP=fetch('/prova/yazili-1.json',{cache:'no-cache'}).then(r=>r.json()).then(j=>BANK=j).catch(()=>null);
+  const bankP=fetch(DOSYA,{cache:'no-cache'}).then(r=>r.json()).then(j=>BANK=j).catch(()=>null);
 
   async function katilim(){ if(!DB) return; try{ let t=0; for(const s of [9,10,11]){ const d=await dagRef(s).get(); if(d.exists) t+=d.data().toplam||0; } $('pvKatilim').textContent=t.toLocaleString('tr-TR'); }catch(e){ $('pvKatilim').textContent='—'; } }
   let lbSinif='9';
@@ -102,12 +104,13 @@
     Q.forEach(q=>{ const c=S.cev[q.id]||{}; let kayip=0; konuTop[q.konu]=(konuTop[q.konu]||0)+q.maddeler.reduce((t,m)=>t+m.p,0); q.maddeler.forEach(m=>{ const v=c[m.k]; if(!dolu(v)){ b++; kayip+=m.p; } else if(dogruMu(m,v)){ d++; puan+=m.p; } else { y++; kayip+=m.p; } }); if(kayip) zayif[q.konu]=(zayif[q.konu]||0)+kayip; });
     puan=Math.round(puan); const sure=Math.min(SURE,Math.round((Date.now()-S.bas)/1000));
     SON={puan,d,y,b,sure,sinif:S.sinif,ad:S.ad,il:S.il,zayif,konuTop};
-    $('rEt').textContent=S.sinif+'. SINIF FİZİK YAZILI PROVASI · 1. DÖNEM 1. YAZILI';
+    $('rEt').textContent=S.sinif+'. SINIF FİZİK YAZILI PROVASI · 1. DÖNEM '+YZ+'. YAZILI'+(ONIZ?' · ÖNİZLEME':'');
     $('rPuan').textContent=puan; $('rD').textContent=d; $('rY').textContent=y; $('rB').textContent=b; $('rS').textContent=sureY(sure);
     gozden(Q); urunler(zayif,konuTop); paylas(); goster('vSonuc');
-    window.BFY&&BFY.track&&BFY.track('prova_complete');
+    if(!ONIZ) window.BFY&&BFY.track&&BFY.track('prova_complete');
     const ilk=ACIK&&!S.tekrar&&!LS.get(ilkKey(S.sinif));
     $('rNot').textContent=ilk?'Sonucun kaydediliyor…':(ACIK?'Bu sınıfın provasını daha önce çözdüğün için bu deneme sıralamaya girmedi; sıralamada ilk denemen geçerli.':'1. yazılı sıralaması '+BITIS_Y+'’da kapandı; bu deneme sıralamaya girmedi.');
+    if(ONIZ){ $('rNot').textContent='Önizleme: bu sonuç kaydedilmedi ve sıralamaya girmedi.'; $('rRank').textContent='Önizlemede sıralama hesaplanmaz.'; return; }
     if(!DB){ $('rRank').textContent='Sıralama şu an hesaplanamıyor.'; return; }
     try{
       if(ilk){ await kayitRef(S.sinif).add({ad:S.ad.slice(0,20),il:S.il.slice(0,30),puan,dogru:d,sure,ts:firebase.firestore.FieldValue.serverTimestamp()});
@@ -140,7 +143,7 @@
   /* Veli karnesi: sonuç bağlantının içinde taşınır (ad ve il gönderilmez), sunucuya kaydedilmez. */
   function b64u(o){ const u=new TextEncoder().encode(JSON.stringify(o)); let s=''; u.forEach(c=>s+=String.fromCharCode(c)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
   function veliLink(){ const g=new Date(), t=g.getFullYear()+'-'+String(g.getMonth()+1).padStart(2,'0')+'-'+String(g.getDate()).padStart(2,'0');
-    const o={v:1,k:'p',s:+SON.sinif,t,p:SON.puan,d:SON.d,y:SON.y,b:SON.b,sr:SON.sure,z:Object.keys(SON.konuTop).map(k=>[k,Math.round(SON.zayif[k]||0),SON.konuTop[k]])};
+    const o={v:1,k:'p',yz:YZ,s:+SON.sinif,t,p:SON.puan,d:SON.d,y:SON.y,b:SON.b,sr:SON.sure,z:Object.keys(SON.konuTop).map(k=>[k,Math.round(SON.zayif[k]||0),SON.konuTop[k]])};
     if(SON.ust){ o.u=SON.ust; o.n=SON.tot; }
     return 'https://benfizikyapamiyorum.com/veli/#d='+b64u(o); }
   $('rTekrar').onclick=()=>{ S={set:SET,sinif:SON.sinif,ad:SON.ad,il:SON.il,bas:Date.now(),cev:{},i:0,tekrar:true}; LS.set('prova_aktif',S); baslat(); };
