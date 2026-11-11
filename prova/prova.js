@@ -3,8 +3,15 @@
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const LS={get(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}},del(k){try{localStorage.removeItem(k);}catch(e){}}};
   /* Önizleme: /prova/?onizleme=y2 adresi 2. yazılı sorularını açar; sıralamaya ve sayaçlara hiçbir şey yazmaz. */
-  const ONIZ=new URLSearchParams(location.search).get('onizleme')==='y2';
-  const SURE=40*60, SET=ONIZ?'y2':'y1', YZ=ONIZ?2:1, DOSYA=ONIZ?'/prova/yazili-2.json':'/prova/yazili-1.json';
+  /* Yazılı dönemleri: 1. yazılı sıralaması 22 Kasım'da kapanır, ertesi gün 2. yazılı provası kendiliğinden açılır. */
+  const SETLER={
+    y1:{yz:1,dosya:'/prova/yazili-1.json',donem:'2026-27-D1Y1',bitis:'2026-11-22T23:59:59+03:00',bitisY:'22 Kasım',bitisDa:'22 Kasım’da'},
+    y2:{yz:2,dosya:'/prova/yazili-2.json',donem:'2026-27-D1Y2',bitis:'2027-01-17T23:59:59+03:00',bitisY:'17 Ocak',bitisDa:'17 Ocak’ta',lead:'1. dönem 2. ortak yazılının kazanımlarına göre hazırlanmış 7 açık uçlu soru, 40 dakika.'}
+  };
+  const Y1_BITTI=Date.now()>new Date(SETLER.y1.bitis).getTime();
+  const ONIZ=!Y1_BITTI&&new URLSearchParams(location.search).get('onizleme')==='y2';
+  const SET=(ONIZ||Y1_BITTI)?'y2':'y1', CFG=SETLER[SET];
+  const SURE=40*60, YZ=CFG.yz, DOSYA=CFG.dosya;
   const ILLER=['Adana','Adıyaman','Afyonkarahisar','Ağrı','Aksaray','Amasya','Ankara','Antalya','Ardahan','Artvin','Aydın','Balıkesir','Bartın','Batman','Bayburt','Bilecik','Bingöl','Bitlis','Bolu','Burdur','Bursa','Çanakkale','Çankırı','Çorum','Denizli','Diyarbakır','Düzce','Edirne','Elazığ','Erzincan','Erzurum','Eskişehir','Gaziantep','Giresun','Gümüşhane','Hakkâri','Hatay','Iğdır','Isparta','İstanbul','İzmir','Kahramanmaraş','Karabük','Karaman','Kars','Kastamonu','Kayseri','Kilis','Kırıkkale','Kırklareli','Kırşehir','Kocaeli','Konya','Kütahya','Malatya','Manisa','Mardin','Mersin','Muğla','Muş','Nevşehir','Niğde','Ordu','Osmaniye','Rize','Sakarya','Samsun','Şanlıurfa','Siirt','Sinop','Sivas','Şırnak','Tekirdağ','Tokat','Trabzon','Tunceli','Uşak','Van','Yalova','Yozgat','Zonguldak','Yurt dışı'];
   const AYLAR=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   const URUN={
@@ -26,9 +33,10 @@
   };
 
   /* --- dönem: 1. yazılı sıralaması, bitiş tarihine kadar sıfırlanmaz --- */
-  const DONEM='2026-27-D1Y1', BITIS=new Date('2026-11-22T23:59:59+03:00'), BITIS_Y='22 Kasım';
+  const DONEM=CFG.donem, BITIS=new Date(CFG.bitis), BITIS_Y=CFG.bitisY;
   const ACIK=!ONIZ&&Date.now()<=BITIS.getTime();
-  $('pvHafta').textContent=ONIZ?'ÖNİZLEME · 2. YAZILI PROVASI · SONUÇLAR KAYDEDİLMEZ':ACIK?'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI · '+BITIS_Y.toLocaleUpperCase('tr-TR')+'’A KADAR':'TÜRKİYE GENELİ · 1. YAZILI SIRALAMASI KAPANDI';
+  $('pvHafta').textContent=ONIZ?'ÖNİZLEME · 2. YAZILI PROVASI · SONUÇLAR KAYDEDİLMEZ':ACIK?'TÜRKİYE GENELİ · '+YZ+'. YAZILI SIRALAMASI · '+BITIS_Y.toLocaleUpperCase('tr-TR')+'’A KADAR':'TÜRKİYE GENELİ · '+YZ+'. YAZILI SIRALAMASI KAPANDI';
+  if(CFG.lead){ const ld=document.querySelector('.pv-hero .lead'); if(ld&&/^1\. dönem 1\. ortak yazılının[^.]*\./.test(ld.textContent)) ld.textContent=ld.textContent.replace(/^1\. dönem 1\. ortak yazılının[^.]*\./,CFG.lead); }
 
   /* --- firebase --- */
   let DB=null;
@@ -109,7 +117,7 @@
     gozden(Q); urunler(zayif,konuTop); paylas(); goster('vSonuc');
     if(!ONIZ) window.BFY&&BFY.track&&BFY.track('prova_complete');
     const ilk=ACIK&&!S.tekrar&&!LS.get(ilkKey(S.sinif));
-    $('rNot').textContent=ilk?'Sonucun kaydediliyor…':(ACIK?'Bu sınıfın provasını daha önce çözdüğün için bu deneme sıralamaya girmedi; sıralamada ilk denemen geçerli.':'1. yazılı sıralaması '+BITIS_Y+'’da kapandı; bu deneme sıralamaya girmedi.');
+    $('rNot').textContent=ilk?'Sonucun kaydediliyor…':(ACIK?'Bu sınıfın provasını daha önce çözdüğün için bu deneme sıralamaya girmedi; sıralamada ilk denemen geçerli.':YZ+'. yazılı sıralaması '+CFG.bitisDa+' kapandı; bu deneme sıralamaya girmedi.');
     if(ONIZ){ $('rNot').textContent='Önizleme: bu sonuç kaydedilmedi ve sıralamaya girmedi.'; $('rRank').textContent='Önizlemede sıralama hesaplanmaz.'; return; }
     if(!DB){ $('rRank').textContent='Sıralama şu an hesaplanamıyor.'; return; }
     try{
