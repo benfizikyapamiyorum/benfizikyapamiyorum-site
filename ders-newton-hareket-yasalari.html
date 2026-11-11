@@ -555,14 +555,19 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     var kat = $("kalemKat"), kx = kat.getContext("2d"), dpr = 1, CIZ = {}, renk = "#14202e", kalin = false, silgi = false, ciziyor = {}, stylusVar = false, cizAcik = false;
     function anahtar() { return akt + (FS ? "f" : "n"); }
     function liste() { var k = anahtar(); return CIZ[k] || (CIZ[k] = []); }
+    /* Tuvalin ekrandaki gerçek yeri ve boyutu her seferinde ölçülür: iPad'de 100vh ile görünen yükseklik farklı olduğu için kayma olmaz */
+    var R = { l: 0, t: 0, sx: 1, sy: 1 };
     function boyut() {
-      var w = window.innerWidth, h = window.innerHeight;
+      var w = document.documentElement.clientWidth || window.innerWidth, h = window.innerHeight;
+      if (window.visualViewport) { h = Math.round(window.visualViewport.height * window.visualViewport.scale) || h; }
       dpr = Math.min(2, window.devicePixelRatio || 1);
+      kat.style.width = w + "px"; kat.style.height = h + "px";
       if (kat.width !== Math.round(w * dpr) || kat.height !== Math.round(h * dpr)) { kat.width = Math.round(w * dpr); kat.height = Math.round(h * dpr); }
-      hepsi();
+      olc(); hepsi();
     }
+    function olc() { var r = kat.getBoundingClientRect(); R.l = r.left; R.t = r.top; R.sx = r.width ? kat.width / r.width : dpr; R.sy = r.height ? kat.height / r.height : dpr; }
     function hazirla(c) {
-      kx.setTransform(dpr, 0, 0, dpr, -window.scrollX * dpr, -window.scrollY * dpr);
+      kx.setTransform(R.sx, 0, 0, R.sy, -(window.scrollX + R.l) * R.sx, -(window.scrollY + R.t) * R.sy);
       kx.globalCompositeOperation = c.sil ? "destination-out" : "source-over";
       kx.strokeStyle = c.r; kx.fillStyle = c.r; kx.lineWidth = c.w; kx.lineCap = "round"; kx.lineJoin = "round";
     }
@@ -583,7 +588,7 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     }
     function hepsi() { kx.setTransform(1, 0, 0, 1, 0, 0); kx.globalCompositeOperation = "source-over"; kx.clearRect(0, 0, kat.width, kat.height); liste().forEach(cizgi); kx.globalCompositeOperation = "source-over"; }
     window.__kalemCiz = function () { requestAnimationFrame(boyut); };
-    function basla(id, x, y) { var c = { r: renk, w: silgi ? 34 : kalin ? 7 : 3.5, sil: silgi, p: [x + window.scrollX, y + window.scrollY], t: Date.now(), x0: x, y0: y, m: 0 }; ciziyor[id] = c; liste().push(c); nokta(c, c.p[0], c.p[1]); return c; }
+    function basla(id, x, y) { olc(); var c = { r: renk, w: silgi ? 34 : kalin ? 7 : 3.5, sil: silgi, p: [x + window.scrollX, y + window.scrollY], t: Date.now(), x0: x, y0: y, m: 0 }; ciziyor[id] = c; liste().push(c); nokta(c, c.p[0], c.p[1]); return c; }
     function ekle(id, x, y) { var c = ciziyor[id]; if (!c) return; c.p.push(x + window.scrollX, y + window.scrollY); c.m = Math.max(c.m, Math.abs(x - c.x0) + Math.abs(y - c.y0)); parca(c); }
     function bitir(id, x, y, tikla) {
       var c = ciziyor[id]; if (!c) return; delete ciziyor[id];
@@ -643,6 +648,8 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
     var bekle = false;
     window.addEventListener("scroll", function () { if (bekle) return; bekle = true; requestAnimationFrame(function () { bekle = false; hepsi(); }); }, { passive: true });
     window.addEventListener("resize", boyut);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", boyut);
+    document.addEventListener("fullscreenchange", function () { setTimeout(boyut, 300); }); document.addEventListener("webkitfullscreenchange", function () { setTimeout(boyut, 300); });
     boyut();
   })();
 
