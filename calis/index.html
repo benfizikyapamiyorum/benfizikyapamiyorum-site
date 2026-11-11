@@ -137059,6 +137059,21 @@ ${YN ? oz('🧭', 'Hata profilin', 'Yanlış bir şık seçince o yanlışın ha
 ${sinifSeviye(secSinif()) > 0 && oz('💬', 'Anlamadığın yeri bana yaz', 'Konu notunun altındaki “Anlamadım, yaz” ve sorulardaki “Bu soruyu anlamadım” düğmeleriyle bana yazabilirsin. Hepsini okuyorum; en çok istenen yerlere video ve yeni anlatım ekliyorum.') || ''}
 <div class="yk-alt">${YN ? '<a class="btn yesil ince" href="#/ilerleme">Hata profilime git</a>' : ''}<button type="button" class="btn cizgi ince" data-yeni-kapat="yeni3">Anladım</button></div></section>`;
 }
+// Konu oyunları (11 Kasım 2026): sitedeki ücretsiz oyun, ilgili konunun notunda bağlantı olarak durur; ana ekranda bir kez "Yeni oyun eklendi" kartı çıkar.
+// Kapatılınca K.ayar[OYUN.x.kapat]. Yeni oyun eklerken buraya satır ekle.
+const OYUNLAR = { '11.1.1': { ad: 'Düşüş Görevi', url: '../dusus-gorevi.html', sinif: 11, kapat: 'oyun1', ozet: 'Serbest düşmede önce tahmin et, sonra izle: düşme süresi, çarpma hızı ve dronla kamyonet kasasına paket bırakma. Beş görev, beş yıldız.' } };
+function oyunKart(sn) {
+  if (TYT) return '';
+  const e = Object.entries(OYUNLAR).find(([id, o]) => o.sinif === sn && BANK[id] && !K.ayar[o.kapat]); if (!e) return '';
+  const [id, o] = e;
+  return `<section class="yeni-kart" aria-label="Yeni oyun"><div class="yk-ust"><span class="yk-rozet">Yeni</span><b>Yeni oyun eklendi: ${esc(o.ad)}</b><button type="button" class="yk-kapat" data-yeni-kapat="${o.kapat}" aria-label="Kapat">✕</button></div>
+<div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">🎯</span><div><b>${esc(BANK[id].ad)} konusunun oyunu</b><p>${esc(o.ozet)} Oyun, konunun notunun başında da duruyor.</p></div></div>
+<div class="yk-alt"><a class="btn yesil ince" href="${o.url}" target="_blank" rel="noopener">Oyunu aç</a><button type="button" class="btn cizgi ince" data-yeni-kapat="${o.kapat}">Anladım</button></div></section>`;
+}
+function oyunBag(konu) {
+  const o = OYUNLAR[konu.id]; if (!o) return '';
+  return `<a class="sf-bag" href="${o.url}" target="_blank" rel="noopener"><span class="sf-bag-ik" aria-hidden="true">🎯</span><span>Bu konunun oyunu: ${esc(o.ad)} <span class="yk-rozet ay-rozet">Yeni</span><small>Önce tahmin et, sonra izle. Beş görev, beş yıldız.</small></span></a>`;
+}
 function yeniKart() {
   const k3 = yeniKart3(); if (k3) return k3;
   const k2 = yeniKart2(); if (k2) return k2;
@@ -137113,6 +137128,7 @@ function anaEkran() {
     <div class="hero-istat"><div><b>${K.xp}</b><span>XP</span></div><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen()}</b><span>çözülen soru</span></div><div><b>${genelUnvan()}</b><span>unvan</span></div></div></section>`;
   if (son) { const sk = BANK[son.id]; h += `<a class="devam" href="#/soru/${son.id}/${son.idx}"><div><small>Kaldığın yerden devam et</small><b>${esc(sk.ad)}, ${son.idx + 1}. soru</b></div><span class="ok">→</span></a>`; }
   if (AYLIK) h += aylikAnaKart(sn);
+  h += oyunKart(sn);
   h += yeniKart();
   h += anketKart(sn);
   h += kilitBant(`Ücretsiz sürüm: her konuda 4 soru açık. ${SA(sn)} lisansınla bütün sorular ve çözümler açılır.`, sn);
@@ -137250,7 +137266,7 @@ document.addEventListener('click', e => {
 function notHTML(konu) {
   let j = -1;
   const kv = VID.konu && VID.konu[konu.id];
-  return (konu.baslangic ? `<a class="sf-bag" href="#/konu/${konu.id}/sifir"><span class="sf-bag-ik" aria-hidden="true">↺</span><span>Fizikten çekiniyorsan buradan başla.<small>Kısa adımlar ve adım adım çözülen ısınma soruları.</small></span></a>` : '') + (kv ? videoHTML(kv, 'Timur Hoca anlatıyor', 'Önce videoyu izle, sonra notu oku ve soruları çöz.') : '') + (SIMA ? SIMA.notSimli(konu) : konu.not).map(n => {
+  return oyunBag(konu) + (konu.baslangic ? `<a class="sf-bag" href="#/konu/${konu.id}/sifir"><span class="sf-bag-ik" aria-hidden="true">↺</span><span>Fizikten çekiniyorsan buradan başla.<small>Kısa adımlar ve adım adım çözülen ısınma soruları.</small></span></a>` : '') + (kv ? videoHTML(kv, 'Timur Hoca anlatıyor', 'Önce videoyu izle, sonra notu oku ve soruları çöz.') : '') + (SIMA ? SIMA.notSimli(konu) : konu.not).map(n => {
     if (n.tur === 'anim3b') return anim3bHTML(n);
     if (n.tur === 'sim') return simHTML(n.sim);
     const i = ++j;
