@@ -594,10 +594,11 @@ svg text { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
       var c = ciziyor[id]; if (!c) return; delete ciziyor[id];
       if (c.p.length > 4) { c.p.push(c.p[c.p.length - 2], c.p[c.p.length - 1]); }
       /* kalemle kısa dokunuş = tıklama (düğmelere kalemle de basılabilsin) */
-      if (tikla && c.m < 10 && Date.now() - c.t < 350) {
-        var L = liste(), i = L.indexOf(c); if (i > -1) L.splice(i, 1); hepsi();
-        var el = document.elementFromPoint(x, y); if (el && !el.closest("#kalemKat")) { var h = el.closest("button,a,input,label,select,[data-ac]") || el; if (h.focus) h.focus(); h.click(); }
-      } else hepsi();
+      /* yalnız bir düğmenin üstüne kısa dokunuş tıklamadır; başka her yerde nokta kalır */
+      var h = null;
+      if (tikla && c.m < 10 && Date.now() - c.t < 350) { var el = document.elementFromPoint(x, y); if (el && !el.closest("#kalemKat")) h = el.closest("button,a,input,label,select,[data-ac],[data-soru] button"); }
+      if (h) { var L = liste(), i = L.indexOf(c); if (i > -1) L.splice(i, 1); hepsi(); if (h.focus) h.focus(); h.click(); }
+      else hepsi();
     }
     /* Apple Pencil: dokunma olaylarıyla, sayfa kaymadan ve her vuruş tek seferde */
     function kalemDokunus(t) { return t.touchType === "stylus"; }
