@@ -5,7 +5,7 @@
    Türler: (boş) = öğrenci, "prova" = prova sonucu, "veli" = veli karnesi.
    =========================================================== */
 (function () {
-  var KANAL = ''; // örnek: https://whatsapp.com/channel/0029Va...
+  var KANAL = 'https://whatsapp.com/channel/0029Vb9d2s40wajrtEwstL2q'; // örnek: https://whatsapp.com/channel/0029Va...
   if (!/^https:\/\/(www\.)?whatsapp\.com\/channel\/[A-Za-z0-9_-]+$/.test(KANAL)) return;
   var METIN = {
     '': ['Yeni notlar önce WhatsApp kanalında', 'Haftalık notlar, yazılı provaları ve yeni içerikler çıkar çıkmaz kanala düşer. Numaran diğer takipçilere görünmez.'],
