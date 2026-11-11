@@ -16,6 +16,13 @@
        {img:'/img/fizik11/set.webp',ad:'Yapabilirim 11',alt:'Serbest düşme, atışlar ve Newton: not, kavram kartı, adım adım çözüm.',f:'₺599',href:'/11-sinif-fizik-paketi.html',cta:'İncele',dene:'/calis/',k:'yap11'}]
   };
 
+  /* Konu Soru Paketleri: provada puan kaybedilen konu pakette varsa sonuç ekranında öne çıkar. */
+  const PAKET={
+    9:{konular:['Temel ve Türetilmiş Nicelikler','Skaler ve Vektörel Nicelikler'],ad:'Nicelikler Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342629'},
+    10:{konular:['Sabit Hızlı Hareket'],ad:'Sabit Hızlı Hareket Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342674'},
+    11:{konular:['Serbest Düşmede İvme','İki Boyutta Sabit İvmeli Hareket'],ad:'Serbest Düşme ve Atışlar Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342727'}
+  };
+
   /* --- dönem: 1. yazılı sıralaması, bitiş tarihine kadar sıfırlanmaz --- */
   const DONEM='2026-27-D1Y1', BITIS=new Date('2026-11-22T23:59:59+03:00'), BITIS_Y='22 Kasım';
   const ACIK=Date.now()<=BITIS.getTime();
@@ -91,13 +98,13 @@
   /* --- sonuç --- */
   let SON=null;
   async function bitir(){ if(!S||S.bitti) return; S.bitti=true; clearInterval(tick); LS.del('prova_aktif');
-    const Q=sorular(); let d=0,y=0,b=0,puan=0; const zayif={};
-    Q.forEach(q=>{ const c=S.cev[q.id]||{}; let kayip=0; q.maddeler.forEach(m=>{ const v=c[m.k]; if(!dolu(v)){ b++; kayip+=m.p; } else if(dogruMu(m,v)){ d++; puan+=m.p; } else { y++; kayip+=m.p; } }); if(kayip) zayif[q.konu]=(zayif[q.konu]||0)+kayip; });
+    const Q=sorular(); let d=0,y=0,b=0,puan=0; const zayif={}, konuTop={};
+    Q.forEach(q=>{ const c=S.cev[q.id]||{}; let kayip=0; konuTop[q.konu]=(konuTop[q.konu]||0)+q.maddeler.reduce((t,m)=>t+m.p,0); q.maddeler.forEach(m=>{ const v=c[m.k]; if(!dolu(v)){ b++; kayip+=m.p; } else if(dogruMu(m,v)){ d++; puan+=m.p; } else { y++; kayip+=m.p; } }); if(kayip) zayif[q.konu]=(zayif[q.konu]||0)+kayip; });
     puan=Math.round(puan); const sure=Math.min(SURE,Math.round((Date.now()-S.bas)/1000));
-    SON={puan,d,y,b,sure,sinif:S.sinif,ad:S.ad,il:S.il,zayif};
+    SON={puan,d,y,b,sure,sinif:S.sinif,ad:S.ad,il:S.il,zayif,konuTop};
     $('rEt').textContent=S.sinif+'. SINIF FİZİK YAZILI PROVASI · 1. DÖNEM 1. YAZILI';
     $('rPuan').textContent=puan; $('rD').textContent=d; $('rY').textContent=y; $('rB').textContent=b; $('rS').textContent=sureY(sure);
-    gozden(Q); urunler(zayif); paylas(); goster('vSonuc');
+    gozden(Q); urunler(zayif,konuTop); paylas(); goster('vSonuc');
     window.BFY&&BFY.track&&BFY.track('prova_complete');
     const ilk=ACIK&&!S.tekrar&&!LS.get(ilkKey(S.sinif));
     $('rNot').textContent=ilk?'Sonucun kaydediliyor…':(ACIK?'Bu sınıfın provasını daha önce çözdüğün için bu deneme sıralamaya girmedi; sıralamada ilk denemen geçerli.':'1. yazılı sıralaması '+BITIS_Y+'’da kapandı; bu deneme sıralamaya girmedi.');
@@ -120,11 +127,22 @@
         return `<li class="${ok?'dogru':(dolu(v)?'sen':'')}"><div class="mdr"><span><b>${m.k})</b> ${esc(m.s)}</span><span class="cv">Senin cevabın: <b>${dolu(v)?esc(v)+(m.t==='num'&&m.birim?' '+esc(m.birim):''):'boş'}</b>${ok?' ✓':` · Doğru cevap: <b>${esc(dg)}</b>`} <span class="pk">${ok?m.p:0}/${m.p}</span></span></div></li>`; }).join('');
       const st=al===q.puan?['d','Tam puan']:(al===0&&bosT?['b','Boş']:['y',al+'/'+q.puan+' puan']);
       return `<details class="pv-rv"><summary><span class="st ${st[0]}">${i+1} · ${st[1]}</span><span class="q">${esc(q.konu)}</span></summary><div class="body"><p class="metin">${esc(q.metin)}</p>${q.svg?`<div class="pv-fig">${q.svg}</div>`:''}${tablo(q.tablo)}<ul>${satir}</ul><div class="coz"><b>Çözüm:</b>\n${esc(q.cozum)}</div></div></details>`; }).join(''); }
-  function urunler(zayif){ const z=Object.entries(zayif).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>x[0]);
+  function urunler(zayif,konuTop){ const sirali=Object.entries(zayif).sort((a,b)=>b[1]-a[1]); const z=sirali.slice(0,2).map(x=>x[0]);
     $('upZayif').textContent=z.length?'En çok zorlandığın konular: '+z.join(' ve ')+'. Yazılıdan önce bunları tekrar et.':'Hepsini doğru yaptın, tebrikler! Yazılıya kadar formunu korumak için:';
-    $('upGrid').innerHTML=URUN[S.sinif].map(u=>`<article class="pv-up-card"><img src="${u.img}" alt="" loading="lazy" width="72" height="96"><div><h3>${esc(u.ad)}</h3><p>${esc(u.alt)}</p><div class="row"><strong>${esc(u.f)}</strong><a class="cta" href="${u.href}"${u.ext?' target="_blank" rel="noopener noreferrer"':` data-bfy-event="prova_upsell" data-bfy-lab="${u.k}"`}>${esc(u.cta)} ↗</a>${u.dene?`<a class="alt" href="${u.dene}" data-bfy-event="prova_upsell" data-bfy-lab="${u.k}_dene">Ücretsiz dene →</a>`:''}</div></div></article>`).join(''); }
+    $('upBars').innerHTML=sirali.length?sirali.map(([k,kayip])=>{ const top=konuTop[k]||kayip, al=Math.max(0,Math.round(top-kayip)), yz=Math.round(100*al/top);
+      return `<li class="${yz<50?'zayif':''}"><div class="ust"><span>${esc(k)}</span><span>${al}/${top} puan</span></div><div class="cub" role="img" aria-label="${esc(k)}: ${top} puanın ${al} puanını aldın"><i style="width:${Math.max(3,yz)}%"></i></div></li>`; }).join(''):'';
+    const P=PAKET[S.sinif], pk=P?sirali.map(x=>x[0]).find(k=>P.konular.includes(k)):null;
+    const kisisel=pk?`<article class="pv-up-card kisisel"><img src="/img/paket/kapak-${S.sinif}.webp" alt="" loading="lazy" width="72" height="96"><div><p class="neden">Senin eksiğine özel</p><h3>${esc(P.ad)}</h3><p>“${esc(pk)}” konusunda ${Math.round(zayif[pk])} puan kaybettin. Bu konuyu kapsayan 50 yazılı sorusu ve adım adım çözümleri tek PDF’te.</p><div class="row"><strong>₺59</strong><a class="cta" href="${P.href}" target="_blank" rel="noopener noreferrer" data-bfy-event="prova_paket">Paketi al ↗</a><a class="alt" href="/paket/" data-bfy-event="prova_paket">İçine bak →</a></div></div></article>`:'';
+    $('upGrid').innerHTML=kisisel+URUN[S.sinif].map(u=>`<article class="pv-up-card"><img src="${u.img}" alt="" loading="lazy" width="72" height="96"><div><h3>${esc(u.ad)}</h3><p>${esc(u.alt)}</p><div class="row"><strong>${esc(u.f)}</strong><a class="cta" href="${u.href}"${u.ext?' target="_blank" rel="noopener noreferrer"':` data-bfy-event="prova_upsell" data-bfy-lab="${u.k}"`}>${esc(u.cta)} ↗</a>${u.dene?`<a class="alt" href="${u.dene}" data-bfy-event="prova_upsell" data-bfy-lab="${u.k}_dene">Ücretsiz dene →</a>`:''}</div></div></article>`).join(''); }
   function paylas(){ const t=`Türkiye geneli ${SON.sinif}. sınıf fizik yazılı provasında ${SON.puan} puan aldım${SON.ust?` (ilk %${SON.ust})`:''}! Sen kaç alırsın? 👉 benfizikyapamiyorum.com/prova`;
-    $('rWa').href='https://wa.me/?text='+encodeURIComponent(t); }
+    $('rWa').href='https://wa.me/?text='+encodeURIComponent(t);
+    $('rVeli').href='https://wa.me/?text='+encodeURIComponent(`Fizik yazılı provasında ${SON.puan} puan aldım (Türkiye geneli, ${SON.sinif}. sınıf). Karnem ve eksik konularım burada: ${veliLink()}`); }
+  /* Veli karnesi: sonuç bağlantının içinde taşınır (ad ve il gönderilmez), sunucuya kaydedilmez. */
+  function b64u(o){ const u=new TextEncoder().encode(JSON.stringify(o)); let s=''; u.forEach(c=>s+=String.fromCharCode(c)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+  function veliLink(){ const g=new Date(), t=g.getFullYear()+'-'+String(g.getMonth()+1).padStart(2,'0')+'-'+String(g.getDate()).padStart(2,'0');
+    const o={v:1,k:'p',s:+SON.sinif,t,p:SON.puan,d:SON.d,y:SON.y,b:SON.b,sr:SON.sure,z:Object.keys(SON.konuTop).map(k=>[k,Math.round(SON.zayif[k]||0),SON.konuTop[k]])};
+    if(SON.ust){ o.u=SON.ust; o.n=SON.tot; }
+    return 'https://benfizikyapamiyorum.com/veli/#d='+b64u(o); }
   $('rTekrar').onclick=()=>{ S={set:SET,sinif:SON.sinif,ad:SON.ad,il:SON.il,bas:Date.now(),cev:{},i:0,tekrar:true}; LS.set('prova_aktif',S); baslat(); };
 
   /* --- skor kartı (1080×1350) --- */
