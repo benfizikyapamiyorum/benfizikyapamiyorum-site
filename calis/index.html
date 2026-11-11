@@ -137075,6 +137075,7 @@ function oyunBag(konu) {
   return `<a class="sf-bag" href="${o.url}" target="_blank" rel="noopener"><span class="sf-bag-ik" aria-hidden="true">🎯</span><span>Bu konunun oyunu: ${esc(o.ad)} <span class="yk-rozet ay-rozet">Yeni</span><small>Önce tahmin et, sonra izle. Beş görev, beş yıldız.</small></span></a>`;
 }
 function yeniKart() {
+  const k4 = yeniKart4(); if (k4) return k4;
   const k3 = yeniKart3(); if (k3) return k3;
   const k2 = yeniKart2(); if (k2) return k2;
   if (!YN || K.ayar.yeni1) return '';
@@ -138319,7 +138320,7 @@ function yanlislar() {
   Object.entries(K.q).forEach(([id, r]) => { if (r.d || !qKonu[id]) return; const k = qKonu[id]; (gr[k.id] = gr[k.id] || { k, l: [] }).l.push(id); });
   const g = Object.values(gr);
   if (!g.length) return `<div class="bos"><div class="ik">🎯</div>Henüz yanlışın yok. Soru çözdükçe yanlış yaptıkların burada toplanır.</div>`;
-  return g.map(({ k, l }) => {
+  return (TYT ? '' : foyKart(secSinif(), null, true)) + g.map(({ k, l }) => {
     const liste = sirali(k).map(q => q.id);
     return `<h2 class="baslik2">${esc(k.ad)}<small>${l.length} soru</small></h2><div class="soru-liste">${l.map(id => { const i = liste.indexOf(id), q = qBul(id); return `<a class="sl y" href="#/soru/${k.id}/${i}/tekrar"><span class="no">${i + 1}</span><span class="sl-m"><b>${esc(q.metin.replace(/\{\{[a-z]+\}\}/g, '').replace(/\$[^$]*\$/g, '…').replace(/\*\*/g, '').replace(/\s+/g, ' ').slice(0, 90))}</b><small>${ETK.etkMi(q) ? ETK.TUR_AD[q.tur] + ', tekrar' : 'Tekrar'} çöz, doğru yaparsan yarım XP</small></span><span class="yz">${yildiz(q.zorluk)}</span></a>`; }).join('')}</div>`;
   }).join('');
@@ -138405,7 +138406,7 @@ function hataProfil() {
 <details class="hp-calis" data-hp="${t}"><summary>Bu hatayı çalış</summary><div class="hp-liste"></div></details></div>`;
   });
   h += `<p class="hp-dip">${kalan > 0 ? `Öbür ${kalan} yanlışın başka türlere dağılıyor. ` : ''}Profil, yanlış seçtiğin şıkkın çözümdeki açıklamasına göre hesaplanır; soru çözdükçe güncellenir.</p></div>`;
-  return h;
+  return h + (TYT ? '' : foyKart(sn, L));
 }
 function hpListeDoldur(d) {
   const kutu = d.querySelector('.hp-liste'); if (!kutu || kutu.dataset.dolu) return;
@@ -138415,6 +138416,230 @@ function hpListeDoldur(d) {
     : `<p class="hp-dip">Bu türden çözmediğin soru kalmadı. Yanlışlarını “Yanlışlarım” ekranından tekrar çöz.</p>`;
 }
 document.addEventListener('toggle', e => { const d = e.target; if (d.matches && d.matches('details.hp-calis') && d.open) hpListeDoldur(d); }, true);
+
+/* ---------------- Benim Föyüm (11 Kasım 2026) ----------------
+   Öğrencinin kendi yanlışlarından kişisel çalışma föyü (Yapabilirim 9/10/11, lisanslı):
+   kapak (en sık yaptığı 3 hata türü), her tür için kısa hatırlatma, o türde yanlış yaptığı sorular ve aynı türden yeni sorular,
+   her sorunun altında çözüm alanı; sonda cevap anahtarı, eski cevabının neden olmadığı ve adım adım çözümler.
+   Föy tamamen cihazda üretilir, hiçbir veri gönderilmez. Gizli havuz: window.BFY_FOY_HAVUZ = { 11: [soru, …] } (soru.hata: { şıkIndex: tür }). */
+const FOY_HAVUZ = window.BFY_FOY_HAVUZ || {}; // havuz soruları kitap kimlikleriyle çakışmamalı (ör. 'FH11_01'), tur:'cs', cozum dizisi olmalı
+const FOY_CSS = `
+.foy-kart{display:flex;gap:14px;align-items:flex-start;margin:14px 0;padding:16px;border-radius:18px;border:1.5px solid color-mix(in srgb,var(--copper) 45%,var(--ui-line));background:linear-gradient(135deg,color-mix(in srgb,var(--copper) 11%,var(--ui-card)),var(--ui-card))}
+.foy-kart .fk-ik{flex:none;width:46px;height:58px;border-radius:6px 12px 12px 6px;background:#fff;border:1.5px solid color-mix(in srgb,var(--copper) 55%,#fff);box-shadow:3px 3px 0 color-mix(in srgb,var(--copper) 30%,#fff);display:grid;place-items:center;font-size:22px}
+.foy-kart .fk-m{flex:1;min-width:0}.foy-kart .fk-m b{display:block;font-size:16px;line-height:1.3}
+.foy-kart .fk-m p{margin:4px 0 10px;font-size:14px;color:var(--ui-muted);line-height:1.45}
+.foy-kart .btn{width:auto;display:inline-flex}.foy-kart .kilit-bant{margin:6px 0 0}
+.foy-kart .fk-not{font-size:13px;font-weight:600;color:var(--ink2,var(--ui-muted))}
+#foy{position:fixed;inset:0;z-index:9000;background:#e9e4da;overflow:auto;-webkit-overflow-scrolling:touch}
+#foy .fy-arac{position:sticky;top:0;z-index:2;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 12px;background:rgba(233,228,218,.94);backdrop-filter:blur(8px);border-bottom:1px solid #d8d0c0}
+#foy .fy-arac .btn{width:auto;flex:none}
+#foy .fy-kagit{max-width:800px;margin:16px auto 40px;background:#fff;color:#14202a;box-shadow:0 6px 30px rgba(0,0,0,.12);border-radius:6px;padding:34px 38px;font-size:15px;line-height:1.5}
+@media (max-width:600px){#foy .fy-kagit{margin:0;border-radius:0;padding:22px 16px}}
+#foy h1,#foy h2,#foy h3{color:#14202a;margin:0}
+.fy-kapak .fy-marka{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#b0603a}
+.fy-kapak h1{font-size:40px;line-height:1.05;margin:8px 0 6px;letter-spacing:-.02em}
+.fy-kapak .fy-alt{margin:0 0 18px;color:#4a5a66;font-size:16px}
+.fy-bilgi{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;border:1.5px solid #14202a;border-radius:10px;overflow:hidden;margin-bottom:22px}
+.fy-bilgi>div{padding:8px 11px;border-left:1.5px solid #14202a}.fy-bilgi>div:first-child{border-left:0}
+.fy-bilgi small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6a7882}
+.fy-bilgi b{display:block;font-size:17px;min-height:24px}
+@media (max-width:600px){.fy-bilgi{grid-template-columns:1fr 1fr}.fy-bilgi>div:nth-child(3){border-left:0}.fy-bilgi>div:nth-child(n+3){border-top:1.5px solid #14202a}}
+.fy-kh{font-size:19px!important;margin:0 0 10px!important}
+.fy-tur{display:grid;grid-template-columns:34px 1fr;gap:4px 12px;padding:12px 0;border-top:1px solid #e3e8ec}
+.fy-tur .fy-tn{grid-row:span 3;width:34px;height:34px;border-radius:50%;background:#14202a;color:#fff;display:grid;place-items:center;font-weight:800}
+.fy-tur b{font-size:16px}.fy-tur .fy-ks{font-size:12.5px;font-weight:700;color:#b0603a;margin-left:6px}
+.fy-tur p{margin:0;font-size:14px;color:#33424d}.fy-tur p.fy-kc{color:#1d5a3a}
+.fy-nasil{margin-top:16px;background:#f4f7f9;border-radius:10px;padding:12px 14px;font-size:13.5px}
+.fy-nasil ol{margin:6px 0 0;padding-left:20px}.fy-nasil li{margin:2px 0}
+.fy-bolum{margin-top:30px}.fy-bolum.ilk{margin-top:34px}
+.fy-bb{display:flex;align-items:center;gap:12px;border-bottom:2.5px solid #14202a;padding-bottom:8px}
+.fy-bb .fy-tn{flex:none;width:40px;height:40px;border-radius:50%;background:#b0603a;color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.fy-bb small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6a7882}
+.fy-bb h2{font-size:21px}
+.fy-hat{margin:12px 0 6px;border-left:4px solid #b0603a;background:#fbf4ef;padding:10px 13px;border-radius:0 10px 10px 0;font-size:14px}
+.fy-hat p{margin:0 0 4px}.fy-hat p:last-child{margin:0}
+.fy-soru{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;padding:14px 0 4px;border-top:1px dashed #cfd8de;break-inside:avoid;page-break-inside:avoid}
+.fy-bas+.fy-soru{border-top:0}.fy-bas{break-inside:avoid;page-break-inside:avoid;break-after:avoid;page-break-after:avoid}.fy-soru.uzun{break-inside:auto;page-break-inside:auto}.fy-soru.uzun .fy-sec,.fy-soru.uzun .fy-alan{break-inside:avoid;page-break-inside:avoid}
+.fy-no{width:28px;height:28px;border-radius:8px;border:1.8px solid #14202a;display:grid;place-items:center;font-weight:800;font-size:14px}
+.fy-et{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:2px 8px;margin-bottom:6px;background:#fdeee6;color:#a2502d}
+.fy-et.yeni{background:#e6f3ec;color:#1d6a43}
+.fy-ic .q-metin p{margin:0 0 6px}
+.fy-ic svg,.fy-ic canvas,.fy-ic img{max-width:100%;height:auto}
+.fy-ic .dj-sekil,.fy-ic .q-sekil-ic{margin:6px 0;text-align:center}.fy-ic .dj-sekil svg,.fy-ic .q-sekil-ic svg{max-height:42mm;width:auto;max-width:100%}
+.fy-ic table{border-collapse:collapse;margin:6px 0;font-size:13.5px}.fy-ic td,.fy-ic th{border:1px solid #b8c4cc;padding:3px 8px}
+.fy-sec{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}
+.fy-sec.tek{grid-template-columns:1fr}
+.fy-sec li{display:flex;gap:6px;align-items:baseline}.fy-sec li>b{flex:none}
+.fy-alan{margin-top:10px;height:28mm;border:1.2px dashed #b8c4cc;border-radius:8px;position:relative;background-image:radial-gradient(#d6dde2 .8px,transparent .8px);background-size:5mm 5mm}
+.fy-alan span{position:absolute;top:4px;left:8px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a979f;background:#fff;padding:0 3px}
+.fy-anahtar{margin-top:30px}
+.fy-anahtar h2{font-size:22px;border-bottom:2.5px solid #14202a;padding-bottom:8px;margin-bottom:12px!important}
+.fy-tablo{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.fy-tablo span{border:1.5px solid #14202a;border-radius:8px;padding:4px 10px;font-weight:700}
+.fy-cz{padding:10px 0;border-top:1px solid #e3e8ec;break-inside:avoid;page-break-inside:avoid;font-size:14px}
+.fy-cz>b{font-size:15px}.fy-cz .fy-eski{margin:4px 0 0;color:#a2502d;font-weight:600}
+.fy-cz ol{margin:6px 0 0;padding-left:20px}.fy-cz li{margin:3px 0}
+.fy-cz .neden{margin-top:6px;background:#fbf4ef;border-radius:8px;padding:8px 11px}
+.fy-cz .neden-bas{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-bottom:3px}
+.fy-cz .ht-et{font-size:11.5px;font-weight:700;color:#a2502d}
+.fy-dip{margin-top:22px;font-size:12px;color:#6a7882;text-align:center}
+#foy .baglam-dj{background:#f4f7f9;border-radius:10px;padding:10px 13px;margin:0 0 8px;font-size:14px}
+#foy .baglam-dj .bg-ust{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6a7882;margin-bottom:4px}
+#foy .baglam-dj h4{margin:0 0 4px;font-size:15px}#foy .bg-kaynak{font-size:12px;color:#6a7882;margin-top:4px}
+.fy-gov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
+.fy-gov .dj-sekil{margin:0}.fy-gov .dj-sekil svg{max-width:62mm!important;max-height:44mm!important}
+@media (max-width:600px){.fy-gov{grid-template-columns:1fr}}
+@media screen{body.foy-acik{overflow:hidden}}
+@media print{
+  body.foy-acik,html:has(body.foy-acik){height:auto!important;overflow:visible!important;background:#fff!important}
+  body.foy-acik>*:not(#foy){display:none!important}
+  body.foy-acik #foy{position:static;overflow:visible;background:#fff}
+  body.foy-acik #foy .fy-arac{display:none}
+  body.foy-acik #foy .fy-kagit{max-width:none;margin:0;box-shadow:none;border-radius:0;padding:0;font-size:11pt}
+  body.foy-acik #foy .fy-bolum{margin-top:8mm}
+  body.foy-acik #foy .fy-bolum:first-of-type,body.foy-acik #foy .fy-anahtar{break-before:page;page-break-before:always;margin-top:0}
+  body.foy-acik #foy .tb-dar{display:none!important}body.foy-acik #foy .tb-genis{display:block!important}
+  body.foy-acik #foy *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}`;
+if (!TYT) { const st = document.createElement('style'); st.id = 'foyCss'; st.textContent = FOY_CSS; document.head.appendChild(st); }
+
+const foyTurler = L => { const say = {}; L.forEach(x => { say[x.tur] = (say[x.tur] || 0) + 1; }); return { say, ilk: YN.SIRA.filter(t => t !== 'diger' && say[t]).sort((a, b) => say[b] - say[a] || YN.SIRA.indexOf(a) - YN.SIRA.indexOf(b)).slice(0, 3) }; };
+// İlerleme ve Yanlışlarım ekranındaki kart. bosGizle: bu sınıfta hiç yanlış yoksa kart çıkmaz (Yanlışlarım bütün sınıfları listeler).
+function foyKart(sn, L, bosGizle) {
+  if (TYT || !YN) return '';
+  L = L || hpYanlislar(sn);
+  if (bosGizle && !L.length) return '';
+  const ust = `<div class="foy-kart"><span class="fk-ik" aria-hidden="true">📄</span><div class="fk-m"><b>Benim Föyüm${gorunurSiniflar().length > 1 ? ` · ${esc(SA(sn))}` : ''}</b><p>Kendi yanlışlarından sana özel çalışma föyü: en sık yaptığın 3 hata türü, her biri için kısa hatırlatma, yanlış yaptığın sorular ve aynı türden yeni sorular. Sonda cevap anahtarı ve çözümler. Yazdır ya da PDF olarak kaydet.</p>`;
+  if (!sinifSeviye(sn)) return ust + kilitBant(`Benim Föyüm ${SA(sn)} lisansıyla açılır.`, sn) + `</div></div>`;
+  if (L.length < 3) return ust + `<span class="fk-not">Föyün için ${esc(SA(sn))} sorularında en az 3 yanlış cevabın olmalı${L.length ? ` (şu an ${L.length})` : ''}. Soru çözdükçe açılır.</span></div></div>`;
+  if (!foyTurler(L).ilk.length) return ust + `<span class="fk-not">Yanlışların henüz belirli bir hata türünde toplanmıyor. Birkaç soru daha çözünce föyün hazırlanır.</span></div></div>`;
+  return ust + `<button type="button" class="btn yesil ince" data-foy="${sn}">Föyümü hazırla</button></div></div>`;
+}
+// Aynı türde çeldiricisi olan, henüz doğru çözülmemiş kitap soruları: önce öğrencinin bu türde hata yaptığı konular, önce hiç çözülmemişler.
+const foySetK = q => q && q.set ? 'set:' + (q.set.baslik || String(q.set.metin || '').slice(0, 60)) : null;
+function foyYeniBul(t, sn, L, haric, adet) {
+  const onc = {}; L.filter(x => x.tur === t && qKonu[x.id]).forEach(x => { const k = qKonu[x.id].id; onc[k] = (onc[k] || 0) + 1; });
+  const konular = tumKonular().filter(k => k.sinif === sn).map(k => BANK[k.id]).filter(Boolean).sort((a, b) => (onc[b.id] || 0) - (onc[a.id] || 0));
+  const S = [];
+  for (const cozulmus of [false, true]) for (const k of konular) for (const q of sirali(k)) {
+    if (S.length >= adet) return S;
+    const r = K.q[q.id];
+    if (q.tur !== 'cs' || !acik(k, q) || (r && r.d) || !!r !== cozulmus || haric.has(q.id) || haric.has(q.orj) || haric.has(foySetK(q))) continue;
+    if (q.secenekler.some((_, i) => i !== q.dogru && YN.sikTur(QH[q.id] || q, i) === t)) { haric.add(q.id); if (q.set) haric.add(foySetK(q)); S.push({ q, onceki: !!r }); }
+  }
+  return S;
+}
+// Föyün soruları. 1. geçiş: her hata türüne öğrencinin o türde yanlış yaptığı sorular (en çok 2; hâlâ yanlış olanlar ve en yeniler önce).
+// 2. geçiş: bölüm 4 soruya tamamlanır (önce gizli havuz, sonra kitap). Sorusu çıkmayan tür föye girmez.
+function foyVeri(sn) {
+  const L = hpYanlislar(sn), { say, ilk } = foyTurler(L);
+  const haric = new Set(L.map(x => x.id)), kul = new Set();
+  const B = ilk.map(t => {
+    const aday = L.map((x, i) => ({ ...x, i })).filter(x => x.tur === t).map(x => ({ ...x, h: K.q[x.id] && !K.q[x.id].d ? 1 : 0 })).sort((a, b) => b.h - a.h || b.i - a.i);
+    const yan = [];
+    for (const x of aday) { if (yan.length >= 2) break; const sk = foySetK(QH[x.id]); if (kul.has(x.id) || (sk && kul.has(sk))) continue; kul.add(x.id); if (sk) { kul.add(sk); haric.add(sk); } yan.push({ q: qBul(x.id), s: x.s, eski: true, hala: !!x.h }); }
+    return { t, n: say[t], sorular: yan };
+  });
+  B.forEach(b => {
+    const hedef = 4 - b.sorular.length;
+    const havuz = (FOY_HAVUZ[sn] || []).filter(q => q && q.id && !QH[q.id] && q.tur === 'cs' && Array.isArray(q.cozum) && Array.isArray(q.secenekler) && q.hata && Object.values(q.hata).includes(b.t) && !haric.has(q.id));
+    const yeni = havuz.slice(0, hedef).map(q => { haric.add(q.id); return { q: soruHazirla(q), havuz: true }; });
+    b.sorular = b.sorular.concat(yeni, foyYeniBul(b.t, sn, L, haric, hedef - yeni.length));
+  });
+  return { sn, L, bolumler: B.filter(b => b.sorular.length) };
+}
+function foySoruHTML(q, no, etiket, yeni) {
+  const genis = ['grafikSec', 'grafikler'].includes(q.sekil) || /_genis$/.test(q.sekil || '');
+  const fig = q.sekil ? window.BFY_FIG(q.sekil) : '';
+  const ctx = { tablo: q.tablo ? tabloBaslikli(q.tablo) : '', sekil: q.sekil ? `<div class="q-sekil-ic ${genis ? 'genis' : ''}">${fig}</div>` : '' };
+  const ops = q.sira.map(i => q.secenekler[i]);
+  const kisa = ops.every(o => o.replace(/\$([^$]*)\$/g, (m, x) => 'x'.repeat(Math.max(3, Math.ceil(1.6 * x.replace(/\\[a-zA-Z]+/g, 'x').replace(/[{}_^\s]/g, '').length)))).length <= 22);
+  const yan = q.sekil && !genis && !/\{\{sekil\}\}/.test(q.metin);
+  const metin = `<div class="q-metin">${md(q.metin, ctx)}</div>`;
+  const bag = q.set ? baglamKart(q).replace(/<div class="bg-ust">[^<]*<\/div>/, '<div class="bg-ust">Bağlam metni</div>') : '';
+  return `<div class="fy-soru ${q.set ? 'uzun' : ''}"><div class="fy-no">${no}</div><div class="fy-ic"><span class="fy-et ${yeni ? 'yeni' : ''}">${etiket}</span>${bag}
+${yan ? `<div class="fy-gov">${metin}<div class="dj-sekil">${fig}</div></div>` : metin + (q.sekil && !/\{\{sekil\}\}/.test(q.metin) ? `<div class="dj-sekil genis">${fig}</div>` : '')}
+<ol class="fy-sec ${kisa ? '' : 'tek'}">${ops.map((o, i) => `<li><b>${HARF[i]})</b><span>${inline(o)}</span></li>`).join('')}</ol>
+<div class="fy-alan"><span>Çözüm alanı</span></div></div></div>`;
+}
+const foyBugun = () => new Date();
+const foyTarih = () => foyBugun().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+const foyDosyaTarih = () => { const d = foyBugun(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+function foyHTML(V) {
+  const { sn, L, bolumler } = V; let no = 0; const anahtar = [];
+  const N = bolumler.reduce((a, b) => a + b.sorular.length, 0);
+  let h = `<section class="fy-kapak"><div class="fy-marka">Ben Fizik Yapabilirim · ${esc(SA(sn))}</div><h1>Benim Föyüm</h1><p class="fy-alt">Kendi yanlışlarından sana özel hazırlanmış çalışma föyü</p>
+<div class="fy-bilgi"><div><small>Ad Soyad</small><b></b></div><div><small>Tarih</small><b>${esc(foyTarih())}</b></div><div><small>Yanlış cevap</small><b>${L.length}</b></div><div><small>Soru sayısı</small><b>${N}</b></div></div>
+<h2 class="fy-kh">En sık yaptığın ${bolumler.length === 1 ? 'hata türü' : bolumler.length + ' hata türü'}</h2>
+${bolumler.map((b, i) => { const T = YN.TURLER[b.t]; return `<div class="fy-tur"><span class="fy-tn">${i + 1}</span><div><b>${esc(T.ad)}</b><span class="fy-ks">${b.n} kez</span></div><p>${esc(T.aciklama)}</p><p class="fy-kc"><b>Nasıl kaçınırsın?</b> ${esc(T.kacin)}</p></div>`; }).join('')}
+<div class="fy-nasil"><b>Bu föyle nasıl çalışırsın?</b><ol><li>Her bölümün başındaki hatırlatmayı oku.</li><li>Soruları çözüm alanında, cevap anahtarına bakmadan çöz.</li><li>Cevaplarını sondaki anahtardan kontrol et. Yanlış yaptığın sorunun çözümünü oku, sonra benzer bir soruyu uygulamada çöz.</li></ol></div></section>`;
+  bolumler.forEach((b, i) => {
+    const T = YN.TURLER[b.t];
+    h += `<section class="fy-bolum ${i ? '' : 'ilk'}"><div class="fy-bas"><div class="fy-bb"><span class="fy-tn">${i + 1}</span><div><small>Hata türü ${i + 1}</small><h2>${esc(T.ad)}</h2></div></div>
+<div class="fy-hat"><p>${esc(T.aciklama)}</p><p><b>Nasıl kaçınırsın?</b> ${esc(T.kacin)}</p></div></div>`;
+    b.sorular.forEach(x => {
+      no++;
+      const et = x.eski ? (x.hala ? 'Yanlış yaptığın soru' : 'Daha önce yanlış yaptığın soru') : x.onceki ? 'Daha önce takıldığın soru' : 'Yeni soru';
+      h += foySoruHTML(x.q, no, et, !x.eski && !x.onceki);
+      anahtar.push({ no, t: b.t, ...x });
+    });
+    h += `</section>`;
+  });
+  h += `<section class="fy-anahtar"><h2>Cevap anahtarı ve çözümler</h2><div class="fy-tablo">${anahtar.map(x => `<span>${x.no}. ${HARF[x.q.sira.indexOf(x.q.dogru)]}</span>`).join('')}</div>`;
+  anahtar.forEach(x => {
+    const q = x.q, T = YN.TURLER[x.t];
+    const neden = x.eski ? nedenHTML(q, x.s).replace(/(<span class="ht-et"[^>]*>)[^<]*/, `$1Hata türü: ${esc(T.ad)}`) : '';
+    h += `<div class="fy-cz"><b>${x.no}. soru · Cevap: ${HARF[q.sira.indexOf(q.dogru)]}</b>${x.eski ? `<p class="fy-eski">Uygulamada bu soruda ${HARF[q.sira.indexOf(x.s)]} şıkkını işaretlemiştin.</p>` : ''}
+${neden}<ol>${q.cozum.map(c => `<li>${mdAdim(harfle(q, c))}</li>`).join('')}</ol></div>`;
+  });
+  h += `<p class="fy-dip">Benim Föyüm · ${esc(SA(sn))} · ${esc(foyTarih())} · Bu föy senin cihazında hazırlandı; yanlışların hiçbir yere gönderilmedi. Ben Fizik Yapabilirim, Timur Hoca</p></section>`;
+  return h;
+}
+let foyEskiBaslik = '', foyGecmis = false, foyDon = null, foyPage = null;
+function foyAc(sn, kaynak) {
+  if (TYT || !YN || !sinifSeviye(sn)) return;
+  const V = foyVeri(sn); if (!V.bolumler.length) return;
+  foyKapat();
+  const d = document.createElement('div'); d.id = 'foy'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-label', 'Benim Föyüm');
+  d.innerHTML = `<div class="fy-arac"><button type="button" class="btn yesil ince" data-foy-yazdir>🖨️ Yazdır / PDF olarak kaydet</button><button type="button" class="btn cizgi ince" data-foy-kapat>Kapat</button></div><div class="fy-kagit">${foyHTML(V)}</div>`;
+  document.body.appendChild(d); document.body.classList.add('foy-acik');
+  // Sayfa kenar boşluğu yalnız föy açıkken (uygulamanın öbür baskılarını etkilemesin)
+  foyPage = document.createElement('style'); foyPage.textContent = '@media print{@page{size:A4;margin:13mm 14mm}}'; document.head.appendChild(foyPage);
+  foyEskiBaslik = document.title; document.title = `Benim_Foyum_${sn}_sinif_${foyDosyaTarih()}`;
+  foyDon = kaynak || null;
+  try { history.pushState({ foy: 1 }, ''); foyGecmis = true; } catch (e) { foyGecmis = false; }
+  const b = d.querySelector('[data-foy-yazdir]'); if (b) b.focus();
+}
+function foyKapat(geriAl) {
+  const d = document.getElementById('foy'); if (!d) return;
+  d.remove(); document.body.classList.remove('foy-acik');
+  if (foyPage) { foyPage.remove(); foyPage = null; }
+  if (foyEskiBaslik) { document.title = foyEskiBaslik; foyEskiBaslik = ''; }
+  if (geriAl && foyGecmis) { foyGecmis = false; try { history.back(); } catch (e) { } } else foyGecmis = false;
+  if (foyDon && document.contains(foyDon)) { try { foyDon.focus(); } catch (e) { } } foyDon = null;
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-foy]'); if (a) { foyAc(+a.dataset.foy, a); return; }
+  if (e.target.closest('[data-foy-kapat]')) { foyKapat(true); return; }
+  if (e.target.closest('[data-foy-yazdir]')) { window.print(); }
+});
+document.addEventListener('keydown', e => {
+  const d = document.getElementById('foy'); if (!d) return;
+  if (e.key === 'Escape') { foyKapat(true); return; }
+  if (e.key === 'Tab') { const f = [...d.querySelectorAll('button,a[href]')]; if (!f.length) return; const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } }
+});
+window.addEventListener('popstate', () => { if (document.getElementById('foy')) { foyGecmis = false; foyKapat(false); } });
+window.addEventListener('hashchange', () => { if (document.getElementById('foy')) foyKapat(false); });
+// Ana ekranda bir kez "Yeni: Benim Föyüm" kartı. Kapatılınca K.ayar.yeni4.
+function yeniKart4() {
+  if (TYT || !YN || K.ayar.yeni4) return '';
+  const sn = secSinif();
+  const lis = sinifSeviye(sn) > 0, L = lis ? hpYanlislar(sn) : [], hazir = lis && L.length >= 3 && foyTurler(L).ilk.length > 0;
+  return `<section class="yeni-kart" aria-label="Yenilikler"><div class="yk-ust"><span class="yk-rozet">Yeni</span><b>Benim Föyüm: Kitabın sana özel bir föy hazırlıyor</b><button type="button" class="yk-kapat" data-yeni-kapat="yeni4" aria-label="Kapat">✕</button></div>
+<div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">📄</span><div><b>Kendi yanlışlarından çalışma föyü</b><p>Kitap yanlışlarını hata türlerine ayırır. En sık yaptığın 3 hata türü için kısa bir hatırlatma, yanlış yaptığın sorular ve aynı türden yeni sorularla sana özel bir föy hazırlar. Sonda cevap anahtarı ve çözümler var. Yazdır ya da PDF olarak kaydet.</p></div></div>
+${lis ? '' : kilitBant(`Benim Föyüm ${SA(sn)} lisansıyla açılır.`, sn)}
+<div class="yk-alt">${hazir ? `<button type="button" class="btn yesil ince" data-foy="${sn}">Föyümü hazırla</button>` : lis ? '<a class="btn yesil ince" href="#/ilerleme">Hata profilime git</a>' : ''}<button type="button" class="btn cizgi ince" data-yeni-kapat="yeni4">Anladım</button></div>${lis && !hazir ? '<p class="yk-not" style="margin:8px 0 0;font-size:13px;color:var(--ui-muted)">En az 3 yanlışın olunca föyünü İlerleme ekranından da hazırlayabilirsin.</p>' : ''}</section>`;
+}
 
 /* ---------------- Kalem (mürekkep) katmanı ---------------- */
 const INK = { aktif: false, arac: 'kalem', renk: '#1c2b36', sadeceKalem: false, gecmis: [] };
