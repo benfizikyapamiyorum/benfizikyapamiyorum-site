@@ -1274,6 +1274,18 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
 .sf-bag small{display:block;font-weight:600;font-size:13px;color:#4b6059;margin-top:1px}
 .sf-bag-ik{flex:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--green);color:#fffef4;font-size:18px}
 @media (max-width:420px){.sf-nok{gap:5px}.sf-nok button{width:30px;height:30px;font-size:12px;border-radius:9px}.sf-ayr{width:6px}}
+
+/* Timur Hoca soruyor kartı */
+.anket-kart .ak-p{margin:2px 0 10px;font-size:13.5px;line-height:1.5;color:var(--ui-muted,inherit)}
+.anket-kart .gp-istek{display:flex;flex-wrap:wrap;gap:6px}
+.anket-kart .gp-istek button{font:inherit;font-size:13.5px;padding:8px 12px;border-radius:999px;border:1.5px solid var(--ui-line);background:var(--ui-card);color:var(--ui-text);cursor:pointer}
+.anket-kart .gp-istek button[aria-checked="true"]{background:#244f40;border-color:#244f40;color:#fff}
+.anket-kart .ak-et{display:block;font-size:13.5px;font-weight:600;margin:12px 0 6px}
+.anket-kart textarea{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px 12px;border:1.5px solid var(--ui-line);border-radius:10px;background:var(--ui-card);color:var(--ui-text);resize:vertical;min-height:72px}
+.anket-kart .gp-hata{color:#b3261e;font-size:13px;min-height:16px;margin-top:4px}
+.anket-kart .yk-alt{flex-wrap:nowrap}.anket-kart .yk-alt .btn{flex:1 1 0;width:auto;margin:0}.anket-kart .yk-alt .btn.cizgi{flex:0 0 auto}
+/* Aylık denemeler (9/10/11): listede "Yeni" rozeti */
+.yk-rozet.ay-rozet{display:inline-block;vertical-align:2px;margin-left:6px;font-size:10px;padding:2px 7px}
 </style>
 </head>
 <body class="dj">
@@ -60490,9 +60502,18 @@ function icindekilerBlok(ks, notVar, soruVar) {
    şık sırası form koduna bağlı olarak karışır (sayısal, harf ve I-II-III seçenekleri motor kuralıyla sabit kalır). */
 const TYT_UCRETSIZ = UR.ucretsiz;
 const tytTestler = () => window.BFY_TYT_TEST || {};
-const tytTestListe = () => Object.keys(tytTestler()).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
-const tytTestAcik = id => TYT_UCRETSIZ.includes(id) || S.seviye > 0;
-const dnSecili = () => S.denemeler.filter(id => tytTestler()[id] && tytTestAcik(id)).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
+/* Aylık denemeler (Yapabilirim 9/10/11 oluşturucusu): window.BFY_TYT_TEST içinde tur: 'aylik', sinif: 9|10|11 (src/aylik/AY<S>_<ay>.js).
+   Aynı kitapçık düzeniyle basılır: seçili sınıfın denemeleri listelenir, yalnız o sınıfın lisansıyla basılır, kapak yok.
+   Şık sırası uygulamayla aynıdır (A kitapçığı: soru kimliğine bağlı karıştırma). Okul adı alanı boş kalabilir. */
+const AY_AD = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const aySira = t => (String(t.yil || '').slice(0, 4) || '0') + String(((+t.ay || 0) + 3) % 12).padStart(2, '0');
+const aylikMod = () => !window.BFYTYT;
+const dnMod = () => S.tur === 'deneme' && (S.sinif >= 20 || (aylikMod() && tytTestListe().length > 0));
+// Kitapçıktaki deneme etiketi: TYT'de kimlik (TD01), aylıkta "Kasım denemesi"
+const dnEt = t => (t.tur === 'aylik' ? (AY_AD[t.ay] || '') + ' denemesi' : t.id);
+const tytTestListe = () => { const T = tytTestler(); return aylikMod() ? Object.keys(T).filter(id => T[id].tur === 'aylik' && T[id].sinif === S.sinif).sort((a, b) => aySira(T[a]).localeCompare(aySira(T[b])) || a.localeCompare(b, 'tr', { numeric: true })) : Object.keys(T).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true })); };
+const tytTestAcik = id => (aylikMod() ? S.seviye > 0 : TYT_UCRETSIZ.includes(id) || S.seviye > 0);
+const dnSecili = () => { const L = tytTestListe(); return S.denemeler.filter(id => tytTestler()[id] && tytTestAcik(id) && L.includes(id)).sort((a, b) => L.indexOf(a) - L.indexOf(b)); };
 function dnFormlar() { return S.mod === 'ogretmen' && S.ab && S.seviye >= 2 ? ['A', 'B'] : ['A']; }
 function dnHazirla(t, harf) {
   const qs = t.sorular.map(q => ({ ...q, tur: 'cs' }));
@@ -60534,6 +60555,13 @@ function dnDagilim(ts) {
   return `<h3>Soruların ünitelere dağılımı</h3><div class="dk-dag">${sin.uniteler.map(u => `<div><span class="dd-ad">${u.no}. ${esc(u.ad)}</span><span class="dd-cb"><i style="width:${Math.round(100 * (say[u.no] || 0) / en)}%"></i></span><b>${say[u.no] || 0}</b></div>`).join('')}</div>`;
 }
 function dnBasBlok(t, harf, ab) {
+  if (t.tur === 'aylik') return `<div class="blk dn-bas dn-aylik">
+    <div class="db-ust"><span class="db-marka">YAPABİLİRİM ${t.sinif} · FİZİK</span><span class="db-kod">${esc((AY_AD[t.ay] || '').toLocaleUpperCase('tr-TR'))} ${esc(String(t.yil || ''))}${ab ? ` <b>${harf} KİTAPÇIĞI</b>` : ''}</span></div>
+    <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${t.sinif}. Sınıf Fizik – Türkiye Yüzyılı Maarif Modeli${t.kapsam ? ' – ' + esc(t.kapsam) : ''}</div></div>
+      <div class="db-sure"><b>${dnSure(t)}</b><span>dakika</span></div></div>
+    <table class="db-tab"><tr><th>Adı Soyadı</th><td class="db-genis">${S.mod === 'ogrenci' && S.ad.trim() ? esc(S.ad.trim()) : ''}</td><th>Sınıfı / No</th><td class="db-orta-h"></td><th>D</th><td class="db-k"></td><th>Y</th><td class="db-k"></td><th>Net</th><td class="db-k"></td></tr><tr><th>Okul</th><td class="db-genis" colspan="9">${esc(S.okul.trim())}</td></tr></table>
+    <div class="db-yon"><span>Bu testte <b>${t.sorular.length} soru</b> vardır. Her sorunun tek doğru cevabı vardır. Net = D − Y ÷ 4.</span><span class="db-saat">Başlama <i></i> Bitiş <i></i></span></div>
+  </div>`;
   return `<div class="blk dn-bas">
     <div class="db-ust"><span class="db-marka">${UR.ad.toLocaleUpperCase('tr-TR')}</span><span class="db-kod">${esc(t.id)}${ab ? ` <b>${harf} KİTAPÇIĞI</b>` : ''}</span></div>
     <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${dnTarama(t) ? 'Ünite taraması' : (UR.sinav === 'AYT' ? 'Alan Yeterlilik Testi – Fen Bilimleri: Fizik' : 'Temel Yeterlilik Testi – Fen Bilimleri: Fizik')}${S.mod === 'ogretmen' && S.okul.trim() ? ' – ' + esc(S.okul.trim()) : ''}</div></div>
@@ -60562,8 +60590,9 @@ function dnSoruHTML(q, no, tam) {
 }
 // Optik cevap şeridi: her soru için A–E yuvarlakları
 function dnOptikBlok(t, n) {
-  return `<div class="blk dn-son"><div class="ds-yazi">${esc(t.id)} bitti. Cevaplarınızı kontrol ediniz.</div>${S.dn.optik ? `<div class="ds-optik"><span class="ds-et">Cevaplarım</span><div class="ds-izg">${Array.from({ length: n }, (_, i) => `<div class="ds-s"><i>${i + 1}</i>${HARF.map(h => `<span>${h}</span>`).join('')}</div>`).join('')}</div></div>` : ''}</div>`;
+  return `<div class="blk dn-son"><div class="ds-yazi">${esc(t.tur === 'aylik' ? 'Deneme' : t.id)} bitti. Cevaplarınızı kontrol ediniz.</div>${S.dn.optik ? `<div class="ds-optik"><span class="ds-et">Cevaplarım</span><div class="ds-izg">${Array.from({ length: n }, (_, i) => `<div class="ds-s"><i>${i + 1}</i>${HARF.map(h => `<span>${h}</span>`).join('')}</div>`).join('')}</div></div>` : ''}</div>`;
 }
+const x0Aylik = L => L.length > 0 && L[0].t.tur === 'aylik';
 function dnAnahtarBloklari(ids, formlar) {
   const T = tytTestler(), B = [];
   B.push(`<div class="blk bolum"><span class="bn cz">ANAHTAR</span><h2>Cevap anahtarı</h2><span class="bc">${dnSayiYazi(ids)}${formlar.length > 1 ? ', A ve B kitapçığı' : ''}</span></div>`);
@@ -60575,7 +60604,7 @@ function dnAnahtarBloklari(ids, formlar) {
       if (Object.keys(gr).length > 1) B.push(`<div class="blk da-gr">${L.every(x => dnTarama(x.t)) ? 'Ünite taramaları' : L.every(x => !dnTarama(x.t)) ? 'Denemeler' : n + ' soruluk kitapçıklar'}</div>`);
       for (let i = 0; i < L.length; i += 12) {
         const p = L.slice(i, i + 12);
-        B.push(`<div class="blk dn-an">${formlar.length > 1 ? `<div class="da-f">${harf} kitapçığı</div>` : ''}<table class="da-tab"><thead><tr><th>Kod</th>${Array.from({ length: +n }, (_, j) => `<th>${j + 1}</th>`).join('')}</tr></thead><tbody>${p.map(x => `<tr><td class="da-id">${esc(x.t.id)}</td>${x.qs.map(q => `<td><b>${dogruHarf(q)}</b><small>${esc(String(q.konu || '').replace(/^[TYA]\./, ''))}</small></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+        B.push(`<div class="blk dn-an">${formlar.length > 1 ? `<div class="da-f">${harf} kitapçığı</div>` : ''}<table class="da-tab"><thead><tr><th>${x0Aylik(L) ? 'Deneme' : 'Kod'}</th>${Array.from({ length: +n }, (_, j) => `<th>${j + 1}</th>`).join('')}</tr></thead><tbody>${p.map(x => `<tr><td class="da-id">${esc(dnEt(x.t))}</td>${x.qs.map(q => `<td><b>${dogruHarf(q)}</b><small>${esc(String(q.konu || '').replace(/^[TYA]\./, ''))}</small></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
       }
     });
   });
@@ -60592,17 +60621,18 @@ function denemeOgeleri() {
   const T = tytTestler(), ids = dnSecili(), O = [];
   const kir = () => O.push({ tip: 'kir' }), tam = html => O.push({ tip: 'tam', html });
   if (!ids.length) {
+    if (aylikMod()) { tam(`<div class="blk dn-bos"><b>${tytTestListe().length ? (S.seviye > 0 ? 'Soldaki listeden bir aylık deneme seç.' : `Aylık denemeler ${sinifAd(S.sinif)} lisansıyla yazdırılır.`) : 'Aylık denemeler yakında burada.'}</b></div>`); return O; }
     tam(`<div class="blk dn-bos"><b>${tytTestListe().length ? 'Soldaki listeden en az bir deneme ya da tarama seç.' : 'Denemeler yakında burada.'}</b>${S.denemeler.some(id => T[id] && !tytTestAcik(id)) ? `<p>Seçtiğin deneme TYT lisansıyla yazdırılır. Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} açık.</p>` : ''}</div>`);
     return O;
   }
   const harfler = dnFormlar(), ab = harfler.length > 1;
   const formlar = harfler.map(h => ({ harf: h, testler: ids.map(id => ({ t: T[id], qs: dnHazirla(T[id], h) })) }));
-  const kapak = S.dn.kapak == null ? ids.length > 1 : S.dn.kapak;
+  const kapak = aylikMod() ? false : S.dn.kapak == null ? ids.length > 1 : S.dn.kapak;
   if (kapak) { O.push({ tip: 'tam', html: dnKapakBlok(ids), yedek: dnKapakBlok(ids, true) }); kir(); }
   formlar.forEach(({ harf, testler }) => testler.forEach(({ t, qs }) => {
     if (O.length && O[O.length - 1].tip !== 'kir') kir();
     tam(dnBasBlok(t, harf, ab));
-    const bas = `<div class="blk dn-surekli"><span>${esc(t.id)} – ${esc(t.ad)}${ab ? ` – ${harf} kitapçığı` : ''}</span><span>devam</span></div>`;
+    const bas = `<div class="blk dn-surekli"><span>${t.tur === 'aylik' ? '' : esc(t.id) + ' – '}${esc(t.ad)}${ab ? ` – ${harf} kitapçığı` : ''}</span><span>devam</span></div>`;
     qs.forEach((q, i) => {
       const genis = /_genis$/.test(q.sekil || '') || ['grafikSec', 'grafikler'].includes(q.sekil);
       O.push(genis ? { tip: 'tam', html: dnSoruHTML(q, i + 1, true), bas } : { tip: 'kol', html: dnSoruHTML(q, i + 1, false), bas });
@@ -60613,9 +60643,9 @@ function denemeOgeleri() {
   if (S.dn.cozum) {
     kir();
     tam(`<div class="blk bolum"><span class="bn cz">ÇÖZÜMLER</span><h2>Adım adım çözümler</h2><span class="bc">${ab ? 'A kitapçığı sırasıyla' : dnSayiYazi(ids)}</span></div>`);
-    formlar[0].testler.forEach(({ t, qs }) => { tam(`<div class="blk cz-konu"><b>${esc(t.id)}</b> ${esc(t.ad)}</div>`); qs.forEach((q, i) => tam(dnCozumBlok(q, i + 1))); });
+    formlar[0].testler.forEach(({ t, qs }) => { tam(`<div class="blk cz-konu">${t.tur === 'aylik' ? '' : `<b>${esc(t.id)}</b> `}${esc(t.ad)}</div>`); qs.forEach((q, i) => tam(dnCozumBlok(q, i + 1))); });
   }
-  if (S.seviye === 0) tam(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} yazdırılabilir. Bütün denemeler, ünite taramaları ve öğretmen modu (A-B kitapçık) için TYT lisansı al: ${CFG.site}</div>`);
+  if (S.seviye === 0 && !aylikMod()) tam(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} yazdırılabilir. Bütün denemeler, ünite taramaları ve öğretmen modu (A-B kitapçık) için TYT lisansı al: ${CFG.site}</div>`);
   return O;
 }
 const DN_GAP = 28, DN_KOL = (688 - DN_GAP) / 2;
@@ -60694,9 +60724,9 @@ function denemeCiz() {
 }
 function denemeYerlestir() {
   const ids = dnSecili(), sayfalar = denemeSayfala(denemeOgeleri()), n = sayfalar.length;
-  const ad = ids.length ? dnAralik(ids) : 'Deneme';
+  const ay = aylikMod(), ad = ay ? ids.map(id => tytTestler()[id].ad).join(', ') || 'Aylık deneme' : ids.length ? dnAralik(ids) : 'Deneme';
   $('#sayfalar').innerHTML = sayfalar.map((s, i) => `<section class="sheet"><div class="sheet-ic tema-${S.tema} ${S.mod} dn-kitap">${s}</div>
-    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : UR.ad}</span><span>${UR.sinav} Fizik – ${esc(ad)}${S.seviye >= 1 && dnFormlar().length > 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
+    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : ay ? 'Yapabilirim ' + S.sinif + ' – Ben Fizik Yapamıyorum' : UR.ad}</span><span>${ay ? '' : UR.sinav + ' Fizik – '}${esc(ad)}${S.seviye >= 1 && dnFormlar().length > 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
   $('#bilgi').textContent = `${n} sayfa – ${dnSayiYazi(ids) || 'seçim yok'}${dnFormlar().length > 1 ? ' – ' + formKodu() : ''}`;
   $('#formkod').textContent = formKodu();
   olcekle();
@@ -60756,7 +60786,7 @@ function sayfala(bloklar) {
 }
 function ciz() {
   sinifUygula();
-  if (S.sinif >= 20 && S.tur === 'deneme') { denemeCiz(); return; }
+  if (dnMod()) { denemeCiz(); return; }
   // Karşılıklı sayfaya sığmayan (sayfa çevirmeli) set kalmasın diye birkaç yerleşimi dene
   S._duzen = null;
   let sayfalar = sayfala(belgeBloklari());
@@ -60820,7 +60850,7 @@ function arayuz() {
   // Etkileşimli soru seçeneği yalnız seçili konularda bu türden soru varsa görünür.
   if ($('#etkTik')) { $('#etkTik').style.display = secKonular().some(k => k.sorular.some(ETK.etkMi)) ? '' : 'none'; $('#t_etk').checked = S.turler.etk !== false; }
   $('#ab').checked = S.ab;
-  if (window.BFYTYT) tytArayuz(); else listeArayuz();
+  if (window.BFYTYT) tytArayuz(); else { listeArayuz(); aylikArayuz(); }
 }
 // 9/10/11: uygulamadan gelen soru listesi varken konu, paket ve soru seçimi gizlenir; çözüm seçimi açık kalır.
 function listeArayuz() {
@@ -60828,6 +60858,35 @@ function listeArayuz() {
   if (lg) { lg.hidden = !lm; if (lm) $('#listeBilgi').textContent = `${S.liste.baslik}: ${S.liste.ids.length} soru. Sorular ve şıklar uygulamadaki sırasıyla basılır.`; }
   ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = lm; });
   const ab = $('#ab'); if (ab && ab.closest('label')) ab.closest('label').hidden = lm;
+}
+// 9/10/11: seçili sınıfın aylık denemesi varsa "Ne yazdıracaksın?" grubu görünür; deneme kipinde konu, paket, soru ve çözüm grupları gizlenir.
+function aylikArayuz() {
+  const L = tytTestListe(), var_ = L.length > 0;
+  if (!var_ && S.tur === 'deneme') S.tur = 'konu';
+  const dn = var_ && S.tur === 'deneme';
+  if (dn && S.liste) listeBirak();
+  const goster = (id, ok) => { const el = document.getElementById(id); if (el) el.hidden = !ok; };
+  goster('tytTurGrp', var_ && !S.liste);
+  document.querySelectorAll('#tytTurGrp [data-v="tur=deneme"]').forEach(b => { b.textContent = 'Aylık deneme'; });
+  document.querySelectorAll('#tytTurGrp [data-v="tur=konu"]').forEach(b => { b.textContent = 'Konu kâğıdı'; b.classList.toggle('on', S.tur !== 'deneme'); });
+  document.querySelectorAll('#tytTurGrp [data-v="tur=deneme"]').forEach(b => b.classList.toggle('on', S.tur === 'deneme'));
+  if (!dn) { goster('dnGrp', false); goster('dnAyarGrp', false); const hc = $('#hocaCozum'); if (hc) hc.hidden = false; if (!S.liste) ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => goster(id, true)); goster('cozumGrp', true); return; }
+  ['konuGrp', 'paketGrp', 'soruGrp', 'cozumGrp', 'listeGrp', 'hocaCozum'].forEach(id => goster(id, false));
+  goster('dnGrp', true); goster('dnAyarGrp', true);
+  if (S._aySinif !== S.sinif) { S._aySinif = S.sinif; S.denemeler = L.filter(tytTestAcik).slice(-1); }
+  const T = tytTestler();
+  const dg = $('#dnGrp h3'); if (dg) dg.textContent = 'Aylık denemeler';
+  $('#dnHizli').innerHTML = '';
+  $('#dnListe').innerHTML = `<div class="dn-et">${sinifAd(S.sinif)} (20 soru, 40 dk)</div><div class="dn-izg">${L.map(id => { const ac = tytTestAcik(id); return `<label class="dn-t ${ac ? '' : 'kilitli'}" title="${esc(T[id].ad)}"><input type="checkbox" value="${id}" ${S.denemeler.includes(id) ? 'checked' : ''} ${ac ? '' : 'disabled'}><span>${esc(AY_AD[T[id].ay] || id)}</span>${ac ? '' : '<small>🔒</small>'}</label>`; }).join('')}</div>`
+    + (S.seviye === 0 ? `<p class="ipucu">Aylık denemeler ${sinifAd(S.sinif)} lisansıyla yazdırılır.</p>` : '<p class="ipucu">Şık sırası uygulamadakiyle aynıdır. Öğrenci kâğıdı için cevap anahtarını kapat; öğretmen kopyası için çözümleri aç.</p>');
+  const kp = $('#dn_kapak'); if (kp && kp.closest('label')) kp.closest('label').style.display = 'none'; // aylık kitapçıkta kapak yok
+  if ($('#dn_optik')) $('#dn_optik').checked = S.dn.optik; if ($('#dn_anahtar')) $('#dn_anahtar').checked = S.anahtar !== false; if ($('#dn_cozum')) $('#dn_cozum').checked = !!S.dn.cozum;
+  const ip = document.querySelector('#dnAyarGrp .ipucu'); if (ip) ip.textContent = 'İki sütunlu sınav kâğıdı: okul, ad-soyad, süre ve net kutusu. Okul adını öğretmen seçeneklerinden yazabilir ya da boş bırakabilirsin.';
+}
+function aylikBaglan() {
+  const dl = $('#dnListe'); if (dl) dl.addEventListener('change', () => { S.denemeler = [...document.querySelectorAll('#dnListe input:checked')].map(i => i.value); yenile(); });
+  const tik = (id, f) => { const el = document.getElementById(id); if (el) el.addEventListener('change', () => { f(el.checked); yenile(); }); };
+  tik('dn_optik', v => { S.dn.optik = v; }); tik('dn_anahtar', v => { S.anahtar = v; }); tik('dn_cozum', v => { S.dn.cozum = v; });
 }
 function listeBirak() {
   if (!S.liste) return;
@@ -60925,7 +60984,7 @@ function baglan() {
   $('#konular').addEventListener('change', e => {
     if (S.sinif >= 20) { tytKonuDegisti(e.target); return; }
     S.konular = [...document.querySelectorAll('#konular input:checked')].map(i => i.value); if (!S.konular.length) { const k = ilkKonu(S.sinif); S.konular = [k ? k.id : '11.1.1']; } yenile(); });
-  if (window.BFYTYT) tytBaglan();
+  if (window.BFYTYT) tytBaglan(); else aylikBaglan();
   ['not', 'efsane', 'deney', 'sorular', 'skor'].forEach(p => { const el = $('#p_' + p); if (el) el.addEventListener('change', () => { S.parca[p] = el.checked; yenile(); }); });
   $('#t_cs').addEventListener('change', e => { S.turler.cs = e.target.checked; if (!S.turler.cs && !S.turler.acik) S.turler.acik = true; yenile(); });
   $('#t_acik').addEventListener('change', e => { S.turler.acik = e.target.checked; if (!S.turler.cs && !S.turler.acik) S.turler.cs = true; yenile(); });
@@ -61002,6 +61061,14 @@ function derinBaglanti9(hp) {
   const sn = +hp.get('sinif'), P = S.parca;
   const sinifaGec = no => { if (!sinifGorunur(no) || !ilkKonu(no)) return false; if (no !== S.sinif) sinifSec(no); sinifUygula(); return true; };
   const uniteAyarla = () => { const kk = katKonu(S.konular[0]); if (kk && kk.u) S.unite = kk.u.no; };
+  // Aylık deneme: #sinif=9&aylik=AY9_11[&cozum=1][&anahtar=0] (sınav kâğıdı; anahtar=0 cevap anahtarı olmadan; cozum=1 çözümlü)
+  if (hp.get('aylik')) {
+    const T = tytTestler(), id = hp.get('aylik').trim().toUpperCase(), t = T[id];
+    if (!t || t.tur !== 'aylik' || !sinifaGec(t.sinif)) return;
+    S.liste = null; S.tur = 'deneme'; S._aySinif = S.sinif; S.denemeler = [id];
+    S.dn.cozum = hp.get('cozum') === '1'; S.anahtar = hp.get('anahtar') !== '0'; S.ab = false;
+    return;
+  }
   if (hp.get('sorular')) {
     const H = soruHaritasi(), ids = [...new Set(hp.get('sorular').split(',').map(x => x.trim()).filter(id => H[id]))];
     if (!ids.length) return;
@@ -61046,8 +61113,8 @@ async function yazdir() {
   try { await document.fonts.ready; } catch (e) { }
   const ks = secKonular();
   const eski = document.title;
-  const dn = S.sinif >= 20 && S.tur === 'deneme';
-  const ad = S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
+  const dn = dnMod();
+  const ad = dn && aylikMod() ? 'Aylik_' + dnSecili().map(id => AY_AD[tytTestler()[id].ay] || id).join('_').replace(/ı/g, 'i').replace(/İ/g, 'I').replace(/ş/g, 's').replace(/Ş/g, 'S').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c') + (S.dn.cozum ? '_Cozumlu' : S.anahtar === false ? '' : '_Anahtarli') : S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
   document.title = `BFY_${S.sinif >= 20 ? UR.dosya : S.sinif}_${ad.replace(/\s+/g, '_').replace(/[:+]/g, '')}_${S.mod === 'ogretmen' ? 'Ogretmen' : 'Ogrenci'}_${formKodu()}`;
   window.print();
   setTimeout(() => { document.title = eski; }, 1500);
@@ -61062,7 +61129,7 @@ window.BFY_NOTGEN = { S, yenile,
 window.BFY_ORTAK = { cikmisEtiket, sinifAd, sinifAdB, baskaUrunMesaji, cozumluHazirla, vitrinListesi, tex, inline, md, tabloHTML, tabloBaslikli, esc, rng, shuffle, seceneklerKaristir, lisansCoz, lisansYukle, lisansEkle, lisansVar, sinifSeviye, lisansAdi, sinifGorunur, LIS, LISLER, SEV_AD, LISANS_HATA, store, CFG, XP, ZAD, HARF };
 async function basla() {
   if (!document.getElementById('siniflar')) return; // oluşturucu arayüzü yoksa (dijital sayfa) başlatma
-  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
+  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular|aylik)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
   const r = await lisansYukle();
   // Bu derlemede S.sinif (11) yoksa (TYT) katalogdaki ilk görünür sınıfa geç.
   if (!sinifGorunur(S.sinif)) { const g = window.BFY_KATALOG.find(x => sinifGorunur(x.no) && ilkKonu(x.no)); if (g) sinifSec(g.no); }
@@ -63174,6 +63241,9 @@ const BANK = window.BFY_BANK, KAT = window.BFY_KATALOG, ETK = window.BFY_ETK;
 const YN = window.BFY_YANILGI || null, IPU = window.BFY_IPUCU || null;
 // TYT ayrı üründür: ilerleme ve çizimler ayrı anahtarlarda (lisans deposu ortak).
 const TYT = !!window.BFYTYT;
+// Aylık denemeler (Yapabilirim 9/10/11, Maarif): src/aylik/AY<S>_<ay>.js, window.BFY_TYT_TEST içinde tur: 'aylik'.
+// TYT ürünlerinin deneme akışını (tyt*, K.tyt*) kullanır; liste ve lisans seçili sınıfa göre süzülür.
+const AYLIK = !TYT && Object.values(window.BFY_TYT_TEST || {}).some(t => t && t.tur === 'aylik');
 // Sınav ürünü yapılandırması (build.js URUNLER): TYT, YKS 2027 TYT, YKS 2027 AYT. Varsayılan TYT.
 const U = window.BFY_URUN || { kod: 'tyt', sinif: 20, ad: 'Ben Fizik Yapabilirim TYT', sinav: 'TYT', depo: 'bfy_tyt_', ucretsiz: ['TD01', 'TD02', 'TU1'], deneme: { soru: 7, sure: 600 }, tarama: { soru: 14, sure: 1200 } };
 const ANAHTAR = TYT ? U.depo + 'v1' : 'bfy_dj_v1', CIZ_ON = TYT ? U.depo + 'ciz_' : 'bfy_dj_ciz_', SIFIR_ON = TYT ? U.depo : 'bfy_dj_';
@@ -63203,7 +63273,7 @@ K.ipA = K.ipA || {}; K.yh = K.yh || [];
 K.sifir = K.sifir || {};
 function yanlisEkle(q, s) { if (typeof s !== 'number' || !q) return; K.yh.push({ q: q.orj || q.id, s, t: Date.now() }); if (K.yh.length > 400) K.yh.splice(0, K.yh.length - 400); }
 // TYT denemeleri: tyt = geçmiş sonuçlar, tytA = süren deneme, tytS = denemenin son cevapları, tytq = XP'si alınmış sorular
-if (TYT) { K.tyt = K.tyt || []; K.tytA = K.tytA || null; K.tytS = K.tytS || {}; K.tytq = K.tytq || {}; }
+if (TYT || AYLIK) { K.tyt = K.tyt || []; K.tytA = K.tytA || null; K.tytS = K.tytS || {}; K.tytq = K.tytq || {}; }
 function kaydet() { store.set(ANAHTAR, JSON.stringify(K)); }
 // Kâğıt genişliği: ekranın kısa kenarı döndürmeyle değişmez; bu yüzden kâğıt her yönde aynı genişlikte kalır.
 (function kagitGenisligi() {
@@ -63373,6 +63443,41 @@ function yeniKart() {
 }
 document.addEventListener('click', e => { if (e.target.closest('[data-rehber]')) { rehberAc(aktifLisans()); return; } const yk = e.target.closest('[data-yeni-kapat]'); if (!yk) return; K.ayar[yk.dataset.yeniKapat || 'yeni1'] = 1; if (yk.dataset.yeniKapat === 'yeni3') K.ayar.yeni1 = 1; kaydet(); const s = e.target.closest('.yeni-kart'); if (s) s.remove(); });
 
+// Timur Hoca'nın sorusu (10 Kasım 2026): "Soruları çözebiliyor musun?" Lisanslı öğrenciye (Yapabilirim 9/10/11, TYT, YKS 2027 TYT ve AYT) ana ekranda bir kez çıkar.
+// Cevap mevcut geri bildirim sunucusuna konu "anket" ile gider. Cevaplayınca K.ayar.anket1 kapanır; "Sonra" 3 gün gizler.
+const ANKET_SEC = ['Rahat çözüyorum', 'Bazılarında takılıyorum', 'Çoğunu çözemiyorum'];
+function anketKart(sn) {
+  if (!GERI || sinifSeviye(sn) !== 1 || !LISLER[sn] || K.ayar.anket1 || (K.ayar.anket1Sonra || 0) > Date.now()) return '';
+  return `<section class="yeni-kart anket-kart" aria-label="Timur Hoca soruyor"><div class="yk-ust"><span class="yk-rozet">Soru</span><b>Timur Hoca soruyor: Soruları çözebiliyor musun?</b></div>
+<p class="ak-p">Cevabını ben okuyorum. Kitaba ekleyeceğim soruları, çözümleri ve videoları buna göre seçeceğim.</p>
+<div class="gp-istek ak-sec" role="radiogroup" aria-label="Soruları çözebiliyor musun?">${ANKET_SEC.map(t => `<button type="button" role="radio" aria-checked="false" data-gp-istek="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+<label class="ak-et" for="akMesaj">Nerede zorlanıyorsun? Bana yaz (isteğe bağlı).</label><textarea id="akMesaj" maxlength="1000" rows="3" placeholder="Örnek: Grafik sorularında hangi bilgiyi okuyacağımı bulamıyorum."></textarea>
+<div class="gp-hata" id="akHata" role="alert"></div>
+<div class="yk-alt"><button type="button" class="btn ana ince" data-anket-gonder>Gönder</button><button type="button" class="btn cizgi ince" data-anket-sonra>Sonra</button></div></section>`;
+}
+async function anketGonder(btn) {
+  const sn = secSinif(), L = LISLER[sn]; if (!L) return;
+  const kart = btn.closest('.anket-kart'), sec = kart.querySelector('[data-gp-istek][aria-checked="true"]'), istek = sec ? sec.dataset.gpIstek : '', mesaj = $('#akMesaj').value.trim();
+  if (!istek && mesaj.length < 3) { $('#akHata').textContent = 'Bir seçenek seç ya da kısaca yaz.'; return; }
+  const k = { jeton: L.jeton, tur: 'konu', konu: 'anket', yer: 'Soruları çözebiliyor musun?', istek, mesaj, urun: TYT ? U.kod : 'yap' + sn, surum: (window.BFY_SURUM || '') };
+  btn.disabled = true; btn.textContent = 'Gönderiliyor…';
+  const bitir = m => { K.ayar.anket1 = 1; kaydet(); kart.remove(); tost(m); };
+  try {
+    if (navigator.onLine === false) throw Object.assign(new Error('çevrimdışı'), { kalici: false });
+    await geriYolla(k); bitir('Gönderildi. Teşekkürler, okuyacağım.');
+  } catch (e) {
+    if (e.kalici) { $('#akHata').textContent = e.message; btn.disabled = false; btn.textContent = 'Gönder'; return; }
+    const kq = geriKuyruk(); kq.push(k); store.set(GERI_KUYRUK, JSON.stringify(kq.slice(-20)));
+    bitir('İnternet yok. Cevabın kaydedildi, bağlantı gelince gönderilecek.');
+  }
+}
+document.addEventListener('input', e => { if (e.target.id === 'akMesaj') { const h = $('#akHata'); if (h) h.textContent = ''; } });
+document.addEventListener('click', e => {
+  if (e.target.closest('.anket-kart [data-gp-istek]')) { const h = $('#akHata'); if (h) h.textContent = ''; }
+  const g = e.target.closest('[data-anket-gonder]'); if (g && !g.disabled) { anketGonder(g); return; }
+  if (e.target.closest('[data-anket-sonra]')) { K.ayar.anket1Sonra = Date.now() + 3 * 864e5; kaydet(); const s = e.target.closest('.anket-kart'); if (s) s.remove(); }
+});
+
 function anaEkran() {
   const sn = secSinif(), L = LISLER[sn];
   ust({ baslik: sn === U.sinif ? U.ad : 'Yapabilirim ' + sn, alt: 'Fizik yapamıyorum demeyi bırak.' }); navAktif('konular');
@@ -63380,7 +63485,9 @@ function anaEkran() {
   let h = `<section class="hero">${L && L.ad ? `<div class="hero-ad">${esc(L.ad)} – ${lisansAdi(L)}</div>` : ''}<h1>${ilkAd() ? esc(ilkAd()) + ', bugün ne çalışıyoruz?' : 'Bugün ne çalışıyoruz?'}</h1><p>Notu oku, soruları çöz, kalemle üstüne yaz. Her doğru cevap XP kazandırır.</p>
     <div class="hero-istat"><div><b>${K.xp}</b><span>XP</span></div><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen()}</b><span>çözülen soru</span></div><div><b>${genelUnvan()}</b><span>unvan</span></div></div></section>`;
   if (son) { const sk = BANK[son.id]; h += `<a class="devam" href="#/soru/${son.id}/${son.idx}"><div><small>Kaldığın yerden devam et</small><b>${esc(sk.ad)}, ${son.idx + 1}. soru</b></div><span class="ok">→</span></a>`; }
+  if (AYLIK) h += aylikAnaKart(sn);
   h += yeniKart();
+  h += anketKart(sn);
   h += kilitBant(`Ücretsiz sürüm: her konuda 4 soru açık. ${SA(sn)} lisansınla bütün sorular ve çözümler açılır.`, sn);
   if (TYT) h += tytAnaKart();
   if (GUNLUK && (gunlukKur(gunKod()), TT['G' + gunKod()])) h += gunlukKart();
@@ -63942,6 +64049,7 @@ function denemeKur() {
   const kurulum = window._dk || (window._dk = { unite: 1, n: 10, sure: 1 });
   const sn = secSinif(), s11 = KAT.find(s => s.no === sn);
   if (gorunurSiniflar().length > 1) h += sinifSecici();
+  if (AYLIK) { const A = K.tytA; if (A && !A.bitti && aylikMi(A.t) && TT[A.t].sinif === sn) h += `<a class="devam" href="#/tyt/${A.t}/0"><div><small>Yarım kalan aylık deneme</small><b>${esc(TT[A.t].ad)}, ${Object.keys(A.cev).length}/${A.qs.length} cevaplı</b></div><span class="ok">→</span></a>`; h += aylikBolum(sn, false); if (aylikListe(sn).length) h += `<h2 class="baslik2" style="margin-top:22px">Kendi denemeni kur</h2>`; }
   h += `<h2 class="baslik2">Ünite seç</h2><div class="cips buyuk">${s11.uniteler.map(u => `<button class="cip ${kurulum.unite === u.no ? 'on' : ''}" type="button" data-dk="unite=${u.no}">${u.no}. ${esc(u.ad)}</button>`).join('')}<button class="cip ${kurulum.unite === 0 ? 'on' : ''}" type="button" data-dk="unite=0">Karma (tüm üniteler)</button></div>`;
   const ks = kurulum.unite ? s11.uniteler.find(u => u.no === kurulum.unite).konular.filter(k => BANK[k.id]) : tumKonular().filter(k => k.sinif === sn);
   if (!kurulum.secili || kurulum.secUnite !== kurulum.unite || kurulum.secSinif !== sn) { kurulum.secili = ks.map(k => k.id); kurulum.secUnite = kurulum.unite; kurulum.secSinif = sn; }
@@ -64294,8 +64402,65 @@ function cozumluTik(b) {
 const TT = window.BFY_TYT_TEST || {};
 const TYT_UCRETSIZ = U.ucretsiz;
 const tytListe = () => Object.keys(TT).filter(id => !/^G\d{8}$/.test(id)).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
-const tytAcik = tid => /^G\d{8}$/.test(tid) || TYT_UCRETSIZ.includes(tid) || sinifSeviye(U.sinif) > 0;
+const tytAcik = tid => aylikMi(tid) ? sinifSeviye(TT[tid].sinif) > 0 : /^G\d{8}$/.test(tid) || TYT_UCRETSIZ.includes(tid) || sinifSeviye(U.sinif) > 0;
 Object.values(TT).forEach(t => t.sorular.forEach((q, j) => { q.tur = 'cs'; q.tytTest = t.id; q.tytSira = j; QH[q.id] = q; }));
+/* ---- Aylık denemeler (yalnız 9/10/11 derlemesi) ----
+   Her sınıfa ayda bir deneme: 20 soru, 40 dakika (seçenek 28 dakika ya da süresiz), net = D − Y/4. Yalnız o sınıfın lisansıyla açılır.
+   Ekranlar TYT deneme akışıdır (#/tyt/<kimlik>, giriş, çözüm, sonuç, inceleme); liste #/aylik ve deneme ekranının başı.
+   Görülmemiş deneme ana ekranda "Yeni" kartıyla duyurulur; giriş ekranı açılınca ya da kart kapatılınca görüldü sayılır (K.ayar.ayGor). */
+function aylikMi(tid) { return !!(TT[tid] && TT[tid].tur === 'aylik'); }
+const AY_AD = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+// Öğretim yılı sırası: Eylül (9) … Haziran (6)
+const aySira = t => (String(t.yil || '').slice(0, 4) || '0') + String(((+t.ay || 0) + 3) % 12).padStart(2, '0');
+const aylikListe = sn => Object.values(TT).filter(t => t.tur === 'aylik' && t.sinif === sn && sinifGorunur(t.sinif)).sort((a, b) => aySira(a).localeCompare(aySira(b)) || a.id.localeCompare(b.id, 'tr', { numeric: true })).map(t => t.id);
+const aylikKisa = tid => (AY_AD[TT[tid].ay] || '') + ' denemesi';
+const ayGor = () => (K.ayar.ayGor = K.ayar.ayGor || {});
+const aylikYeni = sn => aylikListe(sn).filter(id => !ayGor()[id]);
+function aylikGoruldu(tid) { if (!aylikMi(tid) || ayGor()[tid]) return; ayGor()[tid] = 1; kaydet(); }
+const tytGeriAdr = tid => (aylikMi(tid) ? '#/aylik' : '#/deneme');
+// Oluşturucu bağlantısı: sınav kâğıdı (+ cevap anahtarı) ya da çözümlü (bkz. engine.js derinBaglanti9 aylik=)
+const aylikPdf = (tid, cozum, yazi) => pdfLink(`sinif=${TT[tid].sinif}&aylik=${tid}${cozum ? '&cozum=1' : ''}`, yazi);
+function aylikSatir(tid) {
+  const t = TT[tid], ac = tytAcik(tid), g = tytGecmis(tid), son = g[g.length - 1], yeni = !ayGor()[tid];
+  return `<a class="sl ${ac ? '' : 'kilitli'} ${son ? 'd' : ''}" href="#/tyt/${tid}"><span class="no tyt-no">${ac ? esc((AY_AD[t.ay] || '').slice(0, 3)) : '🔒'}</span><span class="sl-m"><b>${esc(t.ad)}${yeni ? ' <span class="yk-rozet ay-rozet">Yeni</span>' : ''}</b><small>${t.sorular.length} soru, ${DK(t.sure || 2400)} dakika${son ? `, son net ${netYaz(son.net)}` : ''}</small></span></a>`;
+}
+// Deneme ekranının başındaki ve #/aylik ekranındaki liste (seçili sınıf)
+function aylikBolum(sn, tam) {
+  const L = aylikListe(sn); if (!L.length) return '';
+  let h = `<h2 class="baslik2">Aylık denemeler<small>${SA(sn)}, Maarif Modeli</small></h2>`;
+  if (tam) { const g = tytTurGecmis('aylik', sn); if (g.length) h += `<div class="kart">${netGrafik(g)}</div>`; }
+  h += kilitBant(`Aylık denemeler ${SA(sn)} lisansıyla açılır.`, sn);
+  h += `<div class="soru-liste">${L.slice().reverse().map(aylikSatir).join('')}</div>`;
+  if (!tam) h += `<p class="dip" style="margin-top:6px">Her ay ${SA(sn).toLocaleLowerCase('tr-TR')} için yeni bir deneme eklenir: 20 soru, 40 dakika. <a href="#/aylik">Netlerin ve bütün denemeler →</a></p>`;
+  return h;
+}
+function aylikEkran() {
+  const sn = secSinif();
+  ust({ geri: '#/deneme', baslik: 'Aylık denemeler', alt: 'Her ay 20 soru, 40 dakika' }); navAktif('deneme');
+  let h = '';
+  const A = K.tytA;
+  if (A && !A.bitti && aylikMi(A.t)) h += `<a class="devam" href="#/tyt/${A.t}/0"><div><small>Yarım kalan aylık deneme</small><b>${esc(TT[A.t].ad)}, ${Object.keys(A.cev).length}/${A.qs.length} cevaplı</b></div><span class="ok">→</span></a>`;
+  if (gorunurSiniflar().length > 1) h += sinifSecici();
+  h += `<div class="kart tyt-bilgi"><b>Okuldaki sınav gibi</b><p>Her ay o aya kadar işlenen konulardan 20 soru. Süre 40 dakika; istersen 28 dakikayla kendini zorla ya da süresiz çöz. Net = doğru − yanlış ÷ 4. Bitirince netini, yanlışlarının nedenini ve adım adım çözümleri görürsün.</p></div>`;
+  const b = aylikBolum(sn, true);
+  h += b || `<div class="bos"><div class="ik">⏱</div>${esc(SA(sn))} için aylık deneme yakında burada.</div>`;
+  return h;
+}
+// Ana ekran kartı: yarım deneme, görülmemiş yeni deneme ("Yeni" kartı) ya da aylık denemelere giriş
+function aylikAnaKart(sn) {
+  const L = aylikListe(sn); if (!L.length) return '';
+  const A = K.tytA;
+  if (A && !A.bitti && aylikMi(A.t) && TT[A.t].sinif === sn) return `<a class="devam" href="#/tyt/${A.t}/0"><div><small>Yarım kalan aylık deneme</small><b>${esc(TT[A.t].ad)}, ${Object.keys(A.cev).length}/${A.qs.length} cevaplı</b></div><span class="ok">→</span></a>`;
+  const yeni = aylikYeni(sn);
+  if (yeni.length) {
+    const id = yeni[yeni.length - 1], t = TT[id];
+    return `<section class="yeni-kart ay-yeni" aria-label="Yeni aylık deneme"><div class="yk-ust"><span class="yk-rozet">Yeni</span><b>${esc(AY_AD[t.ay] || '')} denemesi geldi</b><button type="button" class="yk-kapat" data-aylik-gor="${esc(yeni.join(','))}" aria-label="Kapat">✕</button></div>
+<div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">⏱</span><div><b>${esc(t.ad)}: ${t.sorular.length} soru, ${DK(t.sure || 2400)} dakika</b><p>${esc(t.kapsam || acikSade(t.aciklama) || '')}${/[.!?]$/.test(String(t.kapsam || '')) ? '' : t.kapsam ? '.' : ''} Okuldaki sınav gibi süre tutarak çöz; bitince netini ve yanlışlarının nedenini gör.</p></div></div>
+<div class="yk-alt"><a class="btn yesil ince" href="#/tyt/${id}">Denemeye git</a>${yeni.length > 1 ? `<a class="btn cizgi ince" href="#/aylik">${yeni.length} yeni deneme</a>` : ''}</div></section>`;
+  }
+  const g = tytTurGecmis('aylik', sn), son = g[g.length - 1];
+  return `<a class="devam tyt-kart" href="#/aylik"><span class="kt-ik">⏱</span><div><small>Aylık denemeler, ${esc(SA(sn))}</small><b>${L.length} deneme, her biri 20 soru</b><small>${son ? `Son netin ${netYaz(son.net)} (${esc(aylikKisa(son.t))}).` : 'Okuldaki sınav gibi çöz, netini gör.'}</small></div><span class="ok">→</span></a>`;
+}
 /* ---- Günün 7 sorusu (U.gunluk; YKS 2027 TYT) ----
    Her gün konu bankalarından ÖSYM'nin TYT soru sırasıyla 7 soruluk bir mini deneme kurulur (1: giriş/madde, 2: hareket,
    3: basınç-kaldırma ya da enerji, 4: ısı, 5: elektrik, 6: dalga, 7: optik), zorluk 2/3/2, önce çözülmemiş sorular.
@@ -64341,12 +64506,13 @@ const tumKatKonu = () => KAT.filter(s => s.uniteler).flatMap(s => s.uniteler.fla
 const tytGecmis = tid => K.tyt.filter(x => x.t === tid);
 const netYaz = n => (+n).toLocaleString('tr-TR');
 // Test türü `tur` alanından okunur ('tarama' = ünite taraması, öteki her şey deneme); alan yoksa kimlik öneki (TU) yedektir.
-const tytTur = tid => { const t = TT[tid]; return t && t.tur ? (t.tur === 'tarama' ? 'tarama' : 'deneme') : /^[TAY]U/.test(tid) ? 'tarama' : 'deneme'; };
+const tytTur = tid => { const t = TT[tid]; return t && t.tur ? (t.tur === 'tarama' ? 'tarama' : t.tur === 'aylik' ? 'aylik' : 'deneme') : /^[TAY]U/.test(tid) ? 'tarama' : 'deneme'; };
 const tarMi = tid => tytTur(tid) === 'tarama';
-const TS = { deneme: { ad: 'deneme', Ad: 'Deneme', i: 'denemesi', de: 'denemedeki', bas: 'Denemeyi başlat' }, tarama: { ad: 'tarama', Ad: 'Tarama', i: 'taraması', de: 'taramadaki', bas: 'Taramayı başlat' } };
+const TS = { deneme: { ad: 'deneme', Ad: 'Deneme', i: 'denemesi', de: 'denemedeki', bas: 'Denemeyi başlat' }, tarama: { ad: 'tarama', Ad: 'Tarama', i: 'taraması', de: 'taramadaki', bas: 'Taramayı başlat' }, aylik: { ad: 'deneme', Ad: 'Deneme', i: 'denemesi', de: 'denemedeki', bas: 'Denemeyi başlat' } };
 // Geçmiş kaydının türü: yeni kayıtlarda `tur` alanı; eski kayıtlarda testin kendi türü.
 const kayitTur = x => /^G\d{8}$/.test(x.t) ? 'gunluk' : x.tur || (TT[x.t] ? tytTur(x.t) : x.n === U.tarama.soru ? 'tarama' : 'deneme');
-const tytTurGecmis = tur => K.tyt.filter(x => kayitTur(x) === tur);
+// Aylık denemelerde sn verilirse yalnız o sınıfın denemeleri
+const tytTurGecmis = (tur, sn) => K.tyt.filter(x => kayitTur(x) === tur && (!sn || (TT[x.t] && TT[x.t].sinif === sn)));
 // Süre seçenekleri her testin kendi `sure` alanından: tam süre, %70'i, süresiz (deneme 10:00 / 7:00, tarama 20:00 / 14:00).
 // Seçim test türüne göre ayrı tutulur (0 tam, 1 kısa, 2 süresiz); denemede seçilen süre taramaya taşınmaz.
 const tytSureSecenek = tid => { const s = TT[tid].sure || (tarMi(tid) ? U.tarama.sure : U.deneme.sure); return [s, Math.round(s * 0.7 / 60) * 60, 0]; };
@@ -64355,6 +64521,7 @@ const tytSecilenSure = tid => tytSureSecenek(tid)[tytSec[tytTur(tid)] || 0];
 function tytKalan() { const A = K.tytA; if (!A || !A.sure) return null; return Math.max(0, Math.round(A.sure - (Date.now() - A.bas) / 1000)); }
 // Net grafiği: testler sırayla (en çok son 12), her noktada net yazılı. Üst sınır testin soru sayısı (deneme 7, tarama 14);
 // denemeler ve taramalar ayrı grafiklerde çizilir (liste tek türden gelir).
+const grafEt = t => (aylikMi(t) ? (AY_AD[TT[t].ay] || t).slice(0, 3) : t);
 function netGrafik(liste, vurgu) {
   const L = liste.slice(-12); if (!L.length) return '';
   const ymax = Math.max(...L.map(x => x.n || (kayitTur(x) === 'tarama' ? U.tarama.soru : U.deneme.soru))), adim = ymax > 8 ? 2 : 1;
@@ -64363,10 +64530,10 @@ function netGrafik(liste, vurgu) {
   let s = '';
   for (let v = ymin; v <= ymax; v++) if (v % (ymin < 0 ? 2 : adim) === 0 || v === ymax) s += `<line x1="${sol}" x2="${W - sag}" y1="${Y(v)}" y2="${Y(v)}" class="ng-iz${v === 0 ? ' sifir' : ''}"/><text x="${sol - 6}" y="${Y(v) + 4}" class="ng-e" text-anchor="end">${v}</text>`;
   s += `<polyline class="ng-cizgi" points="${L.map((x, i) => `${X(i).toFixed(1)},${Y(x.net).toFixed(1)}`).join(' ')}"/>`;
-  L.forEach((x, i) => { const son = vurgu ? x === vurgu : i === L.length - 1; s += `<circle cx="${X(i).toFixed(1)}" cy="${Y(x.net).toFixed(1)}" r="${son ? 5.5 : 4}" class="ng-n${son ? ' son' : ''}"/><text x="${(X(i) + (L.length > 1 && i === 0 ? 7 : L.length > 1 && i === L.length - 1 ? -7 : 0)).toFixed(1)}" y="${(Y(x.net) - 9).toFixed(1)}" class="ng-d${son ? ' son' : ''}" text-anchor="${L.length > 1 && i === 0 ? 'start' : L.length > 1 && i === L.length - 1 ? 'end' : 'middle'}">${netYaz(x.net)}</text><text x="${X(i).toFixed(1)}" y="${H - alt + 16}" class="ng-e" text-anchor="middle">${esc(x.t)}</text>`; });
+  L.forEach((x, i) => { const son = vurgu ? x === vurgu : i === L.length - 1; s += `<circle cx="${X(i).toFixed(1)}" cy="${Y(x.net).toFixed(1)}" r="${son ? 5.5 : 4}" class="ng-n${son ? ' son' : ''}"/><text x="${(X(i) + (L.length > 1 && i === 0 ? 7 : L.length > 1 && i === L.length - 1 ? -7 : 0)).toFixed(1)}" y="${(Y(x.net) - 9).toFixed(1)}" class="ng-d${son ? ' son' : ''}" text-anchor="${L.length > 1 && i === 0 ? 'start' : L.length > 1 && i === L.length - 1 ? 'end' : 'middle'}">${netYaz(x.net)}</text><text x="${X(i).toFixed(1)}" y="${H - alt + 16}" class="ng-e" text-anchor="middle">${esc(grafEt(x.t))}</text>`; });
   s += `<text x="${sol}" y="11" class="ng-e">net</text>`;
   const top = L.reduce((a, x) => a + x.net, 0) / L.length, enIyi = Math.max(...L.map(x => x.net));
-  return `<div class="net-grafik"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${kayitTur(L[0]) === 'tarama' ? 'Tarama' : 'Deneme'} netlerin: ${L.map(x => x.t + ' ' + netYaz(x.net)).join(', ')}">${s}</svg><div class="ng-ozet"><span>Son <b>${netYaz(L[L.length - 1].net)}</b></span><span>En iyi <b>${netYaz(enIyi)}</b></span><span>Ortalama <b>${netYaz(+top.toFixed(2))}</b></span></div></div>`;
+  return `<div class="net-grafik"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${kayitTur(L[0]) === 'tarama' ? 'Tarama' : 'Deneme'} netlerin: ${L.map(x => grafEt(x.t) + ' ' + netYaz(x.net)).join(', ')}">${s}</svg><div class="ng-ozet"><span>Son <b>${netYaz(L[L.length - 1].net)}</b></span><span>En iyi <b>${netYaz(enIyi)}</b></span><span>Ortalama <b>${netYaz(+top.toFixed(2))}</b></span></div></div>`;
 }
 function tytAnaKart() {
   const A = K.tytA, gd = tytTurGecmis('deneme'), son = gd[gd.length - 1];
@@ -64400,16 +64567,20 @@ const acikSade = a => { if (!a) return a; const x = a.replace(/^(yedi|on dört|\
 function tytGiris(tid) {
   const t = TT[tid]; if (!t) return tytDenemeler();
   const tr = tytTur(tid), ts = TS[tr], dk = Math.round((t.sure || (tr === 'tarama' ? U.tarama.sure : U.deneme.sure)) / 60);
-  ust({ geri: '#/deneme', baslik: t.ad, alt: tr === 'tarama' ? `Ünite tarama testi, ${t.sorular.length} soru` : `${t.sorular.length} soru` }); navAktif('deneme');
+  const ay = tr === 'aylik';
+  ust({ geri: tytGeriAdr(tid), baslik: t.ad, alt: tr === 'tarama' ? `Ünite tarama testi, ${t.sorular.length} soru` : ay ? `Aylık deneme, ${t.sorular.length} soru, ${dk} dakika` : `${t.sorular.length} soru` }); navAktif('deneme');
+  if (ay) aylikGoruldu(tid);
+  if (ay && !tytAcik(tid)) return `<div class="kagit kilit-soru"><div class="ik">🔒</div><p><b>Bu aylık deneme ${esc(SA(t.sinif))} lisansıyla açılır.</b></p><p class="dip">${esc(t.kapsam || '')} Lisansınla her ay eklenen denemeler, adım adım çözümler ve net takibi açılır.</p><button class="btn ana kucuk" type="button" data-kod>Lisansım var</button></div>`;
   if (!tytAcik(tid)) return `<div class="kagit kilit-soru"><div class="ik">🔒</div><p><b>Bu ${ts.ad} tam sürümde.</b></p><p class="dip">Ücretsiz sürümde ${UCR_YAZI} açık. ${U.sinav} lisansınla bütün denemeler, çözümler ve net takibi açılır.</p><button class="btn ana kucuk" type="button" data-kod>Lisansım var</button></div>`;
   const sec = tytSec[tr] || 0;
   const A = K.tytA, yarim = A && !A.bitti && A.t === tid, g = tytGecmis(tid);
-  let h = `<div class="kart kt-giris"><div class="kt-buyuk">⏱</div><h2>${esc(t.ad)}</h2><p><b>${tr === 'tarama' ? `Ünite tarama testi, ${t.sorular.length} soru, ${dk} dakika.` : `${t.sorular.length} soru.`}</b> ${esc(acikSade(t.aciklama) || (tr === 'tarama' ? 'Ünitenin bütün konularından sorular.' : 'Gerçek ' + U.sinav + ' fizik bölümü gibi; konular karışık sırada.'))}</p><p class="dip">Cevaplar sonda değerlendirilir. Boş bırakmak neti düşürmez; dört yanlış bir doğruyu götürür.</p></div>`;
+  let h = `<div class="kart kt-giris"><div class="kt-buyuk">⏱</div><h2>${esc(t.ad)}</h2><p><b>${tr === 'tarama' || ay ? `${ay ? 'Aylık deneme' : 'Ünite tarama testi'}, ${t.sorular.length} soru, ${dk} dakika.` : `${t.sorular.length} soru.`}</b> ${ay && t.kapsam ? `<b>Kapsam:</b> ${esc(t.kapsam)}${/[.!?]$/.test(t.kapsam) ? '' : '.'} ` : ''}${esc(acikSade(t.aciklama) || (tr === 'tarama' ? 'Ünitenin bütün konularından sorular.' : 'Gerçek ' + U.sinav + ' fizik bölümü gibi; konular karışık sırada.'))}</p><p class="dip">Cevaplar sonda değerlendirilir. Boş bırakmak neti düşürmez; dört yanlış bir doğruyu götürür.</p></div>`;
   h += `<h2 class="baslik2">Süre</h2><div class="cips buyuk">${tytSureSecenek(tid).map((v, j) => `<button class="cip ${sec === j ? 'on' : ''}" type="button" data-tsure="${tr}:${j}" aria-pressed="${sec === j}">${v ? dkSn(v) : 'Süresiz'}</button>`).join('')}</div>`;
   if (yarim) h += `<a class="devam" href="#/tyt/${tid}/0"><div><small>Yarım kalan ${ts.ad}</small><b>${Object.keys(A.cev).length}/${A.qs.length} cevaplı${A.sure ? ', kalan ' + dkSn(tytKalan()) : ''}</b></div><span class="ok">→</span></a>`;
   h += `<div class="q-alt" style="margin-top:16px"><button class="btn ana gen" type="button" data-tyt-basla="${tid}">${yarim ? 'Baştan yeniden başlat' : g.length ? 'Yeniden çöz' : ts.bas}</button></div>`;
   if (K.tytS[tid]) h += `<a class="pdf-link" href="#/tyt/${tid}/sonuc">📊 Son sonucunu ve çözümleri gör</a>`;
-  if (!/^G\d{8}$/.test(tid)) h += pdfLink(`deneme=${tid}`, `Yazdır / PDF: ${tid} sınav kâğıdı ve cevap anahtarı`);
+  if (ay) h += aylikPdf(tid, false, `Yazdır / PDF: ${aylikKisa(tid)}, sınav kâğıdı ve cevap anahtarı`);
+  else if (!/^G\d{8}$/.test(tid)) h += pdfLink(`deneme=${tid}`, `Yazdır / PDF: ${tid} sınav kâğıdı ve cevap anahtarı`);
   if (g.length) h += `<h2 class="baslik2">Bu ${ts.de} sonuçların</h2><div class="soru-liste">${g.slice(-5).reverse().map(x => `<div class="sl"><span class="no" style="width:auto;padding:0 8px">${netYaz(x.net)}</span><span class="sl-m"><b>${x.d} doğru, ${x.y} yanlış, ${x.b} boş</b><small>${x.tarih}, ${dkSn(x.sn)}</small></span></div>`).join('')}</div>`;
   return h;
 }
@@ -64423,7 +64594,7 @@ function tytCalis(tid, i) {
   i = Math.max(0, Math.min(A.qs.length - 1, i || 0));
   document.body.classList.add('odak');
   const ks = tytKalan();
-  ust({ geri: `#/tyt/${tid}`, baslik: /^G\d{8}$/.test(tid) ? 'Günün 7 sorusu' : tid, alt: `Soru ${i + 1} / ${A.qs.length}`, kalem: true, sag: ks !== null ? `<span class="ust-btn sure ${ks < 60 ? 'az' : ''}" id="sure">⏱ ${dkSn(ks)}</span>` : '' });
+  ust({ geri: `#/tyt/${tid}`, baslik: /^G\d{8}$/.test(tid) ? 'Günün 7 sorusu' : aylikMi(tid) ? aylikKisa(tid) : tid, alt: `Soru ${i + 1} / ${A.qs.length}`, kalem: true, sag: ks !== null ? `<span class="ust-btn sure ${ks < 60 ? 'az' : ''}" id="sure">⏱ ${dkSn(ks)}</span>` : '' });
   const q = qBul(A.qs[i]);
   let h = `<div class="ilerleme-nok">${A.qs.map((x, j) => `<a href="#/tyt/${tid}/${j}" class="${A.cev[x] !== undefined ? 'd' : ''} ${j === i ? 'su' : ''}">${j + 1}</a>`).join('')}</div>`;
   h += `<div class="kagit murekkep-host" data-ink="t-${q.id}">${soruKart(q, { mod: 'deneme', secim: A.cev[q.id] })}<div class="karalama" style="height:220px"><span class="kl-et">Karalama alanı</span></div></div>`;
@@ -64445,17 +64616,17 @@ function tytBitir() {
   if (K.tyt.length > 200) K.tyt.shift();
   K.tytS[A.t] = { qs: A.qs.slice(), cev: { ...A.cev }, sonuc, z: Date.now() };
   K.tytA = null; gunEkle(); kaydet();
-  if (sonuc.net >= 5) { konfeti(); ses('d'); }
+  if (sonuc.net >= (aylikMi(A.t) ? A.qs.length * 0.7 : 5)) { konfeti(); ses('d'); }
   location.hash = `#/tyt/${A.t}/sonuc`;
 }
 function tytSonuc(tid) {
   const R = K.tytS[tid], t = TT[tid]; if (!R || !t) return tytGiris(tid);
   const tr = tytTur(tid);
-  ust({ geri: '#/deneme', baslik: `${TS[tr].Ad} sonucu`, alt: t.ad }); navAktif('deneme');
+  ust({ geri: tytGeriAdr(tid), baslik: `${TS[tr].Ad} sonucu`, alt: t.ad }); navAktif('deneme');
   const S = R.sonuc, n = R.qs.length;
   let h = `<div class="sonuc-ozet"><div><b style="color:#2f8f5b">${S.d}</b><span>doğru</span></div><div><b style="color:var(--coral)">${S.y}</b><span>yanlış</span></div><div><b>${S.b}</b><span>boş</span></div></div>`;
   h += `<div class="kart tyt-net"><div class="dip" style="margin:0">Net</div><div class="tn-buyuk">${netYaz(S.net)}<small> / ${n}</small></div><div class="dip">Süre ${dkSn(S.sn)}${S.sure ? ' / ' + dkSn(S.sure) : ''}, soru başına ${snYaz(S.sn / n)}.${S.kazanc ? ` +${S.kazanc} XP` : ''}</div>${S.y >= 2 && S.b === 0 ? '<div class="tn-ip">İpucu: Emin olmadığın soruyu boş bırakmak, rastgele işaretlemekten daha az net kaybettirir.</div>' : ''}</div>`;
-  const g = tytTurGecmis(tr); if (g.length) h += `<h2 class="baslik2">Net grafiğin<small>son ${Math.min(12, g.length)} ${TS[tr].ad}</small></h2><div class="kart">${netGrafik(g)}</div>`;
+  const g = tytTurGecmis(tr, tr === 'aylik' ? t.sinif : 0); if (g.length) h += `<h2 class="baslik2">Net grafiğin<small>son ${Math.min(12, g.length)} ${tr === 'aylik' ? 'aylık deneme' : TS[tr].ad}</small></h2><div class="kart">${netGrafik(g)}</div>`;
   // Konulara göre ve yanlışların gruplanması
   const kon = {};
   R.qs.forEach((id, i) => { const q = qBul(id), c = R.cev[id], k = q.konu || '?'; kon[k] = kon[k] || { n: 0, d: 0, l: [] }; kon[k].n++; if (c === q.dogru) kon[k].d++; else kon[k].l.push({ i, bos: c === undefined }); });
@@ -64463,8 +64634,9 @@ function tytSonuc(tid) {
   if (yanlisK.length) h += `<h2 class="baslik2">Tekrar etmen gereken konular<small>${yanlisK.length} konu</small></h2><div class="soru-liste">${yanlisK.map(([k, x]) => `<div class="sl y tyt-yk"><span class="no" style="width:auto;padding:0 8px">${x.d}/${x.n}</span><span class="sl-m"><b>${esc(tytKonuAd(k))}</b><small>${x.l.map(o => `<a href="#/tyt/${tid}/incele/${o.i}">${o.i + 1}. soru${o.bos ? ' (boş)' : ''}</a>`).join(', ')}</small></span>${BANK[k] ? `<a class="tyt-git" href="#/konu/${k}/not">Konuya git</a>` : '<span class="tyt-git pasif">yakında</span>'}</div>`).join('')}</div>`;
   else h += `<div class="kart" style="text-align:center"><b>Bütün sorular doğru. ${tr === 'tarama' ? 'Ünite tam!' : 'Tam net!'}</b></div>`;
   h += `<h2 class="baslik2">Soruları incele</h2><div class="soru-liste">${R.qs.map((id, i) => { const q = qBul(id), c = R.cev[id], dg = c === q.dogru; return `<a class="sl ${c === undefined ? '' : dg ? 'd' : 'y'}" href="#/tyt/${tid}/incele/${i}"><span class="no">${i + 1}</span><span class="sl-m"><b>${esc(tytKonuAd(q.konu))}</b><small>${c === undefined ? `boş, doğrusu ${HARF[q.sira.indexOf(q.dogru)]}` : dg ? 'doğru' : `yanlış, doğrusu ${HARF[q.sira.indexOf(q.dogru)]}`}</small></span><span class="yz">${yildiz(q.zorluk)}</span></a>`; }).join('')}</div>`;
-  h += `<div class="q-alt" style="margin-top:16px"><a class="btn cizgi" style="text-align:center;text-decoration:none" href="#/deneme">Denemelere dön</a><button class="btn ana" type="button" data-tyt-basla="${tid}">Yeniden çöz</button></div>`;
-  if (!/^G\d{8}$/.test(tid)) h += pdfLink(`deneme=${tid}&cozum=1`, `Yazdır / PDF: ${tid} çözümleriyle`);
+  h += `<div class="q-alt" style="margin-top:16px"><a class="btn cizgi" style="text-align:center;text-decoration:none" href="${tytGeriAdr(tid)}">Denemelere dön</a><button class="btn ana" type="button" data-tyt-basla="${tid}">Yeniden çöz</button></div>`;
+  if (aylikMi(tid)) h += aylikPdf(tid, false, `Yazdır / PDF: ${aylikKisa(tid)}, sınav kâğıdı ve cevap anahtarı`) + aylikPdf(tid, true, `Yazdır / PDF: ${aylikKisa(tid)}, çözümleriyle`);
+  else if (!/^G\d{8}$/.test(tid)) h += pdfLink(`deneme=${tid}&cozum=1`, `Yazdır / PDF: ${tid} çözümleriyle`);
   return h;
 }
 function tytIncele(tid, i) {
@@ -64476,7 +64648,7 @@ function tytIncele(tid, i) {
   let h = `<div class="ilerleme-nok">${R.qs.map((x, j) => { const cc = R.cev[x]; return `<a href="#/tyt/${tid}/incele/${j}" class="${cc === undefined ? '' : cc === qBul(x).dogru ? 'd' : 'y'} ${j === i ? 'su' : ''}">${j + 1}</a>`; }).join('')}</div>`;
   h += `<div class="kagit murekkep-host" data-ink="t-${q.id}"><div class="tyt-konu-et">${esc(tytKonuAd(q.konu))}</div>${soruKart(q, { mod: 'incele', cevap: c === undefined ? -1 : c })}`;
   h += c === undefined ? `<div class="sonuc y"><span class="ik">–</span><div>Boş bıraktın. Doğru cevap ${dh}.</div></div>` : c === q.dogru ? `<div class="sonuc d"><span class="ik">✓</span><div>Doğru!</div></div>` : `<div class="sonuc y"><span class="ik">✗</span><div>Doğru cevap ${dh}.</div></div>${nedenHTML(q, c)}`;
-  h += tytAcik(tid) ? `<div class="cozum-dj" id="cozum"><h4>Adım adım çözüm</h4><ol>${q.cozum.map(x => `<li class="${c != null && c !== q.dogru && x.includes(`{{S${c}}}`) ? 'senin' : ''}">${mdAdim(harfle(q, x))}</li>`).join('')}</ol></div>` : `<div class="cozum-dj">${kilitBant(`Çözümler ${U.sinav} lisansıyla açılır.`, U.sinif)}</div>`;
+  h += tytAcik(tid) ? `<div class="cozum-dj" id="cozum"><h4>Adım adım çözüm</h4><ol>${q.cozum.map(x => `<li class="${c != null && c !== q.dogru && x.includes(`{{S${c}}}`) ? 'senin' : ''}">${mdAdim(harfle(q, x))}</li>`).join('')}</ol></div>` : `<div class="cozum-dj">${aylikMi(tid) ? kilitBant(`Çözümler ${SA(TT[tid].sinif)} lisansıyla açılır.`, TT[tid].sinif) : kilitBant(`Çözümler ${U.sinav} lisansıyla açılır.`, U.sinif)}</div>`;
   h += BANK[q.konu] ? `<a class="pdf-link" href="#/konu/${q.konu}/not">📘 ${esc(tytKonuAd(q.konu))} notuna git</a>` : '';
   h += '</div>';
   h += `<div class="q-alt"><a class="btn cizgi ince" ${i > 0 ? `href="#/tyt/${tid}/incele/${i - 1}"` : 'aria-disabled="true" style="opacity:.4"'}>←</a><a class="btn yesil" style="text-align:center;text-decoration:none" href="${i < R.qs.length - 1 ? `#/tyt/${tid}/incele/${i + 1}` : `#/tyt/${tid}/sonuc`}">${i < R.qs.length - 1 ? 'Sonraki →' : 'Sonuca dön'}</a></div>`;
@@ -64490,6 +64662,7 @@ function tytRozetler() {
 }
 // TYT tıklamaları: süre seçimi, başlat, bitir. İşlendiyse true döner.
 function tytTik(t) {
+  const ag = t.closest('[data-aylik-gor]'); if (ag) { ag.dataset.aylikGor.split(',').forEach(id => { if (aylikMi(id)) ayGor()[id] = 1; }); kaydet(); const s = ag.closest('.yeni-kart'); if (s) s.remove(); return true; }
   const ts = t.closest('[data-tsure]'); if (ts) { const [tr, j] = ts.dataset.tsure.split(':'); tytSec[tr] = +j; ciz(false); return true; }
   const tb = t.closest('[data-tyt-basla]'); if (tb) { tytBasla(tb.dataset.tytBasla); return true; }
   const bt = t.closest('#tytBitir'); if (bt) { const A = K.tytA; if (!A) return true; const bos = A.qs.length - Object.keys(A.cev).length; if (bos > 0 && !bt.dataset.onay) { bt.dataset.onay = 1; bt.textContent = `${bos} boş soru var. Yine de bitirmek için tekrar dokun.`; return true; } tytBitir(); return true; }
@@ -64523,10 +64696,11 @@ function rozetler() {
 }
 function ilerleme() {
   ust({ baslik: 'İlerleme', alt: genelUnvan() }); navAktif('ilerleme');
-  let h = `<section class="hero"><h1>${K.xp} XP</h1><p>Unvanın: <b>${genelUnvan()}</b>. ${cozulen()} soru çözdün, ${dogruSay()} tanesi doğru.</p><div class="hero-istat uc"><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen() ? Math.round(100 * dogruSay() / cozulen()) : 0}%</b><span>doğruluk</span></div><div><b>${K.denemeler.length + (TYT ? K.tyt.length : 0)}</b><span>deneme</span></div></div></section>`;
+  let h = `<section class="hero"><h1>${K.xp} XP</h1><p>Unvanın: <b>${genelUnvan()}</b>. ${cozulen()} soru çözdün, ${dogruSay()} tanesi doğru.</p><div class="hero-istat uc"><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen() ? Math.round(100 * dogruSay() / cozulen()) : 0}%</b><span>doğruluk</span></div><div><b>${K.denemeler.length + (TYT || AYLIK ? K.tyt.length : 0)}</b><span>deneme</span></div></div></section>`;
   if (TYT) { const gd = tytTurGecmis('deneme'), gt = tytTurGecmis('tarama');
     if (gd.length) h += `<h2 class="baslik2">${U.sinav} deneme netlerin<small>${gd.length} deneme</small></h2><div class="kart">${netGrafik(gd)}</div>`;
     if (gt.length) h += `<h2 class="baslik2">Ünite tarama netlerin<small>${gt.length} tarama</small></h2><div class="kart">${netGrafik(gt)}</div>`; }
+  if (AYLIK) { const ga = tytTurGecmis('aylik', secSinif()); if (ga.length) h += `<h2 class="baslik2">Aylık deneme netlerin<small>${esc(SA(secSinif()))}, ${ga.length} deneme</small></h2><div class="kart">${netGrafik(ga)}</div>`; }
   h += hataProfil();
   const cok = gorunurSiniflar().length > 1;
   KAT.filter(s => s.uniteler && gorunurSiniflar().includes(s.no)).forEach(s => s.uniteler.forEach(u => {
@@ -64550,13 +64724,13 @@ function ilerleme() {
    Öğrencinin konu sorularında, denemelerde, testlerde ve sınav denemelerinde yaptığı yanlışlar (seçilen şık r.s ve o şıkkın
    {{Sx}} açıklaması) src/yanilgi.js ile hata türlerine ayrılır. Aynı soruda aynı yanlış şık bir kez sayılır.
    Kaynaklar: K.yh (yanlış geçmişi), K.q (eski kayıtlar), K.tytS (sınav denemelerinin son cevapları). Seçili sınıfın soruları sayılır. */
-const qSinif = id => (qKonu[id] ? konuSinif(qKonu[id]) : QH[id] && QH[id].tytTest ? U.sinif : null);
+const qSinif = id => (qKonu[id] ? konuSinif(qKonu[id]) : QH[id] && QH[id].tytTest ? ((TT[QH[id].tytTest] || {}).sinif || U.sinif) : null);
 function hpYanlislar(sn) {
   const M = new Map();
   const ekle = (id, s) => { const q = QH[id]; if (!q || q.tur !== 'cs' || typeof s !== 'number' || s === q.dogru || qSinif(id) !== sn) return; const k = (q.orj || id) + ':' + s; if (!M.has(k)) M.set(k, { id: q.orj && QH[q.orj] ? q.orj : id, s }); };
   K.yh.forEach(x => ekle(x.q, x.s));
   Object.entries(K.q).forEach(([id, r]) => { if (r && !r.d) ekle(id, r.s); });
-  if (TYT) Object.entries(K.tytS || {}).forEach(([tid, R]) => { if (GUNLUK && /^G\d{8}$/.test(tid)) gunlukKur(tid.slice(1)); (R.qs || []).forEach(id => ekle(id, R.cev[id])); });
+  if (TYT || AYLIK) Object.entries(K.tytS || {}).forEach(([tid, R]) => { if (GUNLUK && /^G\d{8}$/.test(tid)) gunlukKur(tid.slice(1)); (R.qs || []).forEach(id => ekle(id, R.cev[id])); });
   return [...M.values()].map(x => ({ ...x, tur: YN.sikTur(QH[x.id], x.s) })).filter(x => x.tur);
 }
 const HP_ON = {};
@@ -64690,7 +64864,8 @@ function ciz(kaydirma = true) {
   else if (p[0] === 'soru') h = soruEkran(p[1], +p[2], p[3] === 'tekrar');
   else if (p[0] === 'deneme') h = p[1] === 'calis' ? denemeCalis(+p[2]) : p[1] === 'sonuc' ? denemeSonuc() : p[1] === 'incele' ? denemeIncele(+p[2]) : TYT && p[1] !== 'kur' ? tytDenemeler() : denemeKur();
   else if (p[0] === 'tyt' && TYT && GUNLUK && /^G\d{8}$/.test(p[1] || '') && !gunlukKur(p[1].slice(1))) h = anaEkran();
-  else if (p[0] === 'tyt' && TYT) h = !p[2] ? tytGiris(p[1]) : p[2] === 'sonuc' ? tytSonuc(p[1]) : p[2] === 'incele' ? tytIncele(p[1], +p[3]) : tytCalis(p[1], +p[2]);
+  else if (p[0] === 'aylik' && AYLIK) h = aylikEkran();
+  else if (p[0] === 'tyt' && (TYT || (AYLIK && aylikMi(p[1])))) h = !p[2] ? tytGiris(p[1]) : p[2] === 'sonuc' ? tytSonuc(p[1]) : p[2] === 'incele' ? tytIncele(p[1], +p[3]) : tytCalis(p[1], +p[2]);
   else if (p[0] === 'kt') h = !p[2] ? ktGiris(p[1]) : p[2] === 'sonuc' ? ktSonuc(p[1]) : p[2] === 'incele' ? ktIncele(p[1], +p[3]) : ktCalis(p[1], +p[2]);
   else if (p[0] === 'yanlislar') h = yanlislar();
   else if (p[0] === 'ilerleme') h = ilerleme();
@@ -64753,13 +64928,13 @@ document.addEventListener('click', e => {
   const scv = t.closest('.n-sim [data-sim-cevap]'); if (scv) { const c = scv.nextElementSibling, ac = c.hidden; c.hidden = !ac; scv.setAttribute('aria-expanded', ac); scv.textContent = ac ? 'Cevabı gizle' : 'Cevabı gör'; return; }
   const ds = t.closest('[data-dsinif]'); if (ds && !ds.disabled) { K.sinif = +ds.dataset.dsinif; kaydet(); ciz(false); return; }
   if (t.closest('[data-kod]')) { $('#kodMesaj').textContent = KOD_MESAJ; $('#kodHata').textContent = ''; $('#kodPencere').showModal(); $('#kodInput').focus(); return; }
-  if (TYT && tytTik(t)) return;
+  if ((TYT || AYLIK) && tytTik(t)) return;
   const czb = t.closest('[data-czsec],[data-czadim],[data-czip]'); if (czb && !czb.disabled) { cozumluTik(czb); return; }
   const sfb = t.closest('[data-sf-sec],[data-sf-git],[data-sf-yeniden]'); if (sfb && !sfb.disabled) { sifirTik(sfb); return; }
   const sec = t.closest('[data-sec]');
   if (sec && !sec.disabled) {
     const orj = +sec.dataset.sec, p = yolParca();
-    if (TYT && p[0] === 'tyt' && K.tytA && !K.tytA.bitti && /^\d+$/.test(p[2] || '')) { const A = K.tytA, q = qBul(A.qs[Math.max(0, +p[2] || 0)]); if (A.cev[q.id] === orj) delete A.cev[q.id]; else A.cev[q.id] = orj; kaydet(); ciz(false); return; }
+    if ((TYT || AYLIK) && p[0] === 'tyt' && K.tytA && !K.tytA.bitti && /^\d+$/.test(p[2] || '')) { const A = K.tytA, q = qBul(A.qs[Math.max(0, +p[2] || 0)]); if (A.cev[q.id] === orj) delete A.cev[q.id]; else A.cev[q.id] = orj; kaydet(); ciz(false); return; }
     if (p[0] === 'kt' && K.kt && !K.kt.bitti && /^\d+$/.test(p[2] || '')) { const T = K.kt, q = qBul(T.qs[Math.max(0, +p[2] || 0)]); if (T.cev[q.id] === orj) delete T.cev[q.id]; else T.cev[q.id] = orj; T.son = Date.now(); kaydet(); $$('.secenekler button').forEach(b => b.classList.toggle('secili', T.cev[q.id] === +b.dataset.sec)); $$('.ilerleme-nok a.su').forEach(a => a.classList.toggle('d', T.cev[q.id] !== undefined)); return; }
     if (p[0] === 'deneme' && p[1] === 'calis') { const D = K.deneme, q = qBul(D.qs[Math.max(0, +p[2] || 0)]); if (D.cev[q.id] === orj) delete D.cev[q.id]; else D.cev[q.id] = orj; kaydet(); ciz(false); return; }
     gecici.secim = orj;

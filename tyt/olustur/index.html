@@ -49182,9 +49182,18 @@ function icindekilerBlok(ks, notVar, soruVar) {
    şık sırası form koduna bağlı olarak karışır (sayısal, harf ve I-II-III seçenekleri motor kuralıyla sabit kalır). */
 const TYT_UCRETSIZ = UR.ucretsiz;
 const tytTestler = () => window.BFY_TYT_TEST || {};
-const tytTestListe = () => Object.keys(tytTestler()).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
-const tytTestAcik = id => TYT_UCRETSIZ.includes(id) || S.seviye > 0;
-const dnSecili = () => S.denemeler.filter(id => tytTestler()[id] && tytTestAcik(id)).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
+/* Aylık denemeler (Yapabilirim 9/10/11 oluşturucusu): window.BFY_TYT_TEST içinde tur: 'aylik', sinif: 9|10|11 (src/aylik/AY<S>_<ay>.js).
+   Aynı kitapçık düzeniyle basılır: seçili sınıfın denemeleri listelenir, yalnız o sınıfın lisansıyla basılır, kapak yok.
+   Şık sırası uygulamayla aynıdır (A kitapçığı: soru kimliğine bağlı karıştırma). Okul adı alanı boş kalabilir. */
+const AY_AD = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+const aySira = t => (String(t.yil || '').slice(0, 4) || '0') + String(((+t.ay || 0) + 3) % 12).padStart(2, '0');
+const aylikMod = () => !window.BFYTYT;
+const dnMod = () => S.tur === 'deneme' && (S.sinif >= 20 || (aylikMod() && tytTestListe().length > 0));
+// Kitapçıktaki deneme etiketi: TYT'de kimlik (TD01), aylıkta "Kasım denemesi"
+const dnEt = t => (t.tur === 'aylik' ? (AY_AD[t.ay] || '') + ' denemesi' : t.id);
+const tytTestListe = () => { const T = tytTestler(); return aylikMod() ? Object.keys(T).filter(id => T[id].tur === 'aylik' && T[id].sinif === S.sinif).sort((a, b) => aySira(T[a]).localeCompare(aySira(T[b])) || a.localeCompare(b, 'tr', { numeric: true })) : Object.keys(T).sort((a, b) => a.localeCompare(b, 'tr', { numeric: true })); };
+const tytTestAcik = id => (aylikMod() ? S.seviye > 0 : TYT_UCRETSIZ.includes(id) || S.seviye > 0);
+const dnSecili = () => { const L = tytTestListe(); return S.denemeler.filter(id => tytTestler()[id] && tytTestAcik(id) && L.includes(id)).sort((a, b) => L.indexOf(a) - L.indexOf(b)); };
 function dnFormlar() { return S.mod === 'ogretmen' && S.ab && S.seviye >= 2 ? ['A', 'B'] : ['A']; }
 function dnHazirla(t, harf) {
   const qs = t.sorular.map(q => ({ ...q, tur: 'cs' }));
@@ -49226,6 +49235,13 @@ function dnDagilim(ts) {
   return `<h3>Soruların ünitelere dağılımı</h3><div class="dk-dag">${sin.uniteler.map(u => `<div><span class="dd-ad">${u.no}. ${esc(u.ad)}</span><span class="dd-cb"><i style="width:${Math.round(100 * (say[u.no] || 0) / en)}%"></i></span><b>${say[u.no] || 0}</b></div>`).join('')}</div>`;
 }
 function dnBasBlok(t, harf, ab) {
+  if (t.tur === 'aylik') return `<div class="blk dn-bas dn-aylik">
+    <div class="db-ust"><span class="db-marka">YAPABİLİRİM ${t.sinif} · FİZİK</span><span class="db-kod">${esc((AY_AD[t.ay] || '').toLocaleUpperCase('tr-TR'))} ${esc(String(t.yil || ''))}${ab ? ` <b>${harf} KİTAPÇIĞI</b>` : ''}</span></div>
+    <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${t.sinif}. Sınıf Fizik – Türkiye Yüzyılı Maarif Modeli${t.kapsam ? ' – ' + esc(t.kapsam) : ''}</div></div>
+      <div class="db-sure"><b>${dnSure(t)}</b><span>dakika</span></div></div>
+    <table class="db-tab"><tr><th>Adı Soyadı</th><td class="db-genis">${S.mod === 'ogrenci' && S.ad.trim() ? esc(S.ad.trim()) : ''}</td><th>Sınıfı / No</th><td class="db-orta-h"></td><th>D</th><td class="db-k"></td><th>Y</th><td class="db-k"></td><th>Net</th><td class="db-k"></td></tr><tr><th>Okul</th><td class="db-genis" colspan="9">${esc(S.okul.trim())}</td></tr></table>
+    <div class="db-yon"><span>Bu testte <b>${t.sorular.length} soru</b> vardır. Her sorunun tek doğru cevabı vardır. Net = D − Y ÷ 4.</span><span class="db-saat">Başlama <i></i> Bitiş <i></i></span></div>
+  </div>`;
   return `<div class="blk dn-bas">
     <div class="db-ust"><span class="db-marka">${UR.ad.toLocaleUpperCase('tr-TR')}</span><span class="db-kod">${esc(t.id)}${ab ? ` <b>${harf} KİTAPÇIĞI</b>` : ''}</span></div>
     <div class="db-orta"><div><h2>${esc(t.ad)}</h2><div class="db-alt">${dnTarama(t) ? 'Ünite taraması' : (UR.sinav === 'AYT' ? 'Alan Yeterlilik Testi – Fen Bilimleri: Fizik' : 'Temel Yeterlilik Testi – Fen Bilimleri: Fizik')}${S.mod === 'ogretmen' && S.okul.trim() ? ' – ' + esc(S.okul.trim()) : ''}</div></div>
@@ -49254,8 +49270,9 @@ function dnSoruHTML(q, no, tam) {
 }
 // Optik cevap şeridi: her soru için A–E yuvarlakları
 function dnOptikBlok(t, n) {
-  return `<div class="blk dn-son"><div class="ds-yazi">${esc(t.id)} bitti. Cevaplarınızı kontrol ediniz.</div>${S.dn.optik ? `<div class="ds-optik"><span class="ds-et">Cevaplarım</span><div class="ds-izg">${Array.from({ length: n }, (_, i) => `<div class="ds-s"><i>${i + 1}</i>${HARF.map(h => `<span>${h}</span>`).join('')}</div>`).join('')}</div></div>` : ''}</div>`;
+  return `<div class="blk dn-son"><div class="ds-yazi">${esc(t.tur === 'aylik' ? 'Deneme' : t.id)} bitti. Cevaplarınızı kontrol ediniz.</div>${S.dn.optik ? `<div class="ds-optik"><span class="ds-et">Cevaplarım</span><div class="ds-izg">${Array.from({ length: n }, (_, i) => `<div class="ds-s"><i>${i + 1}</i>${HARF.map(h => `<span>${h}</span>`).join('')}</div>`).join('')}</div></div>` : ''}</div>`;
 }
+const x0Aylik = L => L.length > 0 && L[0].t.tur === 'aylik';
 function dnAnahtarBloklari(ids, formlar) {
   const T = tytTestler(), B = [];
   B.push(`<div class="blk bolum"><span class="bn cz">ANAHTAR</span><h2>Cevap anahtarı</h2><span class="bc">${dnSayiYazi(ids)}${formlar.length > 1 ? ', A ve B kitapçığı' : ''}</span></div>`);
@@ -49267,7 +49284,7 @@ function dnAnahtarBloklari(ids, formlar) {
       if (Object.keys(gr).length > 1) B.push(`<div class="blk da-gr">${L.every(x => dnTarama(x.t)) ? 'Ünite taramaları' : L.every(x => !dnTarama(x.t)) ? 'Denemeler' : n + ' soruluk kitapçıklar'}</div>`);
       for (let i = 0; i < L.length; i += 12) {
         const p = L.slice(i, i + 12);
-        B.push(`<div class="blk dn-an">${formlar.length > 1 ? `<div class="da-f">${harf} kitapçığı</div>` : ''}<table class="da-tab"><thead><tr><th>Kod</th>${Array.from({ length: +n }, (_, j) => `<th>${j + 1}</th>`).join('')}</tr></thead><tbody>${p.map(x => `<tr><td class="da-id">${esc(x.t.id)}</td>${x.qs.map(q => `<td><b>${dogruHarf(q)}</b><small>${esc(String(q.konu || '').replace(/^[TYA]\./, ''))}</small></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+        B.push(`<div class="blk dn-an">${formlar.length > 1 ? `<div class="da-f">${harf} kitapçığı</div>` : ''}<table class="da-tab"><thead><tr><th>${x0Aylik(L) ? 'Deneme' : 'Kod'}</th>${Array.from({ length: +n }, (_, j) => `<th>${j + 1}</th>`).join('')}</tr></thead><tbody>${p.map(x => `<tr><td class="da-id">${esc(dnEt(x.t))}</td>${x.qs.map(q => `<td><b>${dogruHarf(q)}</b><small>${esc(String(q.konu || '').replace(/^[TYA]\./, ''))}</small></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
       }
     });
   });
@@ -49284,17 +49301,18 @@ function denemeOgeleri() {
   const T = tytTestler(), ids = dnSecili(), O = [];
   const kir = () => O.push({ tip: 'kir' }), tam = html => O.push({ tip: 'tam', html });
   if (!ids.length) {
+    if (aylikMod()) { tam(`<div class="blk dn-bos"><b>${tytTestListe().length ? (S.seviye > 0 ? 'Soldaki listeden bir aylık deneme seç.' : `Aylık denemeler ${sinifAd(S.sinif)} lisansıyla yazdırılır.`) : 'Aylık denemeler yakında burada.'}</b></div>`); return O; }
     tam(`<div class="blk dn-bos"><b>${tytTestListe().length ? 'Soldaki listeden en az bir deneme ya da tarama seç.' : 'Denemeler yakında burada.'}</b>${S.denemeler.some(id => T[id] && !tytTestAcik(id)) ? `<p>Seçtiğin deneme TYT lisansıyla yazdırılır. Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} açık.</p>` : ''}</div>`);
     return O;
   }
   const harfler = dnFormlar(), ab = harfler.length > 1;
   const formlar = harfler.map(h => ({ harf: h, testler: ids.map(id => ({ t: T[id], qs: dnHazirla(T[id], h) })) }));
-  const kapak = S.dn.kapak == null ? ids.length > 1 : S.dn.kapak;
+  const kapak = aylikMod() ? false : S.dn.kapak == null ? ids.length > 1 : S.dn.kapak;
   if (kapak) { O.push({ tip: 'tam', html: dnKapakBlok(ids), yedek: dnKapakBlok(ids, true) }); kir(); }
   formlar.forEach(({ harf, testler }) => testler.forEach(({ t, qs }) => {
     if (O.length && O[O.length - 1].tip !== 'kir') kir();
     tam(dnBasBlok(t, harf, ab));
-    const bas = `<div class="blk dn-surekli"><span>${esc(t.id)} – ${esc(t.ad)}${ab ? ` – ${harf} kitapçığı` : ''}</span><span>devam</span></div>`;
+    const bas = `<div class="blk dn-surekli"><span>${t.tur === 'aylik' ? '' : esc(t.id) + ' – '}${esc(t.ad)}${ab ? ` – ${harf} kitapçığı` : ''}</span><span>devam</span></div>`;
     qs.forEach((q, i) => {
       const genis = /_genis$/.test(q.sekil || '') || ['grafikSec', 'grafikler'].includes(q.sekil);
       O.push(genis ? { tip: 'tam', html: dnSoruHTML(q, i + 1, true), bas } : { tip: 'kol', html: dnSoruHTML(q, i + 1, false), bas });
@@ -49305,9 +49323,9 @@ function denemeOgeleri() {
   if (S.dn.cozum) {
     kir();
     tam(`<div class="blk bolum"><span class="bn cz">ÇÖZÜMLER</span><h2>Adım adım çözümler</h2><span class="bc">${ab ? 'A kitapçığı sırasıyla' : dnSayiYazi(ids)}</span></div>`);
-    formlar[0].testler.forEach(({ t, qs }) => { tam(`<div class="blk cz-konu"><b>${esc(t.id)}</b> ${esc(t.ad)}</div>`); qs.forEach((q, i) => tam(dnCozumBlok(q, i + 1))); });
+    formlar[0].testler.forEach(({ t, qs }) => { tam(`<div class="blk cz-konu">${t.tur === 'aylik' ? '' : `<b>${esc(t.id)}</b> `}${esc(t.ad)}</div>`); qs.forEach((q, i) => tam(dnCozumBlok(q, i + 1))); });
   }
-  if (S.seviye === 0) tam(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} yazdırılabilir. Bütün denemeler, ünite taramaları ve öğretmen modu (A-B kitapçık) için TYT lisansı al: ${CFG.site}</div>`);
+  if (S.seviye === 0 && !aylikMod()) tam(`<div class="blk tanitim"><b>Bu ücretsiz örnektir.</b> Ücretsiz sürümde ${TYT_UCRETSIZ.join(', ')} yazdırılabilir. Bütün denemeler, ünite taramaları ve öğretmen modu (A-B kitapçık) için TYT lisansı al: ${CFG.site}</div>`);
   return O;
 }
 const DN_GAP = 28, DN_KOL = (688 - DN_GAP) / 2;
@@ -49386,9 +49404,9 @@ function denemeCiz() {
 }
 function denemeYerlestir() {
   const ids = dnSecili(), sayfalar = denemeSayfala(denemeOgeleri()), n = sayfalar.length;
-  const ad = ids.length ? dnAralik(ids) : 'Deneme';
+  const ay = aylikMod(), ad = ay ? ids.map(id => tytTestler()[id].ad).join(', ') || 'Aylık deneme' : ids.length ? dnAralik(ids) : 'Deneme';
   $('#sayfalar').innerHTML = sayfalar.map((s, i) => `<section class="sheet"><div class="sheet-ic tema-${S.tema} ${S.mod} dn-kitap">${s}</div>
-    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : UR.ad}</span><span>${UR.sinav} Fizik – ${esc(ad)}${S.seviye >= 1 && dnFormlar().length > 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
+    <footer class="sf"><span>${S.seviye === 0 ? 'Ücretsiz örnek – ' + CFG.site : LIS.ad ? 'Lisans sahibi: ' + esc(LIS.ad) : ay ? 'Yapabilirim ' + S.sinif + ' – Ben Fizik Yapamıyorum' : UR.ad}</span><span>${ay ? '' : UR.sinav + ' Fizik – '}${esc(ad)}${S.seviye >= 1 && dnFormlar().length > 1 ? ' – ' + formKodu() : ''}</span><span>${i + 1} / ${n}</span></footer></section>`).join('');
   $('#bilgi').textContent = `${n} sayfa – ${dnSayiYazi(ids) || 'seçim yok'}${dnFormlar().length > 1 ? ' – ' + formKodu() : ''}`;
   $('#formkod').textContent = formKodu();
   olcekle();
@@ -49448,7 +49466,7 @@ function sayfala(bloklar) {
 }
 function ciz() {
   sinifUygula();
-  if (S.sinif >= 20 && S.tur === 'deneme') { denemeCiz(); return; }
+  if (dnMod()) { denemeCiz(); return; }
   // Karşılıklı sayfaya sığmayan (sayfa çevirmeli) set kalmasın diye birkaç yerleşimi dene
   S._duzen = null;
   let sayfalar = sayfala(belgeBloklari());
@@ -49512,7 +49530,7 @@ function arayuz() {
   // Etkileşimli soru seçeneği yalnız seçili konularda bu türden soru varsa görünür.
   if ($('#etkTik')) { $('#etkTik').style.display = secKonular().some(k => k.sorular.some(ETK.etkMi)) ? '' : 'none'; $('#t_etk').checked = S.turler.etk !== false; }
   $('#ab').checked = S.ab;
-  if (window.BFYTYT) tytArayuz(); else listeArayuz();
+  if (window.BFYTYT) tytArayuz(); else { listeArayuz(); aylikArayuz(); }
 }
 // 9/10/11: uygulamadan gelen soru listesi varken konu, paket ve soru seçimi gizlenir; çözüm seçimi açık kalır.
 function listeArayuz() {
@@ -49520,6 +49538,35 @@ function listeArayuz() {
   if (lg) { lg.hidden = !lm; if (lm) $('#listeBilgi').textContent = `${S.liste.baslik}: ${S.liste.ids.length} soru. Sorular ve şıklar uygulamadaki sırasıyla basılır.`; }
   ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = lm; });
   const ab = $('#ab'); if (ab && ab.closest('label')) ab.closest('label').hidden = lm;
+}
+// 9/10/11: seçili sınıfın aylık denemesi varsa "Ne yazdıracaksın?" grubu görünür; deneme kipinde konu, paket, soru ve çözüm grupları gizlenir.
+function aylikArayuz() {
+  const L = tytTestListe(), var_ = L.length > 0;
+  if (!var_ && S.tur === 'deneme') S.tur = 'konu';
+  const dn = var_ && S.tur === 'deneme';
+  if (dn && S.liste) listeBirak();
+  const goster = (id, ok) => { const el = document.getElementById(id); if (el) el.hidden = !ok; };
+  goster('tytTurGrp', var_ && !S.liste);
+  document.querySelectorAll('#tytTurGrp [data-v="tur=deneme"]').forEach(b => { b.textContent = 'Aylık deneme'; });
+  document.querySelectorAll('#tytTurGrp [data-v="tur=konu"]').forEach(b => { b.textContent = 'Konu kâğıdı'; b.classList.toggle('on', S.tur !== 'deneme'); });
+  document.querySelectorAll('#tytTurGrp [data-v="tur=deneme"]').forEach(b => b.classList.toggle('on', S.tur === 'deneme'));
+  if (!dn) { goster('dnGrp', false); goster('dnAyarGrp', false); const hc = $('#hocaCozum'); if (hc) hc.hidden = false; if (!S.liste) ['konuGrp', 'paketGrp', 'soruGrp'].forEach(id => goster(id, true)); goster('cozumGrp', true); return; }
+  ['konuGrp', 'paketGrp', 'soruGrp', 'cozumGrp', 'listeGrp', 'hocaCozum'].forEach(id => goster(id, false));
+  goster('dnGrp', true); goster('dnAyarGrp', true);
+  if (S._aySinif !== S.sinif) { S._aySinif = S.sinif; S.denemeler = L.filter(tytTestAcik).slice(-1); }
+  const T = tytTestler();
+  const dg = $('#dnGrp h3'); if (dg) dg.textContent = 'Aylık denemeler';
+  $('#dnHizli').innerHTML = '';
+  $('#dnListe').innerHTML = `<div class="dn-et">${sinifAd(S.sinif)} (20 soru, 40 dk)</div><div class="dn-izg">${L.map(id => { const ac = tytTestAcik(id); return `<label class="dn-t ${ac ? '' : 'kilitli'}" title="${esc(T[id].ad)}"><input type="checkbox" value="${id}" ${S.denemeler.includes(id) ? 'checked' : ''} ${ac ? '' : 'disabled'}><span>${esc(AY_AD[T[id].ay] || id)}</span>${ac ? '' : '<small>🔒</small>'}</label>`; }).join('')}</div>`
+    + (S.seviye === 0 ? `<p class="ipucu">Aylık denemeler ${sinifAd(S.sinif)} lisansıyla yazdırılır.</p>` : '<p class="ipucu">Şık sırası uygulamadakiyle aynıdır. Öğrenci kâğıdı için cevap anahtarını kapat; öğretmen kopyası için çözümleri aç.</p>');
+  const kp = $('#dn_kapak'); if (kp && kp.closest('label')) kp.closest('label').style.display = 'none'; // aylık kitapçıkta kapak yok
+  if ($('#dn_optik')) $('#dn_optik').checked = S.dn.optik; if ($('#dn_anahtar')) $('#dn_anahtar').checked = S.anahtar !== false; if ($('#dn_cozum')) $('#dn_cozum').checked = !!S.dn.cozum;
+  const ip = document.querySelector('#dnAyarGrp .ipucu'); if (ip) ip.textContent = 'İki sütunlu sınav kâğıdı: okul, ad-soyad, süre ve net kutusu. Okul adını öğretmen seçeneklerinden yazabilir ya da boş bırakabilirsin.';
+}
+function aylikBaglan() {
+  const dl = $('#dnListe'); if (dl) dl.addEventListener('change', () => { S.denemeler = [...document.querySelectorAll('#dnListe input:checked')].map(i => i.value); yenile(); });
+  const tik = (id, f) => { const el = document.getElementById(id); if (el) el.addEventListener('change', () => { f(el.checked); yenile(); }); };
+  tik('dn_optik', v => { S.dn.optik = v; }); tik('dn_anahtar', v => { S.anahtar = v; }); tik('dn_cozum', v => { S.dn.cozum = v; });
 }
 function listeBirak() {
   if (!S.liste) return;
@@ -49617,7 +49664,7 @@ function baglan() {
   $('#konular').addEventListener('change', e => {
     if (S.sinif >= 20) { tytKonuDegisti(e.target); return; }
     S.konular = [...document.querySelectorAll('#konular input:checked')].map(i => i.value); if (!S.konular.length) { const k = ilkKonu(S.sinif); S.konular = [k ? k.id : '11.1.1']; } yenile(); });
-  if (window.BFYTYT) tytBaglan();
+  if (window.BFYTYT) tytBaglan(); else aylikBaglan();
   ['not', 'efsane', 'deney', 'sorular', 'skor'].forEach(p => { const el = $('#p_' + p); if (el) el.addEventListener('change', () => { S.parca[p] = el.checked; yenile(); }); });
   $('#t_cs').addEventListener('change', e => { S.turler.cs = e.target.checked; if (!S.turler.cs && !S.turler.acik) S.turler.acik = true; yenile(); });
   $('#t_acik').addEventListener('change', e => { S.turler.acik = e.target.checked; if (!S.turler.cs && !S.turler.acik) S.turler.cs = true; yenile(); });
@@ -49694,6 +49741,14 @@ function derinBaglanti9(hp) {
   const sn = +hp.get('sinif'), P = S.parca;
   const sinifaGec = no => { if (!sinifGorunur(no) || !ilkKonu(no)) return false; if (no !== S.sinif) sinifSec(no); sinifUygula(); return true; };
   const uniteAyarla = () => { const kk = katKonu(S.konular[0]); if (kk && kk.u) S.unite = kk.u.no; };
+  // Aylık deneme: #sinif=9&aylik=AY9_11[&cozum=1][&anahtar=0] (sınav kâğıdı; anahtar=0 cevap anahtarı olmadan; cozum=1 çözümlü)
+  if (hp.get('aylik')) {
+    const T = tytTestler(), id = hp.get('aylik').trim().toUpperCase(), t = T[id];
+    if (!t || t.tur !== 'aylik' || !sinifaGec(t.sinif)) return;
+    S.liste = null; S.tur = 'deneme'; S._aySinif = S.sinif; S.denemeler = [id];
+    S.dn.cozum = hp.get('cozum') === '1'; S.anahtar = hp.get('anahtar') !== '0'; S.ab = false;
+    return;
+  }
   if (hp.get('sorular')) {
     const H = soruHaritasi(), ids = [...new Set(hp.get('sorular').split(',').map(x => x.trim()).filter(id => H[id]))];
     if (!ids.length) return;
@@ -49738,8 +49793,8 @@ async function yazdir() {
   try { await document.fonts.ready; } catch (e) { }
   const ks = secKonular();
   const eski = document.title;
-  const dn = S.sinif >= 20 && S.tur === 'deneme';
-  const ad = S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
+  const dn = dnMod();
+  const ad = dn && aylikMod() ? 'Aylik_' + dnSecili().map(id => AY_AD[tytTestler()[id].ay] || id).join('_').replace(/ı/g, 'i').replace(/İ/g, 'I').replace(/ş/g, 's').replace(/Ş/g, 'S').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ö/g, 'o').replace(/ç/g, 'c') + (S.dn.cozum ? '_Cozumlu' : S.anahtar === false ? '' : '_Anahtarli') : S.liste && !window.BFYTYT ? S.liste.baslik : dn ? 'Deneme_' + dnAralik(dnSecili()).replace(/[–, ]+/g, '-') + (dnFormlar().length > 1 ? '_AB' : '') + (S.dn.cozum ? '_Cozumlu' : '') : S.sinif >= 20 && ks.length > 2 ? tytKitapAdi(ks) : ks.map(k => k.ad).join('_');
   document.title = `BFY_${S.sinif >= 20 ? UR.dosya : S.sinif}_${ad.replace(/\s+/g, '_').replace(/[:+]/g, '')}_${S.mod === 'ogretmen' ? 'Ogretmen' : 'Ogrenci'}_${formKodu()}`;
   window.print();
   setTimeout(() => { document.title = eski; }, 1500);
@@ -49754,7 +49809,7 @@ window.BFY_NOTGEN = { S, yenile,
 window.BFY_ORTAK = { cikmisEtiket, sinifAd, sinifAdB, baskaUrunMesaji, cozumluHazirla, vitrinListesi, tex, inline, md, tabloHTML, tabloBaslikli, esc, rng, shuffle, seceneklerKaristir, lisansCoz, lisansYukle, lisansEkle, lisansVar, sinifSeviye, lisansAdi, sinifGorunur, LIS, LISLER, SEV_AD, LISANS_HATA, store, CFG, XP, ZAD, HARF };
 async function basla() {
   if (!document.getElementById('siniflar')) return; // oluşturucu arayüzü yoksa (dijital sayfa) başlatma
-  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
+  const hp = (window.BFYTYT ? /(^#|&)(konu|unite|deneme)=/ : /(^#|&)(konu|sorular|aylik)=/).test(location.hash) ? new URLSearchParams(location.hash.replace(/^#/, '')) : null;
   const r = await lisansYukle();
   // Bu derlemede S.sinif (11) yoksa (TYT) katalogdaki ilk görünür sınıfa geç.
   if (!sinifGorunur(S.sinif)) { const g = window.BFY_KATALOG.find(x => sinifGorunur(x.no) && ilkKonu(x.no)); if (g) sinifSec(g.no); }
