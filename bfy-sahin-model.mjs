@@ -91,19 +91,28 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
   function word(text,x,y,z,width){const c=document.createElement('canvas');c.width=512;c.height=96;const q=c.getContext('2d');q.font='600 58px Arial';q.textAlign='center';q.fillStyle='#d5dce2';q.fillText(text,256,67);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const o=mesh(body,new T.PlaneGeometry(width,.065),new T.MeshStandardMaterial({map:t,transparent:true,metalness:.4,roughness:.4}),x,y,z);o.rotation.y=-Math.PI/2;}
   word('ŞAHİN',-2.125,.95,-.55,.25);word('TOFAŞ',-2.125,.95,.55,.27);
   const exhaust=mesh(body,new T.CylinderGeometry(.052,.052,.24,32,1,true),chrome,-2.20,.31,.58);exhaust.rotation.z=Math.PI/2;const exhaustDark=mesh(body,new T.CircleGeometry(.043,32),black,-2.325,.31,.58);exhaustDark.rotation.y=-Math.PI/2;
-  // Wider period-inspired multi-spoke rims, modest stance; no exaggerated camber.
-  const wheels=[];
+  // Deep-dish, polished five-spoke wheels with exposed rivets and a lower-profile tyre.
+  const wheels=[],wheelPivots=[];
+  const rimFace=new T.MeshStandardMaterial({color:'#eee9dc',metalness:.88,roughness:.20});
   for(const x of [-1.21,1.27])for(const side of [-1,1]){
-    const w=new T.Group();w.position.set(x,.303,side*.79);car.add(w);wheels.push(w);
-    const tireProfile=[];for(const [rad,z]of[[.215,-.114],[.258,-.122],[.286,-.112],[.300,-.088],[.303,-.055],[.303,.055],[.300,.088],[.286,.112],[.258,.122],[.215,.114]])tireProfile.push(new T.Vector2(rad,z));const tire=mesh(w,new T.LatheGeometry(tireProfile,64),rubber);tire.rotation.x=Math.PI/2;
-    const rim=mesh(w,new T.CylinderGeometry(.224,.224,.24,40),trim);rim.rotation.x=Math.PI/2;
-    const face=side*.125;
-    const outer=mesh(w,new T.TorusGeometry(.221,.012,8,48),chrome,0,0,face);
-    const inner=mesh(w,new T.CylinderGeometry(.181,.181,.008,32),black,0,0,face);inner.rotation.x=Math.PI/2;
-    const rotor=mesh(w,new T.CylinderGeometry(.167,.167,.008,40),chrome,0,0,face-side*.022);rotor.rotation.x=Math.PI/2;box(w,.14,.015,face-side*.012,.045,.11,.033,red);for(let i=0;i<16;i++){const a=i*Math.PI/8;for(const branch of [-1,1]){const sp=box(w,Math.cos(a)*.132,Math.sin(a)*.132,face+side*.009,.163,.009,.015,chrome);sp.rotation.z=a+branch*.16;}}
-    const hub=mesh(w,new T.CylinderGeometry(.065,.065,.026,24),chrome,0,0,face+side*.012);hub.rotation.x=Math.PI/2;
-    for(let i=0;i<4;i++){const a=i*Math.PI/2;const bolt=mesh(w,new T.SphereGeometry(.009,6,5),black,Math.cos(a)*.04,Math.sin(a)*.04,face+side*.029);}
-    for(const dz of [-.1,.1]){const line=mesh(w,new T.TorusGeometry(.297,.004,4,48),trim,0,0,dz);}
+    const pivot=new T.Group();pivot.position.set(x,.303,side*.805);car.add(pivot);wheelPivots.push(pivot);
+    const w=new T.Group();pivot.add(w);wheels.push(w);
+    const profile=[[.243,-.12],[.273,-.13],[.297,-.11],[.307,-.075],[.307,.075],[.297,.11],[.273,.13],[.243,.12]].map(([r,z])=>new T.Vector2(r,z));
+    const tire=mesh(w,new T.LatheGeometry(profile,48),rubber);tire.rotation.x=Math.PI/2;
+    const barrel=mesh(w,new T.CylinderGeometry(.245,.245,.24,48,1,true),chrome);barrel.rotation.x=Math.PI/2;
+    const face=side*.142;
+    mesh(w,new T.TorusGeometry(.239,.012,8,48),chrome,0,0,face);
+    mesh(w,new T.TorusGeometry(.210,.007,6,40),chrome,0,0,face-side*.033);
+    const rotor=mesh(w,new T.CylinderGeometry(.185,.185,.01,32),trim,0,0,face-side*.055);rotor.rotation.x=Math.PI/2;
+    box(pivot,.156,.025,face-side*.045,.055,.14,.04,red);
+    for(let i=0;i<5;i++){
+      const a=i*Math.PI*2/5,sp=box(w,Math.cos(a)*.137,Math.sin(a)*.137,face-side*.022,.185,.038,.022,rimFace);sp.rotation.z=a;
+      const accent=box(w,Math.cos(a)*.145,Math.sin(a)*.145,face-side*.008,.151,.009,.005,chrome);accent.rotation.z=a;
+    }
+    const hub=mesh(w,new T.CylinderGeometry(.065,.065,.027,24),rimFace,0,0,face-side*.011);hub.rotation.x=Math.PI/2;
+    for(let i=0;i<5;i++){const a=i*Math.PI*2/5;mesh(w,new T.SphereGeometry(.008,6,4),black,Math.cos(a)*.041,Math.sin(a)*.041,face+side*.008);}
+    for(let i=0;i<24;i++){const a=i*Math.PI/12;mesh(w,new T.SphereGeometry(.005,5,4),chrome,Math.cos(a)*.224,Math.sin(a)*.224,face+side*.007);}
+    mesh(w,new T.TorusGeometry(.301,.003,4,40),trim,0,0,side*.092);
   }
   // Hinged boot lid, twin subwoofers and a compact original BFY amplifier.
   const boot=new T.Group();boot.position.set(-1.51,1.015,0);body.add(boot);
@@ -129,7 +138,7 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
   body.traverse(o=>{if(!o.isMesh)return;const g=o.geometry.clone(),oldNormals=g.attributes.normal.clone(),localToBody=new T.Matrix4().multiplyMatrices(bodyInv,o.matrixWorld),back=localToBody.clone().invert(),p=g.attributes.position;
     for(let i=0;i<p.count;i++){point.fromBufferAttribute(p,i).applyMatrix4(localToBody);if(point.x>1.40)point.x=1.40+(point.x-1.40)*.71;point.applyMatrix4(back);p.setXYZ(i,point.x,point.y,point.z);}g.computeVertexNormals();const normals=g.attributes.normal;for(let i=0;i<normals.count;i++){if(Math.abs(oldNormals.getZ(i))>.995)normals.setXYZ(i,0,0,Math.sign(oldNormals.getZ(i)));}o.geometry.dispose();o.geometry=g;});
   headSpots.forEach(light=>light.position.x=2.0);
-  car.userData={wheels,body,paint,boot,soundRack,subwoofers,
+  car.userData={wheels,wheelPivots,body,paint,boot,soundRack,subwoofers,
     setLights(on){lamp.emissiveIntensity=on?2.5:.13;lensMat.emissiveIntensity=on?2.4:0;red.emissiveIntensity=on?1.2:.18;headSpots.forEach(light=>light.intensity=on?100:0);},
     setBoot(amount){boot.rotation.z=-amount*1.1;soundRack.visible=amount>.08;},
     pulse(value){subwoofers.forEach(cone=>cone.position.y=1.064+value*.018);}

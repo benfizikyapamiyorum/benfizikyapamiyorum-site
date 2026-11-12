@@ -1,6 +1,6 @@
 import * as T from './bfy-three.module.min.js';
-import {createSahin} from './bfy-sahin-model.mjs';
-import {RecordedEngine} from './bfy-sahin-audio.mjs?v=20261108-exhaust3';
+import {createSahin} from './bfy-sahin-model.mjs?v=20261112-rims';
+import {RecordedEngine} from './bfy-sahin-audio.mjs?v=20261112-drive';
 import {makeRace,raceSample} from './bfy-sahin-physics.mjs';
 const $=id=>document.getElementById(id),fmt=(n,d=1)=>n.toFixed(d).replace('.',','),clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 let model,t=0,phase='ready',last=performance.now(),countStart=0,prediction=null,night=false,lights=false,bootOpen=false,bootAngle=0,cameraMode='garage';
@@ -51,7 +51,7 @@ function engineControls(){
 }
 function stopEngine(){engine.stop();engineControls();$('engine-status').textContent='Motor kapalı. Yeniden çalıştırabilirsin.';}
 $('engine-toggle').onclick=async()=>{if(engine.enabled){stopEngine();return;}if(engineBusy)return;engineBusy=true;engineControls();$('engine-status').textContent='Motor hazırlanıyor…';try{const started=await engine.start();$('engine-status').textContent=started?'Motor çalışıyor. Gaz düğmesini basılı tut veya yarışı başlat.':'Motor kapalı. Yeniden çalıştırabilirsin.';}catch(error){$('engine-status').textContent=error.message;}finally{engineBusy=false;engineControls();}};
-$('engine-volume').oninput=e=>engine.setVolume(+e.target.value/100);
+$('engine-volume').oninput=e=>engine.setVolume(+e.target.value/100);engine.setVolume(+$('engine-volume').value/100);
 $('engine-rev').onpointerdown=e=>{if(!engine.enabled)return;e.preventDefault();e.target.setPointerCapture(e.pointerId);engine.rev=true;};
 for(const event of ['pointerup','pointercancel','lostpointercapture','blur'])$('engine-rev').addEventListener(event,()=>engine.rev=false);
 $('engine-rev').onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();engine.rev=true;}};$('engine-rev').onkeyup=()=>engine.rev=false;
