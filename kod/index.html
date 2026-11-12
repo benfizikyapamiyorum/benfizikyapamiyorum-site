@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kısa kodla giriş | Ben Fizik Yapamıyorum</title>
+<meta name="description" content="Ben Fizik Yapabilirim dijital kitabını ve Hoca Kiti'ni 8 haneli kısa kodunla aç.">
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--yesil:#244f40;--turuncu:#E0731F;--muted:#5B6573;--ink:#1a2233;--line:#C9D2E0;--hata:#B3261E}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#f6f4ee;color:var(--ink)}
+.w{max-width:520px;margin:0 auto;padding:40px 18px 60px}
+.marka{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:15px;color:var(--turuncu)}
+h1{font-family:Manrope,Inter,sans-serif;font-weight:800;font-size:32px;line-height:1.15;color:var(--yesil);margin:8px 0 10px}
+.alt{color:var(--muted);font-size:16px;line-height:1.6;margin:0 0 22px}
+form{background:#fff;border-radius:20px;padding:22px;box-shadow:0 12px 34px rgba(36,79,64,.10)}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:8px}
+input{width:100%;padding:16px 14px;border:2px solid var(--line);border-radius:14px;font:700 24px ui-monospace,Menlo,Consolas,monospace;letter-spacing:3px;text-align:center;text-transform:uppercase;color:var(--yesil);background:#fff}
+input:focus{outline:none;border-color:var(--yesil)}
+button{width:100%;margin-top:14px;padding:15px;border:0;border-radius:14px;background:var(--yesil);color:#fff;font:700 17px Inter,system-ui,sans-serif;cursor:pointer}
+button[disabled]{opacity:.6}
+.hata{color:var(--hata);font-size:14px;min-height:20px;margin-top:10px;text-align:center}
+.not{font-size:14px;color:var(--muted);line-height:1.6;margin-top:22px}.not a{color:var(--yesil)}
+</style></head><body><div class="w">
+<div class="marka">Ben Fizik Yapamıyorum</div>
+<h1>Kısa kodla giriş</h1>
+<p class="alt">Lisansının 8 haneli kodunu yaz. Kitabın bu cihazda açılır ve kaydolur; bundan sonra linke gerek kalmaz.</p>
+<form id="f"><label for="k">Kısa kodun</label><input id="k" name="k" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="ABCD-EFGH" required>
+<button type="submit" id="b">Kitabımı aç</button><p class="hata" id="h" role="alert"></p></form>
+<p class="not">Kodunu bilmiyorsan: kitabı açtığın cihazda alttaki <b>İlerleme</b> sekmesine gir, en alttaki <b>Ayarlar</b> bölümünde “Başka cihazda açmak için kısa kodun” satırında yazar. Lisans e-postandaki linke tıklamak da aynı işi görür. Sorun olursa <a href="mailto:cerkeztimur@gmail.com">e-posta</a> ile yaz.</p>
+</div>
+<script>
+(function(){
+  var k=document.getElementById('k'),f=document.getElementById('f'),b=document.getElementById('b'),h=document.getElementById('h');
+  k.addEventListener('input',function(){var v=k.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);k.value=v.length>4?v.slice(0,4)+'-'+v.slice(4):v;h.textContent='';});
+  var q=new URLSearchParams(location.search).get('k');if(q){k.value=q;k.dispatchEvent(new Event('input'));}
+  f.addEventListener('submit',function(e){e.preventDefault();var v=k.value.replace(/[^A-Z0-9]/g,'');
+    if(v.length!==8){h.textContent='Kod 8 haneli olmalı (ör. ABCD-EFGH).';return;}
+    b.disabled=true;b.textContent='Kontrol ediliyor…';
+    fetch('https://bfy-geri.netlify.app/api/kod?k='+v,{cache:'no-store'}).then(function(r){return r.json().then(function(d){return {ok:r.ok,d:d};});}).then(function(x){
+      if(!x.ok||!x.d.link)throw new Error(x.d.hata||'Bu kod bulunamadı.');location.href=x.d.link;
+    }).catch(function(err){b.disabled=false;b.textContent='Kitabımı aç';h.textContent=err&&err.message&&!/fetch/i.test(err.message)?err.message:'Bağlantı kurulamadı. İnternetini kontrol edip yeniden dene.';});
+  });
+})();
+</script></body></html>

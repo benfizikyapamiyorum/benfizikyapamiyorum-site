@@ -1307,6 +1307,12 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
 .od-no{display:grid;place-items:center;height:46px;border-radius:12px;border:1.5px solid var(--ui-line);background:var(--ui-card);color:var(--ui-text);font-weight:700;text-decoration:none}
 .od-no.dogru{background:#e3f2e9;border-color:#2f7d55;color:#1f5c3d}.od-no.yanlis{background:#fdeaea;border-color:#c0392b;color:#8e2a20}
 .odev-kart a.btn,.odev-sayfa a.btn{text-decoration:none}.odev-sayfa>a.btn{display:inline-block;margin:4px 0 8px}
+
+/* Uygulama olarak yükle kartı ve kısa kod */
+.yukle-kart{display:flex;gap:12px;align-items:flex-start;margin:14px 0;padding:14px 16px;border-radius:18px;background:var(--ui-card);border:1.5px dashed #244f40}
+.yk2-ik{font-size:28px;line-height:1}.yk2-g b{font-size:16px}.yk2-g p{margin:4px 0 10px;font-size:14px;line-height:1.5}.yk2-alt{display:flex;gap:8px;flex-wrap:wrap}
+.kisa-kod{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:17px;letter-spacing:1px;color:#244f40;white-space:nowrap}
+.ks-dip{display:block;font-size:12.5px;opacity:.75;margin-top:2px;line-height:1.4}
 </style>
 </head>
 <body class="dj">
@@ -1325,7 +1331,7 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
   <button class="kapat" id="kodKapat" type="button" aria-label="Kapat">×</button>
   <h2>Lisans</h2>
   <p id="kodMesaj">Sana gönderilen lisans linkine tıkla ya da linki buraya yapıştır. Lisansının sınıfındaki bütün konular, sorular ve çözümler açılır.</p>
-  <div class="kod-sat"><input id="kodInput" type="text" placeholder="Lisans linkini yapıştır" autocomplete="off" aria-label="Lisans linki"><button class="btn ana kucuk" id="kodTamam" type="button">Aç</button></div>
+  <div class="kod-sat"><input id="kodInput" type="text" placeholder="Kısa kod (ABCD-EFGH) ya da lisans linki" autocomplete="off" autocapitalize="characters" aria-label="Kısa kod ya da lisans linki"><button class="btn ana kucuk" id="kodTamam" type="button">Aç</button></div>
   <div class="kod-hata" id="kodHata"></div>
   <div class="kod-al"><a href="/yks2027-ayt-fizik.html#fiyat" target="_blank" rel="noopener">Lisans al</a></div>
 </dialog>
@@ -63523,6 +63529,7 @@ function anaEkran() {
     <div class="hero-istat"><div><b>${K.xp}</b><span>XP</span></div><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen()}</b><span>çözülen soru</span></div><div><b>${genelUnvan()}</b><span>unvan</span></div></div></section>`;
   if (son) { const sk = BANK[son.id]; h += `<a class="devam" href="#/soru/${son.id}/${son.idx}"><div><small>Kaldığın yerden devam et</small><b>${esc(sk.ad)}, ${son.idx + 1}. soru</b></div><span class="ok">→</span></a>`; }
   h += odevKart();
+  h += yukleKart();
   if (AYLIK) h += aylikAnaKart(sn);
   h += oyunKart(sn);
   h += yeniKart();
@@ -63584,6 +63591,46 @@ function odevEkran(no) {
   });
   return h + '</div>';
 }
+
+/* ---- Kısa kod (12 Kasım 2026): lisans linki yerine 8 haneli kod. Sunucu: bfyf-notgen/geri/netlify/functions/kod.mjs ---- */
+function kisaKodLisans() { const L = aktifLisans() || Object.values(LISLER)[0]; return L && L.jeton ? L : null; }
+function kisaKodGoster() {
+  const L = kisaKodLisans(); if (!L) return '';
+  const kayit = (K.ayar.kisaKod || {})[L.no]; if (kayit) return kayit;
+  setTimeout(kisaKodAl, 0); return '…';
+}
+async function kisaKodAl() {
+  const L = kisaKodLisans(); if (!L || (K.ayar.kisaKod || {})[L.no]) return;
+  try {
+    const link = location.origin + location.pathname.replace(/index\.html$/, '') + '#lisans=' + L.jeton;
+    const y = await fetch(KOD_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ link }) }), d = await y.json();
+    if (!y.ok || !d.kod) throw 0;
+    K.ayar.kisaKod = Object.assign({}, K.ayar.kisaKod, { [L.no]: d.kod }); kaydet();
+    $$('[data-kisa-kod]').forEach(el => { el.textContent = d.kod; });
+  } catch (e) { $$('[data-kisa-kod]').forEach(el => { el.textContent = 'İnternete bağlanınca görünür'; }); }
+}
+/* ---- Uygulama olarak yükle (12 Kasım 2026): Android ve bilgisayarda tek dokunuş, iPhone ve iPad'de kısa anlatım ---- */
+let yukleOlay = null;
+const yuklu = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const iosMu = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const yukleDurum = () => yuklu() ? '' : yukleOlay ? 'hazir' : iosMu() ? 'ios' : '';
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); yukleOlay = e; if (!yolParca().length || yolParca()[0] === 'ilerleme') ciz(false); });
+window.addEventListener('appinstalled', () => { yukleOlay = null; K.ayar.yukleKapa = 1; kaydet(); $$('.yukle-kart').forEach(x => x.remove()); tost('Kitap yüklendi. Artık ana ekrandaki simgesinden açabilirsin.'); });
+function yukleKart() {
+  const d = yukleDurum(); if (!d || K.ayar.yukleKapa || !Object.values(LISLER).length) return '';
+  const metin = d === 'ios' ? 'Safari’de alttaki <b>Paylaş</b> düğmesine (kare ve yukarı ok) dokun, sonra <b>Ana Ekrana Ekle</b> de. Kitap uygulama gibi simgesinden açılır.' : 'Tek dokunuşla kitabı bu cihaza uygulama olarak kur. Simgesinden açılır, tam ekran ve internetsiz çalışır.';
+  return `<section class="yukle-kart"><div class="yk2-ik" aria-hidden="true">📲</div><div class="yk2-g"><b>Kitabı uygulama olarak yükle</b><p>${metin}</p><div class="yk2-alt">${d === 'hazir' ? '<button type="button" class="btn ana ince" data-yukle>Yükle</button>' : ''}<button type="button" class="btn cizgi ince" data-yukle-kapa>${d === 'ios' ? 'Tamam' : 'Sonra'}</button></div></div></section>`;
+}
+async function yukleBaslat() {
+  if (!yukleOlay) { if (iosMu()) tost('Safari’de Paylaş düğmesine dokun, sonra “Ana Ekrana Ekle” de.'); return; }
+  const e = yukleOlay; yukleOlay = null; e.prompt();
+  try { const c = await e.userChoice; if (c && c.outcome === 'accepted') { K.ayar.yukleKapa = 1; kaydet(); } } catch (x) {}
+  ciz(false);
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-yukle]')) { yukleBaslat(); return; }
+  if (e.target.closest('[data-yukle-kapa]')) { K.ayar.yukleKapa = 1; kaydet(); const k = e.target.closest('.yukle-kart'); if (k) k.remove(); }
+});
 let kisiselDeneme = 0;
 function kisiselMesaj() {
   if ($('#kisiselMesaj')) return;
@@ -64805,6 +64852,8 @@ function ilerleme() {
     <label class="ayar-sat">Titreşim<input class="dugme-a" type="checkbox" data-ayar="titresim" ${K.ayar.titresim ? 'checked' : ''}></label>
     ${gorunurSiniflar().map(n => { const L = LISLER[n]; return `<div class="ayar-sat" data-erisim="${n}"><span>${SA(n)}: ${L ? (L.seviye === 2 ? 'Öğretmen lisansı' : 'Öğrenci lisansı') + (L.ad ? ' – ' + esc(L.ad) : '') : 'Ücretsiz sürüm'}</span>${L ? '' : '<button class="btn ana kucuk" type="button" data-kod>Lisansım var</button>'}</div>`; }).join('')}
     ${ANALIZ ? `<label class="ayar-sat">Sınav tarihi (tahmini)<input type="date" data-ayar-tarih="sinav" value="${K.ayar.sinav || SINAV_VARS}"></label>` : ''}
+    ${Object.values(LISLER).length ? `<div class="ayar-sat"><span>Başka cihazda açmak için kısa kodun<small class="ks-dip">Kitabı başka bir telefonda, tablette ya da bilgisayarda açarken “Lisansım var” kutusuna yaz.</small></span><b class="kisa-kod" data-kisa-kod>${esc(kisaKodGoster())}</b></div>` : ''}
+    ${yukleDurum() ? `<div class="ayar-sat"><span>Kitabı uygulama olarak yükle</span><button class="btn cizgi" type="button" data-yukle style="padding:8px 12px">Yükle</button></div>` : ''}
     <div class="ayar-sat"><span>Kitabı nasıl kullanırım?</span><button class="btn cizgi" type="button" data-rehber style="padding:8px 12px">Rehberi aç</button></div>
     <div class="ayar-sat"><span>İlerlemeyi ve çizimleri sıfırla</span><button class="btn cizgi" type="button" id="sifirla" style="padding:8px 12px">Sıfırla</button></div></div>
     <p class="dip" style="text-align:center;margin-top:10px">İlerlemen ve kalem çizimlerin bu cihazda saklanır.</p>`;
@@ -65309,9 +65358,23 @@ document.addEventListener('change', e => {
   if (t.matches('[data-ayar]')) { K.ayar[t.dataset.ayar] = t.checked; kaydet(); return; }
   if (t.matches('[data-ayar-tarih]')) { if (t.value) K.ayar[t.dataset.ayarTarih] = t.value; else delete K.ayar[t.dataset.ayarTarih]; kaydet(); tost('Sınav tarihi kaydedildi.'); return; }
 });
-const KOD_MESAJ = 'Sana gönderilen lisans linkine tıkla ya da linki buraya yapıştır. Lisansının sınıfındaki bütün konular, sorular ve çözümler açılır.';
+const KOD_MESAJ = 'Sana gönderilen 8 haneli kısa kodu (ör. ABCD-EFGH) ya da lisans linkini buraya yaz. Lisansının bütün konuları, soruları ve çözümleri açılır.';
+const SITE_YOL_AYNI = y => y.replace(/index\.html$/, '') === location.pathname.replace(/index\.html$/, '');
+const KOD_URL = 'https://bfy-geri.netlify.app/api/kod';
+const KISA_KOD = /^\s*[A-Za-z0-9]{4}[\s-]?[A-Za-z0-9]{4}\s*$/;
 async function kodDene() {
-  const r = await lisansCoz($('#kodInput').value);
+  let girdi = $('#kodInput').value;
+  if (KISA_KOD.test(girdi)) {
+    $('#kodHata').textContent = 'Kod kontrol ediliyor…';
+    try {
+      const y = await fetch(KOD_URL + '?k=' + encodeURIComponent(girdi.trim()), { cache: 'no-store' }), d = await y.json();
+      if (!y.ok || !d.link) { $('#kodHata').textContent = d.hata || 'Bu kod bulunamadı.'; return; }
+      const hedef = new URL(d.link);
+      if (hedef.pathname !== location.pathname && !(SITE_YOL_AYNI(hedef.pathname))) { location.href = d.link; return; }
+      girdi = d.link; $('#kodHata').textContent = '';
+    } catch (e) { $('#kodHata').textContent = 'İnternet bağlantısı gerekli. Bağlanıp yeniden dene.'; return; }
+  }
+  const r = await lisansCoz(girdi);
   if (r.hata) { $('#kodHata').textContent = LISANS_HATA[r.hata]; return; }
   lisansEkle(r);
   if (!sinifGorunur(r.sinif)) { $('#kodHata').innerHTML = O.baskaUrunMesaji(r, false); return; }
