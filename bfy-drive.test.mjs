@@ -4,8 +4,8 @@ import {RecordedEngine} from './bfy-sahin-audio.mjs';
 const assert=(v,m)=>{if(!v)throw Error(m);};
 const drive=(dt,seconds,input,curvature=0)=>{const c=makeDriver(0,0);for(let t=0;t<Math.round(seconds/dt);t++)stepDriver(c,input,dt,curvature,2000);return c;};
 const a=drive(1/60,10,{gas:1}),b=drive(1/30,10,{gas:1});assert(a.v>40&&a.s>220,'gas accelerates');assert(Math.abs(a.s-b.s)<2,'frame rate stability');
-for(let i=0;i<240;i++)stepDriver(a,{brake:1},1/60,0,2000);assert(a.v===0,'brakes stop');
-const turn=drive(1/60,10,{gas:1,steer:1});assert(turn.contacts>0&&Math.abs(turn.lane)<=13.2,'barrier collision bounds');
+for(let i=0;i<420;i++)stepDriver(a,{brake:1},1/60,0,2000);assert(a.v===0,'brakes stop');
+const turn=drive(1/60,10,{gas:1,steer:1});assert(Math.abs(turn.yaw)>.1&&Math.abs(turn.lane)<=13.2,'steering changes heading within barrier bounds');
 const x=makeDriver(0,0,10),y=makeDriver(1,.1,12);x.v=30;y.v=20;assert(resolveContact(x,y)&&x.v<30&&x.contacts===1,'contact transfer');assert(!resolveContact(x,y),'contact cooldown');
 const fin=makeDriver(0,0,3980);fin.v=60;for(let i=0;i<60;i++)stepDriver(fin,{gas:1},1/60,0,2000);assert(fin.done&&fin.s===4000&&fin.finishTime>0,'two lap finish');const before=fin.finishTime;stepDriver(fin,{gas:1},1/60,0,2000);assert(fin.finishTime===before,'finish frozen');assert(standings([y,fin])[0]===fin,'finish ranking');
 const ai=makeDriver(1,2,0);ai.targetLane=-2;for(let i=0;i<120;i++)stepRival(ai,1/60,.01,2000);assert(ai.v>0&&ai.lane<0&&Number.isFinite(ai.rpm),'rival driving');
@@ -45,3 +45,23 @@ const actual=new T.Box3().setFromObject(group);assert(expected.min.distanceTo(ac
 assert(model.userData.wheelPivots.length===4&&model.userData.wheels.every(w=>w.parent?.parent===model),'rolling wheels retain steering pivots');
 let meshes=0;model.traverse(o=>{if(o.isMesh)meshes++;});assert(meshes<100,'Sahin draw objects remain batched');
 console.log('PASS: static batching, controlled parts, transform bounds and steering hierarchy.');
+// Combined tyre limits, power oversteer, recovery and bounded skid storage.
+const {combinedForce,resetSlip}=await import('./bfy-drive-physics.mjs');
+for(const fx of [-14000,0,5000,14000])for(const fy of [-12000,0,12000]){const f=combinedForce(fx,fy,6000);assert(Math.hypot(f.x,f.y)<=6000.00001,'combined tyre force respects friction circle');}
+const launch=gas=>{const c=makeDriver(0,0);let peak=0;for(let i=0;i<120;i++){stepDriver(c,{gas},1/60,0,2000);peak=Math.max(peak,c.spin);}return{c,peak};};
+const hard=launch(1),gentle=launch(.3);assert(hard.peak>.15&&gentle.peak<.01,'hard launch spins, gentle launch grips');assert(hard.c.rearWheelSpeed>hard.c.v/.303,'rear wheels visibly overspeed during wheelspin');
+const seeded=()=>{const c=makeDriver(0,0);c.v=20;for(let i=0;i<40;i++)stepDriver(c,{gas:1,steer:.35},1/60,0,2000);return c;};
+const catchSlide=seeded(),holdSlide=seeded();assert(catchSlide.drifting&&catchSlide.driftScore>0,'power oversteer earns drift points');
+for(let i=0;i<25;i++){stepDriver(catchSlide,{steer:-1},1/60,0,2000);stepDriver(holdSlide,{steer:.35},1/60,0,2000);}
+assert(Math.abs(catchSlide.slipAngle)<.05&&Math.abs(holdSlide.slipAngle)>.2,'countersteering with throttle lift catches the slide');
+const hand=makeDriver(0,0);hand.v=18;for(let i=0;i<30;i++)stepDriver(hand,{steer:.3,handbrake:1},1/60,0,2000);assert(hand.rearWheelSpeed===0&&hand.rearSkid>.9&&Math.abs(hand.slipAngle)>.1,'handbrake locks rear axle and initiates oversteer');
+const slideAt=hz=>{const c=makeDriver(0,0);c.v=20;for(let i=0;i<hz*.5;i++)stepDriver(c,{gas:.7,steer:.35},1/hz,0,2000);return c;};const s30=slideAt(30),s120=slideAt(120);assert(Math.abs(s30.yaw-s120.yaw)<1e-6&&Math.abs(s30.lane-s120.lane)<1e-6,'drift is consistent across 30/120 Hz');
+const parked=makeDriver(0,0);for(let i=0;i<120;i++)stepDriver(parked,{steer:1,handbrake:1},1/60,0,2000);assert(parked.yaw===0&&parked.v===0&&parked.driftScore===0,'parked steering cannot create motion or score');
+const saved=catchSlide.driftScore;resetSlip(catchSlide);assert(catchSlide.vy===0&&catchSlide.spin===0&&catchSlide.driftChain===0&&catchSlide.driftScore===saved,'recovery clears residual slip and retains earned score');
+const {SkidMarks}=await import('./bfy-drive-skids.mjs');const skidScene=new T.Scene(),skids=new SkidMarks(skidScene,8);
+skids.add(0,0,0,1,0);skids.add(0,1,0,1,.1);assert(skids.count===1,'moving slipping tyre leaves a ribbon');
+skids.add(0,2,0,1,.2,false);skids.add(0,3,0,1,.3);assert(skids.count===1,'grass breaks trail');skids.add(0,10,0,1,.4);assert(skids.count===1,'teleport never draws connecting stripe');
+for(let i=0;i<100;i++)skids.add(0,10+i*.3,0,.8,1+i*.02);assert(skids.count===8&&skidScene.children.length===1&&skids.geometry.attributes.position.count===48,'skid ring stays fixed size and one mesh');
+const flat={sample:s=>({p:new T.Vector3(s,0,0),t:new T.Vector3(1,0,0),n:new T.Vector3(0,0,1)})};const edge=makeDriver(0,7);edge.v=10;edge.rearSkid=1;skids.reset();skids.update(edge,flat,0);edge.s=1;skids.update(edge,flat,.1);assert(skids.count===1,'only the rear tyre on asphalt marks at track edge');
+skids.reset();assert(skids.count===0&&skids.geometry.drawRange.count===0&&skids.last.every(x=>x===null),'restart clears tracks');skids.dispose();assert(skidScene.children.length===0,'track buffers disposed');
+console.log('PASS: grip limits, wheelspin, power drift, countersteer recovery, handbrake, 30/120 Hz, parked stability and bounded asphalt-only tyre marks.');
