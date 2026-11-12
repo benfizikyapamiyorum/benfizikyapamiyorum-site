@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radioactive Decay and Half-Life · I Can't Do Physics</title>
+<meta name="description" content="Watch a sample of unstable nuclei decay at random, plot the count rate and find the half-life, with and without background radiation.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px;line-height:1.6}
+.tag.core{background:#E3F6EE;color:#08744F}
+.tag.supp{background:#EFE7FD;color:#6227C9}
+.predict{background:var(--brandlt);border-left:4px solid var(--brand);padding:10px 14px;border-radius:8px;font-size:15px;margin-top:10px}
+.predict b{color:var(--navy)}
+.q{border-top:1px solid var(--line);padding:10px 0 6px;margin-top:8px}
+.q>p{margin:4px 0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.opts button{border-radius:12px;text-align:left;font-weight:500}
+.opts button.right{background:#ECFDF5;border-color:var(--core);color:#065F46;font-weight:700}
+.opts button.wrong{background:#FEF2F2;border-color:#DC2626;color:#991B1B}
+.fb{display:none;border-radius:10px;padding:8px 12px;margin-top:8px;background:#ECFDF5}
+.fb.show{display:block}
+.fb.no{background:var(--amberlt)}
+select,input[type=number]{font:inherit;font-size:15px;border:1px solid var(--rule);border-radius:10px;padding:7px 10px;background:#fff;color:var(--ink);min-height:40px;max-width:100%}
+input[type=number]{width:120px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.card h2 .tag,.ctl .tag{vertical-align:1px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.ctl i.lt{font-style:normal}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 5.2.3 Radioactive decay · 5.2.4 Half-life</p>
+<h1>Radioactive Decay and Half-Life</h1>
+<div class="try"><b>Try this:</b> Press <b>Start</b> and watch the nuclei decay one by one, at random. The detector counts every decay plus the background radiation. Read the half-life from the count-rate graph: find the time for the count rate to fall to half its starting value.</div>
+<div class="predict"><b>Make a prediction first:</b> with a half-life of 6 s, how many of the 1000 nuclei will be left after 12 s? Will the answer be exactly the same every time you run it?</div>
+<div class="grid even">
+  <div class="card"><h2>The sample</h2><canvas id="nuc" role="img" aria-label="Grid of nuclei, which change colour when they decay"></canvas>
+    <p class="note"><span style="color:#1F6FEB">●</span> undecayed nucleus &nbsp; <span style="color:#CBD5E1">●</span> decayed nucleus (it has changed into a different nucleus)</p></div>
+  <div class="card"><h2>Count rate against time</h2><canvas id="gr" role="img" aria-label="Graph of count rate against time"></canvas>
+    <p class="note" id="gnote"></p></div>
+</div>
+<div class="grid">
+  <div class="card">
+    <h2>Controls</h2>
+    <div class="btns"><button id="go" class="primary">▶ Start</button><button id="reset">Reset</button><button id="spd" aria-pressed="false">Speed ×1</button></div>
+    <label class="ctl"><span>Number of nuclei at the start, N₀ <b id="lN">1000</b></span><input id="N" type="range" min="200" max="2000" step="100" value="1000"></label>
+    <label class="ctl"><span>Half-life of the isotope <b id="lT">6 s</b></span><input id="T" type="range" min="3" max="20" step="1" value="6"></label>
+    <label class="ctl"><span><i class="lt">Background count rate <small class="tag supp">Supplement</small></i> <b id="lB">10 counts/s</b></span><input id="B" type="range" min="0" max="30" step="1" value="10"></label>
+    <div class="btns" role="group" aria-label="Type of emission shown"><button data-e="a" class="on" aria-pressed="true">α emitter</button><button data-e="b" aria-pressed="false">β emitter</button><button data-e="g" aria-pressed="false">γ emitter</button></div>
+    <p class="note">The type of emission only changes the particles drawn. The pattern of decay, and the half-life, are the same.</p>
+  </div>
+  <div class="card">
+    <h2>Live readings</h2>
+    <div class="read">
+      <div><small>time</small><b id="rt">0.0 s</b></div>
+      <div><small>undecayed nuclei</small><b id="rn">—</b></div>
+      <div><small>decayed so far</small><b id="rd">—</b></div>
+      <div><small>last count rate (measured)</small><b id="rc">—</b></div>
+    </div>
+    <div class="btns"><button id="sub" aria-pressed="false">Subtract background</button><button id="hl" aria-pressed="false">Show half-life on graph</button></div>
+    <div class="eq" id="eq"></div>
+  </div>
+</div>
+<section class="check"><h2>Check yourself</h2>
+<div class="q" data-fb="800 → 400 → 200 → 100 counts/min is three half-lives in 30 minutes, so one half-life is 10 minutes."><p><b>1.</b> A count rate falls from 800 counts/min to 100 counts/min in 30 minutes. What is the half-life? <span class="tag core">Core</span></p><div class="opts"><button>15 min</button><button data-ok>10 min</button><button>7.5 min</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="6 hours is 3 half-lives: 6400 → 3200 → 1600 → 800 undecayed nuclei."><p><b>2.</b> A sample has 6400 undecayed nuclei and a half-life of 2 hours. How many are undecayed after 6 hours? <span class="tag core">Core</span></p><div class="opts"><button data-ok>800</button><button>1600</button><button>2133</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="Subtract the background first: 180 − 20 = 160 counts/min and 100 − 20 = 80 counts/min. The corrected rate halves in 4 hours, so the half-life is 4 hours."><p><b>3.</b> Background = 20 counts/min. A source reads 180 counts/min, and 100 counts/min four hours later. What is the half-life? <span class="tag supp">Supplement</span></p><div class="opts"><button>More than 4 hours</button><button data-ok>4 hours</button><button>Less than 4 hours</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="Decay is random and spontaneous: you cannot predict when a particular nucleus will decay, and nothing (temperature, pressure) changes the rate."><p><b>4.</b> What does it mean that radioactive decay is <i>random</i>? <span class="tag core">Core</span></p><div class="opts"><button>Heating the source makes it decay faster</button><button data-ok>You cannot predict which nucleus will decay next</button><button>Half of the nuclei decay at exactly the half-life</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="Background radiation comes from radon gas in the air, rocks and buildings, food and drink, and cosmic rays. Mobile phone signals are microwaves, which are not ionising."><p><b>5.</b> Which is <i>not</i> a source of background radiation? <span class="tag core">Core</span></p><div class="opts"><button>Radon gas in the air</button><button>Cosmic rays</button><button data-ok>Mobile phone signals</button></div><div class="fb" aria-live="polite"></div></div>
+</section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+// probability that one nucleus decays in a time step dt: p = 1 - 2^(-dt / T½)
+function pDecay(dt, T) { return 1 - Math.pow(2, -dt / T); }
+function expectedN(N0, t, T) { return N0 * Math.pow(2, -t / T); }
+console.assert(expectedN(6400, 6, 2) === 800 && expectedN(800, 30, 10) === 100, 'half-life');
+(function () { let n = 0; const p = pDecay(0.1, 1); for (let i = 0; i < 100000; i++) { let alive = true; for (let s = 0; s < 10 && alive; s++) if (Math.random() < p) alive = false; if (alive) n++; } console.assert(Math.abs(n / 100000 - 0.5) < 0.01, 'Monte Carlo half-life'); })();
+let N0 = 1000, TH = 6, BG = 10, emit = 'a', alive, nAlive, t = 0, running = false, last = null, speed = 1, sub = false, showHL = false;
+let bins = [], binCount = 0, binT = 0, parts = [], NC, GR, layout;
+function poisson(m) { if (m <= 0) return 0; if (m > 30) return Math.max(0, Math.round(m + Math.sqrt(m) * gauss())); let L = Math.exp(-m), k = 0, p = 1; do { k++; p *= Math.random(); } while (p > L); return k - 1; }
+function gauss() { return Math.sqrt(-2 * Math.log(1 - Math.random())) * Math.cos(2 * Math.PI * Math.random()); }
+function sizes() { NC = fit($('#nuc'), 0.72, 240, 380); GR = fit($('#gr'), 0.72, 240, 380); computeLayout(); }
+function computeLayout() { const {w, h} = NC, cols = Math.ceil(Math.sqrt(N0 * w / h)), rows = Math.ceil(N0 / cols), cell = Math.min((w - 8) / cols, (h - 8) / rows);
+  layout = {cols, rows, cell, ox: (w - cols * cell) / 2, oy: (h - rows * cell) / 2}; }
+function pos(i) { const L = layout; return [L.ox + (i % L.cols + 0.5) * L.cell, L.oy + (Math.floor(i / L.cols) + 0.5) * L.cell]; }
+function reset() { N0 = +$('#N').value; TH = +$('#T').value; alive = new Uint8Array(N0).fill(1); nAlive = N0; t = 0; bins = []; binCount = 0; binT = 0; parts = []; running = false; last = null;
+  $('#go').textContent = '▶ Start'; computeLayout(); drawAll(); }
+function step(dt) { const p = pDecay(dt, TH); let k = 0;
+  for (let i = 0; i < N0; i++) if (alive[i] && Math.random() < p) { alive[i] = 0; nAlive--; k++; if (parts.length < 60) { const a = Math.random() * 2 * Math.PI; parts.push({i, a, age: 0}); } }
+  binCount += k; t += dt; binT += dt;
+  if (binT >= 1 - 1e-9) { const meas = binCount + poisson(BG); bins.push({t: bins.length + 0.5, meas, bg: BG}); binCount = 0; binT = 0; }
+  parts.forEach(q => q.age += dt / speed); parts = parts.filter(q => q.age < 0.7); }
+function drawNuclei() { const {c, w, h} = NC; c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h); const r = Math.max(1.2, layout.cell * 0.36);
+  for (let i = 0; i < N0; i++) { const [x, y] = pos(i); c.fillStyle = alive[i] ? COL.brand : '#CBD5E1'; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); }
+  parts.forEach(q => { const [x, y] = pos(q.i), d = 6 + q.age * 60, px = x + d * Math.cos(q.a), py = y + d * Math.sin(q.a); c.save(); c.globalAlpha = 1 - q.age / 0.7;
+    c.fillStyle = COL.amber; c.beginPath(); c.arc(x, y, r + 1.5, 0, 7); c.fill();
+    if (emit === 'a') { [[-2, -2, COL.red], [2, -2, '#64748B'], [-2, 2, '#64748B'], [2, 2, COL.red]].forEach(([dx, dy, col]) => { c.fillStyle = col; c.beginPath(); c.arc(px + dx, py + dy, 2.4, 0, 7); c.fill(); }); }
+    else if (emit === 'b') { c.fillStyle = COL.purple; c.beginPath(); c.arc(px, py, 2.2, 0, 7); c.fill(); }
+    else { c.strokeStyle = COL.green; c.lineWidth = 1.6; c.beginPath(); for (let s = 0; s <= 14; s++) { const u = d - 14 + s, wv = 2.5 * Math.sin(s * 1.4); const xx = x + u * Math.cos(q.a) - wv * Math.sin(q.a), yy = y + u * Math.sin(q.a) + wv * Math.cos(q.a); s ? c.lineTo(xx, yy) : c.moveTo(xx, yy); } c.stroke(); }
+    c.restore(); }); }
+function drawGraph() { const {c, w, h} = GR; c.clearRect(0, 0, w, h);
+  const lam = Math.LN2 / TH, A0 = lam * N0, tmax = Math.max(5 * TH, 10), ymax = niceMax(A0 + BG + 3 * Math.sqrt(A0 + BG), 5);
+  const o = {x: 50, y: 10, w: w - 62, h: h - 52, xmin: 0, xmax: tmax, ymin: 0, ymax, xstep: niceStep(tmax, w < 360 ? 4 : 6), ystep: niceStep(ymax, 5), xlab: 'time / s', ylab: 'count rate / (counts/s)'};
+  o.xmax = Math.ceil(tmax / o.xstep) * o.xstep; const {X, Y} = axes(c, o);
+  // theory curve (expected rate)
+  c.save(); c.setLineDash([5, 4]); c.strokeStyle = COL.muted; c.lineWidth = 1.5; c.beginPath(); for (let s = 0; s <= 200; s++) { const tt = s / 200 * o.xmax, v = A0 * Math.pow(2, -tt / TH) + (sub ? 0 : BG); s ? c.lineTo(X(tt), Y(v)) : c.moveTo(X(tt), Y(v)); } c.stroke(); c.restore();
+  if (BG > 0) { c.save(); c.strokeStyle = sub ? COL.line : '#B45309'; c.setLineDash([2, 3]); c.beginPath(); c.moveTo(X(0), Y(sub ? 0 : BG)); c.lineTo(X(o.xmax), Y(sub ? 0 : BG)); c.stroke(); c.restore();
+    if (!sub) label(c, 'background', X(o.xmax) - 4, Y(BG) - 9, {align: 'right', size: 11, col: '#B45309'}); }
+  bins.forEach(b => { const v = b.meas - (sub ? b.bg : 0); if (b.t > o.xmax) return; c.fillStyle = sub ? COL.green : COL.brand; c.beginPath(); c.arc(X(b.t), Y(Math.max(o.ymin, v)), 3, 0, 7); c.fill(); });
+  if (showHL) { const top = A0 + (sub ? 0 : BG), half = A0 / 2 + (sub ? 0 : BG); c.save(); c.strokeStyle = COL.purple; c.lineWidth = 1.5; c.setLineDash([6, 4]);
+    c.beginPath(); c.moveTo(X(0), Y(top)); c.lineTo(X(0) + 8, Y(top)); c.moveTo(X(0), Y(half)); c.lineTo(X(TH), Y(half)); c.lineTo(X(TH), Y(0)); c.stroke(); c.restore();
+    label(c, (sub ? '' : 'corrected ') + 'rate halves: T½ = ' + TH + ' s', X(TH) + 6, Y(half) - 12, {align: 'left', size: 12, weight: '700', col: COL.purple, bg: 'rgba(255,255,255,.92)'}); }
+}
+function readouts() { $('#rt').textContent = fmt(t, 1) + ' s'; $('#rn').textContent = nAlive; $('#rd').textContent = N0 - nAlive;
+  const lb = bins[bins.length - 1]; $('#rc').textContent = lb ? lb.meas + ' counts/s' : '—';
+  const lam = Math.LN2 / TH, A0 = lam * N0;
+  $('#eq').innerHTML = `Expected undecayed after ${fmt(t, 1)} s: N₀ × (½)<sup>t/T½</sup> = ${fmt(expectedN(N0, t, TH), 0)}` + (BG ? `<br><span class="tag supp">Supplement</span> corrected count rate = measured − background (${BG} counts/s)` : '') +
+    `<br>Starting activity ≈ ${fmt(A0, 0)} decays/s. After each half-life it halves.`;
+  $('#gnote').innerHTML = sub ? 'Green dots: corrected count rate (background subtracted). Dashed curve: expected values.' : 'Blue dots: measured count rate in each second, including background. Dashed curve: expected values.'; }
+function drawAll() { drawNuclei(); drawGraph(); readouts(); }
+function loop(ts) { if (!running) return; if (last == null) last = ts; let real = Math.min(0.05, (ts - last) / 1000); last = ts; let simDt = real * speed;
+  while (simDt > 1e-9) { const d = Math.min(0.05, simDt, 1 - binT); step(d); simDt -= d; }
+  drawAll(); if (nAlive === 0 && t > 5 * TH || t > Math.max(5 * TH, 10) + 0.5) { running = false; $('#go').textContent = '▶ Start'; return; } requestAnimationFrame(loop); }
+$('#go').onclick = () => { if (running) { running = false; $('#go').textContent = '▶ Continue'; return; } if (t > Math.max(5 * TH, 10)) reset(); running = true; last = null; $('#go').textContent = '❚❚ Pause'; requestAnimationFrame(loop); };
+$('#reset').onclick = reset;
+$('#spd').onclick = () => { speed = speed === 1 ? 5 : 1; $('#spd').textContent = 'Speed ×' + speed; $('#spd').classList.toggle('on', speed > 1); $('#spd').setAttribute('aria-pressed', speed > 1); };
+$('#sub').onclick = () => { sub = !sub; $('#sub').classList.toggle('on', sub); $('#sub').setAttribute('aria-pressed', sub); drawGraph(); readouts(); };
+$('#hl').onclick = () => { showHL = !showHL; $('#hl').classList.toggle('on', showHL); $('#hl').setAttribute('aria-pressed', showHL); drawGraph(); };
+$$('[data-e]').forEach(b => b.onclick = () => { emit = b.dataset.e; $$('[data-e]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); }); drawNuclei(); });
+bindRange('N', v => { $('#lN').textContent = v; reset(); }); bindRange('T', v => { $('#lT').textContent = v + ' s'; reset(); });
+bindRange('B', v => { BG = v; $('#lB').textContent = v + ' counts/s'; drawGraph(); readouts(); });
+sizes(); reset(); onResize(() => { sizes(); drawAll(); });
+
+// quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
+$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+
+</script>
+</body>
+</html>

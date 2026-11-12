@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Orbits, Seasons and the Stars · I Can't Do Physics</title>
+<meta name="description" content="Follow the planets around the Sun, calculate orbital speeds, watch day and night, the Moon's phases and the seasons, and measure distances in light-years.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px;line-height:1.6}
+.tag.core{background:#E3F6EE;color:#08744F}
+.tag.supp{background:#EFE7FD;color:#6227C9}
+.predict{background:var(--brandlt);border-left:4px solid var(--brand);padding:10px 14px;border-radius:8px;font-size:15px;margin-top:10px}
+.predict b{color:var(--navy)}
+.q{border-top:1px solid var(--line);padding:10px 0 6px;margin-top:8px}
+.q>p{margin:4px 0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.opts button{border-radius:12px;text-align:left;font-weight:500}
+.opts button.right{background:#ECFDF5;border-color:var(--core);color:#065F46;font-weight:700}
+.opts button.wrong{background:#FEF2F2;border-color:#DC2626;color:#991B1B}
+.fb{display:none;border-radius:10px;padding:8px 12px;margin-top:8px;background:#ECFDF5}
+.fb.show{display:block}
+.fb.no{background:var(--amberlt)}
+select,input[type=number]{font:inherit;font-size:15px;border:1px solid var(--rule);border-radius:10px;padding:7px 10px;background:#fff;color:var(--ink);min-height:40px;max-width:100%}
+input[type=number]{width:120px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.card h2 .tag,.ctl .tag{vertical-align:1px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.ctl i.lt{font-style:normal}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 6 Space physics</p>
+<h1>Orbits, Seasons and the Stars</h1>
+<div class="try"><b>Try this:</b> Pick a planet and watch it orbit: is it faster near the Sun or far from it? Then open <b>Day, Moon and seasons</b> and play a year, and use <b>Stars and light-years</b> to see how far light travels.</div>
+<div class="predict"><b>Make a prediction first:</b> Neptune is about 30 times further from the Sun than the Earth. Will its average orbital speed be bigger or smaller than the Earth's 30 km/s? Choose Neptune and check.</div>
+<div class="btns" id="tabs" role="group" aria-label="Choose a part" style="margin-top:16px"></div>
+<div data-t="orb">
+  <div class="grid">
+    <div class="card"><h2 id="oT">Orbit of the Earth</h2><canvas id="co" role="img" aria-label="A planet in an elliptical orbit around the Sun"></canvas><p class="note">The Sun is at one focus of the ellipse (the other focus is marked ×). Arrow = velocity. Sizes of the Sun and planet are not to scale.</p></div>
+    <div class="card"><h2>Choose a planet</h2><div class="btns" id="pl"></div>
+      <label class="ctl"><span><i class="lt">Eccentricity of the orbit <small class="tag supp">Supplement</small></i> <b id="le">0.017</b></span><input id="e" type="range" min="0" max="0.9" step="0.001" value="0.017"></label>
+      <p class="note">0 = circle. Planets have nearly circular orbits; comets have very stretched (eccentric) orbits. Slide it to see the effect.</p>
+      <div class="read" id="ord"></div></div>
+  </div>
+  <div class="grid">
+    <div class="card"><h2>Average orbital speed of each planet <span class="tag supp">Supplement</span></h2><canvas id="cs" role="img" aria-label="Bar chart of the average orbital speed of each planet"></canvas></div>
+    <div class="card"><h2>v = 2πr ÷ T <span class="tag supp">Supplement</span></h2><div class="eq" id="vcalc"></div>
+      <p class="note">The force that keeps a planet in orbit is the gravitational attraction of the Sun. The Sun's field gets weaker further away, so outer planets move more slowly and take longer to go round.</p></div>
+  </div>
+</div>
+<div data-t="dms" hidden>
+  <div class="grid even">
+    <div class="card"><h2>Day, night and the Moon (view from above the North Pole)</h2><canvas id="cm" role="img" aria-label="Earth and Moon seen from above with sunlight from the left"></canvas></div>
+    <div class="card"><h2>The seasons</h2><canvas id="cz" role="img" aria-label="Earth orbiting the Sun with its tilted axis"></canvas></div>
+  </div>
+  <div class="grid">
+    <div class="card"><h2>Time</h2>
+      <div class="btns"><button id="play" class="primary">▶ Play a year</button><button id="slow" aria-pressed="false">Slow: watch one day</button></div>
+      <label class="ctl"><span>Day of the year <b id="ld">1 Jan</b></span><input id="day" type="range" min="0" max="365" step="0.05" value="0"></label>
+      <p class="note">Earth spins once in about 24 hours, the Moon orbits in about a month (29.5 days from new Moon to new Moon) and the Earth orbits the Sun in about 365 days. Moon phases here are not matched to real dates.</p></div>
+    <div class="card"><h2>Readings</h2><div class="read" id="drd"></div><div class="status" id="dst" aria-live="polite"></div></div>
+  </div>
+</div>
+<div data-t="star" hidden>
+  <div class="grid even">
+    <div class="card"><h2>How far does light travel? <span class="tag core">Core</span></h2>
+      <div class="btns" id="objs"></div>
+      <div class="read" id="srd"></div>
+      <div class="eq">1 light-year = distance light travels in one year in space<br>= 3.0 × 10⁸ m/s × (365 × 24 × 3600 s) ≈ <b>9.5 × 10¹⁵ m</b></div></div>
+    <div class="card"><h2>The Sun as a star <span class="tag core">Core</span></h2>
+      <div class="eq">The Sun is a <b>medium-sized star</b>, made mostly of <b>hydrogen and helium</b>. It radiates most of its energy as infrared, visible light and ultraviolet.</div>
+      <div class="eq">Stars are powered by <b>nuclear fusion</b>: in a stable star hydrogen nuclei fuse to make helium, releasing energy.</div>
+      <div class="eq">The Sun is one of many billions of stars in our galaxy, the <b>Milky Way</b> (about 100 000 light-years across). The Universe contains many billions of galaxies.</div>
+      <p class="note"><span class="tag supp">Supplement</span> Light from distant galaxies is redshifted: the further away a galaxy is, the faster it is moving away. This, and the cosmic microwave background radiation (CMBR), supports the Big Bang theory. Hubble constant H₀ = v ÷ d ≈ 2.2 × 10⁻¹⁸ per second.</p></div>
+  </div>
+  <div class="card" style="margin-top:16px"><h2>Life cycle of a star <span class="tag supp">Supplement</span></h2>
+    <div class="btns" role="group" aria-label="Mass of the star"><button id="lo" class="on" aria-pressed="true">Star like the Sun</button><button id="hi" aria-pressed="false">Much more massive star</button></div>
+    <div class="btns" id="stages" aria-label="Stages"></div>
+    <div class="eq" id="stxt" aria-live="polite"></div></div>
+</div>
+<section class="check"><h2>Check yourself</h2>
+<div class="q" data-fb="v = 2πr ÷ T = 2π × 1.5 × 10¹¹ m ÷ (365 × 24 × 3600 s) = 9.4 × 10¹¹ ÷ 3.15 × 10⁷ ≈ 3.0 × 10⁴ m/s (30 km/s)."><p><b>1.</b> The Earth orbits at r = 1.5 × 10¹¹ m with T = 365 days. What is its average orbital speed? <span class="tag supp">Supplement</span></p><div class="opts"><button>3.0 × 10³ m/s</button><button data-ok>3.0 × 10⁴ m/s</button><button>4.1 × 10⁹ m/s</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="The Earth's axis is tilted. When a hemisphere is tilted towards the Sun, the Sun is higher in the sky and days are longer, so it is summer there."><p><b>2.</b> What causes the seasons? <span class="tag core">Core</span></p><div class="opts"><button>The Earth is closer to the Sun in summer</button><button data-ok>The tilt of the Earth's axis</button><button>The Moon blocking sunlight</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="t = distance ÷ speed = 1.5 × 10¹¹ m ÷ 3.0 × 10⁸ m/s = 500 s (about 8.3 minutes)."><p><b>3.</b> The Sun is 1.5 × 10¹¹ m from the Earth. How long does its light take to reach us? <span class="tag core">Core</span></p><div class="opts"><button data-ok>500 s</button><button>2.0 × 10⁻³ s</button><button>4.5 × 10¹⁹ s</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="In an elliptical orbit the planet moves fastest when it is closest to the Sun: it loses gravitational potential energy and gains kinetic energy as it falls inwards."><p><b>4.</b> Where is a planet in an elliptical orbit moving fastest? <span class="tag supp">Supplement</span></p><div class="opts"><button data-ok>Closest to the Sun</button><button>Furthest from the Sun</button><button>The speed is the same everywhere</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="A red supergiant explodes as a supernova, leaving a neutron star or a black hole. A Sun-like star ends as a white dwarf inside a planetary nebula."><p><b>5.</b> What is left after a massive star explodes as a supernova? <span class="tag supp">Supplement</span></p><div class="opts"><button>A white dwarf</button><button data-ok>A neutron star or a black hole</button><button>A red giant</button></div><div class="fb" aria-live="polite"></div></div>
+</section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+const AU = 1.496e11, GM = 1.327e20, DAY = 86400, C = 3.0e8, LY = C * 365.25 * DAY; // 9.47e15 m ≈ 9.5e15 m
+// name, a (AU), T (days), e
+const PL = [['Mercury', 0.387, 87.97, 0.206], ['Venus', 0.723, 224.7, 0.007], ['Earth', 1.0, 365.26, 0.017], ['Mars', 1.524, 687.0, 0.093], ['Jupiter', 5.203, 4332.6, 0.049], ['Saturn', 9.537, 10759, 0.054], ['Uranus', 19.19, 30687, 0.047], ['Neptune', 30.07, 60190, 0.009]];
+function orbitalSpeed(r, T) { return 2 * Math.PI * r / T; }
+function keplerE(M, e) { let E = e < 0.8 ? M : Math.PI; for (let k = 0; k < 30; k++) E -= (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E)); return E; }
+console.assert(Math.abs(orbitalSpeed(AU, 365.26 * DAY) - 29780) < 30, 'Earth speed');
+console.assert(Math.abs(orbitalSpeed(1.5e11, 365 * DAY) - 2.99e4) < 100, 'quiz 1');
+console.assert(Math.abs(C * 365.25 * DAY - 9.47e15) < 1e13, 'light-year');
+console.assert(Math.abs(keplerE(1, 0.5) - 0.5 * Math.sin(keplerE(1, 0.5)) - 1) < 1e-10, 'Kepler');
+let tab = 'orb', pi = 2, ecc = 0.017, ph = 0, last = null, trail = [], CO, CS, CM, CZ, day = 0, playing = false, slow = false, mass = 'lo', stage = 0;
+const TABS = [['orb', 'Orbits'], ['dms', 'Day, Moon and seasons'], ['star', 'Stars and light-years']];
+$('#tabs').innerHTML = TABS.map(t => `<button data-tab="${t[0]}">${t[1]}</button>`).join('');
+$('#pl').innerHTML = PL.map((p, k) => `<button data-p="${k}">${p[0]}</button>`).join('');
+function sizes() { CO = fit($('#co'), 0.62, 260, 420); CS = fit($('#cs'), 0.5, 210, 280); CM = fit($('#cm'), 0.8, 260, 380); CZ = fit($('#cz'), 0.8, 260, 380); }
+function sciT(x, n) { const e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e), S = '⁰¹²³⁴⁵⁶⁷⁸⁹'; return m.toFixed(n - 1) + ' × 10' + (e < 0 ? '⁻' : '') + String(Math.abs(e)).split('').map(d => S[d]).join(''); }
+function dur(s) { if (s < 120) return sig(s, 3) + ' s'; if (s < 7200) return sig(s / 60, 3) + ' minutes'; if (s < 2 * DAY) return sig(s / 3600, 3) + ' hours'; if (s < 365.25 * DAY * 2) return sig(s / DAY, 3) + ' days'; return sig(s / (365.25 * DAY), 3).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' years'; }
+// ---------- orbits ----------
+function drawOrbit() { const {c, w, h} = CO, p = PL[pi], e = ecc; c.clearRect(0, 0, w, h); c.fillStyle = '#0B1426'; c.fillRect(0, 0, w, h);
+  for (let k = 0; k < 60; k++) { c.fillStyle = 'rgba(255,255,255,' + (0.15 + (k * 37 % 10) / 20) + ')'; c.fillRect((k * 97.13) % w, (k * 53.7) % h, 1.5, 1.5); }
+  const A = Math.min((w - 40) / (2), (h - 40) / (2 * Math.sqrt(1 - e * e))), B = A * Math.sqrt(1 - e * e), cx = w / 2, cy = h / 2, sx = cx + A * e; // Sun at the right-hand focus
+  c.strokeStyle = 'rgba(147,197,253,.6)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(cx, cy, A, B, 0, 0, 7); c.stroke();
+  label(c, '×', cx - A * e, cy, {size: 14, col: '#93C5FD'});
+  const g = c.createRadialGradient(sx, cy, 2, sx, cy, 18); g.addColorStop(0, '#FFF7AE'); g.addColorStop(1, 'rgba(245,165,36,0)'); c.fillStyle = g; c.beginPath(); c.arc(sx, cy, 18, 0, 7); c.fill(); c.fillStyle = '#FCD34D'; c.beginPath(); c.arc(sx, cy, 9, 0, 7); c.fill();
+  label(c, 'Sun', sx, cy + 24, {size: 11, col: '#FDE68A'});
+  const E = keplerE(ph, e); // perihelion on the right, nearest the Sun
+  const px = sx + A * (Math.cos(E) - e), py = cy - B * Math.sin(E);
+  trail.push([px, py]); if (trail.length > 90) trail.shift();
+  c.strokeStyle = 'rgba(96,165,250,.8)'; c.lineWidth = 2; c.beginPath(); trail.forEach(([a, b], i) => i ? c.lineTo(a, b) : c.moveTo(a, b)); c.stroke();
+  const r = A * (1 - e * Math.cos(E)), vrel = Math.sqrt(2 / (1 - e * Math.cos(E)) - 1); // speed relative to a circular orbit of the same a
+  const tx = -A * Math.sin(E), ty = -B * Math.cos(E), tl = Math.hypot(tx, ty); arrow(c, px, py, px + tx / tl * 38 * vrel, py + ty / tl * 38 * vrel, '#34D399', 2.5, 9);
+  c.fillStyle = '#60A5FA'; c.beginPath(); c.arc(px, py, 7, 0, 7); c.fill(); const ux = (px - sx) / (Math.hypot(px - sx, py - cy) || 1), uy = (py - cy) / (Math.hypot(px - sx, py - cy) || 1); label(c, p[0], px + ux * 26, py + uy * 22, {size: 12, weight: '700', col: '#fff'});
+  c.save(); c.setLineDash([3, 4]); c.strokeStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.moveTo(sx, cy); c.lineTo(px, py); c.stroke(); c.restore();
+  return {E, rAU: p[1] * (1 - e * Math.cos(E)), vNow: Math.sqrt(GM * (2 / (p[1] * AU * (1 - e * Math.cos(E))) - 1 / (p[1] * AU)))}; }
+function orbitRead(o) { const p = PL[pi], v = orbitalSpeed(p[1] * AU, p[2] * DAY);
+  $('#oT').textContent = 'Orbit of ' + p[0]; $('#le').textContent = ecc.toFixed(3);
+  $('#ord').innerHTML = [['average distance from Sun', sig(p[1], 3) + ' AU'], ['orbital period', p[2] < 1000 ? sig(p[2], 3) + ' days' : sig(p[2] / 365.25, 3) + ' years'], ['average orbital speed', fmt(v / 1000, 1) + ' km/s'], ['speed now', fmt(o.vNow / 1000, 1) + ' km/s'], ['distance from Sun now', sig(o.rAU, 3) + ' AU'], ['sunlight takes', dur(p[1] * AU / C)]].map(([a, b]) => `<div><small>${a}</small><b>${b}</b></div>`).join('');
+  $('#vcalc').innerHTML = `${p[0]}: r = ${sig(p[1], 3)} AU = ${sciT(p[1] * AU, 2)} m, T = ${sig(p[2], 4).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} days = ${sciT(p[2] * DAY, 2)} s<br>v = 2πr ÷ T = 2π × ${sciT(p[1] * AU, 2)} ÷ ${sciT(p[2] * DAY, 2)} = <b>${sciT(v, 2)} m/s</b> (${fmt(v / 1000, 1)} km/s)<br><small>1 AU = average Earth–Sun distance = 1.5 × 10¹¹ m</small>`; }
+function drawSpeeds() { const {c, w, h} = CS; c.clearRect(0, 0, w, h); const o = {x: 46, y: 10, w: w - 56, h: h - 64, xmin: 0, xmax: 8, ymin: 0, ymax: 50, xstep: 1, ystep: 10, xlab: '', ylab: 'speed / (km/s)', ylabOff: 36, xfmt: () => ''};
+  const {X, Y} = axes(c, o); const bw = o.w / 8 * 0.62;
+  PL.forEach((p, k) => { const v = orbitalSpeed(p[1] * AU, p[2] * DAY) / 1000, x = X(k + 0.5); c.fillStyle = k === pi ? COL.amber : COL.brand; c.fillRect(x - bw / 2, Y(v), bw, Y(0) - Y(v));
+    label(c, fmt(v, 0), x, Y(v) - 8, {size: 10.5, col: COL.ink}); c.save(); c.translate(x, Y(0) + 6); c.rotate(-0.6); label(c, p[0], 0, 0, {align: 'right', size: 10.5, weight: '600', col: COL.ink}); c.restore(); }); }
+// ---------- day, Moon and seasons ----------
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], MD = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+function dateStr(d) { let n = Math.floor(d) % 365, m = 0; while (n >= MD[m]) { n -= MD[m]; m++; } return (n + 1) + ' ' + MON[m]; }
+function seasonN(d) { return d >= 79 && d < 172 ? 'spring' : d >= 172 && d < 265 ? 'summer' : d >= 265 && d < 355 ? 'autumn' : 'winter'; }
+const OPP = {spring: 'autumn', summer: 'winter', autumn: 'spring', winter: 'summer'};
+const SYN = 29.53, PHN = ['New Moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full Moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'];
+function phaseName(E) { return PHN[Math.round(E / (Math.PI / 4)) % 8]; }
+function moonDisc(c, x, y, r, E) { // E = elongation (0 new, pi full); northern-hemisphere view
+  c.fillStyle = '#334155'; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); const wax = E <= Math.PI, k = Math.cos(wax ? E : 2 * Math.PI - E);
+  c.save(); c.translate(x, y); if (!wax) c.scale(-1, 1); c.fillStyle = '#F8FAFC'; c.beginPath();
+  for (let i = 0; i <= 40; i++) { const t = -Math.PI / 2 + i / 40 * Math.PI; c.lineTo(r * Math.cos(t), r * Math.sin(t)); }
+  for (let i = 40; i >= 0; i--) { const t = -Math.PI / 2 + i / 40 * Math.PI; c.lineTo(k * r * Math.cos(t), r * Math.sin(t)); } c.closePath(); c.fill(); c.restore(); }
+function drawMoon() { const {c, w, h} = CM; c.clearRect(0, 0, w, h); c.fillStyle = '#0B1426'; c.fillRect(0, 0, w, h);
+  for (let k = 0; k < 5; k++) arrow(c, 6, h * (0.2 + k * 0.15), 34, h * (0.2 + k * 0.15), '#FCD34D', 2, 8); label(c, 'sunlight', 8, 12, {align: 'left', size: 11, col: '#FDE68A'});
+  const cx = w * 0.52, cy = h * 0.5, Re = Math.min(w, h) * 0.1, Rm = Math.min(w * 0.36, h * 0.38);
+  c.strokeStyle = 'rgba(148,163,184,.5)'; c.setLineDash([3, 5]); c.beginPath(); c.arc(cx, cy, Rm, 0, 7); c.stroke(); c.setLineDash([]);
+  c.fillStyle = '#1E3A8A'; c.beginPath(); c.arc(cx, cy, Re, 0, 7); c.fill(); c.fillStyle = '#60A5FA'; c.beginPath(); c.arc(cx, cy, Re, Math.PI / 2, 3 * Math.PI / 2); c.fill();
+  const hr = (day % 1) * 24, oa = Math.PI + 2 * Math.PI * (hr - 12) / 24, ox = cx + Re * Math.cos(oa), oy = cy - Re * Math.sin(oa);
+  c.fillStyle = '#F59E0B'; c.beginPath(); c.arc(ox, oy, 4, 0, 7); c.fill(); label(c, 'N', cx, cy, {size: 10, weight: '800', col: '#fff'});
+  const E = ((day % SYN) / SYN) * 2 * Math.PI, ma = Math.PI + E, mx = cx + Rm * Math.cos(ma), my = cy - Rm * Math.sin(ma), mr = Math.max(7, Re * 0.4);
+  c.fillStyle = '#334155'; c.beginPath(); c.arc(mx, my, mr, 0, 7); c.fill(); c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(mx, my, mr, Math.PI / 2, 3 * Math.PI / 2); c.fill();
+  label(c, 'Moon', mx, my + mr + 10, {size: 11, col: '#CBD5E1'});
+  const ir = Math.min(30, w * 0.07); moonDisc(c, w - ir - 12, h - ir - 26, ir, E); label(c, 'phase seen from Earth', w - 8, h - 12, {align: 'right', size: 10.5, col: '#CBD5E1'});
+  return {E, hr}; }
+function drawSeasons() { const {c, w, h} = CZ; c.clearRect(0, 0, w, h); c.fillStyle = '#0B1426'; c.fillRect(0, 0, w, h);
+  const cx = w / 2, cy = h * 0.52, Rx = w * 0.32, Ry = Rx * 0.4, re = Math.min(22, w * 0.055), tilt = 23.4 * Math.PI / 180;
+  c.strokeStyle = 'rgba(148,163,184,.55)'; c.beginPath(); c.ellipse(cx, cy, Rx, Ry, 0, 0, 7); c.stroke();
+  const phi = 2 * Math.PI * (day - 355) / 365.25, ex = cx + Rx * Math.cos(phi), ey = cy - Ry * Math.sin(phi), behind = Math.sin(phi) > 0.15;
+  const sun = () => { const g = c.createRadialGradient(cx, cy, 2, cx, cy, 30); g.addColorStop(0, '#FFF7AE'); g.addColorStop(1, 'rgba(245,165,36,0)'); c.fillStyle = g; c.beginPath(); c.arc(cx, cy, 30, 0, 7); c.fill(); c.fillStyle = '#FCD34D'; c.beginPath(); c.arc(cx, cy, 14, 0, 7); c.fill(); };
+  const earth = () => { c.save(); c.translate(ex, ey); const toSun = Math.atan2(cy - ey, cx - ex);
+    c.fillStyle = '#1E3A8A'; c.beginPath(); c.arc(0, 0, re, 0, 7); c.fill(); c.fillStyle = '#60A5FA'; c.beginPath(); c.arc(0, 0, re, toSun - Math.PI / 2, toSun + Math.PI / 2); c.fill();
+    c.rotate(tilt); c.strokeStyle = '#fff'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, -re - 12); c.lineTo(0, re + 12); c.stroke(); label(c, 'N', 0, -re - 20, {size: 11, weight: '800', col: '#fff'});
+    c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 1; c.beginPath(); c.ellipse(0, 0, re, re * 0.25, 0, 0, 7); c.stroke(); c.restore(); };
+  if (behind) { earth(); sun(); } else { sun(); earth(); }
+  [[0, 'Dec'], [Math.PI / 2, 'Mar'], [Math.PI, 'Jun'], [3 * Math.PI / 2, 'Sep']].forEach(([a, t]) => label(c, t, cx + (Rx + re + 18) * Math.cos(a), cy - (Ry + re + 16) * Math.sin(a), {size: 11, weight: '700', col: '#94A3B8'}));
+  label(c, 'axis tilted at 23.4°, always pointing the same way in space', w / 2, h - 12, {size: 10.5, col: '#CBD5E1'}); }
+function dmsRead(m) { const sN = seasonN(day), dec = 23.44 * Math.sin(2 * Math.PI * (day - 80) / 365.25), alt = 90 - 40 + dec, hh = Math.floor(m.hr), mm = Math.floor((m.hr - hh) * 60);
+  $('#ld').textContent = dateStr(day);
+  $('#drd').innerHTML = [['northern hemisphere', sN], ['southern hemisphere', OPP[sN]], ['noon Sun height at 40° N', fmt(alt, 0) + '°'], ['Moon phase', phaseName(m.E)], ['days since new Moon', fmt(day % SYN, 1) + ' days'], ['time for the orange observer', String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0') + (m.hr > 6 && m.hr < 18 ? ' (day)' : ' (night)')]].map(([a, b]) => `<div><small>${a}</small><b>${b}</b></div>`).join('');
+  $('#dst').textContent = sN === 'summer' ? 'The northern hemisphere is tilted towards the Sun: the Sun is higher and the days are longer.' : sN === 'winter' ? 'The northern hemisphere is tilted away from the Sun: the Sun is lower and the days are shorter.' : 'Neither hemisphere is tilted towards the Sun near the equinoxes: day and night are about 12 hours each.'; }
+function drawDms() { const m = drawMoon(); drawSeasons(); dmsRead(m); }
+// ---------- stars ----------
+const OBJ = [['Moon', 3.84e8], ['Sun', 1.5e11], ['Neptune (from the Sun)', 4.5e12], ['Proxima Centauri', 4.0e16], ['Across the Milky Way', 100000 * LY], ['Andromeda galaxy', 2.5e6 * LY]];
+let oi = 1; $('#objs').innerHTML = OBJ.map((o, k) => `<button data-o="${k}">${o[0]}</button>`).join('');
+function starRead() { const d = OBJ[oi][1]; $$('[data-o]').forEach((b, k) => { b.classList.toggle('on', k === oi); b.setAttribute('aria-pressed', k === oi); });
+  $('#srd').innerHTML = [['distance', sciT(d, 2) + ' m'], ['in light-years', d / LY < 0.01 ? sciT(d / LY, 2) + ' ly' : sig(d / LY, 2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ly'], ['time for light to travel it', dur(d / C)]].map(([a, b]) => `<div><small>${a}</small><b>${b}</b></div>`).join(''); }
+const LC = {lo: [['Nebula', 'A cloud of gas and dust (mostly hydrogen) in space.'], ['Protostar', 'The cloud collapses under its own gravity and heats up.'], ['Stable star', 'Fusion of hydrogen into helium begins. The inward pull of gravity is balanced by the outward force due to the high temperature in the centre.'], ['Red giant', 'Most of the hydrogen in the centre has turned into helium. The star expands and cools to become a red giant.'], ['Planetary nebula + white dwarf', 'The outer layers drift away as a planetary nebula, leaving a small, hot white dwarf at the centre.']],
+  hi: [['Nebula', 'A cloud of gas and dust (mostly hydrogen) in space.'], ['Protostar', 'The cloud collapses under its own gravity and heats up.'], ['Stable star', 'Hydrogen fuses into helium. Gravity is balanced by the outward force due to the high temperature in the centre.'], ['Red supergiant', 'When most of the hydrogen in the centre is used up, a massive star swells into a red supergiant.'], ['Supernova', 'The red supergiant explodes as a supernova, forming a nebula containing hydrogen and new heavy elements.'], ['Neutron star or black hole', 'A neutron star or a black hole is left at the centre. The nebula may later form new stars with orbiting planets.']]};
+function stars() { const L = LC[mass]; stage = Math.min(stage, L.length - 1); $('#stages').innerHTML = L.map((s, k) => `<button data-s="${k}" class="${k === stage ? 'on' : ''}" aria-pressed="${k === stage}">${k ? '→ ' : ''}${s[0]}</button>`).join('');
+  $$('[data-s]').forEach(b => b.onclick = () => { stage = +b.dataset.s; stars(); }); $('#stxt').innerHTML = `<b>${L[stage][0]}</b>: ${L[stage][1]}`; }
+$('#lo').onclick = () => { mass = 'lo'; $('#lo').classList.add('on'); $('#hi').classList.remove('on'); $('#lo').setAttribute('aria-pressed', true); $('#hi').setAttribute('aria-pressed', false); stars(); };
+$('#hi').onclick = () => { mass = 'hi'; $('#hi').classList.add('on'); $('#lo').classList.remove('on'); $('#hi').setAttribute('aria-pressed', true); $('#lo').setAttribute('aria-pressed', false); stars(); };
+$$('[data-o]').forEach(b => b.onclick = () => { oi = +b.dataset.o; starRead(); });
+// ---------- wiring ----------
+function setPlanet(k) { pi = k; ecc = PL[k][3]; $('#e').value = ecc; trail = []; ph = 0; $$('[data-p]').forEach((b, i) => { b.classList.toggle('on', i === k); b.setAttribute('aria-pressed', i === k); }); drawSpeeds(); orbitRead(drawOrbit()); }
+$$('[data-p]').forEach(b => b.onclick = () => setPlanet(+b.dataset.p));
+bindRange('e', v => { ecc = v; trail = []; orbitRead(drawOrbit()); });
+bindRange('day', v => { day = v; drawDms(); });
+$('#play').onclick = () => { playing = !playing; $('#play').textContent = playing ? '❚❚ Pause' : '▶ Play a year'; };
+$('#slow').onclick = () => { slow = !slow; $('#slow').classList.toggle('on', slow); $('#slow').setAttribute('aria-pressed', slow); };
+function setTab(t) { tab = t; $$('[data-tab]').forEach(b => { b.classList.toggle('on', b.dataset.tab === t); b.setAttribute('aria-pressed', b.dataset.tab === t); }); $$('[data-t]').forEach(d => d.hidden = d.dataset.t !== t); sizes();
+  if (t === 'orb') { drawSpeeds(); orbitRead(drawOrbit()); } else if (t === 'dms') drawDms(); else { starRead(); stars(); } }
+$$('[data-tab]').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+function loop(ts) { if (last == null) last = ts; const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
+  if (tab === 'orb') { ph = (ph + dt * 2 * Math.PI / 8) % (2 * Math.PI); const o = drawOrbit(); orbitRead(o); }
+  else if (tab === 'dms' && playing) { day += dt * (slow ? 0.25 : 12); if (day > 365) day -= 365; $('#day').value = day; drawDms(); }
+  requestAnimationFrame(loop); }
+setTab('orb'); setPlanet(2); requestAnimationFrame(loop); onResize(() => setTab(tab));
+
+// quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
+$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+
+</script>
+</body>
+</html>

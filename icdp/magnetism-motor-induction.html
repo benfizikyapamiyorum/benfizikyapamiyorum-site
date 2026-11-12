@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Motors, Generators and Transformers · I Can't Do Physics</title>
+<meta name="description" content="Spin a d.c. motor, induce a current with a magnet and a coil, watch an a.c. generator's output and design a transformer.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px;line-height:1.6}
+.tag.core{background:#E3F6EE;color:#08744F}
+.tag.supp{background:#EFE7FD;color:#6227C9}
+.predict{background:var(--brandlt);border-left:4px solid var(--brand);padding:10px 14px;border-radius:8px;font-size:15px;margin-top:10px}
+.predict b{color:var(--navy)}
+.q{border-top:1px solid var(--line);padding:10px 0 6px;margin-top:8px}
+.q>p{margin:4px 0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.opts button{border-radius:12px;text-align:left;font-weight:500}
+.opts button.right{background:#ECFDF5;border-color:var(--core);color:#065F46;font-weight:700}
+.opts button.wrong{background:#FEF2F2;border-color:#DC2626;color:#991B1B}
+.fb{display:none;border-radius:10px;padding:8px 12px;margin-top:8px;background:#ECFDF5}
+.fb.show{display:block}
+.fb.no{background:var(--amberlt)}
+select,input[type=number]{font:inherit;font-size:15px;border:1px solid var(--rule);border-radius:10px;padding:7px 10px;background:#fff;color:var(--ink);min-height:40px;max-width:100%}
+input[type=number]{width:120px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.card h2 .tag,.ctl .tag{vertical-align:1px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.ctl i.lt{font-style:normal}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 4.5 Electromagnetic effects</p>
+<h1>Motors, Generators and Transformers</h1>
+<div class="try"><b>Try this:</b> Start with the <b>d.c. motor</b>: reverse the current or swap the magnet and watch the direction of rotation. Then push a magnet into a coil in <b>Induction</b>, see the a.c. output of a <b>generator</b>, and change the turns on a <b>transformer</b>.</div>
+<div class="predict"><b>Make a prediction first:</b> what happens to the galvanometer needle if you hold the magnet still <i>inside</i> the coil? And if you pull it out again? Decide, then try it in <b>Induction</b>.</div>
+<div class="card" style="margin-top:16px">
+  <div class="btns" id="tabs" role="group" aria-label="Choose a part"></div>
+  <canvas id="cv" role="img" aria-label="Electromagnetic effects simulation"></canvas>
+  <p class="note" id="cnote"></p>
+</div>
+<div class="grid">
+  <div class="card">
+    <h2 id="ctlT">Controls</h2>
+    <div data-t="motor">
+      <div class="btns"><button id="mRun" class="primary">Switch off</button><button id="mRevI">Reverse the current</button><button id="mRevB">Swap the magnet</button></div>
+      <label class="ctl"><span>Current, I <b id="lmI">2.0 A</b></span><input id="mI" type="range" min="0.5" max="3" step="0.5" value="2"></label>
+      <label class="ctl"><span>Number of turns on the coil <b id="lmN">50</b></span><input id="mN" type="range" min="10" max="100" step="10" value="50"></label>
+      <label class="ctl"><span>Strength of the magnetic field <b id="lmB">0.30 T</b></span><input id="mB" type="range" min="0.1" max="0.5" step="0.05" value="0.3"></label>
+    </div>
+    <div data-t="ind">
+      <div class="btns"><button id="iIn" class="primary">Push magnet in</button><button id="iOut">Pull magnet out</button><button id="iFlip">Turn the magnet round</button></div>
+      <label class="ctl"><span>Speed of the magnet <b id="liV">0.20 m/s</b></span><input id="iV" type="range" min="0.05" max="0.5" step="0.05" value="0.2"></label>
+      <label class="ctl"><span>Number of turns on the coil <b id="liN">200</b></span><input id="iN" type="range" min="100" max="600" step="100" value="200"></label>
+      <p class="note">You can also drag the magnet with your finger or mouse.</p>
+    </div>
+    <div data-t="gen">
+      <div class="btns"><button id="gRun" class="primary">Pause</button><button id="gClr">Clear graph</button></div>
+      <label class="ctl"><span>Rotation speed <b id="lgf">1.0 turns per second</b></span><input id="gf" type="range" min="0.5" max="3" step="0.5" value="1"></label>
+      <p class="note">The coil is connected to the circuit through <b>slip rings</b> and brushes, so the output is alternating current.</p>
+    </div>
+    <div data-t="tr">
+      <label class="ctl"><span><i class="lt">Primary voltage, V<sub>p</sub> (a.c.)</i> <b id="ltVp">12 V</b></span><input id="tVp" type="range" min="6" max="240" step="6" value="12"></label>
+      <label class="ctl"><span><i class="lt">Primary turns, N<sub>p</sub></i> <b id="ltNp">100</b></span><input id="tNp" type="range" min="50" max="1000" step="50" value="100"></label>
+      <label class="ctl"><span><i class="lt">Secondary turns, N<sub>s</sub></i> <b id="ltNs">400</b></span><input id="tNs" type="range" min="50" max="1000" step="50" value="400"></label>
+      <label class="ctl"><span>Resistance of the load on the secondary <b id="ltR">100 Ω</b></span><input id="tR" type="range" min="10" max="500" step="10" value="100"></label>
+    </div>
+  </div>
+  <div class="card">
+    <h2 id="outT">Readings</h2>
+    <div class="read" id="rd"></div>
+    <div class="eq" id="info"></div>
+    <div class="status" id="st" aria-live="polite"></div>
+  </div>
+</div>
+<section class="check"><h2>Check yourself</h2>
+<div class="q" data-fb="Fleming's left-hand rule: First finger = Field, seCond finger = Current, thuMb = Motion (the force)."><p><b>1.</b> In Fleming's left-hand rule, what does the thumb show? <span class="tag supp">Supplement</span></p><div class="opts"><button>The magnetic field</button><button>The current</button><button data-ok>The force (motion)</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="Every half turn the split-ring commutator reverses the current in the coil, so the forces keep turning the coil the same way."><p><b>2.</b> What does the split-ring commutator in a d.c. motor do? <span class="tag supp">Supplement</span></p><div class="opts"><button data-ok>Reverses the current in the coil every half turn</button><button>Makes the magnetic field stronger</button><button>Changes a.c. into d.c. for the supply</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="An e.m.f. is only induced while the magnetic field through the coil is changing. A magnet held still gives no e.m.f., wherever it is."><p><b>3.</b> Which of these does <i>not</i> induce an e.m.f. in a coil? <span class="tag core">Core</span></p><div class="opts"><button>Pushing a magnet in quickly</button><button data-ok>Holding a magnet still inside the coil</button><button>Pulling a magnet out slowly</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="V_s = V_p × N_s ÷ N_p = 12 × 2000 ÷ 100 = 240 V. More secondary turns than primary turns: a step-up transformer."><p><b>4.</b> A transformer has 100 primary turns and 2000 secondary turns. The primary voltage is 12 V. What is the secondary voltage? <span class="tag core">Core</span></p><div class="opts"><button>0.6 V</button><button>120 V</button><button data-ok>240 V</button></div><div class="fb" aria-live="polite"></div></div>
+<div class="q" data-fb="When the plane of the coil is perpendicular to the field, the sides move along the field lines and do not cut them, so the e.m.f. is zero."><p><b>5.</b> When is the e.m.f. of an a.c. generator zero? <span class="tag supp">Supplement</span></p><div class="opts"><button>When the coil is parallel to the field</button><button data-ok>When the coil is perpendicular to the field</button><button>Never: it is always at its peak</button></div><div class="fb" aria-live="polite"></div></div>
+</section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+function transformerVs(Vp, Np, Ns) { return Vp * Ns / Np; }
+console.assert(transformerVs(12, 100, 2000) === 240 && transformerVs(240, 1000, 50) === 12, 'transformer');
+// F = I L x B with x right, y up, z out of the page: out-of-page current (+z) in field +x gives force +y (up)
+function cross(a, b) { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
+console.assert(cross([0, 0, 1], [1, 0, 0])[1] === 1, 'Fleming');
+const TABS = [['motor', 'd.c. motor'], ['ind', 'Induction'], ['gen', 'a.c. generator'], ['tr', 'Transformer']];
+let tab = 'motor', CV, last = null, T = 0;
+const M = {th: 0.4, om: 0, on: true, ci: 1, bi: 1};
+const IND = {x: 0, v: 0, pole: 1, target: null, drag: false, emf: 0, phi: 0, hist: []};
+const GEN = {t: 0, run: true, pts: []};
+$('#tabs').innerHTML = TABS.map(t => `<button data-tab="${t[0]}">${t[1]}</button>`).join('');
+function sizes() { const narrow = $('#cv').parentElement.clientWidth <= 640, g = tab === 'gen' && narrow; CV = fit($('#cv'), g ? 1.15 : 0.5, 320, g ? 540 : 430); }
+const R = id => +$('#' + id).value;
+function readouts(list) { $('#rd').innerHTML = list.map(([a, b]) => `<div><small>${a}</small><b>${b}</b></div>`).join(''); }
+function poles(c, x1, x2, y, hgt, nLeft) { const pw = Math.min(70, (x2 - x1) * 0.2); [[x1, nLeft], [x2 - pw, !nLeft]].forEach(([x, isN]) => { c.fillStyle = isN ? COL.red : '#3B82F6'; rrect(c, x, y - hgt / 2, pw, hgt, 6); c.fill(); label(c, isN ? 'N' : 'S', x + pw / 2, y, {size: 20, weight: '800', col: '#fff'}); });
+  for (let k = -2; k <= 2; k++) { const yy = y + k * hgt / 5.5; c.save(); c.globalAlpha = .35; arrow(c, nLeft ? x1 + pw + 6 : x2 - pw - 6, yy, nLeft ? x2 - pw - 6 : x1 + pw + 6, yy, COL.brand, 1.5, 9); c.restore(); } return pw; }
+function sym(c, x, y, s, r) { c.fillStyle = '#B87333'; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill(); c.strokeStyle = COL.ink; c.lineWidth = 1.5; c.stroke(); if (!s) return; c.strokeStyle = '#fff'; c.fillStyle = '#fff'; c.lineWidth = 2;
+  if (s > 0) { c.beginPath(); c.arc(x, y, r * 0.28, 0, 7); c.fill(); } else { const k = r * 0.45; c.beginPath(); c.moveTo(x - k, y - k); c.lineTo(x + k, y + k); c.moveTo(x + k, y - k); c.lineTo(x - k, y + k); c.stroke(); } }
+// ---------- d.c. motor (end-on view) ----------
+function motorStep(dt) { const N = R('mN'), I = R('mI'), B = R('mB'); const gap = Math.abs(Math.cos(M.th)) < Math.sin(8 * Math.PI / 180);
+  const tq = M.on && !gap ? M.ci * M.bi * 0.66 * N * I * B * Math.abs(Math.cos(M.th)) : 0; M.om += (tq - 2 * M.om) * dt; M.th += M.om * dt; return gap; }
+function drawMotor() { const {c, w, h} = CV, cx = w / 2, cy = h / 2 + 6, r = Math.min(w * 0.22, h * 0.32); c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  poles(c, cx - r - Math.min(110, w * 0.2), cx + r + Math.min(110, w * 0.2), cy, r * 2.3, M.bi > 0);
+  const gap = Math.abs(Math.cos(M.th)) < Math.sin(8 * Math.PI / 180), ax = cx + r * Math.cos(M.th), ay = cy - r * Math.sin(M.th), bx = cx - r * Math.cos(M.th), by = cy + r * Math.sin(M.th);
+  c.strokeStyle = '#B87333'; c.lineWidth = 4; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+  // split-ring commutator: each half is joined to one side of the coil
+  const rc = Math.min(18, r * 0.22), g = 0.16; c.lineWidth = 6; c.lineCap = 'butt';
+  [[M.th, '#D97706'], [M.th + Math.PI, '#92400E']].forEach(([a, col]) => { c.strokeStyle = col; c.beginPath(); c.arc(cx, cy, rc, -(a + Math.PI / 2) + g, -(a - Math.PI / 2) - g); c.stroke(); });
+  c.fillStyle = '#334155'; c.fillRect(cx - rc - 14, cy - 5, 10, 10); c.fillRect(cx + rc + 4, cy - 5, 10, 10);
+  const plusRight = M.ci > 0; label(c, plusRight ? '−' : '+', cx - rc - 22, cy - 13, {size: 14, weight: '800', col: plusRight ? COL.navy : COL.red}); label(c, plusRight ? '+' : '−', cx + rc + 22, cy - 13, {size: 14, weight: '800', col: plusRight ? COL.red : COL.navy});
+  // current: the side on the right carries current out of the page when ci > 0
+  const sA = M.on && !gap ? (Math.cos(M.th) > 0 ? 1 : -1) * M.ci : 0; sym(c, ax, ay, sA, 12); sym(c, bx, by, -sA, 12);
+  if (sA) { const L = Math.min(48, r * 0.6); [[ax, ay, sA], [bx, by, -sA]].forEach(([x, y, s]) => { const up = s * M.bi; arrow(c, x, y - up * 16, x, y - up * (16 + L), COL.green, 3.5, 11); }); }
+  else if (M.on) label(c, 'gap in the split ring: no current for a moment', cx, h - 14, {size: 12, col: '#B45309', bg: 'rgba(255,244,223,.95)'});
+  label(c, 'magnetic field', cx, cy - r * 1.15 - 4, {size: 11, col: COL.brand, bg: 'rgba(248,250,252,.9)'});
+  if (sA) label(c, 'force F', ax + (ax > cx ? -14 : 14), Math.max(14, Math.min(h - 14, ay - sA * M.bi * 44)), {align: ax > cx ? 'right' : 'left', size: 12, weight: '700', col: COL.green, bg: 'rgba(248,250,252,.9)'});
+}
+function motorRead() { const N = R('mN'), I = R('mI'), B = R('mB'); $('#lmI').textContent = fmt(I, 1) + ' A'; $('#lmN').textContent = N; $('#lmB').textContent = fmt(B, 2) + ' T';
+  const rps = Math.abs(M.om) / (2 * Math.PI), dirTxt = Math.abs(M.om) < 0.05 ? 'stopped' : M.om > 0 ? 'anticlockwise' : 'clockwise';
+  readouts([['rotation', dirTxt], ['speed', fmt(rps, 2) + ' rev/s'], ['turning effect now', fmt(M.on ? 100 * Math.abs(Math.cos(M.th)) : 0, 0) + '% of max']]);
+  $('#info').innerHTML = '<b>Fleming’s left-hand rule</b> <span class="tag supp">Supplement</span>: <b>F</b>irst finger = <b>F</b>ield (N → S), se<b>C</b>ond finger = <b>C</b>urrent, thu<b>M</b>b = <b>M</b>otion (force).<br>The turning effect is largest when the coil is parallel to the field and zero when it is perpendicular.';
+  $('#st').textContent = 'More current, more turns or a stronger magnet → a bigger turning effect and a faster motor.'; }
+// ---------- induction ----------
+function indGeom() { const {w, h} = CV, coilX = w * 0.66, coilW = Math.min(150, w * 0.32), ml = Math.min(150, w * 0.3); return {coilX, coilW, ml, xmin: 10 + ml / 2, xmax: coilX - ml / 2, y: h * 0.36}; }
+function flux(x) { const g = indGeom(), d = (x + g.ml / 2 - g.coilX) / (g.coilW * 0.6); return IND.pole / Math.pow(1 + d * d, 1.5); }
+function indStep(dt) { const g = indGeom(); let xNew = IND.x;
+  if (IND.drag && IND.dragX != null) xNew = IND.dragX;
+  if (IND.target != null) { const v = R('iV') * 600; const dx = IND.target - IND.x; xNew = Math.abs(dx) <= v * dt ? IND.target : IND.x + Math.sign(dx) * v * dt; if (xNew === IND.target) IND.target = null; }
+  xNew = Math.max(g.xmin, Math.min(g.xmax, xNew)); const phi = flux(xNew); const raw = dt > 0 ? -(phi - IND.phi) / dt : 0; IND.phi = phi; IND.x = xNew;
+  const target = raw * R('iN') * 0.06; IND.emf += (target - IND.emf) * Math.min(1, dt * 12); if (Math.abs(IND.emf) < 0.05) IND.emf = 0; IND.rate = raw; }
+function drawInd() { const {c, w, h} = CV, g = indGeom(); c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  const N = R('iN'), loops = N / 50, cy = g.y, ch = Math.min(90, h * 0.3);
+  // coil back halves
+  c.strokeStyle = '#92400E'; c.lineWidth = 2; for (let k = 0; k < loops; k++) { const x = g.coilX - g.coilW / 2 + (k + 0.5) * g.coilW / loops; c.beginPath(); c.ellipse(x, cy, 9, ch / 2, 0, -Math.PI / 2, Math.PI / 2, true); c.stroke(); }
+  // magnet
+  const mx = IND.x, mt = Math.min(36, ch * 0.45), half = g.ml / 2; const rightN = IND.pole > 0;
+  c.fillStyle = rightN ? '#3B82F6' : COL.red; c.fillRect(mx - half, cy - mt / 2, half, mt); c.fillStyle = rightN ? COL.red : '#3B82F6'; c.fillRect(mx, cy - mt / 2, half, mt); c.strokeStyle = COL.navy; c.lineWidth = 1.5; c.strokeRect(mx - half, cy - mt / 2, g.ml, mt);
+  label(c, rightN ? 'S' : 'N', mx - half + 14, cy, {size: 15, weight: '800', col: '#fff'}); label(c, rightN ? 'N' : 'S', mx + half - 14, cy, {size: 15, weight: '800', col: '#fff'});
+  // coil front halves
+  c.strokeStyle = '#B87333'; c.lineWidth = 2.5; for (let k = 0; k < loops; k++) { const x = g.coilX - g.coilW / 2 + (k + 0.5) * g.coilW / loops; c.beginPath(); c.ellipse(x, cy, 9, ch / 2, 0, -Math.PI / 2, Math.PI / 2); c.stroke(); }
+  // leads and galvanometer
+  const gx = g.coilX, gy = h - Math.min(70, h * 0.2), gr = Math.min(56, h * 0.16); c.strokeStyle = COL.ink; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(g.coilX - g.coilW / 2 + 4, cy + ch / 2); c.lineTo(g.coilX - g.coilW / 2 + 4, gy); c.lineTo(gx - gr, gy); c.moveTo(g.coilX + g.coilW / 2 - 4, cy + ch / 2); c.lineTo(g.coilX + g.coilW / 2 - 4, gy); c.lineTo(gx + gr, gy); c.stroke();
+  c.fillStyle = '#fff'; c.beginPath(); c.arc(gx, gy, gr, Math.PI, 0); c.closePath(); c.fill(); c.stroke();
+  for (let k = -4; k <= 4; k++) { const a = -Math.PI / 2 + k * 0.3; c.strokeStyle = k ? COL.muted : COL.ink; c.beginPath(); c.moveTo(gx + gr * 0.82 * Math.cos(a), gy + gr * 0.82 * Math.sin(a)); c.lineTo(gx + gr * 0.95 * Math.cos(a), gy + gr * 0.95 * Math.sin(a)); c.stroke(); }
+  const na = -Math.PI / 2 + Math.max(-1.25, Math.min(1.25, IND.emf / 50 * 1.2)); c.strokeStyle = COL.red; c.lineWidth = 2.5; c.beginPath(); c.moveTo(gx, gy); c.lineTo(gx + gr * 0.85 * Math.cos(na), gy + gr * 0.85 * Math.sin(na)); c.stroke();
+  label(c, 'G', gx, gy - gr * 0.35, {size: 13, weight: '800', col: COL.navy}); label(c, 'centre-zero galvanometer', gx, gy + 14, {size: 11, col: COL.muted});
+  // Lenz: pole induced at the end of the coil facing the magnet
+  if (Math.abs(IND.emf) > 0.3) { const leftN = IND.rate < 0; label(c, (leftN ? 'N' : 'S') + ' induced', g.coilX - g.coilW / 2 - 4, cy - ch / 2 - 14, {size: 12, weight: '800', col: leftN ? COL.red : '#2563EB', bg: 'rgba(248,250,252,.95)'}); }
+  label(c, 'coil: ' + N + ' turns', g.coilX + g.coilW / 2, cy - ch / 2 - 14, {align: 'right', size: 11, col: COL.muted});
+}
+function indRead() { $('#liV').textContent = fmt(R('iV'), 2) + ' m/s'; $('#liN').textContent = R('iN');
+  const e = IND.emf, moving = Math.abs(IND.rate) > 1e-3;
+  readouts([['induced e.m.f. (model)', fmt(e, 1) + ' mV'], ['needle', Math.abs(e) < 0.3 ? 'at zero' : e > 0 ? 'deflects right' : 'deflects left'], ['pole facing the coil', IND.pole > 0 ? 'N' : 'S']]);
+  $('#info').innerHTML = 'An e.m.f. is induced only while the magnetic field through the coil is <b>changing</b>. It is bigger if the magnet moves faster, the coil has more turns or the magnet is stronger. Reversing the motion or the pole reverses the e.m.f.<br><span class="tag supp">Supplement</span> The induced current makes the coil a magnet that <b>opposes the change</b>: the near end repels a magnet moving in and attracts one moving out.';
+  $('#st').textContent = moving ? 'Field through the coil changing: e.m.f. induced' : 'Magnet still: no change in the field, so no e.m.f.'; }
+// ---------- a.c. generator ----------
+function genE(t, f) { return 2.0 * f * Math.sin(2 * Math.PI * f * t); } // peak 2.0 V per (rev/s); coil vertical at t = 0
+console.assert(Math.abs(genE(0, 1)) < 1e-12 && Math.abs(genE(0.25, 1) - 2) < 1e-12, 'generator');
+function drawGen() { const {c, w, h} = CV, f = R('gf'), wide = w > 640; c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  const vw = wide ? w * 0.42 : w, vh = wide ? h : h * 0.5, cx = vw / 2, cy = vh / 2, r = Math.min(vw * 0.2, vh * 0.3);
+  poles(c, cx - r - Math.min(80, vw * 0.22), cx + r + Math.min(80, vw * 0.22), cy, r * 2.2, true);
+  const phi = Math.PI / 2 - 2 * Math.PI * f * GEN.t, ax = cx + r * Math.cos(phi), ay = cy - r * Math.sin(phi), bx = cx - r * Math.cos(phi), by = cy + r * Math.sin(phi), e = genE(GEN.t, f);
+  c.strokeStyle = '#B87333'; c.lineWidth = 4; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+  c.lineWidth = 3; c.strokeStyle = '#D97706'; c.beginPath(); c.arc(cx, cy, 9, 0, 7); c.stroke(); c.strokeStyle = '#92400E'; c.beginPath(); c.arc(cx, cy, 15, 0, 7); c.stroke();
+  // Fleming's right-hand rule: side A (moving clockwise) carries current out of the page when e > 0
+  const s = Math.abs(e) < 0.03 * f ? 0 : Math.sign(e); sym(c, ax, ay, s, 11); sym(c, bx, by, -s, 11);
+  label(c, 'slip rings', cx, cy + 30, {size: 11, col: COL.muted, bg: 'rgba(248,250,252,.9)'});
+  const gx = wide ? vw + 46 : 46, gy = wide ? 16 : vh + 8, gw = (wide ? w - vw : w) - 60, gh = (wide ? h : h - vh) - 50, ym = 8;
+  const {X, Y} = axes(c, {x: gx, y: gy, w: gw, h: gh, xmin: 0, xmax: 2, ymin: -ym, ymax: ym, xstep: 0.5, ystep: 2, xlab: 'time / s', ylab: 'e.m.f. / V', ylabOff: 34});
+  c.strokeStyle = COL.brand; c.lineWidth = 2.2; c.beginPath(); GEN.pts.forEach(([t, v], i) => i ? c.lineTo(X(t), Y(v)) : c.moveTo(X(t), Y(v))); c.stroke();
+  const tt = GEN.t % 2; c.fillStyle = COL.navy; c.beginPath(); c.arc(X(tt), Y(e), 4.5, 0, 7); c.fill(); }
+function genRead() { const f = R('gf'), e = genE(GEN.t, f); $('#lgf').textContent = fmt(f, 1) + ' turns per second';
+  readouts([['e.m.f. now (model)', fmt(e, 2) + ' V'], ['peak e.m.f.', fmt(2 * f, 1) + ' V'], ['frequency', fmt(f, 1) + ' Hz']]);
+  $('#info').innerHTML = '<span class="tag supp">Supplement</span><br>e.m.f. is <b>zero</b> when the coil is <b>perpendicular</b> to the field (the sides move along the field lines). It is at a <b>peak</b> when the coil is <b>parallel</b> to the field (the sides cut the lines fastest). Turning faster gives a bigger peak and a higher frequency.';
+  const a = ((2 * Math.PI * f * GEN.t) % Math.PI + Math.PI) % Math.PI; $('#st').textContent = Math.abs(a - Math.PI / 2) < 0.25 ? 'Coil parallel to the field: maximum e.m.f.' : (a < 0.25 || a > Math.PI - 0.25) ? 'Coil perpendicular to the field: zero e.m.f.' : ''; }
+// ---------- transformer ----------
+function drawTr() { const {c, w, h} = CV, Np = R('tNp'), Ns = R('tNs'); c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  const cw = Math.min(w * 0.56, 340), chh = Math.min(h * 0.62, 240), x0 = w / 2 - cw / 2, y0 = h / 2 - chh / 2 - 6, t = Math.min(34, cw * 0.14);
+  c.fillStyle = '#94A3B8'; c.fillRect(x0, y0, cw, chh); c.fillStyle = '#F8FAFC'; c.fillRect(x0 + t, y0 + t, cw - 2 * t, chh - 2 * t);
+  label(c, 'soft-iron core', w / 2, y0 + t / 2, {size: 11, weight: '700', col: '#fff'});
+  const coil = (x, n, col) => { const k = Math.max(1, Math.round(n / 50)), top = y0 + t + 8, span = chh - 2 * t - 16; c.strokeStyle = col; c.lineWidth = 2.5; for (let i = 0; i < k; i++) { const y = top + (i + 0.5) * span / k; c.beginPath(); c.ellipse(x, y, t * 0.75, Math.min(5, span / k / 2.2), 0, 0, 7); c.stroke(); } };
+  coil(x0 + t / 2, Np, '#B87333'); coil(x0 + cw - t / 2, Ns, '#7C3AED');
+  label(c, 'primary', x0 + t / 2, y0 + chh + 14, {size: 12, weight: '700', col: '#92400E'}); label(c, 'secondary', x0 + cw - t / 2, y0 + chh + 14, {size: 12, weight: '700', col: COL.purple});
+  label(c, 'Nₚ = ' + Np, x0 + t / 2, y0 + chh + 32, {size: 12, col: COL.ink}); label(c, 'Nₛ = ' + Ns, x0 + cw - t / 2, y0 + chh + 32, {size: 12, col: COL.ink});
+  const Vs = transformerVs(R('tVp'), Np, Ns); label(c, fmt(R('tVp'), 0) + ' V a.c. in', x0 + t / 2, y0 - 16, {align: 'center', size: 12, weight: '700', col: '#92400E', bg: 'rgba(248,250,252,.95)'});
+  label(c, sig(Vs, 3) + ' V a.c. out', x0 + cw - t / 2, y0 - 16, {align: 'center', size: 12, weight: '700', col: COL.purple, bg: 'rgba(248,250,252,.95)'}); }
+function trRead() { const Vp = R('tVp'), Np = R('tNp'), Ns = R('tNs'), Rl = R('tR'), Vs = transformerVs(Vp, Np, Ns), Is = Vs / Rl, Ip = Is * Vs / Vp;
+  $('#ltVp').textContent = Vp + ' V'; $('#ltNp').textContent = Np; $('#ltNs').textContent = Ns; $('#ltR').textContent = Rl + ' Ω';
+  readouts([['secondary voltage Vₛ', sig(Vs, 3) + ' V'], ['type', Ns > Np ? 'step-up' : Ns < Np ? 'step-down' : 'neither (Nₛ = Nₚ)'], ['secondary current Iₛ', sig(Is, 3) + ' A'], ['primary current Iₚ', sig(Ip, 3) + ' A']]);
+  $('#info').innerHTML = `<span class="tag core">Core</span> Vₚ ÷ Vₛ = Nₚ ÷ Nₛ, so Vₛ = ${Vp} × ${Ns} ÷ ${Np} = ${sig(Vs, 3)} V<br><span class="tag supp">Supplement</span> For 100% efficiency Iₚ Vₚ = Iₛ Vₛ: ${sig(Ip, 3)} A × ${Vp} V = ${sig(Is, 3)} A × ${sig(Vs, 3)} V = ${sig(Is * Vs, 3)} W`;
+  $('#st').textContent = 'A transformer only works with a.c.: the changing current in the primary makes a changing field in the core, which induces an e.m.f. in the secondary.'; }
+const NOTES = {motor: 'End-on view: ⊙ current out of the page, ⊗ current into the page. Green arrows show the force on each side of the coil.', ind: 'The galvanometer has its zero in the middle, so it shows the direction of the induced current.', gen: 'End-on view of the generator coil turning between the poles of a magnet. The graph is the e.m.f. across the slip rings.', tr: 'Two coils on a soft-iron core. The number of loops drawn is proportional to the number of turns.'};
+function setTab(t) { tab = t; $$('[data-tab]').forEach(b => { b.classList.toggle('on', b.dataset.tab === t); b.setAttribute('aria-pressed', b.dataset.tab === t); }); $$('[data-t]').forEach(d => d.hidden = d.dataset.t !== t); $('#cnote').textContent = NOTES[t]; sizes();
+  if (t === 'ind') { const g = indGeom(); IND.x = g.xmin; IND.phi = flux(IND.x); IND.emf = 0; IND.target = null; } frame(0); }
+function frame(dt) { if (tab === 'motor') { motorStep(dt); drawMotor(); motorRead(); } else if (tab === 'ind') { indStep(dt); drawInd(); indRead(); }
+  else if (tab === 'gen') { if (GEN.run) { GEN.t += dt; const tt = GEN.t % 2; if (GEN.pts.length && tt < GEN.pts[GEN.pts.length - 1][0]) GEN.pts = []; GEN.pts.push([tt, genE(GEN.t, R('gf'))]); } drawGen(); genRead(); } else { drawTr(); trRead(); } }
+function loop(ts) { if (last == null) last = ts; const dt = Math.min(0.04, (ts - last) / 1000); last = ts; if (tab !== 'tr') frame(dt); requestAnimationFrame(loop); }
+$$('[data-tab]').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+$('#mRun').onclick = () => { M.on = !M.on; if (M.on && Math.abs(Math.cos(M.th)) < 0.2) M.th += 0.3; $('#mRun').textContent = M.on ? 'Switch off' : 'Switch on'; };
+$('#mRevI').onclick = () => { M.ci = -M.ci; }; $('#mRevB').onclick = () => { M.bi = -M.bi; };
+$('#iIn').onclick = () => { IND.target = indGeom().xmax; }; $('#iOut').onclick = () => { IND.target = indGeom().xmin; };
+$('#iFlip').onclick = () => { IND.pole = -IND.pole; IND.phi = flux(IND.x); };
+$('#gRun').onclick = () => { GEN.run = !GEN.run; $('#gRun').textContent = GEN.run ? 'Pause' : 'Run'; }; $('#gClr').onclick = () => { GEN.pts = []; GEN.t = 0; };
+$('#gf').addEventListener('input', () => { GEN.pts = []; GEN.t = 0; });
+['tVp', 'tNp', 'tNs', 'tR'].forEach(id => bindRange(id, () => frame(0)));
+const cv = $('#cv');
+cv.addEventListener('pointerdown', e => { if (tab !== 'ind') return; const p = pointerPos(cv, e), g = indGeom(); if (Math.abs(p.x - IND.x) < g.ml / 2 + 10 && Math.abs(p.y - g.y) < 40) { IND.drag = true; IND.target = null; IND.dragX = null; IND.off = p.x - IND.x; cv.setPointerCapture(e.pointerId); } });
+cv.addEventListener('pointermove', e => { if (!IND.drag) return; IND.dragX = pointerPos(cv, e).x - IND.off; });
+['pointerup', 'pointercancel'].forEach(t => cv.addEventListener(t, () => { IND.drag = false; }));
+sizes(); setTab('motor'); requestAnimationFrame(loop); onResize(() => { sizes(); if (tab === 'ind') { const g = indGeom(); IND.x = Math.max(g.xmin, Math.min(g.xmax, IND.x)); IND.phi = flux(IND.x); } frame(0); });
+
+// quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
+$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+
+</script>
+</body>
+</html>
