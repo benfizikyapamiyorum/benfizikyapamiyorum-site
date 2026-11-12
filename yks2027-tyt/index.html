@@ -70392,6 +70392,393 @@ window.BFY_TYT_TEST[TEST.id] = TEST;
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim YKS 2027 TYT, YD43 (TYT Fizik Denemesi 43)
+   Gerçek TYT fen bölümünün fizik kısmı gibi 7 soru, 10 dakika; ÖSYM soru sırası.
+   Konu yuvaları (tablonun 03. satırı): Y.2.1, Y.3.1, Y.8.3, Y.5.2, Y.7.1, Y.10.1, Y.10.4. Zorluk 2/3/2 (★/★★/★★★).
+   Kapsam: 2018 fizik öğretim programı (9 ve 10. sınıf); kazanım sınırlamalarına uyulmuştur
+   (özkütle yalnız tablo okuma düzeyinde; görelilik, kaldırma kuvveti, ısıl denge, aydınlanma ve tam yansımada hesap yok;
+   sayısal hesap yalnız Ohm yasasıyla akım bulmada).
+   YD03 ile aynı konu yuvaları: her soruda YD03'tekinden farklı kazanım ve farklı kalıp seçilmiştir
+   (9.2.1.2, 9.3.1.6, 10.2.2.2, 9.5.3.1, 10.1.2.1, 10.4.1.2, 10.4.6.2).
+   Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Çıkmamış ya da az çıkmış kazanımlardan gelen sorular "tahmin" alanıyla işaretlidir.
+   Şekil anahtarları: YD43_ öneki. Soru kimlikleri: YD43_1 … YD43_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+const MAV = '#2f7fb8', BAK = '#c25b2a', YES = '#2f8f5b', GRI = '#5f6b72';
+
+// Eksen takımı (ok uçlu)
+const eksen = (ox, oy, w, h, yAd, xAd) => {
+  let s = `<line x1="${ox}" y1="${oy}" x2="${ox + w}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox + w + 7},${oy} ${ox + w - 2},${oy - 3.8} ${ox + w - 2},${oy + 3.8}" fill="${P.ink}"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - h}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${oy - h - 7} ${ox - 3.8},${oy - h + 2} ${ox + 3.8},${oy - h + 2}" fill="${P.ink}"/>`;
+  s += T(ox + w + 6, oy + 18, xAd, { size: 12.5, weight: 800, anchor: 'end' });
+  s += T(ox + 8, oy - h + 2, yAd, { size: 12.5, weight: 800 });
+  return s;
+};
+
+// 2. soru: istasyonda paralel raylardaki iki tren (üstten görünüş)
+BFY_FIG_EKLE('YD43_tren', function (u) {
+  const W = 340, H = 214;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#eef1ee"/>`;
+  // yön göstergesi
+  s += arrow(250, 22, 290, 22, { color: P.ink2, w: 1.8, head: 7, headW: 4 }) + arrow(250, 22, 210, 22, { color: P.ink2, w: 1.8, head: 7, headW: 4 });
+  s += T(296, 26, 'Doğu', { size: 11, weight: 700, fill: P.ink2, halo: false });
+  s += T(204, 26, 'Batı', { size: 11, weight: 700, anchor: 'end', fill: P.ink2, halo: false });
+  // raylar
+  const ray = y => {
+    let t = '';
+    for (let x = 14; x < W - 10; x += 12) t += `<rect x="${x}" y="${y - 13}" width="5" height="26" fill="#a08a6a" opacity=".55"/>`;
+    t += `<line x1="10" y1="${y - 8}" x2="${W - 10}" y2="${y - 8}" stroke="#7d868c" stroke-width="2.2"/><line x1="10" y1="${y + 8}" x2="${W - 10}" y2="${y + 8}" stroke="#7d868c" stroke-width="2.2"/>`;
+    return t;
+  };
+  s += ray(84) + ray(160);
+  // vagonlar
+  const vagon = (x, y, w, c) => {
+    let t = `<rect x="${x}" y="${y - 15}" width="${w}" height="30" rx="7" fill="${c}" stroke="#2c3a40" stroke-width="1.2"/>`;
+    for (let k = x + 10; k < x + w - 12; k += 18) t += `<rect x="${k}" y="${y - 15}" width="11" height="5" rx="1.5" fill="#dfeef7" stroke="#2c3a40" stroke-width=".6"/>` + `<rect x="${k}" y="${y + 10}" width="11" height="5" rx="1.5" fill="#dfeef7" stroke="#2c3a40" stroke-width=".6"/>`;
+    return t;
+  };
+  s += vagon(40, 84, 128, '#d9a441') + vagon(174, 84, 128, '#d9a441');
+  s += vagon(34, 160, 128, MAV) + vagon(168, 160, 128, MAV);
+  // Mert, alt trende yandaki trene bakan pencerenin önünde
+  s += `<circle cx="118" cy="152" r="5.5" fill="#f2c9a5" stroke="#5a3a24" stroke-width="1"/>`;
+  s += T(118, 196, 'Mert', { size: 12, weight: 800, anchor: 'middle' });
+  s += `<line x1="118" y1="186" x2="118" y2="160" stroke="${P.ink}" stroke-width="1"/>`;
+  s += T(316, 134, 'Mert\'in treni', { size: 11, weight: 700, anchor: 'end', fill: '#1d5a86' });
+  s += T(316, 112, 'yandaki tren', { size: 11, weight: 700, anchor: 'end', fill: '#8a5a12' });
+  // gözlenen kayma
+  s += arrow(150, 52, 70, 52, { color: P.coral, w: 2.4 });
+  s += T(160, 56, 'Mert\'e göre', { size: 11.5, weight: 800, fill: P.coral });
+  s += T(10, H - 6, '(Üstten görünüş)', { size: 10, weight: 600, fill: P.ink2, halo: false });
+  return svg(W, H, s, u, 72);
+});
+
+// 3. soru: göldeki yüklü sal (yandan)
+BFY_FIG_EKLE('YD43_sal', function (u) {
+  const W = 330, H = 190, su = 112;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#eef5f9"/>`;
+  s += `<rect class="bg" x="0" y="${su}" width="${W}" height="${H - su}" fill="url(#${u}water)" opacity=".75"/>`;
+  s += `<line x1="0" y1="${su}" x2="${W}" y2="${su}" stroke="#2a79ad" stroke-width="1.6"/>`;
+  // sal: kalaslar (yandan kesit), üst yüzü su yüzeyinin hemen üstünde
+  const x0 = 70, x1 = 260, ust = su - 4, alt = su + 18;
+  s += `<rect x="${x0}" y="${ust}" width="${x1 - x0}" height="${alt - ust}" fill="url(#${u}wood)" stroke="#8a6a3a" stroke-width="1.3"/>`;
+  for (let x = x0 + 24; x < x1; x += 24) s += `<line x1="${x}" y1="${ust}" x2="${x}" y2="${alt}" stroke="#a7844e" stroke-width="1"/>`;
+  // kiremit yığını
+  for (let k = 0; k < 5; k++) for (let j = 0; j < 3; j++) {
+    const x = 92 + j * 50 + (k % 2) * 6, y = ust - 10 - k * 10;
+    s += `<rect x="${x}" y="${y}" width="40" height="10" rx="2" fill="#c0623a" stroke="#7d3a1e" stroke-width=".9"/>`;
+  }
+  s += T(166, 34, 'kiremit yükü', { size: 12, weight: 700, anchor: 'middle' });
+  s += T(x1 + 8, su + 30, 'sal', { size: 12.5, weight: 800 });
+  s += T(14, su + 52, 'göl', { size: 12, weight: 700, fill: '#0f3d5c', halo: false });
+  s += T(10, H - 7, '(Yandan görünüş, ölçekli değildir.)', { size: 10, weight: 600, fill: '#0f3d5c', halo: false });
+  return svg(W, H, s, u, 70);
+});
+
+// 4. soru: kuluçka makinesinde hava ve yumurta sıcaklıklarının zamanla değişimi
+BFY_FIG_EKLE('YD43_kulucka', function (u) {
+  const W = 330, H = 236, ox = 64, oy = 196, gw = 238, gh = 168;
+  const yK = oy - 136, yO = oy - 22;   // kuluçka ve oda sıcaklığı düzeyleri
+  const t1 = ox + 56, t2 = ox + 150;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f8f6f0"/>`;
+  s += eksen(ox, oy, gw, gh, 'Sıcaklık', 'Zaman');
+  s += T(ox - 6, oy + 14, '0', { size: 11, anchor: 'end', fill: P.ink2 });
+  s += dashLine(ox, yK, ox + gw - 6, yK, '#b9b2a2', '4 4', 1.1) + dashLine(ox, yO, ox + 30, yO, '#b9b2a2', '4 4', 1.1);
+  s += T(ox - 6, yK + 4, 'T_K', { size: 12, weight: 700, anchor: 'end' }) + T(ox - 6, yO + 4, 'T_O', { size: 12, weight: 700, anchor: 'end' });
+  // hava: T_K'den başlayıp t1'de en düşük, t2'ye doğru yeniden T_K
+  const hOf = x => x <= t1 ? 40 * Math.sin(Math.PI / 2 * (x - ox) / (t1 - ox)) : x >= t2 ? 0 : 20 * (1 + Math.cos(Math.PI * (x - t1) / (t2 - t1)));
+  const yOf = x => x >= t2 ? 0 : 114 * Math.pow(1 - (x - ox) / (t2 - ox), 1.3);
+  let hava = '', yum = '';
+  for (let x = ox; x <= t2; x += 2) { hava += (x === ox ? 'M' : ' L') + x + ' ' + f1(yK + hOf(x)); yum += (x === ox ? 'M' : ' L') + x + ' ' + f1(yK + yOf(x)); }
+  hava += ` L${ox + gw - 6} ${yK}`;
+  // yumurta: T_O'dan başlayıp hep havanın altında kalarak t2'de T_K'ye ulaşıyor
+  s += `<path d="${hava}" fill="none" stroke="${BAK}" stroke-width="2.8" stroke-linecap="round"/>`;
+  s += `<path d="${yum}" fill="none" stroke="${MAV}" stroke-width="2.8" stroke-linecap="round"/>`;
+  [[t1, 't_1'], [t2, 't_2']].forEach(([x, ad]) => { s += dashLine(x, yK - 6, x, oy, P.ink2, '3 3', 1.1) + T(x, oy + 16, ad, { size: 12.5, weight: 700, anchor: 'middle' }); });
+  s += T(t2 + 50, yK - 8, 'hava', { size: 12, weight: 800, anchor: 'middle', fill: BAK });
+  s += T(t1 + 4, yK + 92, 'yumurta', { size: 12, weight: 800, fill: MAV });
+  return svg(W, H, s, u, 68);
+});
+
+// 5. soru: X ve Y tellerinin potansiyel fark–akım grafiği (kareli)
+BFY_FIG_EKLE('YD43_vi', function (u) {
+  const W = 300, H = 250, ox = 50, oy = 212, sx = 36, sy = 14;   // 1 A = 36 px, 1 V = 14 px
+  const X = i => ox + i * sx, Y = v => oy - v * sy;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f8f7f3"/>`;
+  for (let i = 1; i <= 6; i++) s += `<line x1="${X(i)}" y1="${oy}" x2="${X(i)}" y2="${Y(12.6)}" stroke="#e1ddd2" stroke-width="1"/>` + T(X(i), oy + 15, String(i), { size: 11, anchor: 'middle', fill: P.ink2 });
+  for (let v = 2; v <= 12; v += 2) s += `<line x1="${ox}" y1="${Y(v)}" x2="${X(6.3)}" y2="${Y(v)}" stroke="#e1ddd2" stroke-width="1"/>` + (v % 4 === 0 ? T(ox - 6, Y(v) + 4, String(v), { size: 11, anchor: 'end', fill: P.ink2 }) : '');
+  s += eksen(ox, oy, X(6.6) - ox, oy - Y(13.4), 'V (volt)', '');
+  s += T(X(6.6) + 4, oy - 8, 'i (A)', { size: 12.5, weight: 800, anchor: 'end' });
+  s += T(ox - 6, oy + 14, '0', { size: 11, anchor: 'end', fill: P.ink2 });
+  s += `<line x1="${ox}" y1="${oy}" x2="${X(3)}" y2="${Y(12)}" stroke="${BAK}" stroke-width="2.6" stroke-linecap="round"/>`;
+  s += `<line x1="${ox}" y1="${oy}" x2="${X(6)}" y2="${Y(12)}" stroke="${MAV}" stroke-width="2.6" stroke-linecap="round"/>`;
+  s += T(X(3) - 8, Y(12) - 2, 'X', { size: 13.5, weight: 800, anchor: 'end', fill: BAK });
+  s += T(X(6) - 2, Y(12) - 8, 'Y', { size: 13.5, weight: 800, anchor: 'middle', fill: MAV });
+  return svg(W, H, s, u, 62);
+});
+
+// 6. soru: satranç masası, tavandan sarkan lamba ve lüksmetre (yandan, hafif üstten)
+BFY_FIG_EKLE('YD43_satranc', function (u) {
+  const W = 330, H = 236;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f3f0ea"/>`;
+  s += `<rect class="bg" x="0" y="0" width="${W}" height="12" fill="#cfc7b8"/>`;
+  // masa üst yüzü: arka kenar y = 140, ön kenar y = 188 (eğik görünüş)
+  const M = (a, b) => [40 + 210 * a + 44 * b, 140 + 48 * b];
+  // lamba (tahtanın merkezinin tam üstünde)
+  const merk = M(0.475, 0.5), lx = Math.round(merk[0]), ly = 70;
+  s += `<line x1="${lx}" y1="12" x2="${lx}" y2="${ly - 14}" stroke="#4a4a4a" stroke-width="1.6"/>`;
+  s += `<path d="M${lx - 24} ${ly} L${lx - 9} ${ly - 15} L${lx + 9} ${ly - 15} L${lx + 24} ${ly} Z" fill="#2f5d50" stroke="#1d3a32" stroke-width="1"/>`;
+  s += `<ellipse cx="${lx}" cy="${ly + 2}" rx="8" ry="4" fill="#fff4b8" stroke="#d8a93a" stroke-width="1"/>`;
+  s += `<path d="M${lx - 22} ${ly + 1} L${lx - 100} 176 L${lx + 100} 176 L${lx + 22} ${ly + 1} Z" fill="#fff2b0" opacity=".28"/>`;
+  s += T(lx + 30, ly - 4, 'lamba', { size: 12, weight: 700 });
+  // masa
+  const m1 = M(0, 0), m2 = M(1, 0), m3 = M(1, 1), m4 = M(0, 1);
+  s += `<polygon points="${m1.join(',')} ${m2.join(',')} ${m3.join(',')} ${m4.join(',')}" fill="#9c6b3f" stroke="#6b4626" stroke-width="1"/>`;
+  s += `<rect x="${m4[0]}" y="${m4[1]}" width="210" height="8" fill="#7d5330"/>`;
+  s += `<rect x="${m4[0] + 12}" y="${m4[1] + 8}" width="8" height="32" fill="#7d5330"/><rect x="${m3[0] - 20}" y="${m4[1] + 8}" width="8" height="32" fill="#7d5330"/>`;
+  // satranç tahtası (masanın üstünde, 8 × 8)
+  const A = M(0.2, 0.14), Bp = M(0.75, 0.14), C = M(0.75, 0.86), D = M(0.2, 0.86);
+  const nok = (a, b) => [A[0] + (Bp[0] - A[0]) * a + (D[0] - A[0]) * b, A[1] + (Bp[1] - A[1]) * a + (D[1] - A[1]) * b];
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+    const p1 = nok(i / 8, j / 8), p2 = nok((i + 1) / 8, j / 8), p3 = nok((i + 1) / 8, (j + 1) / 8), p4 = nok(i / 8, (j + 1) / 8);
+    s += `<polygon points="${f1(p1[0])},${f1(p1[1])} ${f1(p2[0])},${f1(p2[1])} ${f1(p3[0])},${f1(p3[1])} ${f1(p4[0])},${f1(p4[1])}" fill="${(i + j) % 2 ? '#2b2b2b' : '#f7f3ea'}"/>`;
+  }
+  s += `<polygon points="${A.map(f1).join(',')} ${Bp.map(f1).join(',')} ${C.map(f1).join(',')} ${D.map(f1).join(',')}" fill="none" stroke="#3a2a1a" stroke-width="1.2"/>`;
+  // lüksmetre: algılayıcı tahtanın ortasındaki bir karede, kablo ve gösterge masada
+  const sp = nok(4.5 / 8, 3.5 / 8), g = M(0.87, 0.62);
+  s += `<ellipse cx="${f1(sp[0])}" cy="${f1(sp[1] - 2)}" rx="6" ry="2.6" fill="#e8e8e8" stroke="#333" stroke-width="1"/>`;
+  s += `<path d="M${f1(sp[0] + 5)} ${f1(sp[1])} C ${f1(sp[0] + 40)} ${f1(sp[1] + 14)}, ${f1(g[0] - 30)} ${f1(g[1] + 6)}, ${f1(g[0] - 14)} ${f1(g[1])}" fill="none" stroke="#333" stroke-width="1.2"/>`;
+  s += `<rect x="${f1(g[0] - 14)}" y="${f1(g[1] - 16)}" width="28" height="18" rx="3" fill="#ffd34d" stroke="#6b5200" stroke-width="1"/><rect x="${f1(g[0] - 10)}" y="${f1(g[1] - 13)}" width="20" height="8" rx="1" fill="#cfe3d4"/>`;
+  s += T(g[0] + 6, g[1] - 24, 'lüksmetre', { size: 12, weight: 700, anchor: 'middle' });
+  s += T(W - 10, 30, '(Ölçekli değildir.)', { size: 10, weight: 600, anchor: 'end', fill: P.ink2, halo: false });
+  return svg(W, H, s, u, 68);
+});
+
+// 7. soru: optik parmak izi okuyucusu (kesit): dik ikizkenar cam prizma, LED, kamera, parmak
+BFY_FIG_EKLE('YD43_parmak', function (u) {
+  const W = 340, H = 232;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="12" fill="#f4f6f8"/>`;
+  // prizma: üst yüz (hipotenüs) yatay, tepe aşağıda
+  const L = [80, 92], R = [260, 92], Ap = [170, 182];
+  s += `<polygon points="${L.join(',')} ${R.join(',')} ${Ap.join(',')}" fill="url(#${u}glass)" stroke="#4f7f9c" stroke-width="1.6" opacity=".95"/>`;
+  s += T(196, 124, 'cam prizma', { size: 11.5, weight: 700, anchor: 'middle', fill: '#1d4a66' });
+  // parmak ucu: üst yüze bastırılmış, alt kenarı tırtıklı (sırt ve oyuklar)
+  let p = `M118 92`;
+  for (let x = 118; x < 222; x += 8) p += ` L${x + 4} 92 L${x + 6} 88 L${x + 8} 92`;
+  p += ` L222 92 C 236 82, 240 56, 214 42 C 190 30, 150 30, 126 42 C 100 56, 104 82, 118 92 Z`;
+  s += `<path d="${p}" fill="url(#${u}skin)" stroke="#9a6a4a" stroke-width="1.2"/>`;
+  s += T(170, 26, 'parmak', { size: 12, weight: 700, anchor: 'middle' });
+  // LED (sol alt) ve kamera (sağ alt), yan yüzlere dik
+  s += `<g transform="translate(92,166) rotate(-45)"><rect x="-10" y="-7" width="20" height="14" rx="3" fill="#e05a3a" stroke="#7d2a16" stroke-width="1"/></g>`;
+  s += T(78, 192, 'LED', { size: 12, weight: 800, anchor: 'middle' });
+  s += `<g transform="translate(248,166) rotate(-45)"><rect x="-13" y="-9" width="26" height="18" rx="3" fill="#3c4a54" stroke="#1d252b" stroke-width="1"/><circle cx="0" cy="-9" r="5" fill="#9fb2c2" stroke="#1d252b" stroke-width="1"/></g>`;
+  s += T(268, 196, 'kamera', { size: 12, weight: 800, anchor: 'middle' });
+  // LED'den çıkan ışın: sol yan yüze dik girer, üst yüze gelir
+  s += `<line x1="100" y1="158" x2="125" y2="133" stroke="${P.sun}" stroke-width="2.4"/>`;
+  s += arrow(125, 133, 166, 92, { color: P.sun, w: 2.4, head: 8, headW: 4.5 });
+  s += T(10, H - 6, '(Kesit, ölçekli değildir.)', { size: 10, weight: 600, fill: P.ink2, halo: false });
+  return svg(W, H, s, u, 70);
+});
+
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'YD43', ad: 'TYT Fizik Denemesi 43', tur: 'deneme', sure: 600,
+  aciklama: 'Yedi soru, gerçek TYT sırası: dere kumunda altın arayan tavadan istasyondaki iki trene, kiremit taşıyan saldan kuluçka makinesine, aküyle çalışan ısıtıcıdan satranç masasındaki lüksmetreye ve parmak izi okuyucusundaki cam prizmaya.',
+  baglamlar: [
+    'dere kumunda altın arama tavası: elenmiş kum, kuvars 2,7, granat 4,1, manyetit 5,2, altın 19,3 g/cm³; özkütle farkıyla ayırma, elemenin özkütleyi değil büyüklüğü eşitlemesi, elenmemiş kumda iri kuvarsın küçük altından ağır olabilmesi (yanlış olan)',
+    'istasyonda paralel raylarda iki tren, Mert yalnız yandaki treni görüyor ve onu kendisine göre batıya kayıyor görüyor; hangi hareket durumları olabilir (olabilir)',
+    'göl üzerinde kiremit taşıyan tahta sal: salın üstünü sudan yüksekte tutmak için boş kapalı bidon, aynı ağaçtan daha kalın kalas, daha yoğun ağaç önerileri',
+    'kuluçka makinesine konan oda sıcaklığındaki yumurtalar: hava ve yumurta sıcaklık–zaman grafikleri, hava sıcaklığının düşüp yeniden yükselmesi, t_2 sonrası net ısı aktarımı (kesinlikle)',
+    'otomobil aküsüyle çalışan taşınabilir ısıtıcı: X (4 Ω) ve Y (2 Ω) telleri, V–i grafiği, 12 V akü, seri / yalnız X / paralel kademelerde 2, 3, 9 A',
+    'satranç turnuvasında masanın üstündeki lamba ve lüksmetre: beyaz ve siyah karede aynı aydınlanma, lamba yukarı çekilince ışık şiddeti ve tahtaya düşen akı',
+    'optik parmak izi okuyucusu: dik ikizkenar cam prizma, LED ve kamera; cam–hava sınırında tam yansıma, sırtlarda ve ıslak oyuklarda ışığın prizmadan çıkması'
+  ],
+  sorular: [
+    {
+      id: 'YD43_1', konu: 'Y.2.1', yks: true, zorluk: 1, cikti: '9.2.1.2', beceri: 'Özkütle farkından yararlanılan bir ayırma yöntemini yorumlama',
+      tahmin: { gerekce: r`9.2.1.2 (günlük hayatta özkütleden yararlanılan durumlar) TYT'de yalnız 2024'te ebru bağlamıyla soruldu. Altın arayıcılarının tavayla yaptığı ayırma, özkütlenin maddeyi tanıtan ve tanenin büyüklüğüyle değişmeyen bir özellik olduğunu, kütlenin ise hacme de bağlı olduğunu tablo okuyarak, hesapsız yoklayan bir uygulamadır.` },
+      metin: r`Bazı derelerin kumunda çok küçük altın taneleri bulunur. Altın arayıcıları dereden aldıkları kumu önce bir elekten geçirerek iri taşları ayırır; elekten geçen tanelerin büyüklükleri birbirine yakındır. Sonra bu kumu geniş ve sığ bir tavaya koyup suyun içinde çalkalar. Tava eğilip döndürüldükçe su, bazı taneleri tavanın kenarından dışarı taşır; bazı taneler ise tavanın dibinde kalır. Kumdaki tanelerin yapıldığı maddelerin özkütleleri tabloda verilmiştir.
+
+{{tablo}}
+
+Buna göre aşağıdaki ifadelerden hangisi **yanlıştır**?`,
+      tablo: [['Madde', r`Özkütle ($\text{g/cm}^3$)`], ['Kuvars', '2,7'], ['Granat', '4,1'], ['Manyetit', '5,2'], ['Altın', '19,3']],
+      secenekler: [
+        r`Su, granat tanelerini kuvars tanelerinden daha zor taşır.`,
+        r`Elenmemiş kumdaki iri bir kuvars tanesi, küçük bir altın tanesinden daha ağır olabilir.`,
+        r`Eleme, kumdaki tanelerin özkütlelerini birbirine yaklaştırır.`,
+        r`Tavanın dibinde altınla birlikte en son kalan taneler manyetit taneleridir.`,
+        r`Aynı büyüklükteki bir altın tanesinin kütlesi, bir kuvars tanesininkinin 7 katından fazladır.`
+      ],
+      dogru: 2,
+      cozum: [
+        r`Taneler elendiği için büyüklükleri, yani hacimleri birbirine yakındır. Aynı hacimde özkütlesi büyük olan tanenin kütlesi de büyüktür; böyle bir tane suyun akışıyla daha zor sürüklenir ve tavanın dibinde kalır. Granatın özkütlesi kuvarsınkinden büyük olduğundan su granat tanelerini kuvars tanelerinden daha zor taşır.`,
+        r`Elenmemiş kumda tanelerin büyüklükleri çok farklı olabilir. Kütle hem özkütleye hem hacme bağlıdır: Hacmi yeterince büyük bir kuvars tanesi küçük bir altın tanesinden daha ağır olabilir ve onunla birlikte dipte kalabilir. Eleme bu yüzden yapılır. Altından sonra özkütlesi en büyük olan madde manyetittir; tavanın dibinde altınla birlikte en son manyetit taneleri kalır. Altının özkütlesi kuvarsınkinin 7 katından büyüktür ($7 \times 2,7 = 18,9 < 19,3$); aynı hacimdeki altın tanesinin kütlesi de 7 katından fazladır.`,
+        r`Yanlış olan, elemeyle ilgili ifadedir: Eleme tanelerin büyüklüklerini, yani hacimlerini birbirine yaklaştırır. Özkütle maddeyi tanıtan bir özelliktir; tanenin büyüklüğüyle değişmez. Kuvars tanesi elenince de kuvars, altın tanesi elenince de altın özkütlesinde kalır.`,
+        r`{{S0}} granat ile kuvarsın su tarafından aynı kolaylıkla taşınacağını sanır; granatın özkütlesi kuvarsınkinden büyüktür, aynı büyüklükteki granat tanesi daha ağırdır ve daha zor taşınır. {{S1}} altın tanesinin her durumda kuvars tanesinden ağır olduğunu sanır; kütle hacme de bağlıdır, iri bir kuvars tanesi küçük bir altın tanesinden ağır olabilir. {{S3}} tablodaki sıralamayı okumaz; altından sonra özkütlesi en büyük olan madde manyetittir. {{S4}} özkütle oranını kütle oranına taşımaz; aynı hacimde kütleler özkütlelerle orantılıdır.`
+      ]
+    },
+    {
+      id: 'YD43_2', konu: 'Y.3.1', yks: true, zorluk: 2, cikti: '9.3.1.6', beceri: 'Bir gözlemi farklı referanslara göre olası hareketlerle açıklama',
+      tahmin: { gerekce: r`9.3.1.6 (hareketin farklı referans noktalarına göre açıklanması) 2018–2026 TYT'lerinde ana kazanım olarak hiç sorulmadı. İstasyonda yan raydaki trenin kaydığını görüp hangi trenin hareket ettiğini kestirememek herkesin yaşadığı bir gözlemdir; "olabilir" kökü, tek bir gözlemin birden çok harekete uyabileceğini hesapsız yoklar.` },
+      metin: r`Bir istasyonda paralel raylarda iki tren yan yana durmaktadır. Trenlerden birinde oturan Mert, pencereden yalnız yandaki treni görebiliyor; kendi treninde hiçbir sarsıntı hissetmiyor. Bir süre sonra Mert, yandaki trenin kendisine göre şekildeki gibi batıya doğru sabit hızla kaydığını görüyor.
+
+{{sekil}}
+
+Bu sırada trenlerin yere göre hareketiyle ilgili,
+
+I. Mert'in treni duruyor, yandaki tren batıya gidiyor.
+II. İki tren de batıya gidiyor; Mert'in treninin sürati yandaki trenin süratinden büyüktür.
+III. İki tren de doğuya gidiyor; Mert'in treninin sürati yandaki trenin süratinden büyüktür.
+
+durumlarından hangileri olabilir?`,
+      sekil: 'YD43_tren',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Mert yalnız yandaki treni gördüğü için gözlemi, yandaki trenin **Mert'in trenine göre** hareketidir: Yandaki tren, Mert'in treninden bakılınca batıya doğru gitmektedir. Bu, yere göre "yandaki tren, Mert'in treninden daha çok batıya ya da daha az doğuya gidiyor" demektir.`,
+        r`I. Mert'in treni duruyorsa yandaki trenin Mert'e göre hareketi, yere göre hareketiyle aynıdır: batıya. **Olabilir.**`,
+        r`II. İki tren de batıya gidiyor ve Mert'in treni daha hızlıysa Mert, yandaki treni geride kalıyor, yani kendisine göre doğuya kayıyor görür. **Olamaz.**`,
+        r`III. İki tren de doğuya gidiyor ve Mert'in treni daha hızlıysa yandaki tren geride kalır; Mert onu kendisine göre batıya kayıyor görür. Mert'in treni doğuya gidiyorken bile yandaki tren ona batıya gidiyormuş gibi görünebilir. **Olabilir.**`,
+        r`{{S0}} Mert'in gördüğü hareketin yere göre hareket olduğunu sanır ve kendi treni hareket ediyorken de aynı görüntünün oluşabileceğini atlar. {{S1}} iki tren aynı yöne giderken daha hızlı olanın öbürünü kendi hareketiyle aynı yönde kayıyor göreceğini sanır; oysa yavaş olan tren ona göre geriye kayar. {{S3}} Mert'in treninin durmakta olabileceğini atlar ve aynı yöne giden iki trende yavaş trenin, hızlı trenden bakınca da aynı yöne kayıyor görüneceğini sanır. {{S4}} Mert'in treni batıya daha hızlı giderken yandaki trenin ona göre doğuya kaydığını görmez.`
+      ]
+    },
+    {
+      id: 'YD43_3', konu: 'Y.8.3', yks: true, zorluk: 3, cikti: '10.2.2.2', beceri: 'Kaldırma kuvvetiyle günlük bir soruna çözüm önerilerini değerlendirme',
+      tahmin: { gerekce: r`10.2.2.2 (günlük hayattaki problemlere kaldırma kuvvetiyle çözüm önerme) TYT'de hiç doğrudan sorulmadı; kaldırma soruları hep yüzme-batma ve özkütle karşılaştırmasında kaldı. Salın sudan yüksekliğini artırma önerileri, "daha ağır olan daha çok batar ama yine de daha yüksekte kalabilir" düşüncesiyle hesapsız ama zor bir kavram zinciri kurar.` },
+      metin: r`Hasan Usta, tahta kalaslardan yaptığı salla bir gölün karşı kıyısına kiremit taşıyor. Sal yüklüyken salın üst yüzeyi su yüzeyine çok yaklaşıyor ve kiremitler ıslanıyor. Salın kalaslarının özkütlesi suyunkinden küçüktür.
+
+{{sekil}}
+
+Usta, aynı yükü taşırken salın üst yüzeyini su yüzeyinden daha yukarıda tutmak için şu önerileri değerlendiriyor:
+
+I. Salın altına, ağızları sıkıca kapatılmış boş plastik bidonlar bağlamak.
+II. Salı aynı taban alanında, aynı ağaçtan yapılmış ama daha kalın kalaslarla yeniden yapmak.
+III. Salı aynı boyutlarda ama özkütlesi daha büyük bir ağaçtan yapılmış kalaslarla yeniden yapmak.
+
+Bu önerilerden hangileri tek başına uygulandığında amaca ulaşılır?`,
+      sekil: 'YD43_sal',
+      secenekler: [r`Yalnız I`, r`I ve II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
+      dogru: 1,
+      cozum: [
+        r`Yüzen salda kaldırma kuvveti sal, yük ve salın taşıdığı her şeyin toplam ağırlığına eşittir; suyun içinde kalan toplam hacim bu ağırlıkla belirlenir.`,
+        r`I. Kapalı boş bidonlar çok hafiftir ama hacimleri büyüktür. Suyun içindeki bidonlar, ağırlıklarından çok daha büyük bir kaldırma kuvvetinin oluşmasını sağlar; ek ağırlığın taşınması için salın kendisinin batması gerekmez, sal yükselir. **Amaca ulaşılır.**`,
+        r`II. Daha kalın sal daha ağırdır ve suya biraz daha çok batar. Ancak kalaslar sudan hafif olduğu için eklenen her tahta katmanının yalnız bir kısmının batması, o katmanın ağırlığını taşımaya yeter; katmanın geri kalanı salın üst yüzeyini yukarı taşır. Sonuçta salın üst yüzeyi su yüzeyinden daha yukarıda kalır. **Amaca ulaşılır.**`,
+        r`III. Aynı boyutta daha yoğun ağaçtan yapılan sal daha ağırdır ama hacmi aynıdır; kaldırma kuvvetinin artması için daha çok batmak zorundadır ve üst yüzeyi suya daha da yaklaşır. **Amaca ulaşılamaz.**`,
+        r`{{S0}} daha kalın salın daha ağır olduğu için daha çok batacağını görür ama üst yüzeyinin yine de daha yukarıda kalacağını atlar. {{S2}} özkütlesi büyük ağacın salı daha az batıracağını, kalın kalasların ise salı ağırlaştırıp batıracağını sanır; aynı boyutta yoğun ağaçtan yapılan sal daha çok batar, aynı ağaçtan kalın sal ise yalnız bir kısmı batarak üst yüzeyini yükseltir. {{S3}} bidonların kaldırma kuvvetine katkısını görmez ve yoğun ağacın salı güçlendirip yükselteceğini sanır. {{S4}} yoğun ağaçtan yapılan aynı boyuttaki salın daha ağır olduğu için daha çok batacağını görmez.`
+      ]
+    },
+    {
+      id: 'YD43_4', konu: 'Y.5.2', yks: true, zorluk: 2, cikti: '9.5.3.1', beceri: 'Sıcaklık–zaman grafiğinde ısı aktarımının yönünü ve ısıl dengeyi yorumlama',
+      tahmin: { gerekce: r`9.5.3.1 (ısıl denge) ÖSYM'de 2024 ve 2026'da yalnız sözel olarak, yalıtılmış kapta ya da kısa temasta soruldu. Isıtıcıyla sıcaklığı korunan, yalıtılmamış bir ortamda iki sıcaklık eğrisinden ısının yönünü ve dengenin anını okumak, "soğuk aktarılır" ve "en düşük nokta denge anıdır" yanılgılarını birlikte yoklayan, TYT'ye uygun bir grafik sorusudur.` },
+      metin: r`Bir kuluçka makinesinin içindeki hava, bir ısıtıcı ve sıcaklık ayarlayıcısı sayesinde $T_K$ kuluçka sıcaklığında tutulmaktadır. Oda sıcaklığında ($T_O$) bekleyen yumurtalar makineye yerleştirilip kapak $t = 0$ anında kapatılıyor. Makinedeki bir algılayıcı havanın, yumurtalardan birinin içine yerleştirilmiş ince bir algılayıcı ise o yumurtanın sıcaklığını ölçüyor. Ölçümlerden elde edilen sıcaklık–zaman grafikleri şekildedir. Yumurtaların kendilerinin ürettiği ısı önemsizdir.
+
+{{sekil}}
+
+Buna göre aşağıdakilerden hangisi kesinlikle doğrudur?`,
+      sekil: 'YD43_kulucka',
+      secenekler: [
+        r`$0$–$t_1$ aralığında yumurtalar havaya soğuk aktardığı için hava soğur.`,
+        r`$t_1$ anında hava ile yumurtalar ısıl dengededir.`,
+        r`$t_2$ anından sonra hava ile yumurtalar arasında net ısı aktarımı olmaz.`,
+        r`$t_1$–$t_2$ aralığında yumurtalar havaya ısı verir.`,
+        r`$t_2$ anından sonra yumurtaların iç enerjisi havanınkine eşittir.`
+      ],
+      dogru: 2,
+      cozum: [
+        r`Isı, sıcaklığı büyük olandan küçük olana aktarılır. $0$–$t_2$ aralığında havanın sıcaklığı hep yumurtanınkinden büyüktür: Isı havadan yumurtalara aktarılır, yumurtalar ısınır.`,
+        r`$0$–$t_1$ aralığında hava yumurtalara verdiği ısıyı ısıtıcıdan hemen karşılayamadığı için soğur; $t_1$'den sonra ısıtıcı havayı yeniden $T_K$'ye çıkarır.`,
+        r`$t_2$ anından sonra iki eğri $T_K$'de birleşir: Hava ile yumurtalar ısıl dengeye ulaşmıştır. Sıcaklıkları eşit olan maddeler arasında net ısı aktarımı olmaz. **Kesinlikle doğru.**`,
+        r`{{S0}} soğuk maddenin sıcak maddeye "soğuk" aktardığını sanır; aktarılan yalnız ısıdır ve havadan yumurtalara doğrudur. {{S1}} havanın en düşük sıcaklığa indiği anı denge anı sanır; o anda iki sıcaklık hâlâ farklıdır. {{S3}} havanın ısınmaya başladığı aralıkta ısının yön değiştirdiğini sanır; hava hâlâ yumurtalardan sıcaktır. {{S4}} ısıl dengede iç enerjilerin eşitlendiğini sanır; dengede eşitlenen sıcaklıktır, iç enerji madde miktarına da bağlıdır.`
+      ]
+    },
+    {
+      id: 'YD43_5', konu: 'Y.7.1', yks: true, zorluk: 2, cikti: '10.1.2.1', beceri: 'Potansiyel fark–akım grafiğinden direnç bulup seri ve paralel bağlamada akım hesaplama',
+      cikmis: { yil: 2024, no: 5, kalip: 'Potansiyel fark–akım grafiğinden dirençleri bulup farklı bağlamalarda akımı karşılaştırma' },
+      metin: r`Otomobilin aküsüyle çalışan taşınabilir bir ısıtıcıda X ve Y ısıtıcı telleri bulunur. Teller, iç direnci önemsiz $12\ \text{V}$'luk aküye bir kademe düğmesiyle bağlanır: 1. kademede X ve Y seri, 2. kademede yalnız X, 3. kademede X ve Y paralel bağlıdır. X ve Y tellerinin potansiyel fark–akım grafikleri şekildedir.
+
+{{sekil}}
+
+Buna göre 1., 2. ve 3. kademelerde aküden çekilen akımlar sırasıyla kaç amperdir?`,
+      sekil: 'YD43_vi',
+      secenekler: [r`$2$; $6$; $9$`, r`$9$; $3$; $2$`, r`$2$; $3$; $4$`, r`$2$; $3$; $9$`, r`$2$; $3$; $6$`],
+      dogru: 3,
+      cozum: [
+        r`Grafikten dirençler ($R = \dfrac{V}{i}$): $R_X = \dfrac{12}{3} = 4\ \Omega$, $R_Y = \dfrac{12}{6} = 2\ \Omega$.`,
+        r`1. kademe (seri): $R_{eş} = 4 + 2 = 6\ \Omega$, $i_1 = \dfrac{12}{6} = 2\ \text{A}$.`,
+        r`2. kademe (yalnız X): $i_2 = \dfrac{12}{4} = 3\ \text{A}$.`,
+        r`3. kademe (paralel): Her telin uçları arasındaki potansiyel fark $12\ \text{V}$'tur. X'ten $3\ \text{A}$, Y'den $\dfrac{12}{2} = 6\ \text{A}$ geçer; aküden çekilen akım $i_3 = 3 + 6 = 9\ \text{A}$'dir.`,
+        r`{{S0}} X ile Y'nin doğrularını karıştırır ve 2. kademede Y'den geçen akımı yazar. {{S1}} seri ile paralel bağlamayı karıştırır; seri bağlamada eşdeğer direnç büyür, akım küçülür. {{S2}} paralel bağlı iki direncin eşdeğerini dirençlerin ortalaması ($3\ \Omega$) sanır; paralel bağlamada eşdeğer direnç en küçük dirençten de küçüktür. {{S4}} paralel bağlamada akımın yalnız küçük dirençli telden geçtiğini sanır; iki telden de akım geçer.`
+      ]
+    },
+    {
+      id: 'YD43_6', konu: 'Y.10.1', yks: true, zorluk: 1, cikti: '10.4.1.2', beceri: 'Işık şiddeti, ışık akısı ve aydınlanma şiddetini ayırt etme',
+      cikmis: { yil: 2018, no: 6, kalip: 'Işık şiddeti, ışık akısı ve aydınlanma şiddetinden hangisinin uzaklığa bağlı olduğunu ayırt etme (I-II-III)' },
+      metin: r`Bir satranç turnuvasında her masanın tam üstünde tavana asılı, noktasal kabul edilen bir lamba vardır; salonun öteki ışıkları kapalıdır. Hakem, lüksmetrenin algılayıcısını tahtanın ortasındaki yan yana duran bir beyaz ve bir siyah karenin üzerine, yüzü yukarı bakacak biçimde sırayla koyarak ölçüm yapıyor. Oyunculara beyaz kareler siyah karelerden çok daha parlak görünüyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. Lamba daha yukarı çekilirse lambanın ışık şiddeti azalır.
+II. Lüksmetre, beyaz ve siyah karenin üzerinde yaklaşık aynı değeri gösterir.
+III. Lamba daha yukarı çekilirse satranç tahtasına düşen ışık akısı azalır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'YD43_satranc',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`I. Işık şiddeti kaynağın özelliğidir; lambanın yeri değişince değişmez. **Yanlış.**`,
+        r`II. Lüksmetre, algılayıcısının yüzeyine birim alan başına düşen ışık akısını, yani aydınlanma şiddetini ölçer. Yan yana duran iki karenin lambaya uzaklığı ve ışığın geliş açısı yaklaşık aynıdır; iki karenin üzerinde aydınlanma şiddeti aynıdır. Beyaz karenin daha parlak görünmesi, üzerine düşen ışığın daha büyük kısmını yansıtmasındandır; bu, aydınlanma şiddetini değiştirmez. **Doğru.**`,
+        r`III. Lamba uzaklaştıkça lambadan çıkan ışığın daha küçük bir kısmı tahtaya ulaşır; tahtaya düşen ışık akısı ve tahtanın aydınlanma şiddeti azalır. Lambanın kendi ışık şiddeti ise değişmez. **Doğru.**`,
+        r`{{S0}} ışık şiddetinin uzaklıkla azaldığını sanır ve öteki iki doğru yargıyı atlar. {{S1}} lambanın uzaklaşmasıyla tahtaya düşen akının azaldığını görmez. {{S2}} ışık şiddetini aydınlanma şiddetiyle karıştırır ve tahtaya düşen akının azaldığını görmez. {{S3}} ışık şiddetinin uzaklıkla azaldığını sanır ve siyah karenin daha az aydınlandığını düşünür; aydınlanma şiddeti yüzeyin rengine bağlı değildir.`
+      ]
+    },
+    {
+      id: 'YD43_7', konu: 'Y.10.4', yks: true, zorluk: 3, cikti: '10.4.6.2', beceri: 'Tam yansıma koşulunu bir teknolojik uygulamada farklı ortamlar için uygulama',
+      tahmin: { gerekce: r`Tam yansıma (10.4.6.2) TYT'de yalnız 2018'de kırıcılık sıralaması üzerinden soruldu. Program tam yansımanın teknolojideki kullanımını ister; optik parmak izi okuyucusu, ışığın cam–hava sınırında tam yansıyıp deriye ve suya geçmesini hesapsız ama üç adımlı bir akıl yürütmeyle sınar.` },
+      metin: r`Bazı optik parmak izi okuyucularında, kesiti dik ikizkenar üçgen olan bir cam prizma bulunur. Bir LED'den çıkan ışık prizmanın yan yüzünden dik girip parmağın konduğu üst yüzeye gelir. Üst yüzeyden yansıyan ışık, öbür yan yüzden dik çıkıp bir kameraya ulaşır. Işığın üst yüzeye gelme açısı cam–hava sınır açısından büyük, cam–su sınır açısından küçüktür. Derinin kırıcılık indisi camınkine çok yakındır.
+
+{{sekil}}
+
+Parmak üst yüzeye bastırıldığında parmak izindeki çıkıntıların (sırtların) cama değdiği yerler ile aralarındaki oyukların karşısına gelen yerler kamera görüntüsünde nasıl görünür? Parmak ıslakken oyuklar suyla dolarsa oyukların karşısına gelen yerler nasıl görünür?`,
+      sekil: 'YD43_parmak',
+      secenekler: [
+        r`Sırtlar: aydınlık; kuru oyuklar: karanlık; ıslak oyuklar: karanlık`,
+        r`Sırtlar: karanlık; kuru oyuklar: aydınlık; ıslak oyuklar: aydınlık`,
+        r`Sırtlar: karanlık; kuru oyuklar: aydınlık; ıslak oyuklar: karanlık`,
+        r`Sırtlar: aydınlık; kuru oyuklar: karanlık; ıslak oyuklar: aydınlık`,
+        r`Sırtlar: karanlık; kuru oyuklar: karanlık; ıslak oyuklar: aydınlık`
+      ],
+      dogru: 2,
+      cozum: [
+        r`Işık çok kırıcı ortamdan az kırıcı ortama geçerken gelme açısı sınır açısından büyükse tam yansımaya uğrar ve ikinci ortama hiç geçmez; sınır açısından küçükse bir kısmı kırılarak ikinci ortama geçer.`,
+        r`Kuru oyukların karşısında camın üstünde hava vardır. Gelme açısı cam–hava sınır açısından büyük olduğundan ışık tam yansır ve kameraya ulaşır: **aydınlık.**`,
+        r`Sırtların değdiği yerde camın üstünde deri vardır. Derinin kırıcılık indisi camınkine çok yakın olduğundan bu sınırda tam yansıma olmaz; ışık deriye geçer ve kameraya çok az ışık ulaşır: **karanlık.**`,
+        r`Islak oyukların karşısında camın üstünde su vardır. Gelme açısı cam–su sınır açısından küçük olduğundan ışık tam yansımaya uğramaz, suya geçer: **karanlık.** Bu yüzden çok ıslak parmakla alınan görüntüde sırtlar ile oyuklar ayırt edilemez.`,
+        r`{{S0}} sırtların ışığı yansıtıp aydınlık, oyukların karanlık göründüğünü sanır; ışık sırtların değdiği yerde deriye geçer. {{S1}} suyun da hava gibi tam yansımaya yol açacağını sanır; camla su arasındaki kırıcılık farkı küçük olduğundan sınır açısı büyüktür ve ışık suya geçer. {{S3}} sırtlarla kuru oyukların görünüşünü ters kurar ve suyun tam yansıma oluşturduğunu sanır. {{S4}} kuru oyuklardaki havanın ışığı geçirdiğini, suyun ise ışığı tam yansıttığını sanır; gelme açısı cam–hava sınır açısından büyük olduğundan ışık havaya geçemez, cam–su sınır açısından küçük olduğundan suya geçer.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim YKS 2027 TYT · YU1 (1. Tarama: Fizik Bilimine Giriş, Madde, Hareket ve Kuvvet)
    14 soru, 20 dakika; yalnız Y.1–Y.3. Dağılım ÖSYM 2018–2026 TYT ağırlığıyla (Y.1.1: 2, Y.2.1: 4, Y.2.2: 1,
    Y.3.1: 5, Y.3.2: 4, Y.3.3: 1; toplam 17): Y.1.1 ×2, Y.2.1 ×3, Y.2.2 ×1, Y.3.1 ×4, Y.3.2 ×3, Y.3.3 ×1.
@@ -77358,7 +77745,23 @@ ${YN ? oz('🧭', 'Hata profilin', 'Yanlış bir şık seçince o yanlışın ha
 ${sinifSeviye(secSinif()) > 0 && oz('💬', 'Anlamadığın yeri bana yaz', 'Konu notunun altındaki “Anlamadım, yaz” ve sorulardaki “Bu soruyu anlamadım” düğmeleriyle bana yazabilirsin. Hepsini okuyorum; en çok istenen yerlere video ve yeni anlatım ekliyorum.') || ''}
 <div class="yk-alt">${YN ? '<a class="btn yesil ince" href="#/ilerleme">Hata profilime git</a>' : ''}<button type="button" class="btn cizgi ince" data-yeni-kapat="yeni3">Anladım</button></div></section>`;
 }
+// Konu oyunları (11 Kasım 2026): sitedeki ücretsiz oyun, ilgili konunun notunda bağlantı olarak durur; ana ekranda bir kez "Yeni oyun eklendi" kartı çıkar.
+// Kapatılınca K.ayar[OYUN.x.kapat]. Yeni oyun eklerken buraya satır ekle.
+const OYUNLAR = { '11.1.1': { ad: 'Düşüş Görevi', url: '../dusus-gorevi.html', sinif: 11, kapat: 'oyun1', ozet: 'Serbest düşmede önce tahmin et, sonra izle: düşme süresi, çarpma hızı ve dronla kamyonet kasasına paket bırakma. Beş görev, beş yıldız.' } };
+function oyunKart(sn) {
+  if (TYT) return '';
+  const e = Object.entries(OYUNLAR).find(([id, o]) => o.sinif === sn && BANK[id] && !K.ayar[o.kapat]); if (!e) return '';
+  const [id, o] = e;
+  return `<section class="yeni-kart" aria-label="Yeni oyun"><div class="yk-ust"><span class="yk-rozet">Yeni</span><b>Yeni oyun eklendi: ${esc(o.ad)}</b><button type="button" class="yk-kapat" data-yeni-kapat="${o.kapat}" aria-label="Kapat">✕</button></div>
+<div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">🎯</span><div><b>${esc(BANK[id].ad)} konusunun oyunu</b><p>${esc(o.ozet)} Oyun, konunun notunun başında da duruyor.</p></div></div>
+<div class="yk-alt"><a class="btn yesil ince" href="${o.url}" target="_blank" rel="noopener">Oyunu aç</a><button type="button" class="btn cizgi ince" data-yeni-kapat="${o.kapat}">Anladım</button></div></section>`;
+}
+function oyunBag(konu) {
+  const o = OYUNLAR[konu.id]; if (!o) return '';
+  return `<a class="sf-bag" href="${o.url}" target="_blank" rel="noopener"><span class="sf-bag-ik" aria-hidden="true">🎯</span><span>Bu konunun oyunu: ${esc(o.ad)} <span class="yk-rozet ay-rozet">Yeni</span><small>Önce tahmin et, sonra izle. Beş görev, beş yıldız.</small></span></a>`;
+}
 function yeniKart() {
+  const k4 = yeniKart4(); if (k4) return k4;
   const k3 = yeniKart3(); if (k3) return k3;
   const k2 = yeniKart2(); if (k2) return k2;
   if (!YN || K.ayar.yeni1) return '';
@@ -77412,6 +77815,7 @@ function anaEkran() {
     <div class="hero-istat"><div><b>${K.xp}</b><span>XP</span></div><div><b>${seri()}</b><span>günlük seri</span></div><div><b>${cozulen()}</b><span>çözülen soru</span></div><div><b>${genelUnvan()}</b><span>unvan</span></div></div></section>`;
   if (son) { const sk = BANK[son.id]; h += `<a class="devam" href="#/soru/${son.id}/${son.idx}"><div><small>Kaldığın yerden devam et</small><b>${esc(sk.ad)}, ${son.idx + 1}. soru</b></div><span class="ok">→</span></a>`; }
   if (AYLIK) h += aylikAnaKart(sn);
+  h += oyunKart(sn);
   h += yeniKart();
   h += anketKart(sn);
   h += kilitBant(`Ücretsiz sürüm: her konuda 4 soru açık. ${SA(sn)} lisansınla bütün sorular ve çözümler açılır.`, sn);
@@ -77549,7 +77953,7 @@ document.addEventListener('click', e => {
 function notHTML(konu) {
   let j = -1;
   const kv = VID.konu && VID.konu[konu.id];
-  return (konu.baslangic ? `<a class="sf-bag" href="#/konu/${konu.id}/sifir"><span class="sf-bag-ik" aria-hidden="true">↺</span><span>Fizikten çekiniyorsan buradan başla.<small>Kısa adımlar ve adım adım çözülen ısınma soruları.</small></span></a>` : '') + (kv ? videoHTML(kv, 'Timur Hoca anlatıyor', 'Önce videoyu izle, sonra notu oku ve soruları çöz.') : '') + (SIMA ? SIMA.notSimli(konu) : konu.not).map(n => {
+  return oyunBag(konu) + (konu.baslangic ? `<a class="sf-bag" href="#/konu/${konu.id}/sifir"><span class="sf-bag-ik" aria-hidden="true">↺</span><span>Fizikten çekiniyorsan buradan başla.<small>Kısa adımlar ve adım adım çözülen ısınma soruları.</small></span></a>` : '') + (kv ? videoHTML(kv, 'Timur Hoca anlatıyor', 'Önce videoyu izle, sonra notu oku ve soruları çöz.') : '') + (SIMA ? SIMA.notSimli(konu) : konu.not).map(n => {
     if (n.tur === 'anim3b') return anim3bHTML(n);
     if (n.tur === 'sim') return simHTML(n.sim);
     const i = ++j;
@@ -78602,7 +79006,7 @@ function yanlislar() {
   Object.entries(K.q).forEach(([id, r]) => { if (r.d || !qKonu[id]) return; const k = qKonu[id]; (gr[k.id] = gr[k.id] || { k, l: [] }).l.push(id); });
   const g = Object.values(gr);
   if (!g.length) return `<div class="bos"><div class="ik">🎯</div>Henüz yanlışın yok. Soru çözdükçe yanlış yaptıkların burada toplanır.</div>`;
-  return g.map(({ k, l }) => {
+  return (TYT ? '' : foyKart(secSinif(), null, true)) + g.map(({ k, l }) => {
     const liste = sirali(k).map(q => q.id);
     return `<h2 class="baslik2">${esc(k.ad)}<small>${l.length} soru</small></h2><div class="soru-liste">${l.map(id => { const i = liste.indexOf(id), q = qBul(id); return `<a class="sl y" href="#/soru/${k.id}/${i}/tekrar"><span class="no">${i + 1}</span><span class="sl-m"><b>${esc(q.metin.replace(/\{\{[a-z]+\}\}/g, '').replace(/\$[^$]*\$/g, '…').replace(/\*\*/g, '').replace(/\s+/g, ' ').slice(0, 90))}</b><small>${ETK.etkMi(q) ? ETK.TUR_AD[q.tur] + ', tekrar' : 'Tekrar'} çöz, doğru yaparsan yarım XP</small></span><span class="yz">${yildiz(q.zorluk)}</span></a>`; }).join('')}</div>`;
   }).join('');
@@ -78688,7 +79092,7 @@ function hataProfil() {
 <details class="hp-calis" data-hp="${t}"><summary>Bu hatayı çalış</summary><div class="hp-liste"></div></details></div>`;
   });
   h += `<p class="hp-dip">${kalan > 0 ? `Öbür ${kalan} yanlışın başka türlere dağılıyor. ` : ''}Profil, yanlış seçtiğin şıkkın çözümdeki açıklamasına göre hesaplanır; soru çözdükçe güncellenir.</p></div>`;
-  return h;
+  return h + (TYT ? '' : foyKart(sn, L));
 }
 function hpListeDoldur(d) {
   const kutu = d.querySelector('.hp-liste'); if (!kutu || kutu.dataset.dolu) return;
@@ -78699,6 +79103,232 @@ function hpListeDoldur(d) {
 }
 document.addEventListener('toggle', e => { const d = e.target; if (d.matches && d.matches('details.hp-calis') && d.open) hpListeDoldur(d); }, true);
 
+
+/* ---------------- Benim Föyüm (11 Kasım 2026) ----------------
+   Öğrencinin kendi yanlışlarından kişisel çalışma föyü (Yapabilirim 9/10/11, lisanslı):
+   kapak (en sık yaptığı 3 hata türü), her tür için kısa hatırlatma, o türde yanlış yaptığı sorular ve aynı türden yeni sorular,
+   her sorunun altında çözüm alanı; sonda cevap anahtarı, eski cevabının neden olmadığı ve adım adım çözümler.
+   Föy tamamen cihazda üretilir, hiçbir veri gönderilmez. Gizli havuz: window.BFY_FOY_HAVUZ = { 11: [soru, …] } (soru.hata: { şıkIndex: tür }). */
+const FOY_HAVUZ = window.BFY_FOY_HAVUZ || {}; // havuz soruları kitap kimlikleriyle çakışmamalı (ör. 'FH11_01'), tur:'cs', cozum dizisi olmalı
+const FOY_CSS = `
+.foy-kart{display:flex;gap:14px;align-items:flex-start;margin:14px 0;padding:16px;border-radius:18px;border:1.5px solid color-mix(in srgb,var(--copper) 45%,var(--ui-line));background:linear-gradient(135deg,color-mix(in srgb,var(--copper) 11%,var(--ui-card)),var(--ui-card))}
+.foy-kart .fk-ik{flex:none;width:46px;height:58px;border-radius:6px 12px 12px 6px;background:#fff;border:1.5px solid color-mix(in srgb,var(--copper) 55%,#fff);box-shadow:3px 3px 0 color-mix(in srgb,var(--copper) 30%,#fff);display:grid;place-items:center;font-size:22px}
+.foy-kart .fk-m{flex:1;min-width:0}.foy-kart .fk-m b{display:block;font-size:16px;line-height:1.3}
+.foy-kart .fk-m p{margin:4px 0 10px;font-size:14px;color:var(--ui-muted);line-height:1.45}
+.foy-kart .btn{width:auto;display:inline-flex}.foy-kart .kilit-bant{margin:6px 0 0}
+.foy-kart .fk-not{font-size:13px;font-weight:600;color:var(--ink2,var(--ui-muted))}
+#foy{position:fixed;inset:0;z-index:9000;background:#e9e4da;overflow:auto;-webkit-overflow-scrolling:touch}
+#foy .fy-arac{position:sticky;top:0;z-index:2;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px 12px;background:rgba(233,228,218,.94);backdrop-filter:blur(8px);border-bottom:1px solid #d8d0c0}
+#foy .fy-arac .btn{width:auto;flex:none}
+#foy .fy-kagit{max-width:800px;margin:16px auto 40px;background:#fff;color:#14202a;box-shadow:0 6px 30px rgba(0,0,0,.12);border-radius:6px;padding:34px 38px;font-size:15px;line-height:1.5}
+@media (max-width:600px){#foy .fy-kagit{margin:0;border-radius:0;padding:22px 16px}}
+#foy h1,#foy h2,#foy h3{color:#14202a;margin:0}
+.fy-kapak .fy-marka{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#b0603a}
+.fy-kapak h1{font-size:40px;line-height:1.05;margin:8px 0 6px;letter-spacing:-.02em}
+.fy-kapak .fy-alt{margin:0 0 18px;color:#4a5a66;font-size:16px}
+.fy-bilgi{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;border:1.5px solid #14202a;border-radius:10px;overflow:hidden;margin-bottom:22px}
+.fy-bilgi>div{padding:8px 11px;border-left:1.5px solid #14202a}.fy-bilgi>div:first-child{border-left:0}
+.fy-bilgi small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#6a7882}
+.fy-bilgi b{display:block;font-size:17px;min-height:24px}
+@media (max-width:600px){.fy-bilgi{grid-template-columns:1fr 1fr}.fy-bilgi>div:nth-child(3){border-left:0}.fy-bilgi>div:nth-child(n+3){border-top:1.5px solid #14202a}}
+.fy-kh{font-size:19px!important;margin:0 0 10px!important}
+.fy-tur{display:grid;grid-template-columns:34px 1fr;gap:4px 12px;padding:12px 0;border-top:1px solid #e3e8ec}
+.fy-tur .fy-tn{grid-row:span 3;width:34px;height:34px;border-radius:50%;background:#14202a;color:#fff;display:grid;place-items:center;font-weight:800}
+.fy-tur b{font-size:16px}.fy-tur .fy-ks{font-size:12.5px;font-weight:700;color:#b0603a;margin-left:6px}
+.fy-tur p{margin:0;font-size:14px;color:#33424d}.fy-tur p.fy-kc{color:#1d5a3a}
+.fy-nasil{margin-top:16px;background:#f4f7f9;border-radius:10px;padding:12px 14px;font-size:13.5px}
+.fy-nasil ol{margin:6px 0 0;padding-left:20px}.fy-nasil li{margin:2px 0}
+.fy-bolum{margin-top:30px}.fy-bolum.ilk{margin-top:34px}
+.fy-bb{display:flex;align-items:center;gap:12px;border-bottom:2.5px solid #14202a;padding-bottom:8px}
+.fy-bb .fy-tn{flex:none;width:40px;height:40px;border-radius:50%;background:#b0603a;color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+.fy-bb small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6a7882}
+.fy-bb h2{font-size:21px}
+.fy-hat{margin:12px 0 6px;border-left:4px solid #b0603a;background:#fbf4ef;padding:10px 13px;border-radius:0 10px 10px 0;font-size:14px}
+.fy-hat p{margin:0 0 4px}.fy-hat p:last-child{margin:0}
+.fy-soru{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;padding:14px 0 4px;border-top:1px dashed #cfd8de;break-inside:avoid;page-break-inside:avoid}
+.fy-bas+.fy-soru{border-top:0}.fy-bas{break-inside:avoid;page-break-inside:avoid;break-after:avoid;page-break-after:avoid}.fy-soru.uzun{break-inside:auto;page-break-inside:auto}.fy-soru.uzun .fy-sec,.fy-soru.uzun .fy-alan{break-inside:avoid;page-break-inside:avoid}
+.fy-no{width:28px;height:28px;border-radius:8px;border:1.8px solid #14202a;display:grid;place-items:center;font-weight:800;font-size:14px}
+.fy-et{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:2px 8px;margin-bottom:6px;background:#fdeee6;color:#a2502d}
+.fy-et.yeni{background:#e6f3ec;color:#1d6a43}
+.fy-ic .q-metin p{margin:0 0 6px}
+.fy-ic .dj-sekil svg,.fy-ic .q-sekil-ic svg,.fy-ic canvas,.fy-ic img{max-width:100%;height:auto}
+.fy-ic .dj-sekil,.fy-ic .q-sekil-ic{margin:6px 0;text-align:center}.fy-ic .dj-sekil svg,.fy-ic .q-sekil-ic svg{max-height:42mm;width:auto;max-width:100%}
+.fy-ic table{border-collapse:collapse;margin:6px 0;font-size:13.5px}.fy-ic td,.fy-ic th{border:1px solid #b8c4cc;padding:3px 8px}
+.fy-sec{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}
+.fy-sec.tek{grid-template-columns:1fr}
+.fy-sec li{display:flex;gap:6px;align-items:baseline}.fy-sec li>b{flex:none}
+.fy-alan{margin-top:10px;height:28mm;border:1.2px dashed #b8c4cc;border-radius:8px;position:relative;background-image:radial-gradient(#d6dde2 .8px,transparent .8px);background-size:5mm 5mm}
+.fy-alan span{position:absolute;top:4px;left:8px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8a979f;background:#fff;padding:0 3px}
+.fy-anahtar{margin-top:30px}
+.fy-anahtar h2{font-size:22px;border-bottom:2.5px solid #14202a;padding-bottom:8px;margin-bottom:12px!important}
+.fy-tablo{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.fy-tablo span{border:1.5px solid #14202a;border-radius:8px;padding:4px 10px;font-weight:700}
+.fy-cz{padding:10px 0;border-top:1px solid #e3e8ec;break-inside:avoid;page-break-inside:avoid;font-size:14px}
+.fy-cz>b{font-size:15px}.fy-cz .fy-eski{margin:4px 0 0;color:#a2502d;font-weight:600}
+.fy-cz ol{margin:6px 0 0;padding-left:20px}.fy-cz li{margin:3px 0}
+.fy-cz .neden{margin-top:6px;background:#fbf4ef;border-radius:8px;padding:8px 11px}
+.fy-cz .neden-bas{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-bottom:3px}
+.fy-cz .ht-et{font-size:11.5px;font-weight:700;color:#a2502d}
+.fy-dip{margin-top:22px;font-size:12px;color:#6a7882;text-align:center}
+#foy .baglam-dj{background:#f4f7f9;border-radius:10px;padding:10px 13px;margin:0 0 8px;font-size:14px}
+#foy .baglam-dj .bg-ust{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#6a7882;margin-bottom:4px}
+#foy .baglam-dj h4{margin:0 0 4px;font-size:15px}#foy .bg-kaynak{font-size:12px;color:#6a7882;margin-top:4px}
+.fy-gov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:start}
+.fy-gov .dj-sekil{margin:0}.fy-gov .dj-sekil svg{width:58mm;max-width:62mm!important;max-height:56mm!important}
+@media (max-width:600px){.fy-gov{grid-template-columns:1fr}}
+@media screen{body.foy-acik{overflow:hidden}}
+@media print{
+  body.foy-acik,html:has(body.foy-acik){height:auto!important;overflow:visible!important;background:#fff!important}
+  body.foy-acik>*:not(#foy){display:none!important}
+  body.foy-acik #foy{position:static;overflow:visible;background:#fff}
+  body.foy-acik #foy .fy-arac{display:none}
+  body.foy-acik #foy .fy-kagit{max-width:none;margin:0;box-shadow:none;border-radius:0;padding:0;font-size:11pt}
+  body.foy-acik #foy .fy-bolum{margin-top:8mm}
+  body.foy-acik #foy .fy-bolum:first-of-type,body.foy-acik #foy .fy-anahtar{break-before:page;page-break-before:always;margin-top:0}
+  body.foy-acik #foy .tb-dar{display:none!important}body.foy-acik #foy .tb-genis{display:block!important}
+  body.foy-acik #foy *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}`;
+if (!TYT) { const st = document.createElement('style'); st.id = 'foyCss'; st.textContent = FOY_CSS; document.head.appendChild(st); }
+
+const foyTurler = L => { const say = {}; L.forEach(x => { say[x.tur] = (say[x.tur] || 0) + 1; }); return { say, ilk: YN.SIRA.filter(t => t !== 'diger' && say[t]).sort((a, b) => say[b] - say[a] || YN.SIRA.indexOf(a) - YN.SIRA.indexOf(b)).slice(0, 3) }; };
+// İlerleme ve Yanlışlarım ekranındaki kart. bosGizle: bu sınıfta hiç yanlış yoksa kart çıkmaz (Yanlışlarım bütün sınıfları listeler).
+function foyKart(sn, L, bosGizle) {
+  if (TYT || !YN) return '';
+  L = L || hpYanlislar(sn);
+  if (bosGizle && !L.length) return '';
+  const ust = `<div class="foy-kart"><span class="fk-ik" aria-hidden="true">📄</span><div class="fk-m"><b>Benim Föyüm${gorunurSiniflar().length > 1 ? ` · ${esc(SA(sn))}` : ''}</b><p>Kendi yanlışlarından sana özel çalışma föyü: en sık yaptığın 3 hata türü, her biri için kısa hatırlatma, yanlış yaptığın sorular ve aynı türden yeni sorular. Sonda cevap anahtarı ve çözümler. Yazdır ya da PDF olarak kaydet.</p>`;
+  if (!sinifSeviye(sn)) return ust + kilitBant(`Benim Föyüm ${SA(sn)} lisansıyla açılır.`, sn) + `</div></div>`;
+  if (L.length < 3) return ust + `<span class="fk-not">Föyün için ${esc(SA(sn))} sorularında en az 3 yanlış cevabın olmalı${L.length ? ` (şu an ${L.length})` : ''}. Soru çözdükçe açılır.</span></div></div>`;
+  if (!foyTurler(L).ilk.length) return ust + `<span class="fk-not">Yanlışların henüz belirli bir hata türünde toplanmıyor. Birkaç soru daha çözünce föyün hazırlanır.</span></div></div>`;
+  return ust + `<button type="button" class="btn yesil ince" data-foy="${sn}">Föyümü hazırla</button></div></div>`;
+}
+// Aynı türde çeldiricisi olan, henüz doğru çözülmemiş kitap soruları: önce öğrencinin bu türde hata yaptığı konular, önce hiç çözülmemişler.
+const foySetK = q => q && q.set ? 'set:' + (q.set.baslik || String(q.set.metin || '').slice(0, 60)) : null;
+function foyYeniBul(t, sn, L, haric, adet) {
+  const onc = {}; L.filter(x => x.tur === t && qKonu[x.id]).forEach(x => { const k = qKonu[x.id].id; onc[k] = (onc[k] || 0) + 1; });
+  const konular = tumKonular().filter(k => k.sinif === sn).map(k => BANK[k.id]).filter(Boolean).sort((a, b) => (onc[b.id] || 0) - (onc[a.id] || 0));
+  const S = [];
+  for (const cozulmus of [false, true]) for (const k of konular) for (const q of sirali(k)) {
+    if (S.length >= adet) return S;
+    const r = K.q[q.id];
+    if (q.tur !== 'cs' || !acik(k, q) || (r && r.d) || !!r !== cozulmus || haric.has(q.id) || haric.has(q.orj) || haric.has(foySetK(q))) continue;
+    if (q.secenekler.some((_, i) => i !== q.dogru && YN.sikTur(QH[q.id] || q, i) === t)) { haric.add(q.id); if (q.set) haric.add(foySetK(q)); S.push({ q, onceki: !!r }); }
+  }
+  return S;
+}
+// Föyün soruları. 1. geçiş: her hata türüne öğrencinin o türde yanlış yaptığı sorular (en çok 2; hâlâ yanlış olanlar ve en yeniler önce).
+// 2. geçiş: bölüm 4 soruya tamamlanır (önce gizli havuz, sonra kitap). Sorusu çıkmayan tür föye girmez.
+function foyVeri(sn) {
+  const L = hpYanlislar(sn), { say, ilk } = foyTurler(L);
+  const haric = new Set(L.map(x => x.id)), kul = new Set();
+  // Havuz sorusu yalnız öğrencinin soru çözdüğü konulardan gelir (henüz işlenmemiş konudan soru çıkmasın)
+  const calisilan = new Set(Object.keys(K.q).map(id => qKonu[id] && qKonu[id].id).filter(Boolean));
+  const B = ilk.map(t => {
+    const aday = L.map((x, i) => ({ ...x, i })).filter(x => x.tur === t).map(x => ({ ...x, h: K.q[x.id] && !K.q[x.id].d ? 1 : 0 })).sort((a, b) => b.h - a.h || b.i - a.i);
+    const yan = [];
+    for (const x of aday) { if (yan.length >= 2) break; const sk = foySetK(QH[x.id]); if (kul.has(x.id) || (sk && kul.has(sk))) continue; kul.add(x.id); if (sk) { kul.add(sk); haric.add(sk); } yan.push({ q: qBul(x.id), s: x.s, eski: true, hala: !!x.h }); }
+    return { t, n: say[t], sorular: yan };
+  });
+  B.forEach(b => {
+    const hedef = 4 - b.sorular.length;
+    const havuz = (FOY_HAVUZ[sn] || []).filter(q => q && q.id && !QH[q.id] && (!q.konu || calisilan.has(q.konu)) && q.tur === 'cs' && Array.isArray(q.cozum) && Array.isArray(q.secenekler) && q.hata && Object.values(q.hata).includes(b.t) && !haric.has(q.id));
+    const yeni = havuz.slice(0, hedef).map(q => { haric.add(q.id); return { q: soruHazirla(q), havuz: true }; });
+    b.sorular = b.sorular.concat(yeni, foyYeniBul(b.t, sn, L, haric, hedef - yeni.length));
+  });
+  return { sn, L, bolumler: B.filter(b => b.sorular.length) };
+}
+function foySoruHTML(q, no, etiket, yeni) {
+  const genis = ['grafikSec', 'grafikler'].includes(q.sekil) || /_genis$/.test(q.sekil || '');
+  const fig = q.sekil ? window.BFY_FIG(q.sekil) : '';
+  const ctx = { tablo: q.tablo ? tabloBaslikli(q.tablo) : '', sekil: q.sekil ? `<div class="q-sekil-ic ${genis ? 'genis' : ''}">${fig}</div>` : '' };
+  const ops = q.sira.map(i => q.secenekler[i]);
+  const kisa = ops.every(o => o.replace(/\$([^$]*)\$/g, (m, x) => 'x'.repeat(Math.max(3, Math.ceil(1.6 * x.replace(/\\[a-zA-Z]+/g, 'x').replace(/[{}_^\s]/g, '').length)))).length <= 22);
+  const yan = q.sekil && !genis && !/\{\{sekil\}\}/.test(q.metin);
+  const metin = `<div class="q-metin">${md(q.metin, ctx)}</div>`;
+  const bag = q.set ? baglamKart(q).replace(/<div class="bg-ust">[^<]*<\/div>/, '<div class="bg-ust">Bağlam metni</div>') : '';
+  return `<div class="fy-soru ${q.set ? 'uzun' : ''}"><div class="fy-no">${no}</div><div class="fy-ic"><span class="fy-et ${yeni ? 'yeni' : ''}">${etiket}</span>${bag}
+${yan ? `<div class="fy-gov">${metin}<div class="dj-sekil">${fig}</div></div>` : metin + (q.sekil && !/\{\{sekil\}\}/.test(q.metin) ? `<div class="dj-sekil genis">${fig}</div>` : '')}
+<ol class="fy-sec ${kisa ? '' : 'tek'}">${ops.map((o, i) => `<li><b>${HARF[i]})</b><span>${inline(o)}</span></li>`).join('')}</ol>
+<div class="fy-alan"><span>Çözüm alanı</span></div></div></div>`;
+}
+const foyBugun = () => new Date();
+const foyTarih = () => foyBugun().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+const foyDosyaTarih = () => { const d = foyBugun(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+function foyHTML(V) {
+  const { sn, L, bolumler } = V; let no = 0; const anahtar = [];
+  const N = bolumler.reduce((a, b) => a + b.sorular.length, 0);
+  let h = `<section class="fy-kapak"><div class="fy-marka">Ben Fizik Yapabilirim · ${esc(SA(sn))}</div><h1>Benim Föyüm</h1><p class="fy-alt">Kendi yanlışlarından sana özel hazırlanmış çalışma föyü</p>
+<div class="fy-bilgi"><div><small>Ad Soyad</small><b></b></div><div><small>Tarih</small><b>${esc(foyTarih())}</b></div><div><small>Yanlış cevap</small><b>${L.length}</b></div><div><small>Soru sayısı</small><b>${N}</b></div></div>
+<h2 class="fy-kh">En sık yaptığın ${bolumler.length === 1 ? 'hata türü' : bolumler.length + ' hata türü'}</h2>
+${bolumler.map((b, i) => { const T = YN.TURLER[b.t]; return `<div class="fy-tur"><span class="fy-tn">${i + 1}</span><div><b>${esc(T.ad)}</b><span class="fy-ks">${b.n} kez</span></div><p>${esc(T.aciklama)}</p><p class="fy-kc"><b>Nasıl kaçınırsın?</b> ${esc(T.kacin)}</p></div>`; }).join('')}
+<div class="fy-nasil"><b>Bu föyle nasıl çalışırsın?</b><ol><li>Her bölümün başındaki hatırlatmayı oku.</li><li>Soruları çözüm alanında, cevap anahtarına bakmadan çöz.</li><li>Cevaplarını sondaki anahtardan kontrol et. Yanlış yaptığın sorunun çözümünü oku, sonra benzer bir soruyu uygulamada çöz.</li></ol></div></section>`;
+  bolumler.forEach((b, i) => {
+    const T = YN.TURLER[b.t];
+    h += `<section class="fy-bolum ${i ? '' : 'ilk'}"><div class="fy-bas"><div class="fy-bb"><span class="fy-tn">${i + 1}</span><div><small>Hata türü ${i + 1}</small><h2>${esc(T.ad)}</h2></div></div>
+<div class="fy-hat"><p>${esc(T.aciklama)}</p><p><b>Nasıl kaçınırsın?</b> ${esc(T.kacin)}</p></div></div>`;
+    b.sorular.forEach(x => {
+      no++;
+      const et = x.eski ? (x.hala ? 'Yanlış yaptığın soru' : 'Daha önce yanlış yaptığın soru') : x.onceki ? 'Daha önce takıldığın soru' : 'Yeni soru';
+      h += foySoruHTML(x.q, no, et, !x.eski && !x.onceki);
+      anahtar.push({ no, t: b.t, ...x });
+    });
+    h += `</section>`;
+  });
+  h += `<section class="fy-anahtar"><h2>Cevap anahtarı ve çözümler</h2><div class="fy-tablo">${anahtar.map(x => `<span>${x.no}. ${HARF[x.q.sira.indexOf(x.q.dogru)]}</span>`).join('')}</div>`;
+  anahtar.forEach(x => {
+    const q = x.q, T = YN.TURLER[x.t];
+    const neden = x.eski ? nedenHTML(q, x.s).replace(/(<span class="ht-et"[^>]*>)[^<]*/, `$1Hata türü: ${esc(T.ad)}`) : '';
+    h += `<div class="fy-cz"><b>${x.no}. soru · Cevap: ${HARF[q.sira.indexOf(q.dogru)]}</b>${x.eski ? `<p class="fy-eski">Uygulamada bu soruda ${HARF[q.sira.indexOf(x.s)]} şıkkını işaretlemiştin.</p>` : ''}
+${neden}<ol>${q.cozum.map(c => `<li>${mdAdim(harfle(q, c))}</li>`).join('')}</ol></div>`;
+  });
+  h += `<p class="fy-dip">Benim Föyüm · ${esc(SA(sn))} · ${esc(foyTarih())} · Bu föy senin cihazında hazırlandı; yanlışların hiçbir yere gönderilmedi. Ben Fizik Yapabilirim, Timur Hoca</p></section>`;
+  return h;
+}
+let foyEskiBaslik = '', foyGecmis = false, foyDon = null, foyPage = null;
+function foyAc(sn, kaynak) {
+  if (TYT || !YN || !sinifSeviye(sn)) return;
+  const V = foyVeri(sn); if (!V.bolumler.length) return;
+  foyKapat();
+  const d = document.createElement('div'); d.id = 'foy'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-label', 'Benim Föyüm');
+  d.innerHTML = `<div class="fy-arac"><button type="button" class="btn yesil ince" data-foy-yazdir>🖨️ Yazdır / PDF olarak kaydet</button><button type="button" class="btn cizgi ince" data-foy-kapat>Kapat</button></div><div class="fy-kagit">${foyHTML(V)}</div>`;
+  document.body.appendChild(d); document.body.classList.add('foy-acik');
+  // Sayfa kenar boşluğu yalnız föy açıkken (uygulamanın öbür baskılarını etkilemesin)
+  foyPage = document.createElement('style'); foyPage.textContent = '@media print{@page{size:A4;margin:13mm 14mm}}'; document.head.appendChild(foyPage);
+  foyEskiBaslik = document.title; document.title = `Benim_Foyum_${sn}_sinif_${foyDosyaTarih()}`;
+  foyDon = kaynak || null;
+  try { history.pushState({ foy: 1 }, ''); foyGecmis = true; } catch (e) { foyGecmis = false; }
+  const b = d.querySelector('[data-foy-yazdir]'); if (b) b.focus();
+}
+function foyKapat(geriAl) {
+  const d = document.getElementById('foy'); if (!d) return;
+  d.remove(); document.body.classList.remove('foy-acik');
+  if (foyPage) { foyPage.remove(); foyPage = null; }
+  if (foyEskiBaslik) { document.title = foyEskiBaslik; foyEskiBaslik = ''; }
+  if (geriAl && foyGecmis) { foyGecmis = false; try { history.back(); } catch (e) { } } else foyGecmis = false;
+  if (foyDon && document.contains(foyDon)) { try { foyDon.focus(); } catch (e) { } } foyDon = null;
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-foy]'); if (a) { foyAc(+a.dataset.foy, a); return; }
+  if (e.target.closest('[data-foy-kapat]')) { foyKapat(true); return; }
+  if (e.target.closest('[data-foy-yazdir]')) { window.print(); }
+});
+document.addEventListener('keydown', e => {
+  const d = document.getElementById('foy'); if (!d) return;
+  if (e.key === 'Escape') { foyKapat(true); return; }
+  if (e.key === 'Tab') { const f = [...d.querySelectorAll('button,a[href]')]; if (!f.length) return; const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } }
+});
+window.addEventListener('popstate', () => { if (document.getElementById('foy')) { foyGecmis = false; foyKapat(false); } });
+window.addEventListener('hashchange', () => { if (document.getElementById('foy')) foyKapat(false); });
+// Ana ekranda bir kez "Yeni: Benim Föyüm" kartı. Kapatılınca K.ayar.yeni4.
+function yeniKart4() {
+  if (TYT || !YN || K.ayar.yeni4) return '';
+  const sn = secSinif();
+  const lis = sinifSeviye(sn) > 0, L = lis ? hpYanlislar(sn) : [], hazir = lis && L.length >= 3 && foyTurler(L).ilk.length > 0;
+  return `<section class="yeni-kart" aria-label="Yenilikler"><div class="yk-ust"><span class="yk-rozet">Yeni</span><b>Benim Föyüm: Kitabın sana özel bir föy hazırlıyor</b><button type="button" class="yk-kapat" data-yeni-kapat="yeni4" aria-label="Kapat">✕</button></div>
+<div class="yk-ozellik"><span class="yk-ik" aria-hidden="true">📄</span><div><b>Kendi yanlışlarından çalışma föyü</b><p>Kitap yanlışlarını hata türlerine ayırır. En sık yaptığın 3 hata türü için kısa bir hatırlatma, yanlış yaptığın sorular ve aynı türden yeni sorularla sana özel bir föy hazırlar. Sonda cevap anahtarı ve çözümler var. Yazdır ya da PDF olarak kaydet.</p></div></div>
+${lis ? '' : kilitBant(`Benim Föyüm ${SA(sn)} lisansıyla açılır.`, sn)}
+<div class="yk-alt">${hazir ? `<button type="button" class="btn yesil ince" data-foy="${sn}">Föyümü hazırla</button>` : lis ? '<a class="btn yesil ince" href="#/ilerleme">Hata profilime git</a>' : ''}<button type="button" class="btn cizgi ince" data-yeni-kapat="yeni4">Anladım</button></div>${lis && !hazir ? '<p class="yk-not" style="margin:8px 0 0;font-size:13px;color:var(--ui-muted)">En az 3 yanlışın olunca föyünü İlerleme ekranından da hazırlayabilirsin.</p>' : ''}</section>`;
+}
 /* ---------------- Kalem (mürekkep) katmanı ---------------- */
 const INK = { aktif: false, arac: 'kalem', renk: '#1c2b36', sadeceKalem: false, gecmis: [] };
 const RENK = ['#1c2b36', '#1d4ed8', '#d9573b'];

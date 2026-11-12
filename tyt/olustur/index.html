@@ -45747,6 +45747,249 @@ window.BFY_TYT_TEST[TEST.id] = TEST;
 </script>
 <script>
 /* ============================================================
+   BFY — Ben Fizik Yapabilirim TYT, TD35 (TYT Fizik Denemesi 35)
+   Şablon: 1. soru T.1/T.2, 2. soru T.2, 3–7. sorular T.3–T.7'den birer. Zorluk 2/3/2 (★/★★/★★★).
+   Gerçek TYT fizik bölümü gibi 7 soru, 10 dakika. Metinler, sayılar ve şekiller özgündür;
+   ÖSYM sorularından yalnızca soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
+   Şekil anahtarları: TD35_ öneki. Soru kimlikleri: TD35_1 … TD35_7.
+   ============================================================ */
+(function () {
+const r = String.raw;
+
+/* ---------- Şekiller (düz 2B) ----------
+   Şekil kütüphanesi yoksa (QA betikleri yalnız metni okur) şekiller atlanır. */
+if (window.BFY_FIGLIB) {
+const { P, T, arrow, svg, dashLine } = window.BFY_FIGLIB;
+const INK = P.ink, f1 = v => (+v).toFixed(1);
+
+// Eksen takımı: düşey eksen okun ucunda adı, yatay eksen adı okun ucunun yanında
+function eksen(o) {
+  const { x0, yB, W, H, xMax, yMax } = o;
+  const sx = t => x0 + t / xMax * W, sy = v => yB - v / yMax * H;
+  const fs = o.fs || 12;
+  let s = '';
+  (o.gridX || []).forEach(t => { s += `<line x1="${f1(sx(t))}" y1="${yB}" x2="${f1(sx(t))}" y2="${f1(yB - H)}" stroke="#dfe6e1" stroke-width="1"/>`; });
+  (o.gridY || []).forEach(v => { s += `<line x1="${x0}" y1="${f1(sy(v))}" x2="${f1(x0 + W)}" y2="${f1(sy(v))}" stroke="#dfe6e1" stroke-width="1"/>`; });
+  const top = yB - H - 14, right = x0 + W + 10;
+  s += `<line x1="${x0}" y1="${yB}" x2="${x0}" y2="${top + 4}" stroke="${INK}" stroke-width="1.5"/><polygon points="${x0},${top - 6} ${x0 - 4},${top + 4} ${x0 + 4},${top + 4}" fill="${INK}"/>`;
+  s += `<line x1="${x0}" y1="${yB}" x2="${right - 2}" y2="${yB}" stroke="${INK}" stroke-width="1.5"/><polygon points="${right + 8},${yB} ${right - 2},${yB - 4} ${right - 2},${yB + 4}" fill="${INK}"/>`;
+  s += T(x0 + 7, top + 2, o.yLabel, { size: fs + 0.5, weight: 800 });
+  s += T(right + 11, yB + 4.5, o.xLabel, { size: fs + 0.5, weight: 800 });
+  (o.xTicks || []).forEach(([t, l]) => { s += `<line x1="${f1(sx(t))}" y1="${yB - 3}" x2="${f1(sx(t))}" y2="${yB + 3}" stroke="${INK}" stroke-width="1.2"/>` + T(sx(t), yB + 16, l, { size: fs, anchor: 'middle', fill: P.ink2 }); });
+  (o.yTicks || []).forEach(([v, l]) => { s += `<line x1="${x0 - 3}" y1="${f1(sy(v))}" x2="${x0 + 3}" y2="${f1(sy(v))}" stroke="${INK}" stroke-width="1.2"/>` + T(x0 - 6, sy(v) + 4.5, l, { size: fs, anchor: 'end', fill: P.ink2 }); });
+  s += T(x0 - 6, yB + 13, '0', { size: fs - 0.5, anchor: 'end', fill: P.ink2 });
+  return { s, sx, sy };
+}
+
+// 2. soru: tünel fırının çıkışı ve bant (üstten görünüş); her sırada 6 ekmek, ardışık sıraların ön kenarları arası 50 cm
+BFY_FIG_EKLE('TD35_firin', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="340" height="196" rx="10" fill="#faf6ef"/>`;
+  const yU = 44, yA = 146; // bandın üst ve alt kenarı
+  // bant
+  s += `<rect x="78" y="${yU}" width="252" height="${yA - yU}" fill="#d3d8db" stroke="#8e979f" stroke-width="1.4"/>`;
+  for (let x = 92; x < 330; x += 18) s += `<line x1="${x}" y1="${yU + 1}" x2="${x}" y2="${yA - 1}" stroke="#c2c8cc" stroke-width="1"/>`;
+  // fırının çıkış ucu
+  s += `<rect x="12" y="${yU - 14}" width="70" height="${yA - yU + 28}" rx="4" fill="#8a6f58" stroke="#5b4636" stroke-width="1.6"/>`;
+  s += `<rect x="70" y="${yU - 4}" width="12" height="${yA - yU + 8}" fill="#3c2f25"/>`;
+  s += T(42, yU - 20, 'tünel fırın', { size: 12, weight: 800, anchor: 'middle' });
+  // ekmek sıraları: ön kenarlar x = 152, 222, 292 (bant sağa gidiyor)
+  const yler = [53, 69, 85, 101, 117, 133];
+  const ekmek = (xOn, y) => `<rect x="${xOn - 26}" y="${y - 6}" width="26" height="12" rx="6" fill="#d89a52" stroke="#9c6428" stroke-width="1.1"/><path d="M ${xOn - 20} ${y} L ${xOn - 6} ${y}" stroke="#f3cf97" stroke-width="1.6" stroke-linecap="round"/>`;
+  [152, 222, 292].forEach(xOn => { yler.forEach(y => { s += ekmek(xOn, y); }); });
+  // 50 cm ölçüsü (ön kenardan ön kenara)
+  const yD = 32;
+  s += dashLine(222, yU - 2, 222, yD - 4, P.ink2, '3 3', 1.1) + dashLine(292, yU - 2, 292, yD - 4, P.ink2, '3 3', 1.1);
+  s += arrow(257, yD, 222, yD, { color: P.ink2, w: 1.3, head: 7, headW: 3.6 }) + arrow(257, yD, 292, yD, { color: P.ink2, w: 1.3, head: 7, headW: 3.6 });
+  s += T(257, yD - 7, '50 cm', { size: 12, weight: 800, anchor: 'middle' });
+  // sayaç (fırının çıkışında, bandın kenarında)
+  s += `<rect x="86" y="${yA + 4}" width="14" height="10" rx="2" fill="#5f6a70"/><circle cx="93" cy="${yA + 9}" r="2.4" fill="#e04b3c"/>`;
+  s += T(106, yA + 14, 'sayaç', { size: 11.5, weight: 700, fill: P.ink2 });
+  // hareket yönü
+  s += arrow(256, yA + 16, 318, yA + 16, { color: P.blue, w: 2.2, head: 9, headW: 4.6 }) + T(250, yA + 20, 'hareket yönü', { size: 11, weight: 700, fill: P.ink2, anchor: 'end' });
+  s += T(330, 190, '(Üstten görünüş)', { size: 10.5, weight: 600, fill: P.ink2, anchor: 'end' });
+  return svg(340, 196, s, u, 74);
+});
+
+// 3. soru: güneş bacası santralinin bir yaz gününde ürettiği elektrik gücü
+BFY_FIG_EKLE('TD35_baca', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="320" height="222" rx="10" fill="#f8f7f2"/>`;
+  const G = eksen({ x0: 48, yB: 188, W: 226, H: 146, xMax: 24, yMax: 55, yLabel: 'P (kW)', xLabel: 'saat',
+    gridX: [3, 6, 9, 12, 15, 18, 21], gridY: [10, 20, 30, 40, 50], xTicks: [[6, '6'], [12, '12'], [18, '18'], [24, '24']], yTicks: [[10, '10'], [20, '20'], [30, '30'], [40, '40'], [50, '50']] });
+  s += G.s;
+  // gün doğumu ve gün batımı
+  s += dashLine(f1(G.sx(6)), 188, f1(G.sx(6)), 60, '#b08a3a', '4 3', 1.2) + dashLine(f1(G.sx(19)), 188, f1(G.sx(19)), 60, '#b08a3a', '4 3', 1.2);
+  s += T(G.sx(6), 54, 'gün doğumu', { size: 10.5, weight: 700, anchor: 'middle', fill: '#8a6a24' });
+  s += T(G.sx(19), 54, 'gün batımı', { size: 10.5, weight: 700, anchor: 'middle', fill: '#8a6a24' });
+  const pts = [[0, 10], [2, 8.5], [4, 7.2], [6, 6.5], [7, 8], [8, 13], [9, 20], [10, 28], [11, 37], [12, 44], [13, 47], [14, 46], [15, 42], [16, 36], [17, 29], [18, 22], [19, 17.5], [20, 15], [21, 13.5], [22, 12], [23, 11], [24, 10]];
+  s += `<polyline points="${pts.map(([t, v]) => f1(G.sx(t)) + ',' + f1(G.sy(v))).join(' ')}" fill="none" stroke="#c25b2a" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round"/>`;
+  return svg(320, 222, s, u, 72);
+});
+
+// 6. soru: K, L, M tellerinin V-I grafikleri; program eksenleri kendiliğinden ölçeklemiş (doğrular aynı görünüyor)
+BFY_FIG_EKLE('TD35_vi_genis', function (u) {
+  let s = `<rect class="bg" x="0" y="0" width="560" height="196" rx="10" fill="#f6f9f7"/>`;
+  const panel = (px, ad, iMax, vMax, iT, vT, renk) => {
+    const G = eksen({ x0: px + 40, yB: 158, W: 90, H: 104, xMax: iMax, yMax: vMax, yLabel: 'V (V)', xLabel: 'I (mA)', fs: 11.5,
+      gridX: iT, gridY: vT, xTicks: iT.map(t => [t, String(t)]), yTicks: vT.map(v => [v, String(v)]) });
+    let a = G.s;
+    a += `<line x1="${f1(G.sx(0))}" y1="${f1(G.sy(0))}" x2="${f1(G.sx(iMax))}" y2="${f1(G.sy(vMax))}" stroke="${renk}" stroke-width="2.6" stroke-linecap="round"/>`;
+    [1, 2, 3].forEach(k => { a += `<circle cx="${f1(G.sx(iMax * k / 3))}" cy="${f1(G.sy(vMax * k / 3))}" r="3.4" fill="#fff" stroke="${renk}" stroke-width="1.8"/>`; });
+    a += T(px + 85, 188, ad, { size: 13, weight: 800, anchor: 'middle' });
+    return a;
+  };
+  s += panel(2, 'K teli', 600, 12, [200, 400, 600], [4, 8, 12], '#2f7fb8');
+  s += panel(184, 'L teli', 300, 12, [100, 200, 300], [4, 8, 12], '#3f8a67');
+  s += panel(366, 'M teli', 600, 6, [200, 400, 600], [2, 4, 6], '#c25b2a');
+  return svg(560, 196, s, u, 150);
+});
+}
+
+/* ---------- Deneme ---------- */
+const TEST = {
+  id: 'TD35', ad: 'TYT Fizik Denemesi 35', tur: 'deneme', sure: 600,
+  aciklama: 'Yağlı güreşte etkili temel kuvvetler, ekmek fabrikasında tünel fırının bandı, güneş bacası santralinin günlük üretimi, kuvözde ısı aktarımı, bisiklet lastiğinin basınç göstergesi, eksenleri farklı ölçeklenmiş V-I grafikleri ve buzul istasyonunda ses ile ışığın sürati.',
+  baglamlar: ['yağlı güreşte kispeti kavrayan pehlivan: temas kuvvetinin elektromanyetik kökeni, değmeden önce aralarında kuvvet olmadığı yanılgısı (kütle çekimi), yere çeken kütle çekimi (I-II-III)',
+    'ekmek fabrikasında sandviç ekmekleri ve tünel fırın bandı: her sırada 6 ekmek, sıraların ön kenarları arası 50 cm, sayaç dakikada 48 ekmek, fırında 10 dakika; bant sürati 4 m/dk, fırın 40 m (sayısal)',
+    'çölde deneme amaçlı güneş bacası santrali: saydam çatı (kolektör), yükselen sıcak hava, bacanın tabanındaki türbin; yaz günü P-saat grafiği, tepe 47 kW, gece azalarak süren üretim (tek seçim)',
+    'hastanede kuvöz: çift cidarlı saydam kap ve aradaki hava katmanı, fanla dolaşan ısıtılmış hava, iç duvar havadan soğuk; hava cilt sıcaklığındayken ışımayla kayıp (kesinlikle)',
+    'bisikletçi Berk\'in pompa göstergesi (lastik basıncı ile açık hava basıncı farkı): başka yerde daha büyük değer; yükseklik ve lastikteki havanın sıcaklığı olası nedenler (olabilir)',
+    'fizik laboratuvarında K, L, M tellerinin V-I grafikleri, program eksenleri kendiliğinden ölçeklemiş: K 12 V/600 mA, L 12 V/300 mA, M 6 V/600 mA; 6 V üreteçte akım sıralaması I_M > I_K > I_L',
+    'kutup araştırma istasyonu: buzul buzu, eriyen sudan göl ve hava; sesin ve ışığın en hızlı yayıldığı ortam (iki sütun)'],
+  sorular: [
+    {
+      id: 'TD35_1', konu: 'T.2.1', yks: true, zorluk: 1, cikti: 'FİZ.9.2.5', beceri: 'Günlük bir olaydaki kuvvetleri temel kuvvetlerle ilişkilendirme', cikmis: { yil: 2018, kalip: 'Olaylarda etkili temel kuvvetler ve özellikleri (I-II-III)' },
+      metin: r`Yağlı güreşte pehlivanlar, müsabakadan önce bedenlerine ve kispet adı verilen deri giysilerine zeytinyağı sürer; bu yüzden rakibi kavramak zorlaşır. Güreş sırasında bir pehlivan, rakibinin kispetini elleriyle kavrayıp onu yerden kaldırıyor ve sırtını yere getirmeye çalışıyor.
+
+Buna göre,
+
+I. Pehlivanın rakibinin kispetini kavrayan ellerinin uyguladığı kuvvet temas yoluyla etki etse de bu kuvvetin kökeni elektromanyetik kuvvettir.
+II. İki pehlivan birbirine değmeden önce aralarında hiçbir temel kuvvet etki etmez.
+III. Yerden kaldırılan pehlivanı yere doğru çeken kuvvet, Dünya ile pehlivan arasındaki kütle çekim kuvvetidir.
+
+yargılarından hangileri doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız III`, r`I ve II`, r`I ve III`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`I. Temas yoluyla etki eden itme, çekme ve tutma kuvvetleri, birbirine değen iki yüzeydeki atom ve moleküllerin birbirine uyguladığı elektriksel kuvvetlerden doğar. Bu kuvvetlerin kökeni elektromanyetik kuvvettir. **Doğru.**`,
+        r`II. Kütle çekim kuvvetinin etki uzaklığı sonsuzdur; kütlesi olan iki cisim, aralarında uzaklık olsa da birbirini çeker. İki pehlivan arasındaki kütle çekim kuvveti hissedilemeyecek kadar küçüktür ama sıfır değildir. **Yanlış.**`,
+        r`III. Pehlivanın ağırlığı, Dünya'nın kendi kütlesiyle ona uyguladığı kütle çekim kuvvetidir; pehlivanı yere doğru çeken bu kuvvettir. **Doğru.**`,
+        r`{{S0}} pehlivanı yere doğru çeken kuvvetin Dünya'nın kütle çekimi olduğunu görmez ve III'ü eler. {{S1}} temas kuvvetlerinin de bir temel kuvvete, elektromanyetik kuvvete dayandığını görmez ve I'i eler. {{S2}} kuvvetin etki etmesi için cisimlerin birbirine değmesi gerektiğini sanır; kütle çekiminin uzaktan etki ettiğini gözden kaçırır ve III'ü de dışarıda bırakır. {{S4}} kütle çekim kuvvetinin etki uzaklığının sonsuz olduğunu gözden kaçırır ve II'yi de doğru sayar.`
+      ]
+    },
+    {
+      id: 'TD35_2', konu: 'T.2.3', yks: true, zorluk: 2, cikti: 'FİZ.10.1.1', beceri: 'Sayım verisinden sabit sürati bulup yol hesaplama',
+      metin: r`Bir ekmek fabrikasında küçük sandviç ekmeklerinin hamurları, uzun bir tünel fırının içinden sabit süratle geçen bir bant üzerinde pişiyor. Bantta ekmekler, her sırada $6$ ekmek bulunan enine sıralar hâlinde dizilidir. Ardışık iki sıranın ön kenarları arasındaki uzaklık $50\ \text{cm}$'dir. Fırının çıkışındaki sayaç, fırından her dakika $48$ ekmek çıktığını gösteriyor. Her ekmek, fırının girişinden çıkışına $10$ dakikada ulaşıyor.
+
+{{sekil}}
+
+Buna göre tünel fırının uzunluğu kaç metredir?`,
+      sekil: 'TD35_firin',
+      secenekler: [r`$4$`, r`$40$`, r`$80$`, r`$240$`, r`$480$`],
+      dogru: 1,
+      cozum: [
+        r`Her sırada $6$ ekmek olduğundan fırından her dakika $\dfrac{48}{6} = 8$ sıra çıkar.`,
+        r`Ardışık iki sıranın ön kenarları arası $50\ \text{cm}$ olduğu için bant bir dakikada $8 \times 50 = 400\ \text{cm} = 4\ \text{m}$ yol alır. Bandın sürati $4\ \text{m/dk}$'dır.`,
+        r`Ekmek, fırının boyunu bu sabit süratle $10$ dakikada geçtiğine göre fırının uzunluğu $x = \vartheta \times t = 4 \times 10 = 40\ \text{m}$'dir.`,
+        r`{{S0}} bandın bir dakikada aldığı yolu ($4\ \text{m}$) bulur ama süreyle çarpmayı unutur. {{S2}} fırında aynı anda bulunan sıra sayısını ($8 \times 10 = 80$) bulur ve sıralar arasındaki uzaklığı hesaba katmaz. {{S3}} her sırada $6$ ekmek olduğunu gözden kaçırıp her ekmeği ayrı bir sıra sayar; bant bir dakikada $48 \times 50\ \text{cm} = 24\ \text{m}$ gider sanır ve $240\ \text{m}$ bulur. {{S4}} fırında aynı anda bulunan ekmek sayısını ($48 \times 10 = 480$) fırının metre cinsinden uzunluğu sanır.`
+      ]
+    },
+    {
+      id: 'TD35_3', konu: 'T.3.3', yks: true, zorluk: 2, cikti: 'FİZ.10.2.5', beceri: 'Bir santralin üretim verisini kaynağın özellikleriyle yorumlama', cikmis: { yil: 2021, kalip: 'Veriden enerji kaynağının özelliklerini yorumlama (tek seçim)' },
+      metin: r`Güneş bacası adı verilen bir santral türünde, yerden birkaç metre yükseklikte, yüzlerce metre genişliğinde saydam bir çatı bulunur. Güneş ışığı bu çatıdan geçerek zemini ısıtır; zemin de çatının altındaki havayı ısıtır. Isınan hava çatının ortasındaki çok yüksek bir bacaya doğru akar, bacanın içinde yükselir ve bacanın tabanındaki türbini döndürür. Türbine bağlı jeneratör elektrik üretir. Çölde kurulan deneme amaçlı bir güneş bacası santralinin açık bir yaz gününde ürettiği elektrik gücünün saate göre değişimi grafikte verilmiştir.
+
+{{sekil}}
+
+Buna göre bu santralle ilgili aşağıdaki yorumlardan hangisi doğrudur?`,
+      sekil: 'TD35_baca',
+      secenekler: ['Gece de üretim yapıldığına göre santralin kullandığı enerjinin kökeni yerin içindeki ısıdır.', 'Türbini döndüren hava akışı, rüzgâr santrallerinde olduğu gibi yalnız rüzgârlı havalarda oluşur.', 'Santralin dayandığı kaynağın kökeni Güneş\'tir ama bu kaynak insan ömrü ölçeğinde yenilenemez.', 'Gün batımından sonra süren üretim, gündüz ısınan zeminin havayı ısıtmayı sürdürmesiyle açıklanabilir.', 'Santralin bir günde ürettiği elektrik enerjisi, gökyüzünün bulutlu olmasından etkilenmez.'],
+      dogru: 3,
+      cozum: [
+        r`Santral, Güneş ışığının zemini ve havayı ısıtmasıyla oluşan hava akışını kullanır: Güneş enerjisi önce zeminin ve havanın iç enerjisine, bacada yükselen havanın hareket enerjisine, türbin ve jeneratörde de elektrik enerjisine dönüşür. Kaynağın kökeni Güneş'tir ve kaynak yenilenebilir.`,
+        r`Grafikte üretim gün doğumundan sonra artıyor, öğleden sonra en büyük değerine ulaşıyor; gün batımından sonra ise sıfıra inmeden, azalarak sürüyor. Gün boyu ısınan zemin, Güneş battıktan sonra da üstündeki havaya ısı vermeyi sürdürür; ısınan hava bacada yükselmeye devam eder. Bu yorum **doğrudur.**`,
+        r`{{S0}} gece süren üretimi yerin iç ısısına bağlar; oysa zeminin geceleyin havaya verdiği enerji, gündüz Güneş'ten aldığı enerjidir ve santral jeotermal bir kaynak kullanmaz. {{S1}} hava akışının rüzgârdan geldiğini sanır; akışı, çatının altında ısınan havanın bacada yükselmesi oluşturur. {{S2}} Güneş'in her gün yeniden ışık gönderdiğini ve bu kaynağın insan ömrü ölçeğinde tükenmediğini gözden kaçırır. {{S4}} bulutların zemine ulaşan Güneş ışığını azalttığını, zeminin ve havanın daha az ısınacağını hesaba katmaz.`
+      ]
+    },
+    {
+      id: 'TD35_4', konu: 'T.4.3', yks: true, zorluk: 3, cikti: 'FİZ.9.4.5', beceri: 'Bir düzenekte ısı aktarım yollarıyla kesin yargıları ayırma', cikmis: { yil: 2023, kalip: 'Bir düzenekteki ısı aktarım yollarıyla ilgili kesin yargılar (I-II-III)' },
+      metin: r`Erken doğan bebekler vücut sıcaklıklarını kendileri koruyamadıkları için kuvözlerde bakılır. Bir hastanedeki kuvözün kabı, aralarında ince bir hava katmanı bulunan iki saydam plastik duvardan (çift cidar) yapılmıştır. Kuvözün tabanındaki ısıtıcının ısıttığı hava, bir fan ile bebeğin çevresinde sürekli dolaştırılır. Hemşire Aylin, kuvözün iç duvarının sıcaklığının, kuvözün içindeki havanın sıcaklığından biraz düşük olduğunu ölçüyor.
+
+Buna göre,
+
+I. Isıtıcıdan alınan enerji bebeğin çevresine, ısınan havanın kendisi yer değiştirerek, yani konveksiyonla taşınır.
+II. İki duvar arasındaki hava katmanı, kuvözün içinden dışarıya duvarlar yoluyla iletimle olan ısı aktarımını yavaşlatır.
+III. Kuvözdeki havanın sıcaklığı bebeğin cilt sıcaklığına eşit tutulursa bebekten çevresine ısı aktarımı tamamen durur.
+
+yargılarından hangileri kesinlikle doğrudur?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`II ve III`, r`I, II ve III`],
+      dogru: 2,
+      cozum: [
+        r`I. Fan, ısıtıcıda ısınan havayı bebeğin çevresine taşır. Isının, akışkanın kendisi yer değiştirerek taşınması konveksiyondur; akışın fanla sağlanması bunu değiştirmez. **Kesinlikle doğru.**`,
+        r`II. Hava ısıyı çok kötü iletir; duvarların yapıldığı plastikten de kötü iletir. İki duvar arasındaki ince hava katmanı, ısının duvarlardan dışarıya iletimle aktarılmasını yavaşlatır, yani yalıtım sağlar. **Kesinlikle doğru.**`,
+        r`III. Hava ile cilt aynı sıcaklıkta olsa bile bebek, sıcaklığı kendi cildininkinden düşük olan iç duvara ışımayla ısı aktarır. Işıma için maddesel ortam gerekmez; aradaki havanın sıcaklığı bu aktarımı durdurmaz. **Yanlış.**`,
+        r`{{S0}} hava katmanının bir yalıtkan gibi iletimi yavaşlattığını görmez ve II'yi eler. {{S1}} fanla taşınan havayla olan aktarımın konveksiyon olduğunu görmez ve I'i eler. {{S3}} fanla sağlanan hava akışını konveksiyon saymaz; hava cilt sıcaklığındayken ısı aktarılamayacağını sanıp III'ü de seçer. {{S4}} ısının bebekten yalnız temas eden havaya aktarılabileceğini sanır ve III'ü de doğru sayar; oysa bebek, daha soğuk olan iç duvara ışımayla ısı verir.`
+      ]
+    },
+    {
+      id: 'TD35_5', konu: 'T.5.3', yks: true, zorluk: 2, cikti: 'FİZ.9.3.4', beceri: 'Gösterge basıncını açık hava basıncıyla yorumlayıp olası açıklamaları belirleme', cikmis: { yil: 2020, kalip: 'Kapalı kaptaki gazın basıncı ve açık hava basıncının değişimi (olası açıklamalar)' },
+      metin: r`Bisikletçi Berk, deniz kıyısındaki evinde bisikletinin lastiklerini şişirip pompanın göstergesiyle ölçüyor. Bu gösterge, lastiğin içindeki hava basıncını değil, bu basınç ile lastiğin dışındaki açık hava basıncı arasındaki farkı gösterir. Berk birkaç gün sonra, lastiklere hiç dokunmadan, başka bir yerde aynı göstergeyle yeniden ölçüm yapıyor ve göstergenin ilk ölçümdekinden daha büyük bir değer gösterdiğini görüyor. Lastiklerden hava kaçmamış, lastiklerin hacmi değişmemiştir. Aynı yükseklikteki yerlerde açık hava basıncı eşit kabul ediliyor.
+
+Göstergenin daha büyük değer göstermesiyle ilgili,
+
+I. İkinci ölçüm, deniz seviyesinden daha yüksekteki bir yerde yapılmıştır.
+II. İkinci ölçüm sırasında lastikteki havanın sıcaklığı ilk ölçümdekinden büyüktür.
+III. İkinci ölçüm deniz kıyısında, lastikteki hava ilk ölçümdekinden daha soğukken yapılmıştır.
+
+açıklamalarından hangileri doğru olabilir?`,
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`Yalnız III`, r`I ve II`, r`I, II ve III`],
+      dogru: 3,
+      cozum: [
+        r`Göstergenin değeri, lastikteki havanın basıncı ile açık hava basıncının farkıdır: $P_{gösterge} = P_{lastik} - P_0$. Bu değerin büyümesi için ya $P_{lastik}$ artmış ya da $P_0$ azalmış olmalıdır.`,
+        r`I. Yükseğe çıkıldıkça üstteki hava sütunu kısalır ve açık hava basıncı azalır. Lastikteki havanın miktarı, hacmi ve sıcaklığı aynı kalsa bile $P_0$ küçüldüğü için fark büyür. **Olabilir.**`,
+        r`II. Hacmi değişmeyen kapalı bir kaptaki gaz ısınınca basıncı artar. Lastikler örneğin güneşte ısınmışsa $P_{lastik}$ artar; aynı yükseklikte bile fark büyür. **Olabilir.**`,
+        r`III. Deniz kıyısında $P_0$ ilk ölçümdekiyle aynıdır. Lastikteki hava soğuyunca basıncı azalır; fark küçülür ve gösterge daha küçük değer gösterir. **Olamaz.**`,
+        r`{{S0}} göstergenin lastikteki basıncı da yansıttığını unutur; ısınan havanın basıncının arttığını hesaba katmaz ve II'yi eler. {{S1}} göstergeyi lastiğin içindeki basıncı doğrudan ölçen bir alet sanır; açık hava basıncı azalınca da değerin büyüyeceğini görmez ve I'i eler. {{S2}} soğuyan gazın basıncının arttığını sanır ve göstergenin yalnız bu yolla büyüyebileceğini düşünür. {{S4}} lastikteki hava soğurken, açık hava basıncı değişmeyen kıyıda göstergenin daha küçük değer göstereceğini görmez ve III'ü de kabul eder.`
+      ]
+    },
+    {
+      id: 'TD35_6', konu: 'T.6.1', yks: true, zorluk: 3, cikti: 'FİZ.10.3.3', beceri: 'Eksen ölçekleri farklı V-I grafiklerinden direnç ve akım karşılaştırma', cikmis: { yil: 2024, kalip: 'V-I grafiklerinden direnç ve akım sıralaması' },
+      metin: r`Fizik laboratuvarında üç grup, K, L ve M tellerinin uçlarına farklı gerilimler uygulayıp tellerden geçen akımları ölçüyor ve ölçümlerini bir grafik programına giriyor. Program, her grafiğin eksenlerini o grubun ölçtüğü en büyük değerlere göre kendiliğinden ölçeklendiriyor. Gruplar farklı ölçüm aralıkları seçtiği için grafiklerin eksen ölçekleri birbirinden farklıdır. Teller Ohm yasasına uyuyor ve sıcaklıkları değişmiyor.
+
+{{sekil}}
+
+Teller ayrı ayrı, iç direnci önemsiz $6\ \text{V}$'luk bir üretecin uçlarına bağlanırsa tellerden geçen akımlar $I_K$, $I_L$ ve $I_M$ arasındaki ilişki nedir?`,
+      sekil: 'TD35_vi_genis',
+      secenekler: [r`$I_M > I_K = I_L$`, r`$I_K = I_L = I_M$`, r`$I_L > I_K > I_M$`, r`$I_K = I_M > I_L$`, r`$I_M > I_K > I_L$`],
+      dogru: 4,
+      cozum: [
+        r`Grafiklerdeki doğrular aynı görünse de eksenlerin ölçekleri farklıdır; her teli kendi eksen değerleriyle okumak gerekir. Ohm yasasına uyan bir telde akım, uçlarındaki gerilimle doğru orantılıdır.`,
+        r`K: $12\ \text{V}$'ta $600\ \text{mA}$ geçiyor; $6\ \text{V}$'ta (yarısı) $I_K = 300\ \text{mA}$. L: $12\ \text{V}$'ta $300\ \text{mA}$ geçiyor; $6\ \text{V}$'ta $I_L = 150\ \text{mA}$. M: $6\ \text{V}$'ta doğrudan $I_M = 600\ \text{mA}$. (Dirençler $R_K = 20\ \Omega$, $R_L = 40\ \Omega$, $R_M = 10\ \Omega$'dur.)`,
+        r`Sıralama: $I_M > I_K > I_L$. Aynı gerilimde direnci en küçük olan telden en büyük akım geçer.`,
+        r`{{S1}} doğruların aynı görünmesine bakıp tellerin dirençlerinin eşit olduğunu sanır; eksen değerlerini okumaz. {{S2}} dirençleri doğru sıralar ama akımın dirençle doğru orantılı olduğunu sanır. {{S3}} grafiklerin sonundaki en büyük akımları ($600$, $300$ ve $600\ \text{mA}$) karşılaştırır; bu akımların farklı gerilimlerde ölçüldüğünü gözden kaçırır. {{S0}} L'nin akım ekseninin de K'ninki gibi $600\ \text{mA}$'e kadar gittiğini sanır ve L'nin direncini $20\ \Omega$ bulur.`
+      ]
+    },
+    {
+      id: 'TD35_7', konu: 'T.7.2', yks: true, zorluk: 1, cikti: 'FİZ.10.4.4', beceri: 'Mekanik ve elektromanyetik dalgaların ortama göre süratini karşılaştırma', cikmis: { yil: 2021, kalip: 'Yayılma süratinin ortama bağlılığı (iki sütun)' },
+      metin: r`Kutup bölgesindeki bir araştırma istasyonunda çalışan bir ekip, sinyal iletimiyle ilgili deneyler planlıyor. Ekip, ses dalgalarının ve ışığın üç ortamdaki yayılma süratlerini karşılaştırıyor: kalın bir buzul buzu tabakası, buzulun eriyen suyundan oluşmuş bir göl ve istasyonun çevresindeki hava. Ortamların sıcaklıkları birbirine yakındır.
+
+Bu üç ortamdan sesin en büyük süratle yayıldığı ortam ile ışığın en büyük süratle yayıldığı ortam hangileridir?`,
+      secenekler: ['Ses: hava; ışık: buz', 'Ses: buz; ışık: buz', 'Ses: hava; ışık: hava', 'Ses: su; ışık: su', 'Ses: buz; ışık: hava'],
+      dogru: 4,
+      cozum: [
+        r`Ses mekanik bir dalgadır; yayılmak için maddesel ortam gerekir. Tanecikleri birbirine sıkıca bağlı olan katılarda ses, sıvılardakinden, sıvılarda da gazlardakinden genellikle daha hızlı yayılır. Sesin en hızlı yayıldığı ortam **buzdur.**`,
+        r`Işık elektromanyetik bir dalgadır; yayılmak için maddesel ortam gerekmez ve en büyük süratine boşlukta ulaşır. Maddesel ortamlarda yavaşlar: havadaki sürati boşluktakine çok yakındır, suda ve buzda ise daha küçüktür. Işığın en hızlı yayıldığı ortam **havadır.**`,
+        r`{{S1}} ışığın da ses gibi katılarda daha hızlı yayıldığını sanır; elektromanyetik dalgalar maddesel ortamda yavaşlar. {{S2}} sesin en hızlı gazlarda yayıldığını sanır; ses katılarda daha hızlıdır. {{S3}} iki dalganın da en hızlı sıvıda yayıldığını sanır. {{S0}} iki dalganın ortama bağlılığını tam tersine kurar; sesi gazda, ışığı katıda en hızlı sanır.`
+      ]
+    }
+  ]
+};
+
+window.BFY_TYT_TEST = window.BFY_TYT_TEST || {};
+window.BFY_TYT_TEST[TEST.id] = TEST;
+})();
+
+</script>
+<script>
+/* ============================================================
    BFY — Ben Fizik Yapabilirim TYT · TU1 (1. Ünite Taraması: Fizik Bilimi, Nicelikler ve Vektörler)
    14 soru, 20 dakika; yalnız T.1.1, T.1.2, T.1.3. Zorluk 4/6/4 (★/★★/★★★). Ücretsiz vitrin.
    Metinler, sayılar ve şekiller özgündür; ÖSYM sorularından yalnız soru kalıbı (yapı) örnek alınmıştır (cikmis alanı).
