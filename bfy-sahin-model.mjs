@@ -138,7 +138,16 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
   body.traverse(o=>{if(!o.isMesh)return;const g=o.geometry.clone(),oldNormals=g.attributes.normal.clone(),localToBody=new T.Matrix4().multiplyMatrices(bodyInv,o.matrixWorld),back=localToBody.clone().invert(),p=g.attributes.position;
     for(let i=0;i<p.count;i++){point.fromBufferAttribute(p,i).applyMatrix4(localToBody);if(point.x>1.40)point.x=1.40+(point.x-1.40)*.71;point.applyMatrix4(back);p.setXYZ(i,point.x,point.y,point.z);}g.computeVertexNormals();const normals=g.attributes.normal;for(let i=0;i<normals.count;i++){if(Math.abs(oldNormals.getZ(i))>.995)normals.setXYZ(i,0,0,Math.sign(oldNormals.getZ(i)));}o.geometry.dispose();o.geometry=g;});
   headSpots.forEach(light=>light.position.x=2.0);
-  car.userData={wheels,wheelPivots,body,paint,boot,soundRack,subwoofers,
+  // Keep original vertices so repairing/restarting is exact and damage never compounds.
+  const dentMeshes=[];body.updateMatrixWorld(true);const damageInv=body.matrixWorld.clone().invert();
+  body.traverse(o=>{if(!o.isMesh)return;const toBody=new T.Matrix4().multiplyMatrices(damageInv,o.matrixWorld);dentMeshes.push({o,base:o.geometry.attributes.position.array.slice(),normals:o.geometry.attributes.normal.array.slice(),toBody,back:toBody.clone().invert()});});
+  const cracks=new T.Group();body.add(cracks);const crackMat=new T.MeshBasicMaterial({color:'#e0e8e4',transparent:true,opacity:.48});
+  for(let j=0;j<7;j++){const a=j*Math.PI*2/7,pts=[];for(let k=0;k<4;k++){const r=k*.055,z=.19+Math.cos(a)*r,y=1.20+Math.sin(a)*r;pts.push([.775-(y-.985)*1.195+.009,y,z]);}tube(cracks,pts,crackMat,.0018);}cracks.visible=false;
+  let damageNow=-1;
+  function setDamage(amount){const d=Math.max(0,Math.min(1,amount||0));if(Math.abs(d-damageNow)<.005)return;damageNow=d;paint.roughness=.24+d*.25;cracks.visible=d>.35;
+   for(const {o,base,normals,toBody,back} of dentMeshes){const attr=o.geometry.attributes.position;for(let i=0;i<attr.count;i++){point.set(base[i*3],base[i*3+1],base[i*3+2]).applyMatrix4(toBody);const front=Math.max(0,(point.x-1.25)/.8),rear=Math.max(0,(-point.x-1.8)/.5);point.x-=front*d*.22;point.x+=rear*d*.10;if(point.y>.55&&point.y<1.03)point.y-=front*d*(.07+.04*Math.sin(point.z*17));if(Math.abs(point.z)>.7&&point.y<.95)point.z*=1-d*.05*Math.max(front,rear);point.applyMatrix4(back);attr.setXYZ(i,point.x,point.y,point.z);}attr.needsUpdate=true;if(d===0){attr.array.set(base);o.geometry.attributes.normal.array.set(normals);o.geometry.attributes.normal.needsUpdate=true;}else o.geometry.computeVertexNormals();o.geometry.computeBoundingSphere();}
+  }
+  car.userData={wheels,wheelPivots,body,paint,boot,soundRack,subwoofers,setDamage,
     setLights(on){lamp.emissiveIntensity=on?2.5:.13;lensMat.emissiveIntensity=on?2.4:0;red.emissiveIntensity=on?1.2:.18;headSpots.forEach(light=>light.intensity=on?100:0);},
     setBoot(amount){boot.rotation.z=-amount*1.1;soundRack.visible=amount>.08;},
     pulse(value){subwoofers.forEach(cone=>cone.position.y=1.064+value*.018);}
