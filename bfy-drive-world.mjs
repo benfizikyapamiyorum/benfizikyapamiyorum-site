@@ -1,3 +1,4 @@
+import {batchStaticMeshes} from './bfy-mesh-batch.mjs';
 import * as T from './bfy-three.module.min.js';
 import {HDRLoader} from './bfy-hdr-loader.mjs';
 export function buildWorld(renderer){
@@ -21,14 +22,14 @@ export function buildWorld(renderer){
  const lines=[],kerbs=[[],[]],rails=[],posts=[],trunks=[],crowns=[],lamps=[];
  for(let d=0;d<length;d+=6){const a=sample(d),angle=-Math.atan2(a.t.z,a.t.x);if(Math.floor(d/6)%2===0)lines.push({x:a.p.x,y:.027,z:a.p.z,angle});for(const side of [-1,1]){let p=a.p.clone().addScaledVector(a.n,side*7.45);kerbs[Math.floor(d/6)%2].push({x:p.x,y:.06,z:p.z,angle});p=a.p.clone().addScaledVector(a.n,side*14.4);rails.push({x:p.x,y:.72,z:p.z,angle});posts.push({x:p.x,y:.43,z:p.z,angle});}}
  instances(new T.BoxGeometry(3,.012,.10),white,lines);for(let k=0;k<2;k++)instances(new T.BoxGeometry(6,.10,.8),k?white:red,kerbs[k]);instances(new T.BoxGeometry(6.15,.35,.09),steel,rails);instances(new T.BoxGeometry(.12,.9,.16),steel,posts);
- for(let i=0;i<500;i++){const a=sample(rnd()*length),side=rnd()>.5?1:-1,dist=18+rnd()*85,p=a.p.clone().addScaledVector(a.n,side*dist);if(p.x>-10&&p.x<200&&p.z>20&&p.z<160)continue;const h=3+rnd()*5;trunks.push({x:p.x,y:h*.3,z:p.z,sx:.6,sy:h*.6,sz:.6});crowns.push({x:p.x,y:h*.83,z:p.z,sx:h*.45,sy:h*.68,sz:h*.45});}
+ for(let i=0;i<260;i++){const a=sample(rnd()*length),side=rnd()>.5?1:-1,dist=18+rnd()*85,p=a.p.clone().addScaledVector(a.n,side*dist);if(p.x>-10&&p.x<200&&p.z>20&&p.z<160)continue;const h=3+rnd()*5;trunks.push({x:p.x,y:h*.3,z:p.z,sx:.6,sy:h*.6,sz:.6});crowns.push({x:p.x,y:h*.83,z:p.z,sx:h*.45,sy:h*.68,sz:h*.45});}
  instances(new T.CylinderGeometry(.25,.35,1,7),bark,trunks);
- const crown=new T.SphereGeometry(1,16,12),verts=crown.attributes.position;for(let i=0;i<verts.count;i++){const x=verts.getX(i),y=verts.getY(i),z=verts.getZ(i),f=.88+.12*Math.sin(x*13+z*9)*Math.cos(y*11);verts.setXYZ(i,x*f,y*f,z*f);}crown.computeVertexNormals();
+ const crown=new T.SphereGeometry(1,10,8),verts=crown.attributes.position;for(let i=0;i<verts.count;i++){const x=verts.getX(i),y=verts.getY(i),z=verts.getZ(i),f=.88+.12*Math.sin(x*13+z*9)*Math.cos(y*11);verts.setXYZ(i,x*f,y*f,z*f);}crown.computeVertexNormals();
  const lc=document.createElement('canvas');lc.width=lc.height=256;const lq=lc.getContext('2d');lq.fillStyle='#728665';lq.fillRect(0,0,256,256);for(let i=0;i<2400;i++){lq.fillStyle=['#26422b80','#b3c38d90','#4b653890'][i%3];lq.beginPath();lq.ellipse(rnd()*256,rnd()*256,2+rnd()*6,1+rnd()*4,rnd()*6,0,7);lq.fill();}const lt=new T.CanvasTexture(lc);lt.colorSpace=T.SRGBColorSpace;leaves.map=lt;leaves.color.set('#9baa89');instances(crown,leaves,crowns);
- const tips=[];for(const c of crowns)for(let j=0;j<3;j++){const angle=j*2.1;tips.push({...c,x:c.x+Math.cos(angle)*c.sx*.55,z:c.z+Math.sin(angle)*c.sz*.55,y:c.y+c.sy*.06,sx:c.sx*.68,sy:c.sy*.73,sz:c.sz*.68});}instances(crown,leaves,tips);
+ const tips=[];for(const c of crowns)for(let j=0;j<2;j++){const angle=j*2.1;tips.push({...c,x:c.x+Math.cos(angle)*c.sx*.55,z:c.z+Math.sin(angle)*c.sz*.55,y:c.y+c.sy*.06,sx:c.sx*.68,sy:c.sy*.73,sz:c.sz*.68});}instances(crown,leaves,tips);
  // Lake inside the circuit and distant wooded mountain silhouettes.
  const water=mat('#729fa1',.16,.45);const lake=mesh(new T.CircleGeometry(90,80).rotateX(-Math.PI/2),water,115,-.065,125);lake.scale.z=.64;
- const terrain=new T.PlaneGeometry(4000,4000,140,140).rotateX(-Math.PI/2),tp=terrain.attributes.position;for(let i=0;i<tp.count;i++){const x=tp.getX(i),z=tp.getZ(i),r=Math.hypot(x-60,z-70),fade=T.MathUtils.smoothstep(r,480,850),h=(80+Math.sin(x*.008+z*.004)*45+Math.sin(z*.012-x*.003)*31+Math.sin(x*.021)*Math.cos(z*.017)*14)*fade;tp.setY(i,h-.16);}terrain.computeVertexNormals();const terrainMat=grass.clone();terrainMat.color.set('#68795f');mesh(terrain,terrainMat);
+ const terrain=new T.PlaneGeometry(4000,4000,90,90).rotateX(-Math.PI/2),tp=terrain.attributes.position;for(let i=0;i<tp.count;i++){const x=tp.getX(i),z=tp.getZ(i),r=Math.hypot(x-60,z-70),fade=T.MathUtils.smoothstep(r,480,850),h=(80+Math.sin(x*.008+z*.004)*45+Math.sin(z*.012-x*.003)*31+Math.sin(x*.021)*Math.cos(z*.017)*14)*fade;tp.setY(i,h-.16);}terrain.computeVertexNormals();const terrainMat=grass.clone();terrainMat.color.set('#68795f');mesh(terrain,terrainMat);
  // Paddock, windows, garage bays and a viewing stand along the main straight.
  const wall=mat('#d1ccbd'),roof=mat('#485657'),windowMat=new T.MeshStandardMaterial({color:'#395665',metalness:.35,roughness:.19,emissive:'#f6be68',emissiveIntensity:.03});
  box(125,3.5,-26,95,7,13,wall);box(125,7.1,-26,98,.25,15,roof);
@@ -43,17 +44,18 @@ export function buildWorld(renderer){
  function blackMat(){return mat('#172021');}
  for(let d=130;d<length;d+=170)sign('VİRAJ  ››',d,-10,4);
  const hemi=new T.HemisphereLight('#cce4ed','#3b463a',.6);scene.add(hemi);
- const sun=new T.DirectionalLight('#ffdfac',3);sun.position.set(60,90,-70);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-24,right:24,top:24,bottom:-24,near:1,far:250});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun,sun.target);
+ const sun=new T.DirectionalLight('#ffdfac',3);sun.position.set(60,90,-70);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-24,right:24,top:24,bottom:-24,near:1,far:250});sun.shadow.normalBias=.035;sun.shadow.bias=-.0001;scene.add(sun,sun.target);
  // Large bright sky panels produce restrained paint reflections without downloaded HDR assets.
  const env=new T.Scene();env.background=new T.Color('#819494');const em=new T.MeshBasicMaterial({color:new T.Color(3,2.8,2.4)});const panel=new T.Mesh(new T.PlaneGeometry(60,30),em);panel.position.set(0,25,-20);panel.lookAt(0,0,0);env.add(panel);const pm=new T.PMREMGenerator(renderer);scene.environment=pm.fromScene(env,.15).texture;pm.dispose();panel.geometry.dispose();em.dispose();
  const sky=document.createElement('canvas');sky.width=1024;sky.height=512;const sq=sky.getContext('2d'),grad=sq.createLinearGradient(0,0,0,512);grad.addColorStop(0,'#638ea5');grad.addColorStop(.55,'#b8cbd0');grad.addColorStop(1,'#d4d7c8');sq.fillStyle=grad;sq.fillRect(0,0,1024,512);sq.filter='blur(18px)';for(let i=0;i<35;i++){sq.fillStyle='#fff6e526';sq.beginPath();sq.ellipse(rnd()*1024,80+rnd()*200,50+rnd()*130,8+rnd()*16,0,0,7);sq.fill();}const skyTex=new T.CanvasTexture(sky);skyTex.colorSpace=T.SRGBColorSpace;
  const sunOffset=new T.Vector3(75,42,-65);
  function theme(night){isNight=night;scene.background=night?new T.Color('#0c192b'):(hdrSky||skyTex);scene.backgroundIntensity=night?.3:.85;scene.backgroundRotation.y=.7;scene.environmentRotation.y=.7;scene.fog.color.set(night?'#142030':'#b8bdb3');scene.fog.near=night?120:250;scene.fog.far=night?650:1500;hemi.intensity=night?.24:.55;sun.intensity=night?.25:2.6;sun.color.set(night?'#a9caff':'#ffd3a0');scene.environmentIntensity=night?.12:.85;windowMat.emissiveIntensity=night?1:.03;lamps.forEach(o=>o.visible=night);renderer.toneMappingExposure=night?1.1:.88;}
- const loader=new T.TextureLoader(),anisotropy=Math.min(12,renderer.capabilities.getMaxAnisotropy());
+ const loader=new T.TextureLoader(),anisotropy=Math.min(4,renderer.capabilities.getMaxAnisotropy());
  const roadMap=async(file,slot,color=false)=>{const t=await loader.loadAsync(file);t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(5,16/3);t.anisotropy=anisotropy;if(color)t.colorSpace=T.SRGBColorSpace;asphalt[slot]=t;asphalt.color.set('#ffffff');asphalt.normalScale.set(.45,.45);asphalt.roughness=.93;asphalt.needsUpdate=true;};
  const ready=Promise.allSettled([
   roadMap('bfy-asphalt-color.jpg','map',true),roadMap('bfy-asphalt-normal.jpg','normalMap'),roadMap('bfy-asphalt-rough.jpg','roughnessMap'),
   new HDRLoader().loadAsync('bfy-evening-sky.hdr').then(t=>{t.mapping=T.EquirectangularReflectionMapping;hdrSky=t;scene.environment?.dispose();scene.environment=t;theme(isNight);})
  ]).then(results=>results.every(r=>r.status==='fulfilled'));
+ batchStaticMeshes(scene,new Set(lamps));
  theme(false);return{scene,curve,length,sample,theme,sun,sunOffset,ready};
 }

@@ -1,3 +1,4 @@
+import {batchStaticMeshes} from './bfy-mesh-batch.mjs';
 import * as T from './bfy-three.module.min.js';
 // Original geometry; proportions checked against front, side and rear Şahin photographs. +X is forward.
 export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
@@ -138,6 +139,7 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
   body.traverse(o=>{if(!o.isMesh)return;const g=o.geometry.clone(),oldNormals=g.attributes.normal.clone(),localToBody=new T.Matrix4().multiplyMatrices(bodyInv,o.matrixWorld),back=localToBody.clone().invert(),p=g.attributes.position;
     for(let i=0;i<p.count;i++){point.fromBufferAttribute(p,i).applyMatrix4(localToBody);if(point.x>1.40)point.x=1.40+(point.x-1.40)*.71;point.applyMatrix4(back);p.setXYZ(i,point.x,point.y,point.z);}g.computeVertexNormals();const normals=g.attributes.normal;for(let i=0;i<normals.count;i++){if(Math.abs(oldNormals.getZ(i))>.995)normals.setXYZ(i,0,0,Math.sign(oldNormals.getZ(i)));}o.geometry.dispose();o.geometry=g;});
   headSpots.forEach(light=>light.position.x=2.0);
+  batchStaticMeshes(car,new Set([soundRack]));
   // Keep original vertices so repairing/restarting is exact and damage never compounds.
   const dentMeshes=[];body.updateMatrixWorld(true);const damageInv=body.matrixWorld.clone().invert();
   body.traverse(o=>{if(!o.isMesh)return;const toBody=new T.Matrix4().multiplyMatrices(damageInv,o.matrixWorld);dentMeshes.push({o,base:o.geometry.attributes.position.array.slice(),normals:o.geometry.attributes.normal.array.slice(),toBody,back:toBody.clone().invert()});});

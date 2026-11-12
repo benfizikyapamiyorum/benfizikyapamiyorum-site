@@ -7,13 +7,13 @@ export class RecordedEngine {
   const C=window.AudioContext||window.webkitAudioContext;if(!C)throw new Error('Bu tarayıcı ses oynatmayı desteklemiyor.');
   if(!this.context){
    const c=this.context=new C();this.gain=c.createGain();this.gain.gain.value=0;this.idleGain=c.createGain();this.loadGain=c.createGain();this.pulseGain=c.createGain();this.pulseGain.gain.value=0;
-   this.filter=c.createBiquadFilter();this.filter.type='lowpass';this.filter.frequency.value=6500;
-   this.bass=c.createBiquadFilter();this.bass.type='lowshelf';this.bass.frequency.value=170;this.bass.gain.value=4;
-   this.presence=c.createBiquadFilter();this.presence.type='peaking';this.presence.frequency.value=850;this.presence.Q.value=.8;this.presence.gain.value=2.2;
+   this.filter=c.createBiquadFilter();this.filter.type='lowpass';this.filter.frequency.value=2400;
+   this.bass=c.createBiquadFilter();this.bass.type='lowshelf';this.bass.frequency.value=145;this.bass.gain.value=6;
+   this.presence=c.createBiquadFilter();this.presence.type='peaking';this.presence.frequency.value=1800;this.presence.Q.value=.65;this.presence.gain.value=-8;
    this.saturation=c.createWaveShaper();const curve=new Float32Array(1024);for(let i=0;i<curve.length;i++){const x=i/(curve.length-1)*2-1;curve[i]=Math.tanh(x*1.55)/Math.tanh(1.55)*.85;}this.saturation.curve=curve;this.saturation.oversample='2x';
    this.limiter=c.createDynamicsCompressor();this.limiter.threshold.value=-8;this.limiter.knee.value=6;this.limiter.ratio.value=5;this.limiter.attack.value=.003;this.limiter.release.value=.14;
    this.idleGain.connect(this.filter);this.loadGain.connect(this.filter);this.pulseGain.connect(this.filter);this.filter.connect(this.bass);this.bass.connect(this.presence);this.presence.connect(this.saturation);this.saturation.connect(this.limiter);this.limiter.connect(this.gain);this.gain.connect(c.destination);
-   const real=new Float32Array(13),imag=new Float32Array(13);for(let i=1;i<13;i++)imag[i]=(i%2?.65:1)/Math.pow(i,1.35);this.combustion=c.createPeriodicWave(real,imag);
+   const real=new Float32Array(13),imag=new Float32Array(13);for(let i=1;i<13;i++)imag[i]=(i%2?1:.6)/Math.pow(i,2.4);this.combustion=c.createPeriodicWave(real,imag);
    this.burstBuffer=c.createBuffer(1,Math.floor(c.sampleRate*.12),c.sampleRate);const data=this.burstBuffer.getChannelData(0);let seed=54;for(let i=0;i<data.length;i++){seed=(seed*1664525+1013904223)>>>0;data[i]=(seed/4294967296*2-1)*Math.exp(-i/data.length*7);}
   }
   return this.context;
@@ -27,7 +27,7 @@ export class RecordedEngine {
   const make=(buffer,dest,rate)=>{const s=c.createBufferSource();s.buffer=buffer;s.loop=true;s.playbackRate.value=rate;s.connect(dest);s.onended=()=>s.disconnect();s.start();return s;};
   this.idleGain.gain.value=.8;this.loadGain.gain.value=0;this.pulseGain.gain.value=.02;
   this.source=make(this.buffer,this.idleGain,.82);this.driveSource=make(this.driveBuffer,this.loadGain,.72);
-  this.pulse=c.createOscillator();this.pulse.setPeriodicWave(this.combustion);this.pulse.frequency.value=950/30;this.pulse.connect(this.pulseGain);this.pulse.onended=()=>this.pulseGain.gain.value=0;this.pulse.start();
+  this.pulse=c.createOscillator();this.pulse.setPeriodicWave(this.combustion);this.pulse.frequency.value=950/40;this.pulse.connect(this.pulseGain);this.pulse.onended=()=>this.pulseGain.gain.value=0;this.pulse.start();
   this.gain.gain.cancelScheduledValues(c.currentTime);this.gain.gain.setValueAtTime(0,c.currentTime);this.gain.gain.linearRampToValueAtTime(this.volume,c.currentTime+.08);
   this.enabled=true;this.lastGear=1;this.lastThrottle=0;this.shiftUntil=0;return true;
  }
@@ -42,10 +42,10 @@ export class RecordedEngine {
   if(this.lastThrottle>.65&&throttle<.15&&rpm>3800)this.burst(.055);this.lastThrottle=throttle;
   const shifting=now<this.shiftUntil,load=Math.min(1,Math.max(0,(rpm-1100)/3400)),blend=load*(.22+throttle*.78)*(shifting?.24:1);
   this.idleGain.gain.setTargetAtTime((1-blend)*.72,now,.06);this.loadGain.gain.setTargetAtTime(Math.sqrt(blend)*1.12,now,.045);
-  this.source.playbackRate.setTargetAtTime(Math.min(1.5,.69+rpm/6500*.78),now,.09);
-  this.driveSource.playbackRate.setTargetAtTime(Math.min(1.65,.62+rpm/6500*.98),now,.065);
-  this.pulse.frequency.setTargetAtTime(rpm/30,now,.055);this.pulseGain.gain.setTargetAtTime((.025+load*.075+throttle*.045)*(shifting?.25:1),now,.045);
-  this.bass.gain.setTargetAtTime(2.5+throttle*3,now,.08);this.filter.frequency.setTargetAtTime(2100+throttle*4600+load*500,now,.065);
+  this.source.playbackRate.setTargetAtTime(Math.min(1.02,.57+rpm/6500*.43),now,.09);
+  this.driveSource.playbackRate.setTargetAtTime(Math.min(1.10,.49+rpm/6500*.58),now,.065);
+  this.pulse.frequency.setTargetAtTime(rpm/40,now,.09);this.pulseGain.gain.setTargetAtTime((.025+load*.04+throttle*.025)*(shifting?.25:1),now,.045);
+  this.bass.gain.setTargetAtTime(5+throttle*3,now,.08);this.filter.frequency.setTargetAtTime(1250+throttle*1350+load*250,now,.065);
   this.gain.gain.setTargetAtTime(this.volume*(shifting?.70:1),now,.035);
  }
  dispose(){this.stop();this.disposed=true;this.context?.close();}

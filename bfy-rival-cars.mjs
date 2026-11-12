@@ -1,3 +1,4 @@
+import {batchStaticMeshes} from './bfy-mesh-batch.mjs';
 import * as T from './bfy-three.module.min.js';
 // Original game meshes, informed by the silhouette and characteristic lights of each car.
 export function createRival(kind){
@@ -11,7 +12,7 @@ export function createRival(kind){
  const rear=new T.MeshStandardMaterial({color:'#a71818',emissive:'#ff2424',emissiveIntensity:.65});
  const mesh=(g,m,x=0,y=0,z=0,p=car)=>{const o=new T.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;p.add(o);return o;};
  const box=(x,y,z,w,h,d,m,p=car)=>mesh(new T.BoxGeometry(w,h,d),m,x,y,z,p);
- const panel=(pts,m)=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pts.flat(),3));const idx=[];for(let i=1;i<pts.length-1;i++)idx.push(0,i,i+1);g.setIndex(idx);g.computeVertexNormals();const mat=m.clone();mat.side=T.DoubleSide;if(pts.every(v=>v[0]<-2))g.translate(-.025,0,0);return mesh(g,mat);};
+ const panel=(pts,m)=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pts.flat(),3));const idx=[];for(let i=1;i<pts.length-1;i++)idx.push(0,i,i+1);g.setIndex(idx);g.computeVertexNormals();const mat=m;mat.side=T.DoubleSide;if(pts.every(v=>v[0]<-2))g.translate(-.025,0,0);return mesh(g,mat);};
  const line=(pts,m,r=.012)=>{const c=new T.CatmullRomCurve3(pts.map(p=>new T.Vector3(...p)));return mesh(new T.TubeGeometry(c,24,r,6,false),m);};
  const L=sport?2.21:2.30,W=sport?.94:.90,front=sport?1.24:1.36,back=sport?-1.23:-1.33;
  const shape=new T.Shape();shape.moveTo(-L,.39);shape.lineTo(back-.37,.39);shape.absarc(back,.34,.37,Math.PI,0,true);shape.lineTo(front-.37,.34);shape.absarc(front,.34,.37,Math.PI,0,true);shape.lineTo(L,.40);shape.lineTo(L,sport?.62:.73);shape.quadraticCurveTo(L-.3,sport?.77:.92,.75,sport?.86:.96);shape.lineTo(-1.1,sport?.91:1);shape.quadraticCurveTo(-L,sport?.92:1,-L,.70);shape.closePath();
@@ -84,5 +85,6 @@ export function createRival(kind){
   const hub=mesh(new T.CylinderGeometry(.054,.054,.03,20),metal,0,0,s*.15,w);hub.rotation.x=Math.PI/2;
  }
 
+ batchStaticMeshes(car);
  car.userData={wheels,kind,setBrake(v){rear.emissiveIntensity=v?3:.65;}};return car;
 }
