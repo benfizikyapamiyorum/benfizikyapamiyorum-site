@@ -1286,6 +1286,15 @@ body.kalem-acik .murekkep-host.dokunmatik-kalem{touch-action:none}
 .anket-kart .yk-alt{flex-wrap:nowrap}.anket-kart .yk-alt .btn{flex:1 1 0;width:auto;margin:0}.anket-kart .yk-alt .btn.cizgi{flex:0 0 auto}
 /* Aylık denemeler (9/10/11): listede "Yeni" rozeti */
 .yk-rozet.ay-rozet{display:inline-block;vertical-align:2px;margin-left:6px;font-size:10px;padding:2px 7px}
+
+/* Timur Hoca'dan kişisel karşılama: tam ekran, büyük */
+#kisiselMesaj{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:rgba(15,32,26,.72);backdrop-filter:blur(3px);animation:kmGel .35s ease-out}
+#kisiselMesaj .km-ic{max-width:620px;width:100%;background:linear-gradient(160deg,#fffdf6,#fff3dc);border-radius:24px;padding:34px 28px 28px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.35);color:#1a2a22}
+#kisiselMesaj .km-ust{display:inline-block;background:#244f40;color:#fff;font-weight:700;font-size:14px;padding:6px 14px;border-radius:999px;margin-bottom:16px}
+#kisiselMesaj h2{font-size:clamp(28px,6.4vw,44px);line-height:1.15;margin:0 0 16px;color:#244f40}
+#kisiselMesaj p{font-size:clamp(17px,3.6vw,21px);line-height:1.55;margin:0 0 24px}
+#kisiselMesaj .btn{font-size:18px;padding:14px 26px}
+@keyframes kmGel{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body class="dj">
@@ -77834,7 +77843,26 @@ function anaEkran() {
     h += geriKart('unite', `${sn}|${u.no}`, `${u.no}. Üniteyi değerlendir`, 'En çok zorlandığın konuyu ve neye ihtiyacın olduğunu seç. Kitaba eklenecekler buna göre seçilir.', 'Değerlendir', true);
   }));
   h += `<a class="pdf-link" href="olustur/">📄 PDF çalışma kâğıdı oluştur</a>`;
+  setTimeout(kisiselMesaj, 700);
   return h;
+}
+// Timur Hoca'dan kişiye özel karşılama (12 Kasım 2026): lisans no → büyük ekran mesajı, her cihazda bir kez.
+// Ad dosyaya yazılmaz; lisanstaki adın ilk kelimesi kullanılır. Yeni mesaj için buraya satır ekle.
+const KISISEL = {
+  VZWYKK: { b: 'Sakarya\'nın en yakışıklı ve en efendi öğrencisine selam olsun!', p: 'Hoş geldin {AD}. Kitapların hazır. Her gün biraz, ama her gün. Takıldığın her yerde ben buradayım.' },
+  T44DUP: { b: 'Sakarya\'nın en yakışıklı ve en efendi öğrencisine selam olsun!', p: 'Hoş geldin {AD}. Kitapların hazır. Her gün biraz, ama her gün. Takıldığın her yerde ben buradayım.' }
+};
+let kisiselDeneme = 0;
+function kisiselMesaj() {
+  if ($('#kisiselMesaj')) return;
+  const L = Object.values(LISLER || {}).find(l => l && l.no && KISISEL[l.no] && !(K.ayar.kisisel || []).includes(l.no)); if (!L) return;
+  if (document.querySelector('dialog[open]')) { if (kisiselDeneme++ < 120) setTimeout(kisiselMesaj, 1500); return; }
+  const m = KISISEL[L.no], ad = esc(((L.ad || '').split(/\s+/)[0]) || '');
+  const d = document.createElement('div'); d.id = 'kisiselMesaj'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-label', 'Timur Hoca\'dan mesaj');
+  d.innerHTML = `<div class="km-ic"><div class="km-ust">Timur Hoca'dan sana</div><h2>${esc(m.b)}</h2><p>${esc(m.p).replace('{AD}', ad)}</p><button type="button" class="btn ana" data-km-kapa>Teşekkürler hocam</button></div>`;
+  document.body.appendChild(d); konfeti();
+  d.querySelector('[data-km-kapa]').focus();
+  d.addEventListener('click', e => { if (e.target.closest('[data-km-kapa]') || e.target === d) { K.ayar.kisisel = (K.ayar.kisisel || []).concat(L.no).slice(-20); kaydet(); d.remove(); } });
 }
 
 // Not içi bloklara bağlı kayıt anahtarları (oyun, kavram kartı, efsane) 3B animasyon bloklarını saymaz:
