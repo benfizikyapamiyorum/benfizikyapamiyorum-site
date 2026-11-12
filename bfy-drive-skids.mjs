@@ -3,7 +3,7 @@ import * as T from './bfy-three.module.min.js';
 // Track-space edge tests stop each tyre independently at the asphalt boundary.
 export class SkidMarks {
  constructor(scene,capacity=3072){
-  this.capacity=capacity;this.cursor=0;this.count=0;this.last=Array(4).fill(null);
+  this.contacts=new Float32Array(12);this.capacity=capacity;this.cursor=0;this.count=0;this.last=Array(4).fill(null);
   this.geometry=new T.BufferGeometry();
   for(const [name,size] of [['position',3],['uv',2],['stamp',2]])this.geometry.setAttribute(name,new T.BufferAttribute(new Float32Array(capacity*6*size),size).setUsage(T.DynamicDrawUsage));
   this.geometry.setDrawRange(0,0);
@@ -12,7 +12,7 @@ export class SkidMarks {
    fragmentShader:'uniform float now; varying vec2 tex; varying vec2 age; void main(){float edge=smoothstep(0.,.12,tex.x)*smoothstep(0.,.12,1.-tex.x);float groove=.72+.28*smoothstep(.25,.6,fract(tex.x*7.));float fade=1.-smoothstep(48.,72.,now-age.x);gl_FragColor=vec4(.035,.039,.042,edge*groove*age.y*fade*.72);}',side:T.DoubleSide});
   this.mesh=new T.Mesh(this.geometry,this.material);this.mesh.frustumCulled=false;this.mesh.renderOrder=1;scene.add(this.mesh);
  }
- breakTrail(){this.last.fill(null);}
+ breakTrail(){this.last.fill(null);this.contacts.fill(0);}
  reset(){for(const a of Object.values(this.geometry.attributes))a.clearUpdateRanges();this.cursor=0;this.count=0;this.breakTrail();this.geometry.setDrawRange(0,0);}
  add(wheel,x,z,intensity,now,onAsphalt=true){
   if(!onAsphalt||intensity<.12){this.last[wheel]=null;return;}
@@ -35,7 +35,10 @@ export class SkidMarks {
    const wx=cx+fx*x+nx*z,wz=cz+fz*x+nz*z;
    const at=world.sample(c.s+(wx-cx)*a.t.x+(wz-cz)*a.t.z);
    const lateral=(wx-at.p.x)*at.n.x+(wz-at.p.z)*at.n.z;
-   this.add(i,wx,wz,rear?c.rearSkid:c.frontSkid,now,Math.abs(lateral)<7.15&&Math.hypot(c.v,c.vy)>.25&&c.hit===0);
+   const asphalt=Math.abs(lateral)<7.15&&c.hit===0,moving=Math.hypot(c.v,c.vy)>.25;
+   const slip=asphalt&&(moving||(rear&&c.spin>.16))?(rear?c.rearSkid:c.frontSkid):0;
+   this.contacts[i*3]=wx;this.contacts[i*3+1]=wz;this.contacts[i*3+2]=slip;
+   this.add(i,wx,wz,slip,now,asphalt&&moving);
   }
  }
  dispose(){this.mesh.removeFromParent();this.geometry.dispose();this.material.dispose();}
