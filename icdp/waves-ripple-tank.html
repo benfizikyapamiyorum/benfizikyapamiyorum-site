@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ripple Tank: Reflection, Refraction and Diffraction · I Can't Do Physics</title>
+<meta name="description" content="Make water waves in a ripple tank, change the frequency and depth, and watch them reflect, refract and diffract through a gap.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px;line-height:1.6}
+.tag.core{background:#E3F6EE;color:#08744F}
+.tag.supp{background:#EFE7FD;color:#6227C9}
+.predict{background:var(--brandlt);border-left:4px solid var(--brand);padding:10px 14px;border-radius:8px;font-size:15px;margin-top:10px}
+.predict b{color:var(--navy)}
+.q{border-top:1px solid var(--line);padding:10px 0 6px;margin-top:8px}
+.q>p{margin:4px 0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.opts button{border-radius:12px;text-align:left;font-weight:500}
+.opts button.right{background:#ECFDF5;border-color:var(--core);color:#065F46;font-weight:700}
+.opts button.wrong{background:#FEF2F2;border-color:#DC2626;color:#991B1B}
+.fb{display:none;border-radius:10px;padding:8px 12px;margin-top:8px;background:#ECFDF5}
+.fb.show{display:block}
+.fb.no{background:var(--amberlt)}
+.card h2 .tag,.ctl .tag{vertical-align:1px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.read div.s{background:#F4F0FE}
+.why{display:none}
+.score{font-size:13px;color:var(--muted);margin:0}
+@media(max-width:780px){.first-m{order:-1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 3.1 General properties of waves</p>
+<h1>Ripple Tank: Reflection, Refraction and Diffraction</h1>
+<div class="try"><b>Try this:</b> Pick a mode, then change the frequency and the water depth. Bright lines are crests and dark lines are troughs, seen from above. The side view below shows the same wave as a transverse wave.</div>
+<div class="predict"><b>Predict first:</b> if you double the frequency, what happens to the wavelength? Does the speed of the waves change? What do you think happens to waves that pass through a narrow gap?</div>
+<div class="card" style="margin-top:16px">
+  <div class="btns" role="group" aria-label="Mode"><button data-mode="plane" class="on">Plane waves</button><button data-mode="reflection">Reflection</button><button data-mode="refraction">Refraction</button><button data-mode="diffraction">Diffraction</button></div>
+  <canvas id="tank" role="img" aria-label="Top view of water waves in a ripple tank"></canvas>
+  <p class="note" id="mnote"></p>
+</div>
+<div class="grid">
+  <div class="card">
+    <h2>Side view: a transverse wave</h2>
+    <canvas id="side" role="img" aria-label="Side view of the wave showing wavelength and amplitude"></canvas>
+    <p class="note">The cork moves up and down at right angles to the direction the wave travels: this is what makes the wave <b>transverse</b>. The wave transfers energy, not water.</p>
+  </div>
+  <div class="card first-m">
+    <h2>Controls</h2>
+    <label class="ctl"><span>Frequency f <b id="lf">5.0 Hz</b></span><input id="f" type="range" min="3" max="10" step="0.5" value="5"></label>
+    <label class="ctl"><span>Water depth <b id="ld">6 mm</b></span><input id="d" type="range" min="2" max="10" step="1" value="6"></label>
+    <label class="ctl"><span>Amplitude <b id="lA">3 mm</b></span><input id="A" type="range" min="1" max="5" step="1" value="3"></label>
+    <label class="ctl" id="cAng"><span id="tAng">Angle of incidence <b id="lang">40°</b></span><input id="ang" type="range" min="0" max="60" step="5" value="40"></label>
+    <label class="ctl" id="cGap"><span>Gap width <b id="lgap">3.0 cm</b></span><input id="gap" type="range" min="1" max="12" step="0.5" value="3"></label>
+    <div class="read">
+      <div><small>frequency</small><b id="rf">—</b></div>
+      <div><small>wavelength λ</small><b id="rl">—</b></div>
+      <div><small>wave speed v = f λ</small><b id="rv">—</b></div>
+      <div id="x1"><small id="x1s">—</small><b id="x1b">—</b></div>
+      <div id="x2"><small id="x2s">—</small><b id="x2b">—</b></div>
+    </div>
+    <div class="eq" id="work"></div>
+  </div>
+</div>
+
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
+<div class="q" data-a="1" data-hint="v = f λ, so λ = v ÷ f."><p><b>1.</b> <span class="tag core">Core</span> Water waves travel at 0.24 m/s with a frequency of 4.0 Hz. What is their wavelength?</p><div class="opts"><button>0.96 m</button><button>0.060 m</button><button>16.7 m</button><button>4.24 m</button></div><div class="fb" aria-live="polite"></div><div class="why">λ = v ÷ f = 0.24 ÷ 4.0 = 0.060 m (6.0 cm).</div></div>
+<div class="q" data-a="2" data-hint="In the same water the speed is fixed. Use v = f λ."><p><b>2.</b> <span class="tag core">Core</span> The frequency of the paddle is doubled but the water depth is unchanged. What happens?</p><div class="opts"><button>The speed doubles</button><button>The wavelength doubles</button><button>The wavelength halves and the speed stays the same</button><button>Nothing changes</button></div><div class="fb" aria-live="polite"></div><div class="why">The speed depends on the depth, not the frequency. With v fixed, doubling f halves λ.</div></div>
+<div class="q" data-a="0" data-hint="Try the Refraction mode and read the speed and wavelength in the shallow region."><p><b>3.</b> <span class="tag core">Core</span> Water waves pass from deep water into shallow water. Which statement is correct?</p><div class="opts"><button>They slow down and the wavelength decreases; the frequency stays the same</button><button>They speed up and the wavelength increases</button><button>They slow down and the frequency decreases</button></div><div class="fb" aria-live="polite"></div><div class="why">Waves travel more slowly in shallower water. The frequency is set by the source and does not change, so λ = v ÷ f gets smaller. If they arrive at an angle they change direction: refraction.</div></div>
+<div class="q" data-a="2" data-hint="Try the Diffraction mode with a narrow gap and then a wide gap."><p><b>4.</b> <span class="tag supp">Supplement</span> When do waves diffract (spread out) most after passing through a gap?</p><div class="opts"><button>When the gap is much wider than the wavelength</button><button>When the amplitude is large</button><button>When the gap is about the same size as the wavelength</button><button>When the frequency is very high</button></div><div class="fb" aria-live="polite"></div><div class="why">Diffraction is greatest when the gap width is similar to the wavelength. A gap much wider than the wavelength lets the waves through with only a little spreading at the edges.</div></div>
+<div class="q" data-a="1" data-hint="Look at the Reflection mode readings."><p><b>5.</b> <span class="tag core">Core</span> Waves hit a straight barrier with an angle of incidence of 35°. What is the angle of reflection?</p><div class="opts"><button>55°</button><button>35°</button><button>70°</button><button>145°</button></div><div class="fb" aria-live="polite"></div><div class="why">For reflection at a plane surface, the angle of reflection equals the angle of incidence: 35°. Both are measured from the normal.</div></div>
+</section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 && !o.bottom ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && !o.bottom && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0 && !o.bottom) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+
+const g = 9.8, SLOW = 0.25, SHALLOW = 0.3; // display runs at 0.25 × real speed; shallow region depth = 0.3 × depth
+let mode = 'plane', f = 5, dmm = 6, amp = 3, ang = 40, gap = 3, TK, SD, field = null, off = document.createElement('canvas'), clock = 0, last = null;
+function speed(d) { return Math.sqrt(g * d / 1000); } // shallow-water waves, d in mm → m/s
+function lambda(d, fr) { return speed(d) / fr; }
+function snell(i, v1, v2) { return Math.asin(Math.sin(i * Math.PI / 180) * v2 / v1) * 180 / Math.PI; }
+window.PHYS = {speed, lambda, snell};
+function sizes() { TK = fit($('#tank'), 0.48, 250, 470); SD = fit($('#side'), 0.42, 190, 260); field = null; }
+const sm = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+// complex amplitude (re, im) for every cell; the frame shows Re(A e^(-iωt))
+function compute() {
+  const {w, h} = TK, cs = w < 500 ? 2 : 3, nx = Math.ceil(w / cs), ny = Math.ceil(h / cs), TW = w < 500 ? 30 : 40, ppc = w / TW, TH = h / ppc;
+  const lam = lambda(dmm, f) * 100, k = 2 * Math.PI / lam, re = new Float32Array(nx * ny), im = new Float32Array(nx * ny);
+  const I = ang * Math.PI / 180, G = {TW, TH, ppc, lam, nx, ny, cs, re, im};
+  const put = (n, ph, a) => { re[n] += a * Math.cos(ph); im[n] += a * Math.sin(ph); };
+  if (mode === 'reflection') { const B = [0.66 * TW, 0.64 * TH], W = Math.min(0.42 * TH, 12), n = [-Math.cos(I), -Math.sin(I)], d2 = [-Math.cos(2 * I), -Math.sin(2 * I)];
+    Object.assign(G, {B, W, n, d2});
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const x = (i + .5) * cs / ppc, y = (j + .5) * cs / ppc, N = j * nx + i, s = (n[0] * (x - B[0]) + n[1] * (y - B[1])) / Math.cos(I);
+      if (s < 0 || x < 0.8) continue; const beam = 1 - sm(W / 2 - 0.8, W / 2 + 0.8, Math.abs(y - B[1]));
+      put(N, k * x, beam * sm(0.8, 2, x)); const py = y - s * d2[1], px = x - s * d2[0], rb = 1 - sm(W / 2 - 0.8, W / 2 + 0.8, Math.abs(py - B[1]));
+      if (rb > 0) put(N, k * px + k * (d2[0] * (x - px) + d2[1] * (y - py)), rb); } }
+  else if (mode === 'refraction') { const B = [0.5 * TW, 0.5 * TH], n = [Math.cos(I), Math.sin(I)], t = [-Math.sin(I), Math.cos(I)], k2 = k / Math.sqrt(SHALLOW), R = Math.asin(Math.sin(I) * Math.sqrt(SHALLOW)), d2 = [Math.cos(R) * n[0] - Math.sin(R) * t[0], Math.cos(R) * n[1] - Math.sin(R) * t[1]];
+    Object.assign(G, {B, n, t, d2, R});
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const x = (i + .5) * cs / ppc, y = (j + .5) * cs / ppc, N = j * nx + i; if (x < 0.8) continue;
+      if (n[0] * (x - B[0]) + n[1] * (y - B[1]) < 0) put(N, k * x, sm(0.8, 2, x)); else put(N, k * B[0] + k2 * (d2[0] * (x - B[0]) + d2[1] * (y - B[1])), 1); } }
+  else if (mode === 'diffraction') { const xb = 0.38 * TW, yc = TH / 2, M = Math.max(9, Math.ceil(gap / (lam / 5))), S = [];
+    for (let m = 0; m < M; m++) S.push(yc - gap / 2 + gap * (m + 0.5) / M);
+    let nr = 0, ni = 0; const ref = [xb + 2 * lam, yc];
+    const hv = (x, y) => { let a = 0, b = 0; S.forEach(sy => { const r = Math.hypot(x - xb, y - sy) + 1e-6, o = (1 + (x - xb) / r) / 2 / Math.sqrt(k * r + 1); a += o * Math.cos(k * (xb + r)); b += o * Math.sin(k * (xb + r)); }); return [a, b]; };
+    [nr, ni] = hv(ref[0], ref[1]); const norm = 1 / Math.max(1e-6, Math.hypot(nr, ni)); Object.assign(G, {xb, yc});
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const x = (i + .5) * cs / ppc, y = (j + .5) * cs / ppc, N = j * nx + i; if (x < 0.8) continue;
+      if (x < xb) put(N, k * x, sm(0.8, 2, x)); else if (x > xb + 0.3) { const [a, b] = hv(x, y); const A = Math.hypot(a, b) * norm, sc = A > 1.25 ? 1.25 / A : 1; re[N] = a * norm * sc; im[N] = b * norm * sc; } } }
+  else for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) { const x = (i + .5) * cs / ppc; if (x >= 0.8) put(j * nx + i, k * x, sm(0.8, 2, x)); }
+  off.width = nx; off.height = ny; G.img = off.getContext('2d').createImageData(nx, ny); field = G;
+}
+function drawTank() {
+  if (!field) compute(); const {c, w, h} = TK, F = field, om = 2 * Math.PI * f * clock, co = Math.cos(om), si = Math.sin(om), D = F.img.data, K = 30 + amp * 14;
+  const shallow = mode === 'refraction';
+  for (let j = 0; j < F.ny; j++) for (let i = 0; i < F.nx; i++) { const N = j * F.nx + i, v = F.re[N] * co + F.im[N] * si, p = N * 4;
+    let base = [70, 140, 200]; if (shallow) { const x = (i + .5) * F.cs / F.ppc, y = (j + .5) * F.cs / F.ppc; if (F.n[0] * (x - F.B[0]) + F.n[1] * (y - F.B[1]) >= 0) base = [96, 160, 196]; }
+    D[p] = base[0] + v * K; D[p + 1] = base[1] + v * K; D[p + 2] = base[2] + v * K * 0.8; D[p + 3] = 255; }
+  off.getContext('2d').putImageData(F.img, 0, 0); c.imageSmoothingEnabled = true; c.drawImage(off, 0, 0, F.nx * F.cs, F.ny * F.cs);
+  const P = (x, y) => [x * F.ppc, y * F.ppc];
+  c.fillStyle = '#334155'; if (mode === 'reflection') c.fillRect(0, (F.B[1] - F.W / 2) * F.ppc, 0.8 * F.ppc, F.W * F.ppc); else c.fillRect(0, 0, 0.8 * F.ppc, h);
+  const ray = (x0, y0, dx, dy, L, col, txt, st) => { const [a, b] = P(x0, y0), [e, q] = P(x0 + dx * L, y0 + dy * L); arrow(c, a, b, e, q, col, 2.5, 9); if (txt) label(c, txt, st ? a - dx * 8 : e + dx * 18, st ? b - dy * 8 : q + dy * 18, {size: 12, col: COL.navy, bg: 'rgba(255,255,255,.92)', align: st ? 'right' : 'center'}); };
+  const dash = (x0, y0, dx, dy, L) => { const [a, b] = P(x0 - dx * L, y0 - dy * L), [e, q] = P(x0 + dx * L, y0 + dy * L); c.save(); c.setLineDash([6, 5]); c.strokeStyle = '#fff'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(a, b); c.lineTo(e, q); c.stroke(); c.restore(); };
+  if (mode === 'reflection') { const {B, n, d2} = F, t = [-n[1], n[0]], L = 0.48 * F.TH; c.strokeStyle = '#1E293B'; c.lineWidth = 7; c.lineCap = 'round'; const [a, b] = P(B[0] - t[0] * L, B[1] - t[1] * L), [e, q] = P(B[0] + t[0] * L, B[1] + t[1] * L); c.beginPath(); c.moveTo(a, b); c.lineTo(e, q); c.stroke(); c.lineCap = 'butt';
+    dash(B[0] + n[0] * 3.5, B[1] + n[1] * 3.5, n[0], n[1], 3.5); ray(B[0] - 9, B[1], 1, 0, 6.5, COL.amber, 'i = ' + ang + '°', 1); ray(B[0], B[1], d2[0], d2[1], 8, '#FDE68A', 'r = ' + ang + '°'); label(c, 'normal', P(B[0] + n[0] * 7.5, 0)[0], P(0, B[1] + n[1] * 7.5)[1] - 8, {size: 11, col: '#fff'}); }
+  if (mode === 'refraction') { const {B, n, t, d2} = F, L = 2 * F.TH; c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = 2; const [a, b] = P(B[0] - t[0] * L, B[1] - t[1] * L), [e, q] = P(B[0] + t[0] * L, B[1] + t[1] * L); c.beginPath(); c.moveTo(a, b); c.lineTo(e, q); c.stroke();
+    dash(B[0], B[1], n[0], n[1], 6); ray(B[0] - 7, B[1], 1, 0, 6, COL.amber, 'deep', 1); ray(B[0], B[1], d2[0], d2[1], 7, '#FDE68A', 'shallow'); }
+  if (mode === 'diffraction') { const x = F.xb * F.ppc, g1 = (F.yc - gap / 2) * F.ppc, g2 = (F.yc + gap / 2) * F.ppc; c.fillStyle = '#1E293B'; c.fillRect(x, 0, 0.35 * F.ppc + 3, g1); c.fillRect(x, g2, 0.35 * F.ppc + 3, h - g2); }
+  // scale bar 5 cm
+  const sb = 5 * F.ppc; c.fillStyle = 'rgba(15,42,74,.75)'; rrect(c, w - sb - 22, h - 30, sb + 14, 22, 6); c.fill(); c.fillStyle = '#fff'; c.fillRect(w - sb - 15, h - 16, sb, 3); label(c, '5 cm', w - 15 - sb / 2, h - 23, {size: 10, col: '#fff'});
+  label(c, 'slow motion ×' + SLOW, 8, 12, {size: 11, col: '#fff', align: 'left', weight: '500'});
+}
+function drawSide() {
+  const {c, w, h} = SD; c.clearRect(0, 0, w, h); const lam = lambda(dmm, f) * 100, XM = w < 500 ? 15 : 20, k = 2 * Math.PI / lam, om = 2 * Math.PI * f * clock;
+  const o = {x: 46, y: 14, w: w - 58, h: h - 56, xmin: 0, xmax: XM, ymin: -6, ymax: 6, xstep: 5, ystep: 2, xlab: 'distance / cm', ylab: 'displacement / mm', ylabOff: 34, bottom: true};
+  const {X, Y} = axes(c, o); const yv = x => amp * Math.cos(k * x - om);
+  c.save(); c.setLineDash([5, 4]); c.strokeStyle = COL.muted; c.lineWidth = 1.2; c.beginPath(); c.moveTo(X(0), Y(0)); c.lineTo(X(XM), Y(0)); c.stroke(); c.restore(); label(c, 'rest position', X(0) + 4, Y(0) + 10, {size: 10, weight: '500', col: COL.muted, align: 'left', bg: 'rgba(255,255,255,.85)'});
+  c.strokeStyle = COL.brand; c.lineWidth = 2.6; c.beginPath(); for (let i = 0; i <= 300; i++) { const x = XM * i / 300; i ? c.lineTo(X(x), Y(yv(x))) : c.moveTo(X(x), Y(yv(x))); } c.stroke();
+  // first crest after x = 1 cm, mark wavelength and amplitude
+  let xc = ((om / k) % lam + lam) % lam; while (xc < 1) xc += lam;
+  if (xc + lam < XM) { const yy = Y(amp) - 12; c.strokeStyle = COL.navy; c.lineWidth = 1.2; c.beginPath(); c.moveTo(X(xc), Y(amp) - 4); c.lineTo(X(xc), yy - 4); c.moveTo(X(xc + lam), Y(amp) - 4); c.lineTo(X(xc + lam), yy - 4); c.stroke();
+    arrow(c, X(xc + lam / 2), yy, X(xc), yy, COL.navy, 1.5, 7); arrow(c, X(xc + lam / 2), yy, X(xc + lam), yy, COL.navy, 1.5, 7); label(c, 'λ = ' + fmt(lam, 1) + ' cm', X(xc + lam / 2), yy - 10, {size: 11.5, col: COL.navy, bg: 'rgba(255,255,255,.9)'}); }
+  const xa = xc + lam / 2 < XM ? xc : xc; arrow(c, X(xa) + 14, Y(0), X(xa) + 14, Y(amp), COL.purple, 2, 7); label(c, 'amplitude', X(xa) + 20, Y(amp / 2), {size: 11, col: COL.purple, align: 'left', bg: 'rgba(255,255,255,.85)'});
+  const xk = XM * 0.82, yk = yv(xk); c.fillStyle = COL.amber; c.beginPath(); c.arc(X(xk), Y(yk), 7, 0, 7); c.fill(); arrow(c, X(xk) + 14, Y(0) + 16, X(xk) + 14, Y(0) - 16, COL.amber, 2, 6); arrow(c, X(xk) + 14, Y(0) - 16, X(xk) + 14, Y(0) + 16, COL.amber, 2, 6);
+  arrow(c, X(XM * 0.55), Y(-5.2), X(XM * 0.72), Y(-5.2), COL.green, 2.5, 8); label(c, 'wave travels', X(XM * 0.55) - 6, Y(-5.2), {size: 11, col: COL.green, align: 'right'});
+}
+function readouts() {
+  const v = speed(dmm), lam = lambda(dmm, f);
+  $('#lf').textContent = fmt(f, 1) + ' Hz'; $('#ld').textContent = dmm + ' mm'; $('#lA').textContent = amp + ' mm'; $('#lang').textContent = ang + '°'; $('#lgap').textContent = fmt(gap, 1) + ' cm';
+  $('#rf').textContent = fmt(f, 1) + ' Hz'; $('#rl').textContent = fmt(lam * 100, 2) + ' cm'; $('#rv').textContent = fmt(v, 3) + ' m/s';
+  $('#cAng').style.display = mode === 'reflection' || mode === 'refraction' ? '' : 'none'; $('#cGap').style.display = mode === 'diffraction' ? '' : 'none';
+  $('#tAng').firstChild.textContent = 'Angle of incidence ';
+  const x1 = $('#x1'), x2 = $('#x2'); x1.style.display = x2.style.display = mode === 'plane' ? 'none' : ''; x1.className = x2.className = mode === 'diffraction' ? 's' : '';
+  let note = 'The paddle on the left vibrates up and down, making straight (plane) wavefronts. The distance between neighbouring bright lines is one wavelength.';
+  if (mode === 'reflection') { $('#x1s').textContent = 'angle of incidence i'; $('#x1b').textContent = ang + '°'; $('#x2s').textContent = 'angle of reflection r'; $('#x2b').textContent = ang + '°';
+    note = 'Angles are measured from the normal (dashed line). The angle of reflection equals the angle of incidence. Speed, wavelength and frequency do not change.'; }
+  if (mode === 'refraction') { const v2 = speed(dmm * SHALLOW), r = snell(ang, v, v2); $('#x1s').textContent = 'shallow water: v and λ'; $('#x1b').textContent = fmt(v2, 3) + ' m/s, ' + fmt(v2 / f * 100, 2) + ' cm'; $('#x2s').textContent = 'angle of refraction'; $('#x2b').textContent = fmt(r, 0) + '° (i = ' + ang + '°)';
+    note = 'The lighter region is shallower. The waves slow down there, so the wavelength gets shorter and, unless they arrive along the normal, they change direction: refraction. The frequency does not change.'; }
+  if (mode === 'diffraction') { const q = gap / (lam * 100); $('#x1s').textContent = 'gap ÷ wavelength'; $('#x1b').textContent = fmt(q, 1); $('#x2s').textContent = 'diffraction'; $('#x2b').textContent = q < 1.6 ? 'a lot' : q < 4 ? 'some' : 'only at the edges';
+    note = 'Supplement: waves spread out most when the gap is about the same size as the wavelength. A gap much wider than the wavelength gives straight wavefronts with only a little bending at the edges.'; }
+  $('#mnote').textContent = note;
+  $('#work').innerHTML = `v = f λ = ${fmt(f, 1)} Hz × ${fmt(lam, 4)} m = <b>${fmt(f * lam, 3)} m/s</b><br><span class="note">In deeper water waves travel faster. Changing f changes λ, not v.</span>`;
+}
+function loop(ts) { if (last == null) last = ts; clock += Math.min(0.05, (ts - last) / 1000) * SLOW; last = ts; drawTank(); drawSide(); requestAnimationFrame(loop); }
+function change() { field = null; readouts(); }
+bindRange('f', v => { f = v; change(); }); bindRange('d', v => { dmm = v; change(); }); bindRange('A', v => { amp = v; readouts(); });
+bindRange('ang', v => { ang = v; change(); }); bindRange('gap', v => { gap = v; change(); });
+$$('[data-mode]').forEach(b => b.onclick = () => { mode = b.dataset.mode; $$('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
+  if (mode === 'reflection' && ang < 15) { ang = 40; $('#ang').value = 40; } $('#ang').min = mode === 'reflection' ? 15 : 0; change(); });
+sizes(); readouts(); requestAnimationFrame(loop); onResize(() => { sizes(); });
+
+// Check yourself: data-a = index of the correct option, .why = explanation, data-hint = nudge after a wrong answer
+(function () {
+  const qs = $$('.q'); const ok = new Set();
+  function score() { const s = $('#score'); if (s) s.textContent = ok.size + ' of ' + qs.length + ' correct'; }
+  qs.forEach((q, n) => { const a = +q.dataset.a, bs = Array.from(q.querySelectorAll('.opts button')), fb = q.querySelector('.fb');
+    bs.forEach((b, i) => { b.type = 'button'; b.addEventListener('click', () => {
+      bs.forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+      b.setAttribute('aria-pressed', 'true');
+      if (i === a) { b.classList.add('right'); fb.className = 'fb show'; fb.innerHTML = '<b>Correct.</b> ' + q.querySelector('.why').innerHTML; ok.add(n); }
+      else { b.classList.add('wrong'); fb.className = 'fb show no'; fb.innerHTML = '<b>Not quite.</b> ' + (q.dataset.hint || 'Look at the simulation again and try another answer.'); ok.delete(n); }
+      score(); }); }); });
+  score();
+})();
+</script>
+</body>
+</html>

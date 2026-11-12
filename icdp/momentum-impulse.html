@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crumple Zones, Airbags and Impulse · I Can't Do Physics</title>
+<meta name="description" content="Stop a car passenger in different times and compare the force–time graphs: same change in momentum, very different force.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px;line-height:1.6}
+.tag.core{background:#E3F6EE;color:#08744F}
+.tag.supp{background:#EFE7FD;color:#6227C9}
+.predict{background:var(--brandlt);border-left:4px solid var(--brand);padding:10px 14px;border-radius:8px;font-size:15px;margin-top:10px}
+.predict b{color:var(--navy)}
+.q{border-top:1px solid var(--line);padding:10px 0 6px;margin-top:8px}
+.q>p{margin:4px 0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.opts button{border-radius:12px;text-align:left;font-weight:500}
+.opts button.right{background:#ECFDF5;border-color:var(--core);color:#065F46;font-weight:700}
+.opts button.wrong{background:#FEF2F2;border-color:#DC2626;color:#991B1B}
+.fb{display:none;border-radius:10px;padding:8px 12px;margin-top:8px;background:#ECFDF5}
+.fb.show{display:block}
+.fb.no{background:var(--amberlt)}
+.card h2 .tag,.ctl .tag{vertical-align:1px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.read div.s{background:#F4F0FE}
+.why{display:none}
+.score{font-size:13px;color:var(--muted);margin:0}
+@media(max-width:780px){.first-m{order:-1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 1.6 Momentum <span class="tag supp">Supplement</span></p>
+<h1>Crumple Zones, Airbags and Impulse</h1>
+<div class="try"><b>Try this:</b> Choose a safety feature and press <b>Crash</b>. Then pick a different feature and crash again. The passenger's change in momentum is the same each time, but the stopping time is not. Compare the force–time graphs.</div>
+<div class="predict"><b>Predict first:</b> if a safety feature makes the stopping time 10 times longer, what happens to the average force on the passenger? Does the area under the force–time graph change?</div>
+<div class="card" style="margin-top:16px"><canvas id="scene" role="img" aria-label="A car with a passenger crashing into a wall"></canvas><p class="note">The crash is shown in very slow motion (40 times slower), so you can compare how long each stop takes.</p></div>
+<div class="grid">
+  <div class="card">
+    <h2>Force–time graph for the passenger</h2>
+    <canvas id="ft" role="img" aria-label="Force against time graph during the crash"></canvas>
+    <p class="note">Shaded area = impulse = change in momentum. Grey outlines are your earlier crashes at the same mass and speed. The dashed line is the average force.</p>
+  </div>
+  <div class="card first-m">
+    <h2>Set up the crash</h2>
+    <div class="btns" role="group" aria-label="Safety feature"><button data-pre="0" class="on">Rigid car, no belt</button><button data-pre="1">Crumple zone + seat belt</button><button data-pre="2">+ airbag</button></div>
+    <label class="ctl"><span>Stopping time Δt <b id="ldt">0.020 s</b></span><input id="dt" type="range" min="0.01" max="0.3" step="0.01" value="0.02"></label>
+    <label class="ctl"><span>Passenger mass <b id="lm">70 kg</b></span><input id="m" type="range" min="40" max="100" step="5" value="70"></label>
+    <label class="ctl"><span>Speed before the crash <b id="lu">15 m/s</b></span><input id="u" type="range" min="5" max="30" step="1" value="15"></label>
+    <div class="btns"><button id="crash" class="primary">▶ Crash</button><button id="clear">Clear graph</button></div>
+  </div>
+</div>
+<div class="card">
+  <h2>Readings <span class="tag supp">Supplement</span></h2>
+  <div class="read">
+    <div class="s"><small>change in momentum Δp</small><b id="rdp">—</b></div>
+    <div class="s"><small>stopping time Δt</small><b id="rdt">—</b></div>
+    <div class="s"><small>average force F = Δp ÷ Δt</small><b id="rF">—</b></div>
+    <div class="s"><small>peak force</small><b id="rpk">—</b></div>
+    <div><small>average force ÷ passenger's weight</small><b id="rw">—</b></div>
+  </div>
+  <div class="eq" id="work">impulse = F Δt = Δ(m v) &nbsp;·&nbsp; resultant force = change in momentum ÷ time taken, F = Δp ÷ Δt</div>
+</div>
+
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
+<div class="q" data-a="2" data-hint="Δp = m × (change in velocity). The passenger goes from 20 m/s to 0."><p><b>1.</b> A 60 kg passenger travelling at 20 m/s is brought to rest. What is the size of the change in momentum?</p><div class="opts"><button>3.0 kg m/s</button><button>80 kg m/s</button><button>1200 kg m/s</button><button>12 000 kg m/s</button></div><div class="fb" aria-live="polite"></div><div class="why">Δp = m Δv = 60 kg × 20 m/s = 1200 kg m/s.</div></div>
+<div class="q" data-a="0" data-hint="Use F = Δp ÷ Δt for each stopping time."><p><b>2.</b> The passenger in question 1 is stopped in 0.05 s without an airbag and in 0.40 s with one. What are the average forces?</p><div class="opts"><button>24 000 N and 3000 N</button><button>60 N and 480 N</button><button>3000 N and 24 000 N</button><button>1200 N in both cases</button></div><div class="fb" aria-live="polite"></div><div class="why">F = 1200 ÷ 0.05 = 24 000 N without the airbag and F = 1200 ÷ 0.40 = 3000 N with it. Eight times the time gives one-eighth of the force.</div></div>
+<div class="q" data-a="1" data-hint="The passenger stops from the same speed either way, so what stays the same and what changes?"><p><b>3.</b> Why does an airbag reduce injuries?</p><div class="opts"><button>It reduces the passenger's change in momentum</button><button>It increases the stopping time, so the force is smaller</button><button>It makes the stopping time shorter</button></div><div class="fb" aria-live="polite"></div><div class="why">The change in momentum is fixed by the mass and speed. The airbag increases the time taken to stop, so F = Δp ÷ Δt is smaller.</div></div>
+<div class="q" data-a="0" data-hint="Area = force × time. What is F × Δt called?"><p><b>4.</b> What does the area under a force–time graph represent?</p><div class="opts"><button>Impulse (change in momentum)</button><button>Work done</button><button>Power</button><button>Acceleration</button></div><div class="fb" aria-live="polite"></div><div class="why">Area = force × time = impulse, which equals the change in momentum, Δ(m v).</div></div>
+<div class="q" data-a="1" data-hint="Impulse = F × Δt."><p><b>5.</b> A racket exerts an average force of 200 N on a ball for 0.010 s. What impulse does the ball receive?</p><div class="opts"><button>0.050 N s</button><button>2.0 N s</button><button>200 N s</button><button>20 000 N s</button></div><div class="fb" aria-live="polite"></div><div class="why">Impulse = F Δt = 200 N × 0.010 s = 2.0 N s, so the ball's momentum changes by 2.0 kg m/s.</div></div>
+</section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 && !o.bottom ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && !o.bottom && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0 && !o.bottom) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+
+const PRE = [0.02, 0.10, 0.20], SLOW = 40, TMAX = 0.32, g = 9.8;
+let P = {m: 70, u: 15, dt: 0.02}, runs = [], cur = null, ph = 'idle', t0 = null, tc = 0, S, G;
+// average force, half-sine force pulse with the same impulse, and its numerical area
+function force(m, u, dt) { return m * u / dt; }
+function pulse(m, u, dt, t) { return t < 0 || t > dt ? 0 : Math.PI * m * u / (2 * dt) * Math.sin(Math.PI * t / dt); }
+function area(m, u, dt) { const n = 2000, h = dt / n; let s = pulse(m, u, dt, 0) + pulse(m, u, dt, dt); for (let i = 1; i < n; i++) s += (i % 2 ? 4 : 2) * pulse(m, u, dt, i * h); return s * h / 3; }
+function vel(m, u, dt, t) { return t <= 0 ? u : t >= dt ? 0 : u * (1 + Math.cos(Math.PI * t / dt)) / 2; }
+function dist(u, dt, t) { t = Math.min(t, dt); return u * t / 2 + u * dt / (2 * Math.PI) * Math.sin(Math.PI * t / dt); }
+window.PHYS = {force, pulse, area};
+function sizes() { S = fit($('#scene'), 0.22, 180, 215); G = fit($('#ft'), 0.68, 230, 320); }
+function kN(F) { return F >= 1e4 ? fmt(F / 1000, 0) + ' kN' : F >= 1000 ? fmt(F / 1000, 1) + ' kN' : fmt(F, 0) + ' N'; }
+function drawScene() {
+  const {c, w, h} = S; c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  const ground = h - 30, wallX = w - 34, sc = Math.min(62, (w - 60) / 7.2); // px per metre, car 4 m long
+  c.fillStyle = '#CBD5E1'; c.fillRect(0, ground, w, 30); c.fillStyle = '#94A3B8'; c.fillRect(wallX, 18, 26, ground - 18);
+  c.strokeStyle = '#64748B'; c.lineWidth = 1; for (let y = 24; y < ground; y += 14) { c.beginPath(); c.moveTo(wallX, y); c.lineTo(wallX + 26, y); c.stroke(); }
+  label(c, 'wall', wallX + 13, ground + 15, {size: 11, col: COL.muted});
+  // position of the car's front bumper (before the crash it is behind the wall)
+  let front = wallX, crush = 0, v = P.u, tt = 0;
+  if (ph === 'approach') front = wallX - (1 - Math.min(1, tc)) * 3.2 * sc;
+  else if (ph === 'idle') front = wallX - 3.2 * sc;
+  else { tt = ph === 'crash' ? tc : P.dt; crush = Math.min(0.9, dist(P.u, P.dt, tt) * Math.min(1, 0.08 / P.dt + 0.15)) * sc; v = vel(P.m, P.u, P.dt, tt); }
+  const L = 4 * sc - crush, back = front - L, top = ground - 1.4 * sc, wy = ground - 0.3 * sc;
+  c.fillStyle = COL.brand; c.beginPath(); c.moveTo(back, wy); c.lineTo(back, top + 0.45 * sc); c.lineTo(back + L * 0.25, top + 0.4 * sc); c.lineTo(back + L * 0.38, top);
+  c.lineTo(back + L * 0.66, top); c.lineTo(back + L * 0.78, top + 0.42 * sc);
+  if (crush > 2) { const n = 5; for (let i = 0; i <= n; i++) c.lineTo(front - (i % 2 ? 6 : 0), top + 0.42 * sc + (wy - top - 0.42 * sc) * i / n); } else c.lineTo(front, top + 0.5 * sc), c.lineTo(front, wy);
+  c.closePath(); c.fill();
+  c.fillStyle = '#BFDBFE'; c.beginPath(); c.moveTo(back + L * 0.4, top + 0.08 * sc); c.lineTo(back + L * 0.64, top + 0.08 * sc); c.lineTo(back + L * 0.73, top + 0.42 * sc); c.lineTo(back + L * 0.33, top + 0.42 * sc); c.closePath(); c.fill();
+  c.fillStyle = '#111827'; [back + L * 0.2, back + L * 0.78].forEach(x => { c.beginPath(); c.arc(x, wy, 0.3 * sc, 0, 7); c.fill(); c.fillStyle = '#94A3B8'; c.beginPath(); c.arc(x, wy, 0.12 * sc, 0, 7); c.fill(); c.fillStyle = '#111827'; });
+  // passenger head and airbag
+  const lean = ph === 'crash' || ph === 'done' ? Math.min(0.25 * sc, dist(P.u, P.dt, tt) * 4) : 0, hx = back + L * 0.52 + lean, hy = top + 0.24 * sc;
+  if (P.dt >= 0.2 && (ph === 'crash' || ph === 'done')) { c.fillStyle = 'rgba(255,255,255,.95)'; c.strokeStyle = COL.rule; c.beginPath(); c.ellipse(back + L * 0.66, top + 0.27 * sc, 0.14 * sc, 0.2 * sc, 0, 0, 7); c.fill(); c.stroke(); }
+  c.fillStyle = COL.amber; c.beginPath(); c.arc(hx, hy, 0.12 * sc, 0, 7); c.fill();
+  if (ph !== 'idle' && v > 0.05) { const al = Math.max(14, v * 3.2); arrow(c, back + L * 0.3, top - 16, back + L * 0.3 + al, top - 16, COL.navy, 3, 9); label(c, fmt(v, 1) + ' m/s', back + L * 0.3 - 6, top - 16, {size: 12, col: COL.navy, align: 'right'}); }
+  if (ph === 'crash' || ph === 'done') label(c, 't = ' + fmt(Math.min(tc, P.dt), 3) + ' s', 12, 16, {size: 12, col: COL.purple, align: 'left', bg: 'rgba(240,234,254,.95)'});
+  if (ph === 'done') label(c, 'stopped in ' + fmt(P.dt, 2) + ' s', 12, 42, {size: 12, col: COL.green, align: 'left'});
+}
+function drawGraph() {
+  const {c, w, h} = G; c.clearRect(0, 0, w, h);
+  const all = runs.concat(cur ? [cur] : []), peak = Math.max(1000, ...all.map(r => Math.PI * r.m * r.u / (2 * r.dt)));
+  const ymax = niceMax(peak / 1000 * 1.08, 5);
+  const o = {x: 52, y: 12, w: w - 64, h: h - 54, xmin: 0, xmax: TMAX, ymin: 0, ymax, xstep: w < 400 ? 0.08 : 0.04, ystep: niceStep(ymax, 5), xlab: 'time / s', ylab: 'force / kN', xdp: 2};
+  const {X, Y} = axes(c, o);
+  const curve = (r, upto) => { c.beginPath(); c.moveTo(X(0), Y(0)); const n = 120; for (let i = 0; i <= n; i++) { const t = r.dt * i / n; if (t > upto) break; c.lineTo(X(Math.min(t, TMAX)), Y(pulse(r.m, r.u, r.dt, t) / 1000)); } };
+  runs.forEach(r => { c.save(); c.setLineDash([5, 4]); c.strokeStyle = '#94A3B8'; c.lineWidth = 1.6; curve(r, r.dt); c.stroke(); c.restore();
+    label(c, 'Δt = ' + fmt(r.dt, 2) + ' s', X(Math.min(r.dt / 2, TMAX)) + 8, Y(Math.PI * r.m * r.u / (2 * r.dt) / 1000) + 2, {size: 10.5, col: COL.muted, align: 'left', bg: 'rgba(255,255,255,.85)'}); });
+  if (cur) { const upto = ph === 'crash' ? tc : cur.dt;
+    curve(cur, upto); c.lineTo(X(Math.min(upto, cur.dt)), Y(0)); c.closePath(); c.fillStyle = 'rgba(31,111,235,.22)'; c.fill();
+    c.strokeStyle = COL.brand; c.lineWidth = 2.6; curve(cur, upto); c.stroke();
+    if (ph === 'done') { const Fa = force(cur.m, cur.u, cur.dt) / 1000; c.save(); c.setLineDash([6, 4]); c.strokeStyle = COL.amber; c.lineWidth = 2; c.beginPath(); c.moveTo(X(0), Y(Fa)); c.lineTo(X(cur.dt), Y(Fa)); c.stroke(); c.restore();
+      label(c, 'area = ' + fmt(cur.m * cur.u, 0) + ' N s', X(Math.min(cur.dt, TMAX)) + 8, Y(Fa * 0.5), {size: 11.5, col: COL.navy, align: 'left', bg: 'rgba(232,240,254,.95)'}); } }
+}
+function readouts() {
+  const dp = P.m * P.u, F = force(P.m, P.u, P.dt), done = ph === 'done';
+  $('#rdp').textContent = fmt(dp, 0) + ' kg m/s'; $('#rdt').textContent = fmt(P.dt, 2) + ' s';
+  $('#rF').textContent = done ? kN(F) : '—'; $('#rpk').textContent = done ? kN(Math.PI * F / 2) : '—';
+  $('#rw').textContent = done ? '× ' + fmt(F / (P.m * g), 0) : '—';
+  $('#work').innerHTML = done ? `Δp = m v = ${fmt(P.m, 0)} kg × ${fmt(P.u, 0)} m/s = <b>${fmt(dp, 0)} kg m/s</b><br>F = Δp ÷ Δt = ${fmt(dp, 0)} ÷ ${fmt(P.dt, 2)} = <b>${fmt(F, 0)} N</b><br><span class="note">Weight = m g = ${fmt(P.m, 0)} × 9.8 = ${fmt(P.m * g, 0)} N</span>` : 'impulse = F Δt = Δ(m v) &nbsp;·&nbsp; resultant force = change in momentum ÷ time taken, F = Δp ÷ Δt';
+}
+function draw() { drawScene(); drawGraph(); readouts(); }
+function loop(ts) { if (t0 == null) t0 = ts; const s = (ts - t0) / 1000;
+  if (ph === 'approach') { tc = s / 0.9; if (tc >= 1) { ph = 'crash'; t0 = ts; tc = 0; } }
+  else if (ph === 'crash') { tc = s / SLOW; if (tc >= P.dt) { tc = P.dt; ph = 'done'; draw(); $('#crash').disabled = false; return; } }
+  draw(); requestAnimationFrame(loop); }
+function archive() { if (cur && ph === 'done' && !runs.some(r => r.dt === cur.dt)) { runs.push(cur); if (runs.length > 3) runs.shift(); } }
+function setDt(v) { P.dt = Math.round(v * 100) / 100; $('#dt').value = P.dt; $('#ldt').textContent = fmt(P.dt, 3) + ' s';
+  $$('[data-pre]').forEach(b => b.classList.toggle('on', Math.abs(PRE[+b.dataset.pre] - P.dt) < 1e-9)); }
+function reset(keep) { archive(); if (!keep) runs = []; cur = null; ph = 'idle'; draw(); }
+$$('[data-pre]').forEach(b => b.onclick = () => { setDt(PRE[+b.dataset.pre]); reset(true); });
+bindRange('dt', v => { setDt(v); reset(true); });
+bindRange('m', v => { P.m = v; $('#lm').textContent = v + ' kg'; reset(false); });
+bindRange('u', v => { P.u = v; $('#lu').textContent = v + ' m/s (' + fmt(v * 3.6, 0) + ' km/h)'; reset(false); });
+$('#crash').onclick = () => { archive(); runs = runs.filter(r => r.dt !== P.dt); cur = {m: P.m, u: P.u, dt: P.dt}; ph = 'approach'; t0 = null; tc = 0; $('#crash').disabled = true; requestAnimationFrame(loop); };
+$('#clear').onclick = () => { runs = []; if (ph !== 'done') cur = null; draw(); };
+$('#lu').textContent = '15 m/s (54 km/h)';
+sizes(); draw(); onResize(() => { sizes(); draw(); });
+
+// Check yourself: data-a = index of the correct option, .why = explanation, data-hint = nudge after a wrong answer
+(function () {
+  const qs = $$('.q'); const ok = new Set();
+  function score() { const s = $('#score'); if (s) s.textContent = ok.size + ' of ' + qs.length + ' correct'; }
+  qs.forEach((q, n) => { const a = +q.dataset.a, bs = Array.from(q.querySelectorAll('.opts button')), fb = q.querySelector('.fb');
+    bs.forEach((b, i) => { b.type = 'button'; b.addEventListener('click', () => {
+      bs.forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+      b.setAttribute('aria-pressed', 'true');
+      if (i === a) { b.classList.add('right'); fb.className = 'fb show'; fb.innerHTML = '<b>Correct.</b> ' + q.querySelector('.why').innerHTML; ok.add(n); }
+      else { b.classList.add('wrong'); fb.className = 'fb show no'; fb.innerHTML = '<b>Not quite.</b> ' + (q.dataset.hint || 'Look at the simulation again and try another answer.'); ok.delete(n); }
+      score(); }); }); });
+  score();
+})();
+</script>
+</body>
+</html>

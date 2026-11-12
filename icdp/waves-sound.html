@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sound: Pitch, Loudness and Echoes · I Can't Do Physics</title>
+<meta name="description" content="See compressions and rarefactions in air, read pitch and loudness from an oscilloscope trace and time an echo to measure the speed of sound.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>:root{--navy:#0F2A4A;--brand:#1F6FEB;--brandlt:#E8F0FE;--amber:#F5A524;--amberlt:#FFF4DF;--ink:#1E293B;--muted:#5B6B82;--rule:#CBD5E1;--line:#E2E8F0;--bg:#F6F8FB;--core:#0E9F6E;--supp:#7C3AED}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.top{background:var(--navy);color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
+.logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
+.logo b{color:var(--amber);font-weight:800}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a:hover{text-decoration:underline}
+.ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
+h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
+.try{background:var(--amberlt);border-left:4px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:15px}
+.try b{color:#8A5A00}
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-top:16px;align-items:start}
+.grid.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:780px){.grid,.grid.even{grid-template-columns:minmax(0,1fr)}}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 1px 2px rgba(15,42,74,.05);min-width:0}
+.card+.card{margin-top:16px}
+.grid>.card{margin-top:0}
+.card h2{font-size:15px;margin:0 0 8px;color:var(--navy);font-weight:700}
+canvas{display:block;width:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.ctl{display:block;margin:10px 0 4px}
+.ctl span{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted)}
+.ctl b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brand);height:30px;margin:2px 0}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;font-size:14px;font-weight:600;border:1px solid var(--rule);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:var(--brand)}
+button.on,button.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.read{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin-top:12px}
+.read div{background:var(--brandlt);border-radius:10px;padding:7px 10px;min-width:0}
+.read small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.read b{font-size:18px;color:var(--navy);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.status{margin-top:10px;font-weight:700;font-size:15px;color:var(--navy);min-height:22px}
+.status.good{color:var(--core)}
+.status.warn{color:#B45309}
+.eq{background:#F1F5F9;border-radius:10px;padding:8px 12px;font-size:15px;color:var(--navy);margin-top:10px}
+.note{font-size:13px;color:var(--muted);margin:8px 0 0}
+.check{margin:16px 0;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.check h2{font-size:15px;margin:0 0 4px;color:var(--brand);font-weight:700}
+.check p{margin:4px 0}
+.check summary{cursor:pointer;font-weight:600;color:var(--navy);display:inline-block;padding:6px 12px;border:1px solid var(--rule);border-radius:999px;font-size:14px;margin-top:6px}
+.check details[open] summary{background:var(--brandlt);border-color:var(--brandlt)}
+.check .ans{background:#ECFDF5;border-radius:10px;padding:8px 12px;margin-top:8px}
+footer{color:var(--muted);font-size:12px;padding:12px 0 32px}
+sub,sup{line-height:0}
+
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px;line-height:1.6}
+.tag.core{background:#E3F6EE;color:#08744F}
+.tag.supp{background:#EFE7FD;color:#6227C9}
+.predict{background:var(--brandlt);border-left:4px solid var(--brand);padding:10px 14px;border-radius:8px;font-size:15px;margin-top:10px}
+.predict b{color:var(--navy)}
+.q{border-top:1px solid var(--line);padding:10px 0 6px;margin-top:8px}
+.q>p{margin:4px 0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 2px}
+.opts button{border-radius:12px;text-align:left;font-weight:500}
+.opts button.right{background:#ECFDF5;border-color:var(--core);color:#065F46;font-weight:700}
+.opts button.wrong{background:#FEF2F2;border-color:#DC2626;color:#991B1B}
+.fb{display:none;border-radius:10px;padding:8px 12px;margin-top:8px;background:#ECFDF5}
+.fb.show{display:block}
+.fb.no{background:var(--amberlt)}
+.card h2 .tag,.ctl .tag{vertical-align:1px}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.read div.s{background:#F4F0FE}
+.why{display:none}
+.score{font-size:13px;color:var(--muted);margin:0}
+@media(max-width:780px){.first-m{order:-1}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><span class="logo">I Can't Do <b>Physics</b></span><a href="index.html">All simulations →</a></div></header>
+<main class="wrap">
+<p class="ref">Cambridge IGCSE Physics 0625 · 3.4 Sound</p>
+<h1>Sound: Pitch, Loudness and Echoes</h1>
+<div class="try"><b>Try this:</b> Change the frequency and the amplitude of the loudspeaker. Watch the air particles and the oscilloscope trace. Then use an echo to measure the speed of sound.</div>
+<div class="predict"><b>Predict first:</b> if you increase the frequency, what happens to the trace on the oscilloscope and to the pitch you hear? What changes if you increase the amplitude instead?</div>
+<div class="card" style="margin-top:16px"><h2>Air particles in front of a loudspeaker</h2><canvas id="air" role="img" aria-label="Air particles forming compressions and rarefactions in front of a loudspeaker"></canvas><p class="note" id="airnote"></p></div>
+<div class="grid">
+  <div class="card"><h2>Oscilloscope</h2><canvas id="cro" role="img" aria-label="Oscilloscope trace of the sound wave"></canvas>
+    <div class="btns" role="group" aria-label="Time base"><button data-tb="0.0001">0.1 ms/div</button><button data-tb="0.0005">0.5 ms/div</button><button data-tb="0.001" class="on">1 ms/div</button><button data-tb="0.005">5 ms/div</button></div>
+    <p class="note" id="cronote"></p></div>
+  <div class="card first-m">
+    <h2>Loudspeaker</h2>
+    <label class="ctl"><span>Frequency <b id="lf">500 Hz</b></span><input id="freq" type="range" min="1" max="4.7" step="0.01" value="2.7"></label>
+    <label class="ctl"><span>Amplitude <b id="la">3</b></span><input id="amp" type="range" min="1" max="5" step="1" value="3"></label>
+    <div class="btns"><button id="play">🔊 Play tone (1 s)</button></div>
+    <div class="read">
+      <div><small>period T = 1 ÷ f</small><b id="rT">—</b></div>
+      <div><small>wavelength in air λ = v ÷ f</small><b id="rl">—</b></div>
+      <div><small>pitch</small><b id="rp">—</b></div>
+      <div><small>can humans hear it?</small><b id="rh">—</b></div>
+    </div>
+    <div class="status" id="hear"></div>
+  </div>
+</div>
+<div class="grid">
+  <div class="card"><h2>Echo: measure the speed of sound</h2><canvas id="echo" role="img" aria-label="A sound pulse travelling to a reflector and back"></canvas><p class="note" id="echonote"></p></div>
+  <div class="card">
+    <h2>Set up the echo</h2>
+    <div class="btns" role="group" aria-label="Situation"><button data-sc="air" class="on">Clap at a wall (air)</button><button data-sc="sonar">Ship's sonar (sea water)</button></div>
+    <label class="ctl"><span id="dlab">Distance to the wall <b id="ld">170 m</b></span><input id="dist" type="range" min="50" max="300" step="10" value="170"></label>
+    <div class="btns"><button id="clap" class="primary">▶ Clap</button></div>
+    <div class="read">
+      <div><small>distance d</small><b id="rd">—</b></div>
+      <div><small>echo time t</small><b id="rt">—</b></div>
+      <div><small>speed = 2d ÷ t</small><b id="rv">—</b></div>
+    </div>
+    <div class="eq" id="ework">The sound goes to the reflector and back, so it travels 2d.</div>
+    <p class="note"><span class="tag supp">Supplement</span> Approximate speed of sound: air 340 m/s, water 1500 m/s, steel 5000 m/s. In general sound travels fastest in solids and slowest in gases. It cannot travel through a vacuum.</p>
+  </div>
+</div>
+
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
+<div class="q" data-a="1" data-hint="Move the frequency slider and watch the 'can humans hear it?' reading."><p><b>1.</b> <span class="tag core">Core</span> What is the approximate range of frequencies that humans can hear?</p><div class="opts"><button>2 Hz to 2000 Hz</button><button>20 Hz to 20 000 Hz</button><button>200 Hz to 200 000 Hz</button><button>20 kHz to 200 kHz</button></div><div class="fb" aria-live="polite"></div><div class="why">The audible range for humans is about 20 Hz to 20 000 Hz (20 kHz). Sound above 20 kHz is ultrasound.</div></div>
+<div class="q" data-a="1" data-hint="The sound travels to the wall and back: distance = 2d."><p><b>2.</b> <span class="tag core">Core</span> A student stands 170 m from a wall and hears the echo of a clap 1.0 s later. What is the speed of sound?</p><div class="opts"><button>170 m/s</button><button>340 m/s</button><button>85 m/s</button><button>680 m/s</button></div><div class="fb" aria-live="polite"></div><div class="why">Speed = distance ÷ time = (2 × 170 m) ÷ 1.0 s = 340 m/s.</div></div>
+<div class="q" data-a="2" data-hint="Change the amplitude slider and watch the oscilloscope trace."><p><b>3.</b> <span class="tag core">Core</span> The amplitude of a sound wave is increased but the frequency stays the same. What do you hear?</p><div class="opts"><button>A higher pitch</button><button>A lower pitch</button><button>A louder sound with the same pitch</button><button>A quieter sound</button></div><div class="fb" aria-live="polite"></div><div class="why">A larger amplitude gives a louder sound. The pitch depends on the frequency, which has not changed.</div></div>
+<div class="q" data-a="0" data-hint="depth = speed × time ÷ 2."><p><b>4.</b> <span class="tag supp">Supplement</span> A ship's sonar pulse returns from the sea bed 0.40 s after it is sent. The speed of sound in sea water is 1500 m/s. How deep is the sea?</p><div class="opts"><button>300 m</button><button>600 m</button><button>150 m</button><button>3750 m</button></div><div class="fb" aria-live="polite"></div><div class="why">The pulse travels 1500 × 0.40 = 600 m there and back, so the depth is 600 ÷ 2 = 300 m.</div></div>
+<div class="q" data-a="1" data-hint="Look at the C labels in the air particle animation."><p><b>5.</b> <span class="tag supp">Supplement</span> What is a compression in a sound wave?</p><div class="opts"><button>A region where the particles are further apart</button><button>A region where the particles are closer together</button><button>The highest point of the wave</button></div><div class="fb" aria-live="polite"></div><div class="why">In a compression the air particles are pushed closer together (higher pressure). In a rarefaction they are further apart (lower pressure).</div></div>
+</section>
+</main>
+<footer class="wrap">© I Can't Do Physics · Interactive companion to the IGCSE Physics 0625 worksheet packs. Cambridge IGCSE is a trademark of Cambridge University Press &amp; Assessment, which has not reviewed or endorsed this resource.</footer>
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524', ink:'#1E293B', muted:'#5B6B82',
+  rule:'#CBD5E1', line:'#E2E8F0', red:'#DC2626', green:'#0E9F6E', purple:'#7C3AED', sky:'#DBEAFE', water:'#9CC3F2'};
+const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+// size a canvas to its container; returns {c,w,h} in CSS pixels
+function fit(cv, aspect, minH, maxH) {
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
+  let h = Math.round(w * aspect);
+  if (minH) h = Math.max(h, minH);
+  if (maxH) h = Math.min(h, maxH);
+  const d = Math.min(window.devicePixelRatio || 1, 3);
+  cv.width = Math.round(w * d); cv.height = Math.round(h * d);
+  cv.style.height = h + 'px';
+  const c = cv.getContext('2d'); c.setTransform(d, 0, 0, d, 0, 0);
+  return {c, w, h};
+}
+function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
+function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
+function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
+function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+// axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
+function axes(c, o) {
+  const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
+  const Y = v => o.y + o.h - (v - o.ymin) / (o.ymax - o.ymin) * o.h;
+  c.save(); c.font = '11px ' + FONT; c.lineWidth = 1;
+  const nx = Math.round((o.xmax - o.xmin) / o.xstep), ny = Math.round((o.ymax - o.ymin) / o.ystep);
+  const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
+  for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 && !o.bottom ? Y(0) : o.y + o.h) + 4); } }
+  for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
+    c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
+    if (o.ymin < 0 && o.ymax > 0 && !o.bottom && Math.abs(v) < 1e-12) continue;
+    c.fillStyle = COL.muted; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText(fmt(v, yd), (o.xmin < 0 && o.xmax > 0 ? X(0) : o.x) - 5, py); }
+  c.strokeStyle = COL.ink; c.lineWidth = 1.4;
+  const y0 = (o.ymin < 0 && o.ymax > 0 && !o.bottom) ? Y(0) : o.y + o.h, x0 = (o.xmin < 0 && o.xmax > 0) ? X(0) : o.x;
+  c.beginPath(); c.moveTo(o.x, y0); c.lineTo(o.x + o.w, y0); c.stroke();
+  c.beginPath(); c.moveTo(x0, o.y); c.lineTo(x0, o.y + o.h); c.stroke();
+  c.fillStyle = COL.ink; c.font = '600 12px ' + FONT;
+  c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(o.xlab, o.x + o.w, o.y + o.h + 34);
+  c.save(); c.translate(o.x - (o.ylabOff || 40), o.y); c.rotate(-Math.PI / 2); c.textAlign = 'right'; c.textBaseline = 'top'; c.fillText(o.ylab, 0, 0); c.restore();
+  c.restore();
+  return {X, Y};
+}
+function arrow(c, x1, y1, x2, y2, col, lw, head) {
+  const a = Math.atan2(y2 - y1, x2 - x1), L = Math.hypot(x2 - x1, y2 - y1); head = Math.min(head || 10, L * 0.6);
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = lw || 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2 - head * 0.8 * Math.cos(a), y2 - head * 0.8 * Math.sin(a)); c.stroke();
+  c.beginPath(); c.moveTo(x2, y2); c.lineTo(x2 - head * Math.cos(a - 0.42), y2 - head * Math.sin(a - 0.42)); c.lineTo(x2 - head * Math.cos(a + 0.42), y2 - head * Math.sin(a + 0.42)); c.closePath(); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, opt) {
+  opt = opt || {}; c.save(); c.font = (opt.weight || '600') + ' ' + (opt.size || 12) + 'px ' + FONT;
+  c.fillStyle = opt.col || COL.ink; c.textAlign = opt.align || 'center'; c.textBaseline = opt.base || 'middle';
+  if (opt.bg) { const m = c.measureText(txt), pw = m.width + 10, ph = (opt.size || 12) + 8;
+    let bx = x - (c.textAlign === 'center' ? pw / 2 : c.textAlign === 'right' ? pw - 5 : 5), by = y - ph / 2;
+    c.fillStyle = opt.bg; rrect(c, bx, by, pw, ph, 5); c.fill(); c.fillStyle = opt.col || COL.ink; }
+  c.fillText(txt, x, y); c.restore();
+}
+function rrect(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function bindRange(id, fn) { const el = document.getElementById(id); el.addEventListener('input', () => fn(+el.value)); return el; }
+function onResize(fn) { let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(fn, 60); }); }
+function pointerPos(cv, e) { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; }
+
+const V = {air: 340, water: 1500, steel: 5000}; // approximate speeds of sound / (m/s)
+let eDone = false, f = 500, A = 3, tb = 0.001, sc = 'air', dist = 170, AR, CR, EC, clock = 0, last = null, pulse = null, ctx = null;
+function echoTime(d, v) { return 2 * d / v; }
+function band(fr) { return fr < 20 ? 'infrasound' : fr <= 20000 ? 'audible' : 'ultrasound'; }
+window.PHYS = {V, echoTime, band};
+function sizes() { AR = fit($('#air'), 0.26, 170, 230); CR = fit($('#cro'), 0.66, 220, 320); EC = fit($('#echo'), 0.42, 210, 250); }
+function nice(x) { return +x.toPrecision(2); }
+function hz(x) { return x >= 1000 ? fmt(x / 1000, x >= 10000 ? 0 : 1) + ' kHz' : fmt(x, 0) + ' Hz'; }
+function drawAir() {
+  const {c, w, h} = AR; c.clearRect(0, 0, w, h); c.fillStyle = '#F8FAFC'; c.fillRect(0, 0, w, h);
+  const x0 = 54, x1 = w - 10, lamPx = (x1 - x0) / 3, k = 2 * Math.PI / lamPx, ph = 2 * Math.PI * 0.7 * clock, amax = lamPx * 0.14 * A / 5, rows = 7, top = 26, bot = h - 26, cols = Math.round((x1 - x0) / 11);
+  // speaker
+  const s0 = amax * Math.sin(ph); c.fillStyle = COL.navy; c.fillRect(8, h / 2 - 22, 18, 44);
+  c.fillStyle = '#475569'; c.beginPath(); c.moveTo(26, h / 2 - 14); c.lineTo(40 + s0, top - 6); c.lineTo(40 + s0, bot + 6); c.lineTo(26, h / 2 + 14); c.closePath(); c.fill();
+  for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const xr = x0 + (i + (j % 2) * 0.5) * (x1 - x0) / cols, s = amax * Math.sin(ph - k * (xr - x0)), y = top + j * (bot - top) / (rows - 1);
+    const hl = j === 3 && i === Math.round(cols * 0.37); c.fillStyle = hl ? COL.red : COL.brand; c.beginPath(); c.arc(xr + s, y, hl ? 5 : 3.4, 0, 7); c.fill();
+    if (hl) { arrow(c, xr - amax - 4, y - 12, xr + amax + 4, y - 12, COL.red, 1.6, 6); arrow(c, xr + amax + 4, y - 12, xr - amax - 4, y - 12, COL.red, 1.6, 6); } }
+  // compressions where phase = 0 (mod 2π), rarefactions where phase = π
+  const phm = ph % (2 * Math.PI); for (let n = -1; n < 5; n++) { const xc = x0 + (phm - 2 * Math.PI * n) / k, xr = xc + lamPx / 2;
+    if (xc > x0 + 6 && xc < x1 - 6) label(c, 'C', xc, h - 10, {size: 11, weight: '800', col: COL.purple}); if (xr > x0 + 6 && xr < x1 - 6) label(c, 'R', xr, h - 10, {size: 11, weight: '800', col: COL.amber}); }
+  arrow(c, x0, 10, x0 + 60, 10, COL.green, 2, 7); label(c, 'wave travels', x0 + 66, 10, {size: 10.5, col: COL.green, align: 'left'});
+}
+function drawCro() {
+  const {c, w, h} = CR; c.clearRect(0, 0, w, h); const pad = 6, W = w - 2 * pad, H = h - 2 * pad;
+  c.fillStyle = '#0B2B1E'; rrect(c, pad - 4, pad - 4, W + 8, H + 8, 10); c.fill();
+  c.strokeStyle = 'rgba(134,239,172,.18)'; c.lineWidth = 1; for (let i = 0; i <= 10; i++) { c.beginPath(); c.moveTo(pad + W * i / 10, pad); c.lineTo(pad + W * i / 10, pad + H); c.stroke(); } for (let j = 0; j <= 8; j++) { c.beginPath(); c.moveTo(pad, pad + H * j / 8); c.lineTo(pad + W, pad + H * j / 8); c.stroke(); }
+  const T = tb * 10, cyc = f * T; c.strokeStyle = '#4ADE80'; c.lineWidth = 2; c.shadowColor = '#4ADE80'; c.shadowBlur = 6;
+  if (cyc <= 60) { c.beginPath(); const n = Math.max(400, Math.ceil(cyc * 40)); for (let i = 0; i <= n; i++) { const t = T * i / n, y = pad + H / 2 - A * 0.75 * (H / 8) * Math.sin(2 * Math.PI * f * t); i ? c.lineTo(pad + W * i / n, y) : c.moveTo(pad, y); } c.stroke(); }
+  else { c.fillStyle = 'rgba(74,222,128,.35)'; c.fillRect(pad, pad + H / 2 - A * 0.75 * H / 8, W, A * 1.5 * H / 8); }
+  c.shadowBlur = 0; label(c, (tb * 1000) + ' ms/div', w - pad - 4, h - pad - 10, {size: 11, col: '#86EFAC', align: 'right'});
+  $('#cronote').textContent = cyc > 60 ? 'Too many waves to see on this time base: choose a shorter time base.' : `Screen width = 10 divisions = ${fmt(T * 1000, 0)} ms, showing ${fmt(cyc, cyc < 10 ? 1 : 0)} waves. Higher frequency → more waves on the screen. Larger amplitude → taller trace.`;
+}
+function drawEcho() {
+  const {c, w, h} = EC; c.clearRect(0, 0, w, h); const v = sc === 'air' ? V.air : V.water, te = echoTime(dist, v);
+  let tp = pulse == null ? -1 : clock - pulse, frac = tp < 0 ? -1 : Math.min(2, tp / (te / 2));
+  if (sc === 'air') { c.fillStyle = '#EAF2FB'; c.fillRect(0, 0, w, h); const gy = h - 34, px = 40, wx = px + (w - px - 50) * dist / 300;
+    c.fillStyle = '#CBD5E1'; c.fillRect(0, gy, w, h - gy); c.fillStyle = '#B4532A'; c.fillRect(wx, 30, 26, gy - 30); c.strokeStyle = '#7C2D12'; c.lineWidth = 1;
+    for (let y = 30; y < gy; y += 12) { c.beginPath(); c.moveTo(wx, y); c.lineTo(wx + 26, y); c.stroke(); }
+    c.strokeStyle = COL.navy; c.lineWidth = 3; c.lineCap = 'round'; c.beginPath(); c.arc(px, gy - 64, 8, 0, 7); c.moveTo(px, gy - 56); c.lineTo(px, gy - 26); c.lineTo(px - 9, gy); c.moveTo(px, gy - 26); c.lineTo(px + 9, gy); c.moveTo(px, gy - 48); c.lineTo(px + 14, gy - 44); c.stroke(); c.lineCap = 'butt';
+    if (frac >= 0 && frac < 2) { const x = frac <= 1 ? px + 18 + (wx - px - 18) * frac : wx - (wx - px - 18) * (frac - 1), dir = frac <= 1 ? 1 : -1;
+      c.strokeStyle = frac <= 1 ? COL.brand : COL.purple; c.lineWidth = 3; for (let k = 0; k < 3; k++) { c.beginPath(); c.arc(x - dir * k * 7, gy - 46, 22 - k * 5, dir > 0 ? -0.7 : Math.PI - 0.7, dir > 0 ? 0.7 : Math.PI + 0.7); c.stroke(); } }
+    c.strokeStyle = COL.muted; c.lineWidth = 1; c.beginPath(); c.moveTo(px, gy + 14); c.lineTo(wx, gy + 14); c.stroke(); label(c, 'd = ' + dist + ' m', (px + wx) / 2, gy + 14, {size: 11.5, col: COL.navy, bg: '#CBD5E1'}); }
+  else { c.fillStyle = '#E0F2FE'; c.fillRect(0, 0, w, 40); c.fillStyle = 'rgba(14,116,144,.35)'; c.fillRect(0, 40, w, h - 40); const sy = 40, by = sy + (h - sy - 26) * dist / 300, sx = w * 0.4;
+    c.fillStyle = '#7C5E3C'; c.beginPath(); c.moveTo(0, by); for (let x = 0; x <= w; x += 20) c.lineTo(x, by + Math.sin(x / 30) * 4); c.lineTo(w, h); c.lineTo(0, h); c.closePath(); c.fill();
+    c.fillStyle = COL.navy; c.beginPath(); c.moveTo(sx - 60, sy - 18); c.lineTo(sx + 60, sy - 18); c.lineTo(sx + 44, sy + 6); c.lineTo(sx - 46, sy + 6); c.closePath(); c.fill(); c.fillRect(sx - 14, sy - 32, 28, 14);
+    if (frac >= 0 && frac < 2) { const y = frac <= 1 ? sy + 8 + (by - sy - 8) * frac : by - (by - sy - 8) * (frac - 1), dir = frac <= 1 ? 1 : -1;
+      c.strokeStyle = frac <= 1 ? '#FDE68A' : COL.purple; c.lineWidth = 3; for (let k = 0; k < 3; k++) { c.beginPath(); c.arc(sx, y - dir * k * 7, 30 - k * 6, dir > 0 ? 0.6 : Math.PI + 0.6, dir > 0 ? Math.PI - 0.6 : 2 * Math.PI - 0.6); c.stroke(); } }
+    c.strokeStyle = '#fff'; c.lineWidth = 1; c.beginPath(); c.moveTo(w - 40, sy + 6); c.lineTo(w - 40, by); c.stroke(); label(c, 'depth ' + dist + ' m', w - 46, (sy + by) / 2, {size: 11.5, col: COL.navy, align: 'right', bg: 'rgba(255,255,255,.9)'}); label(c, 'ultrasound pulse', sx, sy + 20, {size: 11, col: '#fff'}); }
+  const shown = tp < 0 ? (eDone ? te : 0) : Math.min(tp, te); label(c, 'timer: ' + fmt(shown, 3) + ' s', 10, 14, {size: 12, col: COL.red, align: 'left', bg: 'rgba(255,255,255,.92)'});
+  if (pulse != null && tp >= te) { pulse = null; eDone = true; $('#clap').disabled = false; echoRead(true); }
+}
+function echoRead(done) { const v = sc === 'air' ? V.air : V.water, te = echoTime(dist, v);
+  $('#rd').textContent = dist + ' m'; $('#rt').textContent = done ? fmt(te, 3) + ' s' : '—'; $('#rv').textContent = done ? fmt(2 * dist / te, 0) + ' m/s' : '—';
+  $('#ework').innerHTML = done ? `speed = 2d ÷ t = (2 × ${dist} m) ÷ ${fmt(te, 3)} s = <b>${fmt(2 * dist / te, 0)} m/s</b>` + (sc === 'sonar' ? `<br><span class="note">Depth = speed × time ÷ 2 = ${V.water} × ${fmt(te, 3)} ÷ 2 = ${dist} m</span>` : '') : 'The sound goes to the reflector and back, so it travels 2d.';
+  $('#echonote').textContent = sc === 'air' ? 'Shown in real time. Timing one clap with a stopwatch is unreliable because reaction time (about 0.2 s) is large compared with the echo time. Better: clap in time with the echoes and time 20 claps, or use two microphones and an electronic timer.' : 'Sonar uses ultrasound (above 20 kHz). The echo time from the sea bed gives the depth. Ultrasound is also used for scanning soft tissue in the body and for finding cracks in metals (non-destructive testing).'; }
+function readouts() {
+  $('#lf').textContent = hz(f); $('#la').textContent = A; $('#rT').textContent = 1 / f >= 0.001 ? fmt(1000 / f, 2) + ' ms' : fmt(1e6 / f, 1) + ' µs';
+  const lam = V.air / f; $('#rl').textContent = lam >= 1 ? fmt(lam, 2) + ' m' : fmt(lam * 100, lam >= 0.1 ? 0 : 1) + ' cm';
+  $('#rp').textContent = f < 250 ? 'low' : f < 2000 ? 'medium' : 'high'; const b = band(f); $('#rh').textContent = b === 'audible' ? 'yes' : 'no (' + b + ')';
+  const H = $('#hear'); H.className = 'status' + (b === 'audible' ? ' good' : ' warn'); H.textContent = b === 'audible' ? 'Audible: between 20 Hz and 20 kHz.' : b === 'ultrasound' ? 'Ultrasound: above 20 kHz, too high for humans to hear.' : 'Infrasound: below 20 Hz, too low for humans to hear.';
+  $('#play').disabled = b !== 'audible';
+  $('#airnote').textContent = `Slowed down enormously. The view is 3 wavelengths wide (${fmt(3 * lam, lam > 0.33 ? 1 : 2)} m at ${hz(f)}). Each particle (see the red one) only vibrates backwards and forwards along the direction the wave travels: sound is a longitudinal wave. C = compression (particles closer together), R = rarefaction (particles further apart).`;
+  drawCro();
+}
+function loop(ts) { if (last == null) last = ts; clock += Math.min(0.05, (ts - last) / 1000); last = ts; drawAir(); drawEcho(); requestAnimationFrame(loop); }
+bindRange('freq', v => { f = nice(Math.pow(10, v)); readouts(); });
+bindRange('amp', v => { A = v; readouts(); });
+bindRange('dist', v => { dist = v; $('#ld').textContent = v + ' m'; pulse = null; eDone = false; $('#clap').disabled = false; echoRead(false); });
+$$('[data-tb]').forEach(b => b.onclick = () => { tb = +b.dataset.tb; $$('[data-tb]').forEach(x => x.classList.toggle('on', x === b)); drawCro(); });
+$$('[data-sc]').forEach(b => b.onclick = () => { sc = b.dataset.sc; $$('[data-sc]').forEach(x => x.classList.toggle('on', x === b)); pulse = null; eDone = false; $('#clap').disabled = false;
+  $('#dlab').firstChild.textContent = sc === 'air' ? 'Distance to the wall ' : 'Depth of the sea bed '; $('#clap').textContent = sc === 'air' ? '▶ Clap' : '▶ Send pulse'; echoRead(false); });
+$('#clap').onclick = () => { pulse = clock; eDone = false; $('#clap').disabled = true; echoRead(false); };
+$('#play').onclick = () => { try { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); const o = ctx.createOscillator(), gn = ctx.createGain(), t = ctx.currentTime;
+  o.frequency.value = f; gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(0.03 * A, t + 0.05); gn.gain.setValueAtTime(0.03 * A, t + 0.9); gn.gain.linearRampToValueAtTime(0, t + 1); o.connect(gn); gn.connect(ctx.destination); o.start(t); o.stop(t + 1.05); } catch (e) { $('#play').disabled = true; } };
+sizes(); readouts(); echoRead(false); requestAnimationFrame(loop); onResize(() => { sizes(); drawCro(); });
+
+// Check yourself: data-a = index of the correct option, .why = explanation, data-hint = nudge after a wrong answer
+(function () {
+  const qs = $$('.q'); const ok = new Set();
+  function score() { const s = $('#score'); if (s) s.textContent = ok.size + ' of ' + qs.length + ' correct'; }
+  qs.forEach((q, n) => { const a = +q.dataset.a, bs = Array.from(q.querySelectorAll('.opts button')), fb = q.querySelector('.fb');
+    bs.forEach((b, i) => { b.type = 'button'; b.addEventListener('click', () => {
+      bs.forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+      b.setAttribute('aria-pressed', 'true');
+      if (i === a) { b.classList.add('right'); fb.className = 'fb show'; fb.innerHTML = '<b>Correct.</b> ' + q.querySelector('.why').innerHTML; ok.add(n); }
+      else { b.classList.add('wrong'); fb.className = 'fb show no'; fb.innerHTML = '<b>Not quite.</b> ' + (q.dataset.hint || 'Look at the simulation again and try another answer.'); ok.delete(n); }
+      score(); }); }); });
+  score();
+})();
+</script>
+</body>
+</html>
