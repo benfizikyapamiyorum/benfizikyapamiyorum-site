@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -97,7 +97,7 @@ sub,sup{line-height:0}
       <div><small>average speed compared with 0 °C</small><b id="rv">—</b></div>
     </div>
     <div class="eq" id="desc"></div>
-    <p class="note">T (in K) = θ (in °C) + 273. At absolute zero (−273 °C) the particles have the least possible kinetic energy. Thermal expansion: as the temperature rises the particles move more and take up more space (exaggerated here). Gases expand most, solids least.</p>
+    <p class="note">T (in K) = θ (in °C) + 273. At absolute zero (−273 °C) the particles have the least possible kinetic energy. Thermal expansion: as the temperature rises the particles move more and their average separation increases (exaggerated here); the particles themselves do not get bigger. Gases expand most, solids least.</p>
   </div>
 </div>
 <div class="grid">
@@ -152,7 +152,7 @@ function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.
 function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
 function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
 function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
-function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+function decimalsOf(step) { for (let d = 0; d < 4; d++) { const s = step * Math.pow(10, d); if (Math.abs(s - Math.round(s)) < 1e-6 * Math.max(1, s)) return d; } return 4; }
 // axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
 function axes(c, o) {
   const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
@@ -269,7 +269,7 @@ function drawEvap() {
 }
 function evapRead() { $('#rlt').textContent = fmt(Tliq, 1) + ' °C'; $('#rleft').textContent = liq.length + ' of 70'; $('#rrate').textContent = fmt(escT.length / 5 * 60, 0) + ' per minute'; }
 // ---- 3. transfer ----
-const XD = {conduction: '<b>Conduction</b> <span class="tag core">Core</span><br>Particles at the hot end vibrate more and pass energy to their neighbours through collisions. Metals are good thermal conductors; plastic, wood and air are poor (insulators).<br><span class="tag supp">Supplement</span> In metals, free (delocalised) electrons also carry energy quickly along the metal.',
+const XD = {conduction: '<b>Conduction</b> <span class="tag core">Core</span><br>Thermal energy is transferred from the hot end to the cold end through the solid. Metals are good thermal conductors; plastic, wood and air are poor conductors (insulators).<br><span class="tag supp">Supplement</span> In all solids, atoms at the hot end vibrate more and pass energy to their neighbours (lattice vibrations). In metals, free (delocalised) electrons also carry energy quickly along the metal.',
   convection: '<b>Convection</b> <span class="tag core">Core</span><br>Water above the heater expands, becomes less dense and rises. Cooler, denser water sinks to replace it. This flow is a convection current. Convection happens in liquids and gases, not solids.',
   radiation: '<b>Radiation</b> <span class="tag core">Core</span><br>All objects emit infrared radiation; hotter objects emit more. No medium is needed, so it crosses a vacuum. Dull black surfaces are good absorbers and emitters; shiny surfaces are poor absorbers and good reflectors.<br><span class="tag supp">Supplement</span> The rate of emission also depends on the surface temperature and surface area.'};
 let rod = new Array(14).fill(20), cans = [20, 20], xt = 0, tracers = Array.from({length: 46}, () => ({x: 0.1 + rnd() * 0.8, y: 0.1 + rnd() * 0.8}));

@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -124,14 +124,14 @@ input[type=number]{width:120px}
       <div class="eq">The Sun is a <b>medium-sized star</b>, made mostly of <b>hydrogen and helium</b>. It radiates most of its energy as infrared, visible light and ultraviolet.</div>
       <div class="eq">Stars are powered by <b>nuclear fusion</b>: in a stable star hydrogen nuclei fuse to make helium, releasing energy.</div>
       <div class="eq">The Sun is one of many billions of stars in our galaxy, the <b>Milky Way</b> (about 100 000 light-years across). The Universe contains many billions of galaxies.</div>
-      <p class="note"><span class="tag supp">Supplement</span> Light from distant galaxies is redshifted: the further away a galaxy is, the faster it is moving away. This, and the cosmic microwave background radiation (CMBR), supports the Big Bang theory. Hubble constant H₀ = v ÷ d ≈ 2.2 × 10⁻¹⁸ per second.</p></div>
+      <p class="note"><span class="tag core">Core</span> Light from distant galaxies is redshifted (its observed wavelength is increased). This is evidence that the Universe is expanding and supports the Big Bang theory.<br><span class="tag supp">Supplement</span> The further away a galaxy is, the faster it is moving away: Hubble constant H₀ = v ÷ d ≈ 2.2 × 10⁻¹⁸ per second. The cosmic microwave background radiation (CMBR) also supports the Big Bang theory.</p></div>
   </div>
   <div class="card" style="margin-top:16px"><h2>Life cycle of a star <span class="tag supp">Supplement</span></h2>
     <div class="btns" role="group" aria-label="Mass of the star"><button id="lo" class="on" aria-pressed="true">Star like the Sun</button><button id="hi" aria-pressed="false">Much more massive star</button></div>
     <div class="btns" id="stages" aria-label="Stages"></div>
     <div class="eq" id="stxt" aria-live="polite"></div></div>
 </div>
-<section class="check"><h2>Check yourself</h2>
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
 <div class="q" data-fb="v = 2πr ÷ T = 2π × 1.5 × 10¹¹ m ÷ (365 × 24 × 3600 s) = 9.4 × 10¹¹ ÷ 3.15 × 10⁷ ≈ 3.0 × 10⁴ m/s (30 km/s)."><p><b>1.</b> The Earth orbits at r = 1.5 × 10¹¹ m with T = 365 days. What is its average orbital speed? <span class="tag supp">Supplement</span></p><div class="opts"><button>3.0 × 10³ m/s</button><button data-ok>3.0 × 10⁴ m/s</button><button>4.1 × 10⁹ m/s</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="The Earth's axis is tilted. When a hemisphere is tilted towards the Sun, the Sun is higher in the sky and days are longer, so it is summer there."><p><b>2.</b> What causes the seasons? <span class="tag core">Core</span></p><div class="opts"><button>The Earth is closer to the Sun in summer</button><button data-ok>The tilt of the Earth's axis</button><button>The Moon blocking sunlight</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="t = distance ÷ speed = 1.5 × 10¹¹ m ÷ 3.0 × 10⁸ m/s = 500 s (about 8.3 minutes)."><p><b>3.</b> The Sun is 1.5 × 10¹¹ m from the Earth. How long does its light take to reach us? <span class="tag core">Core</span></p><div class="opts"><button data-ok>500 s</button><button>2.0 × 10⁻³ s</button><button>4.5 × 10¹⁹ s</button></div><div class="fb" aria-live="polite"></div></div>
@@ -148,7 +148,7 @@ const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524'
 const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
 // size a canvas to its container; returns {c,w,h} in CSS pixels
 function fit(cv, aspect, minH, maxH) {
-  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
   let h = Math.round(w * aspect);
   if (minH) h = Math.max(h, minH);
   if (maxH) h = Math.min(h, maxH);
@@ -160,7 +160,7 @@ function fit(cv, aspect, minH, maxH) {
 }
 function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
 function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
-function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+function decimalsOf(step) { for (let d = 0; d < 4; d++) { const s = step * Math.pow(10, d); if (Math.abs(s - Math.round(s)) < 1e-6 * Math.max(1, s)) return d; } return 4; }
 // axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
 function axes(c, o) {
   const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
@@ -314,10 +314,12 @@ function loop(ts) { if (last == null) last = ts; const dt = Math.min(0.05, (ts -
 setTab('orb'); setPlanet(2); requestAnimationFrame(loop); onResize(() => setTab(tab));
 
 // quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
-$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
-  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
-  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
-  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+const qOk = new Set(), qAll = $$('.q'), qScore = () => { const s = $('#score'); if (s) s.textContent = qOk.size + ' of ' + qAll.length + ' correct'; };
+qAll.forEach((q, n) => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => { b.type = 'button'; b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true'); ok ? qOk.add(n) : qOk.delete(n); qScore();
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); }); }); });
+qScore();
 
 </script>
 </body>

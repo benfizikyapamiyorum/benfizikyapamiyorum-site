@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -115,7 +115,7 @@ input[type=number]{width:120px}
     <div class="eq">Order of colours: red, orange, yellow, green, blue, indigo, violet<br>frequency increases →, wavelength decreases →</div>
     <p class="note">Light of a single frequency is called <b>monochromatic</b> <span class="tag supp">Supplement</span>. It is refracted but not split up. The spread of colours in the diagram is exaggerated so that you can see it.</p></div>
 </div>
-<section class="check"><h2>Check yourself</h2>
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
 <div class="q" data-fb="Gamma rays have the highest frequency and the shortest wavelength. Radio waves have the lowest frequency."><p><b>1.</b> Which region of the spectrum has the highest frequency? <span class="tag core">Core</span></p><div class="opts"><button>Radio waves</button><button>Ultraviolet</button><button data-ok>Gamma rays</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="All electromagnetic waves, including X-rays, travel at 3.0 × 10⁸ m/s in a vacuum."><p><b>2.</b> What is the speed of X-rays in a vacuum? <span class="tag supp">Supplement</span></p><div class="opts"><button data-ok>3.0 × 10⁸ m/s</button><button>3.4 × 10² m/s</button><button>Faster than radio waves</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="λ = v ÷ f = 3.0 × 10⁸ ÷ 1.0 × 10⁸ = 3.0 m."><p><b>3.</b> A radio station broadcasts at 100 MHz. What is the wavelength? <span class="tag core">Core</span></p><div class="opts"><button>0.33 m</button><button data-ok>3.0 m</button><button>300 m</button></div><div class="fb" aria-live="polite"></div></div>
@@ -132,7 +132,7 @@ const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524'
 const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
 // size a canvas to its container; returns {c,w,h} in CSS pixels
 function fit(cv, aspect, minH, maxH) {
-  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
   let h = Math.round(w * aspect);
   if (minH) h = Math.max(h, minH);
   if (maxH) h = Math.min(h, maxH);
@@ -162,9 +162,9 @@ console.assert(Math.abs(waveLambda(100e6) - 3) < 1e-12 && Math.abs(waveLambda(1e
 // regions: [name, log10 λmax, log10 λmin, colour, uses, hazards]
 const REG = [
   ['Radio waves', 4, 0, '#93C5FD', 'radio and television transmissions, astronomy, radio frequency identification (RFID); Bluetooth (passes through walls, but the signal is weakened) <span class="tag supp">Supplement</span>', 'No harmful effect listed in the syllabus.'],
-  ['Microwaves', 0, -3, '#A5B4FC', 'satellite television, mobile (cell) phones, microwave ovens; communication with artificial satellites and wireless internet <span class="tag supp">Supplement</span>', 'Internal heating of body cells.'],
+  ['Microwaves', 0, -3, '#A5B4FC', 'satellite television, mobile (cell) phones, microwave ovens, communication with artificial satellites; wireless internet (microwaves pass through some walls and need only a short aerial) <span class="tag supp">Supplement</span>', 'Internal heating of body cells.'],
   ['Infrared', -3, Math.log10(7e-7), '#FCA5A5', 'electric grills, short-range communications such as TV remote controllers, intruder alarms, thermal imaging, optical fibres', 'Skin burns.'],
-  ['Visible light', Math.log10(7e-7), Math.log10(4e-7), 'rainbow', 'vision, photography, illumination; optical fibres', 'No harmful effect listed in the syllabus (never look straight at the Sun).'],
+  ['Visible light', Math.log10(7e-7), Math.log10(4e-7), 'rainbow', 'vision, photography, illumination; optical fibres for cable television and high-speed broadband <span class="tag supp">Supplement</span>', 'No harmful effect listed in the syllabus (never look straight at the Sun).'],
   ['Ultraviolet', Math.log10(4e-7), -8, '#C4B5FD', 'security marking, detecting fake bank notes, sterilising water', 'Damage to surface cells and eyes, leading to skin cancer and eye conditions. <b>Ionising</b> at high frequencies.'],
   ['X-rays', -8, -11, '#D1D5DB', 'medical scanning, security scanners', 'Mutation or damage to cells in the body. <b>Ionising.</b>'],
   ['Gamma rays', -11, -14, '#9CA3AF', 'sterilising food and medical equipment, detection of cancer and its treatment', 'Mutation or damage to cells in the body. <b>Ionising.</b>']];
@@ -247,10 +247,12 @@ sizes(); calc(); P = 3.5; $('#pos').value = P; show(posToLog(P)); drawPrism();
 onResize(() => { sizes(); drawSpectrum(); drawPrism(); });
 
 // quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
-$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
-  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
-  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
-  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+const qOk = new Set(), qAll = $$('.q'), qScore = () => { const s = $('#score'); if (s) s.textContent = qOk.size + ' of ' + qAll.length + ' correct'; };
+qAll.forEach((q, n) => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => { b.type = 'button'; b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true'); ok ? qOk.add(n) : qOk.delete(n); qScore();
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); }); }); });
+qScore();
 
 </script>
 </body>

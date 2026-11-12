@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -114,7 +114,7 @@ input[type=number]{width:120px}
     <div class="eq" id="eq"></div>
   </div>
 </div>
-<section class="check"><h2>Check yourself</h2>
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
 <div class="q" data-fb="800 → 400 → 200 → 100 counts/min is three half-lives in 30 minutes, so one half-life is 10 minutes."><p><b>1.</b> A count rate falls from 800 counts/min to 100 counts/min in 30 minutes. What is the half-life? <span class="tag core">Core</span></p><div class="opts"><button>15 min</button><button data-ok>10 min</button><button>7.5 min</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="6 hours is 3 half-lives: 6400 → 3200 → 1600 → 800 undecayed nuclei."><p><b>2.</b> A sample has 6400 undecayed nuclei and a half-life of 2 hours. How many are undecayed after 6 hours? <span class="tag core">Core</span></p><div class="opts"><button data-ok>800</button><button>1600</button><button>2133</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="Subtract the background first: 180 − 20 = 160 counts/min and 100 − 20 = 80 counts/min. The corrected rate halves in 4 hours, so the half-life is 4 hours."><p><b>3.</b> Background = 20 counts/min. A source reads 180 counts/min, and 100 counts/min four hours later. What is the half-life? <span class="tag supp">Supplement</span></p><div class="opts"><button>More than 4 hours</button><button data-ok>4 hours</button><button>Less than 4 hours</button></div><div class="fb" aria-live="polite"></div></div>
@@ -131,7 +131,7 @@ const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524'
 const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
 // size a canvas to its container; returns {c,w,h} in CSS pixels
 function fit(cv, aspect, minH, maxH) {
-  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
   let h = Math.round(w * aspect);
   if (minH) h = Math.max(h, minH);
   if (maxH) h = Math.min(h, maxH);
@@ -144,7 +144,7 @@ function fit(cv, aspect, minH, maxH) {
 function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
 function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
 function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
-function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+function decimalsOf(step) { for (let d = 0; d < 4; d++) { const s = step * Math.pow(10, d); if (Math.abs(s - Math.round(s)) < 1e-6 * Math.max(1, s)) return d; } return 4; }
 // axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
 function axes(c, o) {
   const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
@@ -242,10 +242,12 @@ bindRange('B', v => { BG = v; $('#lB').textContent = v + ' counts/s'; drawGraph(
 sizes(); reset(); onResize(() => { sizes(); drawAll(); });
 
 // quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
-$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
-  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
-  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
-  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+const qOk = new Set(), qAll = $$('.q'), qScore = () => { const s = $('#score'); if (s) s.textContent = qOk.size + ' of ' + qAll.length + ' correct'; };
+qAll.forEach((q, n) => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => { b.type = 'button'; b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true'); ok ? qOk.add(n) : qOk.delete(n); qScore();
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); }); }); });
+qScore();
 
 </script>
 </body>

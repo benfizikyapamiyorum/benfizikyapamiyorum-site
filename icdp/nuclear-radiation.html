@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -132,7 +132,7 @@ input[type=number]{width:120px}
     <div class="eq"><b>Reduce the time</b> of exposure.<br><b>Increase the distance</b>: handle sources with tongs, at arm's length, never point them at people.<br><b>Use shielding</b>: keep sources in lead-lined boxes, labelled and locked away, and return them straight after use.</div>
     <p class="note">The most ionising radiation (α) is the most dangerous inside the body, but the least dangerous outside it because skin and air absorb it.</p></div>
 </div>
-<section class="check"><h2>Check yourself</h2>
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
 <div class="q" data-fb="Alpha particles are stopped by a sheet of paper (or a few cm of air). Beta needs a few mm of aluminium; gamma is only reduced by thick lead."><p><b>1.</b> Which radiation is stopped by a sheet of paper? <span class="tag core">Core</span></p><div class="opts"><button data-ok>Alpha</button><button>Beta</button><button>Gamma</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="Alpha is the most strongly ionising: it has the biggest charge (+2) and a large kinetic energy, so it knocks electrons off many atoms in a short distance."><p><b>2.</b> Which radiation is the most strongly ionising? <span class="tag core">Core</span></p><div class="opts"><button>Gamma</button><button data-ok>Alpha</button><button>Beta</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="α decay: A falls by 4 (226 → 222) and Z falls by 2 (88 → 86). Element 86 is radon: ²²²₈₆Rn."><p><b>3.</b> Radium-226 (Z = 88) emits an alpha particle. What is the new nucleus? <span class="tag supp">Supplement</span></p><div class="opts"><button>A = 226, Z = 89</button><button data-ok>A = 222, Z = 86</button><button>A = 224, Z = 86</button></div><div class="fb" aria-live="polite"></div></div>
@@ -149,7 +149,7 @@ const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524'
 const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
 // size a canvas to its container; returns {c,w,h} in CSS pixels
 function fit(cv, aspect, minH, maxH) {
-  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
   let h = Math.round(w * aspect);
   if (minH) h = Math.max(h, minH);
   if (maxH) h = Math.min(h, maxH);
@@ -266,10 +266,12 @@ sel('data-src', src); sel('data-ab', ab); setTab('pen'); requestAnimationFrame(l
 onResize(() => { sizes(); if (tab === 'def') drawDef(); });
 
 // quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
-$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
-  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
-  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
-  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+const qOk = new Set(), qAll = $$('.q'), qScore = () => { const s = $('#score'); if (s) s.textContent = qOk.size + ' of ' + qAll.length + ' correct'; };
+qAll.forEach((q, n) => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => { b.type = 'button'; b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true'); ok ? qOk.add(n) : qOk.delete(n); qScore();
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); }); }); });
+qScore();
 
 </script>
 </body>

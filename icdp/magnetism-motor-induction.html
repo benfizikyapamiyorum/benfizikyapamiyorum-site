@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -125,7 +125,7 @@ input[type=number]{width:120px}
     <div class="status" id="st" aria-live="polite"></div>
   </div>
 </div>
-<section class="check"><h2>Check yourself</h2>
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
 <div class="q" data-fb="Fleming's left-hand rule: First finger = Field, seCond finger = Current, thuMb = Motion (the force)."><p><b>1.</b> In Fleming's left-hand rule, what does the thumb show? <span class="tag supp">Supplement</span></p><div class="opts"><button>The magnetic field</button><button>The current</button><button data-ok>The force (motion)</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="Every half turn the split-ring commutator reverses the current in the coil, so the forces keep turning the coil the same way."><p><b>2.</b> What does the split-ring commutator in a d.c. motor do? <span class="tag supp">Supplement</span></p><div class="opts"><button data-ok>Reverses the current in the coil every half turn</button><button>Makes the magnetic field stronger</button><button>Changes a.c. into d.c. for the supply</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="An e.m.f. is only induced while the magnetic field through the coil is changing. A magnet held still gives no e.m.f., wherever it is."><p><b>3.</b> Which of these does <i>not</i> induce an e.m.f. in a coil? <span class="tag core">Core</span></p><div class="opts"><button>Pushing a magnet in quickly</button><button data-ok>Holding a magnet still inside the coil</button><button>Pulling a magnet out slowly</button></div><div class="fb" aria-live="polite"></div></div>
@@ -142,7 +142,7 @@ const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524'
 const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
 // size a canvas to its container; returns {c,w,h} in CSS pixels
 function fit(cv, aspect, minH, maxH) {
-  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
   let h = Math.round(w * aspect);
   if (minH) h = Math.max(h, minH);
   if (maxH) h = Math.min(h, maxH);
@@ -154,7 +154,7 @@ function fit(cv, aspect, minH, maxH) {
 }
 function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.5 * Math.pow(10, -dp) ? 0 : x; return v.toFixed(dp).replace('-', '−'); }
 function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
-function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+function decimalsOf(step) { for (let d = 0; d < 4; d++) { const s = step * Math.pow(10, d); if (Math.abs(s - Math.round(s)) < 1e-6 * Math.max(1, s)) return d; } return 4; }
 // axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
 function axes(c, o) {
   const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
@@ -164,7 +164,7 @@ function axes(c, o) {
   const xd = o.xdp != null ? o.xdp : decimalsOf(o.xstep), yd = o.ydp != null ? o.ydp : decimalsOf(o.ystep);
   for (let i = 0; i <= nx; i++) { const v = o.xmin + i * o.xstep, px = X(v);
     c.strokeStyle = COL.line; c.beginPath(); c.moveTo(px, o.y); c.lineTo(px, o.y + o.h); c.stroke();
-    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 ? Y(0) : o.y + o.h) + 4); } }
+    if (!o.skipx || i % o.skipx === 0) { c.fillStyle = COL.muted; c.textAlign = 'center'; c.textBaseline = 'top'; c.fillText(o.xfmt ? o.xfmt(v) : fmt(v, xd), px, (o.ymin < 0 && o.ymax > 0 && !o.bottom ? Y(0) : o.y + o.h) + 4); } }
   for (let j = 0; j <= ny; j++) { const v = o.ymin + j * o.ystep, py = Y(v);
     c.strokeStyle = COL.line; c.beginPath(); c.moveTo(o.x, py); c.lineTo(o.x + o.w, py); c.stroke();
     if (o.ymin < 0 && o.ymax > 0 && Math.abs(v) < 1e-12) continue;
@@ -233,7 +233,7 @@ function drawMotor() { const {c, w, h} = CV, cx = w / 2, cy = h / 2 + 6, r = Mat
   if (sA) { const L = Math.min(48, r * 0.6); [[ax, ay, sA], [bx, by, -sA]].forEach(([x, y, s]) => { const up = s * M.bi; arrow(c, x, y - up * 16, x, y - up * (16 + L), COL.green, 3.5, 11); }); }
   else if (M.on) label(c, 'gap in the split ring: no current for a moment', cx, h - 14, {size: 12, col: '#B45309', bg: 'rgba(255,244,223,.95)'});
   label(c, 'magnetic field', cx, cy - r * 1.15 - 4, {size: 11, col: COL.brand, bg: 'rgba(248,250,252,.9)'});
-  if (sA) label(c, 'force F', ax + (ax > cx ? -14 : 14), Math.max(14, Math.min(h - 14, ay - sA * M.bi * 44)), {align: ax > cx ? 'right' : 'left', size: 12, weight: '700', col: COL.green, bg: 'rgba(248,250,252,.9)'});
+  if (sA) { const L = Math.min(48, r * 0.6), up = sA * M.bi; label(c, 'F', ax, Math.max(12, Math.min(h - 12, ay - up * (16 + L + 12))), {size: 13, weight: '800', col: COL.green, bg: 'rgba(248,250,252,.9)'}); label(c, 'F', bx, Math.max(12, Math.min(h - 12, by + up * (16 + L + 12))), {size: 13, weight: '800', col: COL.green, bg: 'rgba(248,250,252,.9)'}); }
 }
 function motorRead() { const N = R('mN'), I = R('mI'), B = R('mB'); $('#lmI').textContent = fmt(I, 1) + ' A'; $('#lmN').textContent = N; $('#lmB').textContent = fmt(B, 2) + ' T';
   const rps = Math.abs(M.om) / (2 * Math.PI), dirTxt = Math.abs(M.om) < 0.05 ? 'stopped' : M.om > 0 ? 'anticlockwise' : 'clockwise';
@@ -287,7 +287,7 @@ function drawGen() { const {c, w, h} = CV, f = R('gf'), wide = w > 640; c.clearR
   const s = Math.abs(e) < 0.03 * f ? 0 : Math.sign(e); sym(c, ax, ay, s, 11); sym(c, bx, by, -s, 11);
   label(c, 'slip rings', cx, cy + 30, {size: 11, col: COL.muted, bg: 'rgba(248,250,252,.9)'});
   const gx = wide ? vw + 46 : 46, gy = wide ? 16 : vh + 8, gw = (wide ? w - vw : w) - 60, gh = (wide ? h : h - vh) - 50, ym = 8;
-  const {X, Y} = axes(c, {x: gx, y: gy, w: gw, h: gh, xmin: 0, xmax: 2, ymin: -ym, ymax: ym, xstep: 0.5, ystep: 2, xlab: 'time / s', ylab: 'e.m.f. / V', ylabOff: 34});
+  const {X, Y} = axes(c, {x: gx, y: gy, w: gw, h: gh, xmin: 0, xmax: 2, ymin: -ym, ymax: ym, xstep: 0.5, ystep: 2, xlab: 'time / s', ylab: 'e.m.f. / V', ylabOff: 34, bottom: true});
   c.strokeStyle = COL.brand; c.lineWidth = 2.2; c.beginPath(); GEN.pts.forEach(([t, v], i) => i ? c.lineTo(X(t), Y(v)) : c.moveTo(X(t), Y(v))); c.stroke();
   const tt = GEN.t % 2; c.fillStyle = COL.navy; c.beginPath(); c.arc(X(tt), Y(e), 4.5, 0, 7); c.fill(); }
 function genRead() { const f = R('gf'), e = genE(GEN.t, f); $('#lgf').textContent = fmt(f, 1) + ' turns per second';
@@ -331,10 +331,12 @@ cv.addEventListener('pointermove', e => { if (!IND.drag) return; IND.dragX = poi
 sizes(); setTab('motor'); requestAnimationFrame(loop); onResize(() => { sizes(); if (tab === 'ind') { const g = indGeom(); IND.x = Math.max(g.xmin, Math.min(g.xmax, IND.x)); IND.phi = flux(IND.x); } frame(0); });
 
 // quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
-$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
-  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
-  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
-  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+const qOk = new Set(), qAll = $$('.q'), qScore = () => { const s = $('#score'); if (s) s.textContent = qOk.size + ' of ' + qAll.length + ' correct'; };
+qAll.forEach((q, n) => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => { b.type = 'button'; b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true'); ok ? qOk.add(n) : qOk.delete(n); qScore();
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); }); }); });
+qScore();
 
 </script>
 </body>

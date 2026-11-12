@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -107,7 +107,7 @@ input[type=number]{width:120px}
     <div class="eq" id="use"></div>
   </div>
 </div>
-<section class="check"><h2>Check yourself</h2>
+<section class="check"><h2>Check yourself</h2><p class="score" id="score"></p>
 <div class="q" data-fb="An object at 2F gives an image at 2F on the other side that is real, inverted and the same size. Try the “At 2F” button."><p><b>1.</b> An object is placed at 2F. Describe the image. <span class="tag core">Core</span></p><div class="opts"><button>Virtual, upright, magnified</button><button data-ok>Real, inverted, same size</button><button>Real, inverted, diminished</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="Rays from beyond 2F converge between F and 2F on the other side, giving a real, inverted, diminished image (here v = 15 cm)."><p><b>2.</b> A lens has f = 10 cm and an object is 30 cm away. Where is the image? <span class="tag core">Core</span></p><div class="opts"><button data-ok>Between F and 2F on the other side</button><button>Beyond 2F on the other side</button><button>On the same side as the object</button></div><div class="fb" aria-live="polite"></div></div>
 <div class="q" data-fb="A ray through the optical centre of a thin lens passes straight through without changing direction."><p><b>3.</b> Which ray passes through the lens without changing direction? <span class="tag core">Core</span></p><div class="opts"><button>A ray parallel to the principal axis</button><button data-ok>A ray through the centre of the lens</button><button>A ray through F</button></div><div class="fb" aria-live="polite"></div></div>
@@ -124,7 +124,7 @@ const COL = {navy:'#0F2A4A', brand:'#1F6FEB', brandlt:'#E8F0FE', amber:'#F5A524'
 const FONT = 'Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
 // size a canvas to its container; returns {c,w,h} in CSS pixels
 function fit(cv, aspect, minH, maxH) {
-  const w = Math.max(200, cv.parentElement.clientWidth - 0);
+  const w = Math.max(200, cv.clientWidth || cv.parentElement.clientWidth);
   let h = Math.round(w * aspect);
   if (minH) h = Math.max(h, minH);
   if (maxH) h = Math.min(h, maxH);
@@ -178,6 +178,8 @@ function draw() {
   const lh = h * 0.44; c.fillStyle = 'rgba(147,197,253,.45)'; c.strokeStyle = '#3B82F6'; c.lineWidth = 1.5;
   c.beginPath(); c.ellipse(ox, oy, 7, lh, 0, 0, 7); c.fill(); c.stroke();
   arrow(c, ox, oy - lh + 14, ox, oy - lh - 2, '#3B82F6', 2, 9); arrow(c, ox, oy + lh - 14, ox, oy + lh + 2, '#3B82F6', 2, 9);
+  // F and 2F labels first, so rays and the image are drawn on top of them
+  [-2, -1, 1, 2].forEach(k => label(c, (Math.abs(k) === 2 ? '2F' : 'F'), X(k * F), oy + 15, {size: 12, weight: '700', col: COL.navy}));
   // rays (clipped by canvas)
   const xs = -U, ys = H0, xe = XR + 2, solid = (pts, col) => { c.save(); c.strokeStyle = col; c.lineWidth = 2.2; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(X(p[0]), Y(p[1])) : c.moveTo(X(p[0]), Y(p[1]))); c.stroke(); c.restore(); },
     dash = (a, b, col) => { c.save(); c.setLineDash([6, 5]); c.globalAlpha = .8; solid([a, b], col); c.restore(); };
@@ -199,8 +201,7 @@ function draw() {
     const ty = Math.max(14, Math.min(h - 14, Y(hi) + (hi > 0 ? -12 : 14)));
     label(c, real ? 'real image' : 'virtual image', X(v), ty, {size: 12, weight: '700', col, bg: 'rgba(255,244,223,.95)'});
   } else label(c, isFinite(v) ? 'image is off the diagram (' + (real ? 'far to the right' : 'far to the left') + ')' : 'rays leave parallel: no image is formed', w / 2, 16, {size: 12, weight: '700', col: '#B45309', bg: 'rgba(255,244,223,.95)'});
-  [-2, -1, 1, 2].forEach(k => { const px = X(k * F); c.fillStyle = COL.ink; c.beginPath(); c.arc(px, oy, 3.5, 0, 7); c.fill();
-    label(c, (Math.abs(k) === 2 ? '2F' : 'F'), px, oy + 15, {size: 12, weight: '700', col: COL.navy, bg: 'rgba(248,250,252,.85)'}); });
+  [-2, -1, 1, 2].forEach(k => { const px = X(k * F); c.fillStyle = COL.ink; c.beginPath(); c.arc(px, oy, 3.5, 0, 7); c.fill(); });
   if (!real && isFinite(v)) label(c, 'look through the lens from this side →', w - 8, h - 14, {align: 'right', size: 11, col: COL.muted});
 }
 function update() {
@@ -224,10 +225,12 @@ bindRange('u', update); bindRange('f', update);
 sizes(); update(); onResize(() => { sizes(); draw(); });
 
 // quiz: buttons with data-ok are correct; feedback text in data-fb on the .q
-$$('.q').forEach(q => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
-  q.querySelectorAll('.opts button').forEach(x => x.classList.remove('right', 'wrong'));
-  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true');
-  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); })); });
+const qOk = new Set(), qAll = $$('.q'), qScore = () => { const s = $('#score'); if (s) s.textContent = qOk.size + ' of ' + qAll.length + ' correct'; };
+qAll.forEach((q, n) => { const fb = q.querySelector('.fb'); q.querySelectorAll('.opts button').forEach(b => { b.type = 'button'; b.addEventListener('click', () => {
+  q.querySelectorAll('.opts button').forEach(x => { x.classList.remove('right', 'wrong'); x.removeAttribute('aria-pressed'); });
+  const ok = b.hasAttribute('data-ok'); b.classList.add(ok ? 'right' : 'wrong'); b.setAttribute('aria-pressed', 'true'); ok ? qOk.add(n) : qOk.delete(n); qScore();
+  fb.innerHTML = (ok ? '<b>Correct.</b> ' : '<b>Not quite.</b> ') + q.dataset.fb; fb.className = 'fb show' + (ok ? '' : ' no'); }); }); });
+qScore();
 
 </script>
 </body>

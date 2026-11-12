@@ -16,7 +16,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-u
 .top .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:52px}
 .logo{font-weight:800;letter-spacing:-.01em;font-size:17px}
 .logo b{color:var(--amber);font-weight:800}
-.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap}
+.top a{color:#CFE0FF;font-size:14px;text-decoration:none;white-space:nowrap;display:inline-block;padding:12px 0}
 .top a:hover{text-decoration:underline}
 .ref{color:var(--brand);font-weight:700;font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;margin:22px 0 4px}
 h1{font-size:clamp(24px,5.2vw,34px);line-height:1.15;margin:0 0 12px;color:var(--navy);letter-spacing:-.02em;font-weight:800}
@@ -146,7 +146,7 @@ function fmt(x, dp) { if (!isFinite(x)) return '—'; const v = Math.abs(x) < 0.
 function sig(x, n) { if (!isFinite(x)) return '—'; if (x === 0) return '0'; const d = Math.max(0, n - 1 - Math.floor(Math.log10(Math.abs(x)))); return fmt(x, d); }
 function niceStep(range, ticks) { const raw = range / (ticks || 5); const p = Math.pow(10, Math.floor(Math.log10(raw))); const f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
 function niceMax(v, ticks) { if (v <= 0) return 1; const s = niceStep(v, ticks || 5); return Math.ceil(v / s - 1e-9) * s; }
-function decimalsOf(step) { return step >= 1 ? 0 : Math.min(4, Math.ceil(-Math.log10(step) - 1e-9)); }
+function decimalsOf(step) { for (let d = 0; d < 4; d++) { const s = step * Math.pow(10, d); if (Math.abs(s - Math.round(s)) < 1e-6 * Math.max(1, s)) return d; } return 4; }
 // axes with grid. o: {x,y,w,h,xmin,xmax,ymin,ymax,xstep,ystep,xlab,ylab}
 function axes(c, o) {
   const X = v => o.x + (v - o.xmin) / (o.xmax - o.xmin) * o.w;
@@ -231,7 +231,7 @@ function drawLab(time) {
   const tx = bx + bw * 0.38, tTop = by - 60, tBot = table - 18, TY = T => tBot - 12 - (T + 30) / 160 * (tBot - 12 - tTop - 8);
   c.fillStyle = '#fff'; c.strokeStyle = '#94A3B8'; c.lineWidth = 1.5; rrect(c, tx - 5, tTop, 10, tBot - tTop, 5); c.fill(); c.stroke();
   c.fillStyle = COL.red; c.beginPath(); c.arc(tx, tBot, 8, 0, 7); c.fill(); c.fillRect(tx - 2, TY(st.T), 4, tBot - TY(st.T));
-  [-20, 0, 50, 100].forEach(T => { c.strokeStyle = COL.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(tx - 9, TY(T)); c.lineTo(tx - 5, TY(T)); c.stroke(); label(c, T + '°', tx - 11, TY(T), {size: 9.5, align: 'right', weight: '500', col: COL.muted}); });
+  [-20, 0, 50, 100].forEach(T => { c.strokeStyle = COL.ink; c.lineWidth = 1; c.beginPath(); c.moveTo(tx - 9, TY(T)); c.lineTo(tx - 5, TY(T)); c.stroke(); label(c, fmt(T, 0) + '°', tx - 11, TY(T), {size: 9.5, align: 'right', weight: '500', col: COL.muted}); });
   label(c, fmt(st.T, 1) + ' °C', tx, tTop - 12, {size: 13, weight: '700', col: COL.red});
   // particle view
   const px = Math.max(bx + bw + 30, w * 0.56), pw = w - px - 12, ph = Math.min(pw * 0.9, h - 70), py = 34;
