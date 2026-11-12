@@ -34,3 +34,14 @@ const {createSahin}=await import('./bfy-sahin-model.mjs');
 const model=createSahin(),original=[];model.userData.body.traverse(o=>{if(o.isMesh)original.push({o,vertices:o.geometry.attributes.position.array.slice()});});
 model.userData.setDamage(.7);assert(original.some(({o,vertices})=>o.geometry.attributes.position.array.some((v,i)=>v!==vertices[i])),'visible dents');assert(original.every(({o})=>o.geometry.attributes.position.array.every(Number.isFinite)),'damage geometry finite');model.userData.setDamage(0);assert(original.every(({o,vertices})=>o.geometry.attributes.position.array.every((v,i)=>v===vertices[i])),'restart restores exact geometry');
 console.log('PASS: wheel multi-pointer/cancel and visible damage/repair geometry.');
+// Batching preserves geometry and leaves independently controlled parts untouched.
+const T=await import('./bfy-three.module.min.js');
+const {batchStaticMeshes}=await import('./bfy-mesh-batch.mjs');
+const group=new T.Group(),material=new T.MeshBasicMaterial();
+const parts=[0,1,2].map(i=>{const m=new T.Mesh(new T.BoxGeometry(1,1,1),material);m.position.set(i*3,1,0);group.add(m);return m;});
+const expected=new T.Box3().setFromObject(group);batchStaticMeshes(group,new Set([parts[2]]));
+assert(group.children.length===2&&parts[2].parent===group,'controlled mesh excluded from batch');
+const actual=new T.Box3().setFromObject(group);assert(expected.min.distanceTo(actual.min)<1e-6&&expected.max.distanceTo(actual.max)<1e-6,'batch preserves transformed bounds');
+assert(model.userData.wheelPivots.length===4&&model.userData.wheels.every(w=>w.parent?.parent===model),'rolling wheels retain steering pivots');
+let meshes=0;model.traverse(o=>{if(o.isMesh)meshes++;});assert(meshes<100,'Sahin draw objects remain batched');
+console.log('PASS: static batching, controlled parts, transform bounds and steering hierarchy.');
