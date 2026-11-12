@@ -27,9 +27,12 @@
 
   /* Konu Soru Paketleri: provada puan kaybedilen konu pakette varsa sonuç ekranında öne çıkar. */
   const PAKET={
-    9:{konular:['Temel ve Türetilmiş Nicelikler','Skaler ve Vektörel Nicelikler'],ad:'Nicelikler Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342629'},
-    10:{konular:['Sabit Hızlı Hareket'],ad:'Sabit Hızlı Hareket Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342674'},
-    11:{konular:['Serbest Düşmede İvme','İki Boyutta Sabit İvmeli Hareket'],ad:'Serbest Düşme ve Atışlar Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342727'}
+    9:[{konular:['Temel ve Türetilmiş Nicelikler','Skaler ve Vektörel Nicelikler'],ad:'Nicelikler Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342629',img:'/img/paket/kapak-9.webp'},
+       {konular:['Hareketin Temel Kavramları','Hareket Türleri'],ad:'Hareket ve Hareket Türleri Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52861192',img:'/img/paket/kapak-9-2.webp'}],
+    10:[{konular:['Sabit Hızlı Hareket'],ad:'Sabit Hızlı Hareket Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342674',img:'/img/paket/kapak-10.webp'},
+        {konular:['İş','İş, Enerji ve Güç'],ad:'İş, Enerji ve Güç Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52861260',img:'/img/paket/kapak-10-2.webp'}],
+    11:[{konular:['Serbest Düşmede İvme','İki Boyutta Sabit İvmeli Hareket'],ad:'Serbest Düşme ve Atışlar Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342727',img:'/img/paket/kapak-11.webp'},
+        {konular:['Düzgün Çembersel Hareket'],ad:'Düzgün Çembersel Hareket Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52860958',img:'/img/paket/kapak-11-2.webp'}]
   };
 
   /* --- dönem: 1. yazılı sıralaması, bitiş tarihine kadar sıfırlanmaz --- */
@@ -142,8 +145,8 @@
     $('upZayif').textContent=z.length?'En çok zorlandığın konular: '+z.join(' ve ')+'. Yazılıdan önce bunları tekrar et.':'Hepsini doğru yaptın, tebrikler! Yazılıya kadar formunu korumak için:';
     $('upBars').innerHTML=sirali.length?sirali.map(([k,kayip])=>{ const top=konuTop[k]||kayip, al=Math.max(0,Math.round(top-kayip)), yz=Math.round(100*al/top);
       return `<li class="${yz<50?'zayif':''}"><div class="ust"><span>${esc(k)}</span><span>${al}/${top} puan</span></div><div class="cub" role="img" aria-label="${esc(k)}: ${top} puanın ${al} puanını aldın"><i style="width:${Math.max(3,yz)}%"></i></div></li>`; }).join(''):'';
-    const P=PAKET[S.sinif], pk=P?sirali.map(x=>x[0]).find(k=>P.konular.includes(k)):null;
-    const kisisel=pk?`<article class="pv-up-card kisisel"><img src="/img/paket/kapak-${S.sinif}.webp" alt="" loading="lazy" width="72" height="96"><div><p class="neden">Senin eksiğine özel</p><h3>${esc(P.ad)}</h3><p>“${esc(pk)}” konusunda ${Math.round(zayif[pk])} puan kaybettin. Bu konuyu kapsayan 50 yazılı sorusu ve adım adım çözümleri tek PDF’te.</p><div class="row"><strong>₺99</strong><a class="cta" href="${P.href}" target="_blank" rel="noopener noreferrer" data-bfy-event="prova_paket">Paketi al ↗</a><a class="alt" href="/paket/" data-bfy-event="prova_paket">İçine bak →</a></div></div></article>`:'';
+    const PL=PAKET[S.sinif]||[]; let P=null, pk=null; for(const [k] of sirali){ const f=PL.find(p=>p.konular.includes(k)); if(f){ P=f; pk=k; break; } }
+    const kisisel=pk?`<article class="pv-up-card kisisel"><img src="${P.img}" alt="" loading="lazy" width="72" height="96"><div><p class="neden">Senin eksiğine özel</p><h3>${esc(P.ad)}</h3><p>“${esc(pk)}” konusunda ${Math.round(zayif[pk])} puan kaybettin. Bu konuyu kapsayan 50 yazılı sorusu ve adım adım çözümleri tek PDF’te.</p><div class="row"><strong>₺99</strong><a class="cta" href="${P.href}" target="_blank" rel="noopener noreferrer" data-bfy-event="prova_paket">Paketi al ↗</a><a class="alt" href="/paket/" data-bfy-event="prova_paket">İçine bak →</a></div></div></article>`:'';
     $('upGrid').innerHTML=kisisel+URUN[S.sinif].map(u=>`<article class="pv-up-card"><img src="${u.img}" alt="" loading="lazy" width="72" height="96"><div><h3>${esc(u.ad)}</h3><p>${esc(u.alt)}</p><div class="row"><strong>${esc(u.f)}</strong><a class="cta" href="${u.href}"${u.ext?' target="_blank" rel="noopener noreferrer"':` data-bfy-event="prova_upsell" data-bfy-lab="${u.k}"`}>${esc(u.cta)} ↗</a>${u.dene?`<a class="alt" href="${u.dene}" data-bfy-event="prova_upsell" data-bfy-lab="${u.k}_dene">Ücretsiz dene →</a>`:''}</div></div></article>`).join(''); }
   function paylas(){ const t=`Türkiye geneli ${SON.sinif}. sınıf fizik yazılı provasında ${SON.puan} puan aldım${SON.ust?` (ilk %${SON.ust})`:''}! Sen kaç alırsın? 👉 benfizikyapamiyorum.com/prova`;
     $('rWa').href='https://wa.me/?text='+encodeURIComponent(t);
