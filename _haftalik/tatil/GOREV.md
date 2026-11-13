@@ -35,7 +35,7 @@ Amaç takipçi çekmek ve öğrenciyi sitedeki 99 TL'lik Konu Soru Paketlerine y
 ## Yazım
 
 - Türkçe yazım ve noktalama tam. **Her cümle noktayla biter** (madde ve şekil altı dahil). Soru kökleri soru işaretiyle biter.
-- "·" (orta nokta) hiçbir görünen metinde kullanılmaz (ayraç olarak da çarpma olarak da). Çarpma için KaTeX `\cdot` yalnız formül içinde sayılar arasında kullanılabilir; ayraç için virgül ya da "|".
+- "·" (orta nokta) hiçbir görünen metinde kullanılmaz (ayraç olarak da çarpma olarak da). Çarpma için KaTeX `\times` kullan (`\cdot` yok); ayraç için virgül ya da "|".
 - Ondalık virgül: `0{,}6`. Birim sayıdan bir boşlukla ayrılır. Üst simge birimlerde `\text{m/s}^2`.
 - Ton: öğrenciyle konuşan sakin, net öğretmen. "Süper", "muhteşem" yok. Gerçek okul ya da kurum adı yok.
 - `govde` içinde `$…$` kullanan her metin `bolum`, `kutu`, `p`, `ikili` gibi bir yardımcıdan geçmeli (ham `<p>…$…$</p>` tek başına bırakılırsa TeX işlenmez; `p('…')` kullan).

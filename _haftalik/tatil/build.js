@@ -118,7 +118,7 @@ function paketKart(s, no, not) {
   return `<a class="pk" href="${paketURL(s, no)}"><img src="${img('img/paket/' + P.k)}"><div><small>KONU SORU PAKETİ #${no}</small><h4>${P.ad}</h4><p>${P.soru} yazılı sorusu, her birine adım adım çözüm ve puanlama.${not ? ' ' + not : ''}</p><div class="fy"><b>₺99</b><span>PDF, hemen iner&nbsp;→</span></div></div></a>`;
 }
 const PK_CSS = `
-.pk{display:grid;grid-template-columns:27mm 1fr;gap:11px;align-items:center;border:1.5px solid var(--line);border-radius:13px;padding:9px 11px;background:#fff;break-inside:avoid}
+.pk{display:grid;grid-template-columns:27mm minmax(0,1fr);gap:11px;align-items:center;border:1.5px solid var(--line);border-radius:13px;padding:9px 11px;background:#fff;break-inside:avoid}
 .pk img{width:27mm;border-radius:6px;box-shadow:0 5px 14px rgba(29,43,83,.22);border:1px solid #e2e8f0}
 .pk small{font:800 6.8pt 'Manrope';letter-spacing:.13em;color:var(--koyu)}.pk h4{font:800 10.6pt 'Manrope';line-height:1.2;margin:2px 0 3px}.pk p{font-size:8.8pt;color:var(--ink2);line-height:1.35}
 .pk .fy{display:flex;align-items:center;gap:8px;margin-top:5px}.pk .fy b{font:800 15pt 'Manrope';color:var(--ana)}.pk .fy span{font-size:8.2pt;font-weight:700;color:var(--koyu)}`;
@@ -133,11 +133,14 @@ async function notPromo(N) {
 .ph h1{font-size:24pt;font-weight:800;margin:6px 0 6px;line-height:1.1}.ph p{color:#dfe4ff;font-size:10.4pt}
 .ph .q{background:#fff;border-radius:12px;padding:8px;text-align:center;color:#1d2b53;font:800 7.6pt 'Manrope';line-height:1.3}.ph .q svg{width:31mm;height:31mm;display:block;margin-bottom:4px}
 h2.s{font:800 13.4pt 'Manrope';margin:14px 0 3px}.as{font-size:10pt;color:var(--ink2);margin-bottom:8px}
-.pgr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.orn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.orn div{border:1.5px solid var(--line);border-radius:12px;padding:7px;text-align:center;font:800 7.6pt 'Manrope';color:var(--koyu);letter-spacing:.06em}
-.orn img{width:100%;border-radius:7px;margin-top:4px;border:1px solid #e2e8f0}
-.fark{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.pgr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.orn1{border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:10px;text-align:center}
+.orn1 b{font:800 7.6pt 'Manrope';color:var(--koyu);letter-spacing:.08em}
+body{height:272mm;display:flex;flex-direction:column}body>*{flex:0 0 auto}.orn1{flex:1 1 0!important;min-height:0;display:flex;flex-direction:column}.orn1 div{flex:1 1 0;min-height:0;overflow:hidden;border-radius:7px;margin-top:4px;border:1px solid #e2e8f0;position:relative}
+.orn1 div:after{content:'';position:absolute;left:0;right:0;bottom:0;height:16mm;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff)}
+.orn1 img{width:100%;display:block}
+.orn1 span{display:block;font-size:8.6pt;color:var(--ink2);margin-top:3px}
+.fark{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:10px}
 .fark div{border-radius:12px;padding:10px 13px;font-size:9.6pt}.fark .u{background:var(--soft)}.fark .p{background:var(--acik);border:1.5px solid var(--rozet)}
 .fark h4{font:800 10pt 'Manrope';margin-bottom:3px}.fark ul{margin-left:15px}.fark li{margin:1.5px 0}
 .yp{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border:1.5px solid var(--line);border-radius:13px;padding:10px 14px;margin-top:10px;font-size:9.6pt}
@@ -149,8 +152,8 @@ h2.s{font:800 13.4pt 'Manrope';margin:14px 0 3px}.as{font-size:10pt;color:var(--
 <a class="ph" href="${tatilURL(s)}"><div><div class="e">4 GÜN BİTTİ | ŞİMDİ KENDİNİ ÖLÇ</div><h1>Gün 5: Ara Tatil Fizik Denemesi</h1><p>15 soru, 30 dakika. Sonunda cevap anahtarı ve <b>eksik konu tablosu</b> var: hangi konuda kaç yanlışın olduğunu görürsün. Deneme PDF’si ücretsiz, bu notla aynı sayfada.</p></div><div class="q">${q}Okut ya da dokun<br>benfizikyapamiyorum.com/tatil</div></a>
 <h2 class="s">Eksik çıkan konuyu kapat</h2><p class="as">Bu not konuyu toparladı. Yazılıda puanı getiren şey ise o konudan çok sayıda <b>yazılı tarzı soru</b> çözmüş olmak. Konu Soru Paketleri tam bunun için.</p>
 <div class="pgr">${paketler}</div>
-<div class="orn"><div>PAKETTEN ÖRNEK SORU<img src="${img(`img/paket/ornek-${s}-soru.webp`)}"></div><div>ÇÖZÜMÜ VE PUANLAMASI<img src="${img(`img/paket/ornek-${s}-cozum.webp`)}"></div></div>
-<div class="fark"><div class="u"><h4>Bu ücretsiz kitapçık</h4><ul><li>Konu başına tek sayfa özet</li><li>16 ısınma sorusu ve 15 soruluk deneme (test)</li><li>Kısa çözümler</li></ul></div><div class="p"><h4>Konu Soru Paketi (₺99)</h4><ul><li>Tek konudan 50 ve üzeri <b>açık uçlu yazılı sorusu</b></li><li>Her maddeye adım adım çözüm ve puanlama</li><li>Her soruda “Dikkat” notu, yeni paketlerde 2 deneme yazılısı</li></ul></div></div>
+<div class="orn1"><b>PAKETTEN ÖRNEK SORU</b><div><img src="${img(`img/paket/ornek-${s}-soru.webp`)}"></div><span>Devamı, adım adım çözümü ve puanlaması pakette.</span></div>
+<div class="fark"><div class="u"><h4>Bu ücretsiz kitapçık</h4><ul><li>Konu başına tek sayfa özet.</li><li>16 ısınma sorusu ve 15 soruluk deneme (test).</li><li>Kısa çözümler.</li></ul></div><div class="p"><h4>Konu Soru Paketi (₺99)</h4><ul><li>Tek konudan 50 ve üzeri <b>açık uçlu yazılı sorusu</b>.</li><li>Her maddeye adım adım çözüm ve puanlama.</li><li>Her soruda “Dikkat” notu, yeni paketlerde 2 deneme yazılısı.</li></ul></div></div>
 <a class="yp" href="${yapURL(s)}"><div><b>Bütün yıl için: Yapabilirim ${s}</b><br>${s}. sınıfın bütün konuları tek dijital kitapta: konu notu, yeni nesil sorular, yanlışının nedenini söyleyen çözümler. Tek ödeme, abonelik yok. Paket alanlar paket ücretini Yapabilirim’den düşebilir.</div><div style="text-align:right"><b class="f">₺599</b><br><b>İncele →</b></div></a>
 <a class="bant" href="${SITE}/ucretsiz/pdf${UTM}"><span>Okul açılınca her hafta yeni ücretsiz not: <b>Pazartesi 9 | Çarşamba 10 | Cuma 11. sınıf</b></span><span>@benfizikyapamiyorum</span></a>
 </body></html>`;
@@ -169,7 +172,7 @@ table.an{width:100%;border-collapse:collapse;font-size:9.5pt;margin-top:6px;brea
 table.an th{background:#1d2b53;color:#fff;text-align:left;padding:6px 8px;font-weight:700}
 table.an td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 table.an td.y{width:64px;text-align:center}table.an td.y i{display:inline-block;width:30px;height:20px;border:1.6px solid var(--rozet);border-radius:6px}
-table.an a{font-weight:700;color:var(--koyu)}table.an a em{font-style:normal;background:var(--ana);color:#fff;border-radius:6px;padding:1px 7px;font:800 8.6pt 'Manrope';margin-left:5px}
+table.an a{font-weight:700;color:var(--koyu)}table.an a em{white-space:nowrap;font-style:normal;background:var(--ana);color:#fff;border-radius:6px;padding:1px 7px;font:800 8.6pt 'Manrope';margin-left:5px}
 .net{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.net div{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;font-size:9pt;color:var(--ink2)}.net div b{display:block;color:var(--ink);font:800 10pt 'Manrope'}.net div u{display:block;border-bottom:1.2px solid var(--ink2);height:16px;text-decoration:none}
 </style>
 <div class="db"><div><h2>Ara Tatil Fizik Denemesi</h2><p>${s}. sınıf | Maarif Modeli | Kapsam: ${md(N.denemeKapsam)}</p></div><div class="bl"><div><b>15</b>soru</div><div><b>30</b>dakika</div></div></div>
@@ -199,11 +202,14 @@ async function denemePromo(N) {
 .ph{background:linear-gradient(115deg,#0f1638 0%,#2b3480 50%,#6a3fd0 100%);color:#fff;border-radius:16px;padding:18px 22px}
 .ph .e{font:800 7.8pt 'Manrope';letter-spacing:.16em;color:var(--parlak)}
 .ph h1{font-size:23pt;font-weight:800;margin:6px 0 6px;line-height:1.12}.ph p{color:#dfe4ff;font-size:10.4pt}
-.pgr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.orn{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
-.orn div{border:1.5px solid var(--line);border-radius:12px;padding:8px;text-align:center;font:800 8pt 'Manrope';color:var(--koyu);letter-spacing:.06em}
-.orn img{width:100%;border-radius:7px;margin-top:5px;border:1px solid #e2e8f0}
-.al{display:grid;grid-template-columns:auto 1fr 1fr;gap:12px;margin-top:12px;align-items:stretch}
+.pgr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:12px}
+.orn1{border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:12px;text-align:center}
+.orn1 b{font:800 7.6pt 'Manrope';color:var(--koyu);letter-spacing:.08em}
+body{height:272mm;display:flex;flex-direction:column}body>*{flex:0 0 auto}.orn1{flex:1 1 0!important;min-height:0;display:flex;flex-direction:column}.orn1 div{flex:1 1 0;min-height:0;overflow:hidden;border-radius:7px;margin-top:4px;border:1px solid #e2e8f0;position:relative}
+.orn1 div:after{content:'';position:absolute;left:0;right:0;bottom:0;height:14mm;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff)}
+.orn1 img{width:100%;display:block}
+.orn1 span{display:block;font-size:8.6pt;color:var(--ink2);margin-top:3px}
+.al{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px;align-items:stretch}
 .al>*{border:1.5px solid var(--line);border-radius:12px;padding:10px 13px;font-size:9.4pt}
 .al .q{text-align:center;border-color:var(--ana);font:800 7.6pt 'Manrope'}.al .q svg{width:28mm;height:28mm;display:block;margin:0 auto 4px}
 .al h4{font:800 10.4pt 'Manrope';margin-bottom:3px}
@@ -213,7 +219,7 @@ async function denemePromo(N) {
 <div class="pb"><span>BEN FİZİK YAPAMIYORUM</span><span>DENEMEDEN SONRA</span></div>
 <div class="ph"><div class="e">EKSİK KONUN BELLİ OLDU | ŞİMDİ KAPAT</div><h1>Deneme test tarzıydı. Yazılı ise açık uçlu.</h1><p>Okuldaki yazılıda şık yok: çözümü yazarsın, öğretmen adım adım puan verir. <b>Konu Soru Paketleri</b> seni buna hazırlar: tek konudan 50 ve üzeri yazılı sorusu, her maddeye ayrıntılı çözüm ve puanlama.</p></div>
 <div class="pgr">${N.paketler.map(p => paketKart(s, p.no, p.not)).join('')}</div>
-<div class="orn"><div>PAKETTEN ÖRNEK SORU<img src="${img(`img/paket/ornek-${s}-soru.webp`)}"></div><div>ÇÖZÜMÜ VE PUANLAMASI<img src="${img(`img/paket/ornek-${s}-cozum.webp`)}"></div></div>
+<div class="orn1"><b>PAKETTEN ÖRNEK ÇÖZÜM VE PUANLAMA</b><div><img src="${img(`img/paket/ornek-${s}-cozum.webp`)}"></div><span>Her soruda adım adım çözüm, puan dağılımı ve “Dikkat” notu.</span></div>
 <div class="al"><a class="q" href="${SITE}/paket/${UTM}&utm_campaign=tatil${s}#siniflar">${q}Okut ya da dokun<br>benfizikyapamiyorum.com/paket</a>
 <a href="${yapURL(s)}"><h4>Bütün yıl için: Yapabilirim ${s}</h4>${s}. sınıfın bütün konuları tek dijital kitapta. Tek ödeme, abonelik yok. <b style="white-space:nowrap">₺599&nbsp;→</b></a>
 <div><h4>Bu PDF’yi çözenlere %10</h4>Yapabilirim ve Yazılıya 3 Gün Kala’da Shopier ödeme adımında yaz:<br><span class="kod">NOTLAR10</span></div></div>
@@ -261,7 +267,7 @@ const FOOT = (lab) => `<div style="width:100%;font-family:Arial,sans-serif;font-
             }
           });
           const bos = pg.clientHeight - Array.from(pg.children).reduce((a, c) => a + c.getBoundingClientRect().height + parseFloat(getComputedStyle(c).marginTop) + parseFloat(getComputedStyle(c).marginBottom), 0);
-          if (bos > 130) { const y = document.createElement('div'); y.className = 'yd'; y.innerHTML = '<div class="u">Yanlış defterim<span>Bu günü bitirdim <i></i></span></div><p>Yanlış yaptığın ya da emin olamadığın sorunun numarasını ve nedenini bir cümleyle yaz. Okul açılınca ilk buraya bak.</p><div class="cz"></div>'; pg.appendChild(y); }
+          if (bos > 96) { const y = document.createElement('div'); y.className = 'yd'; y.innerHTML = '<div class="u">Yanlış defterim<span>Bu günü bitirdim <i></i></span></div><p>Yanlış yaptığın ya da emin olamadığın sorunun numarasını ve nedenini bir cümleyle yaz. Okul açılınca ilk buraya bak.</p><div class="cz">' + '<i></i>'.repeat(30) + '</div>'; pg.appendChild(y); }
           rap.push(`gün ${gi + 1}: ${pages.length} sayfa, son sayfa boşluk ${Math.round(bos)}px`);
           pages.forEach((p, k) => { if (p.scrollHeight > p.clientHeight + 1) rap.push(`UYARI taşma gün ${gi + 1} sayfa ${k + 1}`); });
         });

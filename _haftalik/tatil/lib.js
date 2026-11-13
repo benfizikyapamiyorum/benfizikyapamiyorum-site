@@ -84,7 +84,7 @@ table.t tr:nth-child(even) td{background:#f7f9fc}
 .yd .u{display:flex;justify-content:space-between;align-items:center;font:800 10pt 'Manrope';color:var(--koyu)}
 .yd .u span{font:700 8.6pt 'Source Sans 3';color:var(--ink2);display:flex;align-items:center;gap:7px}.yd .u i{display:inline-block;width:17px;height:17px;border:2px solid var(--rozet);border-radius:5px}
 .yd p{font-size:9pt;color:var(--ink2);margin:2px 0 4px}
-.yd .cz{flex:1;background:repeating-linear-gradient(to bottom,transparent 0,transparent 8.4mm,#cfd6e4 8.4mm,#cfd6e4 calc(8.4mm + 1px));border-radius:4px}
+.yd .cz{flex:1 1 0;min-height:0;overflow:hidden}.yd .cz i{display:block;height:8.6mm;border-bottom:1.2px solid #cfd6e4}
 .skor{display:grid;grid-template-columns:repeat(4,1fr) 1.25fr;gap:8px;margin:14px 0 8px;break-inside:avoid}
 .skor div{border:1.5px solid var(--line);border-radius:11px;padding:8px 10px;font-size:8.8pt;color:var(--ink2)}
 .skor div b{display:block;font:800 9.4pt 'Manrope';color:var(--koyu)}.skor div em{font:800 15pt 'Manrope';font-style:normal;color:var(--ink)}
