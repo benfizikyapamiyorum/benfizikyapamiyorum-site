@@ -1,19 +1,20 @@
 import {batchStaticMeshes} from './bfy-mesh-batch.mjs';
 import * as T from './bfy-three.module.min.js';
 // Original geometry; proportions checked against front, side and rear Şahin photographs. +X is forward.
-export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
+export function createSahin({color='#cfd1ca',plate='54 BFY 54'}={}){
   const car=new T.Group(),body=new T.Group();car.add(body);body.position.y=-.085;
-  const paint=new T.MeshPhysicalMaterial({color,metalness:.12,roughness:.24,clearcoat:1,clearcoatRoughness:.16});
+  const paint=new T.MeshPhysicalMaterial({color,metalness:.08,roughness:.22,clearcoat:1,clearcoatRoughness:.09,envMapIntensity:1.15});
   const black=new T.MeshStandardMaterial({color:'#15181b',roughness:.67});
   const rubber=new T.MeshStandardMaterial({color:'#101113',roughness:.88});
   const chrome=new T.MeshStandardMaterial({color:'#d4d9d9',metalness:.94,roughness:.17});
   const trim=new T.MeshStandardMaterial({color:'#363c40',metalness:.55,roughness:.4});
-  const glass=new T.MeshPhysicalMaterial({color:'#263239',metalness:.1,roughness:.06,clearcoat:1,transparent:true,opacity:.76,side:T.DoubleSide});
+  const glass=new T.MeshPhysicalMaterial({color:'#718383',metalness:0,roughness:.08,ior:1.52,envMapIntensity:1.4,clearcoat:1,transparent:true,opacity:.64,depthWrite:false,side:T.DoubleSide});
   const lamp=new T.MeshPhysicalMaterial({color:'#f4eed9',metalness:.15,roughness:.19,clearcoat:1,emissive:'#fff0c5',emissiveIntensity:.13});
   const amber=new T.MeshStandardMaterial({color:'#e89d2e',roughness:.22,metalness:.2,emissive:'#b45c03',emissiveIntensity:.16});
   const red=new T.MeshStandardMaterial({color:'#a71716',roughness:.21,emissive:'#c62a17',emissiveIntensity:.18});
   const mesh=(parent,g,m,x=0,y=0,z=0)=>{const o=new T.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;};
-  const box=(p,x,y,z,w,h,d,m)=>mesh(p,new T.BoxGeometry(w,h,d),m,x,y,z);
+  // Small rolled edges catch the environment without a subdivision modifier.
+  const box=(p,x,y,z,w,h,d,m)=>{let g=new T.BoxGeometry(w,h,d);if((m===paint||m===black)&&Math.min(w,h,d)>.045){g.dispose();g=new T.BoxGeometry(w,h,d,3,3,3);const a=g.attributes.position,r=Math.min(w,h,d)*.16,core=new T.Vector3(w/2-r,h/2-r,d/2-r),v=new T.Vector3(),c=new T.Vector3();for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i);c.set(T.MathUtils.clamp(v.x,-core.x,core.x),T.MathUtils.clamp(v.y,-core.y,core.y),T.MathUtils.clamp(v.z,-core.z,core.z));v.sub(c).normalize().multiplyScalar(r).add(c);a.setXYZ(i,v.x,v.y,v.z);}g.computeVertexNormals();}return mesh(p,g,m,x,y,z);};
   const poly=(p,pts,m)=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pts.flat(),3));const idx=[];for(let i=1;i<pts.length-1;i++)idx.push(0,i,i+1);g.setIndex(idx);g.computeVertexNormals();return mesh(p,g,m);};
   const tube=(p,pts,m,r=.008)=>{const path=new T.CurvePath();for(let i=1;i<pts.length;i++)path.add(new T.LineCurve3(new T.Vector3(...pts[i-1]),new T.Vector3(...pts[i])));return mesh(p,new T.TubeGeometry(path,Math.max(8,pts.length*5),r,6,false),m);};
   // Continuous lower shell, with actual wheel openings (not discs painted on a box).
@@ -31,7 +32,7 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
     const g=new T.ShapeGeometry(sh);const pos=g.attributes.position;for(let i=0;i<pos.count;i++)pos.setZ(i,sideZ(pos.getY(i),side));g.computeVertexNormals();const sidePaint=paint.clone();sidePaint.side=T.DoubleSide;mesh(body,g,sidePaint);
     windowPoints.forEach(ps=>{const pts=ps.map(([x,y])=>[x,y,sideZ(y,side)+side*.002]);poly(body,pts,glass);tube(body,[...pts,pts[0]],black,.013);});
     tube(body,[[-1.035,1.055,sideZ(1.055,side)+side*.005],[-.805,1.396,sideZ(1.396,side)+side*.005]],black,.009);
-    tube(body,[[-2.03,.875,side*.834],[-1.45,.915,side*.834],[.77,.906,side*.834],[2.06,.829,side*.834]],paint,.008);
+
     if(side===1)tube(body,[[-1.79,.76,.837],[-1.56,.76,.837],[-1.56,.89,.837],[-1.79,.89,.837],[-1.79,.76,.837]],trim,.0025);
     // Door seams and rub strips follow the real four-door proportions.
     for(const x of [-1.29,-.345,.76])tube(body,[[x,.47,side*.832],[x,.86,side*.833],[x===.76?.77:x,1.005,side*.802]],trim,.004);
@@ -49,6 +50,8 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
   const frontGlass=[[.775,.985,-.772],[.775,.985,.772],[.225,1.445,.665],[.225,1.445,-.665]];
   const rearGlass=[[-1.50,1.004,.772],[-1.50,1.004,-.772],[-.925,1.445,-.665],[-.925,1.445,.665]];
   for(const pts of [frontGlass,rearGlass]){poly(body,pts,glass);tube(body,[...pts,pts[0]],black,.018);}
+  const heater=new T.MeshStandardMaterial({color:'#645848',roughness:.65,transparent:true,opacity:.5});
+  for(let i=1;i<8;i++){const t=i/9,y=1.004+.441*t,x=-1.50+.575*t,width=.772-.107*t;tube(body,[[x+.002,y,-width*.94],[x+.002,y,width*.94]],heater,.0015);}
   const roofG=new T.PlaneGeometry(1.18,1.34,16,20);roofG.rotateX(-Math.PI/2);
   const roofPos=roofG.attributes.position;for(let i=0;i<roofPos.count;i++){const x=roofPos.getX(i),z=roofPos.getZ(i);roofPos.setY(i,1.468+.024*(1-(x/.59)**2)*(1-(z/.67)**2));roofPos.setX(i,x-.35);}roofG.computeVertexNormals();mesh(body,roofG,paint);
   for(const side of [-1,1])tube(body,[[-1.55,1.012,side*.81],[-.935,1.467,side*.69],[.235,1.467,side*.69],[.80,.984,side*.81]],chrome,.007);
@@ -75,7 +78,8 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
   for(let i=0;i<4;i++)box(body,2.145,.385+i*.016,0,.01,.005,.48,black);
   // Rectangular headlamps, corner amber indicators and horizontal grille slats.
   box(body,2.135,.765,0,.027,.245,1.52,black);
-  const lensCanvas=document.createElement('canvas');lensCanvas.width=512;lensCanvas.height=256;const lc=lensCanvas.getContext('2d');const lg=lc.createLinearGradient(0,0,0,256);lg.addColorStop(0,'#778b96');lg.addColorStop(.16,'#e4e9e5');lg.addColorStop(.42,'#b2bfc1');lg.addColorStop(.58,'#d5ddda');lg.addColorStop(.8,'#9baeb5');lg.addColorStop(1,'#e5eae4');lc.fillStyle=lg;lc.fillRect(0,0,512,256);for(const [pts,col]of [[[[14,14],[498,14],[390,80],[120,80]],'#f2f4eebb'],[[[14,242],[498,242],[390,170],[120,170]],'#eef2edaa'],[[[14,14],[14,242],[120,170],[120,80]],'#71858c66'],[[[498,14],[498,242],[390,170],[390,80]],'#71858c66']]){lc.fillStyle=col;lc.beginPath();pts.forEach(([x,y],i)=>i?lc.lineTo(x,y):lc.moveTo(x,y));lc.closePath();lc.fill();}lc.fillStyle='#d9e1db';lc.fillRect(190,90,130,65);for(let k=0;k<52;k++){lc.fillStyle=k%2?'#ffffff20':'#10182022';lc.fillRect(k*10,0,2,256);}for(let k=0;k<10;k++){lc.fillStyle='#ffffff25';lc.fillRect(0,k*26,512,1);}const lensTex=new T.CanvasTexture(lensCanvas);lensTex.colorSpace=T.SRGBColorSpace;lensTex.anisotropy=8;const lensMat=new T.MeshPhysicalMaterial({map:lensTex,roughness:.18,metalness:.14,clearcoat:1,emissive:'#fff0c5',emissiveIntensity:0});
+  const lensCanvas=document.createElement('canvas');lensCanvas.width=512;lensCanvas.height=256;const lc=lensCanvas.getContext('2d');const lg=lc.createLinearGradient(0,0,0,256);lg.addColorStop(0,'#778b96');lg.addColorStop(.16,'#e4e9e5');lg.addColorStop(.42,'#b2bfc1');lg.addColorStop(.58,'#d5ddda');lg.addColorStop(.8,'#9baeb5');lg.addColorStop(1,'#e5eae4');lc.fillStyle=lg;lc.fillRect(0,0,512,256);for(const [pts,col]of [[[[14,14],[498,14],[390,80],[120,80]],'#f2f4eebb'],[[[14,242],[498,242],[390,170],[120,170]],'#eef2edaa'],[[[14,14],[14,242],[120,170],[120,80]],'#71858c66'],[[[498,14],[498,242],[390,170],[390,80]],'#71858c66']]){lc.fillStyle=col;lc.beginPath();pts.forEach(([x,y],i)=>i?lc.lineTo(x,y):lc.moveTo(x,y));lc.closePath();lc.fill();}lc.fillStyle='#d9e1db';lc.fillRect(190,90,130,65);for(let k=0;k<52;k++){lc.fillStyle=k%2?'#ffffff20':'#10182022';lc.fillRect(k*10,0,2,256);}for(let k=0;k<10;k++){lc.fillStyle='#ffffff25';lc.fillRect(0,k*26,512,1);}const lensTex=new T.CanvasTexture(lensCanvas);lensTex.colorSpace=T.SRGBColorSpace;lensTex.anisotropy=8;const lensMat=new T.MeshPhysicalMaterial({map:lensTex,bumpMap:lensTex,bumpScale:.003,roughness:.14,metalness:.14,clearcoat:1,emissive:'#fff0c5',emissiveIntensity:0});
+  red.map=lensTex;red.roughness=.16;red.emissiveIntensity=.07;amber.map=lensTex;
   for(const side of [-1,1]){
     box(body,2.157,.768,side*.568,.032,.221,.334,chrome);
     const lens=mesh(body,new T.PlaneGeometry(.326,.213),lensMat,2.178,.768,side*.568);lens.rotation.y=Math.PI/2;
@@ -92,6 +96,8 @@ export function createSahin({color='#f1f0e9',plate='54 BFY 54'}={}){
   function word(text,x,y,z,width){const c=document.createElement('canvas');c.width=512;c.height=96;const q=c.getContext('2d');q.font='600 58px Arial';q.textAlign='center';q.fillStyle='#d5dce2';q.fillText(text,256,67);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;const o=mesh(body,new T.PlaneGeometry(width,.065),new T.MeshStandardMaterial({map:t,transparent:true,metalness:.4,roughness:.4}),x,y,z);o.rotation.y=-Math.PI/2;}
   word('ŞAHİN',-2.125,.95,-.55,.25);word('TOFAŞ',-2.125,.95,.55,.27);
   const exhaust=mesh(body,new T.CylinderGeometry(.052,.052,.24,32,1,true),chrome,-2.20,.31,.58);exhaust.rotation.z=Math.PI/2;const exhaustDark=mesh(body,new T.CircleGeometry(.043,32),black,-2.325,.31,.58);exhaustDark.rotation.y=-Math.PI/2;
+  // Fine moulded tread: one shared normal-free bump texture for all four tyres.
+  const tyreCanvas=document.createElement('canvas');tyreCanvas.width=tyreCanvas.height=256;const tq=tyreCanvas.getContext('2d');tq.fillStyle='#969696';tq.fillRect(0,0,256,256);tq.strokeStyle='#353535';tq.lineWidth=4;for(let j=0;j<32;j++){tq.beginPath();tq.moveTo(j*9,0);tq.lineTo(j*9-8,96);tq.lineTo(j*9+6,160);tq.lineTo(j*9-2,256);tq.stroke();}for(const y of [65,100,156,191]){tq.fillStyle='#333';tq.fillRect(0,y,256,3);}const tyreBump=new T.CanvasTexture(tyreCanvas);tyreBump.wrapS=tyreBump.wrapT=T.RepeatWrapping;rubber.bumpMap=tyreBump;rubber.bumpScale=.004;rubber.roughness=.83;
   // Deep-dish, polished five-spoke wheels with exposed rivets and a lower-profile tyre.
   const wheels=[],wheelPivots=[];
   const rimFace=new T.MeshStandardMaterial({color:'#eee9dc',metalness:.88,roughness:.20});
