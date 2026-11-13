@@ -28,7 +28,8 @@
   /* Konu Soru Paketleri: provada puan kaybedilen konu pakette varsa sonuç ekranında öne çıkar. */
   const PAKET={
     9:[{konular:['Temel ve Türetilmiş Nicelikler','Skaler ve Vektörel Nicelikler'],ad:'Nicelikler Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342629',img:'/img/paket/kapak-9.webp'},
-       {konular:['Hareketin Temel Kavramları','Hareket Türleri'],ad:'Hareket ve Hareket Türleri Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52861192',img:'/img/paket/kapak-9-2.webp'}],
+       {konular:['Hareketin Temel Kavramları','Hareket Türleri'],ad:'Hareket ve Hareket Türleri Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52861192',img:'/img/paket/kapak-9-2.webp'},
+        {konular:['Vektörlerin Toplanması','Vektörlerin Bileşenleri','Vektörler'],ad:'Vektörler Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52913268',img:'/img/paket/kapak-9-3.webp'}],
     10:[{konular:['Sabit Hızlı Hareket'],ad:'Sabit Hızlı Hareket Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342674',img:'/img/paket/kapak-10.webp'},
         {konular:['İş','İş, Enerji ve Güç'],ad:'İş, Enerji ve Güç Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52861260',img:'/img/paket/kapak-10-2.webp'},
         {konular:['Mekanik Enerji','Enerji Biçimleri','Enerji Kaynakları'],ad:'Mekanik Enerji ve Enerji Kaynakları Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52903249',img:'/img/paket/kapak-10-3.webp'}],
