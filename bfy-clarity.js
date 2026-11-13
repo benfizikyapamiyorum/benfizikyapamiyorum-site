@@ -9,6 +9,10 @@
  window.matchMedia('(min-width:621px)').addEventListener('change',()=>closeMenu());
  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const normalize=s=>s.toLocaleLowerCase('tr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ı/g,'i');
+  // Arama: kelimelerin sırası önemli değil; her kelime kartın metninde ya da ek anahtar kelimelerinde geçmeli.
+  const ARA_EK={'p-fizik9':'9 sinif fizik maarif dijital kitap yapabilirim','p-fizik10':'10 sinif fizik maarif dijital kitap yapabilirim','p-fizik11':'11 sinif fizik maarif dijital kitap yapabilirim','p-tyt2027':'tyt fizik yks 2027 eski mufredat 12 sinif mezun dijital kitap yapabilirim','p-ayt2027':'ayt fizik yks 2027 eski mufredat 12 sinif mezun dijital kitap yapabilirim','p-paket2027':'tyt ayt fizik yks 2027 paket eski mufredat 12 sinif mezun dijital kitap yapabilirim','p-fiziktyt':'tyt fizik maarif yks 2028 yeni mufredat 1. oturum dijital kitap yapabilirim','p-yazili3':'yazili fizik 9 10 11 sinif hazirlik pdf','p-yazili3-10':'yazili fizik 10 sinif hazirlik pdf','p-yazili3-11':'yazili fizik 11 sinif hazirlik pdf'};
+  const ARA_BOS=new Set(['ve','ile','icin','bir','de','da']);
+  const araUyar=(card,q)=>{const m=normalize(card.textContent+' '+(ARA_EK[card.id]||''));return q.split(/\s+/).filter(w=>w&&!ARA_BOS.has(w)).every(w=>m.includes(w));};
  const homeData=document.getElementById('home-product-data');
  if(homeData){
   const data=JSON.parse(homeData.textContent),grid=document.getElementById('home-products'),grade=document.getElementById('home-grade'),radios=[...document.querySelectorAll('[name="home-audience"]')];
@@ -50,7 +54,7 @@
    const priority=audience.value==='ogretmen'?['kit','ogren','sinav','deney','tyt','yazili','kitap']:['yazili','ogren','tyt','kitap','kit','sinav','deney'];
    const exact=c=>grade.value!=='all'&&c.dataset.grade===grade.value?1:0;
    [...cards].sort((a,b)=>(exact(b)-exact(a))||priority.indexOf(a.dataset.need)-priority.indexOf(b.dataset.need)).forEach(c=>c.parentNode.appendChild(c));
-   cards.forEach(card=>{const matches=(audience.value==='all'||card.dataset.aud.split(' ').includes(audience.value))&&(grade.value==='all'||card.dataset.grade.split(' ').includes(grade.value))&&(need.value==='all'||card.dataset.need===need.value)&&(!q||normalize(card.textContent).includes(q));card.hidden=!matches;if(matches)count++;});
+   cards.forEach(card=>{const matches=(audience.value==='all'||card.dataset.aud.split(' ').includes(audience.value))&&(grade.value==='all'||card.dataset.grade.split(' ').includes(grade.value))&&(need.value==='all'||card.dataset.need===need.value)&&(!q||araUyar(card,q));card.hidden=!matches;if(matches)count++;});
    document.getElementById('result-count').textContent=count+' ürün';
    document.querySelector('.empty-state').hidden=count>0;
    const filtered=[audience,grade,need].some(f=>f.value!=='all')||!!q;clear.hidden=!filtered;
