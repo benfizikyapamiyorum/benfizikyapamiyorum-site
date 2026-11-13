@@ -3,7 +3,7 @@
 const { bolum, kutu, formul, sekil, ikili, uclu, hata } = require('./lib');
 const R = require('./real');
 const { C, S, T, OK, OLCU, ACI, ROZET } = R;
-const alt = (a, b) => `${a}<tspan dy="5" dx="-2.5" font-size="64%" font-style="normal">${b}</tspan><tspan dy="-5" font-size="64%">&#8203;</tspan>`;
+const alt = (a, b) => `${a}<tspan dy="5" dx="0.5" font-size="64%" font-style="normal">${b}</tspan><tspan dy="-5" font-size="64%">&#8203;</tspan>`;
 const V = 'ϑ';
 
 // ---------- Şekiller ----------
@@ -71,7 +71,7 @@ const fEgik = (mm = 150) => {
   const [xt, yt] = P(4), [xs, ys] = P(8);
   // çıkış
   b += OK(x0, yer - 8, x0 + 30 * vk, yer - 8, C.mavi, { w: 3.6, hd: 10, dash: '6 4' }) + OK(x0, yer - 8, x0, yer - 8 - 40 * vk, C.turuncu, { w: 3.6, hd: 10, dash: '6 4' }) + OK(x0, yer - 8, x0 + 30 * vk, yer - 8 - 40 * vk, C.mor, { w: 4.6 });
-  b += R.TOP(x0, yer - 8, 8, '#ef4444') + T(x0 + 30 * vk - 16, yer - 8 - 40 * vk - 9, `${alt(V, '0')} = 50 m/s`, { a: 'middle', c: C.mor, size: 13.5 }) + T(x0 - 7, yer - 8 - 28, '40', { a: 'end', c: C.turuncu, size: 13 }) + T(x0 + 50, yer - 13, '30', { a: 'start', c: C.mavi, size: 13 }) + ACI(x0, yer - 8, 20, 0, 53, '53°', { lr: 13, size: 11.5 });
+  b += R.TOP(x0, yer - 8, 8, '#ef4444') + T(x0 + 30 * vk - 34, yer - 8 - 40 * vk - 10, `${alt(V, '0')} = 50 m/s`, { a: 'middle', c: C.mor, size: 13.5 }) + T(x0 - 7, yer - 8 - 28, '40', { a: 'end', c: C.turuncu, size: 13 }) + T(x0 + 50, yer - 13, '30', { a: 'start', c: C.mavi, size: 13 }) + ACI(x0, yer - 8, 20, 0, 53, '53°', { lr: 13, size: 11.5 });
   // tepe
   b += OK(xt, yt, xt + 30 * vk, yt, C.mavi, { w: 4.6 }) + R.TOP(xt, yt, 8, '#ef4444') + T(xt + 30 * vk + 8, yt - 12, `${alt(V, 'x')} = 30 m/s`, { a: 'start', c: C.mavi, size: 13.5 }) + ROZET(xt - 30, yt - 24, 'Tepe: düşey hız 0', C.koyu, { size: 12 });
   b += OLCU(xt, yt + 12, xt, yer, 'h = 80 m', { size: 13, dash: '4 4' });
@@ -101,7 +101,7 @@ const fUcBlok = (mm = 92) => {
 // Küçük kart şekilleri (3 yasa)
 const fYasa1 = () => { let b = R.ZEMIN(4, 196, 84, { tur: 'buz', h: 16 }) + R.KUTU(40, 50, 42, 34, { renk: '#0f766e', d: 7 }) + OK(96, 67, 150, 67, C.mavi, { w: 4, hd: 11 }) + T(124, 54, `${V} sabit`, { c: C.mavi, size: 13 }) + T(100, 24, 'net kuvvet = 0', { size: 13, c: '#334155' }); return S(200, 100, 46, b); };
 const fYasa2 = () => { let b = R.ZEMIN(4, 196, 84, { tur: 'buz', h: 16 }) + R.KUTU(30, 46, 46, 38, { renk: '#7c3aed', d: 7, lab: 'm', lw: 12 }) + OK(88, 65, 150, 65, C.pembe, { w: 5 }) + T(120, 52, alt('F', 'net'), { c: C.pembe, size: 14, it: true }) + OK(40, 26, 96, 26, C.yesil, { w: 3.4, hd: 10, dash: '6 4' }) + T(104, 31, 'a', { a: 'start', c: C.yesil, size: 15, it: true }); return S(200, 100, 46, b); };
-const fYasa3 = () => { let b = R.ZEMIN(4, 196, 84, { tur: 'zemin', h: 16 }) + R.INSAN(58, 84, { kol: 'it', k: .8, renk: '#2563eb' }) + `<rect x="84" y="12" width="16" height="72" fill="url(#gBeton)" stroke="#64748b" stroke-width="1.2"/>` + OK(102, 38, 150, 38, C.pembe, { w: 4, hd: 11 }) + T(126, 28, 'etki', { c: C.pembe, size: 12.5 }) + OK(150, 62, 102, 62, C.turuncu, { w: 4, hd: 11 }) + T(128, 78, 'tepki', { c: C.turuncu, size: 12.5 }) + T(150, 16, 'duvara', { size: 10.5, w: 700, c: '#64748b' }) ; return S(200, 100, 46, b); };
+const fYasa3 = () => { let b = R.ZEMIN(4, 196, 84, { tur: 'zemin', h: 16 }) + R.INSAN(58, 84, { kol: 'it', k: .8, renk: '#2563eb' }) + `<rect x="84" y="12" width="16" height="72" fill="url(#gBeton)" stroke="#64748b" stroke-width="1.2"/>` + OK(102, 38, 150, 38, C.pembe, { w: 4, hd: 11 }) + T(126, 28, 'etki', { c: C.pembe, size: 12.5 }) + OK(150, 62, 102, 62, C.turuncu, { w: 4, hd: 11 }) + T(128, 78, 'tepki', { c: C.turuncu, size: 12.5 }); return S(200, 100, 46, b); };
 // Hız–zaman grafiği (soru 10)
 const gHiz10 = (mm = 64) => R.GRAFIK({ xmax: 8, ymax: 12, dx: 1, dy: 4, sx: 30, sy: 9, xlab: 't (s)', ylab: `${V} (m/s)`, cizgi: [{ pts: [[0, 0], [2, 12], [5, 12], [8, 0]], c: C.mavi }], kesik: [[2, 12], [5, 12]], mm });
 // F–a grafiği (deneme 11)
