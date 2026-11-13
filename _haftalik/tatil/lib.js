@@ -135,7 +135,7 @@ function soru(n, q) {
   const k = q.k || (cokUzun ? 1 : uzun ? (q.yan ? 2 : 3) : 5);
   const onc = q.onc ? `<div class="onc">${q.onc.map((o, i) => `<div><b>${['I', 'II', 'III', 'IV'][i]}.</b> ${md(o)}</div>`).join('')}</div>` : '';
   const sik = `<div class="siklar" style="--k:${k}">${q.siklar.map((s, i) => `<span><b>${'ABCDE'[i]})</b>${md(s)}</span>`).join('')}</div>`;
-  const metin = String(q.metin).replace(/<span style="white-space:nowrap">(\([^<]*\))<\/span>/g, '$1').replace(/\((\$\\(?:sin|cos)[^)]*)\)/g, '<span style="white-space:nowrap">($1)</span>');
+  const metin = String(q.metin).replace(/\((\$\\(?:sin|cos)[^)]*)\)/g, '<span style="white-space:nowrap">($1)</span>');
   const govde = `${md(metin)}${!q.yan && q.sekil ? `<div class="sekil">${q.sekil}</div>` : ''}${onc}${q.kok ? `<p><b>${md(q.kok)}</b></p>` : ''}${sik}`;
   return q.yan && q.sekil
     ? `<div class="soru yan"><div class="sn">${n}</div><div><div>${govde}</div><div class="sekil">${q.sekil}</div></div></div>`
