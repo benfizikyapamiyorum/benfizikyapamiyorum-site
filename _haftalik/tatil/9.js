@@ -1,5 +1,5 @@
 // 9. sınıf | Ara Tatil Fizik Kampı | Kapsam: fizik bilimi ve alt dalları, temel ve türetilmiş nicelikler, skaler ve vektörel nicelikler, vektörlerde toplama ve bileşenler
-// Trigonometri yok. Vektörler yalnız kareli düzlemde, dik vektörler tam sayılı dik üçgenlerle (3-4-5, 6-8-10).
+// Trigonometri yok. Vektörler yalnız kareli düzlemde, dik vektörler tam sayılı dik üçgenlerle (3-4-5, 6-8-10, 5-12-13) ve yalnız Pisagor bağıntısıyla.
 const { bolum, kutu, formul, sekil, ikili, uclu, hata, tablo, p } = require('./lib');
 const R = require('./real');
 const { C, S, T, OK, ROZET } = R;
@@ -56,8 +56,8 @@ function GOSTERGE(cx, cy, r, val) {
   const id = uid('gs');
   let b = `<defs><radialGradient id="${id}" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#27324d"/><stop offset="1" stop-color="#0b1220"/></radialGradient></defs><g filter="url(#golge)"><circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#gMetalD)" stroke="#334155" stroke-width="1.6"/></g><circle cx="${cx}" cy="${cy}" r="${r * 0.91}" fill="url(#${id})" stroke="#0b1220" stroke-width="1"/>`;
   for (let v = 0; v <= max; v += 10) {
-    const big = v % 20 === 0, [x1, y1] = P(v, r * 0.63), [x2, y2] = P(v, r * (big ? 0.51 : 0.57));
-    b += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${big ? '#f8fafc' : '#94a3b8'}" stroke-width="${big ? 2.2 : 1.2}" stroke-linecap="round"/>`;
+    const big = v % 20 === 0, [x1, y1] = P(v, r * 0.63), [x2, y2] = P(v, r * (big ? 0.51 : 0.55));
+    b += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${big ? '#ffffff' : '#e2e8f0'}" stroke-width="${big ? 2.4 : 1.7}" stroke-linecap="round"/>`;
     if (big) { const [tx, ty] = P(v, r * 0.785); b += T(tx, ty + r * 0.048, String(v), { size: r * 0.135, c: '#f8fafc', halo: false, w: 700 }); }
   }
   const [nx, ny] = P(val, r * 0.47), [bx, by] = P(val, -r * 0.12);
@@ -65,11 +65,19 @@ function GOSTERGE(cx, cy, r, val) {
   b += `<line x1="${bx}" y1="${by}" x2="${nx}" y2="${ny}" stroke="#ef4444" stroke-width="${r * 0.05}" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="${r * 0.1}" fill="url(#gJant)" stroke="#334155" stroke-width="1"/>`;
   return b;
 }
-// Dinamometre: (x, y) üst halka, kanca ucu y + 88. n: göstergenin durduğu çizgi (0–5).
-function DINAMO(x, y, n, deger) {
-  return `<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="#475569" stroke-width="2.6"/><g filter="url(#golge)"><rect x="${x - 11}" y="${y + 6}" width="22" height="62" rx="5" fill="url(#gMetalD)" stroke="#475569" stroke-width="1.2"/></g><rect x="${x - 6}" y="${y + 12}" width="12" height="50" rx="2" fill="#fff" stroke="#94a3b8" stroke-width=".8"/>` +
-    Array.from({ length: 6 }, (_, i) => `<line x1="${x - 6}" y1="${y + 16 + i * 9}" x2="${x}" y2="${y + 16 + i * 9}" stroke="#475569" stroke-width="1"/>`).join('') + `<rect x="${x - 6}" y="${y + 16 + n * 9 - 1.3}" width="12" height="2.6" fill="#dc2626"/>` +
-    `<path d="M ${x} ${y + 68} V ${y + 80} q 0 8 -6 8" fill="none" stroke="#475569" stroke-width="2.6" stroke-linecap="round"/>` + (deger ? T(x + 19, y + 16 + n * 9 + 4.5, deger, { size: 14, a: 'start', c: C.pembe }) : '');
+// Dinamometre (sayılı ölçek, 0–20 N): (x, y) üst halka merkezi, kanca ucu y + 92k. deger: gösterilen kuvvet (N).
+function DINAMO(x, y, deger, k = 1) {
+  const ty = v => 25 + v * 1.8;
+  let b = `<circle cx="0" cy="0" r="6" fill="none" stroke="#475569" stroke-width="2.4"/><g filter="url(#golge)"><rect x="-16" y="6" width="32" height="66" rx="6" fill="url(#gMetalD)" stroke="#475569" stroke-width="1.1"/></g><rect x="-12" y="11" width="24" height="55" rx="2.5" fill="#fff" stroke="#94a3b8" stroke-width=".8"/>`;
+  b += T(4.5, 20.5, 'N', { size: 7, w: 800, c: '#64748b', halo: false });
+  for (let v = 0; v <= 20; v += 5) {
+    const buyuk = v % 10 === 0;
+    b += `<line x1="-12" y1="${ty(v)}" x2="${buyuk ? -4.5 : -7.5}" y2="${ty(v)}" stroke="#334155" stroke-width="${buyuk ? 1.2 : .9}"/>`;
+    if (buyuk) b += T(4.5, ty(v) + 3, String(v), { size: 8.6, w: 800, c: '#1e293b', halo: false });
+  }
+  b += `<polygon points="-12,${ty(deger) - 2.8} -4.5,${ty(deger)} -12,${ty(deger) + 2.8}" fill="#dc2626"/>`;
+  b += `<path d="M 0 72 V 84 q 0 8 -6 8" fill="none" stroke="#475569" stroke-width="2.4" stroke-linecap="round"/>`;
+  return `<g transform="translate(${x} ${y}) scale(${k})">${b}</g>`;
 }
 // Pirinç kütle (laboratuvar ağırlığı): (x, y) taban ortası.
 const KUTLE = (x, y, lab, k = 1) => { const id = uid('pr'); return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fef3c7"/><stop offset=".35" stop-color="#eab308"/><stop offset="1" stop-color="#92400e"/></linearGradient></defs><rect x="${x - 5 * k}" y="${y - 31 * k}" width="${10 * k}" height="${8 * k}" rx="2" fill="url(#${id})" stroke="#78350f" stroke-width=".9"/><rect x="${x - 15 * k}" y="${y - 24 * k}" width="${30 * k}" height="${24 * k}" rx="3" fill="url(#${id})" stroke="#78350f" stroke-width="1"/>` + (lab ? T(x, y - 8 * k, lab, { size: 10.5 * k, c: '#422006', halo: false }) : ''); };
@@ -78,7 +86,7 @@ const KUTLE = (x, y, lab, k = 1) => { const id = uid('pr'); return `<defs><linea
 const kapak = (() => {
   const w = 720, h = 330;
   const tepe = `<ellipse cx="560" cy="318" rx="290" ry="66" fill="#b5dfa4"/><ellipse cx="110" cy="322" rx="250" ry="56" fill="#a3d692"/>`;
-  const s = R.SAHNE(w, h, { tur: 'cim', zh: 34, arka: R.GUNES(62, 60, 24) + R.BULUT(150, 108, .85) + R.BULUT(432, 96, 1.05) + R.BULUT(600, 236, .7) + tepe + BALON(446, 214, .3, '#7c3aed', '#fde68a', '#0f766e') + BALON(390, 250, .19, '#0891b2', '#fff', '#be185d') });
+  const s = R.SAHNE(w, h, { tur: 'cim', zh: 34, arka: R.GUNES(36, 32, 19) + R.BULUT(150, 108, .85) + R.BULUT(432, 96, 1.05) + R.BULUT(600, 236, .7) + tepe + BALON(446, 214, .3, '#7c3aed', '#fde68a', '#0f766e') + BALON(390, 250, .19, '#0891b2', '#fff', '#be185d') });
   const yer = s.yerY, ox = 200, oy = 131, u = 34;
   let b = s.b + R.AGAC(36, yer, 1.1) + R.AGAC(84, yer + 1, .8) + R.AGAC(500, yer + 1, .75);
   // rüzgâr tulumu ve izleyenler
@@ -92,7 +100,7 @@ const kapak = (() => {
   b += ROZET(ox + 4 * u + 12, oy, 'rüzgâr: 4 m/s', C.mavi, { a: 'start', size: 13 }) + ROZET(ox - 13, oy - 1.6 * u, 'yükselme: 3 m/s', C.turuncu, { a: 'end', size: 13 }) + ROZET(ox + 4 * u + 12, oy - 3 * u, 'bileşke: 5 m/s', C.mor, { a: 'start', size: 13 });
   // kareli düzlemdeki model
   const kz = R.KARELI(6, 5, 26);
-  b += `<g transform="translate(512 24)">${kz.b}${vek(kz, 1, 1, 4, 0, C.mavi, '4', { duz: true, yan: 1, w: 4.6, size: 15 })}${vek(kz, 5, 1, 0, 3, C.turuncu, '3', { duz: true, yan: 1, w: 4.6, size: 15 })}${vek(kz, 1, 1, 4, 3, C.mor, '5', { duz: true, w: 4.8, size: 15, nokta: true })}</g>`;
+  b += `<g transform="translate(512 24)">${kz.b}${vek(kz, 5, 1, 0, 3, C.turuncu, '3', { duz: true, yan: 1, w: 4.6, size: 15 })}${vek(kz, 1, 1, 4, 0, C.mavi, '4', { duz: true, yan: 1, w: 4.6, size: 15 })}${vek(kz, 1, 1, 4, 3, C.mor, '5', { duz: true, w: 4.8, size: 15, nokta: true })}</g>`;
   return S(w, h, 180, b + s.cerceve);
 })();
 
@@ -144,16 +152,10 @@ const dallar = () => `<div style="display:grid;grid-template-columns:repeat(4,1f
   [mElektro(), 'Elektromanyetizma', 'Elektrik yükleri, akım ve mıknatıslar.', 'Mıknatısın çiviyi çekmesi.'],
   [mOptik(), 'Optik', 'Işık olayları: yansıma, kırılma, gölge.', 'Işığın prizmada renklerine ayrılması.'],
   [mKati(), 'Katı hâl fiziği', 'Kristal yapılı katılar ve yarı iletkenler.', 'İşlemci (çip) üretimi.'],
-  [mAtom(), 'Atom fiziği', 'Atomun yapısı, elektronların enerji düzeyleri.', 'Lazer ışığının elde edilmesi.'],
-  [mNukleer(), 'Nükleer fizik', 'Atom çekirdeği ve çekirdek tepkimeleri.', 'Fosillerin yaşının belirlenmesi.'],
-  [mPlazma(), 'Yüksek enerji ve plazma fiziği', 'Atom altı parçacıklar ve plazma hâli.', 'Kutup ışıklarının oluşması.'],
+  [mAtom(), 'Atom fiziği', 'Atomun yapısı, elektronların enerji düzeyleri.', 'Elektronun enerji düzeyi değiştirmesi.'],
+  [mNukleer(), 'Nükleer fizik', 'Atom çekirdeği ve çekirdek tepkimeleri.', 'Radyoaktif çekirdeğin ışıma yapması.'],
+  [mPlazma(), 'Yüksek enerji ve plazma fiziği', 'Atom altı parçacıklar ve plazma hâli.', 'Plazma küresinde gazın plazma hâline geçmesi.'],
 ].map(k => dalKart(...k)).join('') + `</div>`;
-// Deneme 3: üç görsel yan yana
-const fUcGorsel = (mm = 150) => {
-  const g = (x, ic, no) => `<g transform="translate(${x} 0)">${ic}</g>` + T(x + 80, 111, no, { size: 15 });
-  return S(520, 118, mm, g(0, mElektro(), 'I') + g(180, mOptik(), 'II') + g(360, mTermo(), 'III'));
-};
-
 // ---------- Gün 2 şekilleri ----------
 // Laboratuvar masası: beş temel nicelik ve ölçme aracı
 const fLab = (mm = 176) => {
@@ -163,7 +165,7 @@ const fLab = (mm = 176) => {
   // cetvel
   b += R.CETVEL(14, y - 22, 116, 10, { adim: 5 }) + et(72, 'Uzunluk', 'metre (m)', 'cetvel');
   // terazi ve 1 kg'lık kütle
-  b += R.TERAZI(197, y - 40, '1000 g') + KUTLE(197, y - 40, '1 kg') + et(197, 'Kütle', 'kilogram (kg)', 'terazi');
+  b += R.TERAZI(197, y - 40, '1,00 kg') + KUTLE(197, y - 40, '1 kg') + et(197, 'Kütle', 'kilogram (kg)', 'terazi');
   // kronometre
   b += `<ellipse cx="322" cy="${y + 1}" rx="20" ry="3.4" fill="#0f172a" opacity=".22"/>` + R.KRONOMETRE(322, y - 25, 24) + et(322, 'Zaman', 'saniye (s)', 'kronometre');
   // termometre ve su dolu beher
@@ -182,13 +184,15 @@ const fLab = (mm = 176) => {
 };
 // Kütle ve ağırlık: aynı cisim terazide ve dinamometrede
 const fAgirlik = (mm = 70) => {
-  const w = 360, h = 200, y = 160, id = uid('ag');
+  const w = 360, h = 262, y = 222, id = uid('ag'), dx = 268, dy = 36, k = 1.35;
   let b = `<clipPath id="${id}"><rect width="${w}" height="${h}" rx="12"/></clipPath><g clip-path="url(#${id})"><rect width="${w}" height="${h}" fill="#eef3f9"/>${R.ZEMIN(0, w, y, { tur: 'masa', h: h - y })}</g>`;
-  b += R.TERAZI(80, y - 40, '1000 g') + KUTLE(80, y - 40, '1 kg') + ROZET(80, 62, 'kütle: 1 kg', C.yesil, { size: 13 });
-  // sehpa ve dinamometre
-  b += `<rect x="322" y="20" width="7" height="${y - 20}" fill="url(#gMetalD)" stroke="#475569" stroke-width="1"/><rect x="250" y="18" width="80" height="7" rx="2" fill="url(#gMetalD)" stroke="#475569" stroke-width="1"/><rect x="304" y="${y - 7}" width="44" height="7" rx="2" fill="#334155"/><line x1="268" y1="25" x2="268" y2="34" stroke="#475569" stroke-width="2.2"/>`;
-  b += DINAMO(268, 40, 2) + `<line x1="262" y1="128" x2="268" y2="134" stroke="#475569" stroke-width="2"/>` + KUTLE(268, 165, '1 kg');
-  b += ROZET(244, 98, 'ağırlık: 10 N', C.pembe, { size: 13, a: 'end' });
+  b += R.TERAZI(84, y - 40, '1,00 kg') + KUTLE(84, y - 40, '1 kg') + ROZET(84, y - 92, 'kütle: 1 kg', C.yesil, { size: 13 });
+  // sehpa ve dinamometre: cisim havada asılı, masaya değmiyor
+  b += `<rect x="326" y="16" width="7" height="${y - 16}" fill="url(#gMetalD)" stroke="#475569" stroke-width="1"/><rect x="246" y="14" width="88" height="7" rx="2" fill="url(#gMetalD)" stroke="#475569" stroke-width="1"/><rect x="306" y="${y - 7}" width="46" height="7" rx="2" fill="#334155"/><line x1="${dx}" y1="21" x2="${dx}" y2="${dy - 7}" stroke="#475569" stroke-width="2.4"/>`;
+  b += `<ellipse cx="${dx - 6}" cy="${y + 4}" rx="18" ry="3" fill="#0f172a" opacity=".16"/>`;
+  const ky = dy + 92 * k; // kanca ucu
+  b += DINAMO(dx, dy, 10, k) + `<circle cx="${dx - 7}" cy="${ky + 4}" r="4.6" fill="none" stroke="#78350f" stroke-width="2.2"/>` + KUTLE(dx - 7, ky + 40, '1 kg');
+  b += ROZET(dx - 16 * k - 9, dy + 43 * k, 'ağırlık: 10 N', C.pembe, { size: 13, a: 'end' });
   b += `<rect x=".75" y=".75" width="${w - 1.5}" height="${h - 1.5}" rx="12" fill="none" stroke="#b8c4d6" stroke-width="1.5"/>`;
   return S(w, h, mm, b);
 };
@@ -234,7 +238,7 @@ const fOzellik = (mm = 80) => {
   const kz = R.KARELI(11, 4, 26); let b = kz.b;
   b += `<line x1="${kz.X(0.3)}" y1="${kz.Y(2)}" x2="${kz.X(10.7)}" y2="${kz.Y(2)}" stroke="#64748b" stroke-width="1.5" stroke-dasharray="6 5"/>`;
   b += OK(kz.X(2), kz.Y(2), kz.X(7), kz.Y(2), C.mor, { w: 5, hd: 15, nokta: 5 });
-  b += T(kz.X(4.4), kz.Y(2.5), 'büyüklük: 5 birim', { size: 13, c: C.mor }) + T(kz.X(2), kz.Y(1.2), 'başlangıç noktası', { size: 12.5, c: '#334155' }) + T(kz.X(6.9), kz.Y(1.2), 'yön: doğu', { size: 12.5, c: '#334155' }) + T(kz.X(9.1), kz.Y(2.4), 'doğrultu', { size: 12.5, c: '#475569' });
+  b += T(kz.X(4.4), kz.Y(2.5), 'büyüklük: 5 birim', { size: 13, c: C.mor }) + T(kz.X(2.5), kz.Y(1.2), 'başlangıç noktası', { size: 12.5, c: '#334155' }) + T(kz.X(6.9), kz.Y(1.2), 'yön: doğu', { size: 12.5, c: '#334155' }) + T(kz.X(8.55), kz.Y(2.42), 'doğrultu', { size: 12.5, c: '#475569' });
   b += YON(kz.X(9.9), kz.Y(0.95), 10);
   return S(kz.W, kz.H, mm, b);
 };
@@ -271,27 +275,27 @@ const fD9 = (mm = 100) => {
 // ---------- Gün 4 şekilleri ----------
 const fUcUca = (mm = 62) => {
   const kz = R.KARELI(7, 6, 26); let b = kz.b;
-  b += vek(kz, 1, 1, 5, 4, C.mor, 'R', { w: 4.8, t: 0.45, nokta: true }) + vek(kz, 1, 1, 4, 1, C.mavi, 'A', { yan: 1 }) + vek(kz, 5, 2, 1, 3, C.turuncu, 'B', { yan: 1 });
+  b += vek(kz, 5, 2, 1, 3, C.turuncu, 'B', { yan: 1 }) + vek(kz, 1, 1, 4, 1, C.mavi, 'A', { yan: 1 }) + vek(kz, 1, 1, 5, 4, C.mor, 'R', { w: 4.8, t: 0.45, nokta: true });
   return S(kz.W, kz.H, mm, b);
 };
 const fParalel = (mm = 62) => {
   const kz = R.KARELI(7, 6, 26); let b = kz.b;
   b += `<path d="M ${kz.X(5)} ${kz.Y(2)} L ${kz.X(6)} ${kz.Y(5)} L ${kz.X(2)} ${kz.Y(4)}" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="6 5"/>`;
-  b += vek(kz, 1, 1, 5, 4, C.mor, 'R', { w: 4.8, t: 0.62, yan: 1, off: 14 }) + vek(kz, 1, 1, 4, 1, C.mavi, 'A', { yan: 1 }) + vek(kz, 1, 1, 1, 3, C.turuncu, 'B', { nokta: true });
+  b += vek(kz, 1, 1, 4, 1, C.mavi, 'A', { yan: 1 }) + vek(kz, 1, 1, 1, 3, C.turuncu, 'B') + vek(kz, 1, 1, 5, 4, C.mor, 'R', { w: 4.8, t: 0.62, yan: 1, off: 14, nokta: true });
   return S(kz.W, kz.H, mm, b);
 };
 const fOzel = (tur) => {
   const kz = R.KARELI(8, 6, 20); let b = kz.b; const o = { duz: true, size: 14, hd: 11, off: 17 };
   if (tur === 'ayni') b += vek(kz, 1, 4, 4, 0, C.mavi, '4', o) + vek(kz, 5, 4, 2, 0, C.turuncu, '2', o) + vek(kz, 1, 2, 6, 0, C.mor, 'R = 6', o);
   if (tur === 'zit') b += vek(kz, 1, 4, 4, 0, C.mavi, '4', o) + vek(kz, 5, 3, -2, 0, C.turuncu, '2', { ...o, t: 1.45, off: 0.01 }) + vek(kz, 1, 2, 2, 0, C.mor, 'R = 2', { ...o, t: 1.95, off: 0.01 });
-  if (tur === 'dik') b += vek(kz, 2, 2, 4, 3, C.mor, 'R = 5', { ...o, off: 22 }) + vek(kz, 2, 2, 4, 0, C.mavi, '4', { ...o, yan: 1 }) + vek(kz, 6, 2, 0, 3, C.turuncu, '3', { ...o, yan: 1 });
+  if (tur === 'dik') b += vek(kz, 6, 2, 0, 3, C.turuncu, '3', { ...o, yan: 1 }) + vek(kz, 2, 2, 4, 0, C.mavi, '4', { ...o, yan: 1 }) + vek(kz, 2, 2, 4, 3, C.mor, 'R = 5', { ...o, off: 22 });
   return S(kz.W, kz.H, 44, b);
 };
 const fBilesen = (mm = 66) => {
   const kz = R.KARELI(9, 6, 26); let b = kz.b + EKSEN(kz, 3, 2, 9, 6);
   b += `<path d="M ${kz.X(7)} ${kz.Y(2)} V ${kz.Y(5)} H ${kz.X(3)}" fill="none" stroke="#64748b" stroke-width="1.6" stroke-dasharray="6 5"/>`;
   b += OK(kz.X(3), kz.Y(2), kz.X(7), kz.Y(2), C.mavi, { w: 4, hd: 11 }) + OK(kz.X(3), kz.Y(2), kz.X(3), kz.Y(5), C.turuncu, { w: 4, hd: 11 }) + vek(kz, 3, 2, 4, 3, C.mor, 'A', { w: 4.8, nokta: true });
-  b += T(kz.X(5), kz.Y(1.25), `${alt('A', 'x')} = 4`, { size: 13.5, c: C.mavi }) + T(kz.X(2.42), kz.Y(3.4), `${alt('A', 'y')} = 3`, { size: 13.5, c: C.turuncu, a: 'end' });
+  b += T(kz.X(5), kz.Y(1.25), `${alt('A', 'x')}<tspan dx="4">= 4</tspan>`, { size: 13.5, c: C.mavi }) + T(kz.X(2.42), kz.Y(3.4), `${alt('A', 'y')}<tspan dx="4">= 3</tspan>`, { size: 13.5, c: C.turuncu, a: 'end' });
   b += T(kz.X(8.55), kz.Y(2.3), 'x', { size: 13.5, it: true, c: '#334155' }) + T(kz.X(3.4), kz.Y(5.55), 'y', { size: 13.5, it: true, c: '#334155' });
   return S(kz.W, kz.H, mm, b);
 };
@@ -326,8 +330,17 @@ const fBot = (mm = 78) => {
   const kz = R.KARELI(12, 9, 22); let b = kz.b;
   b += `<rect x="${kz.X(0)}" y="${kz.Y(9)}" width="${12 * 22}" height="${9 * 22}" rx="3" fill="#38bdf8" opacity=".28"/>`;
   [[4.6, 6.4], [8.2, 5.2], [6.2, 8.1], [10.2, 7.3], [9.0, 3.5], [5.2, 4.1], [6.6, 0.8], [10.4, 1.0]].forEach(([x, y]) => { b += `<path d="M ${kz.X(x)} ${kz.Y(y)} q 6 -5 12 0 q 6 5 12 0" fill="none" stroke="#fff" stroke-width="1.8" opacity=".8" stroke-linecap="round"/>`; });
-  const cx = kz.X(2), cy = kz.Y(2);
-  b += `<ellipse cx="${cx + 3}" cy="${cy + 4}" rx="33" ry="22" fill="#0f172a" opacity=".22" filter="url(#yumusak)"/><ellipse cx="${cx}" cy="${cy}" rx="32" ry="21" fill="#f97316" stroke="#9a3412" stroke-width="1.4"/><ellipse cx="${cx}" cy="${cy}" rx="21" ry="11.5" fill="#7c2d12"/><ellipse cx="${cx}" cy="${cy}" rx="21" ry="11.5" fill="none" stroke="#fdba74" stroke-width="1"/><path d="M ${cx - 22} ${cy - 14} q 22 -9 44 0" fill="none" stroke="#fff" stroke-width="3" opacity=".45" stroke-linecap="round"/>`;
+  // kuş bakışı şişme bot: burnu doğuya bakar, kıç aynası batıda
+  const cx = kz.X(2), cy = kz.Y(2), gid = uid('bt');
+  const dis = 'M -32 -19 H 6 C 26 -19 40 -9 41 0 C 40 9 26 19 6 19 H -32 Q -37 19 -37 14 V -14 Q -37 -19 -32 -19 Z';
+  b += `<g transform="translate(${cx} ${cy})"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdba74"/><stop offset=".5" stop-color="#f97316"/><stop offset="1" stop-color="#c2410c"/></linearGradient></defs>
+<path d="${dis}" transform="translate(3 4)" fill="#0f172a" opacity=".24" filter="url(#yumusak)"/>
+<path d="${dis}" fill="url(#${gid})" stroke="#9a3412" stroke-width="1.4"/>
+<path d="M -27 -9 H 5 C 17 -9 26 -4 27 0 C 26 4 17 9 5 9 H -27 Z" fill="#475569" stroke="#7c2d12" stroke-width="1.1"/>
+<rect x="-37" y="-10" width="8" height="20" rx="1.5" fill="#7b8799" stroke="#334155" stroke-width=".9"/>
+<rect x="-16" y="-9" width="6" height="18" fill="#cbd5e1" stroke="#64748b" stroke-width=".8"/><rect x="2" y="-9" width="6" height="18" fill="#cbd5e1" stroke="#64748b" stroke-width=".8"/>
+<path d="M -30 -15 H 6 C 22 -15 33 -9 36 -3" fill="none" stroke="#fff" stroke-width="2.4" opacity=".5" stroke-linecap="round"/>
+<path d="M -4 -19 V -9 M -4 9 V 19 M 22 -16 L 17 -7 M 22 16 L 17 7" stroke="#9a3412" stroke-width="1" opacity=".7"/></g>`;
   b += vek(kz, 2, 2, 8, 0, C.mavi, 'F', { sub: '1', w: 4.8, t: 0.62 }) + vek(kz, 2, 2, 0, 6, C.pembe, 'F', { sub: '2', w: 4.8, yan: 1, t: 0.62, nokta: true });
   b += YON(kz.X(10.5), kz.Y(7.7), 10);
   return S(kz.W, kz.H, mm, b);
@@ -338,10 +351,11 @@ const fD14 = (mm = 60) => {
   b += vek(kz, 1, 3, 5, -2, C.mavi, 'A') + vek(kz, 8, 1, -2, 6, C.turuncu, 'B', { yan: -1 });
   return S(kz.W, kz.H, mm, b);
 };
-// Deneme 15: uç uca eklenmiş K, L ve M
-const fD15 = (mm = 52) => {
-  const kz = R.KARELI(6, 5, 24); let b = kz.b;
-  b += vek(kz, 1, 1, 4, 3, C.mor, 'M', { w: 4.6 }) + vek(kz, 1, 1, 4, 0, C.mavi, 'K', { yan: 1 }) + vek(kz, 5, 1, 0, 3, C.turuncu, 'L', { yan: 1 });
+// Deneme 15: uç uca eklenip başlangıca dönen K, L ve M (kapalı üçgen)
+const fD15 = (mm = 56) => {
+  const kz = R.KARELI(8, 6, 22); let b = kz.b;
+  b += vek(kz, 7, 2, -6, 0, C.mor, 'M') + vek(kz, 3, 5, 4, -3, C.turuncu, 'L') + vek(kz, 1, 2, 2, 3, C.mavi, 'K');
+  b += vek(kz, 4, 2, -3, 0, C.mor).replace(/<line[^>]*\/>/g, ''); // M'nin ok ucu K'nin başlangıcının üstünde kalsın
   return S(kz.W, kz.H, mm, b);
 };
 
@@ -355,7 +369,7 @@ const gunler = [
       bolum('Sekiz alt dal') + dallar() +
       ikili(
         kutu('ana', 'Cihaza değil sürece bak', `Bir olayın alt dalını <b>incelenen süreç</b> belirler. Aynı otomobilin frenlemesi mekaniğin, farlarının yolu aydınlatması optiğin, motorunun ısınması termodinamiğin konusudur.`),
-        kutu('sari', 'Yön verenler ve kariyer', `İbnülheysem ışığı deneylerle inceledi (optik). Newton hareket yasalarını ortaya koydu (mekanik). Marie Curie radyoaktiviteyi araştırdı (nükleer fizik). Bugün fizik eğitimi alanlar araştırma merkezlerinde, uzay, enerji, savunma ve sağlık alanlarında çalışıyor.`), 'ust') +
+        kutu('sari', 'Yön verenler ve kariyer', `İbnülheysem ışığı ve görmeyi deneylerle inceledi (optik). Newton, Galileo ve Kepler’in bulgularından yola çıkarak hareket yasalarını ortaya koydu (mekanik). Marie Curie radyoaktiviteyi araştırdı (nükleer fizik). Bugün fizik eğitimi alanlar araştırma merkezlerinde, uzay, enerji, savunma ve sağlık alanlarında çalışıyor.`), 'ust') +
       hata('Atom fiziği ile nükleer fizik aynı alt daldır.', 'Atom fiziği atomun bütününü ve elektronların enerji düzeylerini, nükleer fizik yalnızca atom çekirdeğini inceler.') +
       hata('Her olay yalnızca bir alt dalla açıklanır.', 'Çoğu olay birden çok alt dalın konusudur. Alt dallar birbirini tamamlar.'),
     sorular: [
@@ -370,25 +384,25 @@ const gunler = [
     no: 2, baslik: 'Nicelikler, birimler ve ölçme', kisa: 'Nicelikler ve birimler', alt: 'Ölçebildiğin her şey bir niceliktir. Sayı tek başına bir şey söylemez, yanında birimi olmalıdır.',
     plan: 'Temel ve türetilmiş nicelikler, SI birimleri, ölçme araçları, birim dönüşümleri.',
     govde:
-      bolum('Yedi temel nicelik', `<p>Temel nicelikler <b>doğrudan ölçülür</b>, başka niceliklerle tanımlanmaz. Uluslararası Birimler Sistemi’nde (SI) yedi tanedir. Beşi şekildedir, kalan ikisi <b>madde miktarı</b> (mol) ve <b>ışık şiddetidir</b> (kandela, cd).</p>`) +
+      bolum('Yedi temel nicelik', `<p>Temel nicelikler <b>tek başına tanımlanır</b>, başka niceliklerden türetilmez. Uluslararası Birimler Sistemi’nde (SI) yedi tanedir. Beşi şekildedir, kalan ikisi <b>madde miktarı</b> (mol) ve <b>ışık şiddetidir</b> (kandela, cd).</p>`) +
       sekil(fLab(178)) +
       ikili(
         bolum('Türetilmiş nicelikler', `<p>Temel niceliklerden <b>matematiksel işlemle</b> elde edilir. Birimi de aynı işlemle türetilir.</p>`) +
-        tablo(['Nicelik', 'Nasıl türetilir?', 'SI birimi'], [['Sürat', 'yol ÷ zaman', 'm/s'], ['Hacim', 'en × boy × yükseklik', '$\\text{m}^3$'], ['Yoğunluk', 'kütle ÷ hacim', '$\\text{kg/m}^3$'], ['Kuvvet', 'kütle × ivme', 'N $= \\text{kg}\\ \\text{m/s}^2$']]),
+        tablo(['Nicelik', 'Nasıl türetilir?', 'SI birimi'], [['Sürat', 'yol ÷ zaman', '$\\text{m/s}$'], ['Hacim', 'en × boy × yükseklik', '$\\text{m}^3$'], ['Yoğunluk', 'kütle ÷ hacim', '$\\text{kg/m}^3$'], ['Kuvvet', 'kütle × ivme', '$\\text{N} = \\text{kg}\\ \\text{m/s}^2$']]),
         sekil(fAgirlik(70), 'Aynı cisim: terazi kütlesini, dinamometre ağırlığını ölçer.'), 's') +
       ikili(
-        sekil(fGosterge(72, 36), 'Gösterge 72 km/h değerinde.'),
+        sekil(fGosterge(72, 36), 'Gösterge 72 km/h değerini gösteriyor.'),
         bolum('Ön ekler ve birim dönüşümü', `<p><b>kilo (k):</b> 1000 katı. 1 km = 1000 m, 1 kg = 1000 g.<br><b>santi (c):</b> 100’de biri. 1 m = 100 cm.<br><b>mili (m):</b> 1000’de biri. 1 m = 1000 mm.<br><b>Zaman:</b> 1 dakika = 60 s, 1 saat = 3600 s.</p>`) +
         formul('72\\ \\dfrac{\\text{km}}{\\text{h}} = \\dfrac{72\\,000\\ \\text{m}}{3600\\ \\text{s}} = 20\\ \\text{m/s}'), 'g') +
       hata('Terazi ağırlığı ölçer, ağırlığın birimi kilogramdır.', 'Terazi kütleyi ölçer (kg). Ağırlık bir kuvvettir, dinamometreyle ölçülür ve birimi newtondur (N).') +
       hata('Sıcaklığın SI birimi °C’tur.', 'Günlük hayatta °C kullanılır ama sıcaklığın SI birimi kelvindir (K).'),
     sorular: [
       { metin: 'Bir öğrenci defterine nicelik, SI birimi ve ölçme aracı eşleştirmelerini aşağıdaki gibi yazıyor.', onc: ['Kütle, kilogram, eşit kollu terazi.', 'Sıcaklık, °C, termometre.', 'Ağırlık, newton, dinamometre.'], kok: 'Öğrencinin yazdığı eşleştirmelerden hangileri <u>tamamen</u> doğrudur?', siklar: ['Yalnız III', 'I ve III', 'I ve II', 'II ve III', 'I, II ve III'], k: 5, cevap: 'B', cozum: 'I ve III doğrudur. Sıcaklık termometreyle ölçülür ama SI birimi °C değil kelvindir, II yanlıştır.' },
-      { metin: 'Bir bisikletli düz yolda 18 km/h sabit süratle 10 dakika boyunca pedal çeviriyor.', kok: 'Bisikletli bu sürede kaç m yol alır?', siklar: ['50', '180', '300', '3000', '10 800'], cevap: 'D', cozum: '$18\\ \\text{km/h} = \\tfrac{18\\,000\\ \\text{m}}{3600\\ \\text{s}} = 5$ m/s ve 10 dakika $= 600$ s. Yol $= 5 \\times 600 = 3000$ m.' },
-      { metin: 'Bir mühendis, bir yayın sertliğini “yaya uygulanan kuvvetin, yayın uzama miktarına bölümü” olarak tanımlıyor. Kuvvet birimi için $1\\ \\text{N} = 1\\ \\text{kg}\\ \\text{m/s}^2$ eşitliği geçerlidir.', kok: 'Bu niceliğin SI birimi temel birimlerle yazıldığında hangi temel niceliklerin birimleri yer alır?', siklar: ['Kütle ve zaman', 'Kütle ve uzunluk', 'Uzunluk ve zaman', 'Yalnız kütle', 'Kütle, uzunluk ve zaman'], k: 3, cevap: 'A', cozum: '$\\tfrac{\\text{N}}{\\text{m}} = \\tfrac{\\text{kg}\\ \\text{m/s}^2}{\\text{m}} = \\text{kg/s}^2$. Metre sadeleşir, geriye kütle ve zaman birimleri kalır.' },
+      { metin: 'Bir bisikletli düz yolda 18 km/h sabit süratle 10 dakika boyunca pedal çeviriyor.', kok: 'Bisikletli bu sürede kaç m yol alır?', siklar: ['50', '180', '300', '3000', '10 800'], cevap: 'D', cozum: '$18\\ \\text{km/h} = 18\\,000\\ \\text{m} \\div 3600\\ \\text{s} = 5$ m/s ve 10 dakika $= 600$ s. Yol $= 5 \\times 600 = 3000$ m.' },
+      { metin: 'Bir mühendis, bir yayın sertliğini “yaya uygulanan kuvvetin, yayın uzama miktarına bölümü” olarak tanımlıyor. Kuvvet birimi için $1\\ \\text{N} = 1\\ \\text{kg}\\ \\text{m/s}^2$ eşitliği geçerlidir.', kok: 'Bu niceliğin SI birimi temel birimlerle yazıldığında hangi temel niceliklerin birimleri yer alır?', siklar: ['Kütle ve zaman', 'Kütle ve uzunluk', 'Uzunluk ve zaman', 'Yalnız kütle', 'Kütle, uzunluk ve zaman'], k: 3, cevap: 'A', cozum: '$\\dfrac{\\text{N}}{\\text{m}} = \\dfrac{\\text{kg}\\ \\text{m/s}^2}{\\text{m}} = \\text{kg/s}^2$. Metre sadeleşir, geriye kütle ve zaman birimleri kalır.' },
       { metin: 'Dört özdeş silgi, aralarında boşluk kalmayacak biçimde santimetre bölmeli cetvelin üzerine şekildeki gibi dizilmiştir.', sekil: fSilgi(126), kok: 'Bir silginin uzunluğu kaç mm’dir?', siklar: ['3', '12', '30', '40', '120'], cevap: 'C', cozum: 'Silgiler 3 cm ile 15 cm çizgileri arasındadır: toplam $15 - 3 = 12$ cm. Bir silgi $12 \\div 4 = 3$ cm $= 30$ mm.' },
     ],
-    kontrol: ['Yedi temel niceliği, SI birimlerini ve ölçme araçlarını sayabiliyorum.', 'Bir niceliğin temel mi türetilmiş mi olduğunu biriminden anlayabiliyorum.', 'km/h ile m/s, g ile kg, cm ile m arasında dönüşüm yapabiliyorum.', 'Kütle ile ağırlığı birimi ve ölçme aracıyla ayırt edebiliyorum.'],
+    kontrol: ['Yedi temel niceliği ve SI birimlerini, şekildeki beş niceliğin ölçme aracını sayabiliyorum.', 'Bir niceliğin temel mi türetilmiş mi olduğunu biriminden anlayabiliyorum.', 'km/h ile m/s, g ile kg, cm ile m arasında dönüşüm yapabiliyorum.', 'Kütle ile ağırlığı birimi ve ölçme aracıyla ayırt edebiliyorum.'],
   },
   {
     no: 3, baslik: 'Skaler ve vektörel nicelikler', kisa: 'Skaler ve vektörel nicelikler', alt: 'Bazı niceliklerde “ne kadar?” sorusu yetmez, “hangi yöne?” sorusu da gerekir.',
@@ -398,22 +412,22 @@ const gunler = [
         bolum('Skaler mi, vektörel mi?', `<p><b>Skaler nicelik</b> bir sayı ve bir birimle tam olarak anlatılır. <b>Vektörel nicelik</b> sayı ve birimin yanında <b>yön</b> de ister.</p>`) +
         tablo(['Skaler', 'Vektörel'], [['Kütle, zaman, sıcaklık', 'Kuvvet, ağırlık'], ['Uzunluk, hacim, yoğunluk', 'Hız'], ['Enerji, sürat', 'Yer değiştirme']]) +
         '',
-        sekil(fIt(70), 'Kütle için yön sorulmaz: 3 kg + 2 kg her zaman 5 kg eder. Kuvvet için sorulur: 50 N batıya uygulansaydı sandık ters yöne giderdi.'), 's') +
+        sekil(fIt(66), 'Kütlede yön sorulmaz. Kuvvette sorulur: 50 N batıya uygulansaydı sandık batıya giderdi.'), 's') +
       ikili(
         sekil(fOzellik(86)),
-        bolum('Vektörün dört özelliği', `<p><b>Başlangıç noktası:</b> Okun çıktığı nokta.<br><b>Büyüklük:</b> Okun boyu. Sayı ve birimle söylenir.<br><b>Doğrultu:</b> Okun üzerinde bulunduğu doğru.<br><b>Yön:</b> Ok ucunun gösterdiği taraf. Her doğrultuda iki yön vardır.</p>`) +
-        p('Gösterim: vektör $\\vec{F}$, büyüklüğü $F = 30$ N.'), 'g') +
+        bolum('Vektör çiziminde dört bilgi', `<p><b>Başlangıç noktası:</b> Okun çıktığı nokta.<br><b>Büyüklük:</b> Okun boyu. Gösterim: vektör $\\vec{F}$, büyüklüğü $F = 45$ N.<br><b>Doğrultu:</b> Okun üzerinde bulunduğu doğru. Paralel doğrular aynı doğrultudadır.<br><b>Yön:</b> Ok ucunun gösterdiği taraf. Her doğrultuda iki yön vardır.</p>`) +
+        p('Vektörü belirleyen büyüklüğü ve yönüdür. Başlangıç noktası değişse de vektör aynı kalır.'), 'g') +
       bolum('Eşit vektör, zıt vektör, sayıyla çarpım') +
       ikili(
-        sekil(fEsit(84), '$\\vec{B} = \\vec{A}$, &nbsp; $\\vec{C} = -\\vec{A}$, &nbsp; $\\vec{D} = \\tfrac{1}{2}\\vec{A}$, &nbsp; $\\vec{E} = -\\tfrac{3}{2}\\vec{A}$.'),
-        kutu('ana', 'Üç kural', `<b>Eşit vektörler:</b> Büyüklükleri ve yönleri aynıdır. Vektör, yönü ve boyu bozulmadan taşınabilir.<br><b>Zıt vektörler:</b> Büyüklükleri aynı, yönleri terstir.<br><b>Sayıyla çarpım:</b> Vektör pozitif sayıyla çarpılırsa yalnız büyüklüğü değişir. Negatif sayıyla çarpılırsa yönü de ters döner. Doğrultusu hiç değişmez.`)) +
+        sekil(fEsit(80), '<span style="font-size:10pt">$\\vec{B} = \\vec{A}$, &nbsp; $\\vec{C} = -\\vec{A}$, &nbsp; $\\vec{D} = \\tfrac{1}{2}\\vec{A}$, &nbsp; $\\vec{E} = -\\tfrac{3}{2}\\vec{A}$.</span>'),
+        kutu('ana', 'Üç kural', `<b>Eşit vektörler:</b> Büyüklükleri ve yönleri aynıdır.<br><b>Zıt vektörler:</b> Büyüklükleri aynı, yönleri zıttır.<br><b>Sayıyla çarpım:</b> Pozitif sayı yalnız büyüklüğü değiştirir. Negatif sayı yönü de zıt yöne çevirir. Doğrultu değişmez.`)) +
       hata('Boyları eşit olan vektörler eşit vektörlerdir.', 'Eşit vektörlerin yönleri de aynı olmalıdır.') +
-      hata('$-\\vec{A}$ vektörü, $\\vec{A}$ vektöründen küçüktür.', 'Eksi işareti yalnız yönü ters çevirir. İki vektörün büyüklüğü aynıdır.'),
+      hata('$-\\vec{A}$ vektörü, $\\vec{A}$ vektöründen küçüktür.', 'Eksi işareti yalnız yönü zıt yöne çevirir, büyüklük aynı kalır.'),
     sorular: [
       { metin: 'Skaler ve vektörel niceliklerle ilgili aşağıdaki yargılar veriliyor.', onc: ['“Rüzgâr 30 km/h süratle esiyor.” cümlesi rüzgârın hızını eksiksiz bildirir.', 'Bir cisme uygulanan 6 N ve 8 N büyüklüğündeki iki kuvvetin toplamı, yönleri ne olursa olsun 14 N’dır.', '3 kg ve 2 kg kütleli iki paket aynı çantaya konursa çantadaki paketlerin toplam kütlesi her durumda 5 kg olur.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız II', 'Yalnız III', 'I ve II', 'I ve III', 'II ve III'], k: 5, cevap: 'B', cozum: 'Hız vektöreldir, yön verilmeden eksik kalır. Kuvvetlerin toplamı yöne bağlıdır. Kütle skalerdir, sayı gibi toplanır. Yalnız III doğrudur.' },
-      { metin: 'Kareli düzlemde $\\vec{K}$, $\\vec{L}$, $\\vec{M}$, $\\vec{N}$ ve $\\vec{P}$ vektörleri şekildeki gibi verilmiştir.', sekil: fS10(116), onc: ['$\\vec{K}$ ile $\\vec{N}$ eşit vektörlerdir.', '$\\vec{K}$ ile $\\vec{M}$ aynı doğrultudadır.', '$\\vec{P} = 2\\vec{L}$ eşitliği doğrudur.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız II', 'I ve II', 'II ve III', 'I, II ve III'], k: 5, cevap: 'D', cozum: 'K ile N’nin boyları eşittir ama yönleri farklıdır, eşit değildirler. M, K’nin zıttıdır: doğrultuları aynıdır. L, K’ye eşittir ve P bunun 2 katıdır. II ve III doğrudur.' },
-      { metin: '$\\vec{K}$ vektörü batı yönünde ve 12 N büyüklüğündedir. $\\vec{L} = -\\tfrac{1}{3}\\vec{K}$ ve $\\vec{M} = 2\\vec{L}$ olarak tanımlanıyor.', kok: '$\\vec{M}$ vektörünün büyüklüğü ve yönü nedir?', siklar: ['8 N, doğu', '8 N, batı', '4 N, doğu', '24 N, batı', '24 N, doğu'], cevap: 'A', cozum: '$\\vec{L}$: büyüklük $12 \\div 3 = 4$ N, eksi işareti yüzünden yön doğu. $\\vec{M} = 2\\vec{L}$: büyüklük 8 N, yön değişmez, doğu.' },
-      { metin: 'Doğu–batı doğrultusundaki düz bir yolda K, L ve M otomobillerinin hızları şekildeki gibidir.', sekil: fAraclar(132), onc: ['K ile M’nin hızları eşittir.', 'K ile L’nin süratleri eşittir.', 'K ile L’nin hızları eşittir.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'I ve II', 'I ve III', 'II ve III', 'I, II ve III'], k: 5, cevap: 'B', cozum: 'Hız vektöreldir: K ile M hem büyüklük hem yön olarak aynıdır. Sürat skalerdir, üçünde de 25 m/s’dir. K ile L zıt yönlü olduğundan hızları eşit değildir.' },
+      { metin: 'Kareli düzlemde $\\vec{K}$, $\\vec{L}$, $\\vec{M}$, $\\vec{N}$ ve $\\vec{P}$ vektörleri şekildeki gibi verilmiştir.', sekil: fS10(108), onc: ['$\\vec{K}$ ile $\\vec{N}$ eşit vektörlerdir.', '$\\vec{K}$ ile $\\vec{M}$ aynı doğrultudadır.', '$\\vec{P} = 2\\vec{L}$ eşitliği doğrudur.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız II', 'I ve II', 'II ve III', 'I, II ve III'], k: 5, cevap: 'D', cozum: 'K ile N’nin boyları eşittir ama yönleri farklıdır, eşit değildirler. M, K’nin zıttıdır: doğrultuları aynıdır. L, K’ye eşittir ve P bunun 2 katıdır. II ve III doğrudur.' },
+      { metin: '$\\vec{K}$ vektörü batı yönünde ve 12 N büyüklüğündedir. $\\vec{L} = -\\dfrac{1}{3}\\vec{K}$ ve $\\vec{M} = 2\\vec{L}$ olarak tanımlanıyor.', kok: '$\\vec{M}$ vektörünün büyüklüğü ve yönü nedir?', siklar: ['8 N, doğu', '8 N, batı', '4 N, doğu', '24 N, batı', '24 N, doğu'], cevap: 'A', cozum: '$\\vec{L}$: büyüklük $12 \\div 3 = 4$ N, eksi işareti yüzünden yön doğu. $\\vec{M} = 2\\vec{L}$: büyüklük 8 N, yön değişmez, doğu.' },
+      { metin: 'Doğu–batı doğrultusundaki düz bir yolda K, L ve M otomobillerinin hızları şekildeki gibidir.', sekil: fAraclar(124), onc: ['K ile M’nin hızları eşittir.', 'K ile L’nin süratleri eşittir.', 'K ile L’nin hızları eşittir.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'I ve II', 'I ve III', 'II ve III', 'I, II ve III'], k: 5, cevap: 'B', cozum: 'Hız vektöreldir: K ile M hem büyüklük hem yön olarak aynıdır. Sürat skalerdir, üçünde de 25 m/s’dir. K ile L zıt yönlü olduğundan hızları eşit değildir.' },
     ],
     kontrol: ['Bir niceliğin skaler mi vektörel mi olduğunu gerekçesiyle söyleyebiliyorum.', 'Bir vektörün başlangıç noktasını, büyüklüğünü, doğrultusunu ve yönünü okuyabiliyorum.', 'Kareli düzlemde eşit ve zıt vektörleri ayırt edebiliyorum.', 'Bir vektörün sayıyla çarpımının büyüklüğünü ve yönünü bulabiliyorum.'],
   },
@@ -450,19 +464,19 @@ const gunler = [
 const deneme = [
   { konu: 'k1', metin: 'Bir gözlem uydusunun tasarımında üç ekip görev alıyor. Birinci ekip uydunun yörüngesini ve hızını hesaplıyor. İkinci ekip kameranın mercek sistemini tasarlıyor. Üçüncü ekip, uydunun Güneş’e bakan yüzünün aşırı ısınmasını önleyecek yalıtımı geliştiriyor.', kok: 'Ekiplerin çalışmaları sırasıyla fizik biliminin en çok hangi alt dallarıyla ilişkilidir?', siklar: ['Mekanik, optik, elektromanyetizma', 'Mekanik, optik, termodinamik', 'Optik, mekanik, termodinamik', 'Mekanik, atom fiziği, termodinamik', 'Nükleer fizik, optik, katı hâl fiziği'], k: 1, cevap: 'B', cozum: 'Yörünge ve hız hesabı mekaniğin, mercek sistemi optiğin, ısınma ve yalıtım termodinamiğin konusudur.' },
   { konu: 'k1', metin: 'Fizik biliminin alt dallarıyla ilgili aşağıdaki yargılar veriliyor.', onc: ['Alt dallar birbirinden bağımsızdır, bir olay yalnızca bir alt dalın konusu olabilir.', 'Aynı cihazın farklı parçaları farklı alt dalların konusu olabilir.', 'Bir olayın hangi alt dalla ilişkili olduğunu, olayda incelenen süreç belirler.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız II', 'I ve II', 'II ve III', 'I, II ve III'], k: 5, cevap: 'D', cozum: 'Alt dallar birbirini tamamlar, bir olay birden çok alt dalın konusu olabilir: I yanlıştır. II ve III doğrudur.' },
-  { konu: 'k1', metin: 'Şekildeki I numaralı görselde çevresinde manyetik alan oluşturan bir mıknatıs, II numaralı görselde ışığı renklerine ayıran bir prizma, III numaralı görselde soğumakta olan sıcak bir içecek vardır.', sekil: fUcGorsel(132), kok: 'Görsellerdeki olaylar sırasıyla fizik biliminin hangi alt dallarının konusudur?', siklar: ['Elektromanyetizma, optik, termodinamik', 'Elektromanyetizma, atom fiziği, termodinamik', 'Mekanik, optik, termodinamik', 'Elektromanyetizma, optik, katı hâl fiziği', 'Katı hâl fiziği, optik, nükleer fizik'], k: 1, cevap: 'A', cozum: 'Mıknatıs elektromanyetizmanın, ışığın renklerine ayrılması optiğin, ısı alışverişi termodinamiğin konusudur.' },
+  { konu: 'k1', metin: 'Bir öğrenci, “Fizik bilimine yön verenler ve kariyer” konulu sunumuna aşağıdaki üç cümleyi yazıyor.', onc: ['Newton, hareket yasalarına ulaşırken Galileo ve Kepler’in çalışmalarından yararlanmıştır. Bu örnek, bilimsel bilginin birikerek ilerlediğini gösterir.', 'İbnülheysem, ışık ve görme konusundaki görüşlerini deney yapmadan, kendinden önceki bilginlerin kitaplarını doğru kabul ederek ortaya koymuştur.', 'Marie Curie’nin araştırdığı radyoaktivite atom çekirdeğiyle ilgilidir. Bugün hastanelerin nükleer tıp birimlerinde çalışan fizik eğitimi almış uzmanlar bu bilgiden yararlanır.'], kok: 'Öğrencinin yazdığı cümlelerden hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız III', 'I ve II', 'I ve III', 'I, II ve III'], k: 5, cevap: 'D', cozum: 'I ve III doğrudur. İbnülheysem önceki bilgileri sorgulamış ve görüşlerini deneylere dayandırmıştır, II yanlıştır.' },
   { konu: 'k2', metin: 'Bir öğrenci, oyuncak arabanın rampadan inişini inceliyor. Rampanın uzunluğunu şerit metreyle, iniş süresini kronometreyle ölçüyor ve bu ölçümlerle arabanın süratini hesaplıyor.', onc: ['Öğrencinin ölçtüğü iki nicelik de temel niceliktir.', 'Öğrencinin hesapladığı nicelik türetilmiş niceliktir.', 'Hesaplanan niceliğin SI birimi km/h’tir.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız II', 'I ve II', 'I ve III', 'I, II ve III'], k: 5, cevap: 'C', cozum: 'Uzunluk ve zaman temel niceliktir. Sürat bu ikisinden türetilir. Süratin SI birimi km/h değil m/s’dir, III yanlıştır.' },
-  { konu: 'k2', metin: 'Düz bir otoyolda sabit süratle ilerleyen otomobilin sürat göstergesi şekildeki gibidir.', sekil: fGosterge(90, 38), yan: true, kok: 'Otomobil bu süratle 4 dakikada kaç m yol alır?', siklar: ['100', '360', '1500', '6000', '21 600'], k: 3, cevap: 'D', cozum: 'Gösterge 90 km/h değerindedir: $\\tfrac{90\\,000\\ \\text{m}}{3600\\ \\text{s}} = 25$ m/s. 4 dakika $= 240$ s olduğundan yol $= 25 \\times 240 = 6000$ m.' },
-  { konu: 'k2', metin: 'Bir öğrenci, bir cisme uygulanan kuvvet ile kuvvetin uygulanma süresini çarpıp sonucu cismin kütlesine bölerek yeni bir nicelik hesaplıyor. Kuvvet birimi için $1\\ \\text{N} = 1\\ \\text{kg}\\ \\text{m/s}^2$ eşitliği geçerlidir.', kok: 'Bu niceliğin SI birimi, aşağıdaki niceliklerden hangisinin SI birimiyle aynıdır?', siklar: ['Uzunluk', 'İvme', 'Enerji', 'Yoğunluk', 'Sürat'], cevap: 'E', cozum: '$\\tfrac{\\text{N}\\ \\text{s}}{\\text{kg}} = \\tfrac{\\text{kg}\\ \\text{m/s}^2 \\times \\text{s}}{\\text{kg}} = \\text{m/s}$. Bu, süratin SI birimidir.' },
+  { konu: 'k2', metin: 'Aynı otoyolda sabit süratle ilerleyen üç araçtan otomobilin sürat göstergesi şekildeki gibidir. Motosiklet her saniyede 30 m, kamyon ise her dakikada 1200 m yol almaktadır.', sekil: fGosterge(90, 38), yan: true, kok: 'Araçların süratlerinin büyükten küçüğe doğru sıralanışı hangisidir?', siklar: ['Kamyon, otomobil, motosiklet', 'Otomobil, motosiklet, kamyon', 'Otomobil, kamyon, motosiklet', 'Motosiklet, kamyon, otomobil', 'Motosiklet, otomobil, kamyon'], k: 2, cevap: 'E', cozum: 'Otomobil: 90 km/h $= 90\\,000\\ \\text{m} \\div 3600\\ \\text{s} = 25$ m/s. Kamyon: $1200\\ \\text{m} \\div 60\\ \\text{s} = 20$ m/s. Motosikletin sürati 30 m/s ile en büyüktür.' },
+  { konu: 'k2', metin: 'Bir öğrenci, bir cisme uygulanan kuvvet ile kuvvetin uygulanma süresini çarpıp sonucu cismin kütlesine bölerek yeni bir nicelik hesaplıyor. Kuvvet birimi için $1\\ \\text{N} = 1\\ \\text{kg}\\ \\text{m/s}^2$ eşitliği geçerlidir.', kok: 'Bu niceliğin SI birimi, aşağıdaki niceliklerden hangisinin SI birimiyle aynıdır?', siklar: ['Uzunluk', 'İvme', 'Enerji', 'Yoğunluk', 'Sürat'], cevap: 'E', cozum: '$\\text{N} \\times \\text{s} \\div \\text{kg} = \\text{kg}\\ \\text{m/s}^2 \\times \\text{s} \\div \\text{kg} = \\text{m/s}$. Bu, süratin SI birimidir.' },
   { konu: 'k2', metin: 'Bir öğrenci önce boş kabı, sonra içine 4 özdeş bilye koyduğu aynı kabı dijital teraziyle tartıyor. Terazinin gösterdiği değerler şekildeki gibidir.', sekil: fTerazi2(98), kok: 'Bir bilyenin kütlesi kaç kg’dır?', siklar: ['0,05', '0,5', '2', '50', '500'], cevap: 'B', cozum: 'Bilyelerin toplam kütlesi $2150 - 150 = 2000$ g. Bir bilye $2000 \\div 4 = 500$ g $= 0{,}5$ kg.' },
   { konu: 'k3', metin: 'Üç fiziksel nicelik, hem temel ya da türetilmiş hem de skaler ya da vektörel olmasına göre aşağıdaki gibi sınıflandırılmıştır.', onc: ['Kütle: temel ve skaler.', 'Kuvvet: türetilmiş ve vektörel.', 'Sıcaklık: türetilmiş ve skaler.'], kok: 'Sınıflandırmalardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız II', 'I ve II', 'I ve III', 'I, II ve III'], k: 5, cevap: 'C', cozum: 'Kütle temel ve skalerdir. Kuvvet türetilmiş ve vektöreldir. Sıcaklık skalerdir ama türetilmiş değil, temel niceliktir.' },
-  { konu: 'k3', metin: 'Kareli düzlemde $\\vec{K}$ vektörü ile 1, 2, 3, 4 ve 5 numaralı vektörler şekildeki gibi verilmiştir.', sekil: fD9(104), kok: '$-2\\vec{K}$ vektörü, numaralı vektörlerden hangisidir?', siklar: ['1', '2', '3', '4', '5'], cevap: 'A', cozum: '$\\vec{K}$: 2 kare sağa, 1 kare aşağı. $-2\\vec{K}$ ters yönde ve 2 katıdır: 4 kare sola, 2 kare yukarı, yani 1 numaralı vektör.' },
-  { konu: 'k3', metin: 'Sıfırdan farklı $\\vec{A}$, $\\vec{B}$ ve $\\vec{C}$ vektörleri arasında $\\vec{A} = 3\\vec{B}$ ve $\\vec{C} = -\\vec{B}$ ilişkileri vardır.', onc: ['$\\vec{A}$ ile $\\vec{C}$ zıt yönlüdür.', '$\\vec{A}$ ile $\\vec{C}$ zıt vektörlerdir.', '$\\vec{A} + 3\\vec{C}$ toplamı sıfır vektörüdür.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız III', 'I ve II', 'II ve III', 'I ve III'], k: 5, cevap: 'E', cozum: 'A ile C ters yönlüdür ama büyüklükleri farklıdır: I doğru, II yanlış. $3\\vec{C} = -3\\vec{B} = -\\vec{A}$ olduğundan III doğrudur.' },
+  { konu: 'k3', metin: 'Kareli düzlemde $\\vec{K}$ vektörü ile 1, 2, 3, 4 ve 5 numaralı vektörler şekildeki gibi verilmiştir.', sekil: fD9(104), kok: '$-2\\vec{K}$ vektörü, numaralı vektörlerden hangisidir?', siklar: ['1', '2', '3', '4', '5'], cevap: 'A', cozum: '$\\vec{K}$: 2 kare sağa, 1 kare aşağı. $-2\\vec{K}$ zıt yönde ve 2 katıdır: 4 kare sola, 2 kare yukarı, yani 1 numaralı vektör.' },
+  { konu: 'k3', metin: 'Sıfırdan farklı $\\vec{A}$, $\\vec{B}$ ve $\\vec{C}$ vektörleri arasında $\\vec{A} = 3\\vec{B}$ ve $\\vec{C} = -\\vec{B}$ ilişkileri vardır.', onc: ['$\\vec{A}$ ile $\\vec{C}$ zıt yönlüdür.', '$\\vec{A}$ ile $\\vec{C}$ zıt vektörlerdir.', '$\\vec{A} + 3\\vec{C}$ toplamı sıfır vektörüdür.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız III', 'I ve II', 'II ve III', 'I ve III'], k: 5, cevap: 'E', cozum: 'A ile C zıt yönlüdür ama büyüklükleri farklıdır: I doğru, II yanlış. $3\\vec{C} = -3\\vec{B} = -\\vec{A}$ olduğundan III doğrudur.' },
   { konu: 'k3', metin: 'Bir haber metni şöyledir: “Feribot saat 08.30’da limandan ayrıldı. Motorlarının sağladığı 20 000 N büyüklüğündeki itme kuvvetiyle hızlandı ve kuzeydoğu yönünde 30 km/h hızla ilerledi. Yolculuk boyunca hava sıcaklığı 9 °C olarak ölçüldü.”', onc: ['Metinde geçen niceliklerden yalnızca biri vektöreldir.', 'Sıcaklık bilgisi, yön belirtilmediği için eksik verilmiştir.', 'Hız bilgisinden yön çıkarılırsa geriye kalan 30 km/h değeri feribotun süratidir.'], kok: 'Bu metinle ilgili yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız III', 'I ve II', 'I ve III', 'II ve III'], k: 5, cevap: 'B', cozum: 'Kuvvet ve hız vektöreldir: I yanlış. Sıcaklık skalerdir, yön gerektirmez: II yanlış. Hızın büyüklüğü sürattir: III doğru.' },
-  { konu: 'k4', metin: 'Aynı noktaya uygulanan iki kuvvetin büyüklükleri 6 N ve 8 N’dır. Kuvvetlerin yönleri değiştirilerek farklı bileşkeler elde ediliyor.', kok: 'Bileşke kuvvetin büyüklüğü aşağıdakilerden hangisi <u>olamaz</u>?', siklar: ['2 N', '6 N', '10 N', '14 N', '16 N'], cevap: 'E', cozum: 'Bileşke en az $8 - 6 = 2$ N (zıt yönlü), en çok $8 + 6 = 14$ N (aynı yönlü) olur. 16 N bu aralığın dışındadır.' },
+  { konu: 'k4', metin: 'Aynı noktaya uygulanan iki kuvvetin büyüklükleri 5 N ve 12 N’dır. Kuvvetlerin yönleri değiştirilerek farklı bileşkeler elde ediliyor.', kok: 'Bileşke kuvvetin büyüklüğü aşağıdakilerden hangisi <u>olamaz</u>?', siklar: ['5 N', '7 N', '13 N', '15 N', '17 N'], cevap: 'A', cozum: 'Bileşke en az $12 - 5 = 7$ N (zıt yönlü), en çok $12 + 5 = 17$ N (aynı yönlü) olur. 5 N bu aralığın dışındadır.' },
   { konu: 'k4', metin: 'Göldeki şişme bot iki iple aynı anda çekiliyor. Botun kuş bakışı görünümü ve iplerin bota uyguladığı $\\vec{F}_1$ ve $\\vec{F}_2$ kuvvetleri kareli düzlemde şekildeki gibidir. Bir karenin kenarı 5 N’a karşılık gelmektedir.', sekil: fBot(66), yan: true, kok: 'Bu iki kuvvetin bileşkesinin büyüklüğü kaç N’dır?', siklar: ['10', '14', '50', '70', '100'], k: 3, cevap: 'C', cozum: '$F_1 = 8 \\times 5 = 40$ N, $F_2 = 6 \\times 5 = 30$ N ve kuvvetler birbirine diktir. $R^2 = 40^2 + 30^2 = 2500$, $R = 50$ N.' },
   { konu: 'k4', metin: 'Kareli düzlemde $\\vec{A}$ ve $\\vec{B}$ vektörleri şekildeki gibidir. Karelerin kenar uzunluğu 1 birimdir.', sekil: fD14(50), yan: true, kok: '$\\vec{A} + \\vec{B}$ bileşke vektörünün büyüklüğü kaç birimdir?', siklar: ['5', '7', '9', '10', '15'], k: 3, cevap: 'A', cozum: '$\\vec{A}$: 5 sağa, 2 aşağı. $\\vec{B}$: 2 sola, 6 yukarı. Bileşke 3 sağa, 4 yukarı: $R^2 = 3^2 + 4^2$, $R = 5$ birim.' },
-  { konu: 'k4', metin: 'Kareli düzlemde $\\vec{K}$, $\\vec{L}$ ve $\\vec{M}$ vektörleri şekildeki gibidir. Karelerin kenar uzunluğu 1 birimdir.', sekil: fD15(44), yan: true, onc: ['$\\vec{K} + \\vec{L} = \\vec{M}$ eşitliği doğrudur.', '$\\vec{M}$ vektörünün büyüklüğü 7 birimdir.', '$\\vec{M} - \\vec{L} = \\vec{K}$ eşitliği doğrudur.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız II', 'I ve II', 'I ve III', 'I, II ve III'], k: 3, cevap: 'D', cozum: 'M, K’nin başlangıcından L’nin ucuna çizilmiştir: I ve III doğru. K ile L dik olduğundan $M^2 = 4^2 + 3^2$, $M = 5$ birim: II yanlış.' },
+  { konu: 'k4', metin: 'Kareli düzlemde $\\vec{K}$, $\\vec{L}$ ve $\\vec{M}$ vektörleri şekildeki gibi uç uca eklenmiştir. Karelerin kenar uzunluğu 1 birimdir.', sekil: fD15(50), yan: true, onc: ['$\\vec{K} + \\vec{L} + \\vec{M}$ toplamı sıfır vektörüdür.', '$\\vec{K} + \\vec{L} = \\vec{M}$ eşitliği doğrudur.', '$\\vec{K} + \\vec{L}$ vektörünün büyüklüğü 6 birimdir.'], kok: 'Yargılardan hangileri doğrudur?', siklar: ['Yalnız I', 'Yalnız III', 'I ve II', 'I ve III', 'I, II ve III'], k: 3, cevap: 'D', cozum: 'Vektörler başlangıç noktasına dönüyor: I doğru. $\\vec{K} + \\vec{L}$ toplamı 6 kare sağa uzanır, $\\vec{M}$’nin zıttıdır: II yanlış, III doğru.' },
 ];
 
 module.exports = {
@@ -477,5 +491,5 @@ module.exports = {
     { id: 'k4', ad: 'Vektörlerde toplama ve bileşenler', paket: 3 },
   ],
   paketler: [{ no: 1, not: 'Gün 2 ve Gün 3’ün konusu.' }, { no: 3, not: 'Gün 3 ve Gün 4’ün konusu.' }],
-  planNot: 'Okulunda vektörlerde toplama yeni başlamış olabilir. Gün 4 bu yüzden hem tekrar hem ön hazırlık olarak hazırlandı. Trigonometri yok, bütün vektörler kareli düzlemde.',
+  planNot: 'Okulunda vektörlerde toplama yeni başlamış olabilir. Gün 4 bu yüzden hem tekrar hem ön hazırlık olarak hazırlandı. Trigonometri yok, bütün vektörler kareli düzlemde. Dik vektörlerde yalnız Pisagor bağıntısı kullanılır.',
 };
