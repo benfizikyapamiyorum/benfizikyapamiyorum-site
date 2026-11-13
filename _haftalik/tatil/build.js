@@ -115,7 +115,7 @@ function notGovde(N) {
 // Paket kartları (o sınıfın ilgili paketleri)
 function paketKart(s, no, not) {
   const P = PAKET[s][no];
-  return `<a class="pk" href="${paketURL(s, no)}"><img src="${img('img/paket/' + P.k)}"><div><small>KONU SORU PAKETİ #${no}</small><h4>${P.ad}</h4><p>${P.soru} yazılı sorusu, her birine adım adım çözüm ve puanlama.${not ? ' ' + not : ''}</p><div class="fy"><b>₺99</b><span>PDF, ödemeden sonra hemen iner →</span></div></div></a>`;
+  return `<a class="pk" href="${paketURL(s, no)}"><img src="${img('img/paket/' + P.k)}"><div><small>KONU SORU PAKETİ #${no}</small><h4>${P.ad}</h4><p>${P.soru} yazılı sorusu, her birine adım adım çözüm ve puanlama.${not ? ' ' + not : ''}</p><div class="fy"><b>₺99</b><span>PDF, hemen iner&nbsp;→</span></div></div></a>`;
 }
 const PK_CSS = `
 .pk{display:grid;grid-template-columns:27mm 1fr;gap:11px;align-items:center;border:1.5px solid var(--line);border-radius:13px;padding:9px 11px;background:#fff;break-inside:avoid}
@@ -173,10 +173,10 @@ table.an a{font-weight:700;color:var(--koyu)}table.an a em{font-style:normal;bac
 .net{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.net div{border:1.5px solid var(--line);border-radius:10px;padding:7px 10px;font-size:9pt;color:var(--ink2)}.net div b{display:block;color:var(--ink);font:800 10pt 'Manrope'}.net div u{display:block;border-bottom:1.2px solid var(--ink2);height:16px;text-decoration:none}
 </style>
 <div class="db"><div><h2>Ara Tatil Fizik Denemesi</h2><p>${s}. sınıf | Maarif Modeli | Kapsam: ${md(N.denemeKapsam)}</p></div><div class="bl"><div><b>15</b>soru</div><div><b>30</b>dakika</div></div></div>
-<div class="kr"><div><b>1.</b> Süreyi başlat, 30 dakika dolunca bırak.</div><div><b>2.</b> Emin olmadığın soruyu boş bırak.</div><div><b>3.</b> Bitince son sayfadaki tabloyu doldur.</div></div>
+<div class="kr"><div><b>1.</b> Süreyi başlat, 30 dakika dolunca bırak.</div><div><b>2.</b> Emin olmadığın soruyu boş bırak.</div><div><b>3.</b> Bitince eksik konu tablosunu doldur.</div></div>
 <div class="ad2"><span>Başlama saati:</span><u></u><span>Bitiş saati:</span><u></u></div>`;
   D.forEach((q, i) => { h += L.soru(i + 1, q); });
-  h += `<div class="optik"><div class="et">Cevap kâğıdım<span>Cevabını işaretle, son sayfadaki anahtarla karşılaştır.</span></div><div class="gr">${[0, 1, 2].map(c => `<div>${[0, 1, 2, 3, 4].map(r => { const n = c * 5 + r + 1; return `<div class="r"><b>${n}</b>${'ABCDE'.split('').map(x => `<i>${x}</i>`).join('')}</div>`; }).join('')}</div>`).join('')}</div></div>`;
+  h += `<div class="optik"><div class="et">Cevap kâğıdım<span>Cevabını işaretle, sonraki sayfadaki anahtarla karşılaştır.</span></div><div class="gr">${[0, 1, 2].map(c => `<div>${[0, 1, 2, 3, 4].map(r => { const n = c * 5 + r + 1; return `<div class="r"><b>${n}</b>${'ABCDE'.split('').map(x => `<i>${x}</i>`).join('')}</div>`; }).join('')}</div>`).join('')}</div></div>`;
   // Cevap anahtarı + analiz
   h += `<div class="sb"></div><div class="gun"><div class="no"><div><small>DENEME</small><b>✓</b></div></div><div><h2>Cevap anahtarı ve eksik konu tablosu</h2><p>Önce netini hesapla, sonra hangi konuda kaç yanlışın olduğunu tabloya yaz.</p></div><div class="sure">15 soru</div></div>`;
   h += `<div class="anahtar">${D.map((q, i) => `<div>${i + 1}<b>${q.cevap}</b></div>`).join('')}</div>`;
@@ -187,7 +187,7 @@ table.an a{font-weight:700;color:var(--koyu)}table.an a em{font-style:normal;bac
     return `<tr><td><b>${md(k.ad)}</b></td><td>${no.join(', ')}</td><td class="y"><i></i></td><td>${oner}</td></tr>`;
   }).join('');
   h += `<h3 class="b"><i></i>Eksik konu tablosu</h3><table class="an"><tr><th>Konu</th><th>Sorular</th><th>Yanlış + boş</th><th>Bu konuda 2 ya da daha fazla yanlışın ya da boşun varsa</th></tr>${sat}</table>`;
-  h += L.kutu('ana', 'Nasıl okunur?', `Bir konuda 2 ya da daha fazla yanlışın ya da boşun varsa o konu yazılıda puan kaybettirir. Önce tekrar notundaki o günün sayfasını yeniden oku, sonra o konudan yazılı tarzı soru çöz.`);
+  h += `<p style="font-size:9pt;color:var(--ink2);margin:5px 0 0">Bir konuda 2 ya da daha fazla yanlışın ya da boşun varsa önce tekrar notundaki o günün sayfasını yeniden oku, sonra o konudan yazılı tarzı soru çöz.</p><style>.cv td{padding:3.6px 6px}.cvb{margin:8px 0 3px}</style>`;
   h += L.cevapTablo(['ÇÖZÜM', 'Kısa çözümler'], D, 1);
   return h;
 }
@@ -215,7 +215,7 @@ async function denemePromo(N) {
 <div class="pgr">${N.paketler.map(p => paketKart(s, p.no, p.not)).join('')}</div>
 <div class="orn"><div>PAKETTEN ÖRNEK SORU<img src="${img(`img/paket/ornek-${s}-soru.webp`)}"></div><div>ÇÖZÜMÜ VE PUANLAMASI<img src="${img(`img/paket/ornek-${s}-cozum.webp`)}"></div></div>
 <div class="al"><a class="q" href="${SITE}/paket/${UTM}&utm_campaign=tatil${s}#siniflar">${q}Okut ya da dokun<br>benfizikyapamiyorum.com/paket</a>
-<a href="${yapURL(s)}"><h4>Bütün yıl için: Yapabilirim ${s}</h4>${s}. sınıfın bütün konuları tek dijital kitapta. Tek ödeme, abonelik yok. <b>₺599 →</b></a>
+<a href="${yapURL(s)}"><h4>Bütün yıl için: Yapabilirim ${s}</h4>${s}. sınıfın bütün konuları tek dijital kitapta. Tek ödeme, abonelik yok. <b style="white-space:nowrap">₺599&nbsp;→</b></a>
 <div><h4>Bu PDF’yi çözenlere %10</h4>Yapabilirim ve Yazılıya 3 Gün Kala’da Shopier ödeme adımında yaz:<br><span class="kod">NOTLAR10</span></div></div>
 <a class="bant" href="${SITE}/ucretsiz/pdf${UTM}"><span>Okul açılınca her hafta yeni ücretsiz not: <b>Pazartesi 9 | Çarşamba 10 | Cuma 11. sınıf</b></span><span>benfizikyapamiyorum.com | @benfizikyapamiyorum</span></a>
 </body></html>`;
