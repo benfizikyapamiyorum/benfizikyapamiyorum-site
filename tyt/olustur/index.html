@@ -9415,6 +9415,35 @@ BFY_FIG_EKLE('sf223_aralik', function (u) {
 });
 })();
 
+/* ---------- EK SORU (2026-11-12): kT23_27 ölçekleri farklı iki konum-zaman grafiği ---------- */
+(function () {
+const { P, T, svg, dashLine } = window.BFY_FIGLIB;
+BFY_FIG_EKLE('kT23_olcek_genis', function (u) {
+  const W = 556, H = 220;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  const panel = (ox, ad, xMax, tMax, xTicks, tTicks, renk) => {
+    const x0 = ox + 44, y0 = 178, w = 170, h = 130, sx = t => x0 + t / tMax * w, sy = x => y0 - x / xMax * h;
+    let g = '';
+    xTicks.forEach(v => { g += `<line x1="${x0}" y1="${sy(v).toFixed(1)}" x2="${sx(tMax).toFixed(1)}" y2="${sy(v).toFixed(1)}" stroke="#e1e8e3" stroke-width="1"/>`; });
+    tTicks.forEach(t => { g += `<line x1="${sx(t).toFixed(1)}" y1="${y0}" x2="${sx(t).toFixed(1)}" y2="${sy(xMax).toFixed(1)}" stroke="#e1e8e3" stroke-width="1"/>`; });
+    const top = sy(xMax) - 12, right = sx(tMax) + 12;
+    g += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${top + 4}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${x0},${top - 6} ${x0 - 4},${top + 4} ${x0 + 4},${top + 4}" fill="${P.ink}"/>`;
+    g += `<line x1="${x0}" y1="${y0}" x2="${right - 2}" y2="${y0}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${right + 8},${y0} ${right - 2},${y0 - 4} ${right - 2},${y0 + 4}" fill="${P.ink}"/>`;
+    g += T(x0 + 8, top + 2, 'x (m)', { size: 12.5, weight: 800 });
+    g += T(right + 11, y0 + 4.5, 't (s)', { size: 12.5, weight: 800 });
+    g += T(x0 - 6, y0 + 15, '0', { size: 11.5, weight: 600, anchor: 'end', fill: P.ink2 });
+    xTicks.forEach(v => { g += T(x0 - 7, sy(v) + 4.5, String(v), { size: 11.5, weight: 600, anchor: 'end', fill: P.ink2 }); });
+    tTicks.forEach(t => { g += T(sx(t), y0 + 16, String(t), { size: 11.5, weight: 600, anchor: 'middle', fill: P.ink2 }); });
+    g += `<line x1="${x0}" y1="${y0}" x2="${sx(tMax).toFixed(1)}" y2="${sy(xMax).toFixed(1)}" stroke="${renk}" stroke-width="2.8" stroke-linecap="round"/>`;
+    g += T(sx(tMax * 0.62) - 10, sy(xMax * 0.62) - 8, ad, { size: 14, weight: 800, fill: renk, anchor: 'end' });
+    return g;
+  };
+  s += panel(10, 'K', 60, 20, [20, 40, 60], [5, 10, 15, 20], P.blue);
+  s += panel(276, 'L', 20, 4, [5, 10, 15, 20], [1, 2, 3, 4], P.copper);
+  return svg(W, H, s, u, 120);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -9453,7 +9482,8 @@ const KONU = {
     'SET 2: havalimanında 60 m yürüyen bant, Defne, Kerem, Elif süre tablosu',
     'robotik kulübünde çizgi izleyen K ve L robotları x-t, L 2 s geç çıkar, t = 8 s, 12 m, 0–8 s ortalama hız (I-II-III)',
     'SİM: K aracı x = 0 (4/6/8 m/s), L aracı x = 60 m (−4…+4 m/s), 0–20 s; x-t kesişmesi ve ϑ-t alanları',
-    'SET 3: mum saati araştırması, kalın K mumu 20,0 → 15,0 cm ve ince L mumu 15,0 → 5,1 cm, 30 dakikada bir ölçüm, oda sıcaklığı sütunu'
+    'SET 3: mum saati araştırması, kalın K mumu 20,0 → 15,0 cm ve ince L mumu 15,0 → 5,1 cm, 30 dakikada bir ölçüm, oda sıcaklığı sütunu',
+    'EK: telefon uygulamasının farklı eksen ölçekleriyle çizdiği K ve L koşucularının konum-zaman grafikleri (kT23_27)', 'EK: spor fotoğrafında 1/50 s pozlamada tekerlek göbeğindeki lambanın 10 cm izi (kT23_28)'
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ----------------
@@ -10226,6 +10256,42 @@ yargılarından hangileri doğrudur?`,
         r`II. $0$–$8\ \text{s}$ aralığında ikisi de $x = 0$'dan $x = 12\ \text{m}$'ye gelir. Yer değiştirmeler ve süreler eşit olduğundan ortalama hızlar da eşittir: $\dfrac{12}{8} = 1,5\ \text{m/s}$. L'nin ilk $2\ \text{s}$ beklemesi de bu süreye dahildir. **Doğru.**`,
         r`III. $\vartheta_K = \dfrac{12}{8} = 1,5\ \text{m/s}$, $\vartheta_L = \dfrac{12}{8 - 2} = 2\ \text{m/s}$; oran $\dfrac{4}{3}$'tür. **Yanlış.**`,
         r`{{S0}} L'nin ortalama hızını yalnız hareket ettiği $6\ \text{s}$ ile hesaplar ($2\ \text{m/s}$); oysa bekleme süresi de aralığa dahildir. {{S1}} L'nin başlama anının grafikte $t = 2\ \text{s}$ olduğunu görmez. {{S3}} II'de bekleme süresini atlar; ayrıca L'nin hızını iki kat sanır, oysa aynı yolu alma sürelerinin oranı $\dfrac{8}{6}$'dır. {{S4}} III'ü de doğru sayar; L'nin hızı K'nınkinin $\dfrac{8}{6} = \dfrac{4}{3}$ katıdır, 2 katı değildir.`
+      ]
+    },
+    {
+      id: 'kT23_27', yks: true, zorluk: 2, tur: 'cs', cikti: 'FİZ.10.1.1', beceri: 'Eksen ölçeğini okuyarak hızları karşılaştırma',
+      metin: r`Mert ve Selin, düz bir koşu yolunda sabit hızlarla koşan K ve L koşucularının konum-zaman grafiklerini bir telefon uygulamasıyla ayrı ayrı çiziyor. Uygulama eksen ölçeğini her grafik için kendisi seçtiğinden iki grafik şekildeki gibi aynı eğimle görünüyor.
+
+{{sekil}}
+
+Buna göre,
+
+I. L'nin hızı K'nin hızından büyüktür.
+II. İki koşucu aynı anda aynı noktadan aynı yönde koşmaya başlasaydı $t = 10\ \text{s}$ anında aralarındaki uzaklık $20\ \text{m}$ olurdu.
+III. Grafikler aynı eğimle göründüğü için iki koşucu eşit sürelerde eşit yol alır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kT23_olcek_genis',
+      secenekler: ['Yalnız I', 'I ve II', 'I ve III', 'II ve III', 'I, II ve III'],
+      dogru: 1,
+      cozum: [
+        r`Eğimi ekranda değil, eksenlerdeki değerlerle bul. K: $\vartheta_K = \dfrac{60\ \text{m}}{20\ \text{s}} = 3\ \text{m/s}$. L: $\vartheta_L = \dfrac{20\ \text{m}}{4\ \text{s}} = 5\ \text{m/s}$. I. **Doğru.**`,
+        r`II. $10\ \text{s}$'de K $30\ \text{m}$, L $50\ \text{m}$ yol alır; aynı yöne koştukları için aralarındaki uzaklık $50 - 30 = 20\ \text{m}$ olur. **Doğru.**`,
+        r`III. Ekrandaki eğim, eksenlerin ölçeğine bağlıdır. Hızlar farklı olduğu için eşit sürelerde aldıkları yollar da farklıdır. **Yanlış.**`,
+        r`{{S0}} ikinci yargıyı dışarıda bırakır; oysa $10\ \text{s}$'de koşucular $30\ \text{m}$ ve $50\ \text{m}$ yol alır, aradaki fark $20\ \text{m}$'dir. {{S2}} L'nin daha hızlı olduğunu kabul ettiği hâlde görünüşteki eşit eğime güvenip eşit yol aldıklarını da söyler; bu iki yargı birbiriyle çelişir, ayrıca ikinci yargı dışarıda kalır. {{S3}} görünüşteki eşit eğimi eşit hız sanıp birinci yargıyı dışarıda bırakır; oysa eşit hızlı koşucular arasında $20\ \text{m}$ açılamazdı. {{S4}} üçüncü yargıyı da kabul eder; oysa ölçekleri farklı iki grafiğin eğimleri ekranda karşılaştırılamaz.`
+      ]
+    },
+    {
+      id: 'kT23_28', yks: true, zorluk: 2, tur: 'cs', cikti: 'FİZ.10.1.1', beceri: 'Fotoğraftaki izden sabit hızı bulma',
+      metin: r`Spor fotoğrafçısı Ece, düz bir yolda sabit hızla giden bir bisikletliyi yandan fotoğraflıyor. Fotoğraf makinesinin pozlama süresi $\dfrac{1}{50}\ \text{s}$'dir; pozlama süresi, makinenin görüntüyü kaydetmek için ışık aldığı süredir. Ön tekerleğin göbeğine takılı küçük bir lamba fotoğrafta nokta olarak değil, yatay bir çizgi olarak görünüyor. Fotoğrafın ölçeğine göre bu çizgi gerçekte $10\ \text{cm}$'lik bir uzunluğa karşılık geliyor.
+
+Buna göre bisikletlinin hızı kaç km/h'tir?`,
+      secenekler: [r`$1,8$`, r`$5$`, r`$18$`, r`$180$`, r`$1800$`],
+      dogru: 2,
+      cozum: [
+        r`Tekerleğin göbeği bisikletle birlikte ilerler. Çizgi, lambanın pozlama süresince aldığı yoldur: $\Delta x = 10\ \text{cm} = 0,1\ \text{m}$, $\Delta t = \dfrac{1}{50}\ \text{s}$.`,
+        r`$\vartheta = \dfrac{\Delta x}{\Delta t} = 0,1 \times 50 = 5\ \text{m/s}$; km/h'e çevirmek için $3,6$ ile çarpılır: $5 \times 3,6 = 18\ \text{km/h}$.`,
+        r`{{S0}} $\dfrac{1}{50}\ \text{s}$'yi $0,2\ \text{s}$ sanır ($\tfrac{0,1}{0,2} = 0,5\ \text{m/s}$, yani $1,8\ \text{km/h}$). {{S1}} hızı m/s olarak bulur ama km/h'e çevirmeyi unutur. {{S3}} santimetreyi metreye çevirirken $100$ yerine $10$'a böler ($1\ \text{m}$ alıp $50\ \text{m/s}$, yani $180\ \text{km/h}$ bulur). {{S4}} santimetreyi hiç çevirmeden metre gibi kullanır ($10 \times 50 = 500$, $500 \times 3,6 = 1800$).`
       ]
     }
   ],

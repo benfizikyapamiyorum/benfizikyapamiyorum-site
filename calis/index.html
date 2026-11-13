@@ -7762,6 +7762,41 @@ BFY_FIG_EKLE('sf921_ruzgar', u => sahne(u, () => {
 }, { w: 320, h: 172, mm: 105, zemin: false }));
 })();
 
+/* ---------- EK SORU (2026-11-12): k921_22 otomobil gösterge paneli ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+BFY_FIG_EKLE('k921_panel', function (u) {
+  const W = 320, H = 236;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef1f3"/>`;
+  s += `<defs><linearGradient id="${u}pn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a444a"/><stop offset="1" stop-color="#1c2327"/></linearGradient>
+    <radialGradient id="${u}kd" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#2d383e"/><stop offset="1" stop-color="#151b1e"/></radialGradient></defs>`;
+  s += `<rect x="12" y="14" width="296" height="208" rx="26" fill="url(#${u}pn)" stroke="#0e1316" stroke-width="1.4"/>`;
+  // hız göstergesi (sol kadran)
+  const cx = 90, cy = 112, R = 66, a0 = 225, a1 = -45, vMax = 200;
+  const ang = v => (a0 - (a0 - a1) * v / vMax) * Math.PI / 180;
+  s += `<circle cx="${cx}" cy="${cy}" r="${R + 6}" fill="#0f1417" stroke="#5c676d" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${u}kd)"/>`;
+  for (let v = 0; v <= vMax; v += 10) {
+    const a = ang(v), b = v % 20 ? 7 : 12;
+    s += `<line x1="${(cx + R * 0.92 * Math.cos(a)).toFixed(1)}" y1="${(cy - R * 0.92 * Math.sin(a)).toFixed(1)}" x2="${(cx + (R * 0.92 - b) * Math.cos(a)).toFixed(1)}" y2="${(cy - (R * 0.92 - b) * Math.sin(a)).toFixed(1)}" stroke="#e9eef0" stroke-width="${v % 20 ? 1 : 1.8}"/>`;
+    if (v % 40 === 0) s += T((cx + R * 0.6 * Math.cos(a)).toFixed(1), (cy - R * 0.6 * Math.sin(a) + 4).toFixed(1), String(v), { size: 10.5, weight: 700, anchor: 'middle', fill: '#e9eef0', halo: false });
+  }
+  const an = ang(90);
+  s += `<line x1="${cx}" y1="${cy}" x2="${(cx + R * 0.86 * Math.cos(an)).toFixed(1)}" y2="${(cy - R * 0.86 * Math.sin(an)).toFixed(1)}" stroke="#ff5a3c" stroke-width="3" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="6" fill="#ff5a3c" stroke="#3a1a12" stroke-width="1"/>`;
+  s += T(cx, cy + 44, 'km/h', { size: 11, weight: 700, anchor: 'middle', fill: '#c8d2d6', halo: false });
+  // orta ekran
+  const ex = 176, ey = 38, ew = 118, eh = 160;
+  s += `<rect x="${ex}" y="${ey}" width="${ew}" height="${eh}" rx="10" fill="#e3ecdc" stroke="#0e1316" stroke-width="1.2"/>`;
+  const sat = [['Dış sıcaklık', '14 °C'], ['Ort. tüketim', '6 L/100 km'], ['Menzil', '420 km'], ['Toplam yol', '48 250 km']];
+  sat.forEach(([a, b], i) => {
+    const y = ey + 22 + i * 38;
+    if (i) s += `<line x1="${ex + 8}" y1="${y - 18}" x2="${ex + ew - 8}" y2="${y - 18}" stroke="#b9c7b3" stroke-width="1"/>`;
+    s += T(ex + 10, y, a, { size: 11, weight: 600, fill: '#4c5e55', halo: false });
+    s += T(ex + ew - 10, y + 15, b, { size: 13, weight: 800, anchor: 'end', fill: '#2b3a33', halo: false });
+  });
+  return svg(W, H, s, u, 70);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -7794,7 +7829,8 @@ const KONU = {
     'sıvı basıncı bağıntısını birim analiziyle seçme', 'metrenin ışık hızıyla tanımı (1983)',
     'Gimli Glider 1983: lb/L ile kg/L karışıklığı, 7682 L ve 4917 L (açık uçlu)', 'fotokopi kâğıdı gramajı 80 g/m², A4, 500 yaprak, 5,0 cm (açık uçlu)',
     'SET 1: NASA gezegen bilgi tablosu (Merkür, Dünya, Ay, Mars, Satürn): SI birimi ve temel nicelik, eksi sıcaklık ve yer çekimi ivmesi, Satürn yoğunluğu g/cm³',
-    'SET 2: okul servisinde telefon sensörleri (ivmeölçer, manyetometre, barometre, GPS, ışık, batarya termometresi), barometre "doğrudan ölçülen temeldir" iddiası, 41 km/h gösterge ile 11,4 m/s GPS'
+    'SET 2: okul servisinde telefon sensörleri (ivmeölçer, manyetometre, barometre, GPS, ışık, batarya termometresi), barometre "doğrudan ölçülen temeldir" iddiası, 41 km/h gösterge ile 11,4 m/s GPS',
+    'EK: otomobil gösterge paneli: 90 km/h hız göstergesi, 14 °C, 6 L/100 km tüketimin m² birimi, menzil 420 km (k921_22)'
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ----------------
@@ -8501,6 +8537,27 @@ yargılarından hangileri doğrudur?`,
         r`Isı sığası: $\dfrac{\text{J}}{\text{K}} = \dfrac{\text{kg}\times\text{m}^2}{\text{s}^2\times\text{K}}$; kütle, uzunluk, zaman ve sıcaklık (4). Sıra: hacim, sürat, basınç, ısı sığası.`
       ]
 
+    },
+    {
+      id: 'k921_22', yks: true, zorluk: 3, tur: 'cs', cikti: 'FİZ.9.2.1', beceri: 'Birim analiziyle nicelik türünü belirleme',
+      metin: r`Bir otomobilin gösterge panelinde, yolculuğun bir anında şekildeki değerler okunuyor. "Ort. tüketim" otomobilin her $100\ \text{km}$ yolda ortalama kaç litre yakıt harcadığını, "Menzil" ise depodaki yakıtla daha kaç kilometre gidilebileceğini gösterir. Hacim birimleri arasında $1\ \text{L} = 10^{-3}\ \text{m}^3$ bağıntısı vardır.
+
+Buna göre
+
+I. Hız göstergesindeki değer, otomobilin hızını büyüklüğü ve yönüyle birlikte verir.
+II. Ortalama tüketim değerinin birimi SI'daki temel birimlerle yazıldığında yalnız uzunluk biriminden oluşur.
+III. Dış sıcaklık °C ile gösterildiği için bu değer türetilmiş bir niceliğe aittir.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'k921_panel',
+      secenekler: ['Yalnız II', 'I ve II', 'I ve III', 'II ve III', 'I, II ve III'],
+      dogru: 0,
+      cozum: [
+        r`I. Gösterge yalnız $90\ \text{km/h}$ büyüklüğünü verir; otomobilin hangi yöne gittiğini söylemez. Gösterdiği nicelik sürattir. **Yanlış.**`,
+        r`II. $\dfrac{\text{L}}{\text{km}} = \dfrac{10^{-3}\ \text{m}^3}{10^{3}\ \text{m}} = 10^{-6}\ \text{m}^2$ olur. Göstergedeki değer $\dfrac{6 \times 10^{-3}\ \text{m}^3}{10^{5}\ \text{m}} = 6 \times 10^{-8}\ \text{m}^2$'dir. Birimde yalnız metre vardır. Bu nicelik yine de türetilmiştir; birimi uzunluk biriminden kurulur. **Doğru.**`,
+        r`III. Sıcaklık yedi temel nicelikten biridir. Değerin SI birimi olan kelvin yerine °C ile yazılması niceliği türetilmiş yapmaz. **Yanlış.**`,
+        r`{{S1}} hız göstergesinin yönü de verdiğini sanır; oysa gösterge yalnız büyüklüğü, yani sürati gösterir. {{S2}} göstergeyi hız sanır ve SI birimiyle yazılmayan sıcaklığı türetilmiş sayar; ayrıca tüketim biriminin yalnız metreden oluştuğunu görmez. {{S3}} birimi SI birimi olmayan niceliği türetilmiş sanır; oysa sıcaklık temel niceliktir. {{S4}} üç yargıyı da doğru sayar; oysa göstergede yön bilgisi yoktur ve sıcaklık temel niceliktir.`
+      ]
     }
   ],
 
@@ -15921,6 +15978,52 @@ BFY_FIG_EKLE('sf925_kurye', function (u) {
 });
 })();
 
+/* ---------- EK SORU (2026-11-12): k925_22 gezi treni, çember biçimli ray (üstten) ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+BFY_FIG_EKLE('k925_tren', function (u) {
+  const W = 320, H = 270, cx = 160, cy = 138, R = 92;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#eef5e8"/>`;
+  // çim ve ağaçlar (arka plan)
+  s += `<g class="bg">` + [[34, 40], [286, 44], [36, 232], [282, 228], [160, 138]].map(([x, y], i) => i === 4
+    ? `<circle cx="${x}" cy="${y}" r="26" fill="#cfe3bf"/><circle cx="${x - 8}" cy="${y - 4}" r="11" fill="#9cc489"/><circle cx="${x + 9}" cy="${y + 5}" r="9" fill="#8bb878"/>`
+    : `<circle cx="${x}" cy="${y}" r="13" fill="#9cc489"/><circle cx="${x + 5}" cy="${y - 4}" r="7" fill="#b6d6a3"/>`).join('') + `</g>`;
+  // ray: travers + iki ray çizgisi
+  for (let i = 0; i < 60; i++) {
+    const a = i * Math.PI / 30, c = Math.cos(a), sn = Math.sin(a);
+    s += `<line x1="${(cx + (R - 7) * c).toFixed(1)}" y1="${(cy + (R - 7) * sn).toFixed(1)}" x2="${(cx + (R + 7) * c).toFixed(1)}" y2="${(cy + (R + 7) * sn).toFixed(1)}" stroke="#a5835a" stroke-width="3"/>`;
+  }
+  s += `<circle cx="${cx}" cy="${cy}" r="${R - 4}" fill="none" stroke="#6f7a80" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${R + 4}" fill="none" stroke="#6f7a80" stroke-width="2"/>`;
+  // yarıçap
+  s += `<line x1="${cx}" y1="${cy}" x2="${(cx + R * Math.cos(-Math.PI / 4)).toFixed(1)}" y2="${(cy + R * Math.sin(-Math.PI / 4)).toFixed(1)}" stroke="${P.ink}" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="3" fill="${P.ink}"/>`;
+  s += T(cx + 38, cy - 6, '30 m', { size: 12.5, weight: 800 });
+  // istasyon peronları K (batı) ve L (doğu)
+  const peron = (x, ad, sag) => `<rect x="${sag ? x + 12 : x - 30}" y="${cy - 16}" width="18" height="32" rx="3" fill="#c9793f" stroke="#7d4a27" stroke-width="1"/>` +
+    `<rect x="${sag ? x + 10 : x - 32}" y="${cy - 20}" width="22" height="6" rx="2" fill="#8a5a33"/>` +
+    T(sag ? x + 36 : x - 36, cy + 5, ad, { size: 14, weight: 800, anchor: sag ? 'start' : 'end' });
+  s += peron(cx - R, 'K', false) + peron(cx + R, 'L', true);
+  // M (kuzey) ve N (güney) noktaları
+  s += `<circle cx="${cx}" cy="${cy - R}" r="4.2" fill="#fff" stroke="${P.ink}" stroke-width="1.6"/>` + T(cx, cy - R - 14, 'M', { size: 14, weight: 800, anchor: 'middle' });
+  s += `<circle cx="${cx}" cy="${cy + R}" r="4.2" fill="#fff" stroke="${P.ink}" stroke-width="1.6"/>` + T(cx, cy + R + 25, 'N', { size: 14, weight: 800, anchor: 'middle' });
+  // hareket yönü okları (K → M → L → N → K, saat yönü)
+  const yayOk = (a0, a1) => {
+    const r2 = R + 20; let d = '';
+    for (let i = 0; i <= 20; i++) { const a = a0 + (a1 - a0) * i / 20; d += (i ? 'L' : 'M') + (cx + r2 * Math.cos(a)).toFixed(1) + ' ' + (cy + r2 * Math.sin(a)).toFixed(1); }
+    const ae = a1, ux = -Math.sin(ae), uy = Math.cos(ae), x2 = cx + r2 * Math.cos(ae), y2 = cy + r2 * Math.sin(ae);
+    return `<path d="${d}" fill="none" stroke="${P.coral}" stroke-width="2.4"/>` + arrow((x2 - ux * 2).toFixed(1), (y2 - uy * 2).toFixed(1), (x2 + ux * 8).toFixed(1), (y2 + uy * 8).toFixed(1), { color: P.coral, w: 2.4, head: 9, headW: 5 });
+  };
+  s += yayOk(-Math.PI * 0.78, -Math.PI * 0.62) + yayOk(Math.PI * 0.22, Math.PI * 0.38);
+  // tren (K istasyonunda, kuzeye bakan küçük vagonlar)
+  [[0, '#2f7fb8'], [1, '#e7a93b']].forEach(([k, c]) => {
+    const a = Math.PI + 0.13 + k * 0.17, x = cx + R * Math.cos(a), y = cy + R * Math.sin(a), deg = a * 180 / Math.PI + 90;
+    s += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${deg.toFixed(1)})"><rect x="-6" y="-8" width="12" height="16" rx="3" fill="${c}" stroke="#1d3a4a" stroke-width="1"/><rect x="-4" y="-5" width="8" height="5" rx="1" fill="#e8f4fa"/></g>`;
+  });
+  s += T(W - 14, H - 12, 'Üstten görünüş', { size: 12, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 70);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -15957,7 +16060,8 @@ const KONU = {
     'ortalama hızı sıfır olan hareketler: 400 m pist, asansör, yelkovan ucu 60 dk ve 15 dk, bumerang (sınıfla)',
     'sürat göstergesini hız göstergesine dönüştürme önerisi, 54 km/h kuzey (açık uçlu)', 'arama-kurtarma ekibinin GPS izi: 1200 doğu, 1500 kuzey, 300 batı, 300 güney, 50 dk (açık uçlu)',
     'SET 1: Usain Bolt, Berlin 2009 Dünya Şampiyonası 100 m (9,58 s) 10 m ara süreleri, rüzgâr +0,9 m/s',
-    'SET 2: yeşil dalga bulvarı K1–K4 (0, 250, 600, 1000 m), yeşilin yandığı anlar 0, 18, 43, 72 s, yeşil süresi 25 s, günlük araç sayısı'
+    'SET 2: yeşil dalga bulvarı K1–K4 (0, 250, 600, 1000 m), yeşilin yandığı anlar 0, 18, 43, 72 s, yeşil süresi 25 s, günlük araç sayısı',
+    "EK: botanik bahçesi gezi treni, 30 m yarıçaplı çember ray, K-L çap, L'de 30 s bekleme, M'de anlık hız yönü (k925_22)"
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ----------------
@@ -16651,6 +16755,29 @@ yargılarından hangileri doğrudur?`,
         r`Sıra: L, M, N, K. Ortalama süratle sıralansaydı L ($8\ \text{m/s}$) en hızlı görünürdü.`
       ]
 
+    },
+    {
+      id: 'k925_22', yks: true, zorluk: 3, tur: 'cs', cikti: 'FİZ.9.2.6', beceri: 'Yol, yer değiştirme ve anlık hız yönünü birlikte değerlendirme',
+      metin: r`Bir botanik bahçesindeki gezi treni, şekilde üstten görülen çember biçimli rayda hep aynı yönde dönüyor. Rayın yarıçapı $30\ \text{m}$'dir. K ve L istasyonları çemberin bir çapının iki ucundadır; M ve N noktaları ise K ile L arasındaki iki yayın tam ortasındadır.
+
+Tren K istasyonundan kalkıp M üzerinden L istasyonuna $30\ \text{s}$'de varıyor ve L'de $30\ \text{s}$ bekliyor. Sonra N üzerinden yine $30\ \text{s}$'de K istasyonuna dönüyor. Tren hareket ettiği bölümlerde sabit süratle gidiyor; kalkış ve duruştaki hızlanma, yavaşlama ve trenin boyu önemsenmiyor. ($\pi = 3$ alınız.)
+
+Buna göre
+
+I. Trenin K'dan L'ye giderken ortalama hızının büyüklüğü $2\ \text{m/s}$'dir.
+II. Trenin K'dan çıkıp yeniden K'ya varıncaya kadar geçen sürede ortalama sürati $3\ \text{m/s}$'dir.
+III. Tren M noktasından geçtiği anda hızının yönü, K'dan L'ye doğrudur.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'k925_tren',
+      secenekler: ['Yalnız I', 'Yalnız III', 'I ve II', 'I ve III', 'II ve III'],
+      dogru: 3,
+      cozum: [
+        r`I. K'dan L'ye yer değiştirme çember çapıdır: $2 \times 30 = 60\ \text{m}$, yönü K'dan L'ye doğru. Ortalama hızın büyüklüğü $\dfrac{60\ \text{m}}{30\ \text{s}} = 2\ \text{m/s}$ olur. **Doğru.**`,
+        r`II. Tam turda alınan yol çemberin çevresidir: $2 \times 3 \times 30 = 180\ \text{m}$. Geçen süreye L'deki bekleme de girer: $30 + 30 + 30 = 90\ \text{s}$. Ortalama sürat $\dfrac{180\ \text{m}}{90\ \text{s}} = 2\ \text{m/s}$ olur. $3\ \text{m/s}$, bekleme süresi atlanınca bulunur. **Yanlış.**`,
+        r`III. Anlık hızın yönü, trenin o anda gittiği yöndür. M, çemberin K ile L'nin tam ortasındaki en üst noktasıdır; tren burada K tarafından gelip L tarafına doğru gider. Bu nedenle M'deki hızın yönü K'dan L'ye doğrudur. **Doğru.**`,
+        r`{{S0}} M'deki anlık hızın yönünü dışarıda bırakır; oysa tren M'de K'dan L'ye doğru gider. {{S1}} ortalama hızı yarım çemberin uzunluğuyla hesaplar ($\tfrac{90}{30} = 3\ \text{m/s}$) ve birinci yargıyı yanlış sayar; oysa ortalama hız yer değiştirmeyle bulunur. {{S2}} L'deki $30\ \text{s}$'lik beklemeyi süreye katmaz ($\tfrac{180}{60} = 3\ \text{m/s}$) ve M'deki hız yönünü dışarıda bırakır. {{S4}} bekleme süresini atlar ve ortalama hızı yer değiştirme yerine alınan yolla hesaplayıp birinci yargıyı dışarıda bırakır.`
+      ]
     }
   ],
 
@@ -55119,6 +55246,37 @@ BFY_FIG_EKLE('sf1022_panel', function (u) {
 });
 })();
 
+/* ---------- EK SORU (2026-11-12): k1022_28 yük asansörü, toplam kütle–yükselme sürati grafiği ---------- */
+(function () {
+const { P, T, svg, dashLine } = window.BFY_FIGLIB;
+BFY_FIG_EKLE('k1022_asansor', function (u) {
+  const W = 340, H = 250, x0 = 50, y0 = 206, sx = m => x0 + m / 6800 * 222, sy = v => y0 - v / 140 * 170;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f6f9f7"/>`;
+  [20, 40, 60, 80, 100, 120].forEach(v => { s += `<line x1="${x0}" y1="${sy(v).toFixed(1)}" x2="${sx(6800).toFixed(1)}" y2="${sy(v).toFixed(1)}" stroke="#e1e8e3" stroke-width="1"/>`; });
+  [1000, 2000, 3000, 4000, 5000, 6000].forEach(m => { s += `<line x1="${sx(m).toFixed(1)}" y1="${y0}" x2="${sx(m).toFixed(1)}" y2="${sy(140).toFixed(1)}" stroke="#e1e8e3" stroke-width="1"/>`; });
+  // eksenler
+  const top = sy(140) - 8, right = sx(6800) + 10;
+  s += `<line x1="${x0}" y1="${y0}" x2="${x0}" y2="${top + 4}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${x0},${top - 6} ${x0 - 4},${top + 4} ${x0 + 4},${top + 4}" fill="${P.ink}"/>`;
+  s += `<line x1="${x0}" y1="${y0}" x2="${right - 2}" y2="${y0}" stroke="${P.ink}" stroke-width="1.5"/><polygon points="${right + 8},${y0} ${right - 2},${y0 - 4} ${right - 2},${y0 + 4}" fill="${P.ink}"/>`;
+  s += T(x0 + 8, top + 2, 'ϑ (m/dk)', { size: 12.5, weight: 800 });
+  s += T(right + 11, y0 + 4.5, 'm (kg)', { size: 12.5, weight: 800 });
+  s += T(x0 - 6, y0 + 15, '0', { size: 11.5, weight: 600, anchor: 'end', fill: P.ink2 });
+  // eğri: m × ϑ = 120 000
+  let d = '';
+  for (let i = 0; i <= 60; i++) { const m = 860 + (6600 - 860) * i / 60, v = 120000 / m; d += (i ? 'L' : 'M') + sx(m).toFixed(1) + ' ' + sy(v).toFixed(1); }
+  s += `<path d="${d}" fill="none" stroke="${P.blue}" stroke-width="2.6" stroke-linecap="round"/>`;
+  // ölçüm noktaları ve kılavuzlar
+  const nok = [[1000, 120], [2000, 60], [4000, 30], [6000, 20]];
+  nok.forEach(([m, v]) => {
+    s += dashLine(sx(m), sy(v), sx(m), y0, '#9aa9a0', '3 3', 1.1) + dashLine(x0, sy(v), sx(m), sy(v), '#9aa9a0', '3 3', 1.1);
+    s += `<circle cx="${sx(m).toFixed(1)}" cy="${sy(v).toFixed(1)}" r="3.8" fill="${P.coral}" stroke="#fff" stroke-width="1"/>`;
+    s += T(x0 - 7, sy(v) + 4.5, String(v), { size: 11.5, weight: 600, anchor: 'end', fill: P.ink2 });
+    s += T(sx(m), y0 + 16, String(m), { size: 10.5, weight: 600, anchor: 'middle', fill: P.ink2 });
+  });
+  return svg(W, H, s, u, 72);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -55160,7 +55318,8 @@ const KONU = {
     'gökdelen cephe temizleme platformu halatları: enerji aktarımı sınıflama',
     'tiyatro sahnesi motorlu askı çubukları K ve L, W-h grafiği, 0,3 ve 0,5 m/s',
     'elektrikli skuter göstergesi %90 → %65, 24 dk, 480 Wh batarya',
-    'merdiven koşusu güç testi: 3. ve 9. basamak, 17,5 cm, Deniz/Ege/Kaan/Arda (k1022_25)', 'dolabı halı (60 N, 6 m, 4 s) ve parke (30 N, 4 m, 6 s) üzerinde itme, ortalama güç (k1022_26)', 'şantiyede beş kaldırma işi: işçi, makaralı vinç, kule vinç, yük asansörü, forklift (güç sıralama, k1022_27)'
+    'merdiven koşusu güç testi: 3. ve 9. basamak, 17,5 cm, Deniz/Ege/Kaan/Arda (k1022_25)', 'dolabı halı (60 N, 6 m, 4 s) ve parke (30 N, 4 m, 6 s) üzerinde itme, ortalama güç (k1022_26)', 'şantiyede beş kaldırma işi: işçi, makaralı vinç, kule vinç, yük asansörü, forklift (güç sıralama, k1022_27)',
+    'EK: inşaat yük asansörü, toplam kütle–yükselme sürati (m/dk) eğrisi, sabit 20 kW güç, 3000 kg ara değer tuzağı (k1022_28)'
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ---------------- */
@@ -56029,6 +56188,27 @@ Kaldırma işlerini, yüke aktarılan ortalama **güce** göre küçükten büy�
         r`$P = \dfrac{m\,g\,h}{t}$ ile: işçi $\dfrac{20 \times 10 \times 3}{4} = 150\ \text{W}$; makaralı vinç $\dfrac{40 \times 10 \times 15}{20} = 300\ \text{W}$; kule vinç $\dfrac{500 \times 10 \times 20}{50} = 2000\ \text{W}$.`,
         r`Yük asansörü $\dfrac{300 \times 10 \times 12}{15} = 2400\ \text{W}$; forklift $\dfrac{800 \times 10 \times 3}{4} = 6000\ \text{W}$.`,
         r`Kule vinç en çok işi ($100\ \text{kJ}$) yapar ama uzun sürede yaptığı için gücü forkliftten ve yük asansöründen küçüktür. Güç, işin ne kadar hızlı yapıldığını gösterir.`
+      ]
+    },
+    {
+      id: 'k1022_28', yks: true, zorluk: 3, tur: 'cs', cikti: 'FİZ.10.2.2', beceri: 'Grafikten değişmeyen niceliği çıkarma',
+      metin: r`Bir inşaatta malzeme taşıyan yük asansörünün kontrol sistemi, kabinin düşey doğrultudaki sabit yükselme süratini kabindeki yüke göre ayarlıyor. Kabin ile içindeki yükün toplam kütlesi ($m$) ile kabinin yükselme sürati ($\vartheta$) arasındaki ilişki, test ölçümlerinden çizilen grafikte verilmiştir. Sürat, metre/dakika (m/dk) birimiyle verilmiştir. ($g = 10\ \text{m/s}^2$; sürtünmeler ve halatın kütlesi önemsizdir.)
+
+Buna göre
+
+I. Motorun kabine aktardığı güç, grafikteki bütün ölçümlerde $20\ \text{kW}$'tır.
+II. Toplam kütle $3000\ \text{kg}$ olduğunda kabinin yükselme sürati $45\ \text{m/dk}$ olur.
+III. Toplam kütlesi $4000\ \text{kg}$ olan kabini $30\ \text{m}$ yükseltmek için yapılan iş, toplam kütlesi $1000\ \text{kg}$ olan kabini aynı yüksekliğe çıkarmak için yapılan işe eşittir; çünkü iki durumda da güç aynıdır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'k1022_asansor',
+      secenekler: ['Yalnız I', 'Yalnız II', 'I ve II', 'I ve III', 'I, II ve III'],
+      dogru: 0,
+      cozum: [
+        r`I. Kabin sabit süratle yükseldiği için halat kabine ağırlığı kadar kuvvet uygular: $F = m \times g$. Güç $P = \dfrac{W}{t} = \dfrac{F \times \Delta x}{t} = m \times g \times \vartheta$ olur. $2000\ \text{kg}$ için $\vartheta = 60\ \text{m/dk} = 1\ \text{m/s}$: $P = 2000 \times 10 \times 1 = 20\,000\ \text{W} = 20\ \text{kW}$. $1000\ \text{kg}$ ve $2\ \text{m/s}$, $4000\ \text{kg}$ ve $30\ \text{m/dk}$, $6000\ \text{kg}$ ve $20\ \text{m/dk}$ için de çarpım aynıdır. **Doğru.**`,
+        r`II. Güç sabit olduğundan kütle ile sürat ters orantılıdır: $3000 \times \vartheta = 2000 \times 60$, $\vartheta = 40\ \text{m/dk}$. Grafik doğru değil, eğridir; $45\ \text{m/dk}$ iki komşu ölçümün ortalaması alınarak bulunur. **Yanlış.**`,
+        r`III. Yapılan iş $W = m \times g \times h$'dir: $4000 \times 10 \times 30 = 1\,200\,000\ \text{J}$, $1000 \times 10 \times 30 = 300\,000\ \text{J}$. Güç eşit olduğu için ağır kabin aynı yüksekliğe $4$ kat uzun sürede çıkar; iş de $4$ katıdır. **Yanlış.**`,
+        r`{{S1}} süratin kütleyle doğrusal değiştiğini varsayıp iki komşu ölçümün ortalamasını alır ($45\ \text{m/dk}$) ve gücün sabit olduğunu görmez. {{S2}} ikinci yargıyı da doğru sayar; oysa güç sabitken $3000\ \text{kg}$ için sürat $40\ \text{m/dk}$'dır. {{S3}} gücün eşit olmasını işin eşit olması sanır; oysa iş $m \times g \times h$'dir ve kütle büyüdükçe süre de uzar. {{S4}} hem doğrusal ara değer alır hem de güç eşitliğini iş eşitliği sanır.`
       ]
     }
   ],
@@ -57351,7 +57531,8 @@ const KONU = {
     'SET 1: ENERGY STAR ocak verimleri (gaz %32, rezistanslı %75–80, indüksiyon %85); 1 L suyu kaynatma ölçümü (1080/450/430/405 kJ, 335 kJ); santralden suya zincir %50; klimalı mutfağa günde 3 kaynatmada eklenen ısı',
     'SET 2: blender sürahisinde 1 L su, düşük/yüksek hız ve çalıştırılmayan kontrol T–t verisi, ses düzeyi, motor gövdesi sıcaklığı; motor ısısı iddiası, yalıtkan kılıf',
     'EK: fanus-zil/LED, akvaryum-taş, dere türbini gözlem eşleştirme', 'EK: madde/tel/dalga ile taşınma sınıflaması (LNG gemisi, tramvay hattı, sonda sinyali)', 'EK: kalem pil 3 Wh, telefon 15 Wh, 1500 W ısıtıcı 2 dk, 64 kcal bal, 60 kg 3 m sıralama', 'EK: mikrofon/hoparlör, motor/jeneratör, şarj, güneş pili eşleştirme', 'EK: saç kurutma 88/10/2, matkap 30/65/5, akkor ampul 95/5 çubuk grafiği', 'EK: güneş ışınımı ve asfalt yüzey sıcaklığı (13.00 / 15.00) grafikleri',
-    'elektrikli belediye otobüsünde disk fren ile rejeneratif fren, 300 kJ (k1023_25)', 'deniz fenerinde rüzgâr türbini, akü ve LED zinciri 1000 J (k1023_26)', 'EK: Güneş, buğday, ekmek, pedal, dinamo, far zinciri sıralama (k1023_27)'
+    'elektrikli belediye otobüsünde disk fren ile rejeneratif fren, 300 kJ (k1023_25)', 'deniz fenerinde rüzgâr türbini, akü ve LED zinciri 1000 J (k1023_26)', 'EK: Güneş, buğday, ekmek, pedal, dinamo, far zinciri sıralama (k1023_27)',
+    'EK: kış kampı el ısıtıcıları: sıcak su torbası, demir tozlu ped, jel ped (donarak ısı veren, eritilirken iç enerjisi artan), şarjlı ısıtıcı; depolanan enerji biçimleri (k1023_28)'
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ----------------
@@ -58263,6 +58444,33 @@ yargılarından hangileri doğrudur?`,
         r`Zincir nükleer enerjiyle başlar: Güneş'te açığa çıkan enerji ışık olarak boşluktan geçer. Bitki bu ışığın enerjisini fotosentezle kimyasal enerjiye dönüştürür.`,
         r`Besinle taşınan kimyasal enerji kaslarda mekanik enerjiye (pedal ve tekerleğin dönmesi) dönüşür. Dinamo bu dönme hareketini elektrik enerjisine, LED de elektrik enerjisini ışığa dönüştürür.`,
         r`Sıra: Güneş, buğday, ekmek, kaslar, dinamo, LED. Her basamakta enerjinin bir kısmı istenmeyen biçimlere, çoğunlukla ısıya dönüşür; bu yüzden farın ışığı, zincirin başındaki enerjinin çok küçük bir kısmıdır.`
+      ]
+    },
+    {
+      id: 'k1023_28', yks: true, zorluk: 2, tur: 'cs', cikti: 'FİZ.10.2.3', beceri: 'Enerjinin depolandığı biçimleri karşılaştırma',
+      metin: r`Kış kampına hazırlanan Melis, dört el ısıtıcısının nasıl çalıştığını tabloya yazıyor.
+
+{{tablo}}
+
+Melis'in tablosuna göre aşağıdaki karşılaştırmalardan hangisi doğrudur?`,
+      tablo: [['Isıtıcı', 'Nasıl çalışır?'],
+        ['Sıcak su torbası', 'Sıcak su doldurulup ağzı kapatılır; su soğudukça ele ısı verir.'],
+        ['Demir tozlu ped', 'Ambalajı açılınca içindeki demir tozu havadaki oksijenle tepkimeye girer ve ısı açığa çıkar; bir kez kullanılır.'],
+        ['Jel ped', 'İçindeki sıvı, donma sıcaklığının altında olduğu hâlde sıvı kalır. İçindeki metal disk bükülünce sıvı donmaya başlar ve donarken ısı verir. Kaynar suda bekletilince yeniden erir.'],
+        ['Şarjlı ısıtıcı', 'Bataryası prizden doldurulur; düğmeye basılınca bataryanın oluşturduğu akım direnç telini ısıtır.']],
+      secenekler: [
+        'Sıcak su torbası iç enerji, demir tozlu ped ile şarjlı ısıtıcı ise kimyasal enerji depolar.',
+        'Dört ısıtıcıda da ele verilen ısının kaynağı kimyasal enerjidir.',
+        'Jel ped kaynar suda bekletilirken içindeki maddenin iç enerjisi azalır.',
+        'Şarjlı ısıtıcı enerjiyi elektrik enerjisi olarak depolar ve bu enerji ele doğrudan ısı olarak geçer.',
+        'Sıcak su torbası verdiği ısıyı kendisi üretir; bu yüzden su soğurken iç enerjisi artar.'
+      ],
+      dogru: 0,
+      cozum: [
+        r`Sıcak su torbasında enerji, sıcak suyun iç enerjisi olarak depolanır; su soğurken iç enerjisinin bir kısmı ele ısı olarak aktarılır.`,
+        r`Jel pedin içindeki madde donarken çevresine ısı verir, kaynar suda erirken ise sudan ısı alır. Dışarıdan ısı alan maddenin iç enerjisi artar; bu yüzden ped kaynar suda bekletilirken içindeki maddenin iç enerjisi artar. Ped daha sonra donarken bu enerjiyi ısı olarak geri verir.`,
+        r`Demir tozu oksijenle tepkimeye girdiği için enerji kimyasal enerjidir. Batarya da enerjiyi kimyasal enerji olarak depolar; düğmeye basılınca kimyasal enerji elektrik enerjisine, direnç telinde de ısıya dönüşür. İki ısıtıcı aynı biçimde (kimyasal) depolar; sıcak su torbası ise iç enerji depolar.`,
+        r`{{S1}} sıcak su torbasında da bir tepkime olduğunu sanır; oysa torbanın verdiği ısı, soğuyan suyun azalan iç enerjisinden gelir. {{S2}} eriyen maddenin enerji kaybettiğini sanır; oysa ped kaynar sudan ısı alır ve içindeki maddenin iç enerjisi artar. {{S3}} bataryada elektrik enerjisinin biriktiğini sanır; oysa batarya kimyasal enerji depolar, elektrik enerjisi ancak devre kapanınca oluşur ve direnç telinde ısıya dönüşür. {{S4}} torbanın ısıyı ürettiğini sanır; oysa su soğurken iç enerjisi azalır ve azalan kısım ele aktarılır.`
       ]
     }
   ],
@@ -96454,6 +96662,70 @@ BFY_FIG_EKLE('sf1114_hoparlor', function (u) {
 });
 })();
 
+/* ---------- EK SORULAR (2026-11-12): k114_26 mıknatıslı alet şeridi, k114_27 silgi ve kâğıt ---------- */
+(function () {
+const { P, T, arrow, svg } = window.BFY_FIGLIB;
+
+/* Duvardaki mıknatıslı şerit ve asılı K, L, M aletleri (önden görünüş) */
+BFY_FIG_EKLE('k114_alet', function (u) {
+  const W = 320, H = 250;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#efe9df"/>`;
+  s += `<defs><linearGradient id="${u}ser" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b6268"/><stop offset=".5" stop-color="#2c3236"/><stop offset="1" stop-color="#4a5055"/></linearGradient>
+    <linearGradient id="${u}cel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d9dee2"/><stop offset=".45" stop-color="#9aa4ab"/><stop offset=".55" stop-color="#7f8a92"/><stop offset="1" stop-color="#c3cad0"/></linearGradient></defs>`;
+  // duvar dokusu
+  s += `<g class="bg" stroke="#e1d8c9" stroke-width="1">` + [70, 130, 190].map(y => `<line x1="0" y1="${y}" x2="${W}" y2="${y}"/>`).join('') + `</g>`;
+  // şerit ve vidalar
+  s += `<rect x="20" y="40" width="280" height="22" rx="4" fill="url(#${u}ser)" stroke="#1b1f22" stroke-width="1"/>`;
+  [30, 290].forEach(x => { s += `<circle cx="${x}" cy="51" r="4" fill="url(#${u}cel)" stroke="#2a2f33" stroke-width=".8"/><line x1="${x - 2.5}" y1="51" x2="${x + 2.5}" y2="51" stroke="#2a2f33" stroke-width="1"/>`; });
+  s += T(160, 30, 'mıknatıslı şerit', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // K: İngiliz anahtarı (ağzı yukarıda, şeride değiyor)
+  const kx = 80;
+  s += `<rect x="${kx - 7}" y="62" width="14" height="124" rx="6" fill="url(#${u}cel)" stroke="#5f6a70" stroke-width="1"/>`;
+  s += `<path d="M${kx - 8} 44 L${kx - 8} 54 A16 16 0 1 0 ${kx + 8} 54 L${kx + 8} 44 Z" fill="none"/>`;
+  s += `<path d="M${kx - 7} 72 L${kx - 15} 64 A17 17 0 0 1 ${kx - 13} 44 L${kx - 6} 44 L${kx - 6} 56 L${kx + 6} 56 L${kx + 6} 44 L${kx + 13} 44 A17 17 0 0 1 ${kx + 15} 64 L${kx + 7} 72 Z" fill="url(#${u}cel)" stroke="#5f6a70" stroke-width="1"/>`;
+  s += `<circle cx="${kx}" cy="176" r="5" fill="#efe9df" stroke="#5f6a70" stroke-width="1"/>`;
+  s += T(kx, 214, 'K', { size: 15, weight: 800, anchor: 'middle' });
+  // L: çekiç (başı şeride değiyor, sap aşağı)
+  const lx = 160;
+  s += `<rect x="${lx - 26}" y="42" width="52" height="20" rx="4" fill="url(#${u}cel)" stroke="#4d575d" stroke-width="1"/>`;
+  s += `<rect x="${lx - 6}" y="62" width="12" height="120" rx="5" fill="#b0743f" stroke="#6e4321" stroke-width="1"/>`;
+  s += `<rect x="${lx - 7}" y="150" width="14" height="34" rx="5" fill="#2f2f33"/>`;
+  s += T(lx, 214, 'L', { size: 15, weight: 800, anchor: 'middle' });
+  // M: pense (eklem şeride yakın, kollar aşağı)
+  const mx = 240;
+  s += `<path d="M${mx - 5} 44 L${mx - 3} 74 L${mx + 3} 74 L${mx + 5} 44 Z" fill="url(#${u}cel)" stroke="#5f6a70" stroke-width="1"/>`;
+  s += `<circle cx="${mx}" cy="80" r="7" fill="url(#${u}cel)" stroke="#5f6a70" stroke-width="1"/>`;
+  s += `<path d="M${mx - 4} 86 Q${mx - 14} 130 ${mx - 12} 170" fill="none" stroke="#c0392b" stroke-width="8" stroke-linecap="round"/><path d="M${mx + 4} 86 Q${mx + 14} 130 ${mx + 12} 170" fill="none" stroke="#c0392b" stroke-width="8" stroke-linecap="round"/>`;
+  s += T(mx, 214, 'M', { size: 15, weight: 800, anchor: 'middle' });
+  s += T(W - 12, H - 10, 'Önden görünüş', { size: 12, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 68);
+});
+
+/* Masadaki kâğıt, kâğıda bastırılan silgi ve silginin hareket yönü (yandan görünüş) */
+BFY_FIG_EKLE('k114_silgi', function (u) {
+  const W = 320, H = 210;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f3f5f2"/>`;
+  // masa
+  s += `<rect x="14" y="150" width="292" height="16" rx="2" fill="url(#${u}wood)" stroke="#a37c45" stroke-width="1"/>`;
+  s += `<rect x="34" y="166" width="12" height="34" fill="#c99a5b"/><rect x="274" y="166" width="12" height="34" fill="#c99a5b"/>`;
+  // kâğıt
+  s += `<rect x="50" y="145" width="220" height="5" fill="#fbfbf7" stroke="#9aa39b" stroke-width=".9"/>`;
+  s += T(90, 138, 'kâğıt', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(250, 182, 'masa', { size: 12, weight: 700, anchor: 'middle', fill: '#6e4b1f' });
+  // silgi
+  const ex = 150;
+  s += `<rect x="${ex - 22}" y="121" width="44" height="24" rx="4" fill="#f2b8c6" stroke="#b5657a" stroke-width="1.2"/><rect x="${ex - 22}" y="121" width="44" height="9" rx="3" fill="#7fb3d3" stroke="#3f7a9c" stroke-width="1"/>`;
+  // el (basit, dolgun)
+  s += `<path d="M${ex - 30} 121 Q${ex - 30} 92 ${ex - 6} 86 L${ex + 34} 80 Q${ex + 46} 82 ${ex + 40} 94 L${ex + 22} 100 Q${ex + 28} 112 ${ex + 24} 121 Z" fill="url(#${u}skin)" stroke="#b98463" stroke-width="1.2"/>`;
+  s += `<path d="M${ex + 40} 94 Q${ex + 70} 86 ${ex + 96} 60" fill="none" stroke="#e8bc98" stroke-width="20" stroke-linecap="round"/>`;
+  // hareket yönü
+  s += arrow(ex + 30, 136, ex + 78, 136, { color: P.coral, w: 2.6 });
+  s += T(ex + 32, 120, 'hareket yönü', { size: 11.5, weight: 700, fill: '#a8402a' });
+  s += T(W - 12, 24, 'Yandan görünüş', { size: 12, weight: 700, anchor: 'end', fill: P.ink2 });
+  return svg(W, H, s, u, 68);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -96485,7 +96757,8 @@ const KONU = {
     'SET 1: DIN EN 16165 yağlı rampa yürüme testi, R9–R13 karo grupları ve iş yeri alanları (ASR A1.5), beş karoda kızak çekme ölçümleri (çubuk grafik), %14 depo rampası, halatlı test kişisinin kayma ivmesi',
     'SET 2: yaylı fırlatıcı ve iki ışık kapısı arasında kayan tahta blok (ahşap/laminat/kauçuk şerit), mobilya sitesindeki katsayıyla karşılaştırma',
     'eğimli taşıyıcı bant, otobüste sırt çantası, sabun, koltuk: sürtünmenin yönü (sınıfla)', 'kaymama için gereken en küçük statik sürtünme katsayısı: rampa, fren, atlet, duvardaki kitap, masadaki kutu (eşleştir)', 'parçalı atlama sandığında sürtünme kuvveti sıralaması (sırala)', 'kitap dolu kutuda kinetik sürtünmenin değişimi (sınıfla)',
-    'çizgi izleyen yarış robotu: zeminlere göre patinajsız en büyük ivme (çubuk grafik), ıslak fayansta en kısa durma', 'sağa kayan 2 kg bloğa sola 6 N: durma ve sürtünmenin yön değiştirmesi (0,4 / 0,3)', '4 kg blok: 12 N, 25 N ve kitap eklenip 22 N ile sürtünme kuvveti (eşleştir)'
+    'çizgi izleyen yarış robotu: zeminlere göre patinajsız en büyük ivme (çubuk grafik), ıslak fayansta en kısa durma', 'sağa kayan 2 kg bloğa sola 6 N: durma ve sürtünmenin yön değiştirmesi (0,4 / 0,3)', '4 kg blok: 12 N, 25 N ve kitap eklenip 22 N ile sürtünme kuvveti (eşleştir)',
+    "EK: atölye duvarında mıknatıslı alet şeridi, K-L-M aletleri, tepki = mıknatıs kuvveti, kayan L'nin ivmesi (k114_26)", 'EK: kâğıttaki yazıyı silen Ece, silgi-kâğıt kinetik ve kâğıt-masa statik sürtünme, etki-tepki yönü (k114_27)'
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ---------------- */
@@ -97371,6 +97644,52 @@ Her durumu, kuvvet uygulandıktan hemen sonra bloğa etki eden sürtünme kuvvet
         r`$N = 40\ \text{N}$, $f_{s,\text{max}} = 20\ \text{N}$. $12\ \text{N}$ bu sınırın altındadır; blok kaymaz ve $f_s = 12\ \text{N}$ olur. $25\ \text{N}$ sınırı aşar; blok kayar ve sürtünme $f_k = 0,4\times 40 = 16\ \text{N}$ olur.`,
         r`Kitapla $N = 50\ \text{N}$, $f_{s,\text{max}} = 25\ \text{N}$. $22\ \text{N}$ bu sınırın altında kaldığından blok kaymaz: $f_s = 22\ \text{N}$. Kitap olmasaydı aynı kuvvetle blok kayardı.`,
         r`Kullanılmayan değerler tipik hatalardan gelir: $25\ \text{N}$ sürtünmenin her zaman uygulanan kuvvete eşit olduğunu sanmaktan; $20\ \text{N}$ kayan bloğa statik sürtünmenin en büyük değerinin etki ettiğini sanmaktan; $0$ ise kaymayan bloğa sürtünme etki etmediğini sanmaktan gelir.`
+      ]
+    },
+    {
+      id: 'k114_26', yks: true, zorluk: 3, tur: 'cs', cikti: 'FİZ.11.1.7', beceri: 'Tepki kuvvetini belirleyip sürtünme modelini uygulama',
+      metin: r`Bir atölyenin düşey duvarına mıknatıslı bir alet şeridi vidalanmıştır. Şeride değen çelik aletler, mıknatısın duvara dik doğrultudaki çekme kuvvetiyle şeride bastırılır. K, L ve M aletlerinin kütleleri ve mıknatısın her birini şeride çekme kuvveti tabloda verilmiştir. Aletler ile şerit arasındaki statik sürtünme katsayısı $0,5$; kinetik sürtünme katsayısı $0,4$'tür. Aletler şeride şekildeki gibi durgun hâlde bırakılıyor. ($g = 10\ \text{m/s}^2$)
+
+{{tablo}}
+
+Buna göre
+
+I. K'ye etki eden sürtünme kuvvetinin büyüklüğü $6\ \text{N}$'dur.
+II. L, aşağı doğru $5\ \text{m/s}^2$ büyüklüğünde ivmeyle kaymaya başlar.
+III. M'ye etki eden sürtünme kuvveti statiktir; yönü yukarı doğru, büyüklüğü $2\ \text{N}$'dur.
+
+yargılarından hangileri doğrudur?`,
+      tablo: [['Alet', 'Kütle', 'Mıknatısın çekme kuvveti'], ['K', '400 g', '12 N'], ['L', '800 g', '10 N'], ['M', '200 g', '6 N']],
+      sekil: 'k114_alet',
+      secenekler: ['Yalnız I', 'Yalnız II', 'I ve II', 'I ve III', 'II ve III'],
+      dogru: 4,
+      cozum: [
+        r`Duvara dik doğrultuda alet dengededir: Şeridin alete uyguladığı tepki kuvveti mıknatısın çekme kuvvetine eşittir, $N = F_m$. Statik sürtünmenin alabileceği en büyük değer $f_{s,\max} = k_s \times N$'dir. Ağırlıklar: K için $4\ \text{N}$, L için $8\ \text{N}$, M için $2\ \text{N}$.`,
+        r`I. K için $f_{s,\max} = 0,5 \times 12 = 6\ \text{N}$, ağırlık $4\ \text{N}$'dur. $4 < 6$ olduğundan K kaymaz; statik sürtünme ağırlığı dengeler ve büyüklüğü $4\ \text{N}$ olur. $6\ \text{N}$ yalnız sınır değerdir. **Yanlış.**`,
+        r`II. L için $f_{s,\max} = 0,5 \times 10 = 5\ \text{N} < 8\ \text{N}$; L kayar. Kayarken $f_k = 0,4 \times 10 = 4\ \text{N}$ olur. Net kuvvet $8 - 4 = 4\ \text{N}$ ve $a = \dfrac{4}{0,8} = 5\ \text{m/s}^2$ (aşağı). **Doğru.**`,
+        r`III. M için $f_{s,\max} = 0,5 \times 6 = 3\ \text{N} > 2\ \text{N}$; M kaymaz. Statik sürtünme ağırlığa zıt, yukarı yönlüdür ve büyüklüğü $2\ \text{N}$'dur. **Doğru.**`,
+        r`{{S0}} statik sürtünmeyi her durumda $k_s \times N$ sanır ve K'ye $6\ \text{N}$ yazar; oysa duran K'de sürtünme ağırlığa eşittir, $4\ \text{N}$'dur. {{S1}} M'ye etki eden statik sürtünmeyi dışarıda bırakır; oysa M'nin ağırlığı $3\ \text{N}$'luk sınırın altındadır ve $2\ \text{N}$'luk statik sürtünmeyle dengelenir. {{S2}} K'deki sürtünmeyi sınır değer olan $6\ \text{N}$ sanır ve M'nin durumunu atlar. {{S3}} K'deki sürtünmeyi sınır değer sanır ve L'nin kaydığını görmez; oysa L için $f_{s,\max} = 5\ \text{N}$, $8\ \text{N}$'luk ağırlıktan küçüktür.`
+      ]
+    },
+    {
+      id: 'k114_27', yks: true, zorluk: 2, tur: 'cs', cikti: 'FİZ.11.1.6', beceri: 'Temas yüzeylerindeki sürtünme kuvvetlerini karşılaştırma',
+      metin: r`Ece, yatay masanın üzerindeki bir kâğıt yaprağına kurşun kalemle yazdığı bir kelimeyi siliyor; kâğıdı eliyle tutmuyor. Silgiyi kâğıda düşey doğrultuda $5\ \text{N}$'luk kuvvetle bastırarak şekildeki gibi sağa doğru sürtüyor. Bu sırada kâğıt masaya göre kımıldamıyor. Silgi ile kâğıt arasındaki kinetik sürtünme katsayısı $0,4$; kâğıt ile masa arasındaki statik sürtünme katsayısı $0,6$'dır. Silginin ve kâğıdın ağırlıkları önemsizdir.
+
+Buna göre
+
+I. Kâğıdın silgiye uyguladığı sürtünme kuvveti kinetiktir; büyüklüğü $2\ \text{N}$, yönü sola doğrudur.
+II. Masanın kâğıda uyguladığı sürtünme kuvvetinin büyüklüğü $3\ \text{N}$'dur.
+III. Kâğıdın masaya uyguladığı sürtünme kuvveti sola doğrudur.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'k114_silgi',
+      secenekler: ['Yalnız I', 'Yalnız II', 'I ve II', 'I ve III', 'I, II ve III'],
+      dogru: 0,
+      cozum: [
+        r`I. Silgi kâğıda göre sağa kayıyor; kâğıdın silgiye uyguladığı sürtünme kinetiktir ve kaymaya zıt, yani sola doğrudur. Tepki kuvveti $5\ \text{N}$ olduğundan $f_k = 0,4 \times 5 = 2\ \text{N}$ olur. **Doğru.**`,
+        r`II. Silgi de kâğıda aynı büyüklükte, sağa doğru $2\ \text{N}$'luk sürtünme kuvveti uygular. Masanın kâğıda uyguladığı tepki kuvveti $5\ \text{N}$ olduğundan statik sürtünme en çok $0,6 \times 5 = 3\ \text{N}$ olabilir. Kâğıt kımıldamadığına göre masanın uyguladığı statik sürtünme, silginin $2\ \text{N}$'luk kuvvetini dengeler: $2\ \text{N}$, sola doğru. **Yanlış.**`,
+        r`III. Masa kâğıda sola doğru $2\ \text{N}$ uyguladığına göre kâğıt da masaya, bu kuvvetin tepkisi olarak sağa doğru $2\ \text{N}$ uygular. **Yanlış.**`,
+        r`{{S1}} statik sürtünmeyi her zaman $k_s \times N$ sanır ($3\ \text{N}$) ve kâğıdın silgiye uyguladığı kinetik sürtünmeyi dışarıda bırakır. {{S2}} kımıldamayan kâğıda etki eden statik sürtünmeyi sınır değeri olan $3\ \text{N}$ sanır; oysa bu kuvvet yalnız silginin $2\ \text{N}$'luk kuvvetini dengeler. {{S3}} etki ile tepkiyi karıştırır ve kâğıdın masaya uyguladığı kuvveti, masanın kâğıda uyguladığıyla aynı yönde sanır. {{S4}} hem sınır değeri gerçek sürtünme kuvveti sanır hem de etki-tepki çiftinin yönlerini karıştırır.`
       ]
     }
   ],

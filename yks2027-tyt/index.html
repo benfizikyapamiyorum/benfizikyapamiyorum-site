@@ -51290,6 +51290,36 @@ BFY_FIG_EKLE('sfY91_halat', function (u) {
 });
 })();
 
+/* ---------- EK SORU (2026-11-12): kY91_31 uç uca bağlı X ve Y yaylarında periyodik dalga (kareli) ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+const f1 = v => (+v).toFixed(1);
+BFY_FIG_EKLE('kY91_birlesim_genis', function (u) {
+  const W = 560, H = 190, sq = 14, nX = 16, nY = 16, x0 = 52, yc = 88, xJ = x0 + nX * sq, xE = xJ + nY * sq;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f9"/>`;
+  s += `<rect class="bg" x="${x0}" y="${yc - 4 * sq}" width="${(nX + nY) * sq}" height="${8 * sq}" fill="#fff"/>`;
+  let g = '';
+  for (let i = 0; i <= nX + nY; i++) g += `<line x1="${x0 + i * sq}" y1="${yc - 4 * sq}" x2="${x0 + i * sq}" y2="${yc + 4 * sq}"/>`;
+  for (let j = 0; j <= 8; j++) g += `<line x1="${x0}" y1="${yc + (j - 4) * sq}" x2="${xE}" y2="${yc + (j - 4) * sq}"/>`;
+  s += `<g stroke="#d6e1e8" stroke-width="1">${g}</g>`;
+  s += `<line x1="${x0}" y1="${yc}" x2="${xE}" y2="${yc}" stroke="#9fb3c0" stroke-width="1" stroke-dasharray="4 3"/>`;
+  const yol = (fn, a, b) => { let d = ''; for (let i = 0; i <= 200; i++) { const x = a + (b - a) * i / 200; d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(yc - fn(x)); } return d; };
+  // X: λ = 4 kare, genlik 1,5 kare; Y: λ = 8 kare, genlik 2 kare; birleşme noktasında sürekli
+  s += `<path d="${yol(x => 1.5 * sq * Math.sin(2 * Math.PI * (x - xJ) / (4 * sq)), x0, xJ)}" fill="none" stroke="#34505e" stroke-width="2.6"/>`;
+  s += `<path d="${yol(x => 2 * sq * Math.sin(2 * Math.PI * (x - xJ) / (8 * sq)), xJ, xE)}" fill="none" stroke="#34505e" stroke-width="2.6"/>`;
+  // titreştirici, birleşme noktası, duvar
+  s += `<rect x="${x0 - 30}" y="${yc - 16}" width="24" height="32" rx="4" fill="#41525c"/><line x1="${x0 - 6}" y1="${yc}" x2="${x0}" y2="${yc}" stroke="#41525c" stroke-width="3"/>`;
+  s += `<line x1="${xJ}" y1="${yc - 4 * sq - 4}" x2="${xJ}" y2="${yc - 6}" stroke="#d08a0a" stroke-width="1.3" stroke-dasharray="3 3"/>`;
+  s += `<circle cx="${xJ}" cy="${yc}" r="4.5" fill="#d08a0a" stroke="#fff" stroke-width="1.3"/>`;
+  s += `<path d="M${xE} ${yc} q8 -6 16 -4 t16 2" fill="none" stroke="#34505e" stroke-width="2.6" stroke-dasharray="3 4"/>`;
+  s += T((x0 + xJ) / 2, yc + 4 * sq + 20, 'X yayı', { size: 13, anchor: 'middle', weight: 800 });
+  s += T((xJ + xE) / 2, yc + 4 * sq + 20, 'Y yayı', { size: 13, anchor: 'middle', weight: 800 });
+  s += T(x0 - 18, yc + 4 * sq + 20, 'titreştirici', { size: 11.5, anchor: 'start', weight: 700, fill: P.ink2 });
+  s += T(xJ, yc - 4 * sq - 10, 'birleşme noktası', { size: 11.5, anchor: 'middle', weight: 700, fill: '#9a6a08' });
+  return svg(W, H, s, u, 120);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -51345,7 +51375,8 @@ const KONU = {
     'Selin\'in yayında 0,2 s ve 0,4 s\'de oluşturulan atmalar', 'fizik kulübünde K, L (daha gergin) ve M (kalın) yaylarında sürat sıralaması',
     'duvara bağlı yayda özdeş A ve B kare atmaları, K–P bölmeleri, yansıyan A ile B\'nin karşılaşması', 'kalın X, ince Y, Y\'nin ucu duvarda: dönen atmalar',
     'kare atmalar P ve R, K noktasının uzanım-zaman grafiği (beş grafik)', 'uca 1 kare uzaklıktaki K noktası, sabit ve serbest uçta uzanım-zaman grafikleri',
-    'birleşme sonrasında X\'te 2 kare, Y\'de 4 kare genişlikli atmalar (kesinlikle)', 'sol ucu duvarda, sağ ucu halkada yay: halkanın 2A yükselmesi'
+    'birleşme sonrasında X\'te 2 kare, Y\'de 4 kare genişlikli atmalar (kesinlikle)', 'sol ucu duvarda, sağ ucu halkada yay: halkanın 2A yükselmesi',
+    'EK: uç uca bağlı X ve Y yaylarında periyodik dalga, kareli görünüm λ 4 ve 8 kare, kalınlık çıkarımı (kY91_31)'
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ----------------
@@ -52282,6 +52313,31 @@ yargılarından hangileri doğrudur?`,
         r`II. Serbest uçta yansıyan atma düz döner. Yansıma sırasında halkada gelen ve yansıyan tepeler üst üste biner; yer değiştirmeler toplanır ve halka bir an $A + A = 2A$ yükselir. **Doğru.**`,
         r`III. Halkadan yansıyan atma tepedir; duvardan (sabit uç) çukur olarak döner ve halkaya çukur olarak ulaşır. **Yanlış.**`,
         r`{{S0}} serbest uçta gelen ve yansıyan atmaların üst üste binerek halkayı $2A$ kadar kaldırdığını görmez. {{S2}} duvarda atmanın ters döndüğünü atlar ve halkanın yükselmesini görmez. {{S3}} duvarda atmanın ters döndüğünü atlar ve sabit ucun hareketsizliğini görmez. {{S4}} duvardan yansıyan atmanın ters döndüğünü atlar.`
+      ]
+    },
+    {
+      id: 'kY91_31', yks: true, zorluk: 2, tur: 'cs', cikti: '10.3.1.1', beceri: 'Dalga boyu oranından sürat ve ortam çıkarımı',
+      tahmin: { gerekce: r`Kareli görünümden dalga boyu okuyup frekansın kaynağa, yayılma süratinin ortama bağlı olduğunu kullanan oran sorusu, 2021 TYT'deki eşit bölmeli görünüm kalıbının iki yayın birleşimine taşınmış biçimidir; ortamdan ortama geçişte değişen ve değişmeyen nicelikler kapsamın merkezindedir.` },
+      metin: r`Kalınlıkları farklı X ve Y yayları uç uca bağlanıp gerilmiştir. X yayının serbest ucundaki titreştirici sabit frekansla çalışıyor ve oluşan periyodik dalgalar birleşme noktasından Y yayına geçiyor. Y yayı çok uzundur. Yaylardaki dalgaların bir andaki görünümü kareli zeminde şekildeki gibidir. (Birleşme noktasından yansıyan dalgalar şekilde gösterilmemiştir.)
+
+{{sekil}}
+
+Buna göre,
+
+I. Y yayı, X yayından daha kalındır.
+II. Y yayındaki dalgaların frekansı, X yayındaki dalgaların frekansına eşittir.
+III. X yayındaki dalgaların yayılma sürati, Y yayındakinin yarısıdır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY91_birlesim_genis',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 4,
+      cozum: [
+        r`Kareler sayılınca X'te dalga boyu $4$ kare, Y'de $8$ kare okunur.`,
+        r`II. Frekansı kaynak (titreştirici) belirler; dalga bir ortamdan ötekine geçerken frekansı değişmez. **Doğru.**`,
+        r`III. Frekanslar eşit olduğundan $\vartheta = \lambda \times f$ ile süratler dalga boylarıyla orantılıdır: $\dfrac{\vartheta_X}{\vartheta_Y} = \dfrac{4}{8} = \dfrac{1}{2}$. X'teki sürat Y'dekinin yarısıdır. **Doğru.**`,
+        r`I. Yaylar birbirine bağlı olduğu için gerilmeleri aynıdır. Aynı gerilmede kalın (birim uzunluğunun kütlesi büyük) yayda dalgalar daha yavaş ilerler. Y'de sürat büyük olduğuna göre Y daha incedir; kalın olan X'tir. **Yanlış.**`,
+        r`{{S0}} yalnız kalınlık yargısını alır; oysa Y'de dalga boyu büyük olduğu için sürat büyüktür ve Y incedir. {{S1}} frekansın korunduğunu görür ama sürat oranını dalga boylarından okumaz. {{S2}} hızlı olan yayı kalın sanır ve sürat oranını dışarıda bırakır. {{S3}} kalınlık çıkarımını ters yapar ve frekansın ortam değişince korunduğunu dışarıda bırakır.`
       ]
     }
   ],
@@ -53413,6 +53469,40 @@ BFY_FIG_EKLE('sfY92_parabol', function (u) {
 });
 })();
 
+/* ---------- EK SORU (2026-11-12): kY92_32 derinliği farklı iki bölgede K ve L damlalıklarının dairesel dalgaları (kareli, üstten) ---------- */
+(function () {
+const { P, T, svg } = window.BFY_FIGLIB;
+BFY_FIG_EKLE('kY92_damla', function (u) {
+  const sq = 13, nx = 22, ny = 14, x0 = 14, y0 = 16, W = x0 * 2 + nx * sq, H = y0 + ny * sq + 30;
+  const X = i => x0 + i * sq, Y = j => y0 + j * sq;
+  let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f5f9fb"/>`;
+  s += `<rect x="${X(0)}" y="${Y(0)}" width="${nx * sq}" height="${ny * sq}" fill="#d6ebee"/>`;
+  let g = '';
+  for (let i = 0; i <= nx; i++) g += `<line x1="${X(i)}" y1="${Y(0)}" x2="${X(i)}" y2="${Y(ny)}"/>`;
+  for (let j = 0; j <= ny; j++) g += `<line x1="${X(0)}" y1="${Y(j)}" x2="${X(nx)}" y2="${Y(j)}"/>`;
+  s += `<g stroke="#b9d6df" stroke-width="1">${g}</g>`;
+  // cam levhanın kenarı (kesikli)
+  s += `<line x1="${X(8)}" y1="${Y(0) - 4}" x2="${X(8)}" y2="${Y(ny) + 4}" stroke="#56687a" stroke-width="2" stroke-dasharray="6 4"/>`;
+  // K: (4, 7), tepeler 1, 2, 3 kare; L: (15, 7), tepeler 2, 4, 6 kare
+  const tepe = (cx, cy, rs) => rs.map(r => `<circle cx="${X(cx)}" cy="${Y(cy)}" r="${r * sq}" fill="none" stroke="#1d5f8a" stroke-width="2.6"/>`).join('');
+  s += tepe(4, 7, [1, 2, 3]) + tepe(15, 7, [2, 4, 6]);
+  s += `<circle cx="${X(4)}" cy="${Y(7)}" r="3.6" fill="${P.ink}" stroke="#fff" stroke-width="1.2"/><circle cx="${X(15)}" cy="${Y(7)}" r="3.6" fill="${P.ink}" stroke="#fff" stroke-width="1.2"/>`;
+  // K'nin 1. tepesi (1 kare) etikete yer bırakmıyor: etiket beyaz kutuda, tepelerin hemen dışında; K noktasına ince kılavuz çizgisiyle bağlı.
+  // İki etiket aynı biçimde: beyaz kutu, en dış tepenin hemen dışında, noktaya ince kılavuz çizgisiyle bağlı (K sol üstte, L sağ üstte).
+  const etiket = (cx, cy, rMax, yon, ad) => {
+    const kx = X(cx), ky = Y(cy), c = Math.SQRT1_2, d0 = 5, d1 = rMax * sq + 8, dk = rMax * sq + 18;
+    s += `<line x1="${(kx + yon * d0 * c).toFixed(1)}" y1="${(ky - d0 * c).toFixed(1)}" x2="${(kx + yon * d1 * c).toFixed(1)}" y2="${(ky - d1 * c).toFixed(1)}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    const bx = kx + yon * dk * c, by = ky - dk * c;
+    s += `<rect x="${(bx - 8).toFixed(1)}" y="${(by - 8.5).toFixed(1)}" width="16" height="17" rx="3.5" fill="#fff" stroke="${P.ink}" stroke-width="1"/>`;
+    s += T(bx, by + 4.4, ad, { size: 12, weight: 800, anchor: 'middle', halo: false });
+  };
+  etiket(4, 7, 3, -1, 'K');
+  etiket(15, 7, 6, 1, 'L');
+  s += T(X(8), Y(ny) + 22, 'levhanın kenarı', { size: 11.5, weight: 700, anchor: 'middle', fill: '#56687a' });
+  return svg(W, H, s, u, 72);
+});
+})();
+
 </script>
 <script>
 /* ============================================================
@@ -53467,7 +53557,8 @@ const KONU = {
     'kareli zeminde düz engel önündeki S, gelen tepe yayı, K, L, M noktaları', 'yat limanına giden sığlaşan su yolu, şamandıra ve iskele direkleri',
     'burun P, koylar, eş derinlik eğrileri, K ve L noktaları', 'Zehra\'nın "sığda frekans artar" iddiası: mantar parçalarının salınım sayısı',
     'kareli zeminde düz engelden yansıyıp sığ bölgeye giren dalga, beş numaralı ok', 'odaktaki kaynak, çukur parabol, kenarı asal eksene dik cam levha',
-    'dalga leğeninde dik üçgen biçimli KLM cam levha (KL\'ye dik gelen doğrusal dalgalar, LM\'den çıkışta KM yanına sapma)'
+    'dalga leğeninde dik üçgen biçimli KLM cam levha (KL\'ye dik gelen doğrusal dalgalar, LM\'den çıkışta KM yanına sapma)',
+    "EK: derinliği farklı iki bölgede aynı anda başlayan K ve L damlalıkları, dairesel tepeler 1 ve 2 kare aralıklı, en dış tepe 3 ve 6 kare (kY92_32)"
   ],
 
   /* ---------------- SIFIRDAN BAŞLA ----------------
@@ -54521,6 +54612,29 @@ yargılarından hangileri doğrudur?`,
         r`II. Ayırıcı yüzeye dik gelen dalgalar kırılırken doğrultu değiştirmez; levhanın üstünde de aynı yönde ilerler. **Doğru.**`,
         r`III. Dalgalar LM kenarına eğik gelir. Sığdan derine geçerken hızlanır ve normalden uzaklaşarak kırılır. LM kenarının levhanın dışına doğru çizilen normali yukarı doğru eğiktir; normalden uzaklaşan ilerleme yönü bu yüzden aşağıya, KM kenarının bulunduğu yana döner. **Doğru.**`,
         r`{{S0}} sığ bölgede dalga boyunun kısaldığını görmez ve I'i kabul eder; dik geçişte yönün korunduğunu ve LM kenarındaki kırılmayı da atlar. {{S1}} sığdan derine eğik geçen dalgaların kırıldığını atlar ve III'ü dışarıda bırakır. {{S2}} sığ bölgede dalga boyunun değişmediğini sanır ve dik gelen dalgaların doğrultusunu koruduğunu görmez. {{S4}} sığ bölgede dalgaların yavaşlayıp dalga boyunun kısaldığını atlar ve I'i de doğru sayar.`
+      ]
+    },
+    {
+      id: 'kY92_32', yks: true, zorluk: 3, tur: 'cs', cikti: '10.3.3.3', beceri: 'Üstten görünümden derinlik ve frekans karşılaştırması',
+      tahmin: { gerekce: r`Derinliği farklı iki bölgede aynı anda çalışmaya başlayan iki noktasal kaynağın dairesel dalgalarından, en dış tepenin uzaklığıyla süratleri, tepe aralığıyla dalga boylarını karşılaştırmak 10.3.3.3'ün derinlik–sürat–dalga boyu ilişkisini kareli bir görünümde yoklar; dairesel dalgaların bölge değiştirmediği için kapsam içindedir.` },
+      metin: r`Bir dalga leğeninin tabanının bir bölümüne cam levha konarak leğende derinlikleri farklı iki bölge oluşturulmuştur; levhanın kenarı şekilde kesikli çizgiyle gösterilmiştir. Bölgelerin birindeki K damlalığı ile ötekindeki L damlalığı, düzenli aralıklarla suya damla düşürmeye aynı anda başlıyor. Bir süre sonra oluşan dairesel dalga tepelerinin üstten görünümü kareli zeminde şekildeki gibidir; tepeler henüz levhanın kenarına ulaşmamıştır.
+
+Buna göre,
+
+I. K damlalığının bulunduğu bölge, L'ninkinden daha sığdır.
+II. K ve L damlalıklarının damlatma frekansları eşittir.
+III. K'nin oluşturduğu dalgaların periyodu, L'nin oluşturduğu dalgalarınkinin yarısıdır.
+
+yargılarından hangileri doğrudur?`,
+      sekil: 'kY92_damla',
+      secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve II`, r`I ve III`, r`II ve III`],
+      dogru: 2,
+      cozum: [
+        r`Damlalıklar aynı anda başladığı için en dıştaki tepeler eşit sürede yayılmıştır. K'nin en dış tepesi K'ye $3$ kare, L'ninki L'ye $6$ kare uzaklıktadır; L'nin bölgesinde dalgalar $2$ kat hızlı yayılır.`,
+        r`I. Su dalgaları sığ bölgede daha yavaş yayılır. K'nin dalgaları daha yavaş olduğuna göre K'nin bölgesi daha sığdır. **Doğru.**`,
+        r`II. Ardışık tepeler arasındaki uzaklık K'de $1$ kare, L'de $2$ karedir. $\vartheta = \lambda \times f$ olduğundan $f = \dfrac{\vartheta}{\lambda}$: sürat ve dalga boyu aynı oranda ($2$ kat) büyük olduğu için frekanslar eşittir. Bunu tepe sayısı da gösterir: Aynı sürede iki damlalık da $3$ tepe oluşturmuştur. **Doğru.**`,
+        r`III. Frekanslar eşit olduğundan periyotlar da eşittir. **Yanlış.**`,
+        r`{{S0}} frekansın dalga boyuna bağlı olduğunu sanır; oysa sürat de aynı oranda farklıdır ve frekanslar eşittir. {{S1}} en dış tepelerin uzaklığından sürat karşılaştırması yapmaz ve sığ bölgeyi bulamaz. {{S3}} dalga boyu küçük olan K'nin frekansını büyük sanır ve frekansların eşitliğini görmez. {{S4}} dalga boyu kısa olan dalganın periyodunu kısa sanır ve sığ bölgeyi belirlemez.`
       ]
     }
   ],
