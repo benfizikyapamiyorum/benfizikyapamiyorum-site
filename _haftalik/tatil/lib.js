@@ -98,7 +98,7 @@ table.t tr:nth-child(even) td{background:#f7f9fc}
 .optik .r{display:flex;align-items:center;gap:7px;font:800 9pt 'Manrope';margin:5px 0}.optik .r>b{width:18px;text-align:right}
 .optik .r i{font-style:normal;display:grid;place-items:center;width:19px;height:19px;border:1.5px solid var(--rozet);border-radius:50%;font:700 7.6pt 'Source Sans 3';color:var(--koyu)}
 .knt{background:var(--acik);border-radius:12px;padding:10px 14px;margin-top:12px}
-.knt .et{font:800 10pt 'Manrope';color:var(--koyu);margin-bottom:5px}
+.knt .et{font:800 10pt 'Manrope';color:var(--koyu);margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}.knt .et span{font:700 8.6pt 'Source Sans 3';color:var(--ink2);display:flex;align-items:center;gap:7px}.knt .et u{display:inline-block;width:17px;height:17px;border:2px solid var(--ana);border-radius:5px;background:#fff}
 .knt>div:not(.et){display:grid;grid-template-columns:20px 1fr;gap:8px;align-items:start;margin:4px 0;font-size:9.8pt}
 .knt i{display:block;width:16px;height:16px;border:2px solid var(--ana);border-radius:5px;background:#fff;margin-top:1px}
 .anahtar{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;margin:8px 0;break-inside:avoid}
@@ -123,7 +123,7 @@ const formul = (tex, aciklama) => `<div class="formul"><span>${md('$' + tex + '$
 const sekil = (svg, alt) => `<div class="sekil">${svg}${alt ? `<div class="alt">${md(alt)}</div>` : ''}</div>`;
 const ikili = (a, b, cls = '') => `<div class="ikili ${cls}"><div>${md(a)}</div><div>${md(b)}</div></div>`;
 const p = (html) => `<p>${md(html)}</p>`;
-const kontrol = (L) => `<div class="knt"><div class="et">Bugün ne yapabiliyorum?</div>${L.map(x => `<div><i></i><span>${md(x)}</span></div>`).join('')}</div>`;
+const kontrol = (L) => `<div class="knt"><div class="et">Bugün ne yapabiliyorum?<span>Bu günü bitirdim <u></u></span></div>${L.map(x => `<div><i></i><span>${md(x)}</span></div>`).join('')}</div>`;
 const uclu = (L) => `<div class="uclu">${L.map(k => `<div class="kart">${k.sekil ? `<div class="sekil">${k.sekil}</div>` : ''}<h4>${md(k.baslik)}</h4><p>${md(k.metin)}</p></div>`).join('')}</div>`;
 const tablo = (bas, sat) => `<table class="t"><tr>${bas.map(b => `<th>${md(b)}</th>`).join('')}</tr>${sat.map(r => `<tr>${r.map(c => `<td>${md(c)}</td>`).join('')}</tr>`).join('')}</table>`;
 const hata = (y, d) => `<div class="hata"><div class="y"><b>YANLIŞ:</b> ${md(y)}</div><div class="d"><b>DOĞRUSU:</b> ${md(d)}</div></div>`;

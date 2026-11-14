@@ -24,7 +24,7 @@ const I = f => 'file://' + path.join(OUT, f);
 const kapaklar = (S.length === 3 ? [9, 11, 10] : S).map(s => pg[s].n[0]);
 const orta = S.includes(11) ? 11 : S[S.length - 1];
 // iç sayfalar: her sınıftan 1. günün özeti + bir sınıftan soru sayfası
-const ic = S.map(s => pg[s].n[2]).concat(S.map(s => pg[s].n[4]));
+const ic = [pg[S[0]].n[2], pg[S[S.length - 1]].n[2], pg[S[S.length - 1]].n[3], pg[S[Math.floor(S.length / 2)]].n[3]];
 const den = pg[orta].d;
 
 // sahne zamanları (s)

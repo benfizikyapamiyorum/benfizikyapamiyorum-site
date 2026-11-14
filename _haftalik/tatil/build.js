@@ -271,7 +271,7 @@ const FOOT = (lab) => `<div style="width:100%;font-family:Arial,sans-serif;font-
             }
           });
           const bos = pg.clientHeight - Array.from(pg.children).reduce((a, c) => a + c.getBoundingClientRect().height + parseFloat(getComputedStyle(c).marginTop) + parseFloat(getComputedStyle(c).marginBottom), 0);
-          if (bos > 96) { const y = document.createElement('div'); y.className = 'yd'; y.innerHTML = '<div class="u">Yanlış defterim<span>Bu günü bitirdim <i></i></span></div><p>Yanlış yaptığın ya da emin olamadığın sorunun numarasını ve nedenini bir cümleyle yaz. Okul açılınca ilk buraya bak.</p><div class="cz">' + '<i></i>'.repeat(30) + '</div>'; pg.appendChild(y); }
+          if (bos > 96) { const y = document.createElement('div'); y.className = 'yd'; y.innerHTML = '<div class="u">Yanlış defterim</div><p>Yanlış yaptığın ya da emin olamadığın sorunun numarasını ve nedenini bir cümleyle yaz. Okul açılınca ilk buraya bak.</p><div class="cz">' + '<i></i>'.repeat(30) + '</div>'; pg.appendChild(y); }
           rap.push(`gün ${gi + 1}: ${pages.length} sayfa, son sayfa boşluk ${Math.round(bos)}px`);
           pages.forEach((p, k) => { if (p.scrollHeight > p.clientHeight + 1) rap.push(`UYARI taşma gün ${gi + 1} sayfa ${k + 1}`); });
         });
