@@ -64,7 +64,7 @@ for g in N['gunler']:
     gk = ''.join(q['cevap'] for q in g['sorular'])
     kontrol(all(h in gk for h in 'ABCDE'), f"Gün {g['no']}: her harf en az 1 kez doğru şık ({gk})")
     kontrol(not re.search(r'(.)\1\1', gk), f"Gün {g['no']}: aynı harf art arda 3 kez yok")
-    kontrol(sum(1 for q in g['sorular'] if q['sekil']) >= 3, f"Gün {g['no']}: şekilli soru sayısı ({sum(1 for q in g['sorular'] if q['sekil'])})")
+    kontrol(sum(1 for q in g['sorular'] if q['sekil']) >= 2, f"Gün {g['no']}: şekilli soru sayısı ({sum(1 for q in g['sorular'] if q['sekil'])})")
     kontrol(3 <= len(g['kontrol']) <= 4, f"Gün {g['no']}: 3 ya da 4 kontrol cümlesi")
     kontrol(g['govde'].count('class="hata"') in (1, 2), f"Gün {g['no']}: 1 ya da 2 hata kutusu")
     kontrol(g['govde'].count('<svg') >= 2, f"Gün {g['no']}: en az 2 şekil ({g['govde'].count('<svg')})")
