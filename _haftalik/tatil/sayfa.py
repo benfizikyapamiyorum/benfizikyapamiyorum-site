@@ -38,7 +38,7 @@ src = open(os.path.join(REPO, 'paket', 'index.html'), encoding='utf8').read()
 head_end = src.find('</head>')
 head = src[:head_end]
 TITLE = 'Ara Tatil Fizik Kampı: 9, 10, 11. Sınıf Ücretsiz Tekrar Notu ve Deneme | Ben Fizik Yapamıyorum'
-DESC = 'Ara tatilde 5 gün, günde 30 dakika: 9, 10 ve 11. sınıf fizik için ücretsiz tekrar notu ve 15 soruluk deneme. Maarif Modeli. PDF olarak indir.'
+DESC = 'Ara tatilde 5 gün, günde 40 dakika: 9, 10 ve 11. sınıf fizik için ücretsiz tekrar notu ve 15 soruluk deneme. Maarif Modeli. PDF olarak indir.'
 head = re.sub(r'<title>.*?</title>', f'<title>{TITLE}</title>', head, flags=re.S)
 head = re.sub(r'<meta name="description" content="[^"]*">', f'<meta name="description" content="{DESC}">', head)
 head = re.sub(r'<link rel="canonical" href="[^"]*">', '<link rel="canonical" href="https://benfizikyapamiyorum.com/tatil/">', head)
@@ -107,16 +107,16 @@ def kart(s):
 sinif_ad = ', '.join(str(s) for s in SINIFLAR[:-1]) + (' ve ' if len(SINIFLAR) > 1 else '') + str(SINIFLAR[-1]) if SINIFLAR else ''
 stack = ''.join(f'<img src="img/tatil/not-kapak-{s}.webp" width="640" height="905" alt="">' for s in ([9, 11, 10] if len(SINIFLAR) == 3 else SINIFLAR))
 main = f'''<main id="main" class="container student-layout"><nav class="student-crumbs" aria-label="Sayfa yolu"><a href="index.html">Ana sayfa</a> / <a href="ucretsiz/pdf">Ücretsiz notlar</a> / Ara Tatil Fizik Kampı</nav>
-<div class="tt-hero"><div><p class="eyebrow" style="margin-top:28px">ÜCRETSİZ / {sinif_ad}. SINIF / ARA TATİL</p><h1>Ara Tatil Fizik Kampı</h1><p class="lead"><b>5 gün, günde 30 dakika.</b> Dönemin başından bugüne işlenen konuları şekillerle toparlayan tekrar notu ve sonunda 15 soruluk deneme. İkisi de ücretsiz, PDF.</p><p><a class="button" href="tatil/#siniflar" data-bfy-event="tatil_sinif_sec">Sınıfını seç ve indir ↓</a></p></div>
+<div class="tt-hero"><div><p class="eyebrow" style="margin-top:28px">ÜCRETSİZ / {sinif_ad}. SINIF / ARA TATİL</p><h1>Ara Tatil Fizik Kampı</h1><p class="lead"><b>5 gün, günde 40 dakika.</b> Dönemin başından bugüne işlenen konuları şekillerle toparlayan tekrar notu ve sonunda 15 soruluk deneme. İkisi de ücretsiz, PDF.</p><p><a class="button" href="tatil/#siniflar" data-bfy-event="tatil_sinif_sec">Sınıfını seç ve indir ↓</a></p></div>
 <div class="stack" aria-hidden="true">{stack}</div></div>
-<div class="tt-oz"><div><b>4 gün</b><span>her gün tek konu, tek sayfa özet</span></div><div><b>16 soru</b><span>ısınma sorusu, kısa çözümleriyle</span></div><div><b>15 soru</b><span>deneme, 30 dakika, ayrı PDF</span></div><div><b>Tablo</b><span>denemenin sonunda eksik konu tablosu</span></div></div>
+<div class="tt-oz"><div><b>4 gün</b><span>her gün tek konu, tek sayfa özet</span></div><div><b>40 soru</b><span>ısınma sorusu, kısa çözümleriyle</span></div><div><b>15 soru</b><span>deneme, 30 dakika, ayrı PDF</span></div><div><b>Tablo</b><span>denemenin sonunda eksik konu tablosu</span></div></div>
 <section class="student-section" id="siniflar" style="scroll-margin-top:110px"><h2>Sınıfını seç</h2><p>Her sınıf için iki PDF var: önce tekrar notu (4 gün), sonra deneme (5. gün). Telefonda da okunur, yazdırıp çözmek daha iyi.</p>
 <div class="tt-sinif">{''.join(kart(s) for s in SINIFLAR)}</div>
 <p class="tt-not">Okulunun konu sırası farklı olabilir, öğretmeninin işlediği konuları esas al. PDF’ler ücretsizdir, parayla satılamaz.</p></section>
 <section class="student-section"><h2>Nasıl çalışılır?</h2>
-<div class="tt-adim"><div><b class="n">1</b><h3>Özeti oku</h3>Her gün tek sayfa özet var. Şekillere bakarak oku, formülün nereden geldiğini şeklin üstünde gör. Yaklaşık 10 dakika.</div><div><b class="n">2</b><h3>4 soruyu çöz</h3>Önce kendin çöz, sonra son sayfalardaki kısa çözümle karşılaştır. Yaklaşık 15 dakika.</div><div><b class="n">3</b><h3>5. gün denemeyi çöz</h3>Süre tut, bitince eksik konu tablosunu doldur. Hangi konuda puan kaybettiğini görürsün.</div></div></section>
+<div class="tt-adim"><div><b class="n">1</b><h3>Özeti oku</h3>Her gün tek sayfa özet var. Şekillere bakarak oku, formülün nereden geldiğini şeklin üstünde gör. Yaklaşık 10 dakika.</div><div><b class="n">2</b><h3>10 soruyu çöz</h3>Önce kendin çöz, sonra son sayfalardaki kısa çözümle karşılaştır. Yaklaşık 25 dakika.</div><div><b class="n">3</b><h3>5. gün denemeyi çöz</h3>Süre tut, bitince eksik konu tablosunu doldur. Hangi konuda puan kaybettiğini görürsün.</div></div></section>
 <section class="student-section"><h2>Eksik konuyu kapatmak için</h2>
-<div class="tt-fark"><div><h3>Bu ücretsiz kitapçık</h3><ul><li>Konu başına tek sayfa özet</li><li>16 ısınma sorusu ve 15 soruluk deneme (test)</li><li>Kısa çözümler ve eksik konu tablosu</li></ul></div>
+<div class="tt-fark"><div><h3>Bu ücretsiz kitapçık</h3><ul><li>Konu başına tek sayfa özet</li><li>40 ısınma sorusu ve 15 soruluk deneme (test)</li><li>Kısa çözümler ve eksik konu tablosu</li></ul></div>
 <div class="p"><h3>Konu Soru Paketi (₺99)</h3><ul><li>Tek konudan 50 ve üzeri açık uçlu yazılı sorusu</li><li>Her maddeye adım adım çözüm ve puanlama</li><li>Her soruda “Dikkat” notu, yeni paketlerde 2 deneme yazılısı</li></ul><a class="button" href="paket/?utm_source=tatil_sayfa" data-bfy-event="pdf_upsell" data-bfy-lab="tatil_paketler">Paketlere bak →</a></div></div></section>
 <div class="tt-ig"><div><h2>Okul açılınca her hafta yeni ücretsiz not</h2><p>Pazartesi 9, Çarşamba 10, Cuma 11. sınıf. Yeni notlar önce Instagram’da duyurulur.</p></div><a href="https://www.instagram.com/benfizikyapamiyorum/" rel="noopener" data-bfy-event="tatil_instagram">@benfizikyapamiyorum’u takip et →</a></div>
 </main>'''

@@ -116,7 +116,7 @@ ${f('@fontsource/source-sans-3', ['400', '600', '700', '800'])}${f('@fontsource/
 }
 
 // ---------- İçerik parçaları ----------
-const gunBaslik = (g) => `<div class="gun"><div class="no"><div><small>GÜN</small><b>${g.no}</b></div></div><div><h2>${md(g.baslik)}</h2><p>${md(g.alt)}</p></div><div class="sure">${g.sure || '30 dakika'}</div></div>`;
+const gunBaslik = (g) => `<div class="gun"><div class="no"><div><small>GÜN</small><b>${g.no}</b></div></div><div><h2>${md(g.baslik)}</h2><p>${md(g.alt)}</p></div><div class="sure">${g.sure || '40 dakika'}</div></div>`;
 const bolum = (t, html = '') => `<h3 class="b"><i></i>${md(t)}</h3>${md(html)}`;
 const kutu = (tur, et, html) => `<div class="kutu ${tur}"><div class="et">${et}</div>${md(html)}</div>`;
 const formul = (tex, aciklama) => `<div class="formul"><span>${md('$' + tex + '$')}</span>${aciklama ? `<small>${md(aciklama)}</small>` : ''}</div>`;

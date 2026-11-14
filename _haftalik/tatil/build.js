@@ -23,6 +23,9 @@ const qr = (u, dark = '#1d2b53') => QR.toString(u, { type: 'svg', margin: 0, col
 const DESEN = `<svg width="100%" height="100%" style="position:absolute;inset:0" preserveAspectRatio="none"><defs><pattern id="kr" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M 26 0 H 0 V 26" fill="none" stroke="#fff" stroke-opacity=".055" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(#kr)"/></svg>`;
 
 // ---------- Kapak ----------
+const TOP = N => N.gunler.reduce((a, g) => a + g.sorular.length, 0);
+const GS = N => N.gunler[0].sorular.length;
+const DK = 40;
 function kapakHTML(N, tur) {
   const R = RENK[N.sinif], den = tur === 'deneme';
   const extra = `
@@ -59,16 +62,16 @@ ${DESEN}
  <div class="ust"><span>BEN FİZİK YAPAMIYORUM</span><b>@benfizikyapamiyorum</b></div>
  <div class="rz">${N.sinif}. SINIF &nbsp;|&nbsp; MAARİF MODELİ &nbsp;|&nbsp; ${den ? 'DENEME' : 'TEKRAR NOTU'}</div>
  <h1>${den ? 'Ara Tatil<br><span>Fizik Denemesi</span>' : 'Ara Tatil<br><span>Fizik Kampı</span>'}</h1>
- <p class="alt1">${den ? `<b>15 soru, 30 dakika.</b> Okulda bugüne kadar işlenen konulardan. Sonunda cevap anahtarı, kısa çözümler ve <b>eksik konu tablosu</b> var.` : `<b>5 gün, günde 30 dakika.</b> Dönemin başından bugüne işlenen konuları toparla, okula bir adım önde dön.`}</p>
+ <p class="alt1">${den ? `<b>15 soru, 30 dakika.</b> Okulda bugüne kadar işlenen konulardan. Sonunda cevap anahtarı, kısa çözümler ve <b>eksik konu tablosu</b> var.` : `<b>5 gün, günde ${DK} dakika.</b> Dönemin başından bugüne işlenen konuları toparla, okula bir adım önde dön.`}</p>
  <div class="hero">${N.kapakSekil}</div>
- ${den ? `<div class="cips" style="grid-template-columns:repeat(${N.konular.length},1fr)">${N.konular.map((k, i) => `<div class="cip"><b>KONU ${i + 1}</b>${k.ad}</div>`).join('')}</div><div class="st"><div><b>15</b>soru, çoktan seçmeli</div><div><b>30</b>dakika, süre tut</div><div><b>${N.konular.length}</b>konu, eksik konu tablosu</div><div><b>✓</b>cevap anahtarı ve kısa çözümler</div></div>` : `<div class="cips">${cips}</div><div class="st"><div><b>4</b>konu özeti, şekillerle</div><div><b>16</b>ısınma sorusu</div><div><b>15</b>soruluk deneme, ayrı PDF</div><div><b>✓</b>cevaplar ve kısa çözümler</div></div>`}
+ ${den ? `<div class="cips" style="grid-template-columns:repeat(${N.konular.length},1fr)">${N.konular.map((k, i) => `<div class="cip"><b>KONU ${i + 1}</b>${k.ad}</div>`).join('')}</div><div class="st"><div><b>15</b>soru, çoktan seçmeli</div><div><b>30</b>dakika, süre tut</div><div><b>${N.konular.length}</b>konu, eksik konu tablosu</div><div><b>✓</b>cevap anahtarı ve kısa çözümler</div></div>` : `<div class="cips">${cips}</div><div class="st"><div><b>4</b>konu özeti, şekillerle</div><div><b>${TOP(N)}</b>ısınma sorusu</div><div><b>15</b>soruluk deneme, ayrı PDF</div><div><b>✓</b>cevaplar ve kısa çözümler</div></div>`}
  <div class="dip"><div><b>benfizikyapamiyorum.com</b><br>Timur YILDIRIM | 16 yıllık fizik öğretmeni<br>Türkiye Yüzyılı Maarif Modeli fizik dersi öğretim programına göre hazırlanmıştır.</div><div class="uy">Okulunun konu sırası farklı olabilir, öğretmeninin işlediği konuları esas al.<br>Ücretsizdir, parayla satılamaz.</div></div>
 </div></body></html>`;
 }
 
 // ---------- Not PDF gövdesi ----------
 function planHTML(N) {
-  const sat = N.gunler.map(g => `<tr><td class="g"><b>Gün ${g.no}</b></td><td><b>${md(g.baslik)}</b><br><span>${md(g.plan || g.alt)}</span></td><td class="s">30 dk</td><td class="c"><i></i></td></tr>`).join('') +
+  const sat = N.gunler.map(g => `<tr><td class="g"><b>Gün ${g.no}</b></td><td><b>${md(g.baslik)}</b><br><span>${md(g.plan || g.alt)}</span></td><td class="s">${DK} dk</td><td class="c"><i></i></td></tr>`).join('') +
     `<tr class="dn"><td class="g"><b>Gün 5</b></td><td><b>Ara Tatil Fizik Denemesi</b><br><span>15 soru, 30 dakika. Ayrı PDF olarak aynı sayfadan indir, süre tutarak çöz.</span></td><td class="s">30 dk</td><td class="c"><i></i></td></tr>`;
   return `<style>
 .pl h1{font-size:22pt;font-weight:800;line-height:1.1}.pl h1 span{color:var(--ana)}
@@ -89,10 +92,10 @@ table.pt tr.dn td{background:#1d2b53;color:#fff;border-color:#1d2b53}table.pt tr
 .soz u{display:inline-block;width:38mm;border-bottom:1.2px solid var(--ink2);text-decoration:none;height:12px}
 </style><div class="pl">
 <h1>Tatil kısa. <span>Plan net.</span></h1>
-<p class="g1">Bu kitapçık ders anlatmaz, <b>toparlar</b>. Her gün tek konu, tek sayfa özet ve 4 ısınma sorusu var. Hepsi 30 dakikada biter, günün kalanı senin.</p>
+<p class="g1">Bu kitapçık ders anlatmaz, <b>toparlar</b>. Her gün tek konu, tek sayfa özet ve kolaydan zora ${GS(N)} ısınma sorusu var. Hepsi yaklaşık ${DK} dakikada biter, günün kalanı senin.</p>
 <div class="ad">
  <div><b class="n">1</b><h4>Özeti oku</h4>Şekillere bakarak oku. Formülü ezberleme, şeklin üstünde nereden geldiğini gör. Yaklaşık 10 dakika.</div>
- <div><b class="n">2</b><h4>4 soruyu çöz</h4>Önce kendin çöz, sonra son sayfalardaki cevapla karşılaştır. Yaklaşık 15 dakika.</div>
+ <div><b class="n">2</b><h4>${GS(N)} soruyu çöz</h4>Önce kendin çöz, sonra son sayfalardaki cevapla karşılaştır. Yaklaşık 25 dakika.</div>
  <div><b class="n">3</b><h4>Yanlışını yaz</h4>Yanlış yaptığın sorunun yanına bir cümleyle nedenini yaz. En çok bu adım işe yarar. Yaklaşık 5 dakika.</div>
 </div>
 <table class="pt">${sat}</table>
@@ -104,11 +107,12 @@ ${N.planNot ? L.kutu('sari', 'Bilgin olsun', N.planNot) : ''}
 function notGovde(N) {
   let h = planHTML(N), n = 1;
   N.gunler.forEach(g => { h += `<section class="gunw">` + L.gunBaslik(g) + g.govde + L.isinma(g.sorular, n) + (g.kontrol ? L.kontrol(g.kontrol) : '') + `</section>`; n += g.sorular.length; });
-  h += `<div class="gun"><div class="no"><div><small>TÜM</small><b>✓</b></div></div><div><h2>Cevaplar ve kısa çözümler</h2><p>Önce kendin çöz, sonra buraya bak. Yanlışının nedenini sorunun yanına yaz.</p></div><div class="sure">16 soru</div></div>`;
+  h += `<div class="gun"><div class="no"><div><small>TÜM</small><b>✓</b></div></div><div><h2>Cevaplar ve kısa çözümler</h2><p>Önce kendin çöz, sonra buraya bak. Yanlışının nedenini sorunun yanına yaz.</p></div><div class="sure">${TOP(N)} soru</div></div>`;
   n = 1;
   N.gunler.forEach(g => { h += L.cevapTablo([`GÜN ${g.no}`, md(g.baslik)], g.sorular, n); n += g.sorular.length; });
-  h += `<div class="skor">${N.gunler.map(g => `<div><b>Gün ${g.no}</b><em>__</em> / 4 doğru</div>`).join('')}<div class="t"><b>TOPLAM</b><em>__</em> / 16 doğru</div></div>`;
-  h += `<div class="yor"><div><b>13 ve üzeri</b>Konular yerinde. Gün 5’te denemeyi süre tutarak çöz.</div><div><b>9 ile 12 arası</b>En çok yanlış yaptığın günün özet sayfasını yeniden oku, sonra denemeye geç.</div><div><b>8 ve altı</b>Sorun değil, tatil bunun için. Yanlış yaptığın günleri baştan çalış, denemeyi en sona bırak.</div></div>`;
+  h += `<div class="skor">${N.gunler.map(g => `<div><b>Gün ${g.no}</b><em>__</em> / ${g.sorular.length} doğru</div>`).join('')}<div class="t"><b>TOPLAM</b><em>__</em> / ${TOP(N)} doğru</div></div>`;
+  const e1 = Math.ceil(TOP(N) * 0.8), e2 = Math.ceil(TOP(N) * 0.55);
+  h += `<div class="yor"><div><b>${e1} ve üzeri</b>Konular yerinde. Gün 5’te denemeyi süre tutarak çöz.</div><div><b>${e2} ile ${e1 - 1} arası</b>En çok yanlış yaptığın günün özet sayfasını yeniden oku, sonra denemeye geç.</div><div><b>${e2 - 1} ve altı</b>Sorun değil, tatil bunun için. Yanlış yaptığın günleri baştan çalış, denemeyi en sona bırak.</div></div>`;
   return h;
 }
 
@@ -153,7 +157,7 @@ body{height:272mm;display:flex;flex-direction:column}body>*{flex:0 0 auto}.orn1{
 <h2 class="s">Eksik çıkan konuyu kapat</h2><p class="as">Bu not konuyu toparladı. Yazılıda puanı getiren şey ise o konudan çok sayıda <b>yazılı tarzı soru</b> çözmüş olmak. Konu Soru Paketleri tam bunun için.</p>
 <div class="pgr">${paketler}</div>
 <div class="orn1"><b>PAKETTEN ÖRNEK SORU</b><div><img src="${img(`img/paket/ornek-${s}-soru.webp`)}"></div><span>Devamı, adım adım çözümü ve puanlaması pakette.</span></div>
-<div class="fark"><div class="u"><h4>Bu ücretsiz kitapçık</h4><ul><li>Konu başına tek sayfa özet.</li><li>16 ısınma sorusu ve 15 soruluk deneme (test).</li><li>Kısa çözümler.</li></ul></div><div class="p"><h4>Konu Soru Paketi (₺99)</h4><ul><li>Tek konudan 50 ve üzeri <b>açık uçlu yazılı sorusu</b>.</li><li>Her maddeye adım adım çözüm ve puanlama.</li><li>Her soruda “Dikkat” notu, yeni paketlerde 2 deneme yazılısı.</li></ul></div></div>
+<div class="fark"><div class="u"><h4>Bu ücretsiz kitapçık</h4><ul><li>Konu başına tek sayfa özet.</li><li>${TOP(N)} ısınma sorusu ve 15 soruluk deneme (test).</li><li>Kısa çözümler.</li></ul></div><div class="p"><h4>Konu Soru Paketi (₺99)</h4><ul><li>Tek konudan 50 ve üzeri <b>açık uçlu yazılı sorusu</b>.</li><li>Her maddeye adım adım çözüm ve puanlama.</li><li>Her soruda “Dikkat” notu, yeni paketlerde 2 deneme yazılısı.</li></ul></div></div>
 <a class="yp" href="${yapURL(s)}"><div><b>Bütün yıl için: Yapabilirim ${s}</b><br>${s}. sınıfın bütün konuları tek dijital kitapta: konu notu, yeni nesil sorular, yanlışının nedenini söyleyen çözümler. Tek ödeme, abonelik yok. Paket alanlar paket ücretini Yapabilirim’den düşebilir.</div><div style="text-align:right"><b class="f">₺599</b><br><b>İncele →</b></div></a>
 <a class="bant" href="${SITE}/ucretsiz/pdf${UTM}"><span>Okul açılınca her hafta yeni ücretsiz not: <b>Pazartesi 9 | Çarşamba 10 | Cuma 11. sınıf</b></span><span>@benfizikyapamiyorum</span></a>
 </body></html>`;
@@ -302,6 +306,6 @@ w.write(sys.argv[1])
   birles(['deneme-kapak', 'deneme-govde', 'deneme-promo'], denPdf, `${s}. Sınıf Ara Tatil Fizik Denemesi`);
   const say0 = 0; const say = f => parseInt(execFileSync('pdfinfo', [f]).toString().match(/Pages:\s+(\d+)/)[1]);
   for (const [f, pre] of [[notPdf, 'n'], [denPdf, 'd']]) { fs.readdirSync(out).filter(x => x.startsWith(pre + '-') && x.endsWith('.png')).forEach(x => fs.unlinkSync(path.join(out, x))); execFileSync('pdftoppm', ['-r', process.argv[3] || '100', '-png', f, path.join(out, pre)]); }
-  fs.writeFileSync(path.join(out, 'meta.json'), JSON.stringify({ sinif: s, gunler: N.gunler.map(g => ({ no: g.no, baslik: g.baslik, plan: g.plan || g.alt })), konular: N.konular.map(k => ({ ad: k.ad, paket: k.paket })), paketler: N.paketler.map(p => ({ no: p.no, ...PAKET[s][p.no] })), notSayfa: say(notPdf), denemeSayfa: say(denPdf) }, null, 1));
+  fs.writeFileSync(path.join(out, 'meta.json'), JSON.stringify({ sinif: s, gunler: N.gunler.map(g => ({ no: g.no, baslik: g.baslik, plan: g.plan || g.alt })), konular: N.konular.map(k => ({ ad: k.ad, paket: k.paket })), paketler: N.paketler.map(p => ({ no: p.no, ...PAKET[s][p.no] })), soruSayisi: TOP(N), gunSoru: GS(N), dk: DK, notSayfa: say(notPdf), denemeSayfa: say(denPdf) }, null, 1));
   console.log('OK', s, 'not', say(notPdf), 'sayfa | deneme', say(denPdf), 'sayfa');
 })();

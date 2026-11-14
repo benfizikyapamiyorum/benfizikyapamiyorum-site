@@ -1,7 +1,7 @@
 # Ara Tatil Fizik Kampı: içerik yazım görevi
 
 Timur Yıldırım (16 yıllık fizik öğretmeni, "Ben Fizik Yapamıyorum", benfizikyapamiyorum.com) için Kasım 2026 ara tatilinde
-(16–20 Kasım) Instagram'dan ücretsiz dağıtılacak iki PDF üretiyoruz: **Tekrar Notu** (4 gün, günde tek konu) ve **Deneme** (15 soru, 30 dk).
+(16–20 Kasım) Instagram'dan ücretsiz dağıtılacak iki PDF üretiyoruz: **Tekrar Notu** (4 gün, günde tek konu, günde 10 ısınma sorusu, yaklaşık 40 dakika) ve **Deneme** (15 soru, 30 dk).
 Amaç takipçi çekmek ve öğrenciyi sitedeki 99 TL'lik Konu Soru Paketlerine yönlendirmek. Timur'un ölçütü: "mükemmel olmalı", görseller
 "inanılmaz" olmalı, sıfır fizik hatası.
 
@@ -15,9 +15,9 @@ Amaç takipçi çekmek ve öğrenciyi sitedeki 99 TL'lik Konu Soru Paketlerine y
 ## Yapı (11.js ile aynı)
 
 - `kapakSekil`: kapak için geniş, etkileyici, konuyu anlatan bir sahne (`S(720, 330, 180, …)`).
-- `gunler`: 4 gün. Her gün: `no, baslik, kisa (kapak çipi, kısa), alt, plan, govde, sorular (tam 4 soru), kontrol (3 ya da 4 "yapabiliyorum" cümlesi)`.
+- `gunler`: 4 gün. Her gün: `no, baslik, kisa (kapak çipi, kısa), alt, plan, govde, sorular (tam 10 soru, kolaydan zora sıralı), kontrol (3 ya da 4 "yapabiliyorum" cümlesi)`.
   - `govde`: en fazla A4'ün 2/3'ü kadar. Ders anlatmaz, **toparlar**: kısa cümleler, formül kutusu, en az 2 gerçekçi ve ölçekli şekil, 1 ya da 2 `hata(yanlış, doğru)`.
-  - Her gün tam 2 sayfa olmalı (build çıktısı "gün N: 2 sayfa" der). 3 sayfaya taşarsa govdeyi kısalt.
+  - Özet (govde) ilk sayfaya sığmalı. 10 soruyla her gün 3 ya da 4 sayfa olur (build çıktısı "gün N: K sayfa" der); 4 sayfayı aşmasın, sayfalarda büyük boşluk kalmasın (şekil boyutlarını ve soru sırasını buna göre ayarla).
 - `deneme`: tam 15 soru, her biri `konu: 'k1'…'k4'` etiketli, 5 şıklı (A–E), `cevap` ve 1–3 cümlelik `cozum`. En az 6 soru şekilli ya da grafikli.
 - `konular`: 4 konu, `paket` numarası ya da `null` (Yapabilirim'e yönlenir). `paketler`: son sayfada gösterilecek 2 paket.
 - Doğru şıklar A–E arasında dengeli dağılsın (aynı harf art arda 3 kez gelmesin).

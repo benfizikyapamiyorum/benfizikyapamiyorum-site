@@ -115,7 +115,7 @@ h1{font-weight:800;line-height:1.03;letter-spacing:-.02em}
 <div class="sc s1" style="${sahne('s1')}"><div class="ic">
  <div class="kucuk">Ara tatili<br>değerlendirebileceğin</div>
  <h1><span style="animation-delay:.35s">5 günlük</span><span class="vur" style="animation-delay:.7s">fizik</span><span class="vur" style="animation-delay:1.0s">kampı</span></h1>
- <div class="alt">Günde sadece <span class="sari">30 dakika.</span></div></div>
+ <div class="alt">Günde <span class="sari">40 dakika.</span></div></div>
  <div class="cz"><div><b>SINIF</b>${S.join(', ')}</div><div><b>ÜCRET</b>Yok</div><div><b>BİÇİM</b>PDF</div></div>
 </div>
 
@@ -124,7 +124,7 @@ h1{font-weight:800;line-height:1.03;letter-spacing:-.02em}
  <div class="alt">Dönemin başından bugüne <span class="sari">bütün konular.</span></div>
 </div>
 
-<div class="sc s3" style="${sahne('s3')}"><div class="ust"><span class="hap">HER GÜN TEK KONU</span><h1>Tek sayfa özet,<br><span class="vur">4 ısınma sorusu.</span></h1></div>
+<div class="sc s3" style="${sahne('s3')}"><div class="ust"><span class="hap">HER GÜN TEK KONU</span><h1>Tek sayfa özet,<br><span class="vur">10 ısınma sorusu.</span></h1></div>
  <div class="rz">Şekillerle, kısa ve net</div>
  <div class="pn"><div class="ser" id="ser">${ic.map(k => `<img src="${I(k)}">`).join('')}</div></div>
 </div>
