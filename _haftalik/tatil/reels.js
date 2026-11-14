@@ -10,12 +10,12 @@ const FPS = 30, SURE = 23;
 const KELIME = process.env.KELIME || 'TATİL';
 
 fs.mkdirSync(path.join(OUT, 'f'), { recursive: true });
-const S = [9, 10, 11].filter(s => fs.existsSync(path.join(__dirname, 'out', String(s), `ara-tatil-fizik-kampi-${s}-sinif.pdf`)));
+const S = [9, 10, 11].filter(s => fs.existsSync(path.join(__dirname, 'out', String(s), `ara-tatil-fizik-toparlama-${s}-sinif.pdf`)));
 // yüksek çözünürlüklü sayfalar
 const pg = {};
 for (const s of S) {
   const o = path.join(__dirname, 'out', String(s));
-  execFileSync('pdftoppm', ['-r', '130', '-png', path.join(o, `ara-tatil-fizik-kampi-${s}-sinif.pdf`), path.join(OUT, `n${s}`)]);
+  execFileSync('pdftoppm', ['-r', '130', '-png', path.join(o, `ara-tatil-fizik-toparlama-${s}-sinif.pdf`), path.join(OUT, `n${s}`)]);
   execFileSync('pdftoppm', ['-r', '130', '-png', path.join(o, `ara-tatil-fizik-denemesi-${s}-sinif.pdf`), path.join(OUT, `d${s}`)]);
   const L = fs.readdirSync(OUT);
   pg[s] = { n: L.filter(f => f.startsWith(`n${s}-`)).sort(), d: L.filter(f => f.startsWith(`d${s}-`)).sort() };
@@ -113,13 +113,13 @@ h1{font-weight:800;line-height:1.03;letter-spacing:-.02em}
 <div class="marka"><span>BEN FİZİK YAPAMIYORUM</span><b>@benfizikyapamiyorum</b></div>
 
 <div class="sc s1" style="${sahne('s1')}"><div class="ic">
- <div class="kucuk">Ara tatili<br>değerlendirebileceğin</div>
- <h1><span style="animation-delay:.35s">5 günlük</span><span class="vur" style="animation-delay:.7s">fizik</span><span class="vur" style="animation-delay:1.0s">kampı</span></h1>
- <div class="alt">Günde en çok <span class="sari">40 dakika.</span></div></div>
+ <div class="kucuk">Ara tatili</div>
+ <h1><span style="animation-delay:.35s">Fiziği</span><span class="vur" style="animation-delay:.7s">toparla,</span><span class="vur" style="animation-delay:1.0s">geliştir.</span></h1>
+ <div class="alt">5 günlük program.<br>Günde en çok <span class="sari" style="white-space:nowrap">40 dakika.</span></div></div>
  <div class="cz"><div><b>SINIF</b>${S.join(', ')}</div><div><b>ÜCRET</b>Yok</div><div><b>BİÇİM</b>PDF</div></div>
 </div>
 
-<div class="sc s2" style="${sahne('s2')}"><div class="ust"><span class="hap">${S.join(' | ')}. SINIF</span><h1>Tekrar notu<br><span class="vur">hazır.</span></h1></div>
+<div class="sc s2" style="${sahne('s2')}"><div class="ust"><span class="hap">${S.join(' | ')}. SINIF</span><h1>Toparlama<br><span class="vur">programı hazır.</span></h1></div>
  <div class="yg">${kapaklar.map(k => `<img src="${I(k)}">`).join('')}</div>
  <div class="alt">Dönemin başından bugüne <span class="sari">bütün konular.</span></div>
 </div>

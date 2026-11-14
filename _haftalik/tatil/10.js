@@ -1,4 +1,4 @@
-// 10. sınıf | Ara Tatil Fizik Kampı | Kapsam: yatay doğrultuda sabit hızlı hareket, sabit ivmeli hareket, iş, güç
+// 10. sınıf | Ara Tatil Fizik Toparlama Programı | Kapsam: yatay doğrultuda sabit hızlı hareket, sabit ivmeli hareket, iş, güç
 // g = 10 m/s². Sürtünme yalnız söylendiği yerde var. Açılı kuvvet yok: kuvvetler yer değiştirmeye paralel ya da dik.
 const { bolum, kutu, formul, sekil, ikili, uclu, hata } = require('./lib');
 const R = require('./real');

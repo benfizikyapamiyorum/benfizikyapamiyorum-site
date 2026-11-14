@@ -1,4 +1,4 @@
-// node tatil/build.js 9   → tatil/out/9/: ara-tatil-fizik-kampi-9-sinif.pdf, ara-tatil-fizik-denemesi-9-sinif.pdf, kapak png'leri
+// node tatil/build.js 9   → tatil/out/9/: ara-tatil-fizik-toparlama-9-sinif.pdf, ara-tatil-fizik-denemesi-9-sinif.pdf, kapak png'leri
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -36,7 +36,7 @@ html{height:296.6mm;overflow:hidden}body{width:210mm;height:296.6mm;background:l
 .ust{display:flex;justify-content:space-between;align-items:center;font:800 8.4pt 'Manrope';letter-spacing:.14em;color:#c9d2ff}
 .ust b{color:#fff;letter-spacing:.04em}
 .rz{display:inline-flex;align-items:center;gap:8px;margin-top:13mm;font:800 9.4pt 'Manrope';letter-spacing:.16em;color:#1b2557;background:var(--parlak);border-radius:99px;padding:6px 15px;align-self:flex-start}
-h1{font-size:${den ? 43 : 47}pt;line-height:1.02;font-weight:800;margin-top:6mm;letter-spacing:-.015em}
+h1{font-size:${den ? 43 : 39}pt;line-height:1.02;font-weight:800;margin-top:6mm;letter-spacing:-.015em}
 h1 span{color:var(--parlak)}
 .alt1{font-size:13.2pt;color:#dfe4ff;margin-top:5mm;max-width:150mm;line-height:1.4}
 .alt1 b{color:#fff}
@@ -54,15 +54,15 @@ h1 span{color:var(--parlak)}
 .dip b{color:#fff;font:800 10.4pt 'Manrope'}
 .uy{max-width:92mm;text-align:right}`;
   const cips = N.gunler.map(g => `<div class="cip"><b>GÜN ${g.no}</b>${g.kisa}</div>`).join('') + `<div class="cip d"><b>GÜN 5</b>Deneme: 15 soru, 30 dakika</div>`;
-  return L.head(`Ara Tatil Fizik Kampı ${N.sinif}. Sınıf`, R, extra) + `
+  return L.head(`Ara Tatil Fizik Toparlama Programı ${N.sinif}. Sınıf`, R, extra) + `
 <div class="orb" style="width:120mm;height:120mm;right:-40mm;top:-40mm;background:radial-gradient(circle,rgba(255,255,255,.14),rgba(255,255,255,0) 70%)"></div>
 <div class="orb" style="width:150mm;height:150mm;left:-60mm;bottom:-70mm;background:radial-gradient(circle,${R.rozet}55,rgba(0,0,0,0) 70%)"></div>
 ${DESEN}
 <div class="w">
  <div class="ust"><span>BEN FİZİK YAPAMIYORUM</span><b>@benfizikyapamiyorum</b></div>
  <div class="rz">${N.sinif}. SINIF &nbsp;|&nbsp; MAARİF MODELİ &nbsp;|&nbsp; ${den ? 'DENEME' : 'TEKRAR NOTU'}</div>
- <h1>${den ? 'Ara Tatil<br><span>Fizik Denemesi</span>' : 'Ara Tatil<br><span>Fizik Kampı</span>'}</h1>
- <p class="alt1">${den ? `<b>15 soru, 30 dakika.</b> Okulda bugüne kadar işlenen konulardan. Sonunda cevap anahtarı, kısa çözümler ve <b>eksik konu tablosu</b> var.` : `<b>5 gün, günde en çok ${DK} dakika.</b> Dönemin başından bugüne işlenen konuları toparla, okula bir adım önde dön.`}</p>
+ <h1>${den ? 'Ara Tatil<br><span>Fizik Denemesi</span>' : 'Ara Tatil Fizik<br><span>Toparlama Programı</span>'}</h1>
+ <p class="alt1">${den ? `<b>15 soru, 30 dakika.</b> Okulda bugüne kadar işlenen konulardan. Sonunda cevap anahtarı, kısa çözümler ve <b>eksik konu tablosu</b> var.` : `<b>Fiziği toparla, geliştir.</b> 5 gün, günde en çok ${DK} dakika. Dönemin başından bugüne işlenen konular tek kitapçıkta.`}</p>
  <div class="hero">${N.kapakSekil}</div>
  ${den ? `<div class="cips" style="grid-template-columns:repeat(${N.konular.length},1fr)">${N.konular.map((k, i) => `<div class="cip"><b>KONU ${i + 1}</b>${k.ad}</div>`).join('')}</div><div class="st"><div><b>15</b>soru, çoktan seçmeli</div><div><b>30</b>dakika, süre tut</div><div><b>${N.konular.length}</b>konu, eksik konu tablosu</div><div><b>✓</b>cevap anahtarı ve kısa çözümler</div></div>` : `<div class="cips">${cips}</div><div class="st"><div><b>4</b>konu özeti, şekillerle</div><div><b>${TOP(N)}</b>ısınma sorusu</div><div><b>15</b>soruluk deneme, ayrı PDF</div><div><b>✓</b>cevaplar ve kısa çözümler</div></div>`}
  <div class="dip"><div><b>benfizikyapamiyorum.com</b><br>Timur YILDIRIM | 16 yıllık fizik öğretmeni<br>Türkiye Yüzyılı Maarif Modeli fizik dersi öğretim programına göre hazırlanmıştır.</div><div class="uy">Okulunun konu sırası farklı olabilir, öğretmeninin işlediği konuları esas al.<br>Ücretsizdir, parayla satılamaz.</div></div>
@@ -242,7 +242,7 @@ const FOOT = (lab) => `<div style="width:100%;font-family:Arial,sans-serif;font-
   fs.mkdirSync(out, { recursive: true });
   const W = (f, h) => fs.writeFileSync(path.join(out, f), h);
   W('not-kapak.html', kapakHTML(N, 'not'));
-  W('not-govde.html', L.head(`Ara Tatil Fizik Kampı ${s}. Sınıf`, R) + notGovde(N) + '</body></html>');
+  W('not-govde.html', L.head(`Ara Tatil Fizik Toparlama Programı ${s}. Sınıf`, R) + notGovde(N) + '</body></html>');
   W('not-promo.html', await notPromo(N));
   W('deneme-kapak.html', kapakHTML(N, 'deneme'));
   W('deneme-govde.html', L.head(`Ara Tatil Fizik Denemesi ${s}. Sınıf`, R) + denemeGovde(N) + '</body></html>');
@@ -282,7 +282,7 @@ const FOOT = (lab) => `<div style="width:100%;font-family:Arial,sans-serif;font-
     await pg.pdf({ path: path.join(out, f + '.pdf'), preferCSSPageSize: true, printBackground: true, ...o });
   };
   await pdf('not-kapak'); await pdf('not-promo'); await pdf('deneme-kapak'); await pdf('deneme-promo');
-  await pdf('not-govde', { displayHeaderFooter: true, headerTemplate: HEAD(R, 'ARA TATİL FİZİK KAMPI'), footerTemplate: FOOT(`${s}. Sınıf Ara Tatil Fizik Kampı | Tekrar Notu`) });
+  await pdf('not-govde', { displayHeaderFooter: true, headerTemplate: HEAD(R, 'ARA TATİL FİZİK TOPARLAMA PROGRAMI'), footerTemplate: FOOT(`${s}. Sınıf Ara Tatil Fizik Toparlama Programı | Tekrar Notu`) });
   await pdf('deneme-govde', { displayHeaderFooter: true, headerTemplate: HEAD(R, 'ARA TATİL FİZİK DENEMESİ'), footerTemplate: FOOT(`${s}. Sınıf Ara Tatil Fizik Denemesi`) });
   // kapak görselleri (site kartı ve Reels için)
   for (const t of ['not', 'deneme']) {
@@ -301,8 +301,8 @@ for f in sys.argv[3:]:
 w.add_metadata({'/Title': sys.argv[2], '/Author': 'Timur Yıldırım | Ben Fizik Yapamıyorum'})
 w.write(sys.argv[1])
 `, hedef, title, ...parts.map(p => path.join(out, p + '.pdf'))]);
-  const notPdf = path.join(out, `ara-tatil-fizik-kampi-${s}-sinif.pdf`), denPdf = path.join(out, `ara-tatil-fizik-denemesi-${s}-sinif.pdf`);
-  birles(['not-kapak', 'not-govde', 'not-promo'], notPdf, `${s}. Sınıf Ara Tatil Fizik Kampı Tekrar Notu`);
+  const notPdf = path.join(out, `ara-tatil-fizik-toparlama-${s}-sinif.pdf`), denPdf = path.join(out, `ara-tatil-fizik-denemesi-${s}-sinif.pdf`);
+  birles(['not-kapak', 'not-govde', 'not-promo'], notPdf, `${s}. Sınıf Ara Tatil Fizik Toparlama Programı Tekrar Notu`);
   birles(['deneme-kapak', 'deneme-govde', 'deneme-promo'], denPdf, `${s}. Sınıf Ara Tatil Fizik Denemesi`);
   const say0 = 0; const say = f => parseInt(execFileSync('pdfinfo', [f]).toString().match(/Pages:\s+(\d+)/)[1]);
   for (const [f, pre] of [[notPdf, 'n'], [denPdf, 'd']]) { fs.readdirSync(out).filter(x => x.startsWith(pre + '-') && x.endsWith('.png')).forEach(x => fs.unlinkSync(path.join(out, x))); execFileSync('pdftoppm', ['-r', process.argv[3] || '100', '-png', f, path.join(out, pre)]); }

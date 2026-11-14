@@ -1,4 +1,4 @@
-# Ara Tatil Fizik Kampı: içerik yazım görevi
+# Ara Tatil Fizik Toparlama Programı: içerik yazım görevi
 
 Timur Yıldırım (16 yıllık fizik öğretmeni, "Ben Fizik Yapamıyorum", benfizikyapamiyorum.com) için Kasım 2026 ara tatilinde
 (16–20 Kasım) Instagram'dan ücretsiz dağıtılacak iki PDF üretiyoruz: **Tekrar Notu** (4 gün, günde tek konu, günde 10 ısınma sorusu, yaklaşık 40 dakika) ve **Deneme** (15 soru, 30 dk).

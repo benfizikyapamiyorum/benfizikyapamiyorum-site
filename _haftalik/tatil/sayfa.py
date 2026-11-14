@@ -20,7 +20,7 @@ M = {}
 for s in SINIFLAR:
     o = os.path.join(HERE, 'out', str(s))
     M[s] = json.load(open(os.path.join(o, 'meta.json'), encoding='utf8'))
-    for f in (f'ara-tatil-fizik-kampi-{s}-sinif.pdf', f'ara-tatil-fizik-denemesi-{s}-sinif.pdf'):
+    for f in (f'ara-tatil-fizik-toparlama-{s}-sinif.pdf', f'ara-tatil-fizik-denemesi-{s}-sinif.pdf'):
         shutil.copy(os.path.join(o, f), os.path.join(HEDEF, 'tatil', f))
     for t in ('not', 'deneme'):
         im = Image.open(os.path.join(o, f'{t}-kapak.png')).convert('RGB')
@@ -37,13 +37,13 @@ if SINIFLAR:
 src = open(os.path.join(REPO, 'paket', 'index.html'), encoding='utf8').read()
 head_end = src.find('</head>')
 head = src[:head_end]
-TITLE = 'Ara Tatil Fizik Kampı: 9, 10, 11. Sınıf Ücretsiz Tekrar Notu ve Deneme | Ben Fizik Yapamıyorum'
+TITLE = 'Ara Tatil Fizik Toparlama Programı: 9, 10, 11. Sınıf Ücretsiz Tekrar Notu ve Deneme | Ben Fizik Yapamıyorum'
 DESC = 'Ara tatilde 5 gün, günde en çok 40 dakika: 9, 10 ve 11. sınıf fizik için ücretsiz tekrar notu ve 15 soruluk deneme. Maarif Modeli. PDF olarak indir.'
 head = re.sub(r'<title>.*?</title>', f'<title>{TITLE}</title>', head, flags=re.S)
 head = re.sub(r'<meta name="description" content="[^"]*">', f'<meta name="description" content="{DESC}">', head)
 head = re.sub(r'<link rel="canonical" href="[^"]*">', '<link rel="canonical" href="https://benfizikyapamiyorum.com/tatil/">', head)
 head = re.sub(r'<meta property="og:type" content="[^"]*">', '<meta property="og:type" content="website">', head)
-head = re.sub(r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="Ara Tatil Fizik Kampı: ücretsiz tekrar notu ve deneme">', head)
+head = re.sub(r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="Ara Tatil Fizik Toparlama Programı: ücretsiz tekrar notu ve deneme">', head)
 head = re.sub(r'<meta property="og:description" content="[^"]*">', f'<meta property="og:description" content="{DESC}">', head)
 head = re.sub(r'<meta property="og:url" content="[^"]*">', '<meta property="og:url" content="https://benfizikyapamiyorum.com/tatil/">', head)
 head = re.sub(r'<meta property="og:image" content="[^"]*">', '<meta property="og:image" content="https://benfizikyapamiyorum.com/img/tatil/paylasim.jpg">', head)
@@ -97,17 +97,17 @@ def kart(s):
     gun = ''.join(f'<li><b>GÜN {g["no"]}</b><span>{g["baslik"]}</span></li>' for g in m['gunler']) + '<li><b>GÜN 5</b><span>Deneme: 15 soru, 30 dakika</span></li>'
     eksik = ''.join(f'<a href="paket/?utm_source=tatil_sayfa#{p["a"]}" data-bfy-event="pdf_upsell" data-bfy-lab="tatil{s}_paket{p["no"]}">Konu Soru Paketi #{p["no"]}: {p["ad"]}<em>₺99 →</em></a>' for p in m['paketler'])
     return f'''<article class="tt-kart" id="sinif-{s}" style="--tk:{RENK[s]}">
-<div class="kp"><img src="img/tatil/not-kapak-{s}.webp" width="640" height="905" alt="{s}. sınıf Ara Tatil Fizik Kampı tekrar notu kapağı" loading="lazy"><img src="img/tatil/deneme-kapak-{s}.webp" width="640" height="905" alt="{s}. sınıf Ara Tatil Fizik Denemesi kapağı" loading="lazy"></div>
-<div><p class="eyebrow">{s}. SINIF | MAARİF MODELİ</p><h3>{s}. sınıf Ara Tatil Fizik Kampı</h3></div>
+<div class="kp"><img src="img/tatil/not-kapak-{s}.webp" width="640" height="905" alt="{s}. sınıf Ara Tatil Fizik Toparlama Programı tekrar notu kapağı" loading="lazy"><img src="img/tatil/deneme-kapak-{s}.webp" width="640" height="905" alt="{s}. sınıf Ara Tatil Fizik Denemesi kapağı" loading="lazy"></div>
+<div><p class="eyebrow">{s}. SINIF | MAARİF MODELİ</p><h3>{s}. sınıf Ara Tatil Fizik Toparlama Programı</h3></div>
 <ol>{gun}</ol>
-<div class="btns"><a class="button" href="tatil/ara-tatil-fizik-kampi-{s}-sinif.pdf" download data-bfy-event="free_pdf_download" data-bfy-lab="tatil_not_{s}">Tekrar notunu indir (PDF, {m["notSayfa"]} sayfa) ↓</a><a class="button ikinci" href="tatil/ara-tatil-fizik-denemesi-{s}-sinif.pdf" download data-bfy-event="free_pdf_download" data-bfy-lab="tatil_deneme_{s}">Denemeyi indir (PDF, 15 soru) ↓</a></div>
+<div class="btns"><a class="button" href="tatil/ara-tatil-fizik-toparlama-{s}-sinif.pdf" download data-bfy-event="free_pdf_download" data-bfy-lab="tatil_not_{s}">Tekrar notunu indir (PDF, {m["notSayfa"]} sayfa) ↓</a><a class="button ikinci" href="tatil/ara-tatil-fizik-denemesi-{s}-sinif.pdf" download data-bfy-event="free_pdf_download" data-bfy-lab="tatil_deneme_{s}">Denemeyi indir (PDF, 15 soru) ↓</a></div>
 <div class="eksik"><b>Denemede eksik çıkan konu için:</b>{eksik}<a href="{YAP[s]}?utm_source=tatil_sayfa" data-bfy-event="pdf_upsell" data-bfy-lab="tatil{s}_yapabilirim">Bütün yıl için Yapabilirim {s}<em>₺599 →</em></a></div>
 </article>'''
 
 sinif_ad = ', '.join(str(s) for s in SINIFLAR[:-1]) + (' ve ' if len(SINIFLAR) > 1 else '') + str(SINIFLAR[-1]) if SINIFLAR else ''
 stack = ''.join(f'<img src="img/tatil/not-kapak-{s}.webp" width="640" height="905" alt="">' for s in ([9, 11, 10] if len(SINIFLAR) == 3 else SINIFLAR))
-main = f'''<main id="main" class="container student-layout"><nav class="student-crumbs" aria-label="Sayfa yolu"><a href="index.html">Ana sayfa</a> / <a href="ucretsiz/pdf">Ücretsiz notlar</a> / Ara Tatil Fizik Kampı</nav>
-<div class="tt-hero"><div><p class="eyebrow" style="margin-top:28px">ÜCRETSİZ / {sinif_ad}. SINIF / ARA TATİL</p><h1>Ara Tatil Fizik Kampı</h1><p class="lead"><b>5 gün, günde en çok 40 dakika.</b> Dönemin başından bugüne işlenen konuları şekillerle toparlayan tekrar notu ve sonunda 15 soruluk deneme. İkisi de ücretsiz, PDF.</p><p><a class="button" href="tatil/#siniflar" data-bfy-event="tatil_sinif_sec">Sınıfını seç ve indir ↓</a></p></div>
+main = f'''<main id="main" class="container student-layout"><nav class="student-crumbs" aria-label="Sayfa yolu"><a href="index.html">Ana sayfa</a> / <a href="ucretsiz/pdf">Ücretsiz notlar</a> / Ara Tatil Fizik Toparlama Programı</nav>
+<div class="tt-hero"><div><p class="eyebrow" style="margin-top:28px">ÜCRETSİZ / {sinif_ad}. SINIF / ARA TATİL</p><h1>Ara Tatil Fizik Toparlama Programı</h1><p class="lead"><b>Fiziği toparla, geliştir.</b> 5 gün, günde en çok 40 dakika. Dönemin başından bugüne işlenen konuları şekillerle toparlayan tekrar notu ve sonunda 15 soruluk deneme. İkisi de ücretsiz, PDF.</p><p><a class="button" href="tatil/#siniflar" data-bfy-event="tatil_sinif_sec">Sınıfını seç ve indir ↓</a></p></div>
 <div class="stack" aria-hidden="true">{stack}</div></div>
 <div class="tt-oz"><div><b>4 gün</b><span>her gün tek konu, tek sayfa özet</span></div><div><b>40 soru</b><span>ısınma sorusu, kısa çözümleriyle</span></div><div><b>15 soru</b><span>deneme, 30 dakika, ayrı PDF</span></div><div><b>Tablo</b><span>denemenin sonunda eksik konu tablosu</span></div></div>
 <section class="student-section" id="siniflar" style="scroll-margin-top:110px"><h2>Sınıfını seç</h2><p>Her sınıf için iki PDF var: önce tekrar notu (4 gün), sonra deneme (5. gün). Telefonda da okunur, yazdırıp çözmek daha iyi.</p>

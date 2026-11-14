@@ -1,4 +1,4 @@
-// 11. sınıf | Ara Tatil Fizik Kampı | Kapsam: serbest düşme, iki boyutta sabit ivmeli hareket, Newton'ın hareket yasaları, serbest cisim diyagramı (sürtünme yok)
+// 11. sınıf | Ara Tatil Fizik Toparlama Programı | Kapsam: serbest düşme, iki boyutta sabit ivmeli hareket, Newton'ın hareket yasaları, serbest cisim diyagramı (sürtünme yok)
 // g = 10 m/s², sin37 = cos53 = 0,6; cos37 = sin53 = 0,8. Hava direnci önemsiz.
 const { bolum, kutu, formul, sekil, ikili, uclu, hata } = require('./lib');
 const R = require('./real');

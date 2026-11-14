@@ -1,4 +1,4 @@
-// BFY Ara Tatil Fizik Kampı: sayfa düzeni ve parçalar.
+// BFY Ara Tatil Fizik Toparlama Programı: sayfa düzeni ve parçalar.
 // İçerik dosyaları (9.js, 10.js, 11.js) yalnız buradaki yardımcıları ve real.js şekillerini kullanır.
 const path = require('path');
 const katex = require('katex');

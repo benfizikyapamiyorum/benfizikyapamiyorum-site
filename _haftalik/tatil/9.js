@@ -1,4 +1,4 @@
-// 9. sınıf | Ara Tatil Fizik Kampı | Kapsam: fizik bilimi ve alt dalları, temel ve türetilmiş nicelikler, skaler ve vektörel nicelikler, vektörlerde toplama ve bileşenler
+// 9. sınıf | Ara Tatil Fizik Toparlama Programı | Kapsam: fizik bilimi ve alt dalları, temel ve türetilmiş nicelikler, skaler ve vektörel nicelikler, vektörlerde toplama ve bileşenler
 // Trigonometri yok. Vektörler yalnız kareli düzlemde, dik vektörler tam sayılı dik üçgenlerle (3-4-5, 6-8-10, 5-12-13) ve yalnız Pisagor bağıntısıyla.
 const { bolum, kutu, formul, sekil, ikili, uclu, hata, tablo, p } = require('./lib');
 const R = require('./real');
