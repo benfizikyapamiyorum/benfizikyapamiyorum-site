@@ -56,7 +56,7 @@ W = 100 * g * 6
 esit('G4 W', W, 6000); esit('G4 P_K', Fr(W, 10), 600); esit('G4 P_L', Fr(W, 30), 200)
 esit('G4 günlük kWh', 2 * Fr(1, 2), 1); esit('G4 aylık TL', 1 * 30 * 3, 90); esit('G4 1 kWh', 1000 * 3600, 3_600_000)
 
-print('ISINMA SORULARI')
+print('ISINMA SORULARI (ilk 16 soru; numaralar ilk sürümdeki sıradır)')
 # 1
 p = [(0, 0), (4, 40), (6, 40), (10, -20)]
 esit('S1 Δx', p[-1][1] - p[0][1], -20); esit('S1 yol', sum(abs(p[i + 1][1] - p[i][1]) for i in range(3)), 100)
@@ -90,6 +90,42 @@ esit('S14 Wh', (100 - 20) * 5 * 30, 12000); esit('S14 kWh', Fr(100 - 20, 1000) *
 esit('S15 W_E', 50 * g * 6, 3000); esit('S15 W_C', 60 * g * 6, 3600); esit('S15 P_E', Fr(3000, 10), 300); esit('S15 P_C', Fr(3600, 15), 240)
 # 16
 esit('S16 J', 2400 * 50 * 60, 7_200_000); esit('S16 kWh', Fr(2400, 1000) * Fr(50, 60), 2); esit('S16 tutarlılık', Fr(7_200_000, 3_600_000), 2)
+
+print('EK ISINMA SORULARI (gün başına 6 yeni soru)')
+# Gün 1
+v = Fr(50 - (-30), 10); esit('E1 hız', v, 8); esit('E1 konum', -30 + v * 6, 18)
+esit('E2 aralık', 21 - 1, 20); esit('E2 m/s', Fr(20 * 10, 10), 20); esit('E2 km/h', Fr(20 * 10, 10) * Fr(36, 10), 72)
+t1, t2 = Fr(180, 90), Fr(180, 60); esit('E4 süre', t1 + t2, 5); esit('E4 ort. sürat', Fr(360, t1 + t2), 72)
+vK = Fr(80 - 20, 6); t = Fr(120 - 20, vK + 15)
+esit('E7 ϑ_K', vK, 10); esit('E7 t', t, 4); esit('E7 x_K', 20 + vK * t, 60); esit('E7 x_L', 120 - 15 * t, 60)
+esit('E9 ilk', Fr(300 - 100, 4 + 6), 20); esit('E9 karşılaşma', Fr(300, 10), 30); esit('E9 ikinci', Fr(300 + 100, 10), 40)
+def konum(tt):  # ϑ–t: 0–4 s 10 m/s, 4–6 s 0, 6–10 s −5 m/s; x0 = −30 m
+    return -30 + 10 * min(tt, 4) + (-5) * max(0, tt - 6)
+esit('E10 x(3)', konum(3), 0); esit('E10 x(4)', konum(4), 10); esit('E10 x(8)', konum(8), 0); esit('E10 x(10)', konum(10), -10)
+esit('E10 sıfır geçişleri', [k for k in range(0, 41) if konum(Fr(k, 4)) == 0], [12, 32])
+# Gün 2
+aK, aL, aM = Fr(30 - 10, 10), Fr(12 - 0, 3), Fr(10 - 25, 5)
+esit('E11 ivmeler', [aK, aL, aM] == [2, 4, -3], True); esit('E11 sıra', abs(aL) > abs(aM) > abs(aK), True)
+v0, v1 = Fr(36 * 10, 36), Fr(108 * 10, 36)
+esit('E12 m/s', [v0, v1] == [10, 30], True); esit('E12 a', Fr(v1 - v0, 4), 5); esit('E12 Δx', Fr(v0 + v1, 2) * 4, 80); esit('E12 model 2', v0 * 4 + Fr(1, 2) * 5 * 16, 80)
+a = Fr(2 * 4, 2 ** 2); esit('E14 a', a, 2); esit('E14 ilk 4 s', Fr(1, 2) * a * 16, 16); esit('E14 2–4 s', Fr(1, 2) * a * 16 - 4, 12)
+esit('E15 alan', alan([(0, 0), (20, 20), (50, 20), (60, 0)]), 900); esit('E15 ivme', abs(Fr(0 - 20, 60 - 50)), 2); esit('E15 hızlanma ivmesi', Fr(20, 20), 1)
+d1 = Fr(0 + 10, 2) * 4; esit('E17 ilk kısım', d1, 20); esit('E17 süre', 4 + Fr(100 - d1, 10), 12)
+t = Fr(30 - 10, 5); esit('E20 t', t, 4); esit('E20 K', Fr(30 + 10, 2) * t, 80); esit('E20 L', 10 * t, 40); esit('E20 fark', Fr(30 + 10, 2) * t - 10 * t, 40)
+esit('E20 model 2', 30 * t - Fr(1, 2) * 5 * t * t, 80)
+# Gün 3
+esit('E23 Δx (m)', Fr(50, 100), Fr(1, 2)); esit('E23 iş', -8 * Fr(50, 100), -4)
+esit('E25 iş', 80 * 5, 400)
+esit('E27 0–3', alan([(0, 0), (3, 30)]), 45); esit('E27 toplam', alan([(0, 0), (6, 60)]), 180); esit('E27 3–6', alan([(3, 30), (6, 60)]), 135)
+esit('E29', 50 * 0 + 50 * 2 + 50 * 0 - 50 * 1, 50)
+esit('E30 F1', Fr(200, 4), 50); esit('E30 F2', Fr(200 - 200, 2), 0); esit('E30 F3', Fr(300 - 200, 4), 25)
+# Gün 4
+esit('E31 J', 10 * 5 * 60, 3000); esit('E31 kWh', Fr(10 * 100, 1000), 1)
+esit('E33 yol', 5 * 60, 300); esit('E33 iş', 40 * 300, 12000); esit('E33 güç', Fr(12000, 60), 200)
+esit('E34 kWh', 4529 - 4520, 9); esit('E34 W', Fr(9, 11 - 8) * 1000, 3000)
+esit('E37 kWh', 2 * 2 + 1 * 4, 8); esit('E37 TL', 8 * 3, 24)
+kalan = 60 - 15 * 2; esit('E39 kalan', kalan, 30); esit('E39 dakika', Fr(kalan, 30) * 60, 60)
+panel = Fr(300, 1000) * 5 * 30; esit('E40 panel 30 gün', panel, 45); esit('E40', Fr(180, panel), 4)
 
 print('DENEME')
 # 1
@@ -143,8 +179,14 @@ o = json.loads(subprocess.run(['node', '-e', js], cwd=klasor, capture_output=Tru
 esit('sınıf', o['sinif'], 10)
 esit('gün sayısı', len(o['gun']), 4)
 for i, gun in enumerate(o['gun'], 1):
-    esit(f'gün {i} soru sayısı', gun['n'], 4); esit(f'gün {i} şık sayıları', all(s == 5 for s in gun['s']), True); esit(f'gün {i} kontrol 3-4', gun['k'] in (3, 4), True)
-esit('ısınma anahtarı', ''.join(c for gun in o['gun'] for c in gun['c']), 'BDEC' 'ACBD' 'DBCA' 'BCEA')
+    esit(f'gün {i} soru sayısı', gun['n'], 10); esit(f'gün {i} şık sayıları', all(s == 5 for s in gun['s']), True); esit(f'gün {i} kontrol 3-4', gun['k'] in (3, 4), True)
+isinma = ''.join(c for gun in o['gun'] for c in gun['c'])
+esit('ısınma anahtarı', isinma, 'CDBADCEAEB' 'CEABECDADB' 'CDBBEAECAD' 'EBADECDABC')
+for i, gun in enumerate(o['gun'], 1):
+    k = ''.join(gun['c'])
+    esit(f'gün {i} her harf en az 1', all(h in k for h in 'ABCDE'), True)
+    esit(f'gün {i} art arda 3 aynı harf yok', any(k[j] == k[j + 1] == k[j + 2] for j in range(8)), False)
+esit('ısınma harf dağılımı 6-10', all(6 <= isinma.count(h) <= 10 for h in 'ABCDE'), True)
 anahtar = ''.join(q['c'] for q in o['d'])
 esit('deneme soru sayısı', len(o['d']), 15)
 esit('deneme anahtarı', anahtar, 'CADBECDBBEADCAE')

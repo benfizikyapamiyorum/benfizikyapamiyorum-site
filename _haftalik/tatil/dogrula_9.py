@@ -60,7 +60,11 @@ print('== Yapı ==')
 kontrol(N['sinif'] == 9, 'sinif = 9')
 kontrol(len(N['gunler']) == 4, '4 gün var')
 for g in N['gunler']:
-    kontrol(len(g['sorular']) == 4, f"Gün {g['no']}: tam 4 ısınma sorusu")
+    kontrol(len(g['sorular']) == 10, f"Gün {g['no']}: tam 10 ısınma sorusu")
+    gk = ''.join(q['cevap'] for q in g['sorular'])
+    kontrol(all(h in gk for h in 'ABCDE'), f"Gün {g['no']}: her harf en az 1 kez doğru şık ({gk})")
+    kontrol(not re.search(r'(.)\1\1', gk), f"Gün {g['no']}: aynı harf art arda 3 kez yok")
+    kontrol(sum(1 for q in g['sorular'] if q['sekil']) >= 3, f"Gün {g['no']}: şekilli soru sayısı ({sum(1 for q in g['sorular'] if q['sekil'])})")
     kontrol(3 <= len(g['kontrol']) <= 4, f"Gün {g['no']}: 3 ya da 4 kontrol cümlesi")
     kontrol(g['govde'].count('class="hata"') in (1, 2), f"Gün {g['no']}: 1 ya da 2 hata kutusu")
     kontrol(g['govde'].count('<svg') >= 2, f"Gün {g['no']}: en az 2 şekil ({g['govde'].count('<svg')})")
@@ -78,7 +82,26 @@ for ad, L in (('Isınma', isinma), ('Deneme', den)):
     kontrol(not re.search(r'(.)\1\1', key), f'{ad} anahtarı: aynı harf art arda 3 kez yok ({key})')
     say = {h: key.count(h) for h in 'ABCDE'}
     kontrol(min(say.values()) >= 2 and max(say.values()) <= len(L) // 3 + 1, f'{ad} anahtarı dengeli: {say}')
-kontrol(len({q['metin'] + q['kok'] for q in isinma + den}) == 31, '31 soru birbirinden farklı (metin + kök)')
+kontrol(len({q['metin'] + q['kok'] for q in isinma + den}) == 55, '55 soru birbirinden farklı (metin + kök)')
+ik = ''.join(q['cevap'] for q in isinma)
+kontrol(len(isinma) == 40 and all(6 <= ik.count(h) <= 10 for h in 'ABCDE'), f"Isınma 40 soru, her harf 6-10 kez: { {h: ik.count(h) for h in 'ABCDE'} }")
+kontrol('\\\\cdot' not in json.dumps(N), 'Hiçbir yerde \\cdot yok')
+
+
+def bul(parca):
+    L = [q for q in isinma if parca in q['metin'] or parca in q['kok']]
+    assert len(L) == 1, (parca, len(L))
+    return L[0]
+
+
+def no(q):
+    return isinma.index(q) + 1
+
+
+ESKI = ['Bir mutfakta', 'akıllı telefonla', 'Güneş ile ilgili', 'kariyer alanları için', 'SI birimi ve ölçme aracı', 'Bir bisikletli', 'yayın sertliğini', 'Dört özdeş silgi', '3 kg ve 2 kg', '$\\vec{N}$ ve $\\vec{P}$', '$\\vec{L} = -\\dfrac{1}{3}\\vec{K}$', 'M otomobillerinin', 'Emre, parkta', '14 N, zıt', '$\\vec{K} + \\vec{L} + \\vec{M}$ bileşke', 'Bir karenin kenarı 2 N']
+_tum = isinma
+isinma = [next(q for q in _tum if (pp in q['metin'] or pp in q['kok'] or any(pp in o for o in (q['onc'] or [])))) for pp in ESKI]
+kontrol(len({id(q) for q in isinma}) == 16, 'Hakemden geçmiş 16 mevcut ısınma sorusu yerinde (yeni numaraları: ' + ', '.join(str(_tum.index(q) + 1) for q in isinma) + ')')
 
 print('== Yazım ==')
 ham = json.dumps(N, ensure_ascii=False)
@@ -159,6 +182,61 @@ kontrol(R15 == (4, 0), f'Isınma 15: K + L + M = {R15}')
 sik_esit(isinma[14], '4 birim, doğu', 'Isınma 15')
 Fv = (-3 * 2, 4 * 2)
 oncul(isinma[15], [abs(Fv[0]) == 6, abs(Fv[1]) == 4, boy(Fv) == 10], 'Isınma 16 (Fx = 6 N, Fy = 8 N, F = 10 N)')
+
+isinma = _tum
+print('== Yeni ısınma soruları (24) ==')
+q = bul('Beş olay'); dogru = {'atom fiziği': False, 'termodinamik': False, 'mekanik.': None, 'optik': False}
+d1 = [s for s in q['siklar'] if s.startswith('Sapanla')]
+kontrol(len(d1) == 1, 'Gün 1 eşleştirme: tek doğru şık taşın hareketi'); sik_esit(q, d1[0], f'Isınma {no(q)}')
+q = bul('bilgi kartı'); sik_esit(q, 'İbnülheysem, Curie, Newton', f'Isınma {no(q)} (ışık ve görme, radyum ve polonyum, kütle çekim)')
+q = bul('sıcak hava balonuyla'); dal = ['termodinamik', 'mekanik', 'optik', 'mekanik']
+cift = [f"{'I II III IV'.split()[i]} ve {'I II III IV'.split()[j]}" for i in range(4) for j in range(i + 1, 4) if dal[i] == dal[j]]
+kontrol(len(cift) == 1, f'Balon: aynı alt dala giren tek çift {cift}'); sik_esit(q, cift[0], f'Isınma {no(q)}')
+q = bul('Fizik eğitimi almış üç kişinin'); oncul(q, [True, True, False], f'Isınma {no(q)}')
+q = bul('Şimşek çakarken'); sik_esit(q, 'Olay yalnızca bir alt dalın konusudur, öteki alt dallar bu olayla ilgilenmez.', f'Isınma {no(q)}')
+q = bul('rüzgâr türbiniyle'); sik_esit(q, 'Mekanik, elektromanyetizma, termodinamik', f'Isınma {no(q)}')
+TEMEL = {'kütle', 'sıcaklık', 'zaman', 'uzunluk', 'elektrik akımı', 'madde miktarı', 'ışık şiddeti'}
+q = bul('iki gruba şöyle'); t_ = ['kütle', 'sıcaklık', 'hacim', 'zaman']; tr = ['sürat', 'yoğunluk', 'ışık şiddeti']
+yt = [x for x in t_ if x not in TEMEL]; ytr = [x for x in tr if x in TEMEL]
+kontrol(yt == ['hacim'] and ytr == ['ışık şiddeti'], f'Gruplama: yanlış yerdekiler {yt} ve {ytr}'); sik_esit(q, 'Hacim ile ışık şiddeti', f'Isınma {no(q)}')
+q = bul('Bir marangoz'); sik_esit(q, str(2 * 100 - 45 - 350 // 10), f'Isınma {no(q)} (200 - 45 - 35 cm)')
+q = bul('Bozuk bir musluktan'); mg = 20 * 60 * 50; kontrol(mg % 1000 == 0, 'Musluk: 60 000 mg'); sik_esit(q, str(mg // 1000), f'Isınma {no(q)} (1200 damla x 50 mg = 60 g)')
+src = open(os.path.join(D, '9.js'), encoding='utf-8').read()
+q = bul('Beş özdeş portakal'); kontrol('DINAMO(dx, dy, 15, k)' in src and src.count('R.TOP(hx + ox, ky + oy, 11') == 1 and '[[-22, 69], [0, 70], [22, 69], [-11, 50], [11, 50]]' in src, 'File şekli: gösterge 15 N, 5 portakal')
+sik_esit(q, str(15 * 1000 // 10 // 5), f'Isınma {no(q)} (15 N -> 1500 g, 5 portakal)')
+q = bul('fasulye fidesinin'); pts = {0: 2, 2: 4, 6: 12, 8: 14}
+kontrol('pts: [[0, 2], [2, 4], [6, 12], [8, 14]]' in src, 'Fide grafiği noktaları: (0,2) (2,4) (6,12) (8,14)')
+sik_esit(q, str((pts[6] - pts[2]) * 10 // (6 - 2)), f'Isınma {no(q)} ((12 - 4) cm / 4 gün = 20 mm)')
+q = bul('üç işlemi defterine'); oncul_ = [5 * 100 + 20 == 520, False, Fr(6, 2) == 3]
+sik_esit(q, 'I ve III', f'Isınma {no(q)} (kütle ile zaman toplanamaz)'); kontrol(oncul_ == [True, False, True], 'İşlemler: I ve III doğru')
+q = bul('Bir asansör'); cik, in_ = (0, 2), (0, -2)
+oncul(q, [boy(cik) == boy(in_), capraz(cik, in_) == 0, cik == in_], f'Isınma {no(q)}')
+q = bul('kumanda ekranında'); satir = {'Kütle': ('s', True), 'Hız': ('v', True), 'Yükseklik': ('s', True), 'Rüzgâr kuvveti': ('v', False), 'Batarya sıcaklığı': ('s', True)}
+eksik = [k for k, (tur, yon) in satir.items() if tur == 'v' and not yon]
+kontrol("['Hız', '12 m/s, kuzey']" in src and "['Rüzgâr kuvveti', '6 N']" in src, 'Kumanda şekli: hız yönlü, kuvvet yönsüz')
+sik_esit(q, eksik[0], f'Isınma {no(q)}')
+q = bul('Vektörlerle ilgili beş ifade'); sik_esit(q, 'Bir vektör negatif bir sayıyla çarpılırsa doğrultusu değişir.', f'Isınma {no(q)}')
+q = bul('bir karenin kenarını 5 N'); kare = Fr(-3, 2) * Fr(20, 5)
+sik_esit(q, f"{abs(kare)} kare, {'doğu' if kare > 0 else 'batı'}", f'Isınma {no(q)} (4 kare x 3/2, zıt yön)')
+q = bul('eksi işareti her zaman'); oncul(q, [False, True, True], f'Isınma {no(q)}')
+q = bul('başlangıç noktası S'); Sn, Av3 = (2, 1), (2, 1); nk = {'K': (4, 2), 'L': (6, 3), 'M': (8, 2), 'N': (7, 5), 'P': (8, 4)}
+uc = topla(Sn, tuple(3 * c for c in Av3)); uy = [k for k, vv in nk.items() if vv == uc]
+kontrol("vek(kz, 1, 4, 2, 1, C.mor, 'A'" in src and "nk(2, 1, 'S'" in src and "nk(8, 4, 'P'" in src and "nk(4, 2, 'K'" in src and "nk(6, 3, 'L'" in src and "nk(8, 2, 'M'" in src and "nk(7, 5, 'N'" in src, 'Uç noktası şekli: A = (2,1), S(2,1), K(4,2), L(6,3), M(8,2), N(7,5), P(8,4)')
+kontrol(len(uy) == 1, f'S + 3A = {uc}, yalnız {uy}'); sik_esit(q, uy[0], f'Isınma {no(q)}')
+q = bul('Halat çekme'); Rx = 90 - 40 - 30
+kontrol("[78, 1, '#2563eb', 'K', 40], [140, 1, '#0f766e', 'L', 30], [372, -1, '#be185d', 'M', 90]" in src, 'Halat şekli: K 40 N, L 30 N batı, M 90 N doğu')
+sik_esit(q, f"{abs(Rx)} N, {'doğu' if Rx > 0 else 'batı'}", f'Isınma {no(q)}')
+q = bul('Büyüklükleri sıfırdan farklı iki vektörün'); oncul(q, [topla((1, 2), (3, -1)) == topla((3, -1), (1, 2)), abs(5 - 4) < 4, False], f'Isınma {no(q)} (|A - B| <= R <= A + B)')
+q = bul('$\\vec{M}$ ve $\\vec{N}$ vektörleri'); V = {'K': (2, 1), 'L': (1, 2), 'M': (3, 3), 'N': (2, -2)}
+kontrol("vek(kz, 1, 3, 2, 1, C.mavi, 'K') + vek(kz, 4, 1, 1, 2, C.turuncu, 'L') + vek(kz, 6, 1, 3, 3, C.mor, 'M') + vek(kz, 11, 4, 2, -2, C.yesil, 'N'" in src, 'Eşitlik şekli: K(2,1), L(1,2), M(3,3), N(2,-2)')
+dogrular = [s for s in q['siklar'] if (lambda h: topla(V[h[0]], V[h[1]]) == V[h[2]])(re.findall(r'vec\{(\w)\}', s))]
+kontrol(len(dogrular) == 1, f'Eşitlik: yalnız bir şık doğru {dogrular}'); sik_esit(q, dogrular[0], f'Isınma {no(q)}')
+q = bul('10 N doğu ve 4 N güney'); sik_esit(q, str(boy(topla((10, -4), (6, 16)))), f'Isınma {no(q)} ((16, 12) -> 20 N)')
+q = bul('bileşkesinin büyüklüğü 15 N'); F2 = math.isqrt(15 ** 2 - 9 ** 2); kontrol(F2 * F2 == 144, 'Dik kuvvetler: öteki kuvvet 12 N')
+sik_esit(q, str(9 + F2), f'Isınma {no(q)} (9 + 12)')
+q = bul('Şekilde çizilmemiş'); Kx_, Lx_, Rr = (2, 3), (3, -1), (2, -2); Xv = tuple(r - a - b for r, a, b in zip(Rr, Kx_, Lx_))
+kontrol("vek(kz, 1, 2, 2, 3, C.mavi, 'K') + vek(kz, 4, 4, 3, -1, C.turuncu, 'L', { yan: 1 }) + vek(kz, 9, 5, 2, -2, C.mor, 'R'" in src, 'X şekli: K(2,3), L(3,-1), R(2,-2)')
+kontrol(Xv == (-3, -4) and topla(Kx_, Lx_, Xv) == Rr, f'X = {Xv}'); sik_esit(q, '3 kare sola, 4 kare aşağı', f'Isınma {no(q)}')
 
 print('== Deneme ==')
 sik_esit(den[0], 'Mekanik, optik, termodinamik', 'Deneme 1')
