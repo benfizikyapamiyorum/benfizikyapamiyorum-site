@@ -59188,7 +59188,16 @@ function cyrb53(str, seed = 0) { let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ s
 const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } } };
 
 /* ---- Matematik + mini biçim ---- */
+// Yalnız sayı ve birimden oluşan kısa ifadeler ("0,033", "12\\ \\text{m/s}", "-4") KaTeX'in serif fontuyla değil,
+// metnin kendi fontuyla yazılır; kitapta yazı tipi karmaşası olmasın (Kasım 2026, öğretmen geri bildirimi).
+const SADE_SAYI = /^\s*[-−+]?\s*\d[\d.,]*(\s*(\\[ ,;!]|~)\s*\\(text|mathrm)\{[A-Za-zÇĞİÖŞÜçğıöşüµΩ%/ .]{1,12}\}(\^\{?[23]\}?)?|\s*\^\{?\\circ\}?)?\s*$/;
+function sadeSayi(src) {
+  if (!SADE_SAYI.test(src)) return null;
+  const t = src.replace(/\^\{?\\circ\}?/g, '°').replace(/\^\{?2\}?/g, '²').replace(/\^\{?3\}?/g, '³').replace(/\\(text|mathrm)\{([^}]*)\}/g, '$2').replace(/\\[ ,;!]|~/g, ' ').replace(/-/g, '−').replace(/\s+/g, ' ').trim();
+  return `<span class="sayi">${esc(t).replace(/ /g, '\u00a0')}</span>`;
+}
 function tex(src, display) {
+  if (!display) { const sade = sadeSayi(src); if (sade) return sade; }
   const s = src.replace(/(\d),(\d)/g, '$1{,}$2');
   if (window.katex) { try { return katex.renderToString(s, { displayMode: !!display, throwOnError: false, output: 'html' }); } catch (e) { } }
   return `<code>${esc(src)}</code>`;
