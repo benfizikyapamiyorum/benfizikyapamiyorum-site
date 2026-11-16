@@ -78174,6 +78174,8 @@ function anaEkran() {
 // Timur Hoca'dan kişiye özel karşılama (12 Kasım 2026): lisans no → büyük ekran mesajı, her cihazda bir kez.
 // Ad dosyaya yazılmaz; lisanstaki adın ilk kelimesi kullanılır. Yeni mesaj için buraya satır ekle.
 const KISISEL = {
+  RKND5L: { anahtar: 'RKND5L-hos', b: 'Hoş geldin {ADLAR}!', p: 'Ben Fizik Yapabilirim YKS 2027 ailesine katıldığın için teşekkür ederim. TYT kitabının yanına AYT kitabını da sana hediye olarak ekledim. Her gün biraz, ama her gün. Takıldığın her yerde ben buradayım.', d: 'Teşekkürler hocam' },
+  '5A9J7U': { anahtar: 'RKND5L-hos', b: 'Hoş geldin {ADLAR}!', p: 'Ben Fizik Yapabilirim YKS 2027 ailesine katıldığın için teşekkür ederim. AYT kitabı benden sana hediye. TYT ile birlikte, her gün biraz ama her gün çalış. Takıldığın her yerde ben buradayım.', d: 'Teşekkürler hocam' },
   VZWYKK: { b: 'Sakarya\'nın en yakışıklı ve en efendi öğrencisine selam olsun!', p: 'Hoş geldin {AD}. Kitapların hazır. Her gün biraz, ama her gün. Takıldığın her yerde ben buradayım.' },
   T44DUP: { b: 'Sakarya\'nın en yakışıklı ve en efendi öğrencisine selam olsun!', p: 'Hoş geldin {AD}. Sana ilk ödevini hazırladım: Yay ve su dalgaları. Yay dalgalarından başla, sırayla ilerle. Her gün biraz, ama her gün.', git: '#/odev/T44DUP', d: 'Ödeve başla', anahtar: 'T44DUP-odev1' }
 };
@@ -78255,9 +78257,9 @@ function kisiselMesaj() {
   const kAn = no => KISISEL[no].anahtar || no;
   const L = Object.values(LISLER || {}).find(l => l && l.no && KISISEL[l.no] && !(K.ayar.kisisel || []).includes(kAn(l.no))); if (!L) return;
   if (document.querySelector('dialog[open]')) { if (kisiselDeneme++ < 120) setTimeout(kisiselMesaj, 1500); return; }
-  const m = KISISEL[L.no], ad = esc(((L.ad || '').split(/\s+/)[0]) || '');
+  const m = KISISEL[L.no], ad = esc(((L.ad || '').split(/\s+/)[0]) || ''), adlar = esc((L.ad || '').trim().split(/\s+/).slice(0, -1).join(' ') || ad);
   const d = document.createElement('div'); d.id = 'kisiselMesaj'; d.setAttribute('role', 'dialog'); d.setAttribute('aria-modal', 'true'); d.setAttribute('aria-label', 'Timur Hoca\'dan mesaj');
-  d.innerHTML = `<div class="km-ic"><div class="km-ust">Timur Hoca'dan sana</div><h2>${esc(m.b)}</h2><p>${esc(m.p).replace('{AD}', ad)}</p><button type="button" class="btn ana" data-km-kapa>${esc(m.d || 'Teşekkürler hocam')}</button></div>`;
+  d.innerHTML = `<div class="km-ic"><div class="km-ust">Timur Hoca'dan sana</div><h2>${esc(m.b).replace('{ADLAR}', adlar).replace('{AD}', ad)}</h2><p>${esc(m.p).replace('{ADLAR}', adlar).replace('{AD}', ad)}</p><button type="button" class="btn ana" data-km-kapa>${esc(m.d || 'Teşekkürler hocam')}</button></div>`;
   document.body.appendChild(d); konfeti();
   d.querySelector('[data-km-kapa]').focus();
   d.addEventListener('click', e => { if (e.target.closest('[data-km-kapa]') || e.target === d) { K.ayar.kisisel = (K.ayar.kisisel || []).concat(kAn(L.no)).slice(-20); kaydet(); d.remove(); if (m.git && e.target.closest('[data-km-kapa]')) location.hash = m.git; } });
