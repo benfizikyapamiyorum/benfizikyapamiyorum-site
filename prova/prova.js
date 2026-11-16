@@ -34,7 +34,8 @@
         {konular:['İş','İş, Enerji ve Güç'],ad:'İş, Enerji ve Güç Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52861260',img:'/img/paket/kapak-10-2.webp'},
         {konular:['Mekanik Enerji','Enerji Biçimleri','Enerji Kaynakları'],ad:'Mekanik Enerji ve Enerji Kaynakları Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52903249',img:'/img/paket/kapak-10-3.webp'}],
     11:[{konular:['Serbest Düşmede İvme','İki Boyutta Sabit İvmeli Hareket'],ad:'Serbest Düşme ve Atışlar Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52342727',img:'/img/paket/kapak-11.webp'},
-        {konular:['Düzgün Çembersel Hareket'],ad:'Düzgün Çembersel Hareket Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52860958',img:'/img/paket/kapak-11-2.webp'}]
+        {konular:['Düzgün Çembersel Hareket'],ad:'Düzgün Çembersel Hareket Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/52860958',img:'/img/paket/kapak-11-2.webp'},
+        {konular:['Sürtünme Kuvveti','Sürtünme'],ad:'Sürtünme Kuvveti Konu Soru Paketi',href:'https://www.shopier.com/benfizikyapamiyorum/53017945',img:'/img/paket/kapak-11-3.webp'}]
   };
 
   /* --- dönem: 1. yazılı sıralaması, bitiş tarihine kadar sıfırlanmaz --- */
