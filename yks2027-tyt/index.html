@@ -51030,7 +51030,7 @@ BFY_FIG_EKLE('kY91_yt_genis', function (u) {
 
 /* 28: sabit uca yakın K noktası; dört uzanım-zaman grafiği */
 BFY_FIG_EKLE('kY91_ucgrafik_genis', function (u) {
-  const W = 604, H = 276, sq = 22, x0 = 172, y0 = 16, nx = 10, ny = 3, yc = y0 + 2 * sq;   // W 604: 't (s)' panelin içinde kalsın
+  const W = 604, H = 404, sq = 22, x0 = 172, y0 = 16, nx = 10, ny = 3, yc = y0 + 2 * sq;
   const X = g => x0 + g * sq, Y = g => yc - g * sq;
   let s = zemin(W, H) + izgara(x0, y0, sq, nx, ny);
   s += `<line x1="${X(10)}" y1="${y0 - 8}" x2="${X(10)}" y2="${y0 + ny * sq + 8}" stroke="${P.ink}" stroke-width="2" stroke-dasharray="5 3"/>` + T(X(10) + 8, y0 + 10, 'uç', { size: 12, weight: 800 });
@@ -51038,17 +51038,20 @@ BFY_FIG_EKLE('kY91_ucgrafik_genis', function (u) {
   s += ilerle(X(4.2), X(6.6), Y(1) - 10);
   s += `<line x1="${X(9)}" y1="${Y(0) - 5}" x2="${X(9)}" y2="${Y(0) + 5}" stroke="${P.ink}" stroke-width="1.8"/>` + T(X(9), Y(0) + 20, 'K', { size: 13, anchor: 'middle', weight: 800 });
   s += T(x0 - 12, Y(0.5) + 4, 't = 0', { size: 12.5, anchor: 'end', weight: 800, fill: P.ink2 }) + T(X(5.8), y0 + ny * sq + 20, '1 kare/s', { size: 12, weight: 700, fill: P.ink2 });
+  // K noktasının uzanım-zaman grafikleri: kareli, her kare 1 s; uzanım atmanın yüksekliği (1 kare) birimindedir
   const G = { 1: [[3, 5, 1], [5, 7, -1]], 2: [[3, 7, 1]], 3: [[3, 5, 1], [7, 9, -1]], 4: [[3, 5, 1]] };
   [1, 2, 3, 4].forEach((k, i) => {
-    const px = 12 + i * 146, py = 112;
-    s += panel(px, py, 140, 140) + T(px + 130, py + 22, String(k), { size: 14, anchor: 'end', weight: 800, fill: P.copper });
-    const ox = px + 18, oy = py + 76, gx = 9.5, gy = 22;
-    s += eksen(ox, oy, 90, 46, 't (s)', 'y', { yAlt: oy + 30, size: 11 });
-    for (let t = 1; t <= 9; t++) s += `<line x1="${ox + t * gx}" y1="${oy - 2.5}" x2="${ox + t * gx}" y2="${oy + 2.5}" stroke="${P.ink}" stroke-width="1"/>`;
-    s += kareProfil(G[k], 0, 9.3, t => ox + t * gx, v => oy - v * gy, { renk: '#7048e8', w: 2.2 });
-    [2, 4, 6, 8].forEach(t => { s += T(ox + t * gx, oy + 12, String(t), { size: 10.5, anchor: 'middle', weight: 600, fill: P.ink2, haloW: 3.6 }); });   // eksenin hemen altında; 3, 5, 7 atma kenarlarıyla çakışmasın diye çift sayılar
+    const px = 12 + (i % 2) * 294, py = 116 + Math.floor(i / 2) * 136, gx = 22, gy = 26;
+    s += panel(px, py, 286, 128) + T(px + 276, py + 22, String(k), { size: 15, anchor: 'end', weight: 800, fill: P.copper });
+    const ox = px + 34, oy = py + 60;
+    for (let t = 1; t <= 9; t++) s += `<line x1="${ox + t * gx}" y1="${oy - gy}" x2="${ox + t * gx}" y2="${oy + gy}" stroke="${IZ}" stroke-width="1"/>`;
+    [-1, 1].forEach(v => { s += `<line x1="${ox}" y1="${oy - v * gy}" x2="${ox + 9 * gx}" y2="${oy - v * gy}" stroke="${IZ}" stroke-width="1"/>`; });
+    s += eksen(ox, oy, 9 * gx + 6, gy + 18, 't (s)', 'y', { yAlt: oy + gy + 4, size: 11.5 });
+    s += T(ox - 6, oy - gy + 4, '+1', { size: 10.5, anchor: 'end', weight: 700, fill: P.ink2 }) + T(ox - 6, oy + gy + 4, '−1', { size: 10.5, anchor: 'end', weight: 700, fill: P.ink2 });
+    s += kareProfil(G[k], 0, 9.3, t => ox + t * gx, v => oy - v * gy, { renk: '#7048e8', w: 2.6 });
+    for (let t = 1; t <= 9; t++) s += T(ox + t * gx, oy + gy + 16, String(t), { size: 10.5, anchor: 'middle', weight: 600, fill: P.ink2 });
   });
-  s += T(W / 2, 266, 'Grafiklerde t saniye birimindedir.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(W / 2, 394, 'Grafiklerde her kare 1 s, uzanım birimi atmanın yüksekliğidir.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
   return svg(W, H, s, u, 150);
 });
 
@@ -53129,7 +53132,7 @@ BFY_FIG_EKLE('kY92_xt_genis', function (u) {
   s += ok(sx0, y1 + 30, sx1 + 6, y1 + 30, P.ink, { w: 1.4, head: 8, headW: 4 }) + T(sx1 + 4, y1 + 46, 'x', { size: 12.5, weight: 800, italic: true, anchor: 'end' });
   // grafikler: x düşey, t yatay
   const L1 = xa - 70, L2 = xb - xa, L3 = sx1 - xb - 20;
-  const hiz = { 1: [2, 2, 2], 2: [2, 1, 1], 3: [2, 3, 2], 4: [2, 1, 2], 5: [2, 1, 3] };
+  const hiz = { 1: [2, 2, 2], 2: [2, 1, 1], 3: [2, 3, 2], 4: [2, 1, 2], 5: [2, 1, 5] };
   const tMax = Math.max(...Object.values(hiz).map(v => L1 / v[0] + L2 / v[1] + L3 / v[2]));
   for (let k = 1; k <= 5; k++) {
     const gx = 6 + (k - 1) * 110, gy = 160, ox = gx + 18, oy = gy + 148, ex = gx + 88, ey = gy + 12;   // ex: 't' eksenin sağ ucunda, yanında dursun
@@ -54311,24 +54314,6 @@ Tepe üzerindeki K, L ve M noktalarında dalganın ilerleme yönü numaralı okl
       ]
     },
     {
-      id: 'kY92_17', yks: true, zorluk: 2, tur: 'cs', cikti: '10.3.3.4', beceri: 'Grafik seçme',
-      tahmin: { gerekce: r`Program kırılmanın deney ya da simülasyonla incelenmesini ister; gelme açısı ile kırılma açısı ölçümlerinin grafiğe dökülmesi bu çalışmanın doğal sonucudur. Hesap gerektirmeyen grafik seçme sorusu ÖSYM'nin grafik yorumlama kalıbına uyar.` },
-      metin: r`Bir dalga leğeninde doğrusal dalgalar derin bölgeden sığ bölgeye geçiyor. Öğrenciler gelme açısını ($i$) $0°$ ile $60°$ arasında değiştirip her seferinde kırılma açısını ($r$) ölçüyor. Grafiklerdeki kesikli çizgi $r = i$ doğrusudur.
-
-{{sekil}}
-
-Ölçümlerin grafiği numaralı grafiklerden hangisi olabilir?`,
-      sekil: 'kY92_ri_genis',
-      secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
-      dogru: 2,
-      cozum: [
-        r`Derinden sığa eğik geçen dalga normale yaklaşır: Her gelme açısı için $r < i$'dir; grafik kesikli doğrunun altında kalmalıdır.`,
-        r`Gelme açısı $0°$ iken dalga yön değiştirmez: $r = 0$. Gelme açısı büyüdükçe kırılma açısı da büyür.`,
-        r`Bu koşulların hepsini 3 numaralı grafik sağlar.`,
-        r`{{S0}} sığ bölgede dalganın normalden uzaklaştığını sanır; bu sığdan derine geçişte olur. {{S1}} derinlik değişse de dalganın yön değiştirmediğini sanır. {{S3}} kırılma açısının gelme açısına bağlı olmadığını sanır. {{S4}} gelme açısı $0°$ iken de dalganın yön değiştirdiğini kabul eder; tepeler ayırıcı yüzeye paralel gelirse ilerleme yönü değişmez.`
-      ]
-    },
-    {
       id: 'kY92_18', yks: true, zorluk: 2, tur: 'cs', cikti: '10.3.3.2', beceri: 'Kavramsal akıl yürütme',
       tahmin: { gerekce: r`Dairesel dalgaların doğrusal engelden yansıması 10.3.3.2c'de açıkça istenir ve 9 yılda sorulmadı. Yansıyan dalgaların kaynağa döndüğü yanılgısını yoklayan şekilsiz bir I-II-III sorusu kolayca sorulabilir.` },
       metin: r`Derinliği her yerde aynı olan bir dalga leğeninde, düz bir engelin önündeki S noktasına bir damlalıktan düzenli aralıklarla su damlatılıyor.
@@ -54464,7 +54449,7 @@ Tepenin konumunun ($x$) zamana ($t$) göre grafiği numaralı grafiklerden hangi
         r`Konum-zaman grafiğinin eğimi sürati verir.`,
         r`K ve M derin, L sığdır: Tepe K'de hızlı, L'de yavaş, M'de yeniden hızlıdır. M'nin derinliği K'ninkine eşit olduğu için M'deki sürat K'dekine eşittir.`,
         r`Grafik üç doğru parçasıdır: Önce eğimi büyük, sonra küçük, sonra yeniden ilk eğime eşit. Bu grafik 4 numaralıdır.`,
-        r`{{S0}} derinlik değişince süratin değişmediğini sanır. {{S1}} sığ bölgeden çıkan dalganın sığdaki kadar yavaş kalacağını sanır; sürat bulunduğu yerin derinliğine bağlıdır. {{S2}} sığ suda dalgaların hızlandığını sanır. {{S4}} sığ bölgeyi geçen dalganın daha da hızlandığını sanır; M'nin derinliği K'ninkine eşittir.`
+        r`{{S0}} derinlik değişince süratin değişmediğini sanır. {{S1}} sığ bölgeden çıkan dalganın sığdaki kadar yavaş kalacağını sanır; sürat bulunduğu yerin derinliğine bağlıdır. {{S2}} sığ suda dalgaların hızlandığını sanır. {{S4}} M bölgesindeki süratin K'dekinden büyük olduğunu sanır. K ile M'nin derinlikleri eşit olduğu için bu iki bölgedeki süratler de eşittir.`
       ]
     },
     {
@@ -79568,7 +79553,9 @@ function cozumluTik(b) {
   else if (b.dataset.czsec) { st.s = +arg; st.n = st.s === n.dogru ? 0 : 1; if (st.s === n.dogru) { ses('d'); titret('d'); } else { ses('y'); titret('y'); } }
   else if (arg === 'goster') { st.s = -1; st.n = 1; }
   else st.n = arg === 'hepsi' ? n.cozum.length : st.n + 1;
+  const y0 = window.scrollY;   // yeniden çizimde sayfa yukarı kaymasın (iPhone Safari)
   blok.outerHTML = cozumluHTML(n, konu.not.filter(x => x.tur === 'cozumlu').indexOf(n) + 1);
+  if (Math.abs(window.scrollY - y0) > 2) window.scrollTo(0, y0);
   const yeni = document.querySelector(`[data-cz="${CSS.escape(key)}"]`);
   if (yeni && !b.dataset.czip) { const hedef = b.dataset.czsec ? yeni.querySelector('.sonuc') : [...yeni.querySelectorAll('.cozum-dj li')].pop(); if (hedef) hedef.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 }
@@ -80357,7 +80344,7 @@ document.addEventListener('click', e => {
   const kc = t.closest('[data-kc]'); if (kc) { kartCevir(kc, !kc.classList.contains('acik')); kartHepsiDugme(kc.closest('.n-kartlar-dj')); gunEkle(); kaydet(); return; }
   const kh = t.closest('[data-kc-hepsi]'); if (kh) { const blok = kh.closest('.n-kartlar-dj'), kartlar = [...blok.querySelectorAll('.kc')], ac = !kartlar.every(x => x.classList.contains('acik')); kartlar.forEach(x => kartCevir(x, ac)); kartHepsiDugme(blok); kaydet(); return; }
   const ad = t.closest('[data-adim]');
-  if (ad) { const m = mevcutSoru() || null; const p = yolParca(); let q = m && m.q; if (!q && p[0] === 'deneme') q = qBul(K.deneme.qs[+p[2] || 0]); if (!q) return; gecici.adim[q.id] = ad.dataset.adim === 'hepsi' ? q.cozum.length : (gecici.adim[q.id] || 0) + 1; ciz(false); const li = $$('#cozum li'); if (li.length) li[li.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
+  if (ad) { const m = mevcutSoru() || null; const p = yolParca(); let q = m && m.q; if (!q && p[0] === 'deneme') q = qBul(K.deneme.qs[+p[2] || 0]); if (!q) return; gecici.adim[q.id] = ad.dataset.adim === 'hepsi' ? q.cozum.length : (gecici.adim[q.id] || 0) + 1; const y0 = window.scrollY; ciz(false); if (Math.abs(window.scrollY - y0) > 2) window.scrollTo(0, y0); const li = $$('#cozum li'); if (li.length) li[li.length - 1].scrollIntoView({ behavior: 'smooth', block: 'nearest' }); return; }
   const rb = t.closest('[data-rubrik]'); if (rb) { gecici.adim[rb.dataset.rubrik] = 'rub'; ciz(false); const c = $('#cozum'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   if (t.closest('[data-puanla]')) {
     const m = mevcutSoru(); if (!m) return; const q = m.q;
