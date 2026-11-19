@@ -18,6 +18,7 @@
   f(c,'title').textContent=v.title;f(c,'tag').textContent=v.tag;f(c,'desc').textContent=v.desc;f(c,'facts').textContent=v.facts;f(c,'price').textContent=v.price;f(c,'note').textContent=v.note;
   f(c,'buy').href=v.buy;
   const d=f(c,'detail');if(v.detail){d.href=v.detail;d.hidden=false;}else d.hidden=true;
+  const bk=f(c,'basili');if(bk){if(v.basili){bk.href=v.basili;bk.hidden=false;}else bk.hidden=true;}
   const x=f(c,'extra');if(v.extra){x.href=v.extra[0];x.firstChild.nodeValue=v.extra[1]+' ';x.hidden=false;}else x.hidden=true;
   const art=f(c,'art'),href=v.detail||v.buy,img=art.querySelector('img');
   art.href=href;if(/^https?:/.test(href)){art.target='_blank';art.rel='noopener noreferrer';}else{art.removeAttribute('target');art.removeAttribute('rel');}
