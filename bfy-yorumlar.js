@@ -1,18 +1,22 @@
 /* BFY · Ortak Yorum & Sosyal Kanıt Sistemi
    Kullanım: Herhangi bir sayfaya <div class="clarity-wrap" data-bfy-yorumlar data-sayfa="ana"></div> ekle.
-   Yorumlar bfy-yorumlar.json dosyasından okunur; yeni yorum gönderimi moderasyon için WhatsApp'a yönlendirilir. */
+   Onaylanan yorumlar bfy-yorumlar.json dosyasından okunur; yeni yorumlar özel form gelen kutusuna gönderilir. */
 (() => {
   'use strict';
   const slots = [...document.querySelectorAll('[data-bfy-yorumlar]')];
   if (!slots.length) return;
 
   const ROL_AD = { ogrenci: 'Öğrenci', veli: 'Veli', ogretmen: 'Öğretmen' };
-  const WA_NO = '905425549386';
+  // Sitedeki deneme ve yıllık plan formlarıyla aynı, mevcut form gelen kutusu.
+  const FORM_ENDPOINT = 'https://formspree.io/f/xykqweby';
   const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const stars = n => '★'.repeat(Math.max(1, Math.min(5, Number(n) || 5))) + '☆'.repeat(5 - Math.max(1, Math.min(5, Number(n) || 5)));
 
   let modalEl = null;
   let pickedStar = 5;
+  let activePage = 'ana';
+  let opener = null;
+  let sending = false;
 
   function ensureModal() {
     if (modalEl) return modalEl;
@@ -27,14 +31,14 @@
         <button type="button" class="bfy-rev-close" aria-label="Kapat">×</button>
         <h3>Deneyimini paylaş</h3>
         <p>Yorumun Timur Yıldırım’ın onayından sonra sitede yayınlanır. Dilersen soyadının sadece baş harfini yazabilirsin.</p>
-        <form id="bfy-rev-form">
+        <form id="bfy-rev-form" action="${FORM_ENDPOINT}" method="POST">
           <div class="bfy-rev-field">
             <label for="bfy-r-ad">Adın (ör. Elif K.)</label>
-            <input id="bfy-r-ad" required maxlength="40" placeholder="Örn. Zeynep A.">
+            <input id="bfy-r-ad" name="ad" required maxlength="40" autocomplete="nickname" placeholder="Örn. Zeynep A.">
           </div>
           <div class="bfy-rev-field">
             <label for="bfy-r-rol">Kimsin?</label>
-            <select id="bfy-r-rol">
+            <select id="bfy-r-rol" name="rol">
               <option value="ogrenci">Öğrenci</option>
               <option value="veli">Veli</option>
               <option value="ogretmen">Fizik Öğretmeni</option>
@@ -42,51 +46,107 @@
           </div>
           <div class="bfy-rev-field">
             <label for="bfy-r-urun">Hangi kaynak veya sınıf?</label>
-            <input id="bfy-r-urun" maxlength="60" placeholder="Örn. 10. Sınıf · Yapabilirim TYT Maarif">
+            <input id="bfy-r-urun" name="etiket" maxlength="60" placeholder="Örn. 10. Sınıf · Yapabilirim TYT Maarif">
           </div>
           <div class="bfy-rev-field">
             <label>Puanın</label>
             <div class="bfy-rev-star-pick" id="bfy-r-stars">
-              ${[1,2,3,4,5].map(n => `<button type="button" data-star="${n}" class="is-on" aria-label="${n} yıldız">★</button>`).join('')}
+              ${[1,2,3,4,5].map(n => `<button type="button" data-star="${n}" class="is-on" aria-label="${n} yıldız" aria-pressed="${n === 5}">★</button>`).join('')}
             </div>
           </div>
           <div class="bfy-rev-field">
             <label for="bfy-r-metin">Yorumun</label>
-            <textarea id="bfy-r-metin" required maxlength="320" placeholder="Sitedeki simülasyonlar, notlar veya dijital kitap sana nasıl yardımcı oldu?"></textarea>
+            <textarea id="bfy-r-metin" name="metin" required maxlength="320" placeholder="Sitedeki simülasyonlar, notlar veya dijital kitap sana nasıl yardımcı oldu?"></textarea>
           </div>
-          <button type="submit" class="bfy-rev-submit">Yorumu WhatsApp ile Gönder →</button>
-          <p class="bfy-rev-note">Spam koruması için yorumlar onay sonrası yayınlanır.</p>
+          <div class="bfy-rev-honey" aria-hidden="true"><label>Bu alanı boş bırak<input name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
+          <button type="submit" class="bfy-rev-submit">Yorumu gönder</button>
+          <p class="bfy-rev-note">Yorumun ve yazdığın ad, onaylandıktan sonra sitede görünür.</p>
         </form>
+        <div class="bfy-rev-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
       </div>`;
     document.body.appendChild(modalEl);
 
-    const close = () => { modalEl.hidden = true; };
+    const close = () => { modalEl.hidden = true; if (opener && opener.isConnected) opener.focus(); };
     modalEl.querySelector('.bfy-rev-close').addEventListener('click', close);
     modalEl.addEventListener('click', e => { if (e.target === modalEl) close(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modalEl.hidden) close(); });
+    document.addEventListener('keydown', e => {
+      if (modalEl.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'Tab') {
+        const controls = [...modalEl.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')].filter(x => x.tabIndex >= 0 && x.getClientRects().length);
+        const first = controls[0], last = controls[controls.length - 1];
+        if (e.shiftKey && (document.activeElement === first || !controls.includes(document.activeElement))) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || !controls.includes(document.activeElement))) { e.preventDefault(); first.focus(); }
+      }
+    });
 
     const starBtns = [...modalEl.querySelectorAll('#bfy-r-stars button')];
+    function updateStars() {
+      starBtns.forEach(x => {
+        x.classList.toggle('is-on', Number(x.dataset.star) <= pickedStar);
+        x.setAttribute('aria-pressed', String(Number(x.dataset.star) === pickedStar));
+      });
+    }
     starBtns.forEach(b => b.addEventListener('click', () => {
       pickedStar = Number(b.dataset.star);
-      starBtns.forEach(x => x.classList.toggle('is-on', Number(x.dataset.star) <= pickedStar));
+      updateStars();
     }));
 
-    modalEl.querySelector('#bfy-rev-form').addEventListener('submit', e => {
+    const form = modalEl.querySelector('#bfy-rev-form');
+    const status = modalEl.querySelector('.bfy-rev-status');
+    form.addEventListener('submit', async e => {
       e.preventDefault();
+      if (sending || !form.reportValidity() || form.elements._gotcha.value) return;
       const ad = modalEl.querySelector('#bfy-r-ad').value.trim();
       const rol = modalEl.querySelector('#bfy-r-rol').value;
       const urun = modalEl.querySelector('#bfy-r-urun').value.trim() || ROL_AD[rol];
       const metin = modalEl.querySelector('#bfy-r-metin').value.trim();
-      if (!ad || !metin) return;
-      const msg = `Merhaba Timur Hocam, siteye yorum bırakmak istiyorum:\n\nAd: ${ad}\nRol: ${ROL_AD[rol]}\nKaynak: ${urun}\nPuan: ${pickedStar}/5\nYorum: "${metin}"`;
-      window.open(`https://wa.me/${WA_NO}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
-      close();
+      if (!ad || !metin) {
+        status.hidden = false; status.dataset.state = 'error';
+        status.textContent = 'Lütfen adını ve yorumunu yaz.'; status.focus(); return;
+      }
+      const body = new FormData(form);
+      body.set('ad', ad); body.set('metin', metin); body.set('etiket', urun);
+      body.set('puan', String(pickedStar)); body.set('rol_adi', ROL_AD[rol]);
+      body.set('tur', 'site-yorumu'); body.set('sayfa', activePage);
+      body.set('sayfa_url', location.origin + location.pathname);
+      body.set('_subject', 'BFY · Onay bekleyen site yorumu');
+      const submit = form.querySelector('[type="submit"]');
+      const controls = [...form.querySelectorAll('input,textarea,select,button')];
+      sending = true; form.setAttribute('aria-busy', 'true');
+      controls.forEach(x => { x.disabled = true; }); submit.textContent = 'Gönderiliyor…';
+      status.hidden = false; status.dataset.state = 'pending'; status.textContent = 'Yorumun gönderiliyor…';
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 20000);
+      try {
+        const response = await fetch(FORM_ENDPOINT, { method: 'POST', body, headers: { Accept: 'application/json' }, signal: controller.signal });
+        const result = await response.json();
+        if (!response.ok || result.ok === false || result.error || (result.errors && result.errors.length)) throw new Error('submission-failed');
+        form.reset(); pickedStar = 5; updateStars(); form.hidden = true;
+        status.dataset.state = 'success';
+        status.textContent = 'Teşekkürler! Yorumun inceleme için alındı. Onaylandıktan sonra sitede görünecek.';
+      } catch (error) {
+        status.dataset.state = 'error';
+        status.textContent = error.name === 'AbortError'
+          ? 'Gönderim henüz doğrulanamadı. Yazdıkların korunuyor; bir süre sonra tekrar deneyebilirsin.'
+          : 'Yorum gönderilemedi. Yazdıkların korunuyor; bağlantını kontrol edip tekrar deneyebilirsin.';
+      } finally {
+        clearTimeout(timer); sending = false; form.removeAttribute('aria-busy');
+        controls.forEach(x => { x.disabled = false; }); submit.textContent = 'Yorumu gönder';
+        if (!modalEl.hidden) status.focus();
+      }
     });
     return modalEl;
   }
 
-  function openModal() {
-    ensureModal().hidden = false;
+  function openModal(event) {
+    opener = event.currentTarget;
+    if (!sending) activePage = opener.closest('[data-bfy-yorumlar]').dataset.sayfa || 'ana';
+    const modal = ensureModal();
+    const form = modal.querySelector('form');
+    if (form.hidden) { form.hidden = false; modal.querySelector('.bfy-rev-status').hidden = true; }
+    modal.hidden = false;
+    modal.querySelector(sending ? '.bfy-rev-close' : '#bfy-r-ad').focus();
   }
 
   function renderSlot(el, allReviews) {
