@@ -138135,6 +138135,7 @@ const r = String.raw;
 window.BFY_OZEL = {
   BUUFPU: {
     sn: 11,
+    video: '', // YouTube (liste dışı) linki gelince buraya yazılır, kartta ve föyde düğme çıkar.
     baslik: 'Serbest Düşmede Karışık Sorular',
     alt: 'Sorduğun soru için sana özel hazırladım. Önce o sorunun adım adım çözümü, sonra basitten zora çözümlü örnekler, en sonda da ödevin var.',
     strateji: [
@@ -138146,6 +138147,7 @@ window.BFY_OZEL = {
     ],
     soru: {
       baslik: 'Sorduğun soru: 11.1.1, 13. soru',
+      konu: '11.1.1', soruId: 'sd23',
       metin: r`Grafik, deniz seviyesindeki yer çekimi ivmesinin enleme göre değişimini gösteriyor. Aynı ölçüm cihazı önce ekvatorda, sonra Kuzey Kutbu'nda kullanılıyor. Her seferinde durgun hâlden bırakılan bir cismin ilk $0,20\ \text{s}$'de düştüğü yol ölçülüyor. Soru, bu iki yol arasındaki farkı mm cinsinden istiyor.`,
       sekil: 'k1111_enlem',
       adimlar: [
@@ -140893,7 +140895,7 @@ const OZEL = window.BFY_OZEL || {};
 function ozelBul(no) { const Ls = Object.values(LISLER || {}).filter(l => l && l.no && OZEL[l.no]); const L = no ? Ls.find(l => l.no === no) : Ls[0]; return L ? { L, o: OZEL[L.no] } : null; }
 function ozelKart() {
   const b = ozelBul(); if (!b) return '';
-  return `<section class="foy-kart oz-kart"><div class="fk-ik" aria-hidden="true">✍️</div><div class="fk-m"><b>Timur Hoca'dan sana özel çalışma</b><p>${esc(b.o.baslik)}. Sorduğun sorunun adım adım çözümü, çözümlü örnekler ve ödevin burada. İstersen yazdırıp kâğıtta çöz.</p><button type="button" class="btn ana ince" data-ozel="${esc(b.L.no)}">Çalışmayı aç</button></div></section>`;
+  return `<section class="foy-kart oz-kart"><div class="fk-ik" aria-hidden="true">✍️</div><div class="fk-m"><b>Timur Hoca'dan sana özel çalışma</b><p>${esc(b.o.baslik)}. Sorduğun sorunun adım adım çözümü, çözümlü örnekler ve ödevin burada. İstersen yazdırıp kâğıtta çöz.</p><button type="button" class="btn ana ince" data-ozel="${esc(b.L.no)}">Çalışmayı aç</button>${b.o.video ? ` <a class="btn cizgi ince" href="${esc(b.o.video)}" target="_blank" rel="noopener">▶ Videolu anlatım</a>` : ''}</div></section>`;
 }
 function ozelGovde(q) {
   const fig = q.sekil ? window.BFY_FIG(q.sekil) : '';
@@ -140903,7 +140905,7 @@ function ozelGovde(q) {
 const ozelBas = (n, ust, baslik) => `<div class="fy-bas"><div class="fy-bb"><span class="fy-tn">${n}</span><div><small>${esc(ust)}</small><h2>${esc(baslik)}</h2></div></div></div>`;
 function ozelHTML(b) {
   const { L, o } = b, S = o.soru;
-  let h = `<section class="fy-kapak"><div class="fy-marka">Ben Fizik Yapabilirim, ${esc(SA(o.sn))}</div><h1>${esc(o.baslik)}</h1><p class="fy-alt">${esc(o.alt)}</p>
+  let h = `<section class="fy-kapak"><div class="fy-marka">Ben Fizik Yapabilirim, ${esc(SA(o.sn))}</div><h1>${esc(o.baslik)}</h1><p class="fy-alt">${esc(o.alt)}</p>${o.video ? `<p class="fy-alt oz-video"><a href="${esc(o.video)}" target="_blank" rel="noopener">▶ Bu çalışmanın videolu anlatımını izle</a></p>` : ''}
 <div class="fy-bilgi"><div><small>Ad Soyad</small><b>${esc(L.ad || '')}</b></div><div><small>Tarih</small><b>${esc(foyTarih())}</b></div><div><small>Çözümlü örnek</small><b>${o.ornekler.length}</b></div><div><small>Ödev sorusu</small><b>${o.odev.sorular.length}</b></div></div>
 <div class="fy-nasil"><b>Karışık bir soruyu beş adımda açarsın</b><ol>${o.strateji.map(x => `<li>${mdAdim(x)}</li>`).join('')}</ol></div></section>`;
   h += `<section class="fy-bolum ilk oz-b1">${ozelBas(1, 'Bölüm 1', S.baslik)}<div class="oz-kutu">${ozelGovde(S)}</div>
