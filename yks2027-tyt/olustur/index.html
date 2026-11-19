@@ -1810,7 +1810,7 @@ BFY_FIG_EKLE('kY101_sensor', function (u) {
   s += T(Ox - 4, Oy + 26, 'C', { size: 13, weight: 800, anchor: 'middle' });
   s += cizgi(Ox + 12, Oy - 2, 196, 206, P.ink2, 1) + T(200, 211, 'algılayıcı', { size: 12, weight: 700 });
   s += T(Ox - 50, Oy - 64, 'ray', { size: 12, weight: 700, fill: P.ink2, anchor: 'middle' });
-  s += cizgi(Ox - 38, Oy - 68, Ox + R * Math.sin(0.15) - 6, Oy - R * Math.cos(0.15) + 22, P.ink2, 0.9);
+  s += cizgi(Ox - 38, Oy - 68, Ox + (R - 3) * Math.sin(0.2), Oy - (R - 3) * Math.cos(0.2), P.ink2, 0.9);   // etiket çizgisi rayın üstünde biter
   return svg(W, H, s, u, 66);
 });
 
@@ -2117,7 +2117,7 @@ BFY_FIG_EKLE('kY101_ray_genis', function (u) {
   s += grafik(374, 8, 176, 146, Object.assign({}, ortak, { fn: t => 0.95 - 0.85 * can(t) + 0.03, et: 'L' }));
   s += grafik(10, 160, 176, 146, Object.assign({}, ortak, { fn: t => { const x = (t - 0.5) * 2; return 0.1 + 0.75 * Math.exp(-Math.pow((Math.abs(x) - 0.45) / 0.22, 2)); }, et: 'M' }));
   s += grafik(192, 160, 176, 146, Object.assign({}, ortak, { fn: t => 0.06 + 0.86 * can(t), et: 'N' }));
-  s += grafik(374, 160, 176, 146, Object.assign({}, ortak, { fn: t => { const x = 2.2 * (t - 0.35) * 2; return 0.06 + 0.86 * Math.pow(1 + x * x, -1.5); }, et: 'P' }));
+  s += grafik(374, 160, 176, 146, Object.assign({}, ortak, { fn: t => { const x = 2.2 * (t - 0.25) * 2; return 0.06 + 0.86 * Math.pow(1 + x * x, -1.5); }, et: 'P' }));   // tepe belirgin biçimde solda: N'den gözle ayrılsın
   return svg(W, H, s, u, 150);
 });
 
@@ -6086,10 +6086,11 @@ BFY_FIG_EKLE('kY103_normal', function (u) {
   return svg(320, 240, s, u, 72);
 });
 
-/* ---------- SORU 13: görüntü boyu – zaman grafikleri (1 doğru) ---------- */
-BFY_FIG_EKLE('kY103_grafik_genis', function (u) {
-  let s = zemin(560, 158);
-  const W = 104, H = 96, hc = 0.4;
+/* ---------- SORU 13: görüntü boyu – zaman grafikleri (1 doğru); telefonda okunsun diye 3 + 2 dizilim ---------- */
+BFY_FIG_EKLE('kY103_grafik', function (u) {
+  const SW = 340, SH = 312;
+  let s = zemin(SW, SH);
+  const W = 108, H = 104, hc = 0.4;
   const egri = [
     t => { const d = 3 - 1.9 * t; return Math.min(0.97, hc / (d - 1)); },   // 1: doğru (M dışında küçük, M'de eşit, sonra hızla büyür)
     t => 0.58 + 0.34 * t * t,                                               // 2: hep büyük
@@ -6098,18 +6099,20 @@ BFY_FIG_EKLE('kY103_grafik_genis', function (u) {
     t => 0.86 - 0.7 * t                                                     // 5: küçülür
   ];
   egri.forEach((fn, i) => {
-    const x0 = 14 + i * 109, y0 = 18, ox = x0 + 20, oy = y0 + H, top = y0 + 8, R = x0 + W;
-    const AR = R - 24, Yv = v => oy - v * (oy - top), Xt = t => ox + t * (AR - 10 - ox);
+    const sat = i < 3 ? 0 : 1, sut = i < 3 ? i : i - 3;
+    const x0 = (sat ? 4 + (SW - 2 * 111) / 2 : 4) + sut * 111, y0 = 22 + sat * 150, ox = x0 + 22, oy = y0 + H, top = y0 + 8, R = x0 + W;
+    const AR = R - 28, Yv = v => oy - v * (oy - top), Xt = t => ox + t * (AR - 10 - ox);
+    s += `<rect x="${x0}" y="${y0 - 14}" width="${W - 2}" height="${H + 44}" rx="8" fill="#fff" stroke="#dbe6e1"/>`;
     s += `<line x1="${ox}" y1="${oy}" x2="${AR - 4}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${AR},${oy} ${AR - 7},${oy - 3.5} ${AR - 7},${oy + 3.5}" fill="${P.ink}"/>`;
     s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${y0 - 2}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${y0 - 6} ${ox - 3.5},${y0 + 1} ${ox + 3.5},${y0 + 1}" fill="${P.ink}"/>`;
-    s += T(ox + 6, y0 + 2, 'h_g (cm)', { size: 11, weight: 800, fill: P.ink2 }) + T(AR + 3, oy + 4, 't (s)', { size: 11, weight: 800, fill: P.ink2 });
-    s += kesik(ox, Yv(hc), AR - 8, Yv(hc), P.ink2, 1) + T(ox - 3, Yv(hc) + 4, 'h_c', { size: 10.5, weight: 800, fill: P.ink2, anchor: 'end' });
-    let d = ''; let son = 1;
-    for (let k = 0; k <= 60; k++) { const t = k / 60, v = fn(t); d += (k ? 'L' : 'M') + f1(Xt(t)) + ' ' + f1(Yv(v)); if (i === 0 && v >= 0.97) { son = t; break; } }
-    s += `<path d="${d}" fill="none" stroke="${RAY}" stroke-width="2.4" stroke-linecap="round"/>`;
-    s += T(x0 + W / 2 + 8, oy + 30, `${i + 1}`, { size: 13.5, weight: 800, anchor: 'middle', fill: P.ink });
+    s += T(ox + 6, y0 + 2, 'h_g (cm)', { size: 11.5, weight: 800, fill: P.ink2 }) + T(AR + 2, oy + 4, 't (s)', { size: 11, weight: 800, fill: P.ink2 });
+    s += kesik(ox, Yv(hc), AR - 8, Yv(hc), P.ink2, 1.1) + T(ox - 3, Yv(hc) + 4, 'h_c', { size: 11.5, weight: 800, fill: P.ink2, anchor: 'end' });
+    let d = '';
+    for (let k = 0; k <= 60; k++) { const t = k / 60, v = fn(t); d += (k ? 'L' : 'M') + f1(Xt(t)) + ' ' + f1(Yv(v)); if (i === 0 && v >= 0.97) break; }
+    s += `<path d="${d}" fill="none" stroke="${RAY}" stroke-width="2.6" stroke-linecap="round"/>`;
+    s += T(x0 + W / 2, oy + 24, `${i + 1}`, { size: 14, weight: 800, anchor: 'middle', fill: P.ink });
   });
-  return svg(560, 158, s, u, 172);
+  return svg(SW, SH, s, u, 110);
 });
 
 /* ---------- SORU 14: kareli çukur ayna f = 2, cisim 3 birimde boy 1 ---------- */
@@ -6145,29 +6148,30 @@ BFY_FIG_EKLE('kY103_kare3_genis', function (u) {
   return svg(500, 240, s, u, 120);
 });
 
-/* ---------- SORU 3: üç düzenek (I: F'de küçük düzlem ayna; II: tümsekte M ışını; III: F ışını + düzlem ayna) ---------- */
-BFY_FIG_EKLE('kY103_geri_genis', function (u) {
-  let s = zemin(560, 168);
-  const S = 19, y0 = 22;
+/* ---------- SORU 3: üç düzenek (I: F'de küçük düzlem ayna; II: tümsekte M ışını; III: F ışını + düzlem ayna); telefonda kareler sayılabilsin diye alt alta ---------- */
+BFY_FIG_EKLE('kY103_geri', function (u) {
+  const SW = 300, SH = 432, S = 24, x0 = 44, dy = 144;
+  let s = zemin(SW, SH);
+  const ad = (y0, t) => lab(20, y0 + 2.5 * S + 5, t, { size: 15 });
   // I
-  { const G = kare({ gx0: -7, gx1: 1, gy0: -2, gy1: 3, S, x0: 16, y0 }), { X, Y } = G;
-    s += G.s + kAyna(G, 0, -2, 3, 'c', { sag: 4 }) + duzlemV(X(-2), Y(0.5), Y(-0.5), 1);
-    s += isaretK(G, -2, 'F', { dx: -10, size: 12 }) + isaretK(G, -4, 'M', { size: 12 });
+  { const y0 = 14, G = kare({ gx0: -7, gx1: 1, gy0: -2, gy1: 3, S, x0, y0 }), { X, Y } = G;
+    s += G.s + kAyna(G, 0, -2, 3, 'c', { sag: 5 }) + duzlemV(X(-2), Y(0.5), Y(-0.5), 1);
+    s += isaretK(G, -2, 'F', { dx: -11 }) + isaretK(G, -4, 'M');
     s += isin(X(-7), Y(1), X(0), Y(1), { at: 0.4 });
-    s += lab(X(-3), y0 + 5 * S + 30, 'I', { size: 14 }); }
+    s += ad(y0, 'I'); }
   // II
-  { const G = kare({ gx0: -5, gx1: 5, gy0: -2, gy1: 3, S, x0: 190, y0 }), { X, Y } = G;
-    s += G.s + kAyna(G, 0, -2, 3, 't', { sag: 4 });
-    s += isaretK(G, 2, 'F', { size: 12 }) + isaretK(G, 4, 'M', { size: 12 });
+  { const y0 = 14 + dy, G = kare({ gx0: -5, gx1: 5, gy0: -2, gy1: 3, S, x0, y0 }), { X, Y } = G;
+    s += G.s + kAyna(G, 0, -2, 3, 't', { sag: 5 });
+    s += isaretK(G, 2, 'F') + isaretK(G, 4, 'M');
     s += isin(X(-4), Y(2), X(0), Y(1), { at: 0.5 });
-    s += lab(X(0), y0 + 5 * S + 30, 'II', { size: 14 }); }
+    s += ad(y0, 'II'); }
   // III
-  { const G = kare({ gx0: -7, gx1: 1, gy0: -2, gy1: 3, S, x0: 398, y0 }), { X, Y } = G;
-    s += G.s + kAyna(G, 0, -2, 3, 'c', { sag: 4 }) + duzlemV(X(-5), Y(-0.4), Y(-1.6), 1);
-    s += isaretK(G, -2, 'F', { dx: 9, size: 12 }) + isaretK(G, -4, 'M', { dx: -8, size: 12 });
+  { const y0 = 14 + 2 * dy, G = kare({ gx0: -7, gx1: 1, gy0: -2, gy1: 3, S, x0, y0 }), { X, Y } = G;
+    s += G.s + kAyna(G, 0, -2, 3, 'c', { sag: 5 }) + duzlemV(X(-5), Y(-0.4), Y(-1.6), 1);
+    s += isaretK(G, -2, 'F', { dx: 10 }) + isaretK(G, -4, 'M', { dx: -9 });
     s += isin(X(-6), Y(2), X(0), Y(-1), { at: 0.3 });
-    s += lab(X(-3), y0 + 5 * S + 30, 'III', { size: 14 }); }
-  return svg(560, 168, s, u, 172);
+    s += ad(y0, 'III'); }
+  return svg(SW, SH, s, u, 100);
 });
 
 /* ---------- SORU 4: karton arkasındaki ayna; ışın paralel döner ---------- */
@@ -6266,8 +6270,9 @@ BFY_FIG_EKLE('kY103_spot', function (u) {
   s += lamba(xF, '1', 1) + lamba(xF + 28, '2', 1);
   s += T(14, 20, '1. durum: lamba F noktasında', { size: 11.5, weight: 700, fill: P.ink2 }) + T(14, 36, '2. durum: lamba F ile M arasında', { size: 11.5, weight: 700, fill: P.ink2 });
   // duvar (perde) ve hareket oku
-  const xw = 262;
-  s += `<rect x="${xw}" y="${yc - 64}" width="9" height="128" fill="#e9e1d3" stroke="#a8977a" stroke-width="1.1"/>` + lab(xw + 4, yc - 72, 'perde', { size: 11.5, weight: 700, fill: P.ink2 });
+  // perde, 2. durumdaki ışınların toplandığı noktadan (M'nin ötesi, x ≈ 183) önce, lambanın biraz ötesinden başlar
+  const xw = 152;
+  s += `<rect x="${xw}" y="${yc - 64}" width="9" height="128" fill="#e9e1d3" stroke="#a8977a" stroke-width="1.1"/>` + lab(xw + 16, yc + 44, 'perde', { size: 11.5, weight: 700, fill: P.ink2, anchor: 'start' });
   s += `<line x1="${xw + 16}" y1="${yc - 40}" x2="${xw + 46}" y2="${yc - 40}" stroke="${P.ink2}" stroke-width="2"/><polygon points="${xw + 52},${yc - 40} ${xw + 44},${yc - 44} ${xw + 44},${yc - 36}" fill="${P.ink2}"/>`;
   return svg(330, 180, s, u, 74);
 });
@@ -7113,7 +7118,7 @@ aynalardan hangileriyle elde edebilir?`,
 {{sekil}}
 
 Buna göre I, II ve III düzeneklerinden hangileri lazer ışınını geldiği yol üzerinden geri gönderir?`,
-      sekil: 'kY103_geri_genis',
+      sekil: 'kY103_geri',
       secenekler: [r`Yalnız I`, r`Yalnız II`, r`I ve III`, r`II ve III`, r`I, II ve III`],
       dogru: 3,
       cozum: [
@@ -7301,7 +7306,7 @@ Araçlar, çalışmalarında yararlandıkları özellikle nasıl eşleşir?`,
 {{sekil}}
 
 Görüntünün boyunun zamana göre değişimi, şekildeki grafiklerden hangisidir? ($h_c$: cismin boyu)`,
-      sekil: 'kY103_grafik_genis',
+      sekil: 'kY103_grafik',
       secenekler: [r`$1$`, r`$2$`, r`$3$`, r`$4$`, r`$5$`],
       dogru: 0,
       cozum: [
@@ -8305,7 +8310,8 @@ BFY_FIG_EKLE('kY104_bolme_genis', function (u) {
   s += normal(X1, 18, Y2 + 10) + normal(X2, Y1 - 10, Hc - 8);
   const L2 = 54;
   s += ray(X1 - L2 * Math.sin(i * D), Y1 - L2 * Math.cos(i * D), X1, Y1, { at: 0.5 }) + ray(X1, Y1, X2, Y2, { at: 0.6, ok: false });
-  const ADAY = [[rW, '1', 9], [i, '2', 0], [rC, '3', -9], [20, '4', 0], [0, '5', 0]], LL = 150;
+  /* 3 numaralı yol, cam yokkenki doğrultudan gözle ayırt edilecek kadar (yaklaşık 12°) daha yatıktır */
+  const ADAY = [[rW, '1', 9], [i, '2', 0], [57, '3', 0], [20, '4', 0], [0, '5', 0]], LL = 150;
   ADAY.forEach(([a, ad, kx]) => {
     const L = a > 60 ? 120 : LL, ex = X2 + L * Math.sin(a * D), ey = Y2 + L * Math.cos(a * D);
     s += `<line x1="${f1(X2)}" y1="${Y2}" x2="${f1(ex)}" y2="${f1(ey)}" stroke="#2b4a8b" stroke-width="1.9"/>`;
@@ -9524,7 +9530,7 @@ Kırıcılık indisleri arasında $n_{\text{hava}} < n_{\text{deniz suyu}} < n_{
       cozum: [
         r`Işık havadan cama geçerken normale yaklaşır. Camdan deniz suyuna geçerken cam daha kırıcı olduğu için normalden uzaklaşır.`,
         r`Pencerenin yüzeyleri paraleldir. Paralel katmanlarda son doğrultu aradaki katmana bağlı değildir; ışın deniz suyunda, cam yokken doğrudan havadan suya geçseydi izleyeceği yola paralel ilerler: 1 numaralı yol.`,
-        r`{{S1}} ışının deniz suyunda havadaki doğrultusunu koruduğunu sanır; ışık havadan çok daha kırıcı olan suya geçmektedir. {{S2}} camdan suya geçerken ışının kırılmadığını sanır. {{S3}} camdan suya geçerken ışının normale yaklaştığını sanır; cam sudan kırıcıdır. {{S4}} ışının normal doğrultusuna döndüğünü sanır.`
+        r`{{S1}} ışının deniz suyunda havadaki doğrultusunu koruduğunu sanır; ışık havadan çok daha kırıcı olan suya geçmektedir. {{S2}} camın ışını fazladan saptırdığını, ışının deniz suyunda cam yokkenkinden de çok normalden uzaklaştığını sanır. Oysa son doğrultu aradaki cama bağlı değildir. {{S3}} camdan suya geçerken ışının normale yaklaştığını sanır; cam sudan kırıcıdır. {{S4}} ışının normal doğrultusuna döndüğünü sanır.`
       ]
     },
     {
@@ -10216,7 +10222,7 @@ BFY_FIG_EKLE('kY105_kalin', function (u) {
   s += centik(X(-3), Y(0)) + lab(X(-3), Y(0) + 17, 'F') + centik(X(3), Y(0)) + lab(X(3), Y(0) + 17, 'F') + lab(X(0) + 12, Y(0) + 17, 'O');
   s += isin(X(-6), Y(3), X(0), Y(1), { at: 0.5 }) + uzanti(X(0), Y(1), X(3), Y(0));
   // T etiketi asal eksenin üstüne düşüyor: arkasına zemin renginde küçük bir kutu konur, eksen çizgisi etiketin altında kesilir
-  s += `<rect x="${f1(X(6) + 7)}" y="${f1(Y(0) - 8)}" width="14" height="16" fill="#f3f6f4"/>`;
+  s += `<rect x="${f1(X(6) + 7)}" y="${f1(Y(0) - 8)}" width="21" height="16" fill="#f3f6f4"/>`;
   [['P', 3], ['R', 2], ['S', 1], ['T', 0], ['U', -1]].forEach(([ad, y]) => { s += noktaK(G, 6, y, ad, { dx: 14, dy: 4.5 }); });
   return svg(330, 200, s, u, 76);
 });
@@ -11175,7 +11181,7 @@ Arda, ekranı E noktasından kaldırıp birinci merceğin yerini değiştirmeden
     },
     {
       id: 'kY105_02', yks: true, zorluk: 3, tur: 'cs', cikti: '10.4.7.1', beceri: 'Mercek ve düzlem aynalı düzenekte renge bağlı odağı izleme', cikmis: { yil: 2024, no: 7, kalip: 'Işığın rengi değişince iki elemanlı düzenekte ışınların toplandığı noktanın yeri' },
-      metin: r`Bir optik atölyesinde, uzaktaki bir projektörden gelen ve asal eksene paralel olan mavi ışık, havadaki ince kenarlı cam merceğe gönderiliyor. Merceğin arkasına, asal eksene dik bir düzlem ayna konmuştur. Mercekten geçip aynadan yansıyan ışınlar, şekildeki gibi mercek ile ayna arasındaki P noktasında toplanıyor. R noktası, merceğin optik merkezi O ile P noktasının tam ortasındadır.
+      metin: r`Bir optik atölyesinde, uzaktaki bir projektörden gelen ve asal eksene paralel olan mavi ışık, havadaki ince kenarlı cam merceğe gönderiliyor. Merceğin arkasına, asal eksene dik bir düzlem ayna konmuştur. Mercekten geçip aynadan yansıyan ışınlar, şekildeki gibi mercek ile ayna arasındaki P noktasında toplanıyor. R noktası, merceğin optik merkezi O ile P noktasının tam ortasındadır. Işığın rengi değiştiğinde bu merceğin odak uzaklığındaki değişim, olsa bile, odak uzaklığının yüzde birkaçını geçmez.
 
 {{sekil}}
 
@@ -11186,7 +11192,7 @@ Projektörün ışığı kırmızıya çevrilirse mercekten geçip aynadan yans�
       cozum: [
         r`Ayna olmasaydı paralel ışınlar merceğin mavi ışık için odağında, aynanın arkasındaki bir noktada toplanacaktı. Düzlem ayna bu yakınsayan ışınları geri yansıtır; ışınlar, o odak noktasının aynadaki simetriğinde, yani P noktasında toplanır. Odak aynanın ne kadar arkasındaysa P de aynanın o kadar önündedir.`,
         r`Cam kırmızı ışığı maviden daha az kırar; kırmızı ışığın odak uzaklığı biraz daha büyüktür. Odak aynanın biraz daha arkasına kayar, simetriği de aynanın biraz daha önüne, yani **merceğe doğru** kayar. Toplanma noktası P'den merceğe yaklaşır.`,
-        r`Renge bağlı odak farkı küçüktür (cam için yüzde birkaç); kayma, P ile R arasındaki uzaklıktan çok küçüktür. Işınlar **R ile P noktaları arasında** toplanır.`,
+        r`Soruda verildiği gibi renge bağlı odak farkı küçüktür, odak uzaklığının en fazla yüzde birkaçıdır. Toplanma noktasının kayması da bu kadardır ve P ile R arasındaki uzaklıktan çok küçüktür. Işınlar **R ile P noktaları arasında** toplanır.`,
         r`{{S0}} kırmızı ışığın odağı uzaklaştığı için toplanma noktasının da mercekten uzaklaşacağını sanır; aynanın ışığı geri çevirdiğini hesaba katmaz. {{S1}} odak uzaklığının ışığın rengine bağlı olmadığını sanır. {{S2}} doğru yöne kaydırır ama renge bağlı odak farkını çok büyük alır. {{S3}} renk değişince odak uzaklığının çok büyük ölçüde değiştiğini sanır; kayma R'yi bile geçmez.`
       ]
     },
@@ -14313,7 +14319,8 @@ BFY_FIG_EKLE('kY11_abakus_genis', function (u) {
 
 /* kY11_19: beş grafik (R – F₂) */
 BFY_FIG_EKLE('kY11_grafikler_genis', function (u) {
-  const W = 560, H = 312, PW = 176, PH = 146, gx = 11, gy = 5.4;
+  const W = 380, H = 466, PW = 176, PH = 146, gx = 11, gy = 5.4;
+  const yz = { size: 13, weight: 600, fill: P.ink2 };
   let s = zemin(W, H);
   const fn = {
     K: f => 6,                                   // sabit
@@ -14322,24 +14329,25 @@ BFY_FIG_EKLE('kY11_grafikler_genis', function (u) {
     N: f => 6 + f,                               // büyüklükler toplanmış
     P: f => Math.max(0, 6 - f)                   // sıfırda kalıyor
   };
-  const yer = { K: [8, 6], L: [192, 6], M: [376, 6], N: [100, 160], P: [284, 160] };
+  // telefonda okunabilsin diye iki sütun: K-L, M-N, P ortada
+  const yer = { K: [8, 8], L: [196, 8], M: [8, 162], N: [196, 162], P: [102, 316] };
   Object.keys(fn).forEach(ad => {
     const [x0, y0] = yer[ad], ox = x0 + 30, oy = y0 + 106, xe = ox + 10 * gx + 10;
     s += `<rect class="bg" x="${x0}" y="${y0}" width="${PW}" height="${PH}" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
     s += eksenX(ox, oy, xe) + eksenY(ox, oy + (ad === 'L' ? 26 : 0), y0 + 12);
-    s += T(ox + 7, y0 + 18, 'R', { size: 12.5, weight: 800, italic: true });
-    s += T(xe + 9, oy + 4.5, 'F₂', { size: 12, weight: 700 });
-    s += T(ox - 4, oy + 14, '0', { size: 11, weight: 600, anchor: 'end', fill: P.ink2 });
-    s += T(ox + 6 * gx, oy + 14, '6', { size: 11, weight: 600, anchor: 'middle', fill: P.ink2 }) + T(ox + 10 * gx, oy + 14, '10', { size: 11, weight: 600, anchor: 'middle', fill: P.ink2 });
+    s += T(ox + 7, y0 + 18, 'R', { size: 14, weight: 800, italic: true });
+    s += T(xe + 9, oy + 4.5, 'F₂', { size: 13.5, weight: 700 });
+    s += T(ox - 4, oy + 15, '0', Object.assign({ anchor: 'end' }, yz));
+    s += T(ox + 6 * gx, oy + 15, '6', Object.assign({ anchor: 'middle' }, yz)) + T(ox + 10 * gx, oy + 15, '10', Object.assign({ anchor: 'middle' }, yz));
     s += dashLine(ox + 6 * gx, oy, ox + 6 * gx, oy - 6 * gy, '#c3ced6', '3 3', 1);
-    s += dashLine(ox, oy - 6 * gy, ox + 6 * gx, oy - 6 * gy, '#c3ced6', '3 3', 1) + T(ox - 4, oy - 6 * gy + 4, '6', { size: 11, weight: 600, anchor: 'end', fill: P.ink2 });
+    s += dashLine(ox, oy - 6 * gy, ox + 6 * gx, oy - 6 * gy, '#c3ced6', '3 3', 1) + T(ox - 4, oy - 6 * gy + 4.5, '6', Object.assign({ anchor: 'end' }, yz));
     let d = ''; for (let i = 0; i <= 40; i++) { const f = i / 4, v = fn[ad](f); d += (i ? 'L' : 'M') + f1(ox + f * gx) + ' ' + f1(oy - v * gy); }
     s += `<path d="${d}" fill="none" stroke="${MAV}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>`;
     const son = fn[ad](10);
-    if (son !== 6 && son !== 0) { s += dashLine(ox, oy - son * gy, ox + 10 * gx, oy - son * gy, '#c3ced6', '3 3', 1) + (son > 6 ? T(ox - 4, oy - son * gy + 4, String(son), { size: 11, weight: 600, anchor: 'end', fill: P.ink2 }) : T(ox + 10 * gx + 6, oy - son * gy + (son < 0 ? 12 : -4), son < 0 ? '−4' : String(son), { size: 11, weight: 600, fill: P.ink2 })); }
+    if (son !== 6 && son !== 0) { s += dashLine(ox, oy - son * gy, ox + 10 * gx, oy - son * gy, '#c3ced6', '3 3', 1) + (son > 6 ? T(ox - 4, oy - son * gy + 4.5, String(son), Object.assign({ anchor: 'end' }, yz)) : T(ox + 10 * gx + 6, oy - son * gy + (son < 0 ? 13 : -4), son < 0 ? '−4' : String(son), yz)); }
     s += T(x0 + PW - 12, y0 + 24, ad, { size: 15, weight: 800, anchor: 'end', fill: P.copper });
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 100);
 });
 
 /* ================= ÇÖZÜMLÜ ÖRNEK ŞEKİLLERİ ================= */
@@ -16129,29 +16137,36 @@ BFY_FIG_EKLE('kY21_C4', function (u) {
 /* ================= SORU ŞEKİLLERİ ================= */
 /* Q01: beş özkütle–kütle grafiği (numaralı) */
 BFY_FIG_EKLE('kY21_01_genis', function (u) {
-  const W = 560, H = 334;
+  const W = 378, H = 496;
   let s = zemin(W, H);
-  const panel = (x0, y0, no, tur, deger) => {
-    const ox = x0 + 44, oy = y0 + 122, ex = x0 + 150, ey = y0 + 24, gy = v => oy - v * 17, gx = m => ox + m * 1.85;
+  /* Beş panelde düşey ölçek ortaktır (1 g/cm³ = 19 birim); böylece değerler yalnız yazıyla değil yükseklikle de ayrılır.
+     1: yatay 0,48 (kütleyi su seviyesine böler), 2: azalan 4,8 → 2,4 (özkütleyi kütleyle azalır sanır),
+     3: orijinden artan (kütle–hacim biçimini taşır), 4: yatay 4,8, 5: yatay 2,4 (doğru). */
+  const yaz = (x, y, t, o = {}) => T(x, y, t, Object.assign({ size: 13, weight: 700, fill: P.ink2 }, o));
+  const panel = (x0, y0, no, tur, deger, d2) => {
+    const ox = x0 + 44, oy = y0 + 124, ex = x0 + 124, ey = y0 + 18, gy = v => oy - v * 19, gx = m => ox + m * 1.45;
     let t = `<rect class="bg" x="${x0}" y="${y0}" width="174" height="152" rx="10" fill="#fff" stroke="#e0ddd2"/>`;
-    t += `<circle cx="${x0 + 16}" cy="${y0 + 16}" r="10" fill="${P.green}"/>` + T(x0 + 16, y0 + 20.5, String(no), { size: 12.5, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
-    t += eksen(ox, oy, ex, ey, 'm (g)', 'd (g/cm^3)', { size: 11.5, xAdX: ex - 2, xAdY: oy + 28, xAnchor: 'end', yAdX: ox - 2, yAdY: ey - 9 });
-    t += xEt(gx(24), oy, '24') + xEt(gx(48), oy, '48');
+    t += `<circle cx="${x0 + 16}" cy="${y0 + 16}" r="11" fill="${P.green}"/>` + T(x0 + 16, y0 + 21, String(no), { size: 13.5, weight: 800, anchor: 'middle', fill: '#fff', halo: false });
+    t += eksen(ox, oy, ex, ey, 'm (g)', 'd (g/cm^3)', { size: 12.5, xAdX: ex + 10, xAdY: oy + 4.5, yAdX: ox + 8, yAdY: ey + 4, sifir: false });
+    t += yaz(ox - 5, oy + 16, '0', { anchor: 'end' });
+    t += yaz(gx(24), oy + 16, '24', { anchor: 'middle' }) + yaz(gx(48), oy + 16, '48', { anchor: 'middle' });
     t += `<line x1="${f1(gx(24))}" y1="${oy}" x2="${f1(gx(24))}" y2="${oy + 3}" stroke="${P.ink}" stroke-width="1.2"/><line x1="${f1(gx(48))}" y1="${oy}" x2="${f1(gx(48))}" y2="${oy + 3}" stroke="${P.ink}" stroke-width="1.2"/>`;
+    const et = v => yaz(ox - 6, gy(v) + 4.5, String(v).replace('.', ','), { anchor: 'end' });
+    const cizgi = (x1, y1, x2, y2) => `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${P.coral}" stroke-width="2.8" stroke-linecap="round"/>`;
     if (tur === 'yatay') {
-      t += `<line x1="${ox}" y1="${f1(gy(deger))}" x2="${f1(gx(48))}" y2="${f1(gy(deger))}" stroke="${P.coral}" stroke-width="2.6" stroke-linecap="round"/>`;
-      t += dashLine(gx(48), gy(deger), gx(48), oy, P.ink2, '3 3', 1);
-      t += yEt(ox, gy(deger), String(deger).replace('.', ','));
+      t += cizgi(ox, gy(deger), gx(48), gy(deger)) + dashLine(gx(48), gy(deger), gx(48), oy, P.ink2, '3 3', 1) + et(deger);
+    } else if (tur === 'artan') {
+      t += cizgi(ox, oy, gx(48), gy(deger)) + dashLine(ox, gy(deger), gx(48), gy(deger), P.ink2, '3 3', 1) + dashLine(gx(48), gy(deger), gx(48), oy, P.ink2, '3 3', 1) + et(deger);
     } else {
-      t += `<line x1="${ox}" y1="${oy}" x2="${f1(gx(48))}" y2="${f1(gy(deger))}" stroke="${P.coral}" stroke-width="2.6" stroke-linecap="round"/>`;
-      t += dashLine(ox, gy(deger), gx(48), gy(deger), P.ink2, '3 3', 1) + dashLine(gx(48), gy(deger), gx(48), oy, P.ink2, '3 3', 1);
-      t += yEt(ox, gy(deger), String(deger).replace('.', ','));
+      t += cizgi(ox, gy(deger), gx(48), gy(d2)) + dashLine(ox, gy(d2), gx(48), gy(d2), P.ink2, '3 3', 1) + dashLine(gx(48), gy(d2), gx(48), oy, P.ink2, '3 3', 1) + et(deger) + et(d2);
     }
     return t;
   };
-  s += panel(12, 12, 1, 'yatay', 0.48) + panel(193, 12, 2, 'yatay', 0.8) + panel(374, 12, 3, 'artan', 2.4);
-  s += panel(102, 172, 4, 'yatay', 4.8) + panel(284, 172, 5, 'yatay', 2.4);
-  return svg(W, H, s, u, 150);
+  // telefonda okunabilsin diye iki sütun: 1-2, 3-4, 5 ortada
+  s += panel(10, 10, 1, 'yatay', 0.48) + panel(194, 10, 2, 'azalan', 4.8, 2.4);
+  s += panel(10, 172, 3, 'artan', 2.4) + panel(194, 172, 4, 'yatay', 4.8);
+  s += panel(102, 334, 5, 'yatay', 2.4);
+  return svg(W, H, s, u, 100);
 });
 
 /* Q03: X ve Y sıvıları ile K ve L plastiklerinin kütle–hacim grafiği */
@@ -16293,8 +16308,8 @@ BFY_FIG_EKLE('kY21_20', function (u) {
 
 /* Q21: eşit kütleli üç karışmayan sıvının beş olası görünümü */
 BFY_FIG_EKLE('kY21_21_genis', function (u) {
-  const W = 560, H = 240, yT = 208, w = 62, k = 1.3;
-  let s = zemin(W, H) + masa(10, 550, yT + 4);
+  const W = 400, H = 262, yT = 230, w = 60, k = 1.4;
+  let s = zemin(W, H) + masa(8, 392, yT + 4);
   const dizi = [
     [['K', 40], ['L', 40], ['M', 40]],
     [['K', 20], ['L', 30], ['M', 50]],
@@ -16303,12 +16318,12 @@ BFY_FIG_EKLE('kY21_21_genis', function (u) {
     [['K', 20], ['M', 50], ['L', 30]]
   ];
   dizi.forEach((kat, i) => {
-    const x = 30 + i * 106;
+    const x = 16 + i * 76;
     let y0 = yT;
     kat.forEach(([ad, h]) => {
       const y1 = y0 - h * k;
       s += sivi(u, x, y1, w, y0, ad);
-      s += T(x + w / 2, (y0 + y1) / 2 + 4.5, ad, { size: 13, weight: 800, anchor: 'middle', fill: SIV[ad][2] });
+      s += T(x + w / 2, (y0 + y1) / 2 + 5.5, ad, { size: 16, weight: 800, anchor: 'middle', fill: SIV[ad][2] });
       y0 = y1;
     });
     s += camKap(x, yT - 120 * k - 14, w, yT, { w: 2.4 });
@@ -16362,19 +16377,20 @@ BFY_FIG_EKLE('kY21_27', function (u) {
 
 /* Q28: üç grafik (I, II, III) */
 BFY_FIG_EKLE('kY21_28_genis', function (u) {
-  const W = 560, H = 204;
+  // telefonda okunabilsin diye dar tuval (W = 430) ve büyük yazı
+  const W = 430, H = 214;
   let s = zemin(W, H);
   const pan = (x0, no, xAd, yAd, ciz) => {
-    const ox = x0 + 44, oy = 160, ex = x0 + 152, ey = 40;
-    let t = `<rect class="bg" x="${x0}" y="10" width="174" height="184" rx="10" fill="#fff" stroke="#e0ddd2"/>`;
-    t += T(x0 + 87, 30, no, { size: 14, weight: 800, anchor: 'middle', fill: P.green });
-    t += eksen(ox, oy, ex, ey, xAd, yAd, { size: 12, xAdX: ex + 2, xAdY: oy + 22, xAnchor: 'end', yAdX: ox + 8, yAdY: ey + 3 });
+    const ox = x0 + 26, oy = 168, ex = x0 + 112, ey = 50;
+    let t = `<rect class="bg" x="${x0}" y="8" width="134" height="198" rx="10" fill="#fff" stroke="#e0ddd2"/>`;
+    t += T(x0 + 67, 30, no, { size: 16, weight: 800, anchor: 'middle', fill: P.green });
+    t += eksen(ox, oy, ex, ey, xAd, yAd, { size: 14, xAdX: ex + 6, xAdY: oy + 24, xAnchor: 'end', yAdX: ox + 8, yAdY: ey + 4 });
     return t + ciz(ox, oy);
   };
-  s += pan(10, 'I', 'Kütle', 'Hacim', (ox, oy) => `<line x1="${ox}" y1="${oy}" x2="${ox + 92}" y2="${oy - 80}" stroke="${P.coral}" stroke-width="2.8" stroke-linecap="round"/>`);
-  s += pan(193, 'II', 'Hacim', 'Özkütle', (ox, oy) => `<line x1="${ox}" y1="${oy}" x2="${ox + 96}" y2="${oy - 70}" stroke="${P.coral}" stroke-width="2.8" stroke-linecap="round"/>`);
-  s += pan(376, 'III', 'Özkütle', 'Kütle', (ox, oy) => `<line x1="${ox + 56}" y1="${oy - 4}" x2="${ox + 56}" y2="${oy - 98}" stroke="${P.coral}" stroke-width="2.8" stroke-linecap="round"/>` + dashLine(ox + 56, oy - 4, ox + 56, oy, P.ink2, '2 2', 1));
-  return svg(W, H, s, u, 150);
+  s += pan(8, 'I', 'Kütle', 'Hacim', (ox, oy) => `<line x1="${ox}" y1="${oy}" x2="${ox + 74}" y2="${oy - 70}" stroke="${P.coral}" stroke-width="3" stroke-linecap="round"/>`);
+  s += pan(148, 'II', 'Hacim', 'Özkütle', (ox, oy) => `<line x1="${ox}" y1="${oy}" x2="${ox + 78}" y2="${oy - 58}" stroke="${P.coral}" stroke-width="3" stroke-linecap="round"/>`);
+  s += pan(288, 'III', 'Özkütle', 'Kütle', (ox, oy) => `<line x1="${ox + 44}" y1="${oy - 4}" x2="${ox + 44}" y2="${oy - 90}" stroke="${P.coral}" stroke-width="3" stroke-linecap="round"/>` + dashLine(ox + 44, oy - 4, ox + 44, oy, P.ink2, '2 2', 1));
+  return svg(W, H, s, u, 114);
 });
 
 /* Q30: içi boş, kapalı alüminyum küp kutu (dış kenar 10 cm) */
@@ -17084,7 +17100,7 @@ Buna göre seramiğin özkütle ($d$) – kütle ($m$) grafiği, aşağıdaki nu
       cozum: [
         r`5 boncuk seviyeyi $40\ \text{mL}$'den $50\ \text{mL}$'ye çıkarıyor; 5 boncuğun hacmi $10\ \text{cm}^3$, kütlesi $24\ \text{g}$'dır: $d = \dfrac{24}{10} = 2,4\ \text{g/cm}^3$.`,
         r`10 boncukta $d = \dfrac{48}{20} = 2,4\ \text{g/cm}^3$ bulunur. Özkütle miktara bağlı değildir; grafik $2,4\ \text{g/cm}^3$ değerinde yatay bir doğrudur: 5 numaralı grafik.`,
-        r`{{S0}} kütleyi seviye okumasına böler ($\dfrac{24}{50} = 0,48$). {{S1}} kütleyi son seviyeye böler ($\dfrac{48}{60} = 0,8$). {{S2}} kütle arttıkça özkütlenin de arttığını sanır; kütle–hacim grafiğinin biçimini özkütleye taşır. {{S3}} 10 boncuğun kütlesini yalnız ilk 5 boncuğun hacmine böler ($\dfrac{48}{10} = 4,8$).`
+        r`{{S0}} kütleyi seviye okumasına böler ($\dfrac{24}{50} = 0,48$). Seviye okuması boncukların hacmi değildir. {{S1}} kütle arttıkça özkütlenin azaldığını sanır. Oysa aynı maddede özkütle miktara bağlı değildir. {{S2}} kütle arttıkça özkütlenin de arttığını sanır; kütle–hacim grafiğinin biçimini özkütleye taşır. {{S3}} 10 boncuğun kütlesini yalnız ilk 5 boncuğun hacmine böler ($\dfrac{48}{10} = 4,8$).`
       ]
     },
     {
@@ -17401,7 +17417,7 @@ yargılarından hangileri doğrudur?`,
     {
       id: 'kY21_19', yks: true, zorluk: 3, tur: 'cs', cikti: '9.2.1.2', beceri: 'Çok adımlı birim dönüşümü',
       tahmin: { gerekce: r`Kuyumculukla ilgili bir uygulama (altın varak) ile hacim, alan ve uzunluk birimlerinin birlikte dönüşümünü isteyen bir zincir, programın "anlamlı birim dönüşümleri" maddesinin en zor biçimidir. Hesaplı bir soru gelirse birim zinciri TYT'nin ayırt edici tuzağıdır.` },
-      metin: r`Bir varak ustası 1,93 g altını döve döve inceltip kalınlığı her yerde aynı olan, toplam yüzey alanı $1\ \text{m}^2$ olan altın varaklar elde ediyor. Altının özkütlesi $19,3\ \text{g/cm}^3$'tür.
+      metin: r`Bir varak ustası 1,93 g altını döve döve inceltip kalınlığı her yerde aynı olan altın varaklar elde ediyor. Varakların birer yüzlerinin alanları toplamı $1\ \text{m}^2$'dir. Altının özkütlesi $19,3\ \text{g/cm}^3$'tür.
 
 Varakların kalınlığı kaç metredir?`,
       secenekler: [r`$1 \times 10^{-7}$`, r`$2 \times 10^{-6}$`, r`$1 \times 10^{-5}$`, r`$1 \times 10^{-4}$`, r`$1 \times 10^{-1}$`],
@@ -17996,19 +18012,20 @@ BFY_FIG_EKLE('kY22_sekiller', function (u) {
 
 /* Q12: üç öğrenci çizimi (geniş) */
 BFY_FIG_EKLE('kY22_cizimler_genis', function (u) {
-  const W = 560, H = 226;
+  // telefonda okunabilsin diye dar tuval (W = 420), kalın boru ve büyük yazı
+  const W = 420, H = 252;
   let s = zemin(W, H);
   VERI.q12.forEach(([sv, d, h, m], i) => {
-    const x0 = 14 + i * 182, X = x0 + 28, Y = 108, KW = 120, KH = 84, YS = 130;
+    const x0 = 8 + i * 136, X = x0 + 14, Y = 118, KW = 100, KH = 96, YS = 140;
     s += kapSivi(u, X, Y, KW, KH, YS, sv);
-    s += boru(u, X + KW / 2, 14, YS, h * PXMM * 1.25, m, 36, 180, sv);
+    s += boru(u, X + KW / 2, 20, YS, h * PXMM * 1.5, m, 36, 202, sv);
     s += kapCam(X, Y, KW, KH);
-    s += dashLine(X - 8, YS, X + KW + 8, YS, P.ink2, '3 3', 1);
-    s += T(x0 + 88, 24, ['I', 'II', 'III'][i], { size: 15, weight: 800, anchor: 'middle', fill: P.copper });
-    s += T(x0 + 88, Y + KH + 24, sv === 'su' ? 'su' : 'cıva', { size: 12.5, weight: 800, anchor: 'middle', fill: SIV[sv][2] });
-    if (i < 2) s += `<line x1="${x0 + 176}" y1="16" x2="${x0 + 176}" y2="210" stroke="#dde5ea" stroke-width="1.2"/>`;
+    s += dashLine(X - 6, YS, X + KW + 6, YS, P.ink2, '3 3', 1);
+    s += T(x0 + 64, 26, ['I', 'II', 'III'][i], { size: 17, weight: 800, anchor: 'middle', fill: P.copper });
+    s += T(x0 + 64, Y + KH + 26, sv === 'su' ? 'su' : 'cıva', { size: 15, weight: 800, anchor: 'middle', fill: SIV[sv][2] });
+    if (i < 2) s += `<line x1="${x0 + 132}" y1="16" x2="${x0 + 132}" y2="236" stroke="#dde5ea" stroke-width="1.2"/>`;
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 112);
 });
 
 /* Q13: su dolu kapta temiz cam boru */
@@ -18122,25 +18139,26 @@ BFY_FIG_EKLE('kY22_civa', function (u) {
 
 /* Q29: sabun zarında iplik halka (geniş): önce ve sonra */
 BFY_FIG_EKLE('kY22_halka_genis', function (u) {
-  const W = 560, H = 214;
+  // telefonda okunabilsin diye dar tuval (W = 400) ve büyük yazı
+  const W = 400, H = 236, CY = 112, R = 70;
   let s = zemin(W, H);
   const id = yeniId(u, 'zr');
   s += `<defs><radialGradient id="${id}" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#fdfbff"/><stop offset=".5" stop-color="#e6effb"/><stop offset=".8" stop-color="#f3e6f6"/><stop offset="1" stop-color="#e2f1ea"/></radialGradient></defs>`;
-  const cer = (cx, cy, R) => `<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${id})" stroke="#6f7d85" stroke-width="3.2"/><line x1="${cx}" y1="${cy + R}" x2="${cx}" y2="${cy + R + 16}" stroke="#6f7d85" stroke-width="3.2"/>`;
+  const cer = (cx, cy, R) => `<circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${id})" stroke="#6f7d85" stroke-width="3.2"/><line x1="${cx}" y1="${cy + R}" x2="${cx}" y2="${cy + R + 14}" stroke="#6f7d85" stroke-width="3.2"/>`;
   // 1. durum: gevşek iplik halka
-  s += cer(140, 100, 74);
+  s += cer(100, CY, R);
   let d = '';
-  for (let i = 0; i <= 64; i++) { const t = i / 64 * Math.PI * 2, r = 30 + 6 * Math.sin(3 * t) + 4 * Math.cos(5 * t); d += (i ? 'L' : 'M') + f1(140 + r * Math.cos(t)) + ' ' + f1(104 + r * 0.9 * Math.sin(t)); }
-  s += `<path d="${d} Z" fill="none" stroke="#b5542f" stroke-width="2"/>`;
-  s += T(140, 202, '1. iplik zarın üstünde gevşek', { size: 12, weight: 800, anchor: 'middle' });
+  for (let i = 0; i <= 64; i++) { const t = i / 64 * Math.PI * 2, r = 28 + 6 * Math.sin(3 * t) + 4 * Math.cos(5 * t); d += (i ? 'L' : 'M') + f1(100 + r * Math.cos(t)) + ' ' + f1(CY + 4 + r * 0.9 * Math.sin(t)); }
+  s += `<path d="${d} Z" fill="none" stroke="#b5542f" stroke-width="2.4"/>`;
+  s += T(100, 222, '1. Zar sağlam, iplik gevşek', { size: 13.5, weight: 800, anchor: 'middle' });
   // 2. durum: halkanın içi delinmiş, iplik tam daire
-  s += cer(420, 100, 74);
-  s += `<circle cx="420" cy="104" r="36" fill="${BG}" stroke="#b5542f" stroke-width="2"/>`;
-  s += T(420, 108, 'delik', { size: 11.5, weight: 700, anchor: 'middle', fill: P.ink2 });
-  s += T(420, 202, '2. halkanın içi delinince', { size: 12, weight: 800, anchor: 'middle' });
-  s += `<line x1="280" y1="16" x2="280" y2="196" stroke="#dde5ea" stroke-width="1.2"/>`;
-  s += T(140, 20, 'tel çerçeve ve sabun zarı', { size: 11.5, weight: 700, anchor: 'middle', fill: P.ink2 });
-  return svg(W, H, s, u, 150);
+  s += cer(300, CY, R);
+  s += `<circle cx="300" cy="${CY + 4}" r="34" fill="${BG}" stroke="#b5542f" stroke-width="2.4"/>`;
+  s += T(300, CY + 9, 'delik', { size: 13.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(300, 222, '2. Halkanın içi delindi', { size: 13.5, weight: 800, anchor: 'middle' });
+  s += `<line x1="200" y1="40" x2="200" y2="204" stroke="#dde5ea" stroke-width="1.2"/>`;
+  s += T(200, 24, 'tel çerçeve ve sabun zarı', { size: 13.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+  return svg(W, H, s, u, 106);
 });
 
 /* Q30: kısa kılcal boru tasarımı (borudaki su gösterilmemiştir) */
@@ -18862,7 +18880,7 @@ Bu gözlemlerden hangileri suyun yüzey gerilimiyle açıklanır?`,
         r`I. Yüzey gergin bir zar gibi davranır; su, bardağın kenarının biraz üstünde kubbe biçiminde durabilir. **Yüzey gerilimi.**`,
         r`II. Buzun özkütlesi suyunkinden küçüktür; buz kaldırma kuvvetiyle yüzer. **Yüzey gerilimi değil.**`,
         r`III. Fırça sudan çıkınca kılların arasında ince bir su tabakası kalır; bu tabakanın yüzeyi alanını küçültmeye çalışırken kılları birbirine doğru çeker. **Yüzey gerilimi.**`,
-        r`{{S0}} fırça kıllarının birbirine yapışmasını da yüzey gerilimine bağlamaz. {{S1}} suyun bardağın ağzında kabarmasını yüzey gerilimiyle ilişkilendirmez. {{S3}} buzun yüzmesini yüzey gerilimi sanar ve suyun kabarmasını atlar. {{S4}} buzun yüzmesini de yüzey gerilimine bağlar; buz, özkütlesi sudan küçük olduğu için yüzer.`
+        r`{{S0}} fırça kıllarının birbirine yapışmasını da yüzey gerilimine bağlamaz. {{S1}} suyun bardağın ağzında kabarmasını yüzey gerilimiyle ilişkilendirmez. {{S3}} buzun yüzmesini yüzey gerilimi sanır ve suyun kabarmasını atlar. {{S4}} buzun yüzmesini de yüzey gerilimine bağlar; buz, özkütlesi sudan küçük olduğu için yüzer.`
       ]
     },
     {
@@ -19105,7 +19123,7 @@ yargılarından hangileri doğrudur?`,
         r`I. 1. denemede kopma tutkalın içinden olmuştur; tutkalın kohezyonu tahtaya adezyonundan küçüktür. **Yanlış.**`,
         r`II. 2. denemede kopma tutkal ile üstteki tahta arasından olmuştur; bu adezyon tutkalın kohezyonundan küçüktür. **Doğru.**`,
         r`III. Tutkal alttaki tahtada kalmıştır; alttaki tahtaya tutunması üsttekine tutunmasından güçlüdür. **Doğru.**`,
-        r`{{S0}} tutkalın bölünmesini kohezyonun güçlü olduğuna yorumlar; tutkal kendi içinden koptuğuna göre kohezyonu zayıf kalmıştır. {{S1}} tutkalın hangi tahtada kaldığından adezyonları karşılaştırmayı atlar. {{S2}} 1. denemeyi ters yorumlar ve 2. denemedeki kopmanın yerini kullanmaz. {{S4}} 1. denemede de kohezyonun büyük olduğunu sanır; kopma en zayıf yerden olur.`
+        r`{{S0}} tutkalın bölünmesini kohezyonun güçlü olduğuna yorumlar; tutkal kendi içinden koptuğuna göre kohezyonu zayıf kalmıştır. {{S1}} tutkalın hangi tahtada kaldığından adezyonları karşılaştırmayı atlar. {{S2}} 1. denemeyi ters yorumlar ve 2. denemede kopmanın üstteki tahtanın yüzeyinden olduğunu, yani II'yi atlar. {{S4}} 1. denemede de kohezyonun büyük olduğunu sanır; kopma en zayıf yerden olur.`
       ]
     },
     {
@@ -19819,26 +19837,30 @@ BFY_FIG_EKLE('kY31_C4', function (u) {
 /* ================= SORU ŞEKİLLERİ ================= */
 /* Q1: beş hız-zaman grafiği */
 BFY_FIG_EKLE('kY31_robot_genis', function (u) {
-  const W = 560, H = 330;
+  /* Telefonda okunabilsin diye iki sütun. Yatay grafiklerde düşey ölçek ortaktır (0–4 m/s, her 1 m/s'de silik çizgi);
+     böylece 0,5, 1,5, 2 ve 3 m/s yalnız yazıyla değil yükseklikle de ayrılır. 3 numaralı grafik konum değerlerini taşır. */
+  const W = 384, H = 498;
   let s = zemin(W, H);
-  const yer = [[8, 8], [192, 8], [376, 8], [100, 168], [284, 168]];
+  const yer = [[8, 8], [194, 8], [8, 170], [194, 170], [101, 332]];
   const tan = [
     { tip: 'sabit', v: 1.5 }, { tip: 'sabit', v: 2 }, { tip: 'artan' }, { tip: 'sabit', v: 0.5 }, { tip: 'sabit', v: 3 }
   ];
   tan.forEach((g, i) => {
     const [x, y] = yer[i];
     if (g.tip === 'sabit') {
-      const G = graf({ x, y, w: 176, h: 154, tMax: 8, yMin: 0, yMax: g.v * 1.5, tTicks: [2, 4, 6, 8], yTicks: [g.v], yLab: 'ϑ (m/s)', fs: 12, ml: 36, mr: 40, grid: false });
-      s += G.s + yatayKilavuz(G, g.v, 0) + cizgi([[G.px(0), G.py(g.v)], [G.px(8), G.py(g.v)]], MAVI, 2.8);
+      const G = graf({ x, y, w: 182, h: 158, tMax: 8, yMin: 0, yMax: 4, tTicks: [2, 4, 6, 8], yTicks: [g.v], yLab: 'ϑ (m/s)', fs: 13, ml: 36, mr: 48, grid: false });
+      s += G.s;
+      [1, 2, 3].forEach(v => { s += `<line x1="${f1(G.L + 1)}" y1="${f1(G.py(v))}" x2="${f1(G.px(8))}" y2="${f1(G.py(v))}" stroke="${GRID}" stroke-width="1.2"/>`; });
+      s += yatayKilavuz(G, g.v, 0) + cizgi([[G.px(0), G.py(g.v)], [G.px(8), G.py(g.v)]], MAVI, 2.8);
       [2, 4, 6].forEach(t => { s += dashLine(G.px(t), G.py(g.v), G.px(t), G.y0, '#c9d4da', '2 3', 1); });
     } else {
-      const G = graf({ x, y, w: 176, h: 154, tMax: 8, yMin: 0, yMax: 18, tTicks: [2, 4, 6, 8], yTicks: [4, 8, 12, 16], yLab: 'ϑ (m/s)', fs: 12, ml: 36, mr: 40, grid: false });
+      const G = graf({ x, y, w: 182, h: 158, tMax: 8, yMin: 0, yMax: 18, tTicks: [2, 4, 6, 8], yTicks: [4, 8, 12, 16], yLab: 'ϑ (m/s)', fs: 13, ml: 36, mr: 48, grid: false });
       s += G.s + cizgi([[G.px(0), G.py(4)], [G.px(8), G.py(16)]], MAVI, 2.8);
       [[2, 7], [4, 10], [6, 13], [8, 16]].forEach(([t, v]) => { s += dashLine(G.px(t), G.py(v), G.px(t), G.y0, '#c9d4da', '2 3', 1); });
     }
-    s += numara(x + 158, y + 20, i + 1);
+    s += numara(x + 166, y + 20, i + 1);
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 100);
 });
 
 /* Q2: iç içe kare raylar ve iki oyuncak tren */
@@ -19888,9 +19910,10 @@ BFY_FIG_EKLE('kY31_bisiklet', function (u) {
 
 /* Q9: tren peronu ve konum ekseni */
 BFY_FIG_EKLE('kY31_peron_genis', function (u) {
-  const W = 560, H = 170, X = m => 60 + (m + 40) * 4.4;
+  // telefonda okunabilsin diye dar tuval (W = 434) ve büyük yazı
+  const W = 434, H = 176, X = m => 40 + (m + 40) * 3.3;
   let s = zemin(W, H);
-  s += `<rect class="bg" x="22" y="56" width="516" height="34" rx="4" fill="#d9dde0" stroke="#aab4ba"/><rect class="bg" x="22" y="56" width="516" height="5" fill="#f2c94c"/>`;
+  s += `<rect class="bg" x="14" y="56" width="${W - 28}" height="34" rx="4" fill="#d9dde0" stroke="#aab4ba"/><rect class="bg" x="14" y="56" width="${W - 28}" height="5" fill="#f2c94c"/>`;
   // saat direği (0)
   s += `<rect x="${X(0) - 2}" y="22" width="4" height="56" fill="#55626b"/><circle cx="${X(0)}" cy="22" r="10" fill="#fff" stroke="#55626b" stroke-width="2"/><line x1="${X(0)}" y1="22" x2="${X(0)}" y2="15" stroke="${P.ink}" stroke-width="1.5"/><line x1="${X(0)}" y1="22" x2="${X(0) + 5}" y2="24" stroke="${P.ink}" stroke-width="1.5"/>`;
   // bank (−30)
@@ -19901,19 +19924,20 @@ BFY_FIG_EKLE('kY31_peron_genis', function (u) {
   s += `<rect x="${X(50) - 9}" y="52" width="18" height="30" rx="2" fill="#2f7fb8" stroke="#1d5a86"/><rect x="${X(50) - 5}" y="57" width="10" height="7" fill="#dff0fa"/>`;
   // konum ekseni
   const yE = 112;
-  s += `<line x1="34" y1="${yE}" x2="${X(60) + 12}" y2="${yE}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${X(60) + 19},${yE} ${X(60) + 10},${yE - 3.8} ${X(60) + 10},${yE + 3.8}" fill="${P.ink}"/>`;
-  for (let m = -40; m <= 60; m += 10) s += `<line x1="${X(m)}" y1="${yE - 4}" x2="${X(m)}" y2="${yE + 4}" stroke="${P.ink}" stroke-width="1.2"/>` + T(X(m), yE + 18, ns(m), { size: 12, anchor: 'middle', weight: m === 0 ? 800 : 600, fill: m === 0 ? P.ink : P.ink2 });
-  s += T(X(60) + 24, yE + 4.5, 'x (m)', { size: 12.5, weight: 700 });
-  s += T(X(-30), 144, 'bank', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(X(0), 144, 'saat direği', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
-  s += T(X(20), 144, 'kulübe', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(X(50), 144, 'bilet makinesi', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += `<line x1="22" y1="${yE}" x2="${X(60) + 12}" y2="${yE}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${X(60) + 19},${yE} ${X(60) + 10},${yE - 3.8} ${X(60) + 10},${yE + 3.8}" fill="${P.ink}"/>`;
+  for (let m = -40; m <= 60; m += 10) s += `<line x1="${X(m)}" y1="${yE - 4}" x2="${X(m)}" y2="${yE + 4}" stroke="${P.ink}" stroke-width="1.2"/>` + T(X(m), yE + 19, ns(m), { size: 13, anchor: 'middle', weight: m === 0 ? 800 : 600, fill: m === 0 ? P.ink : P.ink2 });
+  s += T(X(60) + 23, yE + 4.5, 'x (m)', { size: 13.5, weight: 700 });
+  s += T(X(-30), 148, 'bank', { size: 13, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(X(0), 148, 'saat direği', { size: 13, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(X(20), 148, 'kulübe', { size: 13, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(X(50), 148, 'bilet makinesi', { size: 13, anchor: 'middle', weight: 700, fill: P.ink2 });
   [-30, 0, 20, 50].forEach(m => { s += dashLine(X(m), 92, X(m), yE - 5, '#9aa8b1', '2 3', 1); });
-  s += ok(40, 158, 90, 158, P.ink, { w: 1.6, head: 7, headW: 3.8 }) + T(96, 162.5, 'doğu (+)', { size: 12, weight: 700, fill: P.ink2 });
-  return svg(W, H, s, u, 150);
+  s += ok(24, 166, 70, 166, P.ink, { w: 1.6, head: 7, headW: 3.8 }) + T(76, 170.5, 'doğu (+)', { size: 13, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 110);
 });
 
 /* Q10: "alınan yol" ekseni yazılmış üç grafik */
 BFY_FIG_EKLE('kY31_yolzaman_genis', function (u) {
-  const W = 560, H = 176;
+  // telefonda okunabilsin diye dar tuval (W = 428) ve büyük yazı
+  const W = 428, H = 176;
   let s = zemin(W, H);
   const G3 = [
     ['I', [[0, 0], [0.5, 0.72], [1, 0.72]]],
@@ -19921,10 +19945,10 @@ BFY_FIG_EKLE('kY31_yolzaman_genis', function (u) {
     ['III', [[0, 0], [0.5, 0.3], [1, 0.9]]]
   ];
   G3.forEach(([ad, pts], i) => {
-    const G = graf({ x: 8 + i * 184, y: 8, w: 176, h: 160, tMax: 1, yMin: 0, yMax: 1, tLab: 't', yLab: 'alınan yol', baslik: ad, ml: 26, mr: 28 });
+    const G = graf({ x: 8 + i * 140, y: 8, w: 132, h: 160, tMax: 1, yMin: 0, yMax: 1, tLab: 't', yLab: 'alınan yol', baslik: ad, ml: 24, mr: 26, mt: 40, fs: 13.5, bfs: 15 });
     s += G.s + cizgi(pts.map(([t, v]) => [G.px(t * 0.92), G.py(v * 0.85)]), MAVI, 2.8);
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 112);
 });
 
 /* Q11: iki kar motosikletinin konum-zaman grafikleri */
@@ -19984,24 +20008,26 @@ BFY_FIG_EKLE('kY31_scooter', function (u) {
 
 /* Q19: kitap merdiveni için üç grafik */
 BFY_FIG_EKLE('kY31_merdiven_genis', function (u) {
-  const W = 560, H = 180;
+  // telefonda okunabilsin diye dar tuval (W = 428) ve büyük yazı
+  const W = 428, H = 184;
   let s = zemin(W, H);
-  const tE = { 1: 't_1', 2: 't_2', 3: 't_3' };
-  let G = graf({ x: 8, y: 8, w: 176, h: 164, tMax: 3.3, yMin: 0, yMax: 1, tTicks: [1, 2, 3], tEt: tE, tLab: 't', yLab: 'ϑ', baslik: 'I', ml: 26, mr: 30, grid: false });
+  const tE = { 1: 't_1', 2: 't_2', 3: 't_3' }, o = { w: 132, h: 168, tMax: 3.3, tTicks: [1, 2, 3], tEt: tE, tLab: 't', ml: 24, mr: 24, fs: 14, bfs: 15, grid: false };
+  let G = graf(Object.assign({ x: 8, y: 8, yMin: 0, yMax: 1, yLab: 'ϑ', baslik: 'I' }, o));
   s += G.s + cizgi([[G.px(0), G.y0], [G.px(1), G.py(0.75)], [G.px(2), G.py(0.75)], [G.px(3), G.y0]], MAVI, 2.8);
   [1, 2].forEach(t => { s += dashLine(G.px(t), G.py(0.75), G.px(t), G.y0, '#c9d4da', '2 3', 1); });
-  G = graf({ x: 192, y: 8, w: 176, h: 164, tMax: 3.3, yMin: -1, yMax: 1, tTicks: [1, 2, 3], tEt: tE, tLab: 't', yLab: 'a', baslik: 'II', ml: 26, mr: 30, grid: false });
+  G = graf(Object.assign({ x: 148, y: 8, yMin: -1, yMax: 1, yLab: 'a', baslik: 'II' }, o));
   s += G.s + cizgi([[G.px(0), G.py(0.55)], [G.px(1), G.py(0.55)]], MAVI, 2.8) + cizgi([[G.px(1), G.y0], [G.px(2), G.y0]], MAVI, 3.4) + cizgi([[G.px(2), G.py(-0.55)], [G.px(3), G.py(-0.55)]], MAVI, 2.8);
   s += dashLine(G.px(1), G.py(0.55), G.px(1), G.y0, '#c9d4da', '2 3', 1) + dashLine(G.px(3), G.py(-0.55), G.px(3), G.y0, '#c9d4da', '2 3', 1) + dashLine(G.px(2), G.y0, G.px(2), G.py(-0.55), '#c9d4da', '2 3', 1);
-  G = graf({ x: 376, y: 8, w: 176, h: 164, tMax: 3.3, yMin: -1, yMax: 1, tTicks: [1, 2, 3], tEt: tE, tLab: 't', yLab: 'a', baslik: 'III', ml: 26, mr: 30, grid: false });
+  G = graf(Object.assign({ x: 288, y: 8, yMin: -1, yMax: 1, yLab: 'a', baslik: 'III' }, o));
   s += G.s + cizgi([[G.px(0), G.py(0.55)], [G.px(1), G.py(0.55)]], MAVI, 2.8) + cizgi([[G.px(1), G.y0], [G.px(2), G.y0]], MAVI, 3.4) + cizgi([[G.px(2), G.py(0.55)], [G.px(3), G.py(0.55)]], MAVI, 2.8);
   s += dashLine(G.px(1), G.py(0.55), G.px(1), G.y0, '#c9d4da', '2 3', 1) + dashLine(G.px(2), G.py(0.55), G.px(2), G.y0, '#c9d4da', '2 3', 1) + dashLine(G.px(3), G.py(0.55), G.px(3), G.y0, '#c9d4da', '2 3', 1);
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 112);
 });
 
 /* Q21: üç konum-zaman grafiği */
 BFY_FIG_EKLE('kY31_olabilir_genis', function (u) {
-  const W = 560, H = 186;
+  // telefonda okunabilsin diye dar tuval (W = 428) ve büyük yazı
+  const W = 428, H = 190;
   let s = zemin(W, H);
   const G3 = [
     ['I', [[0, 0], [0.55, 0.8], [1, 0.35]]],
@@ -20009,11 +20035,11 @@ BFY_FIG_EKLE('kY31_olabilir_genis', function (u) {
     ['III', [[0, 0], [0.5, -0.75], [1, 0]]]
   ];
   G3.forEach(([ad, pts], i) => {
-    const G = graf({ x: 8 + i * 184, y: 8, w: 176, h: 170, tMax: 1, yMin: -1, yMax: 1, tLab: 't', yLab: 'x', baslik: ad, ml: 26, mr: 28, tTicks: [0.92], tEt: { 0.92: 't' }, grid: false });
+    const G = graf({ x: 8 + i * 140, y: 8, w: 132, h: 174, tMax: 1, yMin: -1, yMax: 1, tLab: 't', yLab: 'x', baslik: ad, ml: 24, mr: 24, fs: 14, bfs: 15, tTicks: [0.92], tEt: { 0.92: 't' }, grid: false });
     s += G.s + cizgi(pts.map(([t, v]) => [G.px(t * 0.92), G.py(v * 0.85)]), MAVI, 2.8);
     s += dashLine(G.px(0.92), G.py(pts[pts.length - 1][1] * 0.85), G.px(0.92), G.py(-1), '#c9d4da', '2 3', 1);
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 112);
 });
 
 /* Q22: iki aracın hız-zaman grafikleri */
@@ -20028,45 +20054,47 @@ BFY_FIG_EKLE('kY31_kesisme', function (u) {
 
 /* Q24: yeşil dalga: iki ışık ve yeşil süreleri */
 BFY_FIG_EKLE('kY31_yesil_genis', function (u) {
-  const W = 560, H = 196;
+  // telefonda okunabilsin diye dar tuval (W = 448) ve büyük yazı
+  const W = 448, H = 206;
   let s = zemin(W, H);
-  s += `<rect class="bg" x="20" y="50" width="520" height="26" rx="3" fill="#8c969c"/><line x1="24" y1="63" x2="536" y2="63" stroke="#f4f1e6" stroke-width="1.6" stroke-dasharray="12 9"/>`;
+  s += `<rect class="bg" x="14" y="50" width="${W - 28}" height="26" rx="3" fill="#8c969c"/><line x1="18" y1="63" x2="${W - 18}" y2="63" stroke="#f4f1e6" stroke-width="1.6" stroke-dasharray="12 9"/>`;
   const isik = (x, kir) => `<rect x="${x - 2}" y="12" width="4" height="38" fill="#55626b"/><rect x="${x - 8}" y="6" width="16" height="34" rx="4" fill="#2a3330"/><circle cx="${x}" cy="13" r="4" fill="${kir ? '#e5483b' : '#5b2a26'}"/><circle cx="${x}" cy="23" r="4" fill="#5b4a20"/><circle cx="${x}" cy="33" r="4" fill="${kir ? '#1f4a33' : '#39d07a'}"/>`;
-  s += isik(80, false) + isik(480, true);
-  s += T(96, 30, '1. ışık', { size: 12.5, weight: 800 }) + T(464, 30, '2. ışık', { size: 12.5, weight: 800, anchor: 'end' });
-  s += `<line x1="80" y1="88" x2="480" y2="88" stroke="${P.ink}" stroke-width="1.2"/><polygon points="80,88 87,84.5 87,91.5" fill="${P.ink}"/><polygon points="480,88 473,84.5 473,91.5" fill="${P.ink}"/>`;
-  s += T(280, 84, '450 m', { size: 13, anchor: 'middle', weight: 800 });
+  s += isik(54, false) + isik(394, true);
+  s += T(70, 30, '1. ışık', { size: 14, weight: 800 }) + T(378, 30, '2. ışık', { size: 14, weight: 800, anchor: 'end' });
+  s += `<line x1="54" y1="90" x2="394" y2="90" stroke="${P.ink}" stroke-width="1.2"/><polygon points="54,90 61,86.5 61,93.5" fill="${P.ink}"/><polygon points="394,90 387,86.5 387,93.5" fill="${P.ink}"/>`;
+  s += T(224, 86, '450 m', { size: 14, anchor: 'middle', weight: 800 });
   // zaman çizelgesi
-  const X = t => 140 + t * 6.0, y1 = 124, y2 = 152;
-  s += `<line x1="${X(0)}" y1="176" x2="${X(60) + 8}" y2="176" stroke="${P.ink}" stroke-width="1.3"/><polygon points="${X(60) + 15},176 ${X(60) + 6},172.2 ${X(60) + 6},179.8" fill="${P.ink}"/>`;
-  for (let t = 0; t <= 60; t += 10) s += `<line x1="${X(t)}" y1="172" x2="${X(t)}" y2="180" stroke="${P.ink}" stroke-width="1"/>` + T(X(t), 192, String(t), { size: 11.5, anchor: 'middle', weight: 600, fill: P.ink2 });
-  s += T(X(60) + 20, 180.5, 't (s)', { size: 12, weight: 700 });
-  const serit = (y, a, b) => `<rect x="${X(0)}" y="${y - 7}" width="${X(60) - X(0)}" height="14" rx="3" fill="#f0c9c4"/><rect x="${X(a)}" y="${y - 7}" width="${X(b) - X(a)}" height="14" rx="3" fill="#7fd3a0" stroke="#2f8f5b"/>`;
+  const X = t => 92 + t * 5.0, y1 = 134, y2 = 162;
+  s += `<line x1="${X(0)}" y1="182" x2="${X(60) + 8}" y2="182" stroke="${P.ink}" stroke-width="1.3"/><polygon points="${X(60) + 15},182 ${X(60) + 6},178.2 ${X(60) + 6},185.8" fill="${P.ink}"/>`;
+  for (let t = 0; t <= 60; t += 10) s += `<line x1="${X(t)}" y1="178" x2="${X(t)}" y2="186" stroke="${P.ink}" stroke-width="1"/>` + T(X(t), 200, String(t), { size: 13, anchor: 'middle', weight: 600, fill: P.ink2 });
+  s += T(X(60) + 19, 186.5, 't (s)', { size: 13.5, weight: 700 });
+  const serit = (y, a, b) => `<rect x="${X(0)}" y="${y - 8}" width="${X(60) - X(0)}" height="16" rx="3" fill="#f0c9c4"/><rect x="${X(a)}" y="${y - 8}" width="${X(b) - X(a)}" height="16" rx="3" fill="#7fd3a0" stroke="#2f8f5b"/>`;
   s += serit(y1, 0, 20) + serit(y2, 30, 50);
-  s += T(X(0) - 8, y1 + 4.5, '1. ışık', { size: 12, anchor: 'end', weight: 700 }) + T(X(0) - 8, y2 + 4.5, '2. ışık', { size: 12, anchor: 'end', weight: 700 });
-  s += T(X(10), y1 + 4.5, 'yeşil', { size: 11.5, anchor: 'middle', weight: 800, fill: '#1f6a43', halo: false }) + T(X(40), y2 + 4.5, 'yeşil', { size: 11.5, anchor: 'middle', weight: 800, fill: '#1f6a43', halo: false });
-  s += T(X(0), 112, 't = 0: sürücü 1. ışığı geçer', { size: 11.5, weight: 700, fill: P.ink2 });
-  return svg(W, H, s, u, 150);
+  s += T(X(0) - 8, y1 + 5, '1. ışık', { size: 13.5, anchor: 'end', weight: 700 }) + T(X(0) - 8, y2 + 5, '2. ışık', { size: 13.5, anchor: 'end', weight: 700 });
+  s += T(X(10), y1 + 5, 'yeşil', { size: 13, anchor: 'middle', weight: 800, fill: '#1f6a43', halo: false }) + T(X(40), y2 + 5, 'yeşil', { size: 13, anchor: 'middle', weight: 800, fill: '#1f6a43', halo: false });
+  s += T(X(0), 118, 't = 0: sürücü 1. ışığı geçer', { size: 13, weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 114);
 });
 
 /* Q26: koşucunun konum-zaman grafiği ve öğrencinin üç grafiği */
 BFY_FIG_EKLE('kY31_donusum_genis', function (u) {
-  const W = 560, H = 360;
+  // telefonda okunabilsin diye dar tuval (W = 428), 2 × 2 panel ve büyük yazı
+  const W = 428, H = 376;
   let s = zemin(W, H);
-  const tT = [2, 4, 6, 8, 10];
-  let G = graf({ x: 8, y: 8, w: 268, h: 170, tMax: 10, yMin: -10, yMax: 10, tTicks: tT, tDx: { 2: 9 }, yTicks: [-8, -4, 4, 8], yLab: 'x (m)', baslik: 'koşucu', bfs: 13, mr: 46 });
+  const tT = [2, 4, 6, 8, 10], o = { w: 204, h: 176, tMax: 10, tTicks: tT, fs: 13, bfs: 14, ml: 38, mr: 46 };
+  let G = graf(Object.assign({ x: 8, y: 8, yMin: -10, yMax: 10, tDx: { 2: 9 }, yTicks: [-8, -4, 4, 8], yLab: 'x (m)', baslik: 'koşucu' }, o));
   s += G.s + cizgi([[G.px(0), G.py(-8)], [G.px(4), G.py(8)], [G.px(6), G.py(8)], [G.px(10), G.py(-4)]], P.ink, 2.8);
   s += dashLine(G.px(4), G.py(8), G.px(4), G.y0, '#9aa8b1', '3 3', 1) + dashLine(G.px(6), G.py(8), G.px(6), G.y0, '#9aa8b1', '3 3', 1) + dashLine(G.px(10), G.py(-4), G.px(10), G.y0, '#9aa8b1', '3 3', 1);
-  G = graf({ x: 284, y: 8, w: 268, h: 170, tMax: 10, yMin: -4, yMax: 5, tTicks: tT, yTicks: [-3, 4], yLab: 'ϑ (m/s)', baslik: 'I', mr: 46 });
+  G = graf(Object.assign({ x: 216, y: 8, yMin: -4, yMax: 5, yTicks: [-3, 4], yLab: 'ϑ (m/s)', baslik: 'I' }, o));
   s += G.s + cizgi([[G.px(0), G.py(4)], [G.px(4), G.py(4)]], MAVI, 2.8) + cizgi([[G.px(4), G.y0], [G.px(6), G.y0]], MAVI, 3.4) + cizgi([[G.px(6), G.py(-3)], [G.px(10), G.py(-3)]], MAVI, 2.8);
   s += dashLine(G.px(4), G.py(4), G.px(4), G.y0, '#9aa8b1', '3 3', 1) + dashLine(G.px(6), G.y0, G.px(6), G.py(-3), '#9aa8b1', '3 3', 1) + dashLine(G.px(10), G.py(-3), G.px(10), G.y0, '#9aa8b1', '3 3', 1) + yatayKilavuz(G, -3, 6);
-  G = graf({ x: 8, y: 184, w: 268, h: 170, tMax: 10, yMin: 0, yMax: 32, tTicks: tT, yTicks: [16, 28], yLab: 'yol (m)', baslik: 'II', mr: 46 });
+  G = graf(Object.assign({ x: 8, y: 192, yMin: 0, yMax: 32, yTicks: [16, 28], yLab: 'yol (m)', baslik: 'II' }, o));
   s += G.s + cizgi([[G.px(0), G.py(0)], [G.px(4), G.py(16)], [G.px(6), G.py(16)], [G.px(10), G.py(28)]], MAVI, 2.8) + yatayKilavuz(G, 16, 4) + kilavuz(G, 10, 28);
   s += dashLine(G.px(4), G.py(16), G.px(4), G.y0, '#9aa8b1', '3 3', 1) + dashLine(G.px(6), G.py(16), G.px(6), G.y0, '#9aa8b1', '3 3', 1);
-  G = graf({ x: 284, y: 184, w: 268, h: 170, tMax: 10, yMin: 0, yMax: 5, tTicks: tT, yTicks: [3, 4], yLab: 'ϑ (m/s)', baslik: 'III', mr: 46 });
+  G = graf(Object.assign({ x: 216, y: 192, yMin: 0, yMax: 5, yTicks: [3, 4], yLab: 'ϑ (m/s)', baslik: 'III' }, o));
   s += G.s + cizgi([[G.px(0), G.py(4)], [G.px(4), G.py(4)]], MAVI, 2.8) + cizgi([[G.px(4), G.y0], [G.px(6), G.y0]], MAVI, 3.4) + cizgi([[G.px(6), G.py(3)], [G.px(10), G.py(3)]], MAVI, 2.8);
   s += dashLine(G.px(4), G.py(4), G.px(4), G.y0, '#9aa8b1', '3 3', 1) + dashLine(G.px(6), G.py(3), G.px(6), G.y0, '#9aa8b1', '3 3', 1) + dashLine(G.px(10), G.py(3), G.px(10), G.y0, '#9aa8b1', '3 3', 1) + yatayKilavuz(G, 3, 6);
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 112);
 });
 
 /* Q27: model trenin ivme-zaman grafiği */
@@ -20940,7 +20968,7 @@ Buna göre aşağıdakilerden hangisi doğrudur?`,
       dogru: 0,
       cozum: [
         r`Çanta kabinle birlikte hareket eder; Elif'e göre konumu değişmez, durgundur. İstasyondaki Mert'e göre konumu değişir, hareketlidir.`,
-        r`{{S1}} kendi istasyonda duran Mert'in kabindeki Elif'e göre de durgun olduğunu sanır; Elif'e göre Mert'in konumu değişmektedir. {{S2}} Elif'in kabinde oturduğu için her gözlemciye göre durgun olduğunu sanır. {{S3}} kabinle birlikte giden Elif'in kabine göre konumunun değişmediğini görmez. {{S4}} durgunluğun gözlemciye bağlı olduğunu atlar.`
+        r`{{S1}} istasyonda duran Mert'in kabindeki Elif'e göre de durgun olduğunu sanır; Elif'e göre Mert'in konumu değişmektedir. {{S2}} Elif'in kabinde oturduğu için her gözlemciye göre durgun olduğunu sanır. {{S3}} kabinle birlikte giden Elif'in kabine göre konumunun değişmediğini görmez. {{S4}} durgunluğun gözlemciye bağlı olduğunu atlar.`
       ]
     },
     {
@@ -21773,13 +21801,13 @@ BFY_FIG_EKLE('kY32_bowling_genis', function (u) {
   s += `<defs><radialGradient id="${u}bt" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#9aa9e6"/><stop offset=".55" stop-color="#3646a8"/><stop offset="1" stop-color="#1a2160"/></radialGradient></defs>`;
   s += `<circle cx="230" cy="${Y - 26}" r="26" fill="url(#${u}bt)" stroke="#141a4a"/>`;
   s += `<circle cx="222" cy="${Y - 36}" r="3" fill="#141a4a"/><circle cx="232" cy="${Y - 38}" r="3" fill="#141a4a"/><circle cx="227" cy="${Y - 28}" r="3" fill="#141a4a"/>`;
-  s += ok(270, Y - 26, 318, Y - 26, C.v, { w: 2, head: 8, headW: 4.5 }) + T(294, Y - 34, 'ϑ', { size: 13, weight: 800, fill: C.v, anchor: 'middle' });
+  s += ok(270, Y - 26, 318, Y - 26, C.v, { w: 2, head: 8, headW: 4.5 }) + T(294, Y - 34, 'ϑ', { size: 16, weight: 800, fill: C.v, anchor: 'middle' });
   /* labut */
   const lx = 370;
   s += `<path d="M${lx} ${Y} C${lx - 14} ${Y} ${lx - 15} ${Y - 30} ${lx - 11} ${Y - 44} C${lx - 7} ${Y - 56} ${lx - 6} ${Y - 62} ${lx - 6} ${Y - 70} C${lx - 6} ${Y - 80} ${lx - 9} ${Y - 86} ${lx} ${Y - 90} C${lx + 9} ${Y - 86} ${lx + 6} ${Y - 80} ${lx + 6} ${Y - 70} C${lx + 6} ${Y - 62} ${lx + 7} ${Y - 56} ${lx + 11} ${Y - 44} C${lx + 15} ${Y - 30} ${lx + 14} ${Y} ${lx} ${Y} Z" fill="#f7f5ef" stroke="#7d7a70" stroke-width="1.2"/>`;
   s += `<path d="M${lx - 6} ${Y - 62} H${lx + 6} M${lx - 6.5} ${Y - 58} H${lx + 6.5}" stroke="#d24b3e" stroke-width="2"/>`;
-  s += T(230, 26, 'top: 7 kg', { size: 12.5, anchor: 'middle', weight: 800 });
-  s += T(lx + 30, 46, 'labut: 1,5 kg', { size: 12.5, weight: 800 });
+  s += T(230, 30, 'top: 7 kg', { size: 16, anchor: 'middle', weight: 800 });
+  s += T(lx + 24, 46, 'labut: 1,5 kg', { size: 16, weight: 800 });
   return svg(W, H, s, u, 130);
 });
 
@@ -21805,35 +21833,36 @@ BFY_FIG_EKLE('kY32_koli_genis', function (u) {
   /* kayış: kolinin önünden sağa */
   s += `<line x1="300" y1="${Y - 34}" x2="336" y2="${Y - 34}" stroke="#5a4632" stroke-width="3"/>`;
   s += ok(340, Y - 34, 430, Y - 34, C.F, { w: 2.8 });
-  s += T(386, Y - 44, 'çekici: 50 N', { size: 12.5, weight: 800, fill: C.F, anchor: 'middle' });
-  s += T(386, Y - 18, '(kayışla çeker)', { size: 11.5, weight: 700, fill: P.ink2, anchor: 'middle' });
+  s += T(386, Y - 44, 'çekici: 50 N', { size: 15, weight: 800, fill: C.F, anchor: 'middle' });
+  s += T(386, Y - 14, '(kayışla çeker)', { size: 13.5, weight: 700, fill: P.ink2, anchor: 'middle' });
   /* itme: kolinin arka yüzüne */
   s += ok(128, Y - 32, 198, Y - 32, C.F, { w: 2.8 });
-  s += T(160, Y - 42, 'Defne: 30 N', { size: 12.5, weight: 800, fill: C.F, anchor: 'middle' });
-  s += T(160, Y - 16, '(arkadan iter)', { size: 11.5, weight: 700, fill: P.ink2, anchor: 'middle' });
+  s += T(148, Y - 42, 'Defne: 30 N', { size: 15, weight: 800, fill: C.F, anchor: 'middle' });
+  s += T(148, Y - 12, '(arkadan iter)', { size: 13.5, weight: 700, fill: P.ink2, anchor: 'middle' });
   /* sürtünme: taban */
   s += ok(250, Y + 22, 210, Y + 22, C.f, { w: 2.4 });
-  s += T(258, Y + 27, 'sürtünme: 25 N', { size: 12, weight: 800, fill: C.f });
+  s += T(258, Y + 28, 'sürtünme: 25 N', { size: 14, weight: 800, fill: C.f });
   s += pusula(250, 28);
   return svg(W, H, s, u, 130);
 });
 
 /* 09: K, L, M kutuları ve yatay kuvvetler */
 BFY_FIG_EKLE('kY32_kutular_genis', function (u) {
-  const W = 540, H = 150, Y = 110;
+  // telefonda okunabilsin diye üç kutu alt alta (W = 330) ve büyük yazı
+  const W = 330, H = 262, cx = 165;
   let s = zemin(W, H);
-  const L = F => 24 + 2.4 * F;
-  const kutu = (cx, ad, m, sag, sol) => {
-    let t = yer(cx - 84, cx + 84, Y);
-    t += koli(u, cx - 21, Y - 44, 42, 44, '', {});
-    t += T(cx, Y - 24, ad, { size: 14, anchor: 'middle', weight: 800, fill: '#4f3412', halo: false }) + T(cx, Y - 8, m, { size: 11.5, anchor: 'middle', weight: 800, fill: '#4f3412', halo: false });
-    t += ok(cx + 21, Y - 22, cx + 21 + L(sag), Y - 22, C.F) + T(cx + 21 + L(sag) / 2, Y - 31, `${sag} N`, { size: 12, anchor: 'middle', weight: 800, fill: C.F });
-    t += ok(cx - 21, Y - 22, cx - 21 - L(sol), Y - 22, C.F) + T(cx - 21 - L(sol) / 2, Y - 31, `${sol} N`, { size: 12, anchor: 'middle', weight: 800, fill: C.F });
+  const L = F => 34 + 2.6 * F;
+  const kutu = (Y, ad, m, sag, sol) => {
+    let t = yer(cx - 150, cx + 150, Y);
+    t += koli(u, cx - 26, Y - 50, 52, 50, '', {});
+    t += T(cx, Y - 28, ad, { size: 16, anchor: 'middle', weight: 800, fill: '#4f3412', halo: false }) + T(cx, Y - 10, m, { size: 13, anchor: 'middle', weight: 800, fill: '#4f3412', halo: false });
+    t += ok(cx + 26, Y - 25, cx + 26 + L(sag), Y - 25, C.F) + T(cx + 26 + L(sag) / 2, Y - 34, `${sag} N`, { size: 14, anchor: 'middle', weight: 800, fill: C.F });
+    t += ok(cx - 26, Y - 25, cx - 26 - L(sol), Y - 25, C.F) + T(cx - 26 - L(sol) / 2, Y - 34, `${sol} N`, { size: 14, anchor: 'middle', weight: 800, fill: C.F });
     return t;
   };
-  s += kutu(92, 'K', '2 kg', 10, 4) + kutu(270, 'L', '4 kg', 14, 2) + kutu(452, 'M', '1 kg', 3, 5);
-  s += T(270, 140, '(Okların boyları ölçekli değildir.)', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
-  return svg(W, H, s, u, 140);
+  s += kutu(72, 'K', '2 kg', 10, 4) + kutu(150, 'L', '4 kg', 14, 2) + kutu(228, 'M', '1 kg', 3, 5);
+  s += T(cx, 255, '(Okların boyları ölçekli değildir.)', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 84);
 });
 
 /* 11: buz pistinde kutu, F1 doğu, F2 batı */
@@ -21850,44 +21879,47 @@ BFY_FIG_EKLE('kY32_F2', function (u) {
 
 /* 12: beş serbest cisim diyagramı */
 BFY_FIG_EKLE('kY32_scd5_genis', function (u) {
-  const W = 560, H = 196;
+  // telefonda okunabilsin diye iki satır (3 + 2), uzun oklar ve büyük yazı
+  const W = 420, H = 336;
   let s = zemin(W, H);
-  const L = 44;
+  const L = 52;
+  const yer5 = [[10, 10], [146, 10], [282, 10], [78, 172], [214, 172]];
   const d = (i, o) => {
-    const x0 = 12 + i * 108, cx = x0 + 54, cy = 100;
-    let t = `<rect class="bg" x="${x0}" y="12" width="100" height="172" rx="10" fill="#fbfdfe" stroke="#dde7ee"/>`;
-    t += T(x0 + 12, 32, String(i + 1), { size: 14, weight: 800, fill: P.copper });
-    t += ok(cx, cy, cx, cy + L, C.G) + T(cx + 7, cy + L - 4, 'G', { size: 12.5, weight: 800, fill: C.G });
-    if (o.N) t += ok(cx, cy, cx, cy - o.N, C.N) + T(cx + 7, cy - o.N + 10, 'N', { size: 12.5, weight: 800, fill: C.N });
-    if (o.T === -1) t += ok(cx, cy, cx - 40, cy, C.F) + T(cx - 34, cy - 9, 'T', { size: 12.5, weight: 800, fill: C.F, anchor: 'middle' });
-    if (o.T === 1) t += ok(cx, cy, cx + 40, cy, C.F) + T(cx + 34, cy - 9, 'T', { size: 12.5, weight: 800, fill: C.F, anchor: 'middle' });
-    if (o.F) t += ok(cx, cy, cx + 36, cy, C.f) + T(cx + 30, cy + 20, 'F', { size: 12.5, weight: 800, fill: C.f, anchor: 'middle' });
-    t += `<circle cx="${cx}" cy="${cy}" r="5" fill="${P.ink}"/>`;
+    const [x0, y0] = yer5[i], cx = x0 + 64, cy = y0 + 80;
+    let t = `<rect class="bg" x="${x0}" y="${y0}" width="128" height="154" rx="10" fill="#fbfdfe" stroke="#dde7ee"/>`;
+    t += T(x0 + 14, y0 + 24, String(i + 1), { size: 16, weight: 800, fill: P.copper });
+    t += ok(cx, cy, cx, cy + L, C.G) + T(cx + 8, cy + L - 4, 'G', { size: 15, weight: 800, fill: C.G });
+    if (o.N) t += ok(cx, cy, cx, cy - o.N, C.N) + T(cx + 8, cy - o.N + 12, 'N', { size: 15, weight: 800, fill: C.N });
+    if (o.T === -1) t += ok(cx, cy, cx - 46, cy, C.F) + T(cx - 38, cy - 10, 'T', { size: 15, weight: 800, fill: C.F, anchor: 'middle' });
+    if (o.T === 1) t += ok(cx, cy, cx + 46, cy, C.F) + T(cx + 38, cy - 10, 'T', { size: 15, weight: 800, fill: C.F, anchor: 'middle' });
+    if (o.F) t += ok(cx, cy, cx + 44, cy, C.f) + T(cx + 36, cy + 22, 'F', { size: 15, weight: 800, fill: C.f, anchor: 'middle' });
+    t += `<circle cx="${cx}" cy="${cy}" r="5.5" fill="${P.ink}"/>`;
     return t;
   };
-  s += d(0, { N: L, T: -1, F: true }) + d(1, { N: L, T: 1 }) + d(2, { T: -1 }) + d(3, { N: L, T: -1 }) + d(4, { N: 26, T: -1 });
-  return svg(W, H, s, u, 150);
+  s += d(0, { N: L, T: -1, F: true }) + d(1, { N: L, T: 1 }) + d(2, { T: -1 }) + d(3, { N: L, T: -1 }) + d(4, { N: 28, T: -1 });
+  return svg(W, H, s, u, 108);
 });
 
 /* 14: K, L, M arabalarının eşit zaman aralıklı konumları */
 BFY_FIG_EKLE('kY32_strob_genis', function (u) {
-  const W = 540, H = 206;
+  // telefonda okunabilsin diye dar tuval (W = 440), büyük araba ve yazı
+  const W = 440, H = 214, X = x => 44 + (x - 50) * 0.8;
   let s = zemin(W, H);
   const satir = (y, ad, xs) => {
-    let t = `<line x1="50" y1="${y + 10}" x2="520" y2="${y + 10}" stroke="#9aa5ad" stroke-width="1.4"/>`;
-    t += T(30, y + 6, ad, { size: 14, weight: 800, anchor: 'middle' });
-    xs.forEach((x, i) => {
-      const son = i === xs.length - 1, op = son ? 1 : 0.42;
-      t += `<g opacity="${op}"><rect x="${x - 10}" y="${y - 6}" width="20" height="12" rx="4" fill="#e7a93b" stroke="#a8741d"/><circle cx="${x - 5}" cy="${y + 7}" r="3" fill="#3c464d"/><circle cx="${x + 5}" cy="${y + 7}" r="3" fill="#3c464d"/></g>`;
-      t += `<line x1="${x}" y1="${y + 14}" x2="${x}" y2="${y + 20}" stroke="${P.ink2}" stroke-width="1.2"/>`;
+    let t = `<line x1="${X(50)}" y1="${y + 12}" x2="${X(520)}" y2="${y + 12}" stroke="#9aa5ad" stroke-width="1.4"/>`;
+    t += T(22, y + 8, ad, { size: 17, weight: 800, anchor: 'middle' });
+    xs.forEach((x0, i) => {
+      const x = X(x0), son = i === xs.length - 1, op = son ? 1 : 0.42;
+      t += `<g opacity="${op}"><rect x="${f1(x - 10)}" y="${y - 6}" width="20" height="14" rx="4" fill="#e7a93b" stroke="#a8741d"/><circle cx="${f1(x - 5)}" cy="${y + 9}" r="3.2" fill="#3c464d"/><circle cx="${f1(x + 5)}" cy="${y + 9}" r="3.2" fill="#3c464d"/></g>`;
+      t += `<line x1="${f1(x)}" y1="${y + 16}" x2="${f1(x)}" y2="${y + 23}" stroke="${P.ink2}" stroke-width="1.3"/>`;
     });
     return t;
   };
-  s += satir(52, 'K', [80, 165, 250, 335, 420]);
-  s += satir(110, 'L', [70, 105, 160, 240, 345]);
-  s += satir(168, 'M', [70, 175, 255, 310, 340]);
-  s += ok(400, 22, 470, 22, C.v, { w: 1.8, head: 7, headW: 4 }) + T(392, 26, 'hareket yönü', { size: 11.5, weight: 700, anchor: 'end', fill: C.v });
-  return svg(W, H, s, u, 140);
+  s += satir(58, 'K', [80, 165, 250, 335, 420]);
+  s += satir(118, 'L', [70, 105, 160, 240, 345]);
+  s += satir(178, 'M', [70, 175, 255, 310, 340]);
+  s += ok(320, 24, 390, 24, C.v, { w: 2, head: 8, headW: 4.4 }) + T(312, 29, 'hareket yönü', { size: 14, weight: 700, anchor: 'end', fill: C.v });
+  return svg(W, H, s, u, 112);
 });
 
 /* 15: X ve Y için ivme-net kuvvet grafiği */
@@ -21903,7 +21935,7 @@ BFY_FIG_EKLE('kY32_aF', function (u) {
   for (let a = 1; a <= 5; a++) s += tik(ox - 7, Y(a) + 4.3, String(a), { anchor: 'end' });
   s += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(10)}" y2="${Y(5)}" stroke="${P.blue}" stroke-width="2.6" stroke-linecap="round"/>`;
   s += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(12)}" y2="${Y(2)}" stroke="${P.coral}" stroke-width="2.6" stroke-linecap="round"/>`;
-  s += T(X(10) - 4, Y(5) + 3, 'X', { size: 14, weight: 800, fill: P.blue, anchor: 'end' });
+  s += T(X(10) - 10, Y(5) + 6, 'X', { size: 14, weight: 800, fill: P.blue, anchor: 'end' });
   s += T(X(12) - 2, Y(2) - 9, 'Y', { size: 14, weight: 800, fill: P.coral, anchor: 'middle' });
   return svg(W, H, s, u, 70);
 });
@@ -21942,24 +21974,25 @@ BFY_FIG_EKLE('kY32_at', function (u) {
 
 /* 26: otobüs tutamağı, üç fotoğraf */
 BFY_FIG_EKLE('kY32_tutamak_genis', function (u) {
-  const W = 540, H = 206;
+  // telefonda okunabilsin diye dar tuval (W = 440) ve büyük yazı
+  const W = 440, H = 214;
   let s = zemin(W, H);
   const panel = (i, aci) => {
-    const x0 = 14 + i * 176, cx = x0 + 84, yb = 56;
-    let t = `<rect class="bg" x="${x0}" y="34" width="168" height="160" rx="10" fill="#fbfdfe" stroke="#dde7ee"/>`;
-    t += `<rect class="bg" x="${x0 + 12}" y="${yb + 26}" width="144" height="58" rx="6" fill="#dcecf6" stroke="#b8cfdd"/>`;
-    t += `<line class="bg" x1="${x0 + 84}" y1="${yb + 26}" x2="${x0 + 84}" y2="${yb + 84}" stroke="#b8cfdd" stroke-width="3"/>`;
-    t += `<rect x="${x0 + 8}" y="${yb - 6}" width="152" height="7" rx="3" fill="#9aa5ad" stroke="#6f7a82"/>`;
+    const x0 = 10 + i * 142, cx = x0 + 67, yb = 60;
+    let t = `<rect class="bg" x="${x0}" y="38" width="136" height="166" rx="10" fill="#fbfdfe" stroke="#dde7ee"/>`;
+    t += `<rect class="bg" x="${x0 + 10}" y="${yb + 26}" width="116" height="58" rx="6" fill="#dcecf6" stroke="#b8cfdd"/>`;
+    t += `<line class="bg" x1="${cx}" y1="${yb + 26}" x2="${cx}" y2="${yb + 84}" stroke="#b8cfdd" stroke-width="3"/>`;
+    t += `<rect x="${x0 + 6}" y="${yb - 6}" width="124" height="7" rx="3" fill="#9aa5ad" stroke="#6f7a82"/>`;
     const L = 70, r = aci * Math.PI / 180, ex = cx + L * Math.sin(r), ey = yb + L * Math.cos(r);
     t += `<line x1="${cx}" y1="${yb}" x2="${f1(ex)}" y2="${f1(ey)}" stroke="#3c464d" stroke-width="4" stroke-linecap="round"/>`;
     t += `<circle cx="${f1(ex + 9 * Math.sin(r))}" cy="${f1(ey + 9 * Math.cos(r))}" r="9" fill="none" stroke="#e7a93b" stroke-width="4"/>`;
     t += dashLine(cx, yb, cx, yb + 96, P.ink2, '3 4', 1);
-    t += T(cx, 184, `${i + 1}. fotoğraf`, { size: 12.5, anchor: 'middle', weight: 800 });
+    t += T(cx, 192, `${i + 1}. fotoğraf`, { size: 14.5, anchor: 'middle', weight: 800 });
     return t;
   };
   s += panel(0, 20) + panel(1, 0) + panel(2, -20);
-  s += ok(300, 18, 380, 18, C.v, { w: 1.8, head: 7, headW: 4 }) + T(292, 22, 'otobüsün hareket yönü (doğu)', { size: 11.5, weight: 700, anchor: 'end', fill: C.v });
-  return svg(W, H, s, u, 140);
+  s += ok(330, 22, 400, 22, C.v, { w: 2, head: 8, headW: 4.4 }) + T(322, 27, 'otobüsün hareket yönü (doğu)', { size: 13.5, weight: 700, anchor: 'end', fill: C.v });
+  return svg(W, H, s, u, 112);
 });
 
 /* 27: K ve L araçlarının hız-zaman grafikleri */
@@ -21993,9 +22026,9 @@ BFY_FIG_EKLE('kY32_dunyaay_genis', function (u) {
   /* uzay aracı */
   s += `<g><rect x="232" y="${Y - 7}" width="26" height="14" rx="3" fill="#e9edf0" stroke="#6f7d85"/><path d="M258 ${Y - 7} L270 ${Y} L258 ${Y + 7} Z" fill="#c9d1d6" stroke="#6f7d85"/><rect x="226" y="${Y - 18}" width="10" height="36" rx="1.5" fill="#2f5f9e" stroke="#1d3d6b"/></g>`;
   s += ok(280, Y - 22, 330, Y - 22, '#9be3b8', { w: 2, head: 8, headW: 4.5 }) + T(305, Y - 30, 'ϑ', { size: 13, weight: 800, fill: '#9be3b8', anchor: 'middle', haloColor: '#1d2b3a' });
-  s += T(70, 156, 'Dünya', { size: 12.5, weight: 800, fill: '#fff', anchor: 'middle', haloColor: '#1d2b3a' });
-  s += T(486, 124, 'Ay', { size: 12.5, weight: 800, fill: '#fff', anchor: 'middle', haloColor: '#1d2b3a' });
-  s += T(248, 124, 'uzay aracı', { size: 12, weight: 800, fill: '#fff', anchor: 'middle', haloColor: '#1d2b3a' });
+  s += T(70, 158, 'Dünya', { size: 15, weight: 800, fill: '#fff', anchor: 'middle', haloColor: '#1d2b3a' });
+  s += T(486, 126, 'Ay', { size: 15, weight: 800, fill: '#fff', anchor: 'middle', haloColor: '#1d2b3a' });
+  s += T(248, 124, 'uzay aracı', { size: 14.5, weight: 800, fill: '#fff', anchor: 'middle', haloColor: '#1d2b3a' });
   s += T(530, 162, '(Şekil ölçekli değildir.)', { size: 11, weight: 700, fill: '#c9d6e0', anchor: 'end', haloColor: '#1d2b3a' });
   return svg(W, H, s, u, 140);
 });
@@ -23607,23 +23640,25 @@ BFY_FIG_EKLE('kY33_makine', function (u) {
 
 /* 05: beş serbest cisim diyagramı (2 doğru) */
 BFY_FIG_EKLE('kY33_scd_genis', function (u) {
-  const W = 566, H = 172;
+  // Telefonda okunabilsin diye iki sıra (3 + 2) ve geniş paneller; ok boyları ayırt edilsin.
+  const W = 420, H = 336, PW = 134, PH = 156;
   let s = zemin(W, H);
-  const pan = (i, o) => {
-    const x0 = 8 + i * 111, cx = x0 + 52, cy = 92, b = 30;
-    let t = `<rect class="bg" x="${x0}" y="10" width="104" height="152" rx="9" fill="#fbfdfe" stroke="#dde7ee"/>`;
-    t += T(x0 + 12, 30, String(i + 1), { size: 14, weight: 800, fill: P.ink });
+  const pan = (i, x0, y0, o) => {
+    const cx = x0 + PW / 2 - 4, cy = y0 + 80, b = 32;
+    let t = `<rect class="bg" x="${x0}" y="${y0}" width="${PW}" height="${PH}" rx="9" fill="#fbfdfe" stroke="#dde7ee"/>`;
+    t += T(x0 + 12, y0 + 22, String(i + 1), { size: 16, weight: 800, fill: P.ink });
     t += `<rect x="${cx - b / 2}" y="${cy - b / 2}" width="${b}" height="${b}" rx="2" fill="#e8d2ad" stroke="#8a6233" stroke-width="1.1"/>`;
-    const L = 34;
-    if (o.N !== false) t += ok(cx, cy - b / 2, cx, cy - b / 2 - L, AG, { w: 2.2, head: 7, headW: 4 }) + T(cx + 7, cy - b / 2 - L + 8, 'N', { size: 12, weight: 800, fill: AG });
-    t += ok(cx, cy + b / 2, cx, cy + b / 2 + L, AG, { w: 2.2, head: 7, headW: 4 }) + T(cx + 7, cy + b / 2 + L - 2, 'G', { size: 12, weight: 800, fill: AG });
-    const LT = o.TL || 24;
-    t += ok(cx + b / 2, cy, cx + b / 2 + LT, cy, KUV, { w: 2.2, head: 7, headW: 4 }) + T(cx + b / 2 + LT - 4, cy - 7, 'T', { size: 12, weight: 800, fill: KUV, anchor: 'middle' });
-    if (o.f === 'sol') t += ok(cx - b / 2, cy + b / 2 - 2, cx - b / 2 - 24, cy + b / 2 - 2, SUR, { w: 2.2, head: 7, headW: 4 }) + T(cx - b / 2 - 18, cy + b / 2 - 9, 'f', { size: 12, weight: 800, fill: SUR, italic: true, anchor: 'middle' });
-    if (o.f === 'sag') t += ok(cx + b / 2, cy + b / 2 - 2, cx + b / 2 + 24, cy + b / 2 - 2, SUR, { w: 2.2, head: 7, headW: 4 }) + T(cx + b / 2 + 20, cy + b / 2 + 12, 'f', { size: 12, weight: 800, fill: SUR, italic: true, anchor: 'middle' });
+    const L = 36, st = { w: 2.6, head: 8, headW: 4.6 };
+    if (o.N !== false) t += ok(cx, cy - b / 2, cx, cy - b / 2 - L, AG, st) + T(cx + 8, cy - b / 2 - L + 9, 'N', { size: 14, weight: 800, fill: AG });
+    t += ok(cx, cy + b / 2, cx, cy + b / 2 + L, AG, st) + T(cx + 8, cy + b / 2 + L - 2, 'G', { size: 14, weight: 800, fill: AG });
+    const LT = o.TL || 26;
+    t += ok(cx + b / 2, cy, cx + b / 2 + LT, cy, KUV, st) + T(cx + b / 2 + LT - 5, cy - 8, 'T', { size: 14, weight: 800, fill: KUV, anchor: 'middle' });
+    if (o.f === 'sol') t += ok(cx - b / 2, cy + b / 2 - 2, cx - b / 2 - 26, cy + b / 2 - 2, SUR, st) + T(cx - b / 2 - 19, cy + b / 2 - 10, 'f', { size: 14, weight: 800, fill: SUR, italic: true, anchor: 'middle' });
+    if (o.f === 'sag') t += ok(cx + b / 2, cy + b / 2 - 2, cx + b / 2 + 26, cy + b / 2 - 2, SUR, st) + T(cx + b / 2 + 21, cy + b / 2 + 14, 'f', { size: 14, weight: 800, fill: SUR, italic: true, anchor: 'middle' });
     return t;
   };
-  s += pan(0, { f: 'sag' }) + pan(1, { f: 'sol' }) + pan(2, { f: 'sol', TL: 37 }) + pan(3, {}) + pan(4, { f: 'sol', N: false });
+  s += pan(0, 6, 8, { f: 'sag' }) + pan(1, 143, 8, { f: 'sol' }) + pan(2, 280, 8, { f: 'sol', TL: 44 });
+  s += pan(3, 74, 172, {}) + pan(4, 211, 172, { f: 'sol', N: false });
   return svg(W, H, s, u, 150);
 });
 
@@ -23649,8 +23684,8 @@ BFY_FIG_EKLE('kY33_PR_genis', function (u) {
     let t = `<rect class="bg" x="${x0}" y="10" width="268" height="220" rx="10" fill="#fbfdfe" stroke="#dde7ee"/>`;
     for (let v = 3; v <= 15; v += 3) t += `<line x1="${f1(gx(v))}" y1="${oy}" x2="${f1(gx(v))}" y2="${f1(gy(13.2))}" stroke="#e1e9ee"/>` + (v <= 12 ? `<line x1="${ox}" y1="${f1(gy(v))}" x2="${f1(gx(15.6))}" y2="${f1(gy(v))}" stroke="#e1e9ee"/>` : '');
     t += eksen(ox, oy, gx(16.4), gy(13.8), 'F (N)', 'f (N)');
-    for (let v = 3; v <= 15; v += 3) t += T(f1(gx(v)), oy + 16, String(v), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
-    for (let v = 3; v <= 12; v += 3) t += T(ox - 6, f1(gy(v) + 4.3), String(v), { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+    for (let v = 3; v <= 15; v += 3) t += T(f1(gx(v)), oy + 17, String(v), { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 });
+    for (let v = 3; v <= 12; v += 3) t += T(ox - 6, f1(gy(v) + 5), String(v), { size: 14, anchor: 'end', weight: 700, fill: P.ink2 });
     t += kalin(`M${ox} ${oy} L${f1(gx(12))} ${f1(gy(12))}`, P.blue);
     t += dashLine(f1(gx(12)), f1(gy(12)), f1(gx(12)), f1(gy(fk)), P.ink2, '3 3', 1.4);
     t += kalin(`M${f1(gx(12))} ${f1(gy(fk))} L${f1(gx(15.4))} ${f1(gy(fk))}`, P.blue);
@@ -23853,7 +23888,7 @@ BFY_FIG_EKLE('kY33_seri_genis', function (u) {
     const ox = x0 + 26, oy = y0 + 122, ex = x0 + 160, ey = y0 + 24, gx = v => ox + v * 128, gy = v => oy - v * 86;
     let t = `<rect class="bg" x="${x0}" y="${y0}" width="176" height="152" rx="10" fill="#fbfdfe" stroke="#dde7ee"/>`;
     t += eksen(ox, oy, ex, ey, 't', 'f', { size: 12.5 });
-    tt.forEach((v, i) => { t += dashLine(f1(gx(v)), oy, f1(gx(v)), f1(gy(1)), '#c4cfd6', '3 3', 1) + T(f1(gx(v)), oy + 16, `t_${i + 1}`, { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 }); });
+    tt.forEach((v, i) => { t += dashLine(f1(gx(v)), oy, f1(gx(v)), f1(gy(1)), '#c4cfd6', '3 3', 1) + T(f1(gx(v)), oy + 17, `t_${i + 1}`, { size: 13, anchor: 'middle', weight: 700, fill: P.ink2 }); });
     const pts = sekil[no];
     let d = '';
     for (let i = 0; i < pts.length; i++) {
@@ -27313,7 +27348,7 @@ function saksi(u, cx, ytop, w, renk) {
 BFY_FIG_EKLE('kY42_saksi', function (u) {
   const W = 320, H = 260, yb = 236, k = 50;               // 1 h = 50 birim
   let s = zemin(W, H) + `<rect class="bg" x="10" y="${yb}" width="300" height="10" rx="2" fill="#cdb894"/>`;
-  s += `<rect x="156" y="20" width="8" height="${yb - 20}" fill="#8a6a45" stroke="#5c4026" stroke-width="1"/>`;
+  s += `<rect x="156" y="9" width="8" height="${yb - 9}" fill="#8a6a45" stroke="#5c4026" stroke-width="1"/>`;
   const asil = (yAlt, taraf, ad, km, renk) => {
     const cx = 160 + taraf * 70, ytop = yAlt - 0.62 * 44, ykol = ytop - 46;
     let t = `<rect x="${taraf < 0 ? cx : 164}" y="${ykol - 3}" width="${taraf < 0 ? 156 - cx : cx - 164}" height="5" fill="#8a6a45"/>`;
@@ -28711,7 +28746,7 @@ yargılarından hangileri doğrudur?`,
 Buna göre,
 
 I. Koli K noktasından, bırakıldığı andaki süratinden daha küçük bir süratle geçer.
-II. Kolinin çıkışı sırasında ısıya dönüşen enerji, inişi sırasında ısıya dönüşen enerjiye eşittir.
+II. Koli en üst noktada bir an dururken mekanik enerjisi, K noktasından bırakıldığı andakinden küçüktür.
 III. Çıkış sırasında kolinin potansiyel enerjisindeki artış, kinetik enerjisindeki azalmaya eşittir.
 
 yargılarından hangileri kesinlikle doğrudur?`,
@@ -28721,9 +28756,9 @@ yargılarından hangileri kesinlikle doğrudur?`,
       cozum: [
         r`Kolinin hem çıkışında hem inişinde rampa ile koli arasında sürtünme vardır; mekanik enerjinin bir kısmı her iki aşamada ısıya dönüşür.`,
         r`I. K noktası aynı yükseklikte olduğundan potansiyel enerji aynıdır. Mekanik enerji azaldığı için kinetik enerji ve sürat küçüktür. **Kesinlikle doğru.**`,
-        r`II. Rampanın yüzeyi her yerde aynı ve eğimi sabit olduğu için kayan koliye etki eden sürtünme kuvvetinin büyüklüğü çıkışta da inişte de aynıdır; koli iki aşamada aynı yolu alır. Sürtünme yüzünden ısıya dönüşen enerji iki aşamada eşittir. **Kesinlikle doğru.**`,
+        r`II. Koli çıkarken de rampaya sürtünür. Kinetik enerjisinin bir kısmı potansiyel enerjiye, bir kısmı ısıya dönüşür. Bu yüzden en üst noktadaki mekanik enerjisi K'deki mekanik enerjisinden küçüktür. **Kesinlikle doğru.**`,
         r`III. Çıkışta kinetik enerjideki azalmanın bir kısmı potansiyel enerjiye, bir kısmı ısıya dönüşür. Potansiyel enerjideki artış daha küçüktür. **Yanlış.**`,
-        r`{{S0}} çıkışta ve inişte sürtünme kuvvetinin ve alınan yolun aynı olduğunu görmez. {{S1}} sürtünmeli rampada mekanik enerjinin korunduğunu sanır. {{S3}} çıkıştaki ısı kaybını gözden kaçırır ve iki aşamadaki ısıyı karşılaştırmaz. {{S4}} çıkıştaki kaybı yok sayar ve koli geri döndüğünde süratinin küçüldüğünü atlar.`
+        r`{{S0}} kaybın yalnız inişte olduğunu sanır. Koli çıkarken de rampaya sürtünür. {{S1}} sürtünmeli rampada çıkışta mekanik enerjinin korunduğunu sanır ve dönüşteki sürat azalmasını da görmez. {{S3}} dönüşte süratin azaldığını görür ama çıkışta sürtünme olmadığını sanır ve III'ü doğru sayar. {{S4}} II ile III'ün çeliştiğini görmez. Çıkışta mekanik enerji azalıyorsa potansiyel enerjideki artış, kinetik enerjideki azalmadan küçüktür. Ayrıca koli geri döndüğünde süratinin küçüldüğünü atlar.`
       ]
     },
     {
@@ -29290,28 +29325,29 @@ BFY_FIG_EKLE('kY51_comlek', function (u) {
 
 /* 03: beş sıcaklık–zaman grafiği (geniş) */
 BFY_FIG_EKLE('kY51_pekmez_genis', function (u) {
-  const W = 560, H = 214;
+  // Telefonda okunabilsin diye iki sıra (3 + 2) ve geniş paneller. Dikey eksen 0'dan başlar; 20 °C çizgisinin altı görünür.
+  const W = 420, H = 372, PW = 132, PH = 160;
   let s = zemin(W, H);
-  s += `<line x1="150" y1="18" x2="178" y2="18" stroke="${SICAK}" stroke-width="2.6" stroke-linecap="round"/>` + T(184, 22.5, 'kâsedeki pekmez', { size: 12, weight: 700 });
-  s += `<line x1="320" y1="18" x2="348" y2="18" stroke="${SOGUK}" stroke-width="2.6" stroke-dasharray="6 4" stroke-linecap="round"/>` + T(354, 22.5, 'kazandaki pekmez', { size: 12, weight: 700 });
-  const panel = (x0, ad, fKase, fKazan) => {
-    const ox = x0 + 30, oy = 180, gw = 70, X = t => ox + t * gw, Y = T0 => oy - 12 - (T0 - 20) / 70 * 112;
-    let t = `<rect class="bg" x="${x0 + 3}" y="34" width="${106}" height="172" rx="9" fill="#fff" stroke="#e1e6e8"/>`;
+  s += `<line x1="62" y1="20" x2="92" y2="20" stroke="${SICAK}" stroke-width="3" stroke-linecap="round"/>` + T(98, 24.5, 'kâsedeki pekmez', { size: 13, weight: 700 });
+  s += `<line x1="236" y1="20" x2="266" y2="20" stroke="${SOGUK}" stroke-width="2.6" stroke-dasharray="6 4" stroke-linecap="round"/>` + T(272, 24.5, 'kazandaki pekmez', { size: 13, weight: 700 });
+  const panel = (x0, y0, ad, fKase, fKazan) => {
+    const ox = x0 + 28, oy = y0 + PH - 24, gw = 78, gh = 104, X = t => ox + t * gw, Y = T0 => oy - T0 / 90 * gh;
+    let t = `<rect class="bg" x="${x0}" y="${y0}" width="${PW}" height="${PH}" rx="9" fill="#fff" stroke="#e1e6e8"/>`;
     t += `<line x1="${ox}" y1="${oy}" x2="${ox + gw + 6}" y2="${oy}" stroke="${P.ink}" stroke-width="1.3"/><polygon points="${ox + gw + 12},${oy} ${ox + gw + 4},${oy - 3.5} ${ox + gw + 4},${oy + 3.5}" fill="${P.ink}"/>`;
-    t += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - 130}" stroke="${P.ink}" stroke-width="1.3"/><polygon points="${ox},${oy - 136} ${ox - 3.5},${oy - 128} ${ox + 3.5},${oy - 128}" fill="${P.ink}"/>`;
-    t += T(ox + 5, oy - 126, 'T', { size: 12, weight: 700 }) + T(ox + gw + 2, oy + 15, 't', { size: 12, weight: 700, italic: true });
-    t += dashLine(ox, Y(20), ox + gw, Y(20), '#9aa8b1', '3 3', 1) + T(ox - 4, f1(Y(20) + 4), '20', { size: 11.5, anchor: 'end', fill: P.ink2 }) + T(ox - 4, f1(Y(90) + 4), '90', { size: 11.5, anchor: 'end', fill: P.ink2 });
+    t += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - gh - 16}" stroke="${P.ink}" stroke-width="1.3"/><polygon points="${ox},${oy - gh - 22} ${ox - 3.5},${oy - gh - 14} ${ox + 3.5},${oy - gh - 14}" fill="${P.ink}"/>`;
+    t += T(ox + 6, oy - gh - 12, 'T (°C)', { size: 12, weight: 700 }) + T(ox + gw + 15, oy + 4.5, 't', { size: 13, weight: 700, italic: true });
+    t += dashLine(ox, f1(Y(20)), ox + gw, f1(Y(20)), '#9aa8b1', '3 3', 1.1) + T(ox - 4, f1(Y(20) + 4), '20', { size: 12, anchor: 'end', fill: P.ink2 }) + T(ox - 4, f1(Y(90) + 4), '90', { size: 12, anchor: 'end', fill: P.ink2 }) + T(ox - 4, oy + 4, '0', { size: 12, anchor: 'end', fill: P.ink2 });
     const pts = f => Array.from({ length: 41 }, (_, i) => [X(i / 40), Y(f(i / 40))]);
-    t += egri(pts(fKase), SICAK, { w: 2.6 }) + egri(pts(fKazan), SOGUK, { dash: '6 4', w: 2.2 });
-    t += T(x0 + 100, 54, ad, { size: 15, weight: 800, anchor: 'end', fill: P.copper });
+    t += egri(pts(fKase), SICAK, { w: 2.8 }) + egri(pts(fKazan), SOGUK, { dash: '6 4', w: 2.4 });
+    t += T(x0 + PW - 8, y0 + 20, ad, { size: 16, weight: 800, anchor: 'end', fill: P.copper });
     return t;
   };
   const e = k => t => 20 + 70 * Math.exp(-k * t);
-  s += panel(2, 'K', e(2.2), e(2.2));
-  s += panel(113, 'L', e(4.2), e(1.3));
-  s += panel(224, 'M', e(1.3), e(4.2));
-  s += panel(335, 'N', t => 20 + 70 * Math.exp(-4.6 * t) - 34 * t * Math.exp(-2.4 * t) * 2.2, e(1.3));
-  s += panel(446, 'P', e(4.2), () => 90);
+  s += panel(6, 36, 'K', e(2.2), e(2.2));
+  s += panel(144, 36, 'L', e(4.2), e(1.3));
+  s += panel(282, 36, 'M', e(1.3), e(4.2));
+  s += panel(75, 204, 'N', t => 6 + 84 * Math.exp(-4.2 * t), e(1.3));
+  s += panel(213, 204, 'P', e(4.2), () => 90);
   return svg(W, H, s, u, 150);
 });
 
@@ -29340,10 +29376,10 @@ BFY_FIG_EKLE('kY51_kalorimetre', function (u) {
   s += `<rect x="${x - 6}" y="${y - 10}" width="${w + 12}" height="12" rx="3" fill="#8b6a46" stroke="#5f4630" stroke-width="1"/>`;
   s += termometre(x + 34, 16, y + 82, y + 30, { w: 9 });
   s += `<line x1="${x + 76}" y1="24" x2="${x + 76}" y2="${y + 88}" stroke="#55626b" stroke-width="2.2"/><line x1="${x + 64}" y1="${y + 88}" x2="${x + 88}" y2="${y + 88}" stroke="#55626b" stroke-width="2.2"/><rect x="${x + 70}" y="16" width="12" height="9" rx="2" fill="#55626b"/>`;
-  s += `<line x1="${x + 40}" y1="40" x2="226" y2="40" stroke="${P.ink2}" stroke-width=".9"/>` + T(230, 44, 'termometre', { size: 12, weight: 800 });
-  s += `<line x1="${x + 82}" y1="62" x2="226" y2="66" stroke="${P.ink2}" stroke-width=".9"/>` + T(230, 70, 'karıştırıcı', { size: 12, weight: 800 });
-  s += `<line x1="${x + w - 6}" y1="${y + 70}" x2="226" y2="${y + 52}" stroke="${P.ink2}" stroke-width=".9"/>` + T(230, y + 56, 'su', { size: 12, weight: 800 });
-  s += `<line x1="${x + w}" y1="${y + 104}" x2="226" y2="${y + 92}" stroke="${P.ink2}" stroke-width=".9"/>` + T(230, y + 96, 'yalıtım', { size: 12, weight: 800 });
+  s += `<line x1="${x + 40}" y1="40" x2="214" y2="40" stroke="${P.ink2}" stroke-width=".9"/>` + T(218, 44, 'termometre', { size: 12, weight: 800 });
+  s += `<line x1="${x + 79}" y1="50" x2="214" y2="66" stroke="${P.ink2}" stroke-width=".9"/>` + T(218, 70, 'karıştırıcı', { size: 12, weight: 800 });
+  s += `<line x1="${x + w - 30}" y1="${y + 70}" x2="214" y2="${y + 52}" stroke="${P.ink2}" stroke-width=".9"/>` + T(218, y + 56, 'su', { size: 12, weight: 800 });
+  s += `<line x1="${x + w}" y1="${y + 104}" x2="214" y2="${y + 92}" stroke="${P.ink2}" stroke-width=".9"/>` + T(218, y + 96, 'yalıtım', { size: 12, weight: 800 });
   return svg(W, H, s, u, 66);
 });
 
@@ -31039,7 +31075,7 @@ BFY_FIG_EKLE('kY52_grafik_genis', function (u) {
 BFY_FIG_EKLE('kY52_denge', function (u) {
   const W = 320, H = 226, ox = 48, oy = 196, ex = 286, ey = 20, X = t => ox + t * 21, Y = v => oy - (v - 10) * 2.3, d = VERI.denge;
   let s = zemin(W, H);
-  s += eksen(ox, oy, ex, ey, 'Zaman', 'Sıcaklık', { xAlt: true });
+  s += eksen(ox, oy, ex, ey, 't', 'Sıcaklık');
   const tau = 2.4, k = t => d.TD + (d.K0 - d.TD) * Math.exp(-t / tau), l = t => d.TD - (d.TD - d.L0) * Math.exp(-t / tau);
   const sx = Array.from({ length: 51 }, (_, i) => i * 0.22);
   s += dashLine(ox, f1(Y(d.TD)), X(11) + 4, f1(Y(d.TD)), YESIL, '5 4', 1.3) + T(ox - 6, f1(Y(d.TD) + 4.5), 'T_D', { size: 12.5, anchor: 'end', weight: 800, fill: YESIL });
@@ -31097,7 +31133,7 @@ BFY_FIG_EKLE('kY52_beslenme', function (u) {
 BFY_FIG_EKLE('kY52_jel', function (u) {
   const W = 300, H = 220, ox = 46, oy = 190, ex = 262, ey = 20, X = t => ox + t * 52, Y = v => oy - (v - 28) * 7.6, d = VERI.jel;
   let s = zemin(W, H);
-  s += eksen(ox, oy, ex, ey, 'Zaman', 'Sıcaklık', { xAlt: true });
+  s += eksen(ox, oy, ex, ey, 't', 'Sıcaklık');
   const ts = Array.from({ length: 31 }, (_, i) => i * d.tk / 30);
   s += egri(ts.map(t => [X(t), Y(d.paket(t))]), SICAK) + egri(ts.map(t => [X(t), Y(d.cilt(t))]), SOGUK);
   s += dashLine(X(d.tk), oy, X(d.tk), 30, P.ink2, '4 4', 1.1) + T(X(d.tk), oy + 16, 't_k', { size: 13, weight: 800, anchor: 'middle' });
@@ -31125,7 +31161,7 @@ BFY_FIG_EKLE('kY52_ucgrafik_genis', function (u) {
 BFY_FIG_EKLE('kY52_sensor', function (u) {
   const W = 300, H = 220, ox = 50, oy = 190, ex = 262, ey = 20, X = t => ox + t * 20, Y = v => oy - (v - 14) * 2.7, d = VERI.sensor;
   let s = zemin(W, H);
-  s += eksen(ox, oy, ex, ey, 'Zaman', 'Sıcaklık', { xAlt: true });
+  s += eksen(ox, oy, ex, ey, 't', 'Sıcaklık');
   s += dashLine(ox, f1(Y(d.oda)), X(10.2), f1(Y(d.oda)), P.ink2, '5 4', 1.1) + T(X(10.2), f1(Y(d.oda) + 15), 'oda sıcaklığı', { size: 11.5, weight: 700, anchor: 'end', fill: P.ink2 });
   const ts = Array.from({ length: 101 }, (_, i) => i * 0.1);
   s += egri(ts.map(t => [X(t), Y(d.K(t))]), SICAK) + egri(ts.filter(t => t <= d.t1).map(t => [X(t), Y(d.L(t))]), SOGUK);
@@ -31163,16 +31199,18 @@ BFY_FIG_EKLE('kY52_bilye', function (u) {
 
 /* 12: T_D–m grafikleri K, L, M, N, P (geniş) */
 BFY_FIG_EKLE('kY52_tdkutle_genis', function (u) {
-  const W = 560, H = 190;
+  // Telefonda okunabilsin diye iki sıra (3 + 2) ve geniş paneller.
+  const W = 420, H = 376, PW = 136, PH = 176;
   let s = zemin(W, H);
-  ['K', 'L', 'M', 'N', 'P'].forEach((ad, i) => {
-    const x0 = 6 + i * 110, ox = x0 + 26, oy = 120, ex = x0 + 92, ey = 20, X = m => ox + m * 58, Y = v => oy - 22 - v * 64, f = VERI.tdkutle[ad];
-    s += eksen(ox, oy, ex, ey, 'm', 'T_D', { size: 11.5 });
-    s += dashLine(ox, Y(1), ex, Y(1), '#b6887a', '3 3', 1) + dashLine(ox, Y(0), ex, Y(0), '#7f9fb6', '3 3', 1);
-    s += T(ox - 4, f1(Y(1) + 4), 'T_2', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 }) + T(ox - 4, f1(Y(0) + 4), 'T_1', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
+  [['K', 4, 8], ['L', 142, 8], ['M', 280, 8], ['N', 73, 192], ['P', 211, 192]].forEach(([ad, x0, y0]) => {
+    const ox = x0 + 26, oy = y0 + PH - 22, ex = ox + 88, ey = oy - 134, X = m => ox + m * 80, Y = v => oy - 34 - v * 64, f = VERI.tdkutle[ad];
+    s += `<rect class="bg" x="${x0}" y="${y0}" width="${PW}" height="${PH}" rx="9" fill="#fff" stroke="#e1e6e8"/>`;
+    s += eksen(ox, oy, ex, ey, 'm', 'T_D', { size: 12.5 });
+    s += dashLine(ox, Y(1), ex, Y(1), '#b6887a', '3 3', 1.1) + dashLine(ox, Y(0), ex, Y(0), '#7f9fb6', '3 3', 1.1);
+    s += T(ox - 4, f1(Y(1) + 4), 'T_2', { size: 12.5, weight: 700, anchor: 'end', fill: P.ink2 }) + T(ox - 4, f1(Y(0) + 4), 'T_1', { size: 12.5, weight: 700, anchor: 'end', fill: P.ink2 });
     const ms = Array.from({ length: 41 }, (_, k) => k / 40);
-    s += egri(ms.map(m => [X(m), Y(Math.max(-0.45, Math.min(1.45, f(m))))]), P.blue, { w: 2.4 });
-    s += T(x0 + 56, 150, ad, { size: 14, weight: 800, anchor: 'middle' });
+    s += egri(ms.map(m => [X(m), Y(Math.max(-0.45, Math.min(1.45, f(m))))]), P.blue, { w: 2.8 });
+    s += T(x0 + PW - 8, y0 + 20, ad, { size: 16, weight: 800, anchor: 'end', fill: P.copper });
   });
   return svg(W, H, s, u, 150);
 });
@@ -31214,9 +31252,9 @@ function kareli(s0, ox, oy, nx, ny, a) {
 
 /* 20: saf X'in sıcaklık–zaman grafiği (kareli, 1–5 aralıkları) */
 BFY_FIG_EKLE('kY52_xgrafik', function (u) {
-  const W = 320, H = 244, ox = 40, oy = 186, a = 13, X = t => ox + t * a, Y = v => oy - 18 - v * a;
+  const W = 320, H = 216, ox = 40, oy = 186, a = 13, X = t => ox + t * a, Y = v => oy - 18 - v * a;
   let s = kareli(zemin(W, H), ox, oy, 19, 11, a);
-  s += eksen(ox, oy, ox + 19 * a + 6, oy - 11 * a - 8, '', 'Sıcaklık') + T(ox + 19 * a + 10, oy + 34, 'Zaman', { size: 12.5, weight: 700, anchor: 'end' });
+  s += eksen(ox, oy, ox + 19 * a + 6, oy - 11 * a - 8, 't', 'Sıcaklık');
   s += egri(VERI.x.map(([t, v]) => [X(t), Y(v)]), P.blue, { w: 2.8 });
   const sinir = [0, 2, 5, 9, 16, 18];
   for (let i = 1; i < sinir.length - 1; i++) s += dashLine(X(sinir[i]), oy, X(sinir[i]), Y(VERI.x[i][1]) + 4, P.ink2, '2 3', 1);
@@ -31228,7 +31266,7 @@ BFY_FIG_EKLE('kY52_xgrafik', function (u) {
 BFY_FIG_EKLE('kY52_klgrafik', function (u) {
   const W = 300, H = 210, ox = 44, oy = 176, a = 22, X = t => ox + t * a, Y = v => oy - 14 - v * a;
   let s = kareli(zemin(W, H), ox, oy, 10, 6, a);
-  s += eksen(ox, oy, ox + 10 * a + 6, oy - 6 * a - 6, 'Zaman', 'Sıcaklık', { xAlt: true });
+  s += eksen(ox, oy, ox + 10 * a + 6, oy - 6 * a - 6, 't', 'Sıcaklık');
   s += egri(VERI.kl.K.map(([t, v]) => [X(t), Y(v)]), SICAK, { w: 2.8 }) + egri(VERI.kl.L.map(([t, v]) => [X(t), Y(v)]), SOGUK, { w: 2.8 });
   s += T(X(8) + 6, Y(5) + 4, 'K', { size: 14, weight: 800, fill: SICAK }) + T(X(5) + 6, Y(3) + 4, 'L', { size: 14, weight: 800, fill: SOGUK });
   s += T(ox - 6, Y(0) + 4, 'T_0', { size: 12, weight: 700, anchor: 'end', fill: P.ink2 });
@@ -31255,17 +31293,17 @@ BFY_FIG_EKLE('kY52_kurubuz', function (u) {
 
 /* 25: X, Y, Z grafikleri (geniş) */
 BFY_FIG_EKLE('kY52_buzlar_genis', function (u) {
-  const W = 560, H = 196;
+  const W = 420, H = 196;
   let s = zemin(W, H);
   ['X', 'Y', 'Z'].forEach((ad, i) => {
-    const x0 = 14 + i * 182, ox = x0 + 44, oy = 156, a = 36, X = t => ox + t * a, Y = v => oy - 6 - (v + 20) * 4.8, d = VERI.buz[ad];
+    const x0 = 4 + i * 138, ox = x0 + 36, oy = 156, a = 26, X = t => ox + t * a, Y = v => oy - 6 - (v + 20) * 4.8, d = VERI.buz[ad];
     for (let k = 1; k <= 3; k++) s += `<line x1="${X(k)}" y1="${oy}" x2="${X(k)}" y2="${Y(4)}" stroke="${GRID}" stroke-width="1"/>`;
-    [-20, -10, 0].forEach(v => { s += `<line x1="${ox}" y1="${f1(Y(v))}" x2="${X(3) + 4}" y2="${f1(Y(v))}" stroke="${GRID}" stroke-width="1"/>` + T(ox - 6, f1(Y(v) + 4.3), String(v).replace('-', '−'), { size: 11.5, anchor: 'end', fill: P.ink2 }); });
-    s += eksen(ox, oy, X(3) + 10, Y(8), 't', 'T (°C)', { size: 12 });
+    [-20, -10, 0].forEach(v => { s += `<line x1="${ox}" y1="${f1(Y(v))}" x2="${X(3) + 4}" y2="${f1(Y(v))}" stroke="${GRID}" stroke-width="1"/>` + T(ox - 5, f1(Y(v) + 4.3), String(v).replace('-', '−'), { size: 12.5, anchor: 'end', fill: P.ink2 }); });
+    s += eksen(ox, oy, X(3) + 10, Y(8), 't', 'T (°C)', { size: 12.5 });
     s += egri(d.map(([t, v]) => [X(t), Y(v)]), P.blue, { w: 2.6 });
     const [te, ve] = d[d.length - 1];
     s += `<circle cx="${f1(X(te))}" cy="${f1(Y(ve))}" r="3.6" fill="${SICAK}" stroke="#fff" stroke-width="1.2"/>`;
-    s += T(x0 + 100, 184, ad, { size: 14, weight: 800, anchor: 'middle' });
+    s += T(x0 + 75, 186, ad, { size: 15, weight: 800, anchor: 'middle' });
   });
   return svg(W, H, s, u, 150);
 });
@@ -31294,20 +31332,21 @@ BFY_FIG_EKLE('kY52_ikibeher', function (u) {
 
 /* 29: K, L, M blokları ve sıcaklık–zaman grafiği (geniş) */
 BFY_FIG_EKLE('kY52_zincir_genis', function (u) {
-  const W = 560, H = 226, Z = VERI.zincir;
+  // Telefonda okunabilsin diye kutu üstte, grafik altta ve geniş.
+  const W = 380, H = 384, Z = VERI.zincir;
   let s = zemin(W, H);
   // yalıtılmış kutu ve bloklar
-  s += `<rect x="16" y="64" width="210" height="96" rx="10" fill="#7fa7c4" stroke="#4f7896" stroke-width="1.6"/><rect x="28" y="76" width="186" height="72" rx="6" fill="#f4f8fb"/>`;
-  [['K', 40, SICAK], ['L', 96, YESIL], ['M', 152, SOGUK]].forEach(([ad, x, c]) => { s += `<rect x="${x}" y="92" width="56" height="44" rx="3" fill="url(#${u}metal)" stroke="${c}" stroke-width="2"/>` + T(x + 28, 120, ad, { size: 15, weight: 800, anchor: 'middle', fill: c }); });
-  s += T(121, 52, 'yalıtılmış kutu', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += `<rect x="85" y="30" width="210" height="96" rx="10" fill="#7fa7c4" stroke="#4f7896" stroke-width="1.6"/><rect x="97" y="42" width="186" height="72" rx="6" fill="#f4f8fb"/>`;
+  [['K', 109, SICAK], ['L', 165, YESIL], ['M', 221, SOGUK]].forEach(([ad, x, c]) => { s += `<rect x="${x}" y="58" width="56" height="44" rx="3" fill="url(#${u}metal)" stroke="${c}" stroke-width="2"/>` + T(x + 28, 86, ad, { size: 15, weight: 800, anchor: 'middle', fill: c }); });
+  s += T(190, 20, 'yalıtılmış kutu', { size: 12.5, weight: 700, anchor: 'middle', fill: P.ink2 });
   // grafik
-  const ox = 290, oy = 196, ex = 536, ey = 22, X = t => ox + t * 19.5, Y = v => oy - v * 2.05;
-  s += eksen(ox, oy, ex, ey, 'Zaman', 'Sıcaklık', { xAlt: true });
+  const ox = 50, oy = 362, ex = 348, ey = 150, X = t => ox + t * 24, Y = v => oy - v * 2.4;
+  s += eksen(ox, oy, ex, ey, 't', 'Sıcaklık', { size: 13 });
   [[1, SICAK, 'K'], [2, YESIL, 'L'], [3, SOGUK, 'M']].forEach(([k, c, ad]) => {
-    s += egri(Z.seri.map(r => [X(r[0]), Y(r[k])]), c, { w: 2.6 });
-    s += T(ox - 6, f1(Y(Z.ilk[k - 1]) + 4.5), ad, { size: 13, weight: 800, anchor: 'end', fill: c });
+    s += egri(Z.seri.map(r => [X(r[0]), Y(r[k])]), c, { w: 2.8 });
+    s += T(ox - 7, f1(Y(Z.ilk[k - 1]) + 5), ad, { size: 14, weight: 800, anchor: 'end', fill: c });
   });
-  s += dashLine(ox, f1(Y(Z.ilk[1])), X(12), f1(Y(Z.ilk[1])), YESIL, '3 4', 1);
+  s += dashLine(ox, f1(Y(Z.ilk[1])), X(12), f1(Y(Z.ilk[1])), YESIL, '3 4', 1.1);
   return svg(W, H, s, u, 150);
 });
 
@@ -31422,7 +31461,7 @@ BFY_FIG_EKLE('kY52_kalorimetre', function (u) {
   s += egri(ts(180).map(t => [X(t), Y(buz(t))]), SOGUK, { w: 3.2 });
   s += T(X(d.t1) + 8, oy + 17, 't_1', { size: 13, weight: 800, anchor: 'middle' }) + T(X(d.t2) - 7, oy + 17, 't_2', { size: 13, weight: 800, anchor: 'middle' });
   s += T(X(1.25), f1(Y(su(1.25)) - 10), 'su', { size: 13, weight: 800, fill: SICAK });
-  s += T(X(0.62), f1(Y(-9.6)), 'buz', { size: 13, weight: 800, fill: SOGUK });
+  s += T(X(0.62), f1(Y(-12.8)), 'buz', { size: 13, weight: 800, fill: SOGUK });
   return svg(W, H, s, u, 74);
 });
 /* ---------- SIFIRDAN BAŞLA şekilleri (önek sfY52_): kart genişliği ~340 px, en küçük yazı 14 ---------- */
@@ -32116,7 +32155,7 @@ Hangi karışımların denge sıcaklığı, iki ilk sıcaklığın tam ortasınd
         r`I. İki taraf da aynı kütlede sudur; ısı sığaları eşittir. **Tam ortası.**`,
         r`II. Kütleler eşit ama Y'nin öz ısısı suyunkinden küçüktür; Y'nin ısı sığası küçüktür. Y'nin sıcaklığı daha çok değişir ve denge sıcaklığı suyun ilk sıcaklığına, yani $45\ ^{\circ}\text{C}$'nin üstüne kayar. **Tam ortası değil.**`,
         r`III. X'in kütlesi iki kat, öz ısısı yarıdır; ısı sığası $0,2\ \text{kg}$ suyunkine eşittir. **Tam ortası.**`,
-        r`{{S0}} ısı sığasının kütle ile öz ısının çarpımı olduğunu, III'te iki etkinin birbirini dengelediğini görmez. {{S1}} kökü tersten okur ve denge sıcaklığı tam ortadan kayan tek karışımı seçer. {{S2}} eşit kütlelerin her zaman tam ortada dengelendiğini sanır ve III'ü atlar. {{S4}} ilk sıcaklıklar her karışımda aynı olduğu için denge sıcaklığını hep tam ortada sanır; kütlenin ve öz ısının etkisini atlar.`
+        r`{{S0}} ısı sığasının kütle ile öz ısının çarpımı olduğunu, III'te iki etkinin birbirini dengelediğini görmez. {{S1}} kökü tersten okur ve denge sıcaklığı tam ortadan kayan tek karışımı seçer. {{S2}} eşit kütlelerin her zaman tam ortada dengelendiğini sanır ve III'ü atlar. {{S4}} Y'nin öz ısısının sudan küçük olduğunu gözden kaçırıp II'yi de tam ortada sayar ve aynı kütlede iki suyun tam ortada dengelendiği I'i atlar.`
       ]
     },
     {
@@ -33055,7 +33094,7 @@ BFY_FIG_EKLE('kY53_sera_genis', function (u) {
   // Güneş (sağ üstte) ve ışınları
   s += `<circle cx="474" cy="32" r="16" fill="#ffd34d" stroke="#e7a93b" stroke-width="2"/>`;
   s += ok(460, 46, 384, 178, '#e7a93b', { w: 2.6, head: 9, headW: 5 }) + ok(448, 40, 334, 178, '#e7a93b', { w: 2.6, head: 9, headW: 5 });
-  s += T(436, 66, 'Güneş ışınları', { size: 12, weight: 800, anchor: 'end', fill: '#b07a12' });
+  s += T(414, 66, 'Güneş ışınları', { size: 12, weight: 800, anchor: 'end', fill: '#b07a12' });
   // kızılötesi: biri uzaya kaçar, biri atmosferde soğurulup yeniden yayılır
   s += isin(124, 178, 124, 20, SICAK, { n: 5, a: 3.2 });
   s += isin(200, 178, 200, 106, SICAK, { n: 2.5, a: 3.2 }) + `<circle cx="200" cy="100" r="4.5" fill="#6b4fa8"/>`;
@@ -33133,13 +33172,13 @@ BFY_FIG_EKLE('kY53_suGrafik_genis', function (u) {
 
 /* Q25: uzama–sıcaklık değişimi grafiği (kareli) */
 BFY_FIG_EKLE('kY53_uzama', function (u) {
-  const W = 300, H = 250, ox = 56, oy = 214, q = 21;   // q: kare kenarı
+  const W = 330, H = 250, ox = 56, oy = 214, q = 21;   // q: kare kenarı
   let s = zemin(W, H);
   for (let i = 1; i <= 8; i++) s += `<line x1="${ox}" y1="${oy - i * q}" x2="${ox + 9 * q}" y2="${oy - i * q}" stroke="#e1e6e8" stroke-width="1"/>`;
   for (let i = 1; i <= 9; i++) s += `<line x1="${ox + i * q}" y1="${oy}" x2="${ox + i * q}" y2="${oy - 8 * q}" stroke="#e1e6e8" stroke-width="1"/>`;
-  s += eksen(ox, oy, ox + 9 * q + 8, oy - 8 * q - 14, 'ΔT', 'Uzama', { xDx: 6, xDy: 4, xAnchor: 'start' });
+  s += eksen(ox, oy, ox + 9 * q + 8, oy - 8 * q - 14, 'ΔT (°C)', 'Uzama (mm)', { xDx: 6, xDy: 4, xAnchor: 'start' });
   [2, 4, 6, 8].forEach(v => { s += T(ox - 6, oy - v * q + 4, String(v), { size: 11.5, anchor: 'end', fill: P.ink2 }); });
-  [2, 4].forEach(v => { s += T(ox + v * 2 * q, oy + 15, String(v), { size: 11.5, anchor: 'middle', fill: P.ink2 }); });
+  [2, 4].forEach(v => { s += T(ox + v * 2 * q, oy + 15, String(v * 10), { size: 11.5, anchor: 'middle', fill: P.ink2 }); });
   // ölçek: yatayda 1 birim = 2 kare
   const X = t => ox + t * 2 * q, Y = v => oy - v * q;
   [['K', 2, 4], ['L', 1.5, 4], ['M', 1, 4]].forEach(([ad, m, tm]) => {
@@ -34050,7 +34089,7 @@ Bu tasarımın enerji kaybını azaltmasının nedeni aşağıdakilerden hangisi
       dogru: 3,
       cozum: [
         r`Katıda iletim hızı yüzey alanı ve sıcaklık farkıyla artar, kalınlıkla azalır. Kalın duvar kalınlığı artırır, iletim hızı azalır.`,
-        r`Cam, duvardan ince ve ısı iletim katsayısı daha büyük olduğu için enerji en hızlı pencerelerden kaçar. Pencereler küçültülünce bu yüzeyin alanı azalır.`,
+        r`Pencere camı duvardan çok ince olduğu için enerji en hızlı pencerelerden kaçar. Pencereler küçültülünce bu yüzeyin alanı azalır.`,
         r`{{S0}} sıcaklık farkının yapının biçimiyle değiştiğini sanır; iç ve dış sıcaklıklar duvarın kalınlığına bağlı değildir. {{S1}} ısı iletim katsayısını kalınlığa bağlı sanır; katsayı maddenin cinsine bağlıdır, kalın ve ince tuğla duvarın katsayısı aynıdır. {{S2}} pencerenin küçülmesinin giren Güneş ışınlarını artıracağını sanır; küçük pencere daha az ışın alır. {{S4}} odadaki hava dolaşımının pencere boyutuyla durduğunu sanır; konveksiyon oda içinde sürer.`
       ]
     },
@@ -34975,21 +35014,21 @@ BFY_FIG_EKLE('kY61_toprak', function (u) {
 
 /* Q11: iki çubuk düzeneği */
 BFY_FIG_EKLE('kY61_cubuklar_genis', function (u) {
-  const W = 560, H = 160;
+  const W = 500, H = 164;
   let s = zemin(W, H);
   // 1. düzenek
-  s += cubuk(u, 40, 70, 220, 70, 'plastik', { w: 13 });
+  s += cubuk(u, 40, 74, 220, 74, 'plastik', { w: 13 });
   const id = yid(u, 'yn');
   s += `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1d7d0"/><stop offset="1" stop-color="#c98c7f"/></linearGradient></defs>`;
-  s += `<path d="M26 52 q14 -8 30 0 q8 18 0 36 q-16 8 -30 0 q-8 -18 0 -36 Z" fill="url(#${id})" stroke="#9c6458" stroke-width="1"/>`;
-  s += T(42, 112, 'yün kumaş', { size: 12, anchor: 'middle', weight: 700 }) + T(150, 112, 'plastik çubuk', { size: 12, anchor: 'middle', weight: 700 });
-  s += T(130, 146, '1. düzenek', { size: 12.5, anchor: 'middle', weight: 800, fill: P.copper });
+  s += `<path d="M26 56 q14 -8 30 0 q8 18 0 36 q-16 8 -30 0 q-8 -18 0 -36 Z" fill="url(#${id})" stroke="#9c6458" stroke-width="1"/>`;
+  s += T(44, 120, 'yün kumaş', { size: 15, anchor: 'middle', weight: 700 }) + T(160, 120, 'plastik çubuk', { size: 15, anchor: 'middle', weight: 700 });
+  s += T(130, 152, '1. düzenek', { size: 15, anchor: 'middle', weight: 800, fill: P.copper });
   // 2. düzenek
-  s += cubuk(u, 340, 70, 490, 70, 'metal', { w: 11 }) + cubuk(u, 490, 70, 528, 70, 'sap', { w: 9 });
-  s += cubuk(u, 300, 124, 314, 82, 'sap', { w: 6 }) + kure(u, 318, 70, 14);
-  s += T(318, 40, 'yüklü küre', { size: 12, anchor: 'middle', weight: 700 }) + T(420, 100, 'metal çubuk', { size: 12, anchor: 'middle', weight: 700 }) + T(514, 100, 'yalıtkan sap', { size: 12, anchor: 'middle', weight: 700 });
-  s += T(420, 146, '2. düzenek', { size: 12.5, anchor: 'middle', weight: 800, fill: P.copper });
-  s += `<line class="bg" x1="270" y1="20" x2="270" y2="146" stroke="#dfe3ea" stroke-width="1"/>`;
+  s += cubuk(u, 300, 74, 446, 74, 'metal', { w: 11 }) + cubuk(u, 446, 74, 484, 74, 'sap', { w: 9 });
+  s += cubuk(u, 260, 128, 274, 86, 'sap', { w: 6 }) + kure(u, 278, 74, 14);
+  s += T(278, 46, 'yüklü küre', { size: 15, anchor: 'middle', weight: 700 }) + T(372, 104, 'metal çubuk', { size: 15, anchor: 'middle', weight: 700 }) + T(492, 52, 'yalıtkan sap', { size: 15, anchor: 'end', weight: 700 });
+  s += T(380, 152, '2. düzenek', { size: 15, anchor: 'middle', weight: 800, fill: P.copper });
+  s += `<line class="bg" x1="244" y1="20" x2="244" y2="150" stroke="#dfe3ea" stroke-width="1"/>`;
   return svg(W, H, s, u, 140);
 });
 
@@ -35019,14 +35058,14 @@ BFY_FIG_EKLE('kY61_kafes', function (u) {
   for (let x = 46; x <= 224; x += 12) g += `<line x1="${x}" y1="34" x2="${x}" y2="204" />`;
   for (let y = 34; y <= 204; y += 12) g += `<line x1="46" y1="${y}" x2="224" y2="${y}" />`;
   s += `<g stroke="#7d8a91" stroke-width=".9" opacity=".75">${g}</g><rect x="46" y="34" width="178" height="170" fill="none" stroke="#56626a" stroke-width="2"/>`;
-  s += cubuk(u, 300, 24, 236, 60, 'cam', { n: 4, w: 9 }) + ok(286, 46, 262, 60, P.ink2);
+  s += cubuk(u, 300, 26, 230, 64, 'cam', { n: 4, w: 9 });
   s += T(298, 80, 'cam çubuk', { size: 12, anchor: 'end', weight: 700 }) + T(135, 226, 'yalıtkan tabla', { size: 12, anchor: 'middle', weight: 700 });
   return svg(W, H, s, u, 70);
 });
 
 /* Q15: üç açıklık–zaman grafiği */
 BFY_FIG_EKLE('kY61_grafikler_genis', function (u) {
-  const W = 560, H = 176;
+  const W = 540, H = 190;
   let s = zemin(W, H);
   const f = [
     t => t < 0.45 ? 0.42 * (1 - t / 0.45) : 1.1 * (t - 0.45),                    // I: aynı açıklıktan başlar, kapanıp yeniden açılır
@@ -35034,17 +35073,17 @@ BFY_FIG_EKLE('kY61_grafikler_genis', function (u) {
     t => 0.42 - 0.17 * (1 - Math.exp(-2.6 * t))                                  // III: biraz azalır
   ];
   ['I', 'II', 'III'].forEach((r, i) => {
-    const ox = 34 + i * 180, oy = 140, w = 140, h = 100;
-    s += `<rect class="bg" x="${ox - 22}" y="14" width="172" height="152" rx="10" fill="#fbfcfe" stroke="#dfe4ec"/>`;
-    s += `<line x1="${ox}" y1="${oy}" x2="${ox + w}" y2="${oy}" stroke="${INK}" stroke-width="1.4"/><polygon points="${ox + w + 7},${oy} ${ox + w - 2},${oy - 3.8} ${ox + w - 2},${oy + 3.8}" fill="${INK}"/>`;
-    s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - h - 6}" stroke="${INK}" stroke-width="1.4"/><polygon points="${ox},${oy - h - 13} ${ox - 3.8},${oy - h - 4} ${ox + 3.8},${oy - h - 4}" fill="${INK}"/>`;
-    s += T(ox + w + 2, oy + 16, 'zaman', { size: 12, anchor: 'end', weight: 700 });
-    s += T(ox + 8, oy - h - 1, 'açıklık', { size: 12, anchor: 'start', weight: 700 });
-    s += T(ox - 6, oy + 4, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+    const x0 = 6 + i * 178, ox = x0 + 26, oy = 156, w = 122, h = 104;
+    s += `<rect class="bg" x="${x0}" y="10" width="172" height="172" rx="10" fill="#fbfcfe" stroke="#dfe4ec"/>`;
+    s += `<line x1="${ox}" y1="${oy}" x2="${ox + w}" y2="${oy}" stroke="${INK}" stroke-width="1.6"/><polygon points="${ox + w + 8},${oy} ${ox + w - 2},${oy - 4.2} ${ox + w - 2},${oy + 4.2}" fill="${INK}"/>`;
+    s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - h - 6}" stroke="${INK}" stroke-width="1.6"/><polygon points="${ox},${oy - h - 14} ${ox - 4.2},${oy - h - 4} ${ox + 4.2},${oy - h - 4}" fill="${INK}"/>`;
+    s += T(ox + w + 11, oy + 5, 't', { size: 16, anchor: 'start', weight: 800 });
+    s += T(ox + 9, oy - h - 2, 'açıklık', { size: 15, anchor: 'start', weight: 800 });
+    s += T(ox - 6, oy + 5, '0', { size: 14, anchor: 'end', weight: 600, fill: P.ink2 });
     let d = '';
-    for (let k = 0; k <= 60; k++) { const t = k / 60, x = ox + 6 + t * (w - 14), y = oy - Math.max(0, f[i](t)) * h; d += (k ? 'L' : 'M') + f1(x) + ' ' + f1(y); }
-    s += `<path d="${d}" fill="none" stroke="${P.blue}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
-    s += T(ox + w - 4, 34, r, { size: 15, anchor: 'end', weight: 800, fill: P.copper });
+    for (let k = 0; k <= 60; k++) { const t = k / 60, x = ox + 4 + t * (w - 12), y = oy - Math.max(0, f[i](t)) * h; d += (k ? 'L' : 'M') + f1(x) + ' ' + f1(y); }
+    s += `<path d="${d}" fill="none" stroke="${P.blue}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s += T(x0 + 162, 34, r, { size: 18, anchor: 'end', weight: 800, fill: P.copper });
   });
   return svg(W, H, s, u, 150);
 });
@@ -35061,17 +35100,18 @@ BFY_FIG_EKLE('kY61_parmak', function (u) {
 
 /* Q20: iki elektroskop (başlangıç) ve iki bağlantı elemanı */
 BFY_FIG_EKLE('kY61_ikielektroskop_genis', function (u) {
-  const W = 520, H = 236;
+  const W = 440, H = 240;
   let s = zemin(W, H);
-  s += elk(u, 80, 80, { aci: 20, qt: 1, qy: 1, ad: 'E₁ (pozitif)' }) + elk(u, 440, 80, { ad: 'E₂ (nötr)' });
+  s += elk(u, 62, 78, { aci: 20, qt: 1, qy: 1 }) + elk(u, 378, 78, {});
+  s += T(62, 230, 'E₁ (pozitif)', { size: 15, anchor: 'middle', weight: 800 }) + T(378, 230, 'E₂ (nötr)', { size: 15, anchor: 'middle', weight: 800 });
   // bağlantı elemanları (ayrı ayrı kullanılır)
-  s += `<rect class="bg" x="170" y="64" width="180" height="150" rx="10" fill="#fbfcfe" stroke="#dfe4ec"/>`;
-  s += `<path d="M196 112 C230 88 290 88 324 112" fill="none" stroke="${P.copper}" stroke-width="2.4"/>` + cubuk(u, 260, 94, 260, 74, 'sap', { w: 6 });
-  s += T(260, 130, '1. durum: metal tel', { size: 12, anchor: 'middle', weight: 800, fill: P.copper });
-  s += cubuk(u, 196, 172, 324, 172, 'cam', { w: 8 }) + cubuk(u, 260, 168, 260, 150, 'sap', { w: 6 });
-  s += T(260, 198, '2. durum: cam çubuk', { size: 12, anchor: 'middle', weight: 800, fill: P.copper });
-  s += T(260, 30, 'Topuzlar bu elemanlardan biriyle birleştirilir.', { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
-  return svg(W, H, s, u, 140);
+  s += `<rect class="bg" x="116" y="56" width="208" height="160" rx="10" fill="#fbfcfe" stroke="#dfe4ec"/>`;
+  s += `<path d="M140 108 C176 82 264 82 300 108" fill="none" stroke="${P.copper}" stroke-width="2.6"/>` + cubuk(u, 220, 89, 220, 68, 'sap', { w: 6 });
+  s += T(220, 130, '1. durum: metal tel', { size: 15, anchor: 'middle', weight: 800, fill: P.copper });
+  s += cubuk(u, 140, 170, 300, 170, 'cam', { w: 9 }) + cubuk(u, 220, 165, 220, 147, 'sap', { w: 6 });
+  s += T(220, 200, '2. durum: cam çubuk', { size: 15, anchor: 'middle', weight: 800, fill: P.copper });
+  s += T(220, 34, 'Topuzlar bu elemanlardan biriyle birleştirilir.', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 120);
 });
 
 /* Q21: kapalı metal kutu içinde elektroskop, dışarıda negatif boru, toprak teli */
@@ -36666,22 +36706,22 @@ BFY_FIG_EKLE('kY62_C4', function (u) {
 /* ================= SORU ŞEKİLLERİ ================= */
 /* kY62_01: ipliklere asılı kürelerin üç gözlemi */
 BFY_FIG_EKLE('kY62_ciftler_genis', function (u) {
-  const W = 560, H = 176;
+  const W = 480, H = 214;
   let s = zemin(W, H);
-  const ciftler = [['P', 'R', -1, 'çekiyor'], ['R', 'S', 1, 'itiyor'], ['S', 'T', -1, 'çekiyor']];
+  const ciftler = [['P', 'R', -1], ['R', 'S', 1], ['S', 'T', -1]];
   ciftler.forEach(([a, b, yon], i) => {
-    const x0 = 14 + i * 180, cx = x0 + 86;
-    s += panel(x0, 10, 172, 156);
-    s += `<rect x="${x0 + 22}" y="22" width="128" height="6" rx="2" fill="#7d8b95"/>`;
-    const ax = cx - 26, bx = cx + 26, L = 92, aci = yon > 0 ? 0.19 : -0.13;
-    const pa = [ax - L * Math.sin(aci), 28 + L * Math.cos(aci)], pb = [bx + L * Math.sin(aci), 28 + L * Math.cos(aci)];
-    s += `<line x1="${ax}" y1="28" x2="${f1(pa[0])}" y2="${f1(pa[1])}" stroke="#4a4a4a" stroke-width="1"/><line x1="${bx}" y1="28" x2="${f1(pb[0])}" y2="${f1(pb[1])}" stroke="#4a4a4a" stroke-width="1"/>`;
-    s += dashLine(ax, 32, ax, 128, '#b9c3cc', '2 3', 1) + dashLine(bx, 32, bx, 128, '#b9c3cc', '2 3', 1);
-    s += kure(u, pa[0], pa[1] + 9, 9, '0') + kure(u, pb[0], pb[1] + 9, 9, '0');
-    s += T(pa[0] - 14, pa[1] + 14, a, { size: 13, weight: 800, anchor: 'end' }) + T(pb[0] + 14, pb[1] + 14, b, { size: 13, weight: 800 });
-    s += T(cx, 160, `${a} ile ${b} ${yon > 0 ? 'birbirini itiyor' : 'birbirini çekiyor'}`, { size: 11.5, weight: 700, anchor: 'middle', fill: P.ink2 });
+    const x0 = 8 + i * 158, pw = 150, cx = x0 + pw / 2;
+    s += panel(x0, 10, pw, 194);
+    s += `<rect x="${x0 + 16}" y="22" width="${pw - 32}" height="7" rx="2" fill="#7d8b95"/>`;
+    const ax = cx - 26, bx = cx + 26, L = 96, aci = yon > 0 ? 0.19 : -0.13;
+    const pa = [ax - L * Math.sin(aci), 29 + L * Math.cos(aci)], pb = [bx + L * Math.sin(aci), 29 + L * Math.cos(aci)];
+    s += `<line x1="${ax}" y1="29" x2="${f1(pa[0])}" y2="${f1(pa[1])}" stroke="#4a4a4a" stroke-width="1.2"/><line x1="${bx}" y1="29" x2="${f1(pb[0])}" y2="${f1(pb[1])}" stroke="#4a4a4a" stroke-width="1.2"/>`;
+    s += dashLine(ax, 33, ax, 136, '#b9c3cc', '2 3', 1) + dashLine(bx, 33, bx, 136, '#b9c3cc', '2 3', 1);
+    s += kure(u, pa[0], pa[1] + 10, 10, '0') + kure(u, pb[0], pb[1] + 10, 10, '0');
+    s += T(pa[0] - 15, pa[1] + 16, a, { size: 16, weight: 800, anchor: 'end' }) + T(pb[0] + 15, pb[1] + 16, b, { size: 16, weight: 800 });
+    s += T(cx, 172, `${a} ile ${b}`, { size: 15, weight: 800, anchor: 'middle', fill: P.ink }) + T(cx, 192, yon > 0 ? 'birbirini itiyor' : 'birbirini çekiyor', { size: 14, weight: 700, anchor: 'middle', fill: P.ink2 });
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 130);
 });
 
 /* kY62_03: ipe asılı silindir ve altında negatif küçük küre */
@@ -36728,22 +36768,21 @@ BFY_FIG_EKLE('kY62_pipet', function (u) {
 
 /* kY62_06: beş kuvvet çizimi */
 BFY_FIG_EKLE('kY62_kuvvetler_genis', function (u) {
-  const W = 560, H = 196;
+  const pw = 200, ph = 84, W = 8 + 2 * (pw + 8), H = 10 + 3 * (ph + 8) + 2;
   let s = zemin(W, H);
   // [X okunun yönü, X boyu, Y yönü, Y boyu] ; yön: +1 sağa, −1 sola
-  const D = [[1, 14, -1, 14], [-1, 24, 1, 24], [-1, 10, 1, 34], [-1, 34, 1, 10], [1, 14, 1, 14]];
+  const D = [[1, 14, -1, 14], [-1, 28, 1, 28], [-1, 14, 1, 42], [-1, 42, 1, 14], [1, 16, 1, 16]];
   D.forEach((d, i) => {
-    const sat = i < 3 ? 0 : 1, sut = i < 3 ? i : i - 3, pw = 174, x0 = sat ? 14 + 92 + sut * (pw + 8) : 14 + sut * (pw + 8), y0 = 10 + sat * 92;
-    s += panel(x0, y0, pw, 84);
-    s += T(x0 + 10, y0 + 20, `${i + 1}`, { size: 14, weight: 800, fill: P.copper });
-    const xX = x0 + 52, xY = x0 + 122, y = y0 + 46;
-    s += kure(u, xX, y, 8, '+') + kure(u, xY, y, 12, '+');
-    s += T(xX, y + 26, 'X', { size: 12, weight: 800, anchor: 'middle' }) + T(xY, y + 30, 'Y', { size: 12, weight: 800, anchor: 'middle' });
-    const sx = xX + d[0] * 9, sy = xY + d[2] * 13;
-    s += ok(sx, y, sx + d[0] * d[1], y, KUV, { w: 2.2, head: 7, headW: 4 }) + ok(sy, y, sy + d[2] * d[3], y, KUV, { w: 2.2, head: 7, headW: 4 });
+    const sat = Math.floor(i / 2), sut = i % 2, x0 = i === 4 ? (W - pw) / 2 : 8 + sut * (pw + 8), y0 = 10 + sat * (ph + 8);
+    s += panel(x0, y0, pw, ph);
+    s += T(x0 + 12, y0 + 24, `${i + 1}`, { size: 17, weight: 800, fill: P.copper });
+    const xX = x0 + 66, xY = x0 + 136, y = y0 + 38;
+    s += kure(u, xX, y, 9, '+') + kure(u, xY, y, 13, '+');
+    s += T(xX, y + 34, 'X (+q)', { size: 14, weight: 800, anchor: 'middle' }) + T(xY, y + 34, 'Y (+4q)', { size: 14, weight: 800, anchor: 'middle' });
+    const sx = xX + d[0] * 11, sy = xY + d[2] * 15;
+    s += ok(sx, y, sx + d[0] * d[1], y, KUV, { w: 2.8, head: 8, headW: 4.8 }) + ok(sy, y, sy + d[2] * d[3], y, KUV, { w: 2.8, head: 8, headW: 4.8 });
   });
-  s += T(W - 14, H - 8, 'X: +q,  Y: +4q', { size: 12, weight: 700, anchor: 'end', fill: P.ink2 });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 110);
 });
 
 /* kY62_07: negatif küre ve P noktası */
@@ -36775,23 +36814,26 @@ BFY_FIG_EKLE('kY62_desen_genis', function (u) {
     s += panel(x0, y0, pw, ph);
     s += kirp(u, 'ds', x0, y0, pw, ph, cizgiler(Y, { hesap: [x0 - 4000, y0 - 4000, x0 + pw + 4000, y0 + ph + 4000], r0: 9, okUz: 22, adim: i === 2 ? 2 : 1.2 }));
     Y.forEach(c => { s += kure(u, c.x, c.y, 8, '0'); });
-    s += T(cx, y0 + ph + 22, ['I', 'II', 'III'][i], { size: 13, weight: 800, anchor: 'middle', fill: P.copper });
+    s += T(cx, y0 + ph + 24, ['I', 'II', 'III'][i], { size: 17, weight: 800, anchor: 'middle', fill: P.copper });
   });
   return svg(W, H, s, u, 150);
 });
 
 /* kY62_11: üç grafik */
 BFY_FIG_EKLE('kY62_grafik_genis', function (u) {
-  const W = 560, H = 176, pw = 172, ph = 152;
+  const W = 480, H = 172, pw = 150, ph = 150;
   let s = zemin(W, H);
   ['I', 'II', 'III'].forEach((ad, i) => {
-    const x0 = 10 + i * (pw + 10), y0 = 12, ox = x0 + 30, oy = y0 + ph - 30, ex = x0 + pw - 18, ey = y0 + 22;
+    const x0 = 8 + i * (pw + 8), y0 = 11, ox = x0 + 26, oy = y0 + ph - 28, ex = x0 + pw - 46, ey = y0 + 26;
     s += panel(x0, y0, pw, ph);
-    s += eksen(ox, oy, ex, ey, ['q_1', 'd', '1/d^2'][i], 'F');
-    if (i === 1) s += egri(`M${ox + 4} ${ey + 12} L${ex - 14} ${oy - 4}`); else s += egri(`M${ox} ${oy} L${ex - 14} ${ey + 14}`);
-    s += T(x0 + pw - 10, y0 + 22, ad, { size: 14, weight: 800, anchor: 'end', fill: P.copper });
+    s += `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${ex + 8},${oy} ${ex - 2},${oy - 4.2} ${ex - 2},${oy + 4.2}" fill="${P.ink}"/>`;
+    s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${ox},${ey - 8} ${ox - 4.2},${ey + 2} ${ox + 4.2},${ey + 2}" fill="${P.ink}"/>`;
+    s += T(ex + 12, oy + 5, ['q_1', 'd', '1/d^2'][i], { size: 16, weight: 800 }) + T(ox + 9, ey + 2, 'F', { size: 16, weight: 800 });
+    s += T(ox - 5, oy + 17, '0', { size: 14, anchor: 'end', fill: P.ink2 });
+    if (i === 1) s += egri(`M${ox + 6} ${ey + 8} L${ex - 6} ${oy - 6}`, P.blue, 3); else s += egri(`M${ox} ${oy} L${ex - 6} ${ey + 12}`, P.blue, 3);
+    s += T(x0 + pw - 10, y0 + 24, ad, { size: 17, weight: 800, anchor: 'end', fill: P.copper });
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 130);
 });
 
 /* kY62_13: A, B, C bir doğru üzerinde */
@@ -36907,24 +36949,28 @@ BFY_FIG_EKLE('kY62_hava', function (u) {
 
 /* kY62_26: X(+q), Y(−q) arasında taşınan test yükü ve beş F–x grafiği */
 BFY_FIG_EKLE('kY62_Fx_genis', function (u) {
-  const W = 560, H = 302;
+  const pw = 200, ph = 128, W = 8 + 2 * (pw + 8), y0g = 74, H = y0g + 3 * (ph + 8) + 2;
   let s = zemin(W, H);
-  const y = 30;
-  s += `<line x1="150" y1="${y}" x2="410" y2="${y}" stroke="${P.ink2}" stroke-width="1.2"/>` + kure(u, 160, y, 10, '+') + kure(u, 400, y, 10, '-');
-  s += T(140, y + 5, 'X (+q)', { size: 12, weight: 700, anchor: 'end' }) + T(420, y + 5, 'Y (−q)', { size: 12, weight: 700 });
-  s += kure(u, 214, y, 5, '+') + ok(224, y + 14, 268, y + 14, P.ink2, { w: 1.6, head: 6, headW: 3.4 }) + T(246, y + 30, 'x', { size: 12, italic: true, weight: 700, anchor: 'middle', fill: P.ink2 });
-  const G = [x => 0.5, x => 0.08 + 0.85 * Math.pow(0.12 / (x + 0.12), 1.4), x => 0.024 * (1 / Math.pow(x + 0.13, 2) + 1 / Math.pow(1.13 - x, 2)), x => 0.025 * Math.abs(1 / Math.pow(x + 0.13, 2) - 1 / Math.pow(1.13 - x, 2)), x => 0.15 + 0.7 * Math.sin(Math.PI * x)];
+  const y = 30, xX = 130, xY = 294;
+  s += `<line x1="${xX - 12}" y1="${y}" x2="${xY + 12}" y2="${y}" stroke="${P.ink2}" stroke-width="1.2"/>` + kure(u, xX, y, 11, '+') + kure(u, xY, y, 11, '-');
+  s += T(xX - 18, y + 5, 'X (+q)', { size: 15, weight: 800, anchor: 'end' }) + T(xY + 18, y + 5, 'Y (−q)', { size: 15, weight: 800 });
+  s += kure(u, 172, y, 6, '+') + ok(182, y + 16, 232, y + 16, P.ink2, { w: 1.8, head: 7, headW: 3.8 }) + T(207, y + 34, 'x', { size: 15, italic: true, weight: 700, anchor: 'middle', fill: P.ink2 });
+  // grafikler: yatay eksen X'ten uzaklık (0 ile d arası); test yükü 0,2d ile 0,8d arasında taşınır
+  const top = x => 1 / (x * x) + 1 / Math.pow(1 - x, 2), fark = x => Math.abs(1 / (x * x) - 1 / Math.pow(1 - x, 2)), M = top(0.2);
+  const G = [x => 0.5, x => 0.1 + 0.85 * Math.pow(0.2 / x, 1.4), x => 0.95 * top(x) / M, x => 0.95 * fark(x) / M, x => 0.15 + 0.7 * Math.sin(Math.PI * (x - 0.2) / 0.6)];
   G.forEach((fn, i) => {
-    const sat = i < 3 ? 0 : 1, sut = i < 3 ? i : i - 3, pw = 174, x0 = sat ? 14 + 92 + sut * (pw + 8) : 14 + sut * (pw + 8), y0 = 60 + sat * 120;
-    s += panel(x0, y0, pw, 112);
-    const ox = x0 + 26, oy = y0 + 86, ex = x0 + pw - 22, ey = y0 + 14, w = ex - ox - 16, h = oy - ey - 12;
-    s += eksen(ox, oy, ex, ey, 'x', 'F');
-    s += egri(yol(xs => oy - h * Math.max(0, Math.min(1, fn((xs - ox) / w))), ox + w * 0.04, ox + w * 0.96, 80), P.blue, 2.4);
-    s += dashLine(ox + w, oy, ox + w, ey + 6, '#c3ccd5', '2 3', 1);
-    s += T(ox + w, oy + 14, 'Y', { size: 11, weight: 700, anchor: 'middle', fill: P.ink2 });
-    s += T(x0 + 12, y0 + 20, String(i + 1), { size: 14, weight: 800, fill: P.copper });
+    const sat = Math.floor(i / 2), sut = i % 2, x0 = i === 4 ? (W - pw) / 2 : 8 + sut * (pw + 8), y0 = y0g + sat * (ph + 8);
+    s += panel(x0, y0, pw, ph);
+    const ox = x0 + 30, oy = y0 + ph - 26, ex = x0 + pw - 24, ey = y0 + 18, w = ex - ox - 20, h = oy - ey - 12;
+    s += `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${ex + 8},${oy} ${ex - 2},${oy - 4.2} ${ex - 2},${oy + 4.2}" fill="${P.ink}"/>`;
+    s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.6"/><polygon points="${ox},${ey - 8} ${ox - 4.2},${ey + 2} ${ox + 4.2},${ey + 2}" fill="${P.ink}"/>`;
+    s += T(ex + 11, oy + 5, 'x', { size: 16, weight: 800, italic: true }) + T(ox + 9, ey + 4, 'F', { size: 16, weight: 800 });
+    s += T(ox - 5, oy + 17, '0', { size: 14, anchor: 'end', fill: P.ink2 });
+    s += dashLine(ox + w, oy, ox + w, ey + 6, '#c3ccd5', '2 3', 1) + T(ox + w, oy + 18, 'Y', { size: 14, weight: 800, anchor: 'middle', fill: P.ink2 });
+    s += egri(yol(xs => oy - h * Math.max(0, Math.min(1, fn((xs - ox) / w))), ox + w * 0.2, ox + w * 0.8, 90), P.blue, 3);
+    s += T(x0 + 12, y0 + 24, String(i + 1), { size: 17, weight: 800, fill: P.copper });
   });
-  return svg(W, H, s, u, 150);
+  return svg(W, H, s, u, 110);
 });
 
 /* kY62_27: uzay istasyonunda iplerle bağlı üç küre */
@@ -38078,7 +38124,7 @@ yargılarından hangileri doğrudur?`,
         r`Diskler birbirine eşit büyüklükte ve zıt yönlü kuvvet uygular (etki-tepki); Y'nin yükünün büyük olması Y'ye etki eden kuvveti büyütmez.`,
         r`I ve II. Eşit kuvvette ivme kütleyle ters orantılıdır: $a = \dfrac{F}{m}$. X'in kütlesi Y'ninkinin yarısı olduğu için X'in ivmesi Y'ninkinin 2 katıdır. I **yanlış**, II **doğru.**`,
         r`III. Diskler birbirini iterek uzaklaşır; uzaklık arttıkça kuvvet ve ivmeler azalır. İtme kuvveti hareket yönünde olduğu için hızlar artmaya devam eder. **Doğru.**`,
-        r`{{S0}} yükü büyük olan Y'ye daha büyük kuvvet etki ettiğini sanır ve kütleleri hesaba katmaz. {{S1}} ivmenin azalmasını hızın azalması sanır ve III'ü atlar. {{S2}} kuvvetleri yüklerle orantılı sanıp I'i de doğru sayar ve III'ü atlar. {{S3}} kuvvetin büyük yüke daha çok etki ettiğini sanır ve kütle oranını kullanmaz.`
+        r`{{S0}} yükü büyük olan Y'ye daha büyük kuvvet etki ettiğini sanır ve kütleleri hesaba katmaz. {{S1}} ivmenin azalmasını hızın azalması sanır ve III'ü atlar. {{S2}} I ile II'yi birlikte doğru sayar. İvmelerin oranı tek bir değerdir, iki yargı aynı anda doğru olamaz. Hızların artmaya devam ettiğini de atlar. {{S3}} kuvvetin büyük yüke daha çok etki ettiğini sanır ve kütle oranını kullanmaz.`
       ]
     },
     {
@@ -38601,8 +38647,8 @@ BFY_FIG_EKLE('kY71_zincir', function (u) {
 
 /* 03: fotoğraf stüdyosu, iki bağlantı */
 BFY_FIG_EKLE('kY71_stud_genis', function (u) {
-  const Wd = 560, H = 224;
-  let s = zemin(Wd, H) + panel(10, 10, 266, 204) + panel(284, 10, 266, 204);
+  const Wd = 286, H = 438;
+  let s = zemin(Wd, H) + panel(10, 10, 266, 204);
   // Şekil 1: 1 ana kolda; (2–3), 4, 5 paralel kollar
   let x0 = 10, xl = x0 + 30, xr = x0 + 228, yt = 46, yb = 176;
   s += W([[xl, 105], [xl, yt], [x0 + 70, yt]]) + lamba(x0 + 81, yt, '1', { lab: 'ust' }) + W([[x0 + 92, yt], [xr, yt], [xr, 98]]) + W([[xr, 120], [xr, yb], [xl, yb], [xl, 117]]);
@@ -38611,7 +38657,8 @@ BFY_FIG_EKLE('kY71_stud_genis', function (u) {
   s += W([[x0 + 180, yt], [x0 + 180, 98]]) + lamba(x0 + 180, 109, '4', { lab: 'sol' }) + W([[x0 + 180, 120], [x0 + 180, yb]]);
   s += lamba(xr, 109, '5', { lab: 'sol' });
   s += [128, 180].map(x => dot(x0 + x, yt) + dot(x0 + x, yb)).join('') + T(x0 + 133, 204, 'Şekil 1', { size: 13, anchor: 'middle', weight: 800, fill: P.green });
-  // Şekil 2: üretecin uçlarına iki kol: [(1 ∥ 4) + 3] ve [2 + 5]
+  // Şekil 2 (Şekil 1'in altında): üretecin uçlarına iki kol: [(1 ∥ 4) + 3] ve [2 + 5]
+  let s1 = s; s = panel(284, 10, 266, 204);
   x0 = 284; xl = x0 + 30;
   const xa = x0 + 112, xp1 = x0 + 86, xp2 = x0 + 138, xb = x0 + 204;
   s += W([[xl, 105], [xl, yt], [xb, yt], [xb, 77]]) + W([[xl, 117], [xl, yb], [xb, yb], [xb, 149]]) + cellV(xl, 111, 1, '', { side: 'sag' });
@@ -38620,7 +38667,8 @@ BFY_FIG_EKLE('kY71_stud_genis', function (u) {
   s += lamba(xb, 88, '2', { lab: 'sag' }) + W([[xb, 99], [xb, 127]]) + lamba(xb, 138, '5', { lab: 'sag' });
   s += dot(xa, yt) + dot(xa, 58) + dot(xa, 102) + dot(xa, yb);
   s += T(x0 + 133, 204, 'Şekil 2', { size: 13, anchor: 'middle', weight: 800, fill: P.green });
-  return svg(Wd, H, s, u, 150);
+  s = s1 + `<g transform="translate(-274 214)">${s}</g>`;
+  return svg(Wd, H, s, u, 62);
 });
 
 /* 04: X ana kolda; Y, Z ve S–T kolları */
@@ -38676,16 +38724,20 @@ BFY_FIG_EKLE('kY71_It', function (u) {
 
 /* 12: üç grafik */
 BFY_FIG_EKLE('kY71_graf_genis', function (u) {
-  const Wd = 560, H = 180;
+  const Wd = 480, H = 176;
   let s = zemin(Wd, H);
-  const g = (x0, no, xl, yl, egri) => {
-    const ox = x0 + 36, oy = 140, ex = x0 + 148, ey = 40;
-    return panel(x0, 10, 178, 160) + T(x0 + 14, 32, no, { size: 13.5, weight: 800, fill: P.green }) + eksen(ox, oy, ex, ey, xl, yl) + egri(ox, oy);
+  const g = (i, no, xl, yl, egri) => {
+    const x0 = 8 + i * 158, pw = 150, ox = x0 + 28, oy = 122, ex = x0 + pw - 18, ey = 40;
+    let t = panel(x0, 10, pw, 156) + T(x0 + pw - 10, 34, no, { size: 17, weight: 800, anchor: 'end', fill: P.green });
+    t += `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${INK}" stroke-width="1.6"/><polygon points="${ex + 8},${oy} ${ex - 2},${oy - 4.2} ${ex - 2},${oy + 4.2}" fill="${INK}"/>`;
+    t += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${INK}" stroke-width="1.6"/><polygon points="${ox},${ey - 8} ${ox - 4.2},${ey + 2} ${ox + 4.2},${ey + 2}" fill="${INK}"/>`;
+    t += T(ox + 9, ey + 4, yl, { size: 16, weight: 800 }) + T(ex + 8, oy + 24, xl, { size: 15, weight: 800, anchor: 'end' }) + T(ox - 5, oy + 17, '0', { size: 14, anchor: 'end', fill: P.ink2 });
+    return t + egri(ox, oy);
   };
-  s += g(10, 'I.', 'A', 'R', (ox, oy) => W([[ox, oy], [ox + 100, oy - 84]], { c: RC, w: 2.6 }));
-  s += g(191, 'II.', 'L', 'R', (ox, oy) => W([[ox, oy], [ox + 104, oy - 80]], { c: RC, w: 2.6 }));
-  s += g(372, 'III.', 'L', 'I', (ox, oy) => { let d = ''; for (let i = 0; i <= 30; i++) { const L = 0.14 + i * 0.86 / 30, x = ox + 8 + L * 100, y = oy - 11.5 / L; d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(y); } return `<path d="${d}" fill="none" stroke="${RC}" stroke-width="2.6"/>`; });
-  return svg(Wd, H, s, u, 150);
+  s += g(0, 'I', 'kesit alanı', 'R', (ox, oy) => W([[ox, oy], [ox + 94, oy - 70]], { c: RC, w: 3 }));
+  s += g(1, 'II', 'boy', 'R', (ox, oy) => W([[ox, oy], [ox + 94, oy - 70]], { c: RC, w: 3 }));
+  s += g(2, 'III', 'boy', 'I', (ox, oy) => { let d = ''; for (let i = 0; i <= 30; i++) { const L = 0.14 + i * 0.86 / 30, x = ox + 6 + L * 92, y = oy - 9.5 / L; d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(y); } return `<path d="${d}" fill="none" stroke="${RC}" stroke-width="3"/>`; });
+  return svg(Wd, H, s, u, 130);
 });
 
 /* 15: seri 4 Ω ve 12 Ω, 12 Ω'a paralel voltmetre */
@@ -39875,7 +39927,7 @@ yargılarından hangileri kesinlikle doğrudur?`,
         r`Seri bağlıysa akımlar zaten eşittir; potansiyel farkların eşit olması dirençlerin eşit olmasını gerektirir. Paralel bağlıysa potansiyel farklar zaten eşittir; akımların eşit olması yine dirençlerin eşit olmasını gerektirir. I **kesinlikle doğrudur.**`,
         r`II. Dirençler eşit ve paralel bağlı olsaydı da iki ölçüm aynı çıkardı. **Kesin değil.**`,
         r`III. Seri bağlamada üretecin potansiyel farkı $2V_X$, paralel bağlamada $V_X$ olur. **Kesin değil.**`,
-        r`{{S1}} eşit akımın yalnız seri bağlamada görüleceğini sanır ve I'i atlar. {{S2}} eşit akımdan seri bağlama sonucunu çıkarır; eşit dirençli paralel kollardan da eşit akım geçer. {{S3}} seri bağlamayı kesin sayıp III'ü de doğru kabul eder. {{S4}} bütün yargıları seri bağlama varsayımıyla değerlendirir.`
+        r`{{S1}} eşit akımın yalnız seri bağlamada görüleceğini sanır ve I'i atlar. {{S2}} eşit akımdan seri bağlama sonucunu çıkarır; eşit dirençli paralel kollardan da eşit akım geçer. {{S3}} bağlamayı seri varsayarak III'ü kesin sayar. Oysa paralel bağlamada üretecin potansiyel farkı $V_X$'e eşit olur. {{S4}} bütün yargıları seri bağlama varsayımıyla değerlendirir.`
       ]
     },
     {
@@ -40522,17 +40574,18 @@ BFY_FIG_EKLE('kY72_anahtar', function (u) {
 
 /* Q4: üç ısıtıcının I-V grafiği ve seri devre */
 BFY_FIG_EKLE('kY72_IV_genis', function (u) {
-  const Wd = 540, H = 226;
-  let s = zemin(Wd, H);
-  const ox = 52, oy = 196, ex = 236, ey = 24;
-  s += eksen(ox, oy, ex, ey, 'V', 'I');
-  [['X', 120, 40], ['Y', 196, 70], ['Z', 222, 138]].forEach(([ad, x, y]) => { s += `<line x1="${ox}" y1="${oy}" x2="${x}" y2="${y}" stroke="${P.blue}" stroke-width="2.6" stroke-linecap="round"/>` + T(x + 6, y + 3, ad, { size: 14, weight: 800 }); });
+  // üstte akım-potansiyel fark grafiği, altta seri devre (telefon ekranında okunur boyut)
+  const Wd = 300, H = 380;
+  let s = zemin(Wd, H) + `<rect class="bg" x="10" y="10" width="280" height="206" rx="10" fill="#fff" stroke="#dbe4ea"/>` + `<rect class="bg" x="10" y="224" width="280" height="146" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
+  const ox = 46, oy = 190, ex = 244, ey = 32;
+  s += eksen(ox, oy, ex, ey, 'V', 'I', { size: 16 });
+  [['X', 128, 46], ['Y', 214, 82], ['Z', 236, 146]].forEach(([ad, x, y]) => { s += `<line x1="${ox}" y1="${oy}" x2="${x}" y2="${y}" stroke="${P.blue}" stroke-width="3" stroke-linecap="round"/>` + T(x + 7, y + 4, ad, { size: 16, weight: 800 }); });
   // seri devre
-  const xl = 312, xr = 512, yt = 64, yb = 168;
-  s += W([[xl, yb], [xl, yt], [326, yt]]) + W([[366, yt], [388, yt]]) + W([[428, yt], [450, yt]]) + W([[490, yt], [xr, yt], [xr, yb], [417, yb]]) + W([[407, yb], [xl, yb]]);
-  s += resH(326, 366, yt, 'X') + resH(388, 428, yt, 'Y') + resH(450, 490, yt, 'Z');
-  s += cellH(412, yb, 1, 'ε', { lab: 'alt' });
-  return svg(Wd, H, s, u, 150);
+  const xl = 40, xr = 260, yt = 268, yb = 330;
+  s += W([[xl, yb], [xl, yt], [58, yt]]) + W([[110, yt], [124, yt]]) + W([[176, yt], [190, yt]]) + W([[242, yt], [xr, yt], [xr, yb], [155, yb]]) + W([[145, yb], [xl, yb]]);
+  s += resH(58, 110, yt, 'X', { size: 16 }) + resH(124, 176, yt, 'Y', { size: 16 }) + resH(190, 242, yt, 'Z', { size: 16 });
+  s += cellH(150, yb, 1, 'ε', { lab: 'alt', size: 16 });
+  return svg(Wd, H, s, u, 66);
 });
 
 /* Q7: ani su ısıtıcısının etiketi */
@@ -40603,41 +40656,41 @@ BFY_FIG_EKLE('kY72_Et', function (u) {
 
 /* Q22: reostanın I-R, P-R ve V-R grafikleri (öğrencinin çizimi) */
 function minik(x0, y0, w, h, yl, xl, d, et) {
-  const ox = x0 + 30, oy = y0 + h - 26, ex = x0 + w - 24, ey = y0 + 26;
-  let s = panel(x0, y0, w, h) + eksen(ox, oy, ex, ey, xl, yl, { size: 13 });
-  s += `<path d="${d(ox, oy, ex, ey)}" fill="none" stroke="${P.blue}" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>`;
-  s += T(x0 + w - 10, y0 + 22, et, { size: 14, weight: 800, anchor: 'end', fill: P.copper });
+  const ox = x0 + 28, oy = y0 + h - 28, ex = x0 + w - 28, ey = y0 + 30;
+  let s = panel(x0, y0, w, h) + eksen(ox, oy, ex, ey, xl, yl, { size: 16 });
+  s += `<path d="${d(ox, oy, ex, ey)}" fill="none" stroke="${P.blue}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+  s += T(x0 + w - 10, y0 + 24, et, { size: 17, weight: 800, anchor: 'end', fill: P.copper });
   return s;
 }
 const hiper = (ox, oy, ex, ey, k) => { let d = ''; for (let i = 0; i <= 40; i++) { const t = 0.12 + i * 0.85 / 40, y = Math.min(0.92, k / t); d += (i ? 'L' : 'M') + f1(ox + (ex - ox - 10) * t) + ' ' + f1(oy - (oy - ey - 6) * y); } return d; };
 BFY_FIG_EKLE('kY72_RGraf_genis', function (u) {
-  const Wd = 540, H = 196;
+  const Wd = 480, H = 186;
   let s = zemin(Wd, H);
-  s += minik(10, 10, 168, 176, 'I', 'R', (ox, oy, ex, ey) => `M${ox} ${oy} L${f1(ex - 14)} ${f1(ey + 16)}`, 'I');
-  s += minik(186, 10, 168, 176, 'P', 'R', (ox, oy, ex, ey) => hiper(ox, oy, ex, ey, 0.11), 'II');
-  s += minik(362, 10, 168, 176, 'V', 'R', (ox, oy, ex, ey) => `M${ox} ${f1(oy - 70)} L${f1(ex - 10)} ${f1(oy - 70)}`, 'III');
-  return svg(Wd, H, s, u, 150);
+  s += minik(8, 10, 150, 166, 'I', 'R', (ox, oy, ex, ey) => `M${ox} ${oy} L${f1(ex - 12)} ${f1(ey + 16)}`, 'I');
+  s += minik(165, 10, 150, 166, 'P', 'R', (ox, oy, ex, ey) => hiper(ox, oy, ex, ey, 0.11), 'II');
+  s += minik(322, 10, 150, 166, 'V', 'R', (ox, oy, ex, ey) => `M${ox} ${f1(oy - 62)} L${f1(ex - 8)} ${f1(oy - 62)}`, 'III');
+  return svg(Wd, H, s, u, 130);
 });
 
 /* Q24: n özdeş pil seri — öğrencinin üç grafiği (nokta ve doğru parçaları) */
 function nGraf(x0, y0, w, h, yl, f, et) {
-  const ox = x0 + 30, oy = y0 + h - 30, ex = x0 + w - 26, ey = y0 + 26;
-  let s = panel(x0, y0, w, h) + eksen(ox, oy, ex, ey, 'n', yl, { size: 13 });
+  const ox = x0 + 26, oy = y0 + h - 30, ex = x0 + w - 26, ey = y0 + 30;
+  let s = panel(x0, y0, w, h) + eksen(ox, oy, ex, ey, 'n', yl, { size: 16 });
   const gx = n => ox + n * (ex - ox - 8) / 4.4, gy = v => oy - v * (oy - ey - 8);
   let d = '';
-  for (let n = 1; n <= 4; n++) { s += T(gx(n), oy + 16, String(n), { size: 12, anchor: 'middle', fill: P.ink2 }); d += (n > 1 ? 'L' : 'M') + f1(gx(n)) + ' ' + f1(gy(f(n))); }
-  s += `<path d="${d}" fill="none" stroke="${P.blue}" stroke-width="2" stroke-dasharray="5 4"/>`;
-  for (let n = 1; n <= 4; n++) s += `<circle cx="${f1(gx(n))}" cy="${f1(gy(f(n)))}" r="4.6" fill="${P.blue}" stroke="#fff" stroke-width="1.4"/>`;
-  s += T(x0 + w - 10, y0 + 22, et, { size: 14, weight: 800, anchor: 'end', fill: P.copper });
+  for (let n = 1; n <= 4; n++) { s += `<line x1="${f1(gx(n))}" y1="${oy - 4}" x2="${f1(gx(n))}" y2="${oy + 4}" stroke="${INK}" stroke-width="1.4"/>` + T(gx(n), oy + 19, String(n), { size: 15, anchor: 'middle', weight: 700, fill: P.ink });  d += (n > 1 ? 'L' : 'M') + f1(gx(n)) + ' ' + f1(gy(f(n))); }
+  s += `<path d="${d}" fill="none" stroke="${P.blue}" stroke-width="2.2" stroke-dasharray="5 4"/>`;
+  for (let n = 1; n <= 4; n++) s += `<circle cx="${f1(gx(n))}" cy="${f1(gy(f(n)))}" r="5.4" fill="${P.blue}" stroke="#fff" stroke-width="1.4"/>`;
+  s += T(x0 + w - 10, y0 + 24, et, { size: 17, weight: 800, anchor: 'end', fill: P.copper });
   return s;
 }
 BFY_FIG_EKLE('kY72_nGraf_genis', function (u) {
-  const Wd = 540, H = 214;
+  const Wd = 480, H = 204;
   let s = zemin(Wd, H);
-  s += nGraf(10, 10, 168, 194, 'P', n => n / 4, 'I');
-  s += nGraf(186, 10, 168, 194, 'I_{pil}', n => n / 4, 'II');
-  s += nGraf(362, 10, 168, 194, 't', n => 0.92 / n, 'III');
-  return svg(Wd, H, s, u, 150);
+  s += nGraf(8, 10, 150, 184, 'P', n => n / 4, 'I');
+  s += nGraf(165, 10, 150, 184, 'I_{pil}', n => n / 4, 'II');
+  s += nGraf(322, 10, 150, 184, 't', n => 0.92 / n, 'III');
+  return svg(Wd, H, s, u, 130);
 });
 
 /* Q25: üreteç, lamba ve sürgülü reosta seri */
@@ -40655,27 +40708,31 @@ BFY_FIG_EKLE('kY72_reosta', function (u) {
 
 /* Q27: üç düzenek */
 BFY_FIG_EKLE('kY72_uc_genis', function (u) {
-  const Wd = 560, H = 222;
+  const Wd = 452, H = 222;
   let s = zemin(Wd, H);
-  const pan = (x0, et) => panel(x0, 10, 176, 202) + T(x0 + 88, 32, et, { size: 13, anchor: 'middle', weight: 800, fill: P.green });
+  const pan = (x0, et) => panel(x0, 10, 140, 202) + T(x0 + 70, 34, et, { size: 15, anchor: 'middle', weight: 800, fill: P.green });
+  const g = (dx, ic) => `<g transform="translate(${dx} 0)">${ic}</g>`;
   // 1: iki pil seri, iki lamba seri
   s += pan(10, '1. düzenek');
-  let xl = 38, xr = 158, yt = 70, yb = 156;
-  s += W([[xl, yb], [xl, yt], [57, yt]]) + W([[79, yt], [117, yt]]) + W([[139, yt], [xr, yt], [xr, yb], [123, yb]]) + W([[113, yb], [83, yb]]) + W([[73, yb], [xl, yb]]);
-  s += lamba(68, yt, '') + lamba(128, yt, '') + cellH(78, yb, 1, '', { isaret: false }) + cellH(118, yb, 1, '', { isaret: false });
+  let xl = 38, xr = 158, yt = 70, yb = 156, c = '';
+  c += W([[xl, yb], [xl, yt], [57, yt]]) + W([[79, yt], [117, yt]]) + W([[139, yt], [xr, yt], [xr, yb], [123, yb]]) + W([[113, yb], [83, yb]]) + W([[73, yb], [xl, yb]]);
+  c += lamba(68, yt, '') + lamba(128, yt, '') + cellH(78, yb, 1, '', { isaret: false }) + cellH(118, yb, 1, '', { isaret: false });
+  s += g(-18, c);
   // 2: bir pil, bir lamba
-  s += pan(192, '2. düzenek');
-  xl = 220; xr = 340;
-  s += W([[xl, yb], [xl, yt], [269, yt]]) + W([[291, yt], [xr, yt], [xr, yb], [285, yb]]) + W([[275, yb], [xl, yb]]);
-  s += lamba(280, yt, '') + cellH(280, yb, 1, '', { isaret: false });
+  s += pan(156, '2. düzenek');
+  xl = 220; xr = 340; c = '';
+  c += W([[xl, yb], [xl, yt], [269, yt]]) + W([[291, yt], [xr, yt], [xr, yb], [285, yb]]) + W([[275, yb], [xl, yb]]);
+  c += lamba(280, yt, '') + cellH(280, yb, 1, '', { isaret: false });
+  s += g(-54, c);
   // 3: iki pil paralel, bir lamba
-  s += pan(374, '3. düzenek');
-  xl = 402; xr = 522;
+  s += pan(302, '3. düzenek');
+  xl = 402; xr = 522; c = '';
   const a = 432, b = 492, y2 = 188;
-  s += W([[xl, yb], [xl, yt], [451, yt]]) + W([[473, yt], [xr, yt], [xr, yb], [b, yb]]) + W([[b, yb], [467, yb]]) + W([[457, yb], [a, yb]]) + W([[a, yb], [xl, yb]]);
-  s += W([[a, yb], [a, y2], [457, y2]]) + W([[467, y2], [b, y2], [b, yb]]) + dot(a, yb) + dot(b, yb);
-  s += lamba(462, yt, '') + cellH(462, yb, 1, '', { isaret: false }) + cellH(462, y2, 1, '', { isaret: false });
-  return svg(Wd, H, s, u, 150);
+  c += W([[xl, yb], [xl, yt], [451, yt]]) + W([[473, yt], [xr, yt], [xr, yb], [b, yb]]) + W([[b, yb], [467, yb]]) + W([[457, yb], [a, yb]]) + W([[a, yb], [xl, yb]]);
+  c += W([[a, yb], [a, y2], [457, y2]]) + W([[467, y2], [b, y2], [b, yb]]) + dot(a, yb) + dot(b, yb);
+  c += lamba(462, yt, '') + cellH(462, yb, 1, '', { isaret: false }) + cellH(462, y2, 1, '', { isaret: false });
+  s += g(-90, c);
+  return svg(Wd, H, s, u, 125);
 });
 
 /* Q28: X ana kolda, Y ve Z paralel */
@@ -41508,7 +41565,7 @@ yargılarından hangileri doğrudur?`,
         r`II. Paralel bağlı 1 ve 2 numaralı pillerin potansiyel farkı $\varepsilon$'dur. Bu grup 3 numaralı pille seri olduğundan lambanın gerilimi $2\varepsilon$'dur. **Doğru.**`,
         r`I. Ana kol akımının tamamı 3 numaralı pilden geçer; 1 ve 2 numaralı piller bu akımı yarı yarıya paylaşır. **Yanlış.**`,
         r`III. 3 numaralı pilden ötekilerin iki katı akım çekildiği için ilk o tükenir. **Doğru.**`,
-        r`{{S0}} 3 numaralı pilden geçen akımın ötekilerin iki katı olduğunu görmez. {{S1}} paralel grup ile 3 numaralı pilin seri bağlı olduğunu, gerilimlerin toplandığını görmez. {{S2}} seri bağlı pillerden eşit akım geçtiği kuralını paralel gruba da uygular ve lambanın gerilimini tek pilinki sanır. {{S4}} I'i de doğru sayar; paralel bağlı piller ana kol akımını paylaşır.`
+        r`{{S0}} 3 numaralı pilden geçen akımın ötekilerin iki katı olduğunu görmez. {{S1}} paralel grup ile 3 numaralı pilin seri bağlı olduğunu, gerilimlerin toplandığını görmez. {{S2}} seri bağlı pillerden eşit akım geçtiği kuralını paralel gruba da uygular ve I'i doğru sayar. Oysa paralel bağlı 1 ve 2 numaralı piller ana kol akımını paylaşır. Lambanın geriliminin iki pilin toplamı olduğunu da görmez. {{S4}} I'i de doğru sayar; paralel bağlı piller ana kol akımını paylaşır.`
       ]
     },
     {
@@ -41692,7 +41749,7 @@ yargılarından hangileri doğrudur?`,
         r`I. Elektriksel güç $P = V \times I = 220 \times 0,5 = 110\ \text{W}$'tır. $88\ \text{W}$, çuvala aktarılan mekanik güçtür ($\dfrac{880\ \text{J}}{10\ \text{s}}$). **Yanlış.**`,
         r`II. $m \times g \times h = 40 \times 10 \times 2,2 = 880\ \text{J}$. **Doğru.**`,
         r`III. 10 saniyede harcanan elektrik enerjisi $110 \times 10 = 1100\ \text{J}$'dür. $1100 - 880 = 220\ \text{J}$ motorda ve makarada ısıya (ve sese) dönüşür; verim yüzde 80'dir. **Doğru.**`,
-        r`{{S0}} mekanik gücü elektriksel güç sanır ve enerji hesaplarını yapmaz. {{S1}} elektrik enerjisinin bir kısmının ısıya dönüştüğünü hesaplamaz. {{S2}} mekanik gücü elektriksel güç sanır ve kaybı hesaplamaz. {{S3}} mekanik gücü elektriksel güç sanır ve potansiyel enerji artışını hesaplamaz.`
+        r`{{S0}} mekanik gücü elektriksel güç sanır ve enerji hesaplarını yapmaz. {{S1}} elektrik enerjisinin bir kısmının ısıya dönüştüğünü hesaplamaz. {{S2}} mekanik gücü elektriksel güç sanır ve kaybı hesaplamaz. {{S3}} $88\ \text{W}$'ı elektriksel güç sanır ve III'ü de doğru sayar. Elektriksel güç $88\ \text{W}$ olsaydı harcanan enerji $880\ \text{J}$ olur, $220\ \text{J}$'lük kayıp kalmazdı. Potansiyel enerji artışını da hesaplamaz.`
       ]
     },
     {
@@ -43575,7 +43632,7 @@ Bu deneyle ilgili aşağıdakilerden hangisi yanlıştır?`,
       cozum: [
         r`Bakır manyetik bir madde değildir; mıknatısla sıvazlanınca mıknatıslanmaz ve Dünya'nın alanında belirli bir doğrultuya yönelmez. Bu yargı yanlıştır.`,
         r`Mıknatıslanan çelik iğne küçük bir pusula gibi davranır; Dünya'nın alanında kuzeyi gösteren ucu N kutbudur. Yakına getirilen çelik makas iğneyi çekip yönünü değiştirebilir; köpük disk sürtünmeyi azaltır.`,
-        r`{{S0}} coğrafi kuzeydeki manyetik kutbun S olmasından yola çıkıp kuzeyi gösteren ucu S sanır; oysa N ucunu S kutbu çektiği için kuzeyi gösteren uç N kutbudur. {{S1}} iğnenin kendiliğinden yön bildiğini sanır; doğrultuyu Dünya'nın alanı belirler. {{S2}} mıknatıslanmış iğnenin yalnız mıknatıslardan etkilendiğini sanır; çelik makas da iğneyi çeker. {{S4}} yüzen diskin yalnız iğneyi taşıdığını düşünür; disk iğnenin sürtünmesiz dönmesini sağlar ve bu yargı doğrudur.`
+        r`{{S0}} coğrafi kuzeydeki manyetik kutbun S olmasından yola çıkıp kuzeyi gösteren ucu S sanır; oysa N ucunu S kutbu çektiği için kuzeyi gösteren uç N kutbudur. {{S1}} iğnenin kendiliğinden yön bildiğini sanır; doğrultuyu Dünya'nın alanı belirler. {{S2}} mıknatıslanmış iğnenin yalnız mıknatıslardan etkilendiğini sanır; çelik makas da iğneyi çeker. {{S4}} yüzen diskin yalnız iğneyi taşıdığını düşünür; disk iğnenin kolayca dönmesini sağlar ve bu yargı doğrudur.`
       ]
     },
     {
@@ -44295,10 +44352,10 @@ BFY_FIG_EKLE('kY81_kaplar_genis', function (u) {
   kaplar.forEach(([xc, a, b, ad]) => {
     s += `<rect x="${xc - 64}" y="${YB}" width="128" height="24" rx="5" fill="#e9edf0" stroke="#6f7d85" stroke-width="1.3"/><rect x="${xc - 22}" y="${YB + 8}" width="44" height="11" rx="2" fill="#24343a"/>`;
     s += yamukKap(u, xc, YB, a, b, HK, HS).s;
-    s += T(xc, YB + 46, ad, { size: 14, weight: 800, anchor: 'middle' });
+    s += T(xc, YB + 48, ad, { size: 18, weight: 800, anchor: 'middle' });
   });
   s += dashLine(20, YB - HS, 540, YB - HS, '#7f99aa', '5 4', 1.1);
-  s += T(276, 24, 'Su yükseklikleri eşit, taban alanları eşit', { size: 12, weight: 700, anchor: 'middle', fill: P.ink2 });
+  s += T(280, 26, 'Su yükseklikleri eşit, taban alanları eşit', { size: 15, weight: 700, anchor: 'middle', fill: P.ink2 });
   return svg(W, H, s, u, 150);
 });
 
@@ -44321,19 +44378,20 @@ BFY_FIG_EKLE('kY81_koni', function (u) {
 BFY_FIG_EKLE('kY81_tel', function (u) {
   const W = 300, H = 210, YD = 120;
   let s = zemin(W, H) + masa(10, 290, 196);
-  // destekler
-  s += `<rect x="54" y="${YD}" width="22" height="76" fill="#8b98a2"/><rect x="224" y="${YD}" width="22" height="76" fill="#8b98a2"/>`;
-  // buz kalıbı
+  // Kalıp uçtan görülüyor: uçlarındaki iki destek üst üste görünür, tel kalıbın üstünden geçip iki yanından sarkar.
+  const xL = 100, xR = 200, yT = YD - 56;
+  // destek (öndeki; arkadaki destek aynı hizada, görünmüyor)
+  s += `<rect x="130" y="${YD}" width="40" height="76" fill="#8b98a2" stroke="#6f7c86" stroke-width="1"/>`;
+  // buz kalıbının kesiti
   const id = yeniId(u, 'bz');
-  s += lg(id, ['#eef8fd', '#c7e6f5', '#e3f3fb'], 'x') + `<rect x="46" y="${YD - 56}" width="208" height="56" rx="4" fill="url(#${id})" stroke="#7fb3cf" stroke-width="1.4"/>`;
-  s += `<path d="M70 ${YD - 46} l14 8 M200 ${YD - 40} l18 -6 M120 ${YD - 14} l20 4" stroke="#fff" stroke-width="2" opacity=".8"/>`;
-  // tel: buzun üstünden geçip iki yana sarkıyor
-  const yT = YD - 56;
-  s += `<path d="M98 ${yT + 4} Q100 ${yT - 2} 150 ${yT - 1.5} Q200 ${yT - 2} 202 ${yT + 4}" fill="none" stroke="${TEL}" stroke-width="1.6"/>`;
-  s += `<path d="M98 ${yT + 4} L96 150 M202 ${yT + 4} L204 150" fill="none" stroke="${TEL}" stroke-width="1.6"/>`;
-  s += blok(u, 84, 150, 24, 30, 'koyu', { rx: 3 }) + blok(u, 192, 150, 24, 30, 'koyu', { rx: 3 });
-  s += T(150, yT - 12, 'ince çelik tel', { size: 11.5, weight: 700, anchor: 'middle' });
-  s += T(150, YD - 22, 'buz', { size: 12, weight: 800, anchor: 'middle', fill: '#2a6f9e' });
+  s += lg(id, ['#eef8fd', '#c7e6f5', '#e3f3fb'], 'x') + `<rect x="${xL}" y="${yT}" width="${xR - xL}" height="56" rx="4" fill="url(#${id})" stroke="#7fb3cf" stroke-width="1.4"/>`;
+  s += `<path d="M110 ${YD - 46} l14 8 M170 ${YD - 42} l16 -5 M128 ${YD - 12} l18 4" stroke="#fff" stroke-width="2" opacity=".8"/>`;
+  // tel: kalıbın üstünden geçip iki yanından sarkıyor, uçlarında ağır kütleler
+  s += `<path d="M${xL - 3} 150 L${xL - 3} ${yT + 6} Q${xL - 3} ${yT - 2.5} ${xL + 6} ${yT - 2.5} L${xR - 6} ${yT - 2.5} Q${xR + 3} ${yT - 2.5} ${xR + 3} ${yT + 6} L${xR + 3} 150" fill="none" stroke="${TEL}" stroke-width="1.8"/>`;
+  s += blok(u, xL - 15, 150, 24, 30, 'koyu', { rx: 3 }) + blok(u, xR - 9, 150, 24, 30, 'koyu', { rx: 3 });
+  s += T(150, yT - 12, 'ince çelik tel', { size: 12, weight: 700, anchor: 'middle' });
+  s += T(150, YD - 22, 'buz', { size: 13, weight: 800, anchor: 'middle', fill: '#2a6f9e' });
+  s += T(W - 12, 22, 'kalıbın uçtan görünüşü', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
   return svg(W, H, s, u, 72);
 });
 
@@ -45125,7 +45183,7 @@ eylemlerinden hangilerini yaparsa tekerleklerin zemine uyguladığı basınç il
 
 Deniz, kapağı açmadan şişeyi buzdolabının dondurucusuna koyarsa bir süre sonra şişenin görünümü için aşağıdakilerden hangisi beklenir?`,
       sekil: 'kY81_sise',
-      secenekler: ['Yan yüzleri ilk biçimine döner; çünkü soğuk ortamdaki hava şişeyi daha az iter.', 'Görünümü değişmez; çünkü şişedeki havanın miktarı değişmez.', 'Yan yüzleri dışa doğru şişer; çünkü soğuyan havanın basıncı artar.', 'Yan yüzleri daha çok içe çöker.', 'Çöküş azalır; çünkü soğuyan havanın tanecikleri çepere daha sık çarpar.'],
+      secenekler: ['Yan yüzleri ilk biçimine döner, çünkü soğuk ortamdaki hava şişeyi daha az iter.', 'Görünümü değişmez, çünkü şişedeki havanın miktarı değişmez.', 'Yan yüzleri dışa doğru şişer, çünkü soğuyan havanın basıncı artar.', 'Yan yüzleri daha çok içe çöker, çünkü şişedeki havanın basıncı daha da azalır.', 'Çöküş azalır, çünkü soğuyan havanın tanecikleri çepere daha sık çarpar.'],
       dogru: 3,
       cozum: [
         r`Kapak kapatıldığında şişedeki hava arabanın sıcak havasıdır. Hava soğudukça taneciklerin hızı azalır ve şişedeki havanın basıncı düşer. İç basınç açık hava basıncından küçük kalınca dışarıdaki hava yan yüzleri içe doğru iter.`,
@@ -45511,7 +45569,7 @@ açıklamalarından hangileri olabilir?`,
     {
       id: 'kY81_23', yks: true, zorluk: 2, tur: 'cs', cikti: '10.2.1.1', beceri: 'Deney yorumlama',
       tahmin: { gerekce: r`Programın "basıncın hâl değişimine etkileri" vurgusu kaynamanın yanında erimeyi de kapsar. Tel deneyi, basıncın buzun erime sıcaklığını düşürdüğünü ve basınç kalkınca suyun yeniden donduğunu gösteren klasik bir düzenektir; TYT'nin deney yorumu kalıbına uyar ve 9 yılda sorulmadı.` },
-      metin: r`Bir öğrenci, iki desteğin üzerine yatay koyduğu bir buz kalıbının üstüne, iki ucuna ağır kütleler bağlanmış ince bir çelik tel geçiriyor. Buz kalıbı 0 °C'dedir ve ortamın sıcaklığı yaklaşık 0 °C'dir. Tel zamanla buzun içinden geçip aşağı düşüyor, buz kalıbı ise ikiye ayrılmıyor.
+      metin: r`Bir öğrenci, iki desteğin üzerine yatay koyduğu bir buz kalıbının üstüne, iki ucuna ağır kütleler bağlanmış ince bir çelik tel geçiriyor. Buz kalıbı 0 °C'dedir ve ortamın sıcaklığı yaklaşık 0 °C'dir. Tel zamanla buzun içinden geçip aşağı düşüyor, buz kalıbı ise ikiye ayrılmıyor. Şekil, kalıbın uçtan görünüşüdür. Destekler kalıbın iki ucunda olduğu için şekilde üst üste görünür.
 
 {{sekil}}
 
@@ -46127,9 +46185,9 @@ BFY_FIG_EKLE('kY82_hortum_genis', function (u) {
   s += `<path d="M504 ${yd} Q530 ${yd - 22} 556 ${yd - 14}" fill="none" stroke="#9fd0ee" stroke-width="5" stroke-linecap="round" opacity=".9"/>`;
   [[540, yd - 22], [548, yd - 8], [532, yd - 30], [552, yd - 26]].forEach(([a, b]) => { s += `<circle cx="${a}" cy="${b}" r="1.8" fill="#7cc3e8"/>`; });
   s += gosterge(190, 64, 17, yg - 11) + gosterge(380, 64, 17, yd - 7);
-  s += T(216, 58, 'X', { size: 14, weight: 800 }) + T(406, 58, 'Y', { size: 14, weight: 800 });
-  s += T(112, 112, 'akış', { size: 12, weight: 700, fill: P.ink2 }) + ok(112, 120, 150, 120, P.ink2, { w: 1.6, head: 6, headW: 3.4 });
-  s += T(184, 189, 'geniş hortum', { size: 11.5, weight: 700, anchor: 'middle' }) + T(380, 189, 'dar hortum', { size: 11.5, weight: 700, anchor: 'middle' }) + T(478, 189, 'lans', { size: 11.5, weight: 700, anchor: 'middle' });
+  s += T(216, 58, 'X', { size: 17, weight: 800 }) + T(406, 58, 'Y', { size: 17, weight: 800 });
+  s += T(112, 112, 'akış', { size: 14, weight: 700, fill: P.ink2 }) + ok(112, 120, 150, 120, P.ink2, { w: 1.6, head: 6, headW: 3.4 });
+  s += T(184, 189, 'geniş hortum', { size: 14, weight: 700, anchor: 'middle' }) + T(380, 189, 'dar hortum', { size: 14, weight: 700, anchor: 'middle' }) + T(478, 189, 'lans', { size: 14, weight: 700, anchor: 'middle' });
   return svg(W, H, s, u, 150);
 });
 
@@ -46328,12 +46386,12 @@ BFY_FIG_EKLE('kY82_hidrofoil_genis', function (u) {
     t += `<path d="M${xa} ${yk} H${xb} L${xb + 28} ${yk} L${xb + 4} ${yk + 30} H${xa + 14} Q${xa} ${yk + 30} ${xa} ${yk + 16} Z" fill="url(#${gid})" stroke="#55626b" stroke-width="1.3"/>`;
     t += `<rect x="${xa + 50}" y="${yk - 20}" width="110" height="20" rx="5" fill="#e9eef1" stroke="#55626b" stroke-width="1.1"/>`;
     for (let i = 0; i < 5; i++) t += `<rect x="${xa + 58 + i * 20}" y="${yk - 15}" width="13" height="9" rx="2" fill="#9fcbe6"/>`;
-    t += T(x0 + 134, 26, ad, { size: 13, weight: 800, anchor: 'middle' });
+    t += T(x0 + 134, 28, ad, { size: 16, weight: 800, anchor: 'middle' });
     return t;
   };
   s += panel(8, '1. durum: tekne duruyor', 108) + panel(284, '2. durum: tekne hızlı', 72);
-  s += ok(536, 58, 556, 58, P.ink, { w: 2.2 }) + T(552, 48, 'hareket', { size: 11, weight: 700, anchor: 'end', fill: P.ink2 });
-  s += T(300, 198, 'su altındaki kanatlar', { size: 11.5, weight: 700, fill: '#0f3d5e' }) + `<line x1="392" y1="192" x2="420" y2="180" stroke="#0f3d5e" stroke-width="1"/>`;
+  s += ok(530, 60, 554, 60, P.ink, { w: 2.2 }) + T(554, 50, 'hareket', { size: 14, weight: 700, anchor: 'end', fill: P.ink2 });
+  s += T(392, 205, 'su altındaki kanatlar', { size: 14, weight: 700, anchor: 'middle', fill: '#0f3d5e' }) + `<line x1="360" y1="192" x2="360" y2="183" stroke="#0f3d5e" stroke-width="1"/><line x1="440" y1="192" x2="466" y2="183" stroke="#0f3d5e" stroke-width="1"/>`;
   return svg(W, H, s, u, 150);
 });
 
@@ -47857,13 +47915,13 @@ function grafik(x0, y0, w, h, fn, et) {
   let s = `<rect class="bg" x="${x0}" y="${y0}" width="${w}" height="${h}" rx="10" fill="#fff" stroke="#dbe4ea"/>`;
   s += `<line x1="${ox}" y1="${oy}" x2="${ex}" y2="${oy}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ex + 6},${oy} ${ex - 3},${oy - 3.6} ${ex - 3},${oy + 3.6}" fill="${P.ink}"/>`;
   s += `<line x1="${ox}" y1="${oy}" x2="${ox}" y2="${ey}" stroke="${P.ink}" stroke-width="1.4"/><polygon points="${ox},${ey - 6} ${ox - 3.6},${ey + 3} ${ox + 3.6},${ey + 3}" fill="${P.ink}"/>`;
-  s += T(ox + 7, ey + 2, 'F_k', { size: 12, weight: 700 }) + T(ex - 2, oy + 16, 'h', { size: 12.5, weight: 700, italic: true, anchor: 'end' });
-  s += T(ox - 5, oy + 13, '0', { size: 11.5, anchor: 'end', fill: P.ink2 }) + T(H, oy + 14, 'H', { size: 12, anchor: 'middle', weight: 700, fill: P.ink2 });
+  s += T(ox + 7, ey + 4, 'F_k', { size: 15, weight: 700 }) + T(ex - 2, oy + 17, 'h', { size: 16, weight: 700, italic: true, anchor: 'end' });
+  s += T(ox - 5, oy + 15, '0', { size: 14, anchor: 'end', fill: P.ink2 }) + T(H, oy + 17, 'H', { size: 15, anchor: 'middle', weight: 700, fill: P.ink2 });
   s += dashLine(H, oy, H, Fm, '#9aa8b1', '3 3', 1);
   let d = ''; for (let i = 0; i <= 40; i++) { const t = i / 40; d += (i ? 'L' : 'M') + f1(ox + (H - ox) * t) + ' ' + f1(oy - (oy - Fm) * fn(t)); }
   d += ` L${f1(ex - 8)} ${f1(Fm)}`;
   s += `<path d="${d}" fill="none" stroke="${P.blue}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
-  s += T(x0 + w - 10, y0 + 22, et, { size: 14, weight: 800, anchor: 'end', fill: P.copper });
+  s += T(x0 + w - 10, y0 + 24, et, { size: 18, weight: 800, anchor: 'end', fill: P.copper });
   return s;
 }
 
@@ -48152,7 +48210,7 @@ BFY_FIG_EKLE('kY83_buzlar_genis', function (u) {
     if (i === 2) s += `<rect x="${cx - 7}" y="${by + 17}" width="14" height="11" rx="2" fill="#c99a62" stroke="#8a6233" stroke-width=".9"/>`;
     s += `<rect x="${bx}" y="${YS}" width="42" height="${by + 42 - YS}" fill="${SIV.su[1]}" opacity=".25"/>`;
     s += kapCam(x, y, w, h, { w: 2.6 });
-    s += T(cx, 204, `${ad}: ${alt}`, { size: 12, weight: 800, anchor: 'middle' });
+    s += T(cx, 205, `${ad}: ${alt}`, { size: 14, weight: 800, anchor: 'middle' });
   });
   return svg(W, H, s, u, 150);
 });
@@ -48169,8 +48227,8 @@ BFY_FIG_EKLE('kY83_koniler_genis', function (u) {
   s += `<path d="M235 ${yt} L270 ${yb} L305 ${yt} Z" fill="url(#${idM})" stroke="#5f6a72" stroke-width="1.1"/><ellipse cx="270" cy="${yt}" rx="35" ry="7" fill="#eef1f3" stroke="#5f6a72" stroke-width="1.1"/>`;
   // Z koni, sivri ucu yukarıda
   s += `<path d="M415 ${yb} L450 ${yt} L485 ${yb}" fill="url(#${idM})" stroke="#5f6a72" stroke-width="1.1"/><path d="M415 ${yb} A35 7 0 0 0 485 ${yb}" fill="url(#${idM})" stroke="#5f6a72" stroke-width="1.1"/>`;
-  [[90, 'X'], [270, 'Y'], [450, 'Z']].forEach(([x, t]) => { s += T(x, 132, t, { size: 14, weight: 800, anchor: 'middle' }); });
-  [[128, 'H'], [318, 'H'], [498, 'H']].forEach(([x]) => { s += `<line x1="${x}" y1="${yt}" x2="${x}" y2="${yb}" stroke="${P.ink2}" stroke-width="1"/><line x1="${x - 4}" y1="${yt}" x2="${x + 4}" y2="${yt}" stroke="${P.ink2}"/><line x1="${x - 4}" y1="${yb}" x2="${x + 4}" y2="${yb}" stroke="${P.ink2}"/>` + T(x + 6, (yt + yb) / 2 + 4, 'H', { size: 12, weight: 700, fill: P.ink2 }); });
+  [[90, 'X'], [270, 'Y'], [450, 'Z']].forEach(([x, t]) => { s += T(x, 136, t, { size: 18, weight: 800, anchor: 'middle' }); });
+  [[128, 'H'], [318, 'H'], [498, 'H']].forEach(([x]) => { s += `<line x1="${x}" y1="${yt}" x2="${x}" y2="${yb}" stroke="${P.ink2}" stroke-width="1"/><line x1="${x - 4}" y1="${yt}" x2="${x + 4}" y2="${yt}" stroke="${P.ink2}"/><line x1="${x - 4}" y1="${yb}" x2="${x + 4}" y2="${yb}" stroke="${P.ink2}"/>` + T(x + 6, (yt + yb) / 2 + 5, 'H', { size: 15, weight: 700, fill: P.ink2 }); });
   const g = [[t => 1 - Math.pow(1 - t, 3), 'I'], [t => t, 'II'], [t => t * t * t, 'III']];
   g.forEach(([fn, et], i) => { s += grafik(14 + i * 178, 146, 156, 160, fn, et); });
   return svg(W, H, s, u, 150);
@@ -50059,17 +50117,18 @@ BFY_FIG_EKLE('kY91_sonometre', function (u) {
 
 /* 02: egzersiz lastiği, eşit bölmeli iki görünüm */
 BFY_FIG_EKLE('kY91_bant_genis', function (u) {
-  const W = 560, H = 176, sq = 19;
+  // İki görünüm alt alta: telefonda da kareler sayılabilecek büyüklükte kalsın (Kasım 2026 okunurluk düzeltmesi).
+  const sq = 22, x0 = 18, W = x0 * 2 + 12 * sq, H = 2 * (6 * sq) + 84;
   let s = zemin(W, H);
-  const ciz = (x0, lam, A, ad) => {
-    const y0 = 22, yc = y0 + 3 * sq;
-    let g = izgara(x0, y0, sq, 12, 6);
-    g += cizgi(x => yc - A * sq * Math.sin(2 * Math.PI * (x - x0) / (lam * sq)), x0, x0 + 12 * sq, { renk: MAV, w: 2.6 });
-    g += T(x0 + 6 * sq, y0 + 6 * sq + 26, ad, { size: 13, anchor: 'middle', weight: 800 });
+  const ciz = (y0, lam, A, ad) => {
+    const yc = y0 + 3 * sq;
+    let g = T(x0, y0 - 8, ad, { size: 15, weight: 800 });
+    g += izgara(x0, y0, sq, 12, 6);
+    g += cizgi(x => yc - A * sq * Math.sin(2 * Math.PI * (x - x0) / (lam * sq)), x0, x0 + 12 * sq, { renk: MAV, w: 2.8 });
     return g;
   };
-  s += ciz(28, 4, 2, 'Şekil 1') + ciz(304, 3, 1, 'Şekil 2');
-  return svg(W, H, s, u, 150);
+  s += ciz(30, 4, 2, 'Şekil 1') + ciz(30 + 6 * sq + 42, 3, 1, 'Şekil 2');
+  return svg(W, H, s, u, 80);
 });
 
 /* 03: sola ilerleyen dalga, P, R, S noktaları */
@@ -50184,10 +50243,10 @@ BFY_FIG_EKLE('kY91_grafikler_genis', function (u) {
   const W = 560, H = 176;
   let s = zemin(W, H);
   const g = (x, rom, yAd, fn) => {
-    let t = panel(x, 12, 172, 152) + T(x + 160, 34, rom, { size: 14, anchor: 'end', weight: 800, fill: P.copper });
+    let t = panel(x, 12, 172, 152) + T(x + 160, 36, rom, { size: 18, anchor: 'end', weight: 800, fill: P.copper });
     const ox = x + 34, oy = 138;
-    t += eksen(ox, oy, 112, 96, 'f', yAd, { size: 13 });
-    t += T(ox - 5, oy + 15, '0', { size: 12, anchor: 'end', weight: 600, fill: P.ink2 });
+    t += eksen(ox, oy, 112, 96, 'f', yAd, { size: 18 });
+    t += T(ox - 5, oy + 16, '0', { size: 14, anchor: 'end', weight: 600, fill: P.ink2 });
     t += cizgi(fn(ox, oy), ox + 8, ox + 106, { renk: MAV, w: 2.6 });
     return t;
   };
@@ -50257,14 +50316,15 @@ BFY_FIG_EKLE('kY91_zincir', function (u) {
 
 /* 27: iki kare atma ve K noktası; beş uzanım-zaman grafiği */
 BFY_FIG_EKLE('kY91_yt_genis', function (u) {
-  const W = 560, H = 392, sq = 21, x0 = 140, y0 = 14, nx = 12, ny = 5, yc = y0 + 3 * sq;
+  // Kasım 2026 okunurluk düzeltmesi: grafikler iki sütunda ve büyük; her saniye ve her kare etiketli, ızgaralı.
+  const W = 460, H = 612, sq = 19, x0 = 24, y0 = 30, nx = 12, ny = 5, yc = y0 + 3 * sq;
   const X = g => x0 + (g + 1) * sq, Y = g => yc - g * sq;
   let s = zemin(W, H) + izgara(x0, y0, sq, nx, ny);
   s += kareProfil([[0, 2, 2], [8, 10, -1]], -1, 11, X, Y, { renk: INCE });
   s += ilerle(X(0.2), X(2.6), Y(2.5)) + ilerle(X(9.8), X(7.4), Y(-1.5));
-  s += T(X(1), Y(2) + 18, 'P', { size: 13.5, anchor: 'middle', weight: 800, fill: KIR }) + T(X(9), Y(-1) - 8, 'R', { size: 13.5, anchor: 'middle', weight: 800, fill: KIR });
-  s += `<line x1="${X(4.5)}" y1="${Y(0) - 5}" x2="${X(4.5)}" y2="${Y(0) + 5}" stroke="${P.ink}" stroke-width="1.8"/>` + T(X(4.5), Y(0) + 20, 'K', { size: 13, anchor: 'middle', weight: 800 });
-  s += T(x0 - 12, Y(0) + 4, 't = 0', { size: 12.5, anchor: 'end', weight: 800, fill: P.ink2 }) + T(x0 + nx * sq + 12, Y(0) + 4, '1 kare/s', { size: 12, weight: 700, fill: P.ink2 });
+  s += T(X(1), Y(2) + 18, 'P', { size: 15, anchor: 'middle', weight: 800, fill: KIR }) + T(X(9), Y(-1) - 8, 'R', { size: 15, anchor: 'middle', weight: 800, fill: KIR });
+  s += `<line x1="${X(4.5)}" y1="${Y(0) - 5}" x2="${X(4.5)}" y2="${Y(0) + 5}" stroke="${P.ink}" stroke-width="1.8"/>` + T(X(4.5), Y(0) + 20, 'K', { size: 15, anchor: 'middle', weight: 800 });
+  s += T(x0 + nx * sq + 14, Y(0) - 8, 't = 0', { size: 14, weight: 800, fill: P.ink2 }) + T(x0 + nx * sq + 14, Y(0) + 14, '1 kare/s', { size: 14, weight: 700, fill: P.ink2 });
   const G = {
     1: [[2.5, 3.5, 2], [3.5, 4.5, 1], [4.5, 5.5, -1]],
     2: [[2.5, 4.5, 2], [4.5, 5.5, -1]],
@@ -50272,47 +50332,50 @@ BFY_FIG_EKLE('kY91_yt_genis', function (u) {
     4: [[2.5, 3.5, 2], [4.5, 5.5, -1]],
     5: [[2.5, 4.5, 2]]
   };
-  const yer = [[16, 128], [196, 128], [376, 128], [106, 252], [286, 252]];
+  const pw = 214, ph = 138;
+  const yer = [[12, 146], [234, 146], [12, 292], [234, 292], [123, 438]];
   [4, 1, 5, 3, 2].forEach((k, i) => {
     const [px, py] = yer[i];
-    s += panel(px, py, 168, 116) + T(px + 156, py + 22, String(i + 1), { size: 14, anchor: 'end', weight: 800, fill: P.copper });
-    const ox = px + 28, oy = py + 66, gx = 17, gy = 13;
-    s += eksen(ox, oy, 106, 44, 't (s)', 'y', { yAlt: oy + 22, size: 11 });
-    for (let t = 1; t <= 6; t++) s += `<line x1="${ox + t * gx}" y1="${oy - 3}" x2="${ox + t * gx}" y2="${oy + 3}" stroke="${P.ink}" stroke-width="1"/>`;
-    [-1, 1, 2, 3].forEach(v => { s += `<line x1="${ox - 3}" y1="${oy - v * gy}" x2="${ox + 3}" y2="${oy - v * gy}" stroke="${P.ink}" stroke-width="1"/>`; });
-    s += T(ox - 5, oy - 2 * gy + 4, '2', { size: 10.5, anchor: 'end', weight: 600, fill: P.ink2 }) + T(ox - 5, oy + gy + 4, '−1', { size: 10.5, anchor: 'end', weight: 600, fill: P.ink2 });
-    s += kareProfil(G[k], 0, 6.6, t => ox + t * gx, v => oy - v * gy, { renk: '#7048e8', w: 2.2 });
-    for (let t = 2; t <= 6; t += 2) s += T(ox + t * gx, oy + 12, String(t), { size: 10.5, anchor: 'middle', weight: 600, fill: P.ink2, haloW: 3.6 });   // zaman değerleri eksenin hemen altında
+    s += panel(px, py, pw, ph) + T(px + pw - 10, py + 24, String(i + 1), { size: 17, anchor: 'end', weight: 800, fill: P.copper });
+    const ox = px + 28, oy = py + 84, gx = 22, gy = 17;
+    for (let t = 1; t <= 6; t++) s += `<line x1="${ox + t * gx}" y1="${oy - 3 * gy}" x2="${ox + t * gx}" y2="${oy + gy}" stroke="${IZ}" stroke-width="1"/>`;
+    [-1, 1, 2, 3].forEach(v => { s += `<line x1="${ox}" y1="${oy - v * gy}" x2="${ox + 6.6 * gx}" y2="${oy - v * gy}" stroke="${IZ}" stroke-width="1"/>`; });
+    s += eksen(ox, oy, 6.8 * gx, 3 * gy + 14, 't (s)', 'y', { yAlt: oy + gy + 6, size: 13 });
+    [-1, 1, 2, 3].forEach(v => { s += T(ox - 5, oy - v * gy + 4, v < 0 ? '−1' : String(v), { size: 11.5, anchor: 'end', weight: 600, fill: P.ink2 }); });
+    s += kareProfil(G[k], 0, 6.6, t => ox + t * gx, v => oy - v * gy, { renk: '#7048e8', w: 2.6 });
+    for (let t = 1; t <= 6; t++) s += T(ox + t * gx, oy + gy + 19, String(t), { size: 12, anchor: 'middle', weight: 600, fill: P.ink2 });
   });
-  s += T(W / 2, 384, 'Grafiklerde t saniye, y kare birimiyle; yukarı yön pozitiftir.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
-  return svg(W, H, s, u, 150);
+  s += T(W / 2, 600, 'Grafiklerde t saniye, y kare birimiyle. Yukarı yön pozitiftir.', { size: 13, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 125);
 });
 
 /* 28: sabit uca yakın K noktası; dört uzanım-zaman grafiği */
 BFY_FIG_EKLE('kY91_ucgrafik_genis', function (u) {
-  const W = 604, H = 404, sq = 22, x0 = 172, y0 = 16, nx = 10, ny = 3, yc = y0 + 2 * sq;
+  // Kasım 2026 okunurluk düzeltmesi: dört grafik tek sütunda, telefonda da her saniye okunacak büyüklükte.
+  const W = 330, sq = 22, x0 = 62, y0 = 18, nx = 10, ny = 3, yc = y0 + 2 * sq;
+  const pw = 306, ph = 114, py0 = 120, H = py0 + 4 * (ph + 8) + 40;
   const X = g => x0 + g * sq, Y = g => yc - g * sq;
   let s = zemin(W, H) + izgara(x0, y0, sq, nx, ny);
-  s += `<line x1="${X(10)}" y1="${y0 - 8}" x2="${X(10)}" y2="${y0 + ny * sq + 8}" stroke="${P.ink}" stroke-width="2" stroke-dasharray="5 3"/>` + T(X(10) + 8, y0 + 10, 'uç', { size: 12, weight: 800 });
+  s += `<line x1="${X(10)}" y1="${y0 - 8}" x2="${X(10)}" y2="${y0 + ny * sq + 8}" stroke="${P.ink}" stroke-width="2" stroke-dasharray="5 3"/>` + T(X(10) + 6, y0 + 12, 'uç', { size: 14, weight: 800 });
   s += kareProfil([[4, 6, 1]], 0, 10, X, Y, { renk: INCE });
   s += ilerle(X(4.2), X(6.6), Y(1) - 10);
-  s += `<line x1="${X(9)}" y1="${Y(0) - 5}" x2="${X(9)}" y2="${Y(0) + 5}" stroke="${P.ink}" stroke-width="1.8"/>` + T(X(9), Y(0) + 20, 'K', { size: 13, anchor: 'middle', weight: 800 });
-  s += T(x0 - 12, Y(0.5) + 4, 't = 0', { size: 12.5, anchor: 'end', weight: 800, fill: P.ink2 }) + T(X(5.8), y0 + ny * sq + 20, '1 kare/s', { size: 12, weight: 700, fill: P.ink2 });
+  s += `<line x1="${X(9)}" y1="${Y(0) - 5}" x2="${X(9)}" y2="${Y(0) + 5}" stroke="${P.ink}" stroke-width="1.8"/>` + T(X(9), Y(0) + 21, 'K', { size: 15, anchor: 'middle', weight: 800 });
+  s += T(x0 - 10, Y(0.5) + 5, 't = 0', { size: 14, anchor: 'end', weight: 800, fill: P.ink2 }) + T(X(5), y0 + ny * sq + 22, '1 kare/s', { size: 14, anchor: 'middle', weight: 700, fill: P.ink2 });
   // K noktasının uzanım-zaman grafikleri: kareli, her kare 1 s; uzanım atmanın yüksekliği (1 kare) birimindedir
   const G = { 1: [[3, 5, 1], [5, 7, -1]], 2: [[3, 7, 1]], 3: [[3, 5, 1], [7, 9, -1]], 4: [[3, 5, 1]] };
   [1, 2, 3, 4].forEach((k, i) => {
-    const px = 12 + (i % 2) * 294, py = 116 + Math.floor(i / 2) * 136, gx = 22, gy = 26;
-    s += panel(px, py, 286, 128) + T(px + 276, py + 22, String(k), { size: 15, anchor: 'end', weight: 800, fill: P.copper });
-    const ox = px + 34, oy = py + 60;
+    const px = 12, py = py0 + i * (ph + 8), gx = 26, gy = 24;
+    s += panel(px, py, pw, ph) + T(px + pw - 10, py + 22, String(k), { size: 17, anchor: 'end', weight: 800, fill: P.copper });
+    const ox = px + 32, oy = py + 56;
     for (let t = 1; t <= 9; t++) s += `<line x1="${ox + t * gx}" y1="${oy - gy}" x2="${ox + t * gx}" y2="${oy + gy}" stroke="${IZ}" stroke-width="1"/>`;
     [-1, 1].forEach(v => { s += `<line x1="${ox}" y1="${oy - v * gy}" x2="${ox + 9 * gx}" y2="${oy - v * gy}" stroke="${IZ}" stroke-width="1"/>`; });
-    s += eksen(ox, oy, 9 * gx + 6, gy + 18, 't (s)', 'y', { yAlt: oy + gy + 4, size: 11.5 });
-    s += T(ox - 6, oy - gy + 4, '+1', { size: 10.5, anchor: 'end', weight: 700, fill: P.ink2 }) + T(ox - 6, oy + gy + 4, '−1', { size: 10.5, anchor: 'end', weight: 700, fill: P.ink2 });
+    s += eksen(ox, oy, 9 * gx + 6, gy + 16, 't (s)', 'y', { yAlt: oy + gy + 4, size: 13 });
+    s += T(ox - 6, oy - gy + 4, '+1', { size: 12.5, anchor: 'end', weight: 700, fill: P.ink2 }) + T(ox - 6, oy + gy + 4, '−1', { size: 12.5, anchor: 'end', weight: 700, fill: P.ink2 });
     s += kareProfil(G[k], 0, 9.3, t => ox + t * gx, v => oy - v * gy, { renk: '#7048e8', w: 2.6 });
-    for (let t = 1; t <= 9; t++) s += T(ox + t * gx, oy + gy + 16, String(t), { size: 10.5, anchor: 'middle', weight: 600, fill: P.ink2 });
+    for (let t = 1; t <= 9; t++) s += T(ox + t * gx, oy + gy + 18, String(t), { size: 12.5, anchor: 'middle', weight: 600, fill: P.ink2 });
   });
-  s += T(W / 2, 394, 'Grafiklerde her kare 1 s, uzanım birimi atmanın yüksekliğidir.', { size: 11.5, anchor: 'middle', weight: 700, fill: P.ink2 });
-  return svg(W, H, s, u, 150);
+  s += T(W / 2, H - 26, 'Grafiklerde her kare 1 s,', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 }) + T(W / 2, H - 9, 'uzanım birimi atmanın yüksekliğidir.', { size: 12.5, anchor: 'middle', weight: 700, fill: P.ink2 });
+  return svg(W, H, s, u, 90);
 });
 
 /* 29: birleşme noktasından sonra yansıyan ve iletilen atmalar */
@@ -50320,10 +50383,11 @@ BFY_FIG_EKLE('kY91_genislik', function (u) {
   const W = 340, H = 190, sq = 19, x0 = 18, y0 = 26, nx = 16, ny = 6, yc = y0 + 5 * sq;
   const X = g => x0 + g * sq, Y = g => yc - g * sq;
   let s = zemin(W, H) + izgara(x0, y0, sq, nx, ny);
-  s += kareProfil([[2, 4, 1]], 0, 7, X, Y, { renk: KALIN, w: 4.4 }) + kareProfil([[9, 13, 4]], 7, 16, X, Y, { renk: INCE, w: 2.2 });
+  // İki yay aynı çizgiyle çizilir: hangisinin kalın olduğu sorulduğu için şekil ipucu vermemeli.
+  s += kareProfil([[2, 4, 1]], 0, 7, X, Y, { renk: IP, w: 2.8 }) + kareProfil([[9, 13, 4]], 7, 16, X, Y, { renk: IP, w: 2.8 });
   s += `<circle cx="${X(7)}" cy="${Y(0)}" r="4" fill="#fff" stroke="${P.ink}" stroke-width="1.4"/>`;
   s += ilerle(X(3.6), X(1.4), Y(1) - 10) + ilerle(X(10), X(12.4), Y(4) - 10);
-  s += T(X(3.5), y0 + ny * sq + 20, 'X yayı', { size: 12.5, anchor: 'middle', weight: 800, fill: KALIN }) + T(X(11.5), y0 + ny * sq + 20, 'Y yayı', { size: 12.5, anchor: 'middle', weight: 800, fill: INCE });
+  s += T(X(3.5), y0 + ny * sq + 21, 'X yayı', { size: 14, anchor: 'middle', weight: 800 }) + T(X(11.5), y0 + ny * sq + 21, 'Y yayı', { size: 14, anchor: 'middle', weight: 800 });
   return svg(W, H, s, u, 80);
 });
 
@@ -50567,7 +50631,7 @@ BFY_FIG_EKLE('sfY91_halat', function (u) {
 const { P, T, svg } = window.BFY_FIGLIB;
 const f1 = v => (+v).toFixed(1);
 BFY_FIG_EKLE('kY91_birlesim_genis', function (u) {
-  const W = 560, H = 190, sq = 14, nX = 16, nY = 16, x0 = 52, yc = 88, xJ = x0 + nX * sq, xE = xJ + nY * sq;
+  const W = 540, H = 230, sq = 18, nX = 8, nY = 16, x0 = 52, yc = 108, xJ = x0 + nX * sq, xE = xJ + nY * sq;
   let s = `<rect class="bg" x="0" y="0" width="${W}" height="${H}" rx="14" fill="#f4f7f9"/>`;
   s += `<rect class="bg" x="${x0}" y="${yc - 4 * sq}" width="${(nX + nY) * sq}" height="${8 * sq}" fill="#fff"/>`;
   let g = '';
@@ -50576,7 +50640,7 @@ BFY_FIG_EKLE('kY91_birlesim_genis', function (u) {
   s += `<g stroke="#d6e1e8" stroke-width="1">${g}</g>`;
   s += `<line x1="${x0}" y1="${yc}" x2="${xE}" y2="${yc}" stroke="#9fb3c0" stroke-width="1" stroke-dasharray="4 3"/>`;
   const yol = (fn, a, b) => { let d = ''; for (let i = 0; i <= 200; i++) { const x = a + (b - a) * i / 200; d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(yc - fn(x)); } return d; };
-  // X: λ = 4 kare, genlik 1,5 kare; Y: λ = 8 kare, genlik 2 kare; birleşme noktasında sürekli
+  // X: λ = 4 kare (2 dalga), genlik 1,5 kare; Y: λ = 8 kare (2 dalga), genlik 2 kare; birleşme noktasında sürekli
   s += `<path d="${yol(x => 1.5 * sq * Math.sin(2 * Math.PI * (x - xJ) / (4 * sq)), x0, xJ)}" fill="none" stroke="#34505e" stroke-width="2.6"/>`;
   s += `<path d="${yol(x => 2 * sq * Math.sin(2 * Math.PI * (x - xJ) / (8 * sq)), xJ, xE)}" fill="none" stroke="#34505e" stroke-width="2.6"/>`;
   // titreştirici, birleşme noktası, duvar
@@ -50584,10 +50648,10 @@ BFY_FIG_EKLE('kY91_birlesim_genis', function (u) {
   s += `<line x1="${xJ}" y1="${yc - 4 * sq - 4}" x2="${xJ}" y2="${yc - 6}" stroke="#d08a0a" stroke-width="1.3" stroke-dasharray="3 3"/>`;
   s += `<circle cx="${xJ}" cy="${yc}" r="4.5" fill="#d08a0a" stroke="#fff" stroke-width="1.3"/>`;
   s += `<path d="M${xE} ${yc} q8 -6 16 -4 t16 2" fill="none" stroke="#34505e" stroke-width="2.6" stroke-dasharray="3 4"/>`;
-  s += T((x0 + xJ) / 2, yc + 4 * sq + 20, 'X yayı', { size: 13, anchor: 'middle', weight: 800 });
-  s += T((xJ + xE) / 2, yc + 4 * sq + 20, 'Y yayı', { size: 13, anchor: 'middle', weight: 800 });
-  s += T(x0 - 18, yc + 4 * sq + 20, 'titreştirici', { size: 11.5, anchor: 'start', weight: 700, fill: P.ink2 });
-  s += T(xJ, yc - 4 * sq - 10, 'birleşme noktası', { size: 11.5, anchor: 'middle', weight: 700, fill: '#9a6a08' });
+  s += T((x0 + xJ) / 2, yc + 4 * sq + 22, 'X yayı', { size: 16, anchor: 'middle', weight: 800 });
+  s += T((xJ + xE) / 2, yc + 4 * sq + 22, 'Y yayı', { size: 16, anchor: 'middle', weight: 800 });
+  s += T(x0 - 32, yc + 4 * sq + 22, 'titreştirici', { size: 13, anchor: 'start', weight: 700, fill: P.ink2 });
+  s += T(xJ, yc - 4 * sq - 10, 'birleşme noktası', { size: 14, anchor: 'middle', weight: 700, fill: '#9a6a08' });
   return svg(W, H, s, u, 120);
 });
 })();
@@ -54239,11 +54303,12 @@ BFY_FIG_EKLE('kY93_osilo3', function (u) {
 
 /* 11: P, R, S, T kayıtları */
 BFY_FIG_EKLE('kY93_tini4_genis', function (u) {
-  const W = 560, H = 236, b = 16;
+  // telefonda bölmeler sayılabilsin diye ekranlar sayfa genişliğini dolduracak kadar büyük (b = 19)
+  const W = 560, H = 290, b = 19;
   let s = zemin(W, H);
   [['P', 4, 2, 'sin'], ['R', 4, 2, 'testere'], ['S', 3, 2, 'kare'], ['T', 4, 1, 'flut']].forEach(([ad, Tp, A, bc], i) => {
-    const x = 52 + (i % 2) * 262, y = 18 + Math.floor(i / 2) * 112;
-    s += harf(x - 22, y + 53, ad) + ekran(x, y, { nx: 12, ny: 6, b, T: Tp, A, bicim: bc, ad });
+    const x = 40 + (i % 2) * 266, y = 20 + Math.floor(i / 2) * 136;
+    s += harf(x - 20, y + 62, ad) + ekran(x, y, { nx: 12, ny: 6, b, T: Tp, A, bicim: bc, ad });
   });
   return svg(W, H, s, u, 150);
 });
@@ -73474,7 +73539,7 @@ const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { ret
 /* ---- Matematik + mini biçim ---- */
 // Yalnız sayı ve birimden oluşan kısa ifadeler ("0,033", "12\\ \\text{m/s}", "-4") KaTeX'in serif fontuyla değil,
 // metnin kendi fontuyla yazılır; kitapta yazı tipi karmaşası olmasın (Kasım 2026, öğretmen geri bildirimi).
-const SADE_SAYI = /^\s*[-−+]?\s*\d[\d.,]*(\s*(\\[ ,;!]|~)\s*\\(text|mathrm)\{[A-Za-zÇĞİÖŞÜçğıöşüµΩ%/ .]{1,12}\}(\^\{?[23]\}?)?|\s*\^\{?\\circ\}?)?\s*$/;
+const SADE_SAYI = /^\s*[-−+]?\s*\d[\d.,]*(\s*(\\[ ,;!]|~)\s*\\(text|mathrm)\{[A-Za-zÇĞİÖŞÜçğıöşüµΩ%/ .]{1,12}\}(\^\{?[23]\}?)?|\s*(\^\{?\\circ\}?|°))?\s*$/;
 function sadeSayi(src) {
   if (!SADE_SAYI.test(src)) return null;
   const t = src.replace(/\^\{?\\circ\}?/g, '°').replace(/\^\{?2\}?/g, '²').replace(/\^\{?3\}?/g, '³').replace(/\\(text|mathrm)\{([^}]*)\}/g, '$2').replace(/\\[ ,;!]|~/g, ' ').replace(/-/g, '−').replace(/\s+/g, ' ').trim();
