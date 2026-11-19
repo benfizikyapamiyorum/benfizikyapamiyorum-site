@@ -10,6 +10,18 @@ const URUN = {
   11: { ad: 'Yapabilirim 11', sayfa: '11-sinif-fizik-paketi.html', fiyat: '₺599', konu: 18, soru: 504, kart: 126, gorsel: ['img/fizik11/set.webp', 'img/fizik11/pdf-set.webp'] },
 };
 
+// WhatsApp kanalı şeridi: her notun son sayfasının en altında, küçük QR ile.
+const KANAL = 'https://whatsapp.com/channel/0029Vb9d2s40wajrtEwstL2q';
+const KANAL_CSS = `
+.kanal{display:flex;align-items:center;gap:12px;background:#214e41;color:#fff;border-radius:10px;padding:9px 14px;margin-top:8px;text-decoration:none}
+.kanal svg{width:19mm;height:19mm;flex:0 0 19mm;background:#fff;padding:1.5mm;border-radius:6px}
+.kanal b{display:block;font-size:10.6pt;font-weight:800;color:#fff}.kanal span{display:block;font-size:8.6pt;color:#d6e5dd;line-height:1.35;margin-top:2px}
+.kanal i{font-style:normal;margin-left:auto;background:#e9be64;color:#203d35;font-weight:800;font-size:9pt;padding:6px 10px;border-radius:7px;white-space:nowrap}`;
+async function kanalSerit() {
+  const qr = await QR.toString(KANAL, { type: 'svg', margin: 0, color: { dark: '#203d35', light: '#ffffff' } });
+  return `<a class="kanal" href="${KANAL}">${qr}<div><b>Yeni notlar önce WhatsApp kanalında</b><span>Haftalık notlar, yazılı provaları ve yazılı öncesi son tekrarlar kanala düşer. QR’ı okut, kanala katıl. Numaran kimseye görünmez.</span></div><i>Kanala katıl</i></a>`;
+}
+
 async function promoHTML(N, site) {
   if (N.yazili) return yaziliPromo(N, site);
   const R = RENK[N.sinif], U = URUN[N.sinif];
@@ -36,7 +48,7 @@ async function promoHTML(N, site) {
 .alt3 h4{font-size:10.4pt;font-weight:800;margin-bottom:4px}
 .qr{text-align:center;border-color:var(--ana)!important}.qr svg{width:30mm;height:30mm}.qr p{font-size:8.4pt;font-weight:700;margin-top:4px}
 .kod{display:inline-block;border:2px dashed var(--ana);color:var(--koyu);font-weight:800;font-size:13pt;letter-spacing:.08em;padding:3px 10px;border-radius:7px;margin-top:6px}
-.bant{display:flex;justify-content:space-between;background:#1d2b53;color:#fff;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:8.8pt}.bant b{color:#fcd34d}`;
+.bant{display:flex;justify-content:space-between;background:#1d2b53;color:#fff;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:8.8pt}.bant b{color:#fcd34d}`+KANAL_CSS;
   return head(`${U.ad} tanıtım`, R, extra) + `
 <div class="pb"><span>BEN FİZİK YAPAMIYORUM</span><span>BU NOTUN DEVAMI</span></div>
 <div class="ph"><div class="e">ÇALIŞMAYA DEVAM · ${N.sinif}. SINIF</div><h1>Okudun. Şimdi kendini dene.</h1><p>${N.promoKonu || N.konuKisa} ve ${N.sinif}. sınıfın bütün konuları ${U.ad}'da: konu notu, yeni nesil sorular, yanlışının nedenini söyleyen çözümler.</p></div>
@@ -53,6 +65,7 @@ async function promoHTML(N, site) {
  <div><h4>Bu PDF’yi okuyanlara %10</h4>${U.ad} ve Yazılıya 3 Gün Kala’da Shopier ödeme adımında yaz:<br><span class="kod">NOTLAR10</span></div>
 </div>
 <a class="bant" href="https://benfizikyapamiyorum.com/ucretsiz/pdf?utm_source=haftalik_not&utm_medium=pdf" style="text-decoration:none"><span>Her hafta yeni ücretsiz not: <b>Pazartesi 9 · Çarşamba 10 · Cuma 11. sınıf</b></span><span>benfizikyapamiyorum.com · @benfizikyapamiyorum</span></a>
+${await kanalSerit()}
 </body></html>`;
 }
 
@@ -81,7 +94,7 @@ async function yaziliPromo(N, site) {
 .alt3 h4{font-size:10.4pt;font-weight:800;margin-bottom:4px}
 .qr{text-align:center;border-color:var(--ana)!important}.qr svg{width:30mm;height:30mm}.qr p{font-size:8.4pt;font-weight:700;margin-top:4px}
 .kod{display:inline-block;border:2px dashed var(--ana);color:var(--koyu);font-weight:800;font-size:13pt;letter-spacing:.08em;padding:3px 10px;border-radius:7px;margin-top:6px}
-.bant{display:flex;justify-content:space-between;background:#1d2b53;color:#fff;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:8.8pt;text-decoration:none}.bant b{color:#fcd34d}`;
+.bant{display:flex;justify-content:space-between;background:#1d2b53;color:#fff;border-radius:10px;padding:10px 14px;margin-top:12px;font-size:8.8pt;text-decoration:none}.bant b{color:#fcd34d}`+KANAL_CSS;
   return head('Yazılıya 3 Gün Kala tanıtım', R, extra) + `
 <div class="pb"><span>BEN FİZİK YAPAMIYORUM</span><span>YAZILI HAFTASI</span></div>
 <div class="ph"><div class="e">YAZILIYA HAZIRLIK · ${N.sinif}. SINIF</div><h1>Yazılıya 3 gün mü kaldı? Plan hazır.</h1><p>Bu not son tekrar içindi. Yazılıya 3 Gün Kala ${N.sinif} kitapçığı seni üç günde sınava hazır eder: konuyu topla, çözerek öğren, son gün prova et.</p></div>
@@ -99,6 +112,7 @@ async function yaziliPromo(N, site) {
  <div><h4>Bu PDF’yi okuyanlara %10</h4>Yazılıya 3 Gün Kala ve Yapabilirim’de Shopier ödeme adımında yaz:<br><span class="kod">NOTLAR10</span></div>
 </div>
 <a class="bant" href="https://benfizikyapamiyorum.com/ucretsiz/pdf${utm}"><span>Her hafta yeni ücretsiz not: <b>Pazartesi 9 · Çarşamba 10 · Cuma 11. sınıf</b></span><span>benfizikyapamiyorum.com · @benfizikyapamiyorum</span></a>
+${await kanalSerit()}
 </body></html>`;
 }
 module.exports = { promoHTML, URUN };
