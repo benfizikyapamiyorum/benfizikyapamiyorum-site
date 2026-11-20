@@ -11,8 +11,8 @@ export function drivetrain(speed,throttle=0){
 // not measured Sahin tyre data. Longitudinal and lateral forces share mu * Fz.
 // References: code.eng.buffalo.edu/dat/sites/tire/tire.html and MathWorks
 // Combined Slip Wheel 2DOF. World forward is +x; positive yaw turns toward +z.
-export const steeringAngle=c=>c.steer*.48/(1+Math.abs(c.v)*.035);
-export function makeDriver(id,lane,s=0){return{id,lane,s,v:0,vy:0,yaw:0,steer:0,time:0,done:false,finishTime:null,contacts:0,hit:0,damage:0,yawRate:0,direction:1,autoReverse:false,driftIntent:0,gear:1,rpm:950,accel:0,spin:0,rearWheelSpeed:0,frontSkid:0,rearSkid:0,slipAngle:0,drifting:false,driftScore:0,driftChain:0,driftGrace:0};}
+export const steeringAngle=c=>c.steer*.50/(1+.008*c.v*c.v);
+export function makeDriver(id,lane,s=0){return{id,lane,s,v:0,vy:0,yaw:0,steer:0,time:0,done:false,finishTime:null,contacts:0,hit:0,impact:0,damage:0,yawRate:0,direction:1,autoReverse:false,driftIntent:0,gear:1,rpm:950,accel:0,spin:0,rearWheelSpeed:0,frontSkid:0,rearSkid:0,slipAngle:0,drifting:false,driftScore:0,driftChain:0,driftGrace:0};}
 export function resetSlip(c){c.vy=0;c.yawRate=0;c.spin=0;c.rearWheelSpeed=c.v/.303;c.frontSkid=c.rearSkid=c.slipAngle=0;c.accel=0;c.driftIntent=0;c.drifting=false;c.driftChain=0;c.driftGrace=0;}
 // Direction changes require a near stop, including sideways movement.
 export function setDirection(c,direction){if(c.done||Math.hypot(c.v,c.vy)>.6)return false;c.direction=direction<0?-1:1;c.autoReverse=false;c.v=0;resetSlip(c);c.gear=c.direction<0?-1:1;return true;}
@@ -32,7 +32,7 @@ function advance(c,dt,curvature,length,laps){
  c.yaw+=(c.yawRate-curvature*along)*dt;c.yaw=Math.atan2(Math.sin(c.yaw),Math.cos(c.yaw));c.lane+=across*dt;c.s+=along*dt;
  if(Math.abs(c.lane)>13.2){const impact=Math.abs(across);c.lane=Math.sign(c.lane)*13.2;
   // Stop against the barrier without rotating the car: reverse must point away from it.
-  c.v=0;resetSlip(c);if(c.hit===0&&impact>.8){c.contacts++;c.damage=clamp(c.damage+.035+impact*.018,0,1);c.hit=.85;}}
+  c.v=0;resetSlip(c);if(c.hit===0&&impact>.8){c.contacts++;c.impact=impact;c.damage=clamp(c.damage+.035+impact*.018,0,1);c.hit=.85;}}
 
  if(c.s>=length*laps){c.s=length*laps;c.done=true;c.finishTime=c.time;}
 }
@@ -40,7 +40,9 @@ export function combinedForce(x,y,limit){const scale=Math.min(1,limit/Math.max(.
 function integrate(c,input,dt,curvature,length,laps){
  c.time+=dt;c.hit=Math.max(0,c.hit-dt);
  const throttle=clamp(input.gas||0,0,1),brake=clamp(input.brake||0,0,1),hand=clamp(input.handbrake||0,0,1),steer=clamp(input.steer||0,-1,1);
- c.steer+=(steer-c.steer)*(1-Math.exp(-dt*8));
+ // Turning the wheel takes time, especially on a keyboard; countersteer is quicker.
+ const countersteering=c.steer*steer<0,steerRate=countersteering?3.6:steer===0?2.8:2.0;
+ c.steer+=clamp(steer-c.steer,-steerRate*dt,steerRate*dt);
  const mass=1100,lf=1.18,lr=1.30,wb=lf+lr,offroad=Math.abs(c.lane)>7.4,mu=offroad?.48:1.05;
  if(c.direction<0){
   const braking=Math.max(brake,hand),speed=Math.abs(c.v),acceleration=(braking?0:throttle)*3.1*(1-c.damage*.32)*(offroad?.55:1)-braking*10-(speed>.001?.35+speed*.035:0);
@@ -74,7 +76,7 @@ function integrate(c,input,dt,curvature,length,laps){
  if(c.v<2){const rate=c.v/wb*Math.tan(delta);c.yawRate+=(rate-c.yawRate)*(1-Math.exp(-dt*12));c.vy+=(lr*rate-c.vy)*(1-Math.exp(-dt*12));}
  else{c.yawRate=clamp(c.yawRate+angular*dt,-3.5,3.5);c.vy=clamp(c.vy+ay*dt,-35,35);}
  // Modest stability assistance only when the driver lifts or countersteers; never follows the road.
- if(!hand){const counter=steer*c.vy>0&&Math.abs(steer)>.12,settle=counter?5:throttle<.2?2.5:0;if(settle){c.vy*=Math.exp(-dt*settle);const target=c.v/wb*Math.tan(delta);c.yawRate+=(target-c.yawRate)*(1-Math.exp(-dt*settle));}}
+ if(!hand&&c.v>3){const counter=steer*c.vy>0&&Math.abs(steer)>.12,settle=counter?1.8:c.driftIntent===0?.65:0;const gripYaw=mu*9.81/Math.max(3,c.v),target=clamp(c.v/wb*Math.tan(delta),-gripYaw,gripYaw);c.yawRate+=(target-c.yawRate)*(1-Math.exp(-dt*settle));}
  c.v=clamp(c.v+ax*dt,0,69);c.accel+=(ax-c.accel)*(1-Math.exp(-dt*6));
  if(c.v<.1&&Math.abs(c.vy)<.15){c.vy=0;c.yawRate=0;}
  // Separate body heading from its velocity: countersteering catches a slide.
@@ -110,6 +112,7 @@ export function resolveContact(a,b){
  if(Math.abs(a.s-b.s)>4.1||Math.abs(a.lane-b.lane)>1.75)return false;
  const dir=a.lane===b.lane?(a.id>b.id?1:-1):Math.sign(a.lane-b.lane);
  a.lane=clamp(a.lane+dir*.48,-13.2,13.2);b.lane=clamp(b.lane-dir*.48,-13.2,13.2);
+ const impact=Math.hypot(a.v-b.v,a.vy-b.vy);a.impact=b.impact=Math.max(.8,impact);
  const mean=(a.v+b.v)*.5;a.v=Math.min(a.v,mean)*.88;b.v=Math.min(b.v,mean)*.92;
  const damage=.025+Math.abs(a.v-b.v)*.006;a.damage=clamp((a.damage||0)+damage,0,1);b.damage=clamp((b.damage||0)+damage,0,1);a.hit=b.hit=.8;a.contacts++;b.contacts++;return true;
 }
