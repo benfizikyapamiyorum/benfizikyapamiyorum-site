@@ -1,5 +1,5 @@
 // BFY · 3B Hareket Grafikleri — rampada oyuncak araba, hareket sensörü, canlı x-t / v-t / a-t
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261120-class1';
 
 const G = 9.8, TY = .76, LT = 3.1, X_MIN = .12, X_MAX = 2.9, TMAX = 12;
 const XS = -1.5;                       // şerit sıfırının dünya x'i
@@ -20,7 +20,7 @@ const floorMat = worldUVMaterial({ map: cT.col, normalMap: cT.nor, roughnessMap:
 floorMat.transparent = true;
 { const ob = floorMat.onBeforeCompile; floorMat.onBeforeCompile = sh => { ob(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n gl_FragColor.a *= 1.0 - smoothstep(2.6, 5.5, length(vWPos.xz));'); }; }
 const floor = new THREE.Mesh(new THREE.CircleGeometry(6, 96).rotateX(-Math.PI / 2), floorMat); floor.receiveShadow = true; scene.add(floor);
-W.gltf('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { o.traverse(m => { if (m.isMesh) m.castShadow = m.receiveShadow = true; });
+W.optionalModel('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { if(!o)return; o.traverse(m => { if (m.isMesh) m.castShadow = m.receiveShadow = true; });
   for (const x of [-.9, .9]) { const t = x < 0 ? o : o.clone(); t.scale.set(1, TY / .549, 1.15); t.position.set(x, 0, 0); scene.add(t); } });
 
 const alu = new THREE.MeshStandardMaterial({ color: '#c3c9d0', metalness: 1, roughness: .32 });
@@ -91,11 +91,11 @@ const carTpl = { ready: null };
 const ghostGeo = fetch('sim3d/models/ToyCar/ghost.bin').then(r => r.arrayBuffer()).then(buf => { const dv = new DataView(buf); const nv = dv.getUint32(0, true), nf = dv.getUint32(4, true);
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(buf, 8, nv * 3), 3)); g.setIndex(new THREE.BufferAttribute(new Uint16Array(buf, 8 + nv * 12, nf * 3), 1)); g.computeVertexNormals(); return g; }).catch(() => null);
 let ghostG = null; ghostGeo.then(g => ghostG = g);
-Promise.all([W.gltf('models/ToyCar/car.glb'), fetch('sim3d/models/ToyCar/wheels_meta.json').then(r => r.json())]).then(([sc, meta]) => {
+Promise.all([W.gltf('models/ToyCar/car.glb'), W.json('models/ToyCar/wheels_meta.json')]).then(([sc, meta]) => {
   let body = null, glass = null; sc.traverse(o => { if (o.isMesh && o.material.name === 'ToyCar') body = o; if (o.isMesh && o.material.name === 'Glass') glass = o; });
   carTpl.body = body; carTpl.glass = glass; carTpl.meta = meta;
   for (const k of ['A', 'B']) makeCar(lanes[k], k);
-});
+}).catch(error=>W.showLoadError(error));
 
 /* yeşil gövde boyasını seçerek başka renge çevir (alevler ve krom aynı kalır) */
 function recolor(tex, hueTo) {

@@ -2,9 +2,9 @@ import * as T from './bfy-three.module.min.js';
 import {createSahin} from './bfy-sahin-model.mjs?v=20261113-real1';
 import {createRival} from './bfy-rival-cars.mjs?v=20261113-grip1';
 import {buildWorld} from './bfy-drive-world.mjs?v=20261113-real1';
-import {RecordedEngine} from './bfy-sahin-audio.mjs?v=20261121-feel1';
+import {RecordedEngine} from './bfy-sahin-audio.mjs?v=20261121-grip2';
 import {installWheel} from './bfy-drive-controls.mjs?v=20261113-grip1';
-import {clamp,makeDriver,stepDriver,stepRival,resolveContact,standings,steeringAngle,resetSlip,setDirection,resolvePedals} from './bfy-drive-physics.mjs?v=20261121-feel1';
+import {clamp,makeDriver,stepDriver,stepRival,resolveContact,standings,steeringAngle,resetSlip,setDirection,resolvePedals} from './bfy-drive-physics.mjs?v=20261121-grip2';
 import {SkidMarks} from './bfy-drive-skids.mjs?v=20261113-grip1';
 import {TireSmoke} from './bfy-tire-smoke.mjs?v=20261113-grip1';
 import {RaceAudio,proximityMix} from './bfy-race-audio.mjs?v=20261121-feel1';
@@ -24,7 +24,7 @@ function showBest(){try{const v=Number(localStorage.getItem(scoreKey()));$('best
 function reset(){clearInputs();drivers=[makeDriver(0,2,0),makeDriver(1,-2.5,9),makeDriver(2,2.5,17),makeDriver(3,-2.5,25)];drivers.forEach((c,i)=>{c.targetLane=c.lane;c.pace=[1,1.04,1,.98][i];});elapsed=0;uiTime=0;skids?.reset();smoke?.reset();countdown=3;state='ready';$('shift-status').textContent='Freni basılı tut → geri git';game.classList.remove('playing','settings-open');$('intro').hidden=false;$('results').hidden=true;$('pause-panel').hidden=true;$('settings-panel').hidden=true;$('pause').disabled=true;$('count').hidden=true;$('track-alert').textContent='';stopSound();showBest();placeCars(0);sync();}
 function stopSound(){raceAudio.stop();tires.stop();engine.stop();}
 async function playSound(ignition=false){if(!sound)return;const result=await Promise.allSettled([engine.start(),tires.start()]);if(engine.enabled&&sound&&['racing','countdown'].includes(state)){try{await raceAudio.start({ignition});}catch(e){result.push({status:'rejected',reason:e});}}const failed=result.find(r=>r.status==='rejected');$('audio-status').textContent=failed?failed.reason.message:'';}
-function start(){if(!ready)return;clearInputs();pace={easy:.83,normal:.95,hard:1.04}[$('difficulty').value];game.classList.add('playing');$('intro').hidden=true;state='countdown';countdown=3;$('count').hidden=false;$('count').textContent='3';$('pause').disabled=false;playSound(true);}
+function start(){if(!ready)return;clearInputs();pace={easy:.83,normal:.95,hard:1.04}[$('difficulty').value];game.classList.add('playing');$('intro').hidden=true;window.scrollTo(0,0);state='countdown';countdown=3;$('count').hidden=false;$('count').textContent='3';$('pause').disabled=false;playSound(true);}
 function pause(){if(!['racing','countdown'].includes(state))return;previousState=state;state='paused';clearInputs();stopSound();$('pause-panel').hidden=false;$('resume').focus();$('count').hidden=true;}
 function resume(){if(state!=='paused')return;state=previousState;clearInputs();$('pause-panel').hidden=true;playSound();}
 function finish(){state='finished';stopSound();clearInputs();$('pause').disabled=true;$('results').hidden=false;$('count').hidden=true;const rank=standings(drivers),position=rank.findIndex(c=>c.id===0)+1,p=drivers[0];$('result-title').textContent=position===1?'Şahin podyumun zirvesinde!':`${position}. sırada finiş!`;$('result-detail').textContent=`${clock(p.finishTime)} · 2 tur · ${p.contacts} temas · %${Math.round(p.damage*100)} hasar · ${Math.floor(p.driftScore)} drift puanı`;$('result-order').replaceChildren();rank.forEach((c,i)=>{const li=document.createElement('li'),label=document.createElement('b'),time=document.createElement('span');label.textContent=`${i+1}. ${names[c.id]}`;time.textContent=c.done?clock(c.finishTime):'Pistte';li.append(label,time);$('result-order').append(li);});try{const best=Number(localStorage.getItem(scoreKey()))||Infinity;if(p.finishTime<best){localStorage.setItem(scoreKey(),String(p.finishTime));$('result-detail').textContent+=' · Yeni en iyi süre!';}}catch{}$('again').focus();}

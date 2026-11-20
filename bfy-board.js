@@ -1,13 +1,15 @@
 /* Shared smartboard workspace. Existing experiment nodes and physics stay alive. */
 (() => {
   'use strict';
-  const init = () => {
+  const init = async () => {
+    const {LIMITS,appendPoint,validStrokes,segmentDistance}=await import("./bfy-board-core.mjs?v=20261120-class1");
     const grid = document.querySelector('.a3-grid,.lab-grid,.lab,.layout');
     const stage = document.getElementById('stage');
     if (!grid || !stage || document.getElementById('bfy-board')) return;
+    if(document.getElementById('mission-inputs')&&!document.getElementById('mission-inputs').children.length)await new Promise(resolve=>window.addEventListener('bfy:mission-ready',resolve,{once:true}));
     const $ = (s, root = document) => root.querySelector(s);
     const $$ = (s, root = document) => [...root.querySelectorAll(s)];
-    const title = document.title.split('|')[0].split(':')[0].trim();
+    const title = document.querySelector('.mission-title h1')?.textContent || document.title.split('|')[0].split(':')[0].trim();
     const home = document.createComment('BFY experiment original position');
     grid.before(home);
     const opener = document.createElement('button');
@@ -51,13 +53,14 @@
     const svgNS='http://www.w3.org/2000/svg', ink=document.createElementNS(svgNS,'svg');
     ink.classList.add('board-ink'); ink.setAttribute('viewBox','0 0 1000 1000'); ink.setAttribute('preserveAspectRatio','none'); ink.setAttribute('aria-hidden','true');
     stage.append(ink);
+    let lessonListener=()=>{},inkListener=()=>{},inkRAF=0;
     let active=false, tool='interact', color='#f7c65b', pointer=null, path=null, points=[], strokes=[], history=[], lesson=0, previousFocus, inerted=[];
     const say=text=>$('.board-status',shell).textContent=text;
     const historyState=()=>{ $('[data-action="undo"]',shell).disabled=!history.length; $('[data-action="clear"]',shell).disabled=!strokes.length; };
     const render=()=>{ ink.replaceChildren(); strokes.forEach(s=>{const p=document.createElementNS(svgNS,'polyline'); p.setAttribute('points',s.points.map(p=>p.join(',')).join(' '));p.setAttribute('fill','none');p.setAttribute('stroke',s.color);p.setAttribute('stroke-width','4');p.setAttribute('stroke-linecap','round');p.setAttribute('stroke-linejoin','round');p.setAttribute('vector-effect','non-scaling-stroke');ink.append(p);}); historyState(); };
-    const remember=()=>{ history.push(strokes.slice()); if(history.length>60)history.shift(); };
+    const remember=()=>{ history.push(strokes.slice()); if(history.length>LIMITS.history)history.shift(); };
     function setTool(next){ tool=next; ink.dataset.tool=tool; ink.style.pointerEvents=active&&tool!=='interact'?'auto':'none'; ink.style.cursor=tool==='erase'?'cell':'crosshair'; $$('[data-tool]',shell).forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===tool))); say(tool==='interact'?'Sahneyi sürükle, değişkenleri keşfet.':tool==='pen'?'Sahnenin üzerine çiz. Deneye dönmek için “Deneyi yönet”.':'Silmek istediğin çizgiye dokun.'); }
-    function lessonRender(){ const d=lessonData[lesson]; if(!d)return; $('.board-count',shell).textContent=`DENEY ${String(lesson+1).padStart(2,'0')} / ${String(lessonData.length).padStart(2,'0')}`;$('.board-lesson h3',shell).textContent=d.title;$('.board-instruction',shell).textContent=d.instruction;$('.board-answer',shell).textContent=d.answer;$('.board-answer',shell).hidden=true;const reveal=$('[data-action="reveal"]',shell);reveal.textContent='Açıklamayı göster';reveal.setAttribute('aria-expanded','false');$('[data-action="previous"]',shell).disabled=lesson===0;$('[data-action="next"]',shell).disabled=lesson===lessonData.length-1; }
+    function lessonRender(){ lessonListener(lesson); const d=lessonData[lesson]; if(!d)return; $('.board-count',shell).textContent=`DENEY ${String(lesson+1).padStart(2,'0')} / ${String(lessonData.length).padStart(2,'0')}`;$('.board-lesson h3',shell).textContent=d.title;$('.board-instruction',shell).textContent=d.instruction;$('.board-answer',shell).textContent=d.answer;$('.board-answer',shell).hidden=true;const reveal=$('[data-action="reveal"]',shell);reveal.textContent='Açıklamayı göster';reveal.setAttribute('aria-expanded','false');$('[data-action="previous"]',shell).disabled=lesson===0;$('[data-action="next"]',shell).disabled=lesson===lessonData.length-1; }
     function open(){
       if(active)return; active=true; previousFocus=document.activeElement;
       $('.board-work',shell).append(grid); shell.hidden=false;document.body.classList.add('board-active');
@@ -84,27 +87,35 @@
         case 'reveal':{const answer=$('.board-answer',shell);answer.hidden=!answer.hidden;b.setAttribute('aria-expanded',String(!answer.hidden));b.textContent=answer.hidden?'Açıklamayı göster':'Açıklamayı gizle';break;}
         case 'next':lesson=Math.min(lessonData.length-1,lesson+1);lessonRender();break;
         case 'previous':lesson=Math.max(0,lesson-1);lessonRender();break;
-        case 'undo':if(history.length){strokes=history.pop();render();}break;
-        case 'clear':if(strokes.length){remember();strokes=[];render();say('Çizimler temizlendi. Geri al ile geri getirebilirsin.');}break;
+        case 'undo':if(history.length){strokes=history.pop();render();inkListener();}break;
+        case 'clear':if(strokes.length){remember();strokes=[];render();inkListener();say('Çizimler temizlendi. Geri al ile geri getirebilirsin.');}break;
       }
     });
     document.addEventListener('fullscreenchange',()=>{const b=$('[data-action="fullscreen"]',shell);const full=document.fullscreenElement===shell;b.setAttribute('aria-pressed',String(full));b.textContent=full?'Küçült':'Tam ekran';});
     shell.addEventListener('keydown',e=>{
+      if(e.target.tagName==='TEXTAREA'&&!['Tab','Escape'].includes(e.key))e.stopPropagation();
       // Keep legacy experiment keyboard shortcuts away from text and tahta tools.
       if(e.key==='Escape'){e.preventDefault();e.stopPropagation();if(!$('#board-lesson',shell).hidden){$('#board-lesson',shell).hidden=true;$('[data-action="lesson"]',shell).setAttribute('aria-expanded','false');$('[data-action="lesson"]',shell).focus();}else if(tool!=='interact')setTool('interact');else close();}
-      if(e.key==='Tab'){const focusable=$$('a[href],button:not(:disabled),input:not(:disabled),select:not(:disabled),summary,[tabindex="0"]',shell).filter(el=>el.getClientRects().length&&!el.closest('[hidden]'));const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}
+      if(e.key==='Tab'){const focusable=$$('a[href],button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex="0"]',shell).filter(el=>el.getClientRects().length&&!el.closest('[hidden]'));const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}
     });
     // Consume drawing events before legacy orbit/canvas handlers see them.
     const point=e=>{const r=ink.getBoundingClientRect();return [Math.max(0,Math.min(1000,(e.clientX-r.left)/r.width*1000)),Math.max(0,Math.min(1000,(e.clientY-r.top)/r.height*1000))];};
     ink.addEventListener('pointerdown',e=>{
       if(pointer!==null||!e.isPrimary||e.button>0)return;e.preventDefault();e.stopPropagation();pointer=e.pointerId;ink.setPointerCapture(pointer);
-      if(tool==='erase'){const el=document.elementFromPoint(e.clientX,e.clientY);const index=[...ink.children].indexOf(el);if(index>=0){remember();strokes.splice(index,1);render();}return;}
+      if(tool==='erase'){const p=point(e),r=ink.getBoundingClientRect(),px=[p[0]*r.width/1000,p[1]*r.height/1000];const index=strokes.findLastIndex(s=>s.points.some((a,i)=>i&&segmentDistance(px,[a[0]*r.width/1000,a[1]*r.height/1000],[s.points[i-1][0]*r.width/1000,s.points[i-1][1]*r.height/1000])<14));if(index>=0){remember();strokes.splice(index,1);render();inkListener();}return;}
+      if(strokes.length>=LIMITS.strokes){say("Çizim alanı doldu. Deftere kaydet, sonra temizleyerek devam et.");return;}
       remember();points=[point(e)];points.push([points[0][0]+.01,points[0][1]+.01]);path={points,color};strokes.push(path);render();
     });
-    ink.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;e.preventDefault();e.stopPropagation();if(path){points.push(point(e));ink.lastElementChild.setAttribute('points',points.map(p=>p.join(',')).join(' '));}});
-    const finish=e=>{if(pointer!==e.pointerId)return;e.stopPropagation();if(ink.hasPointerCapture(pointer))ink.releasePointerCapture(pointer);pointer=null;path=null;historyState();};
+    ink.addEventListener('pointermove',e=>{if(pointer!==e.pointerId)return;e.preventDefault();e.stopPropagation();if(path){const r=ink.getBoundingClientRect();appendPoint(points,point(e),1500/Math.max(r.width,r.height));if(!inkRAF)inkRAF=requestAnimationFrame(()=>{inkRAF=0;if(path&&ink.lastElementChild)ink.lastElementChild.setAttribute('points',points.map(p=>p.join(',')).join(' '));});}});
+    const finish=e=>{if(pointer!==e.pointerId)return;e.stopPropagation();if(ink.hasPointerCapture(pointer))ink.releasePointerCapture(pointer);pointer=null;path=null;cancelAnimationFrame(inkRAF);inkRAF=0;render();inkListener();};
     ink.addEventListener('pointerup',finish);ink.addEventListener('pointercancel',finish);ink.addEventListener('lostpointercapture',finish);
     ink.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();},{passive:false});
+    try { const {attachClassroom}=await import('./bfy-board-classroom.mjs?v=20261120-class1');
+      attachClassroom({shell,grid,stage,title,say,isActive:()=>active,getStrokes:()=>strokes,
+        setStrokes:value=>{remember();strokes=validStrokes(value);render();},
+        onLesson:fn=>lessonListener=fn,onInk:fn=>inkListener=fn,
+        setLesson:value=>{lesson=value;lessonRender();}});
+    } catch(error){console.error('BFY classroom',error);say('Ders araçları yüklenemedi. Sayfayı yenileyebilirsin.');}
     // Late legacy modules may insert their 3D canvas; the overlay stays on top via z-index.
     if(new URLSearchParams(location.search).get('tahta')==='1')open();
   };

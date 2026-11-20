@@ -1,6 +1,6 @@
 import * as T from './bfy-three.module.min.js';
 import {createSahin} from './bfy-sahin-model.mjs?v=20261112-damage3';
-import {RecordedEngine} from './bfy-sahin-audio.mjs?v=20261112-sound3';
+import {RecordedEngine} from './bfy-sahin-audio.mjs?v=20261121-grip2';
 import {makeRace,raceSample} from './bfy-sahin-physics.mjs';
 const $=id=>document.getElementById(id),fmt=(n,d=1)=>n.toFixed(d).replace('.',','),clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 let model,t=0,phase='ready',last=performance.now(),countStart=0,prediction=null,night=false,lights=false,bootOpen=false,bootAngle=0,cameraMode='garage';
@@ -107,3 +107,5 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min(.05,(now-last
 }
 setup();$('race-start').disabled=true;
 try{makeScene();$('race-start').disabled=false;requestAnimationFrame(frame);}catch(error){console.error(error);$('loading').textContent='3B garaj açılamadı. WebGL destekli güncel bir tarayıcıyla yeniden dene.';$('race-start').disabled=true;}
+
+window.addEventListener('bfy:capture',()=>{if(renderer)renderer.render(scene,camera);});

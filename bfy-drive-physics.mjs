@@ -1,8 +1,8 @@
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const GEARS=[0,48,83,122,167,225];
-export function drivetrain(speed,throttle=0){
+export function drivetrain(speed,throttle=0,previousGear=0){
  const kmh=Math.max(0,speed)*3.6;let gear=1;
- while(gear<5&&kmh>GEARS[gear])gear++;
+ if(previousGear>=1&&previousGear<=5){gear=previousGear;while(gear<5&&kmh>GEARS[gear]+2)gear++;while(gear>1&&kmh<GEARS[gear-1]-5)gear--;}else while(gear<5&&kmh>GEARS[gear])gear++;
  const low=gear===1?0:GEARS[gear-1]*.70;
  const rpm=clamp(gear===1&&kmh<8?950+throttle*1900:1600+(kmh-low)/(GEARS[gear]-low)*5000,900,6800);
  return {gear,rpm};
@@ -11,7 +11,7 @@ export function drivetrain(speed,throttle=0){
 // not measured Sahin tyre data. Longitudinal and lateral forces share mu * Fz.
 // References: code.eng.buffalo.edu/dat/sites/tire/tire.html and MathWorks
 // Combined Slip Wheel 2DOF. World forward is +x; positive yaw turns toward +z.
-export const steeringAngle=c=>c.steer*.50/(1+.008*c.v*c.v);
+export const steeringAngle=c=>{const sliding=c.driftIntent>0||Math.abs(c.slipAngle)>.10;return c.steer*(sliding?.50:.52)/(1+(sliding?.008:.0055)*c.v*c.v);};
 export function makeDriver(id,lane,s=0){return{id,lane,s,v:0,vy:0,yaw:0,steer:0,time:0,done:false,finishTime:null,contacts:0,hit:0,impact:0,damage:0,yawRate:0,direction:1,autoReverse:false,driftIntent:0,gear:1,rpm:950,accel:0,spin:0,rearWheelSpeed:0,frontSkid:0,rearSkid:0,slipAngle:0,drifting:false,driftScore:0,driftChain:0,driftGrace:0};}
 export function resetSlip(c){c.vy=0;c.yawRate=0;c.spin=0;c.rearWheelSpeed=c.v/.303;c.frontSkid=c.rearSkid=c.slipAngle=0;c.accel=0;c.driftIntent=0;c.drifting=false;c.driftChain=0;c.driftGrace=0;}
 // Direction changes require a near stop, including sideways movement.
@@ -56,7 +56,7 @@ function integrate(c,input,dt,curvature,length,laps){
  const frontLoad=mass*9.81*lr/wb-transfer,rearLoad=mass*9.81*lf/wb+transfer;
  const af=Math.atan2(c.vy+lf*c.yawRate,Math.max(3,c.v))-delta;
  const ar=Math.atan2(c.vy-lr*c.yawRate,Math.max(3,c.v));
- const lowSpeed=clamp(c.v/3,0,1),frontLimit=mu*frontLoad;
+ const lowSpeed=clamp(c.v/3,0,1),frontLimit=mu*frontLoad*(c.driftIntent>0||Math.abs(c.slipAngle)>.10?1:1.08);
  // Rear grip falls past the peak slip angle and with locked rear wheels.
  const rearLimit=mu*rearLoad*1.10*(1-(c.driftIntent>0?.08:0)*clamp((Math.abs(ar)-.10)/.5,0,1))*(1-hand*.68);
  const rearLateral=-rearLimit*Math.tanh(76000*ar/Math.max(1,rearLimit))*lowSpeed;
@@ -76,7 +76,7 @@ function integrate(c,input,dt,curvature,length,laps){
  if(c.v<2){const rate=c.v/wb*Math.tan(delta);c.yawRate+=(rate-c.yawRate)*(1-Math.exp(-dt*12));c.vy+=(lr*rate-c.vy)*(1-Math.exp(-dt*12));}
  else{c.yawRate=clamp(c.yawRate+angular*dt,-3.5,3.5);c.vy=clamp(c.vy+ay*dt,-35,35);}
  // Modest stability assistance only when the driver lifts or countersteers; never follows the road.
- if(!hand&&c.v>3){const counter=steer*c.vy>0&&Math.abs(steer)>.12,settle=counter?1.8:c.driftIntent===0?.65:0;const gripYaw=mu*9.81/Math.max(3,c.v),target=clamp(c.v/wb*Math.tan(delta),-gripYaw,gripYaw);c.yawRate+=(target-c.yawRate)*(1-Math.exp(-dt*settle));}
+ if(!hand&&c.v>3){const counter=steer*c.vy>0&&Math.abs(steer)>.12,settle=counter?1.8:c.driftIntent===0?1.15:0;const gripYaw=mu*9.81/Math.max(3,c.v),target=clamp(c.v/wb*Math.tan(delta),-gripYaw,gripYaw);c.yawRate+=(target-c.yawRate)*(1-Math.exp(-dt*settle));}
  c.v=clamp(c.v+ax*dt,0,69);c.accel+=(ax-c.accel)*(1-Math.exp(-dt*6));
  if(c.v<.1&&Math.abs(c.vy)<.15){c.vy=0;c.yawRate=0;}
  // Separate body heading from its velocity: countersteering catches a slide.
@@ -88,7 +88,7 @@ function integrate(c,input,dt,curvature,length,laps){
  c.drifting=!offroad&&c.hit===0&&c.v>5&&Math.abs(c.slipAngle)>.11&&Math.abs(c.slipAngle)<1.25&&c.rearSkid>.15;
  if(c.drifting){const points=Math.hypot(c.v,c.vy)*Math.min(.85,Math.abs(c.slipAngle))*dt*12;c.driftScore+=points;c.driftChain+=points;c.driftGrace=.7;}
  else{c.driftGrace=Math.max(0,c.driftGrace-dt);if(c.driftGrace===0||offroad||c.hit>0)c.driftChain=0;}
- const transmission=drivetrain(c.v,throttle);c.gear=transmission.gear;
+ const transmission=drivetrain(c.v,throttle,c.gear);c.gear=transmission.gear;
  const targetRpm=clamp(Math.max(transmission.rpm,throttle*(c.v<3?3300:0))+c.spin*2400,950,6800);
  c.rpm+=(targetRpm-c.rpm)*(1-Math.exp(-dt*(targetRpm>c.rpm?5:8)));
 
@@ -104,7 +104,7 @@ export function stepRival(c,dt,curvature,length,pace=1,laps=2){
  const turn=Math.abs(curvature),target=Math.min(57*pace,Math.sqrt(6.1*pace/Math.max(.001,turn)));
  c.v+=clamp(target-c.v,-12,5.8*pace)*dt;c.v=Math.max(0,c.v);
  c.lane+=(c.targetLane-c.lane)*Math.min(1,dt*1.7);c.s+=c.v*dt;
- Object.assign(c,drivetrain(c.v,c.v<target?1:.2));
+ Object.assign(c,drivetrain(c.v,c.v<target?1:.2,c.gear));
  if(c.s>=length*laps){c.s=length*laps;c.done=true;c.finishTime=c.time;}
 }
 export function resolveContact(a,b){

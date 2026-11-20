@@ -1,5 +1,5 @@
 // BFY · 3B Enerji ve Sarkaç Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261120-class1';
 
 const TY = .76, TOPY = TY + 1.16, PIV = new THREE.Vector3(0, TOPY - .03, 0);
 const BRASS_RHO = 8500;
@@ -19,8 +19,8 @@ const floorMat = worldUVMaterial({ map: cT.col, normalMap: cT.nor, roughnessMap:
 floorMat.transparent = true;
 { const ob = floorMat.onBeforeCompile; floorMat.onBeforeCompile = sh => { ob(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n gl_FragColor.a *= 1.0 - smoothstep(1.8, 4.2, length(vWPos.xz));'); }; }
 const floor = new THREE.Mesh(new THREE.CircleGeometry(4.5, 96).rotateX(-Math.PI / 2), floorMat); floor.receiveShadow = true; scene.add(floor);
-W.gltf('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(.1, 0, 0); scene.add(o); });
-W.gltf('models/chemistry_set/chemistry_set.gltf').then(o => { o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.setScalar(.65); o.position.set(-.62, TY, -.16); o.rotation.y = .25; scene.add(o); });
+W.optionalModel('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { if(!o)return; o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(.1, 0, 0); scene.add(o); });
+W.optionalModel('models/chemistry_set/chemistry_set.gltf').then(o => { if(!o)return; o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.setScalar(.65); o.position.set(-.62, TY, -.16); o.rotation.y = .25; scene.add(o); });
 const lamp = new THREE.SpotLight('#fff4e2', 9, 4.5, .55, .6, 1.3); lamp.position.set(.3, TY + 2.1, .9); lamp.target.position.set(0, TY + .4, 0); lamp.castShadow = true;
 lamp.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048); lamp.shadow.bias = -.0003; scene.add(lamp, lamp.target);
 

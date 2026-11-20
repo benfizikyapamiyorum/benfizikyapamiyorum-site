@@ -1,5 +1,5 @@
 // BFY · 3B Vektör Laboratuvarı — akıntılı nehirde motorlu kayık, bileşke hız
-import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=20261108-board1';
+import { THREE, createWorld, worldUVMaterial, canvasTex, Arrow, $, clamp, lerp, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=20261120-class1';
 
 const Z0 = 10, Z1 = -10, D = Z0 - Z1;       // kalkış ve varış çizgileri (m)
 const BANK = 13;                            // kıyı çizgisi |z|
@@ -66,7 +66,7 @@ bank([[-BANK - 11, -1.4, 1], [-BANK - 9.3, -.3, 1], [-BANK - 8.2, .3, 0], [-BANK
   m.castShadow = true; scene.add(m); }
 
 /* ---------- iskeleler ---------- */
-W.gltf('models/pier/modular_wooden_pier.gltf').then(o => {
+W.optionalModel('models/pier/modular_wooden_pier.gltf').then(o => { if(!o)return;
   o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } });
   const bb = new THREE.Box3().setFromObject(o); const cx = (bb.min.x + bb.max.x) / 2;
   for (const s of [1, -1]) { const p = s > 0 ? o : o.clone(); const holder = new THREE.Group(); holder.add(p);

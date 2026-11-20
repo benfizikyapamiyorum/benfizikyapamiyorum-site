@@ -1,5 +1,5 @@
 // BFY · 3B Optik Laboratuvarı — renk karışımı + optik ray (mercek ve ayna)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261120-class1';
 
 const TY = .76;
 const S = { mode: 'color', cam: 'orbit', L: { r: { on: true, k: 1 }, g: { on: true, k: 1 }, b: { on: true, k: 1 } }, obj: 'post', beam: true, labels: true,
@@ -16,7 +16,7 @@ const floorMat = worldUVMaterial({ map: cT.col, normalMap: cT.nor, roughnessMap:
 floorMat.transparent = true;
 { const ob = floorMat.onBeforeCompile; floorMat.onBeforeCompile = sh => { ob(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n gl_FragColor.a *= 1.0 - smoothstep(1.8, 4.2, length(vWPos.xz));'); }; }
 const floor = new THREE.Mesh(new THREE.CircleGeometry(4.5, 96).rotateX(-Math.PI / 2), floorMat); floor.receiveShadow = true; scene.add(floor);
-W.gltf('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(0, 0, 0); scene.add(o); });
+W.optionalModel('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { if(!o)return; o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(0, 0, 0); scene.add(o); });
 const black = new THREE.MeshStandardMaterial({ color: '#141517', metalness: .5, roughness: .45 });
 const alu = new THREE.MeshStandardMaterial({ color: '#c9ced3', metalness: .9, roughness: .3 });
 const chrome = new THREE.MeshStandardMaterial({ color: '#e6e9ec', metalness: 1, roughness: .12 });
@@ -77,7 +77,7 @@ const holders = { post: postG, cubes, apple: new THREE.Group(), duck: new THREE.
 const standM = () => { const g = new THREE.Group(); const p = new THREE.Mesh(new THREE.CylinderGeometry(.006, .006, .16, 12).translate(0, .08, 0), chrome); const b = new THREE.Mesh(new THREE.CylinderGeometry(.035, .04, .01, 24).translate(0, .005, 0), black); const plate = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .006, 24).translate(0, .163, 0), chrome); g.add(p, b, plate); return g; };
 for (const [k, file, len] of [['apple', 'food_apple_01', .09], ['duck', 'rubber_duck_toy', .13]]) {
   const st = standM(); holders[k].add(st);
-  W.gltf(`models/${file}/${file}.gltf`).then(src => { const m = src.clone(true); m.traverse(q => { if (q.isMesh) { q.castShadow = true; q.receiveShadow = true; } });
+  W.optionalModel(`models/${file}/${file}.gltf`).then(src => { if(!src)return; const m = src.clone(true); m.traverse(q => { if (q.isMesh) { q.castShadow = true; q.receiveShadow = true; } });
     const bb = new THREE.Box3().setFromObject(m), sz = new THREE.Vector3(); bb.getSize(sz); const sc = len / Math.max(sz.x, sz.z); m.scale.setScalar(sc); m.position.set(-(bb.min.x + bb.max.x) / 2 * sc, .166 - bb.min.y * sc, -(bb.min.z + bb.max.z) / 2 * sc); if (k === 'duck') m.rotation.y = .5; holders[k].add(m); });
 }
 Object.values(holders).forEach(h => { objG.add(h); h.visible = false; });
