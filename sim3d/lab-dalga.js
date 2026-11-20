@@ -1,5 +1,5 @@
 // BFY · 3B Dalga Leğeni — 2B dalga denkleminin GPU'da sayısal çözümü (FDTD)
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261108-board1';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, fmt, DEG, isMobile } from './bfy3d-core.js?v=20261120-class1';
 
 const TY = .76, LEGH = .26;
 const L = .56;                               // su alanının kenarı (m)
@@ -20,8 +20,8 @@ const floorMat = worldUVMaterial({ map: cT.col, normalMap: cT.nor, roughnessMap:
 floorMat.transparent = true;
 { const ob = floorMat.onBeforeCompile; floorMat.onBeforeCompile = sh => { ob(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n gl_FragColor.a *= 1.0 - smoothstep(1.8, 4.2, length(vWPos.xz));'); }; }
 const floor = new THREE.Mesh(new THREE.CircleGeometry(4.5, 96).rotateX(-Math.PI / 2), floorMat); floor.receiveShadow = true; scene.add(floor);
-W.gltf('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(.15, 0, 0); scene.add(o); });
-W.gltf('models/chemistry_set/chemistry_set.gltf').then(o => { o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.setScalar(.6); o.position.set(.72, TY, -.12); o.rotation.y = -.3; scene.add(o); });
+W.optionalModel('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { if(!o)return; o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(.15, 0, 0); scene.add(o); });
+W.optionalModel('models/chemistry_set/chemistry_set.gltf').then(o => { if(!o)return; o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.setScalar(.6); o.position.set(.72, TY, -.12); o.rotation.y = -.3; scene.add(o); });
 const lamp = new THREE.SpotLight('#fffaf0', 11, 3, .5, .5, 1.2); lamp.position.set(0, TY + 1.25, .05); lamp.target.position.set(0, TY, 0); lamp.castShadow = true; lamp.shadow.mapSize.set(1024, 1024); lamp.shadow.bias = -.0004; scene.add(lamp, lamp.target);
 const bulb = new THREE.Mesh(new THREE.SphereGeometry(.018, 24, 16), new THREE.MeshBasicMaterial({ color: new THREE.Color('#fff4d8').multiplyScalar(4), toneMapped: false })); bulb.position.copy(lamp.position); scene.add(bulb);
 const shade = new THREE.Mesh(new THREE.ConeGeometry(.07, .08, 32, 1, true), new THREE.MeshStandardMaterial({ color: '#2a2d30', metalness: .6, roughness: .4, side: THREE.DoubleSide })); shade.position.copy(lamp.position).add(new THREE.Vector3(0, .02, 0)); scene.add(shade);

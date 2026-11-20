@@ -2,6 +2,7 @@
 // Her laboratuvar bu modülü içe aktarır: sahne, ortam (HDRI), son işleme, uyarlanır kalite,
 // yörünge kamerası, parçacıklar, oklar ve HUD yardımcıları burada.
 import * as THREE from 'three';
+import {retryLoad} from '../bfy-board-core.mjs?v=20261120-class1';
 import { GLTFLoader } from './lib/loaders/GLTFLoader.js';
 import { HDRLoader } from './lib/loaders/HDRLoader.js';
 import { EffectComposer } from './lib/postprocessing/EffectComposer.js';
@@ -82,16 +83,38 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
   const sunDir = new THREE.Vector3(-.4, .8, .5).normalize();
 
   const manager = new THREE.LoadingManager();
+  let resourceWarning;
+  const warnResource = () => {
+    if(resourceWarning)return;
+    resourceWarning=document.createElement('div');resourceWarning.setAttribute('role','status');
+    resourceWarning.style.cssText='position:absolute;bottom:12px;left:12px;right:12px;z-index:20;background:#fff5d9;color:#283a30;border-radius:10px;padding:12px;font:15px/1.4 system-ui;display:flex;gap:12px;align-items:center';
+    const message=document.createElement('span');message.textContent='Bazı görsel dosyalar yüklenemedi. Deney çalışır; eksik görselleri yeniden yükleyebilirsin.';
+    const retry=document.createElement('button');retry.textContent='Yeniden yükle';retry.style.cssText='min-height:48px;flex-shrink:0';retry.onclick=()=>location.reload();resourceWarning.append(message,retry);stage.append(resourceWarning);
+  };
+  class RecoveringTextureLoader extends THREE.TextureLoader {
+    load(url,onLoad,onProgress,onError){
+      const target=new THREE.Texture();
+      retryLoad(()=>new Promise((resolve,reject)=>super.load(url,resolve,onProgress,reject)))
+        .then(texture=>{target.image=texture.image;target.needsUpdate=true;texture.dispose();onLoad?.(target);})
+        .catch(error=>{warnResource();onError?.(error);});
+      return target;
+    }
+  }
+  manager.addHandler(/\.(?:png|jpe?g|webp)(?:\?.*)?$/i,new RecoveringTextureLoader(manager));
+  window.addEventListener('bfy:capture',()=>composer.render(0));
   manager.onProgress = (u, l, t) => { const el = $('load-pct'); if (el) el.textContent = Math.round(l / t * 100) + '%'; };
-  const texL = new THREE.TextureLoader(manager), hdrL = new HDRLoader(manager), gltfL = new GLTFLoader(manager);
+  const texL = new RecoveringTextureLoader(manager), hdrL = new HDRLoader(manager), gltfL = new GLTFLoader(manager);
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const pmrem = new THREE.PMREMGenerator(renderer);
   const W = { THREE, renderer, scene, camera, composer, bloomPass, hemi, sun, sunDir, pmrem, stage, canvas, DPR };
+  W.json = path => retryLoad(async()=>{const response=await fetch(BASE+path);if(!response.ok)throw Error('Kaynak yüklenemedi: '+response.status);return response.json();});
   W.tex = (path, srgb = true, rep) => { const t = texL.load(BASE + path); t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = aniso; if (rep) t.repeat.set(rep[0], rep[1]); return t; };
   const gcache = {};
   const TEXKEYS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'clearcoatMap', 'clearcoatNormalMap', 'sheenColorMap', 'alphaMap'];
   const sharpen = root => root.traverse(o => { if (!o.isMesh) return; (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => TEXKEYS.forEach(k => { if (m[k]) { m[k].anisotropy = aniso; m[k].needsUpdate = true; } })); });
-  W.gltf = path => gcache[path] || (gcache[path] = new Promise((res, rej) => gltfL.load(BASE + path, g => { sharpen(g.scene); res(g.scene); }, undefined, rej)));
+  W.gltf = path => gcache[path] || (gcache[path] = retryLoad(() => new Promise((res, rej) => gltfL.load(BASE + path, g => { sharpen(g.scene); res(g.scene); }, undefined, rej))).catch(error=>{delete gcache[path];warnResource();throw error;}));
+  // Optional decorative models keep their existing procedural fallback after a failed load.
+  W.optionalModel = path => W.gltf(path).catch(error=>{console.warn('BFY optional model:',path,error);return null;});
   // Keskin 360° arka plan (bikübik, küp haritaya çevirmeden). Arka planı kendi yöneten oyun crispSky:false verir.
   W.sky = crispSky ? createSky(scene, camera) : null;
   // Masaüstünde, bulanık olmayan ortamlarda 8K sürüm yüklenip yerine geçer (telefon 4K'da kalır)
@@ -107,7 +130,7 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     const E = ENVS[key]; let pend = 2; const done = () => { if (--pend === 0) res(); };
     texL.load(BASE + E.bg, t => { t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
       if (W.sky) { W.sky.set(t); loadHiBg(E, t); } else scene.background = t; done(); }, undefined, reject);
-    hdrL.load(BASE + E.hdr, t => { t.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(t).texture; t.dispose(); done(); }, undefined, reject);
+    retryLoad(()=>new Promise((resolve,reject)=>hdrL.load(BASE + E.hdr,resolve,undefined,reject))).then(t => { t.mapping = THREE.EquirectangularReflectionMapping; scene.environment = pmrem.fromEquirectangular(t).texture; t.dispose(); done(); }, reject);
     scene.backgroundRotation.set(0, E.rot, 0); scene.environmentRotation.set(0, E.rot, 0);
     scene.backgroundBlurriness = E.blur || 0; scene.backgroundIntensity = 1; scene.environmentIntensity = 1;
     sunDir.copy(uvToDir(E.sunUV[0], E.sunUV[1]).applyAxisAngle(new THREE.Vector3(0, 1, 0), -E.rot));
@@ -243,7 +266,7 @@ export function createWorld({ stage, canvas, fov = 36, near = .02, far = 20000, 
     if (first) { first = false; const L = $('loading'); if (L) L.classList.add('off'); }
     qualityTick(raw);
   }
-  W.shown = () => visible || !!document.fullscreenElement || stage.classList.contains('pseudo-full') || !!stage.closest('.pseudo-full') || !!window.__rec;
+  W.shown = () => !document.hidden && (visible || !!document.fullscreenElement || stage.classList.contains('pseudo-full') || !!stage.closest('.pseudo-full') || !!window.__rec);
   let lastFrame = 0;
   // Oyunlar kendi döngülerinden bunu çağırır: sahne ekranda değilse çizim atlanır, kalite ölçümü de burada yapılır
   W.frame = dt => {

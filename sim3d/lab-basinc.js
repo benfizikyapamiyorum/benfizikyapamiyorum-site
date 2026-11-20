@@ -1,5 +1,5 @@
 // BFY · 3B Kaldırma Kuvveti Laboratuvarı
-import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=20261108-board1';
+import { THREE, createWorld, Arrow, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, Noise, isMobile, reduceMotion } from './bfy3d-core.js?v=20261120-class1';
 
 /* =====================================================================
    Sabitler ve cisimler (SI birimleri: m, kg, s)
@@ -69,7 +69,7 @@ const floor = new THREE.Mesh(new THREE.CircleGeometry(4.5, 96).rotateX(-Math.PI 
 
 // Masa
 const tableGroup = new THREE.Group(); scene.add(tableGroup);
-W.gltf('models/WoodenTable_01/WoodenTable_01.gltf').then(o => {
+W.optionalModel('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { if(!o)return;
   o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
   o.scale.set(1, TY / .549, 1.15); o.position.set(.22, 0, 0); tableGroup.add(o);
 });
@@ -131,7 +131,7 @@ const lamp = new THREE.SpotLight('#fff4e2', 7, 3.5, .5, .6, 1.4); lamp.position.
 lamp.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048); lamp.shadow.bias = -.0003; lamp.shadow.normalBias = .01; scene.add(lamp, lamp.target);
 
 /* ---------- Süsler: kimya takımı ---------- */
-W.gltf('models/chemistry_set/chemistry_set.gltf').then(o => {
+W.optionalModel('models/chemistry_set/chemistry_set.gltf').then(o => { if(!o)return;
   o.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
   o.scale.setScalar(.72); o.position.set(.66, TY, -.13); o.rotation.y = -.15; scene.add(o);
 });
@@ -152,7 +152,7 @@ function makeMesh(o) {
     mesh = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ color: '#f3e3cc', roughness: .55, sheen: .3, sheenColor: new THREE.Color('#fff4e6') })); }
   else { mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 20), new THREE.MeshStandardMaterial({ color: '#ccc' })); mesh.scale.set(o.a, o.c, o.a); }
   mesh.position.y = o.H / 2; mesh.castShadow = true; mesh.receiveShadow = true; g.add(mesh);
-  if (o.model) W.gltf(`models/${o.model}/${o.model}.gltf`).then(src => {
+  if (o.model) W.optionalModel(`models/${o.model}/${o.model}.gltf`).then(src => { if(!src)return;
     const m = src.clone(true); m.traverse(k => { if (k.isMesh) { k.castShadow = true; k.receiveShadow = true; } });
     const bb = new THREE.Box3().setFromObject(m), sz = new THREE.Vector3(); bb.getSize(sz); const sc = o.len / Math.max(sz.x, sz.z);
     m.scale.setScalar(sc); m.position.set(-(bb.min.x + bb.max.x) / 2 * sc, -bb.min.y * sc, -(bb.min.z + bb.max.z) / 2 * sc);
@@ -466,4 +466,4 @@ async function warm() { const objs = [arW, arF, arT, arN, ...pArrows].map(a => a
 W.loadEnv('lab').then(warm).then(() => { W.start(); }).catch(W.showLoadError);
 window.__bfyLab = { W, S, items, OBJS, vsub, setMode, select, dropSelected, get waterY() { return waterY; }, advance(sec) { for (let t = 0; t < sec; t += 1 / 60) W.update(1 / 60); } };
 
-window.BFYGrowthLab={prepare(){setMode('free');S.moon=false;$('i-moon').checked=false;setLiquid(LIQS[1]);select('egg');dropSelected();},read(){const it=items.find(it=>it.o.id===S.sel);return it?{selected:S.sel,mode:S.mode,density:S.rho,inTank:it.inTank,hung:it.hung,grab:it.grab,clearFloor:it.y>FLOOR+.002,submerged:vsub(it.o,it.ds)/it.o.V,velocity:it.v}:null;}};
+window.BFYGrowthLab={prepare({drop=true}={}){setMode('free');S.moon=false;$('i-moon').checked=false;setLiquid(LIQS[1]);select('egg');if(drop)dropSelected();},read(){const it=items.find(it=>it.o.id===S.sel);return it?{selected:S.sel,mode:S.mode,density:S.rho,inTank:it.inTank,hung:it.hung,grab:it.grab,clearFloor:it.y>FLOOR+.002,submerged:vsub(it.o,it.ds)/it.o.V,velocity:it.v}:null;}};

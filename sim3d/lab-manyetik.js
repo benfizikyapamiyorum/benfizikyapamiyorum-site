@@ -1,5 +1,5 @@
 // BFY · 3B Manyetik Alan Laboratuvarı — Biot–Savart ile alan, demir tozu, pusulalar
-import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=20261108-board1';
+import { THREE, createWorld, worldUVMaterial, canvasTex, $, clamp, lerp, smooth, fmt, DEG, rng, isMobile } from './bfy3d-core.js?v=20261120-class1';
 
 const TY = .76, PY = TY + .12, FY = PY + .005;   // plaka üstü = alan düzlemi
 const PL = .46;                                    // plaka kenarı
@@ -17,7 +17,7 @@ const floorMat = worldUVMaterial({ map: cT.col, normalMap: cT.nor, roughnessMap:
 floorMat.transparent = true;
 { const ob = floorMat.onBeforeCompile; floorMat.onBeforeCompile = sh => { ob(sh); sh.fragmentShader = sh.fragmentShader.replace('#include <opaque_fragment>', '#include <opaque_fragment>\n gl_FragColor.a *= 1.0 - smoothstep(1.8, 4.2, length(vWPos.xz));'); }; }
 const floor = new THREE.Mesh(new THREE.CircleGeometry(4.5, 96).rotateX(-Math.PI / 2), floorMat); floor.receiveShadow = true; scene.add(floor);
-W.gltf('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(.1, 0, 0); scene.add(o); });
+W.optionalModel('models/WoodenTable_01/WoodenTable_01.gltf').then(o => { if(!o)return; o.traverse(m => { if (m.isMesh) { m.castShadow = m.receiveShadow = true; } }); o.scale.set(1, TY / .549, 1.15); o.position.set(.1, 0, 0); scene.add(o); });
 const lamp = new THREE.SpotLight('#fff6e8', 4, 3, .5, .6, 1.3); lamp.position.set(.2, TY + 1.2, .5); lamp.target.position.set(0, PY, 0); lamp.castShadow = true; lamp.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048); lamp.shadow.bias = -.0003; scene.add(lamp, lamp.target);
 const black = new THREE.MeshStandardMaterial({ color: '#17181a', metalness: .5, roughness: .45 });
 const chrome = new THREE.MeshStandardMaterial({ color: '#e6e9ec', metalness: 1, roughness: .12 });
