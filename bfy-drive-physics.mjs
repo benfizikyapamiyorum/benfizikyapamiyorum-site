@@ -12,10 +12,21 @@ export function drivetrain(speed,throttle=0){
 // References: code.eng.buffalo.edu/dat/sites/tire/tire.html and MathWorks
 // Combined Slip Wheel 2DOF. World forward is +x; positive yaw turns toward +z.
 export const steeringAngle=c=>c.steer*.48/(1+Math.abs(c.v)*.035);
-export function makeDriver(id,lane,s=0){return{id,lane,s,v:0,vy:0,yaw:0,steer:0,time:0,done:false,finishTime:null,contacts:0,hit:0,damage:0,yawRate:0,direction:1,driftIntent:0,gear:1,rpm:950,accel:0,spin:0,rearWheelSpeed:0,frontSkid:0,rearSkid:0,slipAngle:0,drifting:false,driftScore:0,driftChain:0,driftGrace:0};}
+export function makeDriver(id,lane,s=0){return{id,lane,s,v:0,vy:0,yaw:0,steer:0,time:0,done:false,finishTime:null,contacts:0,hit:0,damage:0,yawRate:0,direction:1,autoReverse:false,driftIntent:0,gear:1,rpm:950,accel:0,spin:0,rearWheelSpeed:0,frontSkid:0,rearSkid:0,slipAngle:0,drifting:false,driftScore:0,driftChain:0,driftGrace:0};}
 export function resetSlip(c){c.vy=0;c.yawRate=0;c.spin=0;c.rearWheelSpeed=c.v/.303;c.frontSkid=c.rearSkid=c.slipAngle=0;c.accel=0;c.driftIntent=0;c.drifting=false;c.driftChain=0;c.driftGrace=0;}
 // Direction changes require a near stop, including sideways movement.
-export function setDirection(c,direction){if(c.done||Math.hypot(c.v,c.vy)>.6)return false;c.direction=direction<0?-1:1;c.v=0;resetSlip(c);c.gear=c.direction<0?-1:1;return true;}
+export function setDirection(c,direction){if(c.done||Math.hypot(c.v,c.vy)>.6)return false;c.direction=direction<0?-1:1;c.autoReverse=false;c.v=0;resetSlip(c);c.gear=c.direction<0?-1:1;return true;}
+// Pedal reverse starts only after stopping; the same mapped throttle feeds audio.
+// Explicit D/R selection keeps the conventional gas-to-drive control available.
+export function resolvePedals(c,input){
+ const gas=clamp(input.gas||0,0,1),brake=clamp(input.brake||0,0,1),stopped=Math.hypot(c.v,c.vy)<.1;
+ if(input.handbrake)return c.autoReverse?{...input,gas:0,brake:Math.max(gas,brake)}:input;
+ if(gas&&brake)return{...input,gas:0,brake};
+ if(brake&&!c.autoReverse&&stopped&&setDirection(c,-1))c.autoReverse=true;
+ if(!c.autoReverse)return input;
+ if(gas&&stopped&&setDirection(c,1))return input;
+ return{...input,gas:brake,brake:gas};
+}
 function advance(c,dt,curvature,length,laps){
  const along=(c.v*Math.cos(c.yaw)-c.vy*Math.sin(c.yaw))/clamp(1-curvature*c.lane,.45,1.55),across=c.v*Math.sin(c.yaw)+c.vy*Math.cos(c.yaw);
  c.yaw+=(c.yawRate-curvature*along)*dt;c.yaw=Math.atan2(Math.sin(c.yaw),Math.cos(c.yaw));c.lane+=across*dt;c.s+=along*dt;
