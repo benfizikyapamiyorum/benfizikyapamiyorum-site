@@ -19,7 +19,10 @@ export function setDirection(c,direction){if(c.done||Math.hypot(c.v,c.vy)>.6)ret
 function advance(c,dt,curvature,length,laps){
  const along=(c.v*Math.cos(c.yaw)-c.vy*Math.sin(c.yaw))/clamp(1-curvature*c.lane,.45,1.55),across=c.v*Math.sin(c.yaw)+c.vy*Math.cos(c.yaw);
  c.yaw+=(c.yawRate-curvature*along)*dt;c.yaw=Math.atan2(Math.sin(c.yaw),Math.cos(c.yaw));c.lane+=across*dt;c.s+=along*dt;
- if(Math.abs(c.lane)>13.2){const impact=Math.abs(across);c.lane=Math.sign(c.lane)*13.2;c.yaw=-Math.sign(c.lane)*Math.min(.7,.2+Math.abs(c.yaw)*.3);c.v*=.45;resetSlip(c);if(c.hit===0){c.contacts++;c.damage=clamp(c.damage+.035+impact*.018,0,1);}c.hit=.85;}
+ if(Math.abs(c.lane)>13.2){const impact=Math.abs(across);c.lane=Math.sign(c.lane)*13.2;
+  // Stop against the barrier without rotating the car: reverse must point away from it.
+  c.v=0;resetSlip(c);if(c.hit===0&&impact>.8){c.contacts++;c.damage=clamp(c.damage+.035+impact*.018,0,1);c.hit=.85;}}
+
  if(c.s>=length*laps){c.s=length*laps;c.done=true;c.finishTime=c.time;}
 }
 export function combinedForce(x,y,limit){const scale=Math.min(1,limit/Math.max(.001,Math.hypot(x,y)));return{x:x*scale,y:y*scale};}
@@ -53,7 +56,7 @@ function integrate(c,input,dt,curvature,length,laps){
  const demandRatio=drive/Math.max(1,Math.sqrt(Math.max(0,rearLimit*rearLimit-rear.y*rear.y)));
  const spinTarget=hand?0:clamp((demandRatio-1)*.9,0,1.5);
  c.spin+=(spinTarget-c.spin)*(1-Math.exp(-dt*(spinTarget>c.spin?12:7)));
- const drag=.28+.00058*c.v*c.v+(offroad?2.5+c.v*.085:0);
+ const drag=.28+.00058*c.v*c.v+(offroad?.40+c.v*.075:0);
  const ax=(rear.x+front.x*cs-front.y*sn)/mass+c.vy*c.yawRate-drag;
  const ay=(rear.y+front.y*cs+front.x*sn)/mass-c.v*c.yawRate;
  const angular=(lf*(front.y*cs+front.x*sn)-lr*rear.y)/1550;
@@ -72,7 +75,9 @@ function integrate(c,input,dt,curvature,length,laps){
  c.drifting=!offroad&&c.hit===0&&c.v>5&&Math.abs(c.slipAngle)>.11&&Math.abs(c.slipAngle)<1.25&&c.rearSkid>.15;
  if(c.drifting){const points=Math.hypot(c.v,c.vy)*Math.min(.85,Math.abs(c.slipAngle))*dt*12;c.driftScore+=points;c.driftChain+=points;c.driftGrace=.7;}
  else{c.driftGrace=Math.max(0,c.driftGrace-dt);if(c.driftGrace===0||offroad||c.hit>0)c.driftChain=0;}
- Object.assign(c,drivetrain(c.v,throttle));c.rpm=clamp(c.rpm+c.spin*2400,950,6800);
+ const transmission=drivetrain(c.v,throttle);c.gear=transmission.gear;
+ const targetRpm=clamp(Math.max(transmission.rpm,throttle*(c.v<3?3300:0))+c.spin*2400,950,6800);
+ c.rpm+=(targetRpm-c.rpm)*(1-Math.exp(-dt*(targetRpm>c.rpm?5:8)));
 
 }
 export function stepDriver(c,input,dt,curvature,length,laps=2){
