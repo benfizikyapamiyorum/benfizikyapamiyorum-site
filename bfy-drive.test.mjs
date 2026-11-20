@@ -1,4 +1,4 @@
-import {makeDriver,stepDriver,stepRival,resolveContact,standings,drivetrain} from './bfy-drive-physics.mjs';
+import {makeDriver,stepDriver,stepRival,resolveContact,standings,drivetrain,resolvePedals} from './bfy-drive-physics.mjs';
 import {steeringFromDrag} from './bfy-drive-controls.mjs';
 import {RecordedEngine} from './bfy-sahin-audio.mjs';
 const assert=(v,m)=>{if(!v)throw Error(m);};
@@ -102,3 +102,20 @@ for(const side of [-1,1]){const c=makeDriver(0,side*13.1);c.v=8;c.yaw=side*.7;fo
 const revCar=makeDriver(0,0);const revs=[];for(let i=0;i<60;i++){stepDriver(revCar,{gas:1,brake:1},1/60,0,2000);revs.push(revCar.rpm);}assert(revs[0]<revs[10]&&revs[10]<revs[59]&&revs[59]>3000,'held throttle builds revs smoothly while stationary');
 globalThis.fetch=async()=>response();document.hidden=false;const responseEngine=new RecordedEngine();await responseEngine.start();responseEngine.update(0,false,{rpm:950,throttle:0,gear:1});const quiet=responseEngine.loadGain.gain.value;responseEngine.update(0,true,{rpm:1500,throttle:1,gear:1});const attack=responseEngine.loadGain.gain.value,lowPitch=responseEngine.driveSource.playbackRate.value;responseEngine.update(20,true,{rpm:5500,throttle:1,gear:1});assert(attack>quiet+.5&&responseEngine.driveSource.playbackRate.value>lowPitch+.2,'recorded engine responds immediately to throttle and rises with rpm');responseEngine.update(20,true,{rpm:5500,throttle:0,gear:1});assert(responseEngine.loadGain.gain.value<1,'lift reduces recorded load');responseEngine.dispose();
 console.log('PASS: grass launch with damage, both barrier reverse escapes, smooth held revs and recorded throttle/pitch response.');
+
+// Exercise the same pedal mapping used by keyboard, touch and engine audio.
+const pedalStep=(c,input,dt=1/60)=>{const mapped=resolvePedals(c,input);stepDriver(c,mapped,dt,0,2000);return mapped;};
+for(const hz of [30,60,120]){
+ const c=makeDriver(0,0,100);c.v=15;let stoppedBeforeReverse=false;
+ for(let i=0;i<hz*5;i++){const previous=c.v;const mapped=pedalStep(c,{brake:1},1/hz);if(c.direction<0){assert(previous<.1,'held brake reverses only after stopping');assert(mapped.gas===1&&mapped.brake===0,'reverse pedal drives engine load');stoppedBeforeReverse=true;}}
+ assert(stoppedBeforeReverse&&c.v< -3&&c.autoReverse,'held brake stops then reverses at each frame rate');
+ const speed=c.v;pedalStep(c,{});assert(c.v>speed&&c.v<0,'releasing brake stops reverse acceleration');
+ for(let i=0;i<hz*3;i++)pedalStep(c,{gas:1},1/hz);
+ assert(c.direction===1&&!c.autoReverse&&c.v>2,'gas brakes reverse then restores forward drive');
+}
+const pedalPark=makeDriver(0,0);for(let i=0;i<60;i++)pedalStep(pedalPark,{gas:1,brake:1});assert(pedalPark.v===0&&pedalPark.direction===1,'both pedals hold still without shifting');
+for(let i=0;i<60;i++)pedalStep(pedalPark,{brake:1,handbrake:1});assert(pedalPark.v===0&&pedalPark.direction===1,'handbrake prevents automatic reverse');
+pedalPark.vy=2;resolvePedals(pedalPark,{brake:1});assert(pedalPark.direction===1,'sideways slide prevents automatic reverse');pedalPark.vy=0;
+setDirection(pedalPark,-1);for(let i=0;i<30;i++)pedalStep(pedalPark,{gas:1});assert(pedalPark.v<0&&!pedalPark.autoReverse,'manual reverse still accepts gas');
+const pedalGrass=makeDriver(0,12,100);pedalGrass.damage=.9;for(let i=0;i<180;i++)pedalStep(pedalGrass,{brake:1});assert(pedalGrass.v< -1,'held brake reverses on grass with damage');
+console.log('PASS: held brake automatic reverse, stop-before-shift, gas return, audio throttle, release, handbrake, simultaneous pedals, manual R and grass.');
