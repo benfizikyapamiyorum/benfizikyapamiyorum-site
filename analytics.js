@@ -17,6 +17,8 @@
     window.BFY = { track: function () { return Promise.resolve(false); } };
     return;
   }
+  // Meta pikseli (reklam ölçümü): yalnızca canlı sitede.
+  try { var mp = document.createElement('script'); mp.src = '/bfy-meta.js?v=20261121'; mp.async = true; document.head.appendChild(mp); } catch (e) { /* sessiz */ }
   var PID = "benfizikyapamiyorum-oyun";
   var KEY = "AIzaSyAeX9tk4zgoa5c5y2pVH3V4r9ip2mrlMvg"; // public web config — sır değil
 
