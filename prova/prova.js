@@ -16,7 +16,7 @@
   const AYLAR=['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   const URUN={
     9:[{img:'/img/yazili3gun/kapak-9-1.webp',ad:'Yazılıya 3 Gün Kala · 9. sınıf',alt:'Yazılıdan önceki 3 gün için hazır plan ve gerçek yazılı provası.',f:'₺299 · 1. + 2. yazılı',href:'/yazili-3-gun-kala.html#sinif-sec',cta:'Sınıfını seç',k:'y3g_9'},
-       {img:'/img/fizik9/kartlar.webp',ad:'Yapabilirim 9',alt:'21 konunun notu, 504 soru, kavram kartları ve mini oyunlar.',f:'₺599',href:'/9-sinif-fizik-paketi.html',cta:'İncele',dene:'/calis/',k:'yap9'},
+       {img:'/img/fizik9/kartlar.webp',ad:'Yapabilirim 9',alt:'21 konunun notu, 580 soru, kavram kartları ve mini oyunlar.',f:'₺599',href:'/9-sinif-fizik-paketi.html',cta:'İncele',dene:'/calis/',k:'yap9'},
        {img:'/kitap9-kapak.jpg',ad:'9. Sınıf Fizik Ders Kitabı',alt:'Konu anlatımı ve sorular, Maarif sırasıyla. Basılı, kargo dahil.',f:'₺399',href:'https://www.shopier.com/benfizikyapamiyorum/49999590',cta:'Kitabı incele',ext:1}],
     10:[{img:'/img/yazili3gun/kapak-10-1.webp',ad:'Yazılıya 3 Gün Kala · 10. sınıf',alt:'Yazılıdan önceki 3 gün için hazır plan ve gerçek yazılı provası.',f:'₺299 · 1. + 2. yazılı',href:'/yazili-3-gun-kala.html#sinif-sec',cta:'Sınıfını seç',k:'y3g_10'},
        {img:'/img/fizik10/set.webp',ad:'Yapabilirim 10',alt:'20 konunun notu, kavram kartları ve tablo-grafikli yeni nesil sorular.',f:'₺599',href:'/10-sinif-fizik-paketi.html',cta:'İncele',dene:'/calis/',k:'yap10'},
