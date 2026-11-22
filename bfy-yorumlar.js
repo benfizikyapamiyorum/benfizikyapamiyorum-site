@@ -12,6 +12,18 @@
   const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const stars = n => '★'.repeat(Math.max(1, Math.min(5, Number(n) || 5))) + '☆'.repeat(5 - Math.max(1, Math.min(5, Number(n) || 5)));
 
+  // Sitede soyadın yalnızca baş harfi görünür: "Elif Kaya" -> "Elif K."
+  const basHarf = w => { const c = [...String(w || '').trim()][0]; return c ? c.toLocaleUpperCase('tr-TR') + '.' : ''; };
+  const maskAd = ad => {
+    const p = String(ad || '').trim().split(/\s+/).filter(Boolean);
+    if (p.length < 2) return p[0] || '';
+    return p.slice(0, -1).join(' ') + ' ' + basHarf(p[p.length - 1]);
+  };
+
+  const buyukBas = t => String(t || '').trim().split(/\s+/).filter(Boolean).map(w => { const c = [...w]; return c[0].toLocaleUpperCase('tr-TR') + c.slice(1).join('').toLocaleLowerCase('tr-TR'); }).join(' ');
+  // Formdan gelen ad + soyad: "zeynep", "arslan kaya" -> "Zeynep A."
+  const gorunenAd = (ad, soyad) => (buyukBas(ad) + ' ' + basHarf(soyad)).trim();
+
   let modalEl = null;
   let pickedStar = 5;
   let activePage = 'ana';
@@ -30,11 +42,16 @@
       <div class="bfy-rev-dialog">
         <button type="button" class="bfy-rev-close" aria-label="Kapat">×</button>
         <h3>Deneyimini paylaş</h3>
-        <p>Yorumun Timur Yıldırım’ın onayından sonra sitede yayınlanır. Dilersen soyadının sadece baş harfini yazabilirsin.</p>
+        <p>Yorumun Timur Yıldırım’ın onayından sonra sitede yayınlanır. Soyadın sitede görünmez, yalnızca baş harfi yazılır.</p>
         <form id="bfy-rev-form" action="${FORM_ENDPOINT}" method="POST">
           <div class="bfy-rev-field">
-            <label for="bfy-r-ad">Adın (ör. Elif K.)</label>
-            <input id="bfy-r-ad" name="ad" required maxlength="40" autocomplete="nickname" placeholder="Örn. Zeynep A.">
+            <label for="bfy-r-ad">Adın</label>
+            <input id="bfy-r-ad" name="ad" required maxlength="30" autocomplete="given-name" placeholder="Örn. Zeynep">
+          </div>
+          <div class="bfy-rev-field">
+            <label for="bfy-r-soyad">Soyadın</label>
+            <input id="bfy-r-soyad" required maxlength="30" autocomplete="family-name" placeholder="Örn. Arslan">
+            <small class="bfy-rev-onizle" id="bfy-r-onizle" aria-live="polite">Sitede yalnızca baş harfi görünür.</small>
           </div>
           <div class="bfy-rev-field">
             <label for="bfy-r-rol">Kimsin?</label>
@@ -60,7 +77,7 @@
           </div>
           <div class="bfy-rev-honey" aria-hidden="true"><label>Bu alanı boş bırak<input name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
           <button type="submit" class="bfy-rev-submit">Yorumu gönder</button>
-          <p class="bfy-rev-note">Yorumun ve yazdığın ad, onaylandıktan sonra sitede görünür.</p>
+          <p class="bfy-rev-note">Yorumun, adın ve soyadının baş harfi onaylandıktan sonra sitede görünür. Soyadının tamamı gönderilmez.</p>
         </form>
         <div class="bfy-rev-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
       </div>`;
@@ -94,10 +111,17 @@
 
     const form = modalEl.querySelector('#bfy-rev-form');
     const status = modalEl.querySelector('.bfy-rev-status');
+    const adEl = modalEl.querySelector('#bfy-r-ad'), soyEl = modalEl.querySelector('#bfy-r-soyad'), onizle = modalEl.querySelector('#bfy-r-onizle');
+    const onizleCiz = () => {
+      const a = adEl.value.trim(), b = soyEl.value.trim();
+      onizle.textContent = a && b ? 'Sitede böyle görünecek: ' + gorunenAd(a, b) : 'Sitede yalnızca baş harfi görünür.';
+    };
+    adEl.addEventListener('input', onizleCiz); soyEl.addEventListener('input', onizleCiz);
+    form.addEventListener('reset', () => setTimeout(onizleCiz, 0));
     form.addEventListener('submit', async e => {
       e.preventDefault();
       if (sending || !form.reportValidity() || form.elements._gotcha.value) return;
-      const ad = modalEl.querySelector('#bfy-r-ad').value.trim();
+      const ad = gorunenAd(modalEl.querySelector('#bfy-r-ad').value, modalEl.querySelector('#bfy-r-soyad').value);
       const rol = modalEl.querySelector('#bfy-r-rol').value;
       const urun = modalEl.querySelector('#bfy-r-urun').value.trim() || ROL_AD[rol];
       const metin = modalEl.querySelector('#bfy-r-metin').value.trim();
@@ -145,6 +169,7 @@
     const modal = ensureModal();
     const form = modal.querySelector('form');
     if (form.hidden) { form.hidden = false; modal.querySelector('.bfy-rev-status').hidden = true; }
+    if (!sending && activePage === 'hocakiti') modal.querySelector('#bfy-r-rol').value = 'ogretmen';
     modal.hidden = false;
     modal.querySelector(sending ? '.bfy-rev-close' : '#bfy-r-ad').focus();
   }
@@ -166,8 +191,8 @@
             <div class="bfy-rev-empty">
               <div>
                 <p class="overline" style="margin-bottom:6px!important">GERÇEK DENEYİMLER</p>
-                <h3>Kullananlar ne diyor? İlk yorumu sen bırak.</h3>
-                <p>Simülasyonları, ücretsiz notları, Yapabilirim dijital kitaplarını veya Hoca Kiti’ni kullandıysan kısa bir yorumla diğer öğrencilere ve öğretmenlere yol gösterebilirsin.</p>
+                <h3>${sayfa === 'hocakiti' ? 'Kiti kullanan öğretmenler ne diyor? İlk yorumu siz bırakın.' : 'Kullananlar ne diyor? İlk yorumu sen bırak.'}</h3>
+                <p>${sayfa === 'hocakiti' ? 'Hoca Kiti’ni derste kullandıysanız kısa bir yorumla meslektaşlarınıza yol gösterebilirsiniz. Yorumlar onaylandıktan sonra yayınlanır.' : 'Simülasyonları, ücretsiz notları, Yapabilirim dijital kitaplarını veya Hoca Kiti’ni kullandıysan kısa bir yorumla diğer öğrencilere ve öğretmenlere yol gösterebilirsin.'}</p>
               </div>
               <button type="button" class="bfy-rev-write-btn" data-open-rev>✍️ Deneyimini paylaş →</button>
             </div>
@@ -205,7 +230,7 @@
                 <p class="bfy-rev-text">“${esc(r.metin)}”</p>
                 <div class="bfy-rev-foot">
                   <div>
-                    <strong>${esc(r.ad)}</strong>
+                    <strong>${esc(maskAd(r.ad))}</strong>
                     <small>${esc(r.etiket || '')}</small>
                   </div>
                 </div>
@@ -222,14 +247,23 @@
     draw();
   }
 
-  const base = document.currentScript && document.currentScript.src.includes('/blog/') ? '../' : '';
-  fetch(base + 'bfy-yorumlar.json?v=20261119')
+  const jsonUrl = document.currentScript && document.currentScript.src
+    ? new URL('bfy-yorumlar.json?v=20261122', document.currentScript.src).href
+    : 'bfy-yorumlar.json?v=20261122';
+  const kendiligindenAc = () => {
+    const ister = location.hash === '#yorum-yaz' || /[?&]yorum=1\b/.test(location.search) || document.body.hasAttribute('data-yorum-ac');
+    const btn = ister && document.querySelector('[data-bfy-yorumlar] [data-open-rev]');
+    if (btn) btn.click();
+  };
+  fetch(jsonUrl)
     .then(r => r.ok ? r.json() : { yorumlar: [] })
     .then(d => {
       const items = Array.isArray(d) ? d : (Array.isArray(d && d.yorumlar) ? d.yorumlar : []);
       slots.forEach(s => renderSlot(s, items));
+      kendiligindenAc();
     })
     .catch(() => {
       slots.forEach(s => renderSlot(s, []));
+      kendiligindenAc();
     });
 })();
