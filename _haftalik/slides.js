@@ -71,7 +71,7 @@ function cta(N, i, toplam) {
   const adim = (n, a, b) => `<div class="li" style="display:flex;gap:24px;align-items:center;padding:22px 26px"><div style="width:68px;height:68px;border-radius:16px;background:linear-gradient(135deg,${R.rozet},#8b5cf6);display:grid;place-items:center;font-weight:900;font-size:36px;color:#0d1433;flex:none">${n}</div><div><div style="font-size:36px;font-weight:800;color:#fff">${a}</div><div style="font-size:27px;color:#c3cbec">${b}</div></div></div>`;
   const ic = `<span class="pill">● ÜCRETSİZ PDF</span><h1 style="font-size:104px">Tamamı <em>PDF’te</em></h1>
 <div class="bd">${md(N.pdfOzet)}</div>
-<div class="lst" style="margin-top:44px;max-width:600px">${adim(1, 'Takip et', `Her ${N.gun} yeni ${N.sinif}. sınıf notu`)}${adim(2, 'Profildeki linke dokun', 'benfizikyapamiyorum.com/ucretsiz/pdf')}${adim(3, `“${N.sinif}. sınıf” bölümü`, 'Notu indir, üyelik yok')}</div>
+<div class="lst" style="margin-top:44px;max-width:640px">${adim(1, 'Takip et', `Her ${N.gun} yeni ${N.sinif}. sınıf notu`)}${adim(2, 'Profildeki linke dokun', 'benfizikyapamiyorum.com/ucretsiz/pdf')}${adim(3, `“${N.sinif}. sınıf” bölümü`, 'Notu indir, üyelik yok')}</div>
 ${N.onizleme ? `<img class="prev" src="file://${N.onizleme}" style="width:300px;right:56px;bottom:300px;transform:rotate(5deg)">` : ''}<div class="alt-bant" style="margin-top:auto;position:relative"><span>Her hafta yeni not</span><span>9 · 10 · 11. sınıf</span></div>
 <div style="margin-top:22px;font-size:28px;color:#c3cbec;font-weight:700">@benfizikyapamiyorum</div>`;
   return cerceve(N, i, toplam, ic);
