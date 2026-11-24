@@ -247,9 +247,30 @@
     draw();
   }
 
+  // Fiyat kutusundaki kısa özet: <div data-bfy-yorum-ozet data-sayfa="y10" hidden></div>
+  // O sayfa için onaylı yorum yoksa hiç görünmez.
+  const ozetler = [...document.querySelectorAll('[data-bfy-yorum-ozet]')];
+  const kisalt = (t, n) => { t = String(t || '').trim(); if (t.length <= n) return t; const k = t.slice(0, n); return k.slice(0, Math.max(k.lastIndexOf(' '), 40)).replace(/[\s,.;:]+$/, '') + '…'; };
+  function renderOzet(el, allReviews) {
+    const sayfa = el.dataset.sayfa || 'ana';
+    const list = allReviews.filter(r => !r.sayfa || r.sayfa.includes(sayfa));
+    if (!list.length) { el.hidden = true; el.innerHTML = ''; return; }
+    const avg = (list.reduce((a, b) => a + (Number(b.puan) || 5), 0) / list.length).toFixed(1);
+    const r = list[0];
+    const hedef = slots.find(x => (x.dataset.sayfa || 'ana') === sayfa) || slots[0];
+    if (!hedef.id) hedef.id = 'yorumlar';
+    el.innerHTML = `
+      <a class="bfy-rev-ozet" href="#${esc(hedef.id)}">
+        <span class="bfy-rev-ozet-ust"><span class="bfy-rev-stars" aria-hidden="true">${stars(Math.round(avg))}</span><b>${avg}</b><span>${list.length} yorum</span><span class="bfy-rev-ozet-oku">Yorumları oku ↓</span></span>
+        <span class="bfy-rev-ozet-soz">“${esc(kisalt(r.metin, 120))}”</span>
+        <span class="bfy-rev-ozet-kim">${esc(maskAd(r.ad))} · ${esc(ROL_AD[r.rol] || 'Kullanıcı')}</span>
+      </a>`;
+    el.hidden = false;
+  }
+
   const jsonUrl = document.currentScript && document.currentScript.src
-    ? new URL('bfy-yorumlar.json?v=20261122', document.currentScript.src).href
-    : 'bfy-yorumlar.json?v=20261122';
+    ? new URL('bfy-yorumlar.json?v=20261124', document.currentScript.src).href
+    : 'bfy-yorumlar.json?v=20261124';
   const kendiligindenAc = () => {
     const ister = location.hash === '#yorum-yaz' || /[?&]yorum=1\b/.test(location.search) || document.body.hasAttribute('data-yorum-ac');
     const btn = ister && document.querySelector('[data-bfy-yorumlar] [data-open-rev]');
@@ -260,6 +281,7 @@
     .then(d => {
       const items = Array.isArray(d) ? d : (Array.isArray(d && d.yorumlar) ? d.yorumlar : []);
       slots.forEach(s => renderSlot(s, items));
+      ozetler.forEach(o => renderOzet(o, items));
       kendiligindenAc();
     })
     .catch(() => {
