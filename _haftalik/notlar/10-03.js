@@ -45,7 +45,7 @@ const fScooter = (mm = 150) => {
 const fMotor = (mm = 150) => {
   const n = ++_id, k = 1.4, defs = golge(`g${n}`) + grad(`k${n}`, '#34d399', '#0f766e');
   const x0 = 150, x1 = 330, y0 = 40;
-  const parcalar = [['Mekanik', 'tekerlekleri döndürür', 30, TURUNCU], ['Isı', 'motor, egzoz, frenler', 68, '#dc2626'], ['Ses', 'titreşim ve gürültü', 2, MOR]];
+  const parcalar = [['Mekanik', 'tekerlekleri döndürür', 30, TURUNCU], ['Isı', 'motor, egzoz (ses çok az)', 70, '#dc2626']];
   let b = `<rect x="22" y="${y0}" width="${x0 - 22}" height="${100 * k}" rx="6" fill="url(#k${n})" filter="url(#g${n})"/>`;
   b += txt(86, y0 + 50 * k - 4, 'Kimyasal', { size: 18, c: '#fff', halo: false }) + txt(86, y0 + 50 * k + 17, '100 J (yakıt)', { size: 15, w: 700, c: '#ecfdf5', halo: false });
   let yl = y0, yr = y0 - 14;
@@ -58,7 +58,7 @@ const fMotor = (mm = 150) => {
     b += txt(x1 + 50, ym + 17, alt, { a: 'start', size: 14, w: 600, c: '#475569', hw: 0 });
     yl += h; yr += h + gap + (i === 0 ? 8 : 0);
   });
-  return svg(b, 560, 248, mm, defs);
+  return svg(b, 560, 214, mm, defs);
 };
 
 // 3) Kamp feneri: gündüz ve akşam zinciri (slayt ve örnek 2)
@@ -84,7 +84,7 @@ const fFanus = (mm = 70) => {
   let b = '';
   b += `<rect x="40" y="200" width="240" height="16" rx="4" fill="url(#t${n})" filter="url(#g${n})"/>`;
   b += `<path d="M70 200 L70 110 C 70 40 250 40 250 110 L250 200 Z" fill="url(#cam${n})" stroke="#7dd3fc" stroke-width="2.5"/>`;
-  b += `<rect x="150" y="34" width="20" height="14" rx="3" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/>`;
+  b += `<rect x="152" y="47" width="16" height="12" rx="3" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/>`;
   b += `<path d="M98 86 C 92 104 92 126 98 150" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0.8"/>`;
   // zil
   b += `<rect x="86" y="184" width="44" height="16" rx="3" fill="#475569"/><rect x="92" y="186" width="14" height="10" rx="2" fill="#16a34a"/>`;
@@ -98,7 +98,7 @@ const fFanus = (mm = 70) => {
   // pil ve hortum
   b += `<path d="M270 208 C 300 208 300 150 330 150" fill="none" stroke="#334155" stroke-width="7" stroke-linecap="round"/><rect x="326" y="128" width="54" height="44" rx="8" fill="#e2e8f0" stroke="#475569" stroke-width="2"/>`;
   b += txt(353, 156, 'pompa', { size: 13, c: '#334155', hw: 0 });
-  b += ok(318, 186, 352, 196, GRI, 2.4, 10) + txt(352, 214, 'hava dışarı', { size: 12.5, w: 700, c: GRI, hw: 0 });
+  b += `<rect x="349" y="172" width="8" height="8" fill="#475569"/>` + ok(353, 180, 353, 202, GRI, 2.4, 10) + txt(353, 220, 'hava dışarı', { size: 12.5, w: 700, c: GRI, hw: 0 });
   return svg(b, 400, 228, mm, defs);
 };
 
@@ -149,22 +149,22 @@ ${tab(['Biçim', 'Neden kaynaklanır?', 'Örnek'], [
     ['Mekanik', 'Cismin hareketi (kinetik) ve konumu (potansiyel). İkisinin toplamı.', 'Yokuştan inen bisikletli, kurulu yay'],
     ['Kimyasal', 'Moleküllerin kimyasal bağlarında depolanır, tepkimeyle açığa çıkar.', 'Yakıt, besin, telefon bataryası'],
     ['Nükleer', 'Atom çekirdeğinin bölünmesi ya da çekirdeklerin birleşmesi.', 'Güneş, nükleer santral'],
-    ['Isı', 'Sıcaklık farkı yüzünden sıcak cisimden soğuk cisme aktarılan enerji.', 'Ocaktaki tencere, sıcak çay'],
+    ['Isı', 'Sıcaklık farkı yüzünden sıcak cisimden soğuk cisme aktarılan enerji.', 'Ocaktan tencereye geçen enerji'],
     ['Işık', 'Bir kaynaktan dalgalar hâlinde yayılır, boşlukta da yayılır.', 'Güneş, LED, ekran'],
     ['Ses', 'Ortamdaki moleküllerin titreşmesi. Maddesel ortam ister.', 'Hoparlör, gitar teli'],
     ['Elektrik', 'İletkendeki yüklerin, potansiyel fark sayesinde hareketi.', 'Priz, şarj kablosu'],
   ])}
-${kutu('ana', 'Ortak noktaları', 'Hepsinin birimi <b>joule (J)</b>dür. Hepsi bir kaynaktan gelir, çevreyi etkiler ve <b>birbirine dönüşebilir</b>. Her dönüşümde enerjinin bir kısmı istemediğimiz biçimlere, çoğunlukla ısıya geçer.')}`),
+${kutu('ana', 'Ortak noktaları', 'Hepsinin birimi <b>jouledür (J)</b>. Hepsi bir kaynaktan gelir, çevreyi etkiler ve <b>birbirine dönüşebilir</b>. Her dönüşümde enerjinin bir kısmı istemediğimiz biçimlere, çoğunlukla ısıya geçer.')}`),
 
   bolum(2, 'Enerji zinciri: biçimden biçime', `
 ${sekil(fScooter(150), 'Elektrikli scooter: 10 saniyede bataryadan çekilen enerjinin dökümü.')}
 <p>Bir cihazı anlamanın en kolay yolu enerjinin izini sürmektir: <b>nereden girdi, hangi biçimlerden geçti, sonunda ne oldu?</b> Scooterda bataryadaki kimyasal enerji önce elektriğe, motorda da mekanik enerjiye dönüşür. Motor ve tekerlekler ısınır, biraz da ses çıkar.</p>
-${kutu('sari', 'Enerji kaybolmaz', 'Girenle çıkanların toplamı eşittir: <span style="white-space:nowrap">$4000 = 3000 + 1000$ J.</span> “Enerji kaybı” dediğimiz şey, enerjinin <b>işimize yaramayan</b> bir biçime, çoğunlukla ısıya geçmesidir. Yok olan enerji yoktur.')}`),
+${kutu('sari', 'Enerji kaybolmaz', 'Giren enerji, çıkanların toplamına eşittir: <span style="white-space:nowrap">4000 J = 3000 J + 1000 J.</span> “Enerji kaybı” dediğimiz şey, enerjinin <b>işimize yaramayan</b> bir biçime, çoğunlukla ısıya geçmesidir. Yok olan enerji yoktur.')}`),
 
   bolum(3, 'Hangi cihaz neyi neye çevirir?', `
 ${sekil(fMotor(118), 'Benzinli otomobil motoru: her 100 J kimyasal enerjinin yaklaşık dökümü.')}
 <div>
-${tab(['Cihaz', 'Giren', 'İstenen çıkan'], [
+${tab(['Cihaz ya da olay', 'Giren', 'İstenen çıkan'], [
     ['Mikrofon', 'ses', 'elektrik'],
     ['Hoparlör', 'elektrik', 'ses'],
     ['Güneş paneli', 'ışık', 'elektrik'],
@@ -172,7 +172,7 @@ ${tab(['Cihaz', 'Giren', 'İstenen çıkan'], [
     ['Elektrik motoru', 'elektrik', 'mekanik'],
     ['Fotosentez', 'ışık', 'kimyasal'],
   ])}</div>
-${kutu('ana', 'Elektrik neden bu kadar yaygın?', 'Elektrik enerjisi telle uzak yerlere kolayca taşınır ve neredeyse her biçime çevrilebilir: ışık, ısı, ses, hareket. Ama kendisi bir başlangıç kaynağı değildir. Kömürden, rüzgârdan, güneşten ya da çekirdekten elde edilir. Bu yüzden <b>ikincil enerji</b> denir.')}`),
+${kutu('ana', 'Elektrik neden bu kadar yaygın?', 'Elektrik enerjisi telle uzak yerlere kolayca taşınır ve neredeyse her biçime çevrilebilir: ışık, ısı, ses, mekanik enerji. Ama kendisi bir başlangıç kaynağı değildir. Kömürden, rüzgârdan, güneşten ya da atom çekirdeğinden elde edilir. Bu yüzden <b>ikincil enerji</b> denir.')}`),
 
   bolum(4, 'Biçimler nasıl ayrılır?', `
 ${tab(['Karşılaştır', 'Benzer', 'Farklı'], [
@@ -191,15 +191,15 @@ ${kutu('sari', 'Isı, sıcaklık, iç enerji', '<b>İç enerji</b>, maddedeki mo
   ]),
 
   ornek(1, 'ELEKTRİKLİ SCOOTER', `
-<p>Bir scooter 10 saniyelik sürüşte bataryasından 4000 J enerji çekiyor. Bu sürede motor, kablolar ve tekerlekler çevreye 1000 J ısı ve ses veriyor (2. bölümdeki şekil).</p>
+<p>Bir scooter 10 saniyelik sürüşte bataryasından 4000 J enerji çekiyor. Bu sürede kablolar ve motor çevreye 1000 J ısı ve ses veriyor (2. bölümdeki şekil).</p>
 <p><b>a) Zincir:</b> kimyasal (batarya) → elektrik (kablo ve motor) → mekanik (tekerlek). Yan ürün: ısı ve ses.</p>
 <p><b>b) Mekanik enerjiye dönüşen:</b> enerji korunduğu için $4000 - 1000 = 3000$ J.</p>
-<p><b>c) Bataryanın verdiği güç:</b> geçen haftaki bağıntıyla $P = \\dfrac{E}{t} = \\dfrac{4000}{10} = 400$ W.</p>`),
+<p><b>c) Bataryanın verdiği güç:</b> güç bağıntısıyla (aktarılan enerji $E$ için) $P = \\dfrac{E}{t} = \\dfrac{4000}{10} = 400$ W.</p>`),
 
   ornek(2, 'GÜNEŞ PANELLİ KAMP FENERİ', `
 ${sekil(fFener(140), 'Gündüz depola, akşam kullan.')}
-<p>Fenerin paneli gündüz ışığı elektriğe çevirir, bu elektrik pilde kimyasal enerji olarak depolanır. Akşam pil, LED’i yakar. Gün boyunca pilde 36 000 J enerji birikmiş olsun. LED her saniye 3 J elektrik enerjisi harcıyor.</p>
-<p>Pildeki enerjinin tamamı LED’e gitseydi fener $36\\,000 \\div 3 = 12\\,000$ s yani <b>200 dakika</b> yanardı. LED’in harcadığı her 3 J’ün yaklaşık 1 J’ü ışığa, 2 J’ü ısıya dönüşür. Fener başından uzun süre tutulunca hafifçe ısınmasının nedeni budur.</p>`),
+<p>Fenerin paneli gündüz ışığı elektriğe çevirir, bu elektrik pilde kimyasal enerji olarak depolanır. Akşam pil, LED’i yakar. Gün boyunca pilde 36 000 J enerji birikmiş olsun. LED her saniye 3 J elektrik enerjisi çekiyor.</p>
+<p>Pildeki enerjinin tamamı LED’e gitseydi fener $36\\,000 \\div 3 = 12\\,000$ s yani <b>200 dakika</b> yanardı. LED’in çektiği her 3 J’ün yaklaşık 1 J’ü ışığa, 2 J’ü ısıya dönüşür. Fener başından uzun süre tutulunca hafifçe ısınmasının nedeni budur.</p>`),
 
   `<h2 class="b"><span class="n">?</span>Sorular</h2>`,
   soru(1, { metin: 'Kömürle çalışan bir termik santralde enerji, aşağıdaki sırayla biçim değiştiriyor.', sekil: fSantral(160),
@@ -221,16 +221,16 @@ ${sekil(fFener(140), 'Gündüz depola, akşam kullan.')}
     siklar: ['Yalnız I', 'Yalnız II', 'I ve II', 'II ve III', 'I ve III'] }),
   soru(7, { metin: 'Gücü 2000 W olan bir su ısıtıcısı 3 dakika çalıştırılıyor. Bu sürede suya 300 000 J ısı aktarılıyor, kalan enerji ısıtıcının gövdesini ve çevreyi ısıtıyor.',
     kok: 'Suya aktarılmayan enerji kaç J’dür?',
-    siklar: ['60 000', '300 000', '360 000', '6000', '660 000'] }),
-  soru(8, { metin: `Bazı cihazlara giren enerji ve cihazdan istenen enerji biçimi tabloda verilmiştir.<table class="t" style="max-width:120mm;margin:8px 0"><tr><th></th><th>Cihaz</th><th>Giren</th><th>İstenen çıkan</th></tr>
-<tr><td><b>I</b></td><td>Mikrofon</td><td>ses</td><td>elektrik</td></tr>
-<tr><td><b>II</b></td><td>Hoparlör</td><td>elektrik</td><td>ses</td></tr>
-<tr><td><b>III</b></td><td>Güneş paneli</td><td>ışık</td><td>elektrik</td></tr>
+    siklar: ['6000', '60 000', '300 000', '360 000', '660 000'] }),
+  soru(8, { metin: `Bazı cihazlara giren enerji ve cihazdan istenen enerji biçimi tabloda verilmiştir.<table class="t" style="max-width:120mm;margin:8px 0"><tr><th>No</th><th>Cihaz</th><th>Giren</th><th>İstenen çıkan</th></tr>
+<tr><td><b>I</b></td><td>Bisiklet dinamosu</td><td>mekanik</td><td>elektrik</td></tr>
+<tr><td><b>II</b></td><td>Tost makinesi</td><td>elektrik</td><td>ısı</td></tr>
+<tr><td><b>III</b></td><td>Rüzgâr türbini</td><td>mekanik</td><td>elektrik</td></tr>
 <tr><td><b>IV</b></td><td>Kibrit</td><td>kimyasal</td><td>ısı ve ışık</td></tr>
-<tr><td><b>V</b></td><td>Elektrik motoru</td><td>mekanik</td><td>elektrik</td></tr></table>`,
+<tr><td><b>V</b></td><td>Şarj edilen akü</td><td>kimyasal</td><td>elektrik</td></tr></table>`,
     kok: 'Hangi satırdaki bilgi yanlıştır?', siklar: ['I', 'II', 'III', 'IV', 'V'] }),
   soru(9, { metin: 'Enerji biçimlerinin hepsinde ortak olan özellikler vardır.', kok: 'Aşağıdakilerden hangisi enerji biçimlerinin <u>ortak</u> özelliği değildir?', k: 1,
-    siklar: ['Hepsi yalnız maddesel bir ortamda yayılır.', 'Birimleri joule (J)’dür.', 'Birbirlerine dönüşebilirler.', 'Dönüşümlerde bir kısmı istenmeyen biçimlere geçer.', 'Oluşmaları için bir kaynak gerekir.'] }),
+    siklar: ['Hepsi yalnız maddesel bir ortamda yayılır.', 'Birimleri jouledür (J).', 'Birbirlerine dönüşebilirler.', 'Dönüşümlerde bir kısmı istenmeyen biçimlere geçer.', 'Oluşmaları için bir kaynak gerekir.'] }),
   soru(10, { metin: '<b>Açık uçlu.</b> Elektrikli bir otomobil, uzun bir yokuştan sabit hızla iniyor. Bu sırada fren pedalına basılınca motor jeneratör gibi çalışıyor ve bataryayı şarj ediyor. İniş sırasında 10 saniyede otomobilin mekanik enerjisi 200 000 J azalıyor, bataryada 120 000 J kimyasal enerji depolanıyor.',
     kok: 'a) Otomobil sabit hızla indiğine göre mekanik enerjinin hangi bileşeni azalmaktadır?<br>b) Frenleme sırasındaki enerji dönüşümünü zincir hâlinde yazınız.<br>c) Bataryaya depolanamayan enerji kaç J’dür, bu enerji hangi biçimlere dönüşmüş olabilir?' }),
 
@@ -241,8 +241,8 @@ ${sekil(fFener(140), 'Gündüz depola, akşam kullan.')}
     ['B', 'Barajdaki su yüksekte durduğu için enerjisi potansiyel enerjidir, yani mekanik enerji. Batarya, odun, ekmek ve kibrit başı kimyasal enerji depolar.'],
     ['C', 'Elif yükseldiği için potansiyel enerjisi arttı (I doğru). Kaslar çalışırken ısı açığa çıkar (II doğru). Enerji yok olmaz, bir kısmı ısıya geçer (III yanlış).'],
     ['E', 'Aynı sıcaklıkta daha çok madde, daha çok iç enerji demektir (I doğru). Cisimler ısı içermez, iç enerjiye sahiptir (II yanlış). Sıcaklıklar eşit olduğu için ısı alışverişi olmaz (III doğru).'],
-    ['A', '3 dk = 180 s. Harcanan elektrik enerjisi: $2000 \\times 180 = 360\\,000$ J. Suya aktarılmayan: <span style="white-space:nowrap">$360\\,000 - 300\\,000 = 60\\,000$ J.</span>'],
-    ['E', 'Elektrik motoru elektrik enerjisini mekanik enerjiye çevirir. Mekanik enerjiyi elektriğe çeviren jeneratördür.'],
+    ['B', '3 dk = 180 s. Çekilen elektrik enerjisi: $2000 \\times 180 = 360\\,000$ J. Suya aktarılmayan: <span style="white-space:nowrap">$360\\,000 - 300\\,000 = 60\\,000$ J.</span>'],
+    ['E', 'Akü şarj edilirken giren enerji elektriktir, akü bunu kimyasal enerji olarak depolar. Tabloda giren ve çıkan ters yazılmış. Dinamo ve rüzgâr türbini mekanik enerjiyi elektriğe çevirir.'],
     ['A', 'Işık boşlukta da yayılır. Ses ise maddesel ortam ister. Diğer dördü bütün enerji biçimleri için doğrudur.'],
     ['–', 'a) Hız sabit olduğu için kinetik enerji değişmez. Otomobil alçaldığı için <b>potansiyel enerji</b> azalır. b) Mekanik (tekerlek) → elektrik (motor jeneratör gibi çalışır) → kimyasal (batarya). c) $200\\,000 - 120\\,000 = 80\\,000$ J. Bu enerji motorda, kablolarda, frenlerde ve tekerleklerde ısıya, bir kısmı da sese dönüşmüştür.'],
   ]),
@@ -253,7 +253,7 @@ ${sekil(fFener(140), 'Gündüz depola, akşam kullan.')}
 const slaytlar = [
   { pill: '7 BİÇİM', h: 'Enerjinin <em>yedi</em> biçimi', lst: ['<b>Mekanik:</b> hareket ve konum', '<b>Kimyasal:</b> yakıt, besin, batarya', '<b>Nükleer:</b> atom çekirdeği', '<b>Isı:</b> sıcaktan soğuğa akan enerji', '<b>Işık</b>, <b>ses</b> ve <b>elektrik</b>'] },
   { pill: 'ENERJİ ZİNCİRİ', h: 'Enerjinin <em>izini</em> sür', svg: fScooter(), bd: 'Kimyasal → elektrik → mekanik. Yol boyunca bir kısmı <b>ısı ve ses</b> olur.' },
-  { pill: 'KAYBOLMAZ', h: 'Enerji <em>yok olmaz</em>, biçim değiştirir', svg: fMotor(), bd: 'Benzinli motorda 100 J’ün yalnız 30 J’ü arabayı yürütür. Gerisi çoğunlukla <b>ısıya</b> gider.' },
+  { pill: 'KAYBOLMAZ', h: 'Enerji <em>yok olmaz</em>, biçim değiştirir', svg: fMotor(), bd: 'Benzinli motorda 100 J’ün yalnız 30 J’ü arabayı yürütür. Gerisi <b>ısıya</b> gider, çok azı ses olur.' },
   { pill: 'IŞIK MI, SES Mİ?', h: 'Uzayda patlama <em>duyulmaz</em>', lst: ['İkisi de dalga hâlinde yayılır, enerji taşır.', '<span class="x">✗</span> Ses boşlukta yayılmaz, titreşecek molekül ister.', '<span class="v">✓</span> Işık boşlukta da yayılır.', 'Bu yüzden patlamayı görürsün ama duymazsın.'] },
   { pill: 'DEPOLAMA', h: 'Enerji nerede <em>saklanır?</em>', lst: ['<b>Kimyasal:</b> pil, yakıt, besin', '<b>Potansiyel (mekanik):</b> barajdaki su, kurulu yay', 'Işık ve ses doğrudan depolanmaz, başka biçime çevrilir.', 'Pil elektrik değil, <b>kimyasal enerji</b> depolar.'] },
   { pill: 'DİKKAT', h: 'En sık 3 <em>hata</em>', lst: ['<span class="x">✗</span> Enerji dönüşümde yok olur. <span class="v">✓</span> Isıya geçer, toplam korunur.', '<span class="x">✗</span> Isı ile sıcaklık aynıdır. <span class="v">✓</span> Isı aktarılan enerjidir (J).', '<span class="x">✗</span> Duran cismin mekanik enerjisi yoktur. <span class="v">✓</span> Yüksekteyse potansiyel enerjisi var.'] },
