@@ -31,7 +31,7 @@ button[disabled]{opacity:.6}
 (function(){
   var k=document.getElementById('k'),f=document.getElementById('f'),b=document.getElementById('b'),h=document.getElementById('h');
   k.addEventListener('input',function(){var v=k.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8);k.value=v.length>4?v.slice(0,4)+'-'+v.slice(4):v;h.textContent='';});
-  var q=new URLSearchParams(location.search).get('k');if(q){k.value=q;k.dispatchEvent(new Event('input'));}
+  var q=new URLSearchParams(location.search).get('k'),oto=false;if(q){k.value=q;k.dispatchEvent(new Event('input'));oto=k.value.replace(/[^A-Z0-9]/g,'').length===8;}
   f.addEventListener('submit',function(e){e.preventDefault();var v=k.value.replace(/[^A-Z0-9]/g,'');
     if(v.length!==8){h.textContent='Kod 8 haneli olmalı (ör. ABCD-EFGH).';return;}
     b.disabled=true;b.textContent='Kontrol ediliyor…';
@@ -39,5 +39,7 @@ button[disabled]{opacity:.6}
       if(!x.ok||!x.d.link)throw new Error(x.d.hata||'Bu kod bulunamadı.');location.href=x.d.link;
     }).catch(function(err){b.disabled=false;b.textContent='Kitabımı aç';h.textContent=err&&err.message&&!/fetch/i.test(err.message)?err.message:'Bağlantı kurulamadı. İnternetini kontrol edip yeniden dene.';});
   });
+  // E-postadaki kısa link (kod/?k=ABCD-EFGH): kod geçerli biçimdeyse kitap kendiliğinden açılır.
+  if(oto){b.textContent='Kitabın açılıyor…';f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event('submit',{cancelable:true}));}
 })();
 </script></body></html>
