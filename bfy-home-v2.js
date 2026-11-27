@@ -18,7 +18,7 @@
  show(saved||'',false);
  // Eski bağlantılar: #magaza ve türevleri yeni "kaynaklar" bölümüne gider.
  const eski={'ogrenci-kaynaklar':'magaza','neler-var':'magaza','bfy-vitrin':'magaza','yazili-haftasi':'magaza','diger-kaynaklar':'ucretsiz-kaynaklar','ogretmen-kaynaklar':'ogretmenler','ogretmen-kaynaklari':'ogretmenler'};
- function git(){const id=location.hash.slice(1);if(eski[id])document.getElementById(eski[id])?.scrollIntoView({block:'start'});if(id==='fizikce-turkce')location.replace('kaynak-magazasi.html#p-fizikce');if(id==='bfy-koleksiyon')location.replace('koleksiyon/');}
+ function git(){const id=location.hash.slice(1);if(eski[id])document.getElementById(eski[id])?.scrollIntoView({block:'start'});if(id==='fizikce-turkce')location.replace('kaynak-magazasi.html#p-fizikce');if(id==='bfy-koleksiyon')location.replace('https://lofux.com/benfizikyapamiyorum');}
  window.addEventListener('hashchange',git);git();
 })();
 
