@@ -163,6 +163,8 @@
     return modalEl;
   }
 
+  // Ürüne özel bağlantı: /yorum/?urun=Yapabilirim%2011 formu ürün adı yazılı açar (&rol=ogretmen: öğretmen seçili).
+  const linkten = (() => { try { const q = new URLSearchParams(location.search); return { urun: (q.get('urun') || '').replace(/[<>]/g, '').trim().slice(0, 60), rol: q.get('rol') === 'ogretmen' ? 'ogretmen' : '' }; } catch (e) { return { urun: '', rol: '' }; } })();
   function openModal(event) {
     opener = event.currentTarget;
     if (!sending) activePage = opener.closest('[data-bfy-yorumlar]').dataset.sayfa || 'ana';
@@ -170,6 +172,9 @@
     const form = modal.querySelector('form');
     if (form.hidden) { form.hidden = false; modal.querySelector('.bfy-rev-status').hidden = true; }
     if (!sending && activePage === 'hocakiti') modal.querySelector('#bfy-r-rol').value = 'ogretmen';
+    if (!sending && linkten.rol) modal.querySelector('#bfy-r-rol').value = linkten.rol;
+    const urunKutu = modal.querySelector('#bfy-r-urun');
+    if (!sending && linkten.urun && !urunKutu.value) urunKutu.value = linkten.urun;
     modal.hidden = false;
     modal.querySelector(sending ? '.bfy-rev-close' : '#bfy-r-ad').focus();
   }
