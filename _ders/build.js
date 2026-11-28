@@ -23,7 +23,10 @@ ${css}</style></head>
 <div id="kontrol"><button id="geri" aria-label="Geri">‹</button><span id="sayac"></span><button id="ileri" aria-label="İleri">›</button><button id="tam" aria-label="Tam ekran">⛶</button></div>
 <div id="ipucu">Parmakla dokun: cevaplar adım adım açılır. Kalemle (Apple Pencil) doğrudan yaz. Geri için ‹, tam ekran için ⛶.</div>
 <script>
-${js}</script>
+${js}</script>${d.betik ? `
+<script>
+(${d.betik.toString()})();
+</script>` : ''}
 </body></html>
 `;
   const cikis = path.join(KOK, 'sunum', d.slug + '.html');

@@ -67,6 +67,21 @@ function soru({ etiket = 'SORU', etiketRenk = 'A', kod = '', baslik, baglam = ''
   return `<section class="sl soru"${dold}><div class="ust"><span class="etk ${etiketRenk}">${etiket}</span><span class="kod">Soru ${SORU_NO}${kod ? `, ${kod}` : ''}</span></div><h2>${baslik}</h2><div class="gov">${govde}</div>${alt('Soru ' + SORU_NO)}</section>`;
 }
 
+// Canlı deney: solda açıklama, veri tablosu ve adım adım açılan sonuçlar; sağda canvas ve düğmeler.
+// Düğmeler data-etk taşır; motor.js dokunuşu onlara 'etk' olayıyla iletir. Çizimi dersin betik() fonksiyonu yapar.
+// maddeler: konu() ile aynı. sol: tablonun vb. HTML'i. sag: canvas + düğmeler HTML'i.
+function deney({ etiket = 'CANLI DENEY', kod = '', baslik, giris = '', sol = '', sag = '', maddeler = [] }) {
+  const m = maddeler.map(x => {
+    if (typeof x === 'string') return `<div class="nokta adim">${ns(x)}</div>`;
+    if (x.formul) return `<div class="formul adim"><div class="f">${ns(x.formul)}</div>${x.aciklama ? `<div class="fa">${ns(x.aciklama)}</div>` : ''}</div>`;
+    return `<div class="nokta adim">${ns(x.metin)}</div>`;
+  }).join('');
+  return `<section class="sl deney"><div class="ust"><span class="etk B">${etiket}</span>${kod ? `<span class="kod">${kod}</span>` : ''}</div><h2>${baslik}</h2><div class="gov"><div class="sol">${giris ? `<p class="ac">${ns(giris)}</p>` : ''}${sol}${m}</div><div class="sag">${sag}</div></div>${alt(baslik)}</section>`;
+}
+// Deney düğmeleri: k.secim('id', [['40','40 kg'], ...], seçiliSıra)  ve  k.dugme('id', 'Bırak', 'ik' | '')
+const secim = (id, sec, on = 0) => `<div class="secim" id="${id}">${sec.map((q, i) => `<button data-etk data-v="${q[0]}"${i === on ? ' class="on"' : ''}>${q[1]}</button>`).join('')}</div>`;
+const dugme = (id, yazi, tur = '') => `<button class="db ${tur}" id="${id}" data-etk>${yazi}</button>`;
+
 // Kapanış (koyu zemin): abone + site çağrısı
 function kapanis({ baslik = 'Bir sonraki derste görüşürüz.', vurgu = 'Abone olmayı unutma.', aciklama = 'Bu sunumun linki video açıklamasında. Konu notları ve daha fazla soru için: benfizikyapamiyorum.com' } = {}) {
   return `<section class="sl kapak"><h1>${baslik}<br><em>${vurgu}</em></h1>${P(aciklama)}
@@ -143,4 +158,4 @@ const kutu = (cx, cy, s = 70, yazi = '') => `<rect x="${cx - s / 2}" y="${cy - s
 // vektör adı üstünde ok: k.V('C') ya da k.V('C<sub>x</sub>')
 const V = (t) => `<span class="vk">${t}</span>`;
 
-module.exports = { V, basla, kapak, bolum, konu, soru, kapanis, ok, svg, kare, kutu, grafik };
+module.exports = { V, basla, kapak, bolum, konu, soru, deney, secim, dugme, kapanis, ok, svg, kare, kutu, grafik };

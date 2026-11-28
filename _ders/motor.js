@@ -44,11 +44,13 @@ const kalemMi=e=>e.pointerType==='pen'||(fare&&e.pointerType==='mouse');
 let duzT=0,duzA=null;
 function duzKur(q){clearTimeout(duzT);duzA=q;duzT=setTimeout(()=>{if(!akt||akt.s||akt.duz)return;const a=akt.p[0],b=akt.p[akt.p.length-1];if(Math.hypot(b[0]-a[0],b[1]-a[1])<40)return;akt.duz=true;akt.p=[a,duzUc(a,b)];inkCiz();},550);}
 function duzUc(a,b){const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),t=Math.atan2(dy,dx)*180/Math.PI,m=((t%90)+90)%90;if(m<5||m>85){const k=Math.round(t/90)*Math.PI/2;return[a[0]+L*Math.cos(k),a[1]+L*Math.sin(k)];}return b;}
-ink.addEventListener('pointerdown',e=>{if(!kalemMi(e))return;e.preventDefault();ink.setPointerCapture(e.pointerId);akt={r:renk,w:4.5,s:silgi,p:[nokta(e)]};(CIZ[si]=CIZ[si]||[]).push(akt);duzKur(akt.p[0]);inkCiz();});
+// Canlı deney düğmeleri (data-etk) kalem katmanının altında kalır: dokunuş ya da tıklama onlara iletilir.
+function etkBul(e){const el=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.closest&&x.closest('.sl.aktif [data-etk]'));return el?el.closest('[data-etk]'):null;}
+ink.addEventListener('pointerdown',e=>{if(!kalemMi(e)||etkBul(e))return;e.preventDefault();ink.setPointerCapture(e.pointerId);akt={r:renk,w:4.5,s:silgi,p:[nokta(e)]};(CIZ[si]=CIZ[si]||[]).push(akt);duzKur(akt.p[0]);inkCiz();});
 ink.addEventListener('pointermove',e=>{if(!akt||!kalemMi(e))return;e.preventDefault();const q=nokta(e);if(akt.duz){akt.p[1]=duzUc(akt.p[0],q);inkCiz();return;}const es=e.getCoalescedEvents?e.getCoalescedEvents():[];(es.length?es:[e]).forEach(c=>akt.p.push(nokta(c)));if(!duzA||Math.hypot(q[0]-duzA[0],q[1]-duzA[1])>14)duzKur(q);inkCiz();});
 const bitir=e=>{clearTimeout(duzT);if(akt){akt=null;yut=true;setTimeout(()=>yut=false,350);}};ink.addEventListener('pointerup',bitir);ink.addEventListener('pointercancel',bitir);
-ink.addEventListener('touchstart',e=>{if(e.touches[0]&&e.touches[0].touchType==='stylus')e.preventDefault();},{passive:false});
-sahne.addEventListener('click',e=>{if(yut||akt)return;ileri();});
+ink.addEventListener('touchstart',e=>{const t=e.touches[0];if(t&&t.touchType==='stylus'&&!etkBul(t))e.preventDefault();},{passive:false});
+sahne.addEventListener('click',e=>{if(yut||akt)return;const b=etkBul(e);if(b){if(!b.disabled)b.dispatchEvent(new CustomEvent('etk'));return;}ileri();});
 document.querySelectorAll('#kalembar [data-r]').forEach(b=>b.onclick=e=>{e.stopPropagation();renk=b.dataset.r;silgi=false;document.querySelectorAll('#kalembar button').forEach(x=>x.classList.toggle('on',x===b||(x.id==='fare'&&fare)));});
 document.getElementById('silgi').onclick=e=>{e.stopPropagation();silgi=!silgi;e.currentTarget.classList.toggle('on',silgi);};
 document.getElementById('temizle').onclick=e=>{e.stopPropagation();CIZ[si]=[];inkCiz();};
