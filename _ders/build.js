@@ -18,7 +18,7 @@ function derle(dosya) {
 ${css}</style></head>
 <body>
 <div id="sahne">${d.slaytlar.join('')}<canvas id="ink" width="1920" height="1080"></canvas></div>
-<div id="kalembar"><button data-r="#1d3b8f" class="on" style="background:#1d3b8f" aria-label="Mavi kalem"></button><button data-r="#c0392b" style="background:#c0392b" aria-label="Kırmızı kalem"></button><button data-r="#1e7a4f" style="background:#1e7a4f" aria-label="Yeşil kalem"></button><button id="silgi" aria-label="Silgi">⌫</button><button id="temizle" aria-label="Sayfayı temizle">🗑</button><button id="fare" aria-label="Fareyle çiz">✎</button></div>
+<div id="kalembar"><button data-r="#1d3b8f" class="on" style="background:#1d3b8f" aria-label="Mavi kalem"></button><button data-r="#c0392b" style="background:#c0392b" aria-label="Kırmızı kalem"></button><button data-r="#1e7a4f" style="background:#1e7a4f" aria-label="Yeşil kalem"></button><button id="geriAl" aria-label="Son çizimi geri al">↶</button><button id="silgi" aria-label="Silgi">⌫</button><button id="temizle" aria-label="Sayfayı temizle">🗑</button><button id="fare" aria-label="Fareyle çiz">✎</button></div>
 <div id="ilerleme"></div>
 <div id="kontrol"><button id="geri" aria-label="Geri">‹</button><span id="sayac"></span><button id="ileri" aria-label="İleri">›</button><button id="tam" aria-label="Tam ekran">⛶</button></div>
 <div id="ipucu">Parmakla dokun: cevaplar adım adım açılır. Kalemle (Apple Pencil) doğrudan yaz. Geri için ‹, tam ekran için ⛶.</div>

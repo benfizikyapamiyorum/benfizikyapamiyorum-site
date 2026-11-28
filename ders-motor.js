@@ -90,7 +90,7 @@
       mod(true);
       try { if (ac && !acik()) { var r2 = ac.call(kok); if (r2 && r2.catch) r2.catch(function () {}); } } catch (e) {}
     });
-    function degisti() { if (!acik() && FS && ac) mod(false); else { lb(); sigdir(); } }
+    function degisti() { lb(); if (FS) sigdirSonra(); else sigdir(); if (window.__kalemCiz) window.__kalemCiz(); }
     document.addEventListener("fullscreenchange", degisti); document.addEventListener("webkitfullscreenchange", degisti);
     window.addEventListener("resize", function () { lb(); if (FS) sigdirSonra(); });
   })();
@@ -150,9 +150,30 @@
     function hepsi() { kx.setTransform(1, 0, 0, 1, 0, 0); kx.globalCompositeOperation = "source-over"; kx.clearRect(0, 0, kat.width, kat.height); liste().forEach(cizgi); kx.globalCompositeOperation = "source-over"; }
     window.__kalemCiz = function () { requestAnimationFrame(boyut); };
     function basla(id, x, y) { olc(); var c = { r: renk, w: silgi ? 34 : kalin ? 7 : 3.5, sil: silgi, p: [x + window.scrollX, y + window.scrollY], t: Date.now(), x0: x, y0: y, m: 0 }; ciziyor[id] = c; liste().push(c); nokta(c, c.p[0], c.p[1]); return c; }
-    function ekle(id, x, y) { var c = ciziyor[id]; if (!c) return; c.p.push(x + window.scrollX, y + window.scrollY); c.m = Math.max(c.m, Math.abs(x - c.x0) + Math.abs(y - c.y0)); parca(c); }
+    /* kalem ~0,55 sn yerinde tutulursa çizgi düzleşir (yataya ve düşeye 5 derece kala oturur); uç, kalem kalkana kadar taşınabilir */
+    function duzUc(c, x, y) {
+      var dx = x - c.p[0], dy = y - c.p[1], L = Math.sqrt(dx * dx + dy * dy), t = Math.atan2(dy, dx) * 180 / Math.PI, m = ((t % 90) + 90) % 90;
+      if (m < 5 || m > 85) { var k = Math.round(t / 90) * Math.PI / 2; x = c.p[0] + L * Math.cos(k); y = c.p[1] + L * Math.sin(k); }
+      c.p[2] = x; c.p[3] = y;
+    }
+    function duzKur(c, x, y) {
+      clearTimeout(c.dt); c.ax = x; c.ay = y;
+      c.dt = setTimeout(function () {
+        if (c.bitti || c.sil || c.duz || c.p.length < 4) return;
+        var n = c.p.length, ex = c.p[n - 2], ey = c.p[n - 1], dx = ex - c.p[0], dy = ey - c.p[1];
+        if (dx * dx + dy * dy < 900) return;
+        c.duz = true; c.p.length = 2; duzUc(c, ex, ey); hepsi();
+      }, 550);
+    }
+    function ekle(id, x, y) {
+      var c = ciziyor[id]; if (!c) return; var px = x + window.scrollX, py = y + window.scrollY;
+      c.m = Math.max(c.m, Math.abs(x - c.x0) + Math.abs(y - c.y0));
+      if (c.duz) { duzUc(c, px, py); hepsi(); return; }
+      c.p.push(px, py); parca(c);
+      if (c.ax === undefined || Math.abs(px - c.ax) + Math.abs(py - c.ay) > 9) duzKur(c, px, py);
+    }
     function bitir(id, x, y, tikla) {
-      var c = ciziyor[id]; if (!c) return; delete ciziyor[id];
+      var c = ciziyor[id]; if (!c) return; delete ciziyor[id]; c.bitti = true; clearTimeout(c.dt);
       if (c.p.length > 4) { c.p.push(c.p[c.p.length - 2], c.p[c.p.length - 1]); }
       /* kalemle kısa dokunuş = tıklama (düğmelere kalemle de basılabilsin) */
       /* yalnız bir düğmenin üstüne kısa dokunuş tıklamadır; başka her yerde nokta kalır */

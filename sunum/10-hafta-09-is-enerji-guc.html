@@ -56,7 +56,7 @@ body.olcum *{transition:none!important;animation:none!important}
 #kontrol{position:fixed;right:14px;bottom:12px;display:flex;gap:6px;align-items:center;z-index:5;opacity:.35;transition:opacity .3s;font-family:'Plus Jakarta Sans',sans-serif}
 #kontrol:hover{opacity:1} #kontrol button{width:38px;height:38px;border-radius:10px;border:0;background:#173430;color:#fff;font-size:20px;cursor:pointer}
 #sayac{color:#cfe0d8;font-size:13px;min-width:56px;text-align:center}
-#ink{position:absolute;left:0;top:0;width:1920px;height:1080px;z-index:3;touch-action:manipulation}
+#ink{position:absolute;left:0;top:0;width:1920px;height:1080px;z-index:3;touch-action:none}
 #kalembar{position:fixed;right:14px;top:12px;display:flex;gap:6px;z-index:6;background:#ffffffcc;padding:6px;border-radius:14px;box-shadow:0 2px 10px #0002}
 #kalembar button{width:30px;height:30px;border-radius:50%;border:2px solid #fff;cursor:pointer;font-size:15px;line-height:1;background:#eee;color:#173430}
 #kalembar button.on{outline:3px solid #e9a774}
@@ -94,7 +94,7 @@ body.olcum *{transition:none!important;animation:none!important}
       <text x="38" y="266" font-size="24" font-weight="800" fill="#173430">LED lamba (6 adet)</text>
       <text x="38" y="300" font-size="24" font-weight="700" fill="#244f40">tanesi 10 W</text></g></svg></div></div><div class="sag mad"><div class="madde" data-m="0"><div class="mm"><span class="p">3 puan</span><b>a)</b>Isıtıcının bir günde harcadığı enerji kaç kWh ve kaç J’dür?</div><div class="cev adim" data-vurgu="isitici">E = P · t = 2 kW × 3 h = 6 kWh</div><div class="cev adim">6 × 3 600 000 J = 21 600 000 J</div><div class="cev adim son">6 kWh = 21 600 000 J</div></div><div class="madde" data-m="1"><div class="mm"><span class="p">4 puan</span><b>b)</b>“Gücü büyük olan cihaz her zaman daha çok enerji harcar.” önermesini saç kurutma makinesi ve lambalarla değerlendiriniz.</div><div class="cev adim" data-vurgu="kurutma">Saç kurutma: 2 kW × 0,1 h = 0,2 kWh  (6 dakika = 0,1 saat)</div><div class="cev adim" data-vurgu="led">Lambalar: 6 × 10 W = 60 W = 0,06 kW,  0,06 kW × 5 h = 0,3 kWh</div><div class="cev adim son">Önerme yanlış. Gücü çok küçük lambalar daha çok enerji harcadı, çünkü E = P · t.</div></div><div class="madde" data-m="2"><div class="mm"><span class="p">3 puan</span><b>c)</b>Bu üç cihazın 30 günde harcadığı toplam enerjiyi bulunuz. 1 kWh’nin bedeli 3 TL kabul edilirse ödenecek tutar ne olur?</div><div class="cev adim">Bir gün: 6 + 0,2 + 0,3 = 6,5 kWh</div><div class="cev adim">30 gün: 6,5 × 30 = 195 kWh</div><div class="cev adim son">195 kWh, 195 × 3 = 585 TL</div></div></div></div><div class="alt"><span>Ben Fizik Yapamıyorum, 10. sınıf, iş, enerji ve güç</span><span>Soru 2</span></div></section><section class="sl kapak"><h1>Güç: işin ne kadar hızlı yapıldığı.<br><em>Gelecek ders: enerji biçimleri.</em></h1><p>Bu sunumun linki video açıklamasında. Konu notları ve daha fazla soru için: benfizikyapamiyorum.com</p>
 <div class="alt"><span>Ben Fizik Yapamıyorum, Timur YILDIRIM</span><span>@benfizikyapamiyorum</span></div></section><canvas id="ink" width="1920" height="1080"></canvas></div>
-<div id="kalembar"><button data-r="#1d3b8f" class="on" style="background:#1d3b8f" aria-label="Mavi kalem"></button><button data-r="#c0392b" style="background:#c0392b" aria-label="Kırmızı kalem"></button><button data-r="#1e7a4f" style="background:#1e7a4f" aria-label="Yeşil kalem"></button><button id="silgi" aria-label="Silgi">⌫</button><button id="temizle" aria-label="Sayfayı temizle">🗑</button><button id="fare" aria-label="Fareyle çiz">✎</button></div>
+<div id="kalembar"><button data-r="#1d3b8f" class="on" style="background:#1d3b8f" aria-label="Mavi kalem"></button><button data-r="#c0392b" style="background:#c0392b" aria-label="Kırmızı kalem"></button><button data-r="#1e7a4f" style="background:#1e7a4f" aria-label="Yeşil kalem"></button><button id="geriAl" aria-label="Son çizimi geri al">↶</button><button id="silgi" aria-label="Silgi">⌫</button><button id="temizle" aria-label="Sayfayı temizle">🗑</button><button id="fare" aria-label="Fareyle çiz">✎</button></div>
 <div id="ilerleme"></div>
 <div id="kontrol"><button id="geri" aria-label="Geri">‹</button><span id="sayac"></span><button id="ileri" aria-label="İleri">›</button><button id="tam" aria-label="Tam ekran">⛶</button></div>
 <div id="ipucu">Parmakla dokun: cevaplar adım adım açılır. Kalemle (Apple Pencil) doğrudan yaz. Geri için ‹, tam ekran için ⛶.</div>
@@ -141,14 +141,20 @@ const ink=document.getElementById('ink'),cx=ink.getContext('2d'),CIZ={};let renk
 function inkCiz(){cx.clearRect(0,0,1920,1080);(CIZ[si]||[]).forEach(st=>{cx.globalCompositeOperation=st.s?'destination-out':'source-over';cx.strokeStyle=st.r;cx.lineWidth=st.s?28:st.w;cx.lineCap=cx.lineJoin='round';cx.beginPath();st.p.forEach((q,i)=>i?cx.lineTo(q[0],q[1]):cx.moveTo(q[0],q[1]));if(st.p.length===1)cx.lineTo(st.p[0][0]+.1,st.p[0][1]);cx.stroke();});cx.globalCompositeOperation='source-over';}
 function nokta(e){const r=ink.getBoundingClientRect();return[(e.clientX-r.left)*1920/r.width,(e.clientY-r.top)*1080/r.height];}
 const kalemMi=e=>e.pointerType==='pen'||(fare&&e.pointerType==='mouse');
-ink.addEventListener('pointerdown',e=>{if(!kalemMi(e))return;e.preventDefault();ink.setPointerCapture(e.pointerId);akt={r:renk,w:4.5,s:silgi,p:[nokta(e)]};(CIZ[si]=CIZ[si]||[]).push(akt);inkCiz();});
-ink.addEventListener('pointermove',e=>{if(!akt||!kalemMi(e))return;e.preventDefault();(e.getCoalescedEvents?e.getCoalescedEvents():[e]).forEach(c=>akt.p.push(nokta(c)));inkCiz();});
-const bitir=e=>{if(akt){akt=null;yut=true;setTimeout(()=>yut=false,350);}};ink.addEventListener('pointerup',bitir);ink.addEventListener('pointercancel',bitir);
+// Kalem ~0,55 sn yerinde tutulursa çizgi düzleşir (yataya ve düşeye 5 derece kala oturur); uç, kalem kalkana kadar taşınabilir.
+let duzT=0,duzA=null;
+function duzKur(q){clearTimeout(duzT);duzA=q;duzT=setTimeout(()=>{if(!akt||akt.s||akt.duz)return;const a=akt.p[0],b=akt.p[akt.p.length-1];if(Math.hypot(b[0]-a[0],b[1]-a[1])<40)return;akt.duz=true;akt.p=[a,duzUc(a,b)];inkCiz();},550);}
+function duzUc(a,b){const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy),t=Math.atan2(dy,dx)*180/Math.PI,m=((t%90)+90)%90;if(m<5||m>85){const k=Math.round(t/90)*Math.PI/2;return[a[0]+L*Math.cos(k),a[1]+L*Math.sin(k)];}return b;}
+ink.addEventListener('pointerdown',e=>{if(!kalemMi(e))return;e.preventDefault();ink.setPointerCapture(e.pointerId);akt={r:renk,w:4.5,s:silgi,p:[nokta(e)]};(CIZ[si]=CIZ[si]||[]).push(akt);duzKur(akt.p[0]);inkCiz();});
+ink.addEventListener('pointermove',e=>{if(!akt||!kalemMi(e))return;e.preventDefault();const q=nokta(e);if(akt.duz){akt.p[1]=duzUc(akt.p[0],q);inkCiz();return;}const es=e.getCoalescedEvents?e.getCoalescedEvents():[];(es.length?es:[e]).forEach(c=>akt.p.push(nokta(c)));if(!duzA||Math.hypot(q[0]-duzA[0],q[1]-duzA[1])>14)duzKur(q);inkCiz();});
+const bitir=e=>{clearTimeout(duzT);if(akt){akt=null;yut=true;setTimeout(()=>yut=false,350);}};ink.addEventListener('pointerup',bitir);ink.addEventListener('pointercancel',bitir);
 ink.addEventListener('touchstart',e=>{if(e.touches[0]&&e.touches[0].touchType==='stylus')e.preventDefault();},{passive:false});
 sahne.addEventListener('click',e=>{if(yut||akt)return;ileri();});
 document.querySelectorAll('#kalembar [data-r]').forEach(b=>b.onclick=e=>{e.stopPropagation();renk=b.dataset.r;silgi=false;document.querySelectorAll('#kalembar button').forEach(x=>x.classList.toggle('on',x===b||(x.id==='fare'&&fare)));});
 document.getElementById('silgi').onclick=e=>{e.stopPropagation();silgi=!silgi;e.currentTarget.classList.toggle('on',silgi);};
 document.getElementById('temizle').onclick=e=>{e.stopPropagation();CIZ[si]=[];inkCiz();};
+document.getElementById('geriAl').onclick=e=>{e.stopPropagation();(CIZ[si]||[]).pop();inkCiz();};
+addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key==='z'){e.preventDefault();(CIZ[si]||[]).pop();inkCiz();}});
 document.getElementById('fare').onclick=e=>{e.stopPropagation();fare=!fare;e.currentTarget.classList.toggle('on',fare);};
 
 document.getElementById('ileri').onclick=e=>{e.stopPropagation();ileri();};
